@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+set -u
+
+find_formattable_files() {
+  git ls-files --cached --exclude-standard --others \
+    | { grep -v '^vendor/' || true ; } \
+    | {
+      while read path ; do
+        if [ -f "${path}" ] ; then
+          printf '%s\n' "${path}"
+        fi
+      done
+   }
+}
+
+matching() {
+  local pattern="${1}"
+  grep -E "${pattern}" || true
+}
+
+find_formattable_files | matching '\.(c|cpp|h)$' | xargs clang-format -i

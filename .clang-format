@@ -1,0 +1,5 @@
+BasedOnStyle: Google
+
+IncludeBlocks: Merge
+IncludeCategories: [{Regex: '.*', Priority: 0}]
+SortIncludes: true

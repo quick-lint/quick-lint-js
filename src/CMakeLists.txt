@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+
+add_library(
+  quicklint-js-lib
+  add.cpp
+)
+target_include_directories(quicklint-js-lib PUBLIC .)
