@@ -81,6 +81,8 @@ class lexer {
   void skip() { this->parse_current_token(); }
 
  private:
+  void skip_whitespace();
+
   token last_token_;
   const char* input_;
 };

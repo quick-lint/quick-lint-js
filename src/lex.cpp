@@ -223,5 +223,13 @@ void lexer::parse_current_token() {
       assert(false);
       break;
   }
+
+  this->skip_whitespace();
+}
+
+void lexer::skip_whitespace() {
+  while (this->input_[0] == ' ') {
+    this->input_ += 1;
+  }
 }
 }  // namespace quicklint_js
