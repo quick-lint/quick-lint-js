@@ -1,4 +1,8 @@
+#include <algorithm>
+#include <iterator>
 #include <quicklint-js/lex.h>
+#include <string_view>
+#include <type_traits>
 
 #define QLJS_CASE_IDENTIFIER_START \
   case '$':                        \
@@ -69,6 +73,52 @@
   case '9'
 
 namespace quicklint_js {
+namespace {
+constexpr const char keywords[][11] = {
+    // clang-format off
+  "await",
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "export",
+  "extends",
+  "false",
+  "finally",
+  "for",
+  "function",
+  "if",
+  "import",
+  "in",
+  "instanceof",
+  "let",
+  "new",
+  "null",
+  "return",
+  "static",
+  "super",
+  "switch",
+  "this",
+  "throw",
+  "true",
+  "try",
+  "typeof",
+  "var",
+  "void",
+  "while",
+  "with",
+  "yield",
+    // clang-format on
+};
+}
+
 void lexer::parse_current_token() {
   switch (this->input_[0]) {
     case '\0':
@@ -83,13 +133,24 @@ void lexer::parse_current_token() {
       }
       break;
 
-    QLJS_CASE_IDENTIFIER_START:
-      this->last_token_.type = token_type::identifier;
+    QLJS_CASE_IDENTIFIER_START : {
+      const char *begin = this->input_;
       this->input_ += 1;
       while (this->is_identifier_character(this->input_[0])) {
         this->input_ += 1;
       }
+      const char *end = this->input_;
+      std::string_view identifier(begin, end - begin);
+      auto found_keyword =
+          std::find(std::begin(keywords), std::end(keywords), identifier);
+      if (found_keyword == std::end(keywords)) {
+        this->last_token_.type = token_type::identifier;
+      } else {
+        this->last_token_.type =
+            this->keyword_from_index(found_keyword - std::begin(keywords));
+      }
       break;
+    }
 
     case '(':
     case ')':
@@ -324,5 +385,11 @@ bool lexer::is_identifier_character(char c) {
     default:
       return false;
   }
+}
+
+token_type lexer::keyword_from_index(std::ptrdiff_t index) {
+  using token_type_int = std::underlying_type_t<token_type>;
+  return static_cast<token_type>(
+      static_cast<token_type_int>(token_type::first_keyword) + index);
 }
 }  // namespace quicklint_js

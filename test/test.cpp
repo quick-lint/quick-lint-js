@@ -26,6 +26,53 @@ TEST_CASE("lex identifiers") {
   // TODO(strager): Lex identifiers containing \u1234 or \u{1234}.
 }
 
+TEST_CASE("lex identifiers which look like keywords") {
+  check_single_token("ifelse", token_type::identifier);
+  check_single_token("IF", token_type::identifier);
+}
+
+TEST_CASE("lex keywords") {
+  check_single_token("await", token_type::_await);
+  check_single_token("break", token_type::_break);
+  check_single_token("case", token_type::_case);
+  check_single_token("catch", token_type::_catch);
+  check_single_token("class", token_type::_class);
+  check_single_token("const", token_type::_const);
+  check_single_token("continue", token_type::_continue);
+  check_single_token("debugger", token_type::_debugger);
+  check_single_token("default", token_type::_default);
+  check_single_token("delete", token_type::_delete);
+  check_single_token("do", token_type::_do);
+  check_single_token("else", token_type::_else);
+  check_single_token("export", token_type::_export);
+  check_single_token("extends", token_type::_extends);
+  check_single_token("false", token_type::_false);
+  check_single_token("finally", token_type::_finally);
+  check_single_token("for", token_type::_for);
+  check_single_token("function", token_type::_function);
+  check_single_token("if", token_type::_if);
+  check_single_token("import", token_type::_import);
+  check_single_token("in", token_type::_in);
+  check_single_token("instanceof", token_type::_instanceof);
+  check_single_token("let", token_type::_let);
+  check_single_token("new", token_type::_new);
+  check_single_token("null", token_type::_null);
+  check_single_token("return", token_type::_return);
+  check_single_token("static", token_type::_static);
+  check_single_token("super", token_type::_super);
+  check_single_token("switch", token_type::_switch);
+  check_single_token("this", token_type::_this);
+  check_single_token("throw", token_type::_throw);
+  check_single_token("true", token_type::_true);
+  check_single_token("try", token_type::_try);
+  check_single_token("typeof", token_type::_typeof);
+  check_single_token("var", token_type::_var);
+  check_single_token("void", token_type::_void);
+  check_single_token("while", token_type::_while);
+  check_single_token("with", token_type::_with);
+  check_single_token("yield", token_type::_yield);
+}
+
 TEST_CASE("lex single-character symbols") {
   check_single_token("+", token_type::plus);
   check_single_token("-", token_type::minus);

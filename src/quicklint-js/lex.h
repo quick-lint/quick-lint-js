@@ -2,6 +2,7 @@
 #define QUICKLINT_JS_LEX_H
 
 #include <cassert>
+#include <cstddef>
 
 namespace quicklint_js {
 enum class token_type {
@@ -34,6 +35,48 @@ enum class token_type {
   end_of_file,
   identifier,
   number,
+
+  // Keywords:
+  first_keyword,
+  _await = first_keyword,
+  _break,
+  _case,
+  _catch,
+  _class,
+  _const,
+  _continue,
+  _debugger,
+  _default,
+  _delete,
+  _do,
+  _else,
+  _export,
+  _extends,
+  _false,
+  _finally,
+  _for,
+  _function,
+  _if,
+  _import,
+  _in,
+  _instanceof,
+  _let,
+  _new,
+  _null,
+  _return,
+  _static,
+  _super,
+  _switch,
+  _this,
+  _throw,
+  _true,
+  _try,
+  _typeof,
+  _var,
+  _void,
+  _while,
+  _with,
+  _yield,
 
   // Symbols:
   ampersand_ampersand,
@@ -85,6 +128,7 @@ class lexer {
 
   static bool is_digit(char);
   static bool is_identifier_character(char);
+  static token_type keyword_from_index(std::ptrdiff_t);
 
   token last_token_;
   const char* input_;
