@@ -15,6 +15,55 @@ class parser {
     this->parse_let_bindings(v);
   }
 
+  template <class Visitor>
+  void parse_expression(Visitor &v) {
+    bool is_first_token = true;
+    bool last_token_was_operator = false;
+    token last_operator;
+    for (;;) {
+      switch (this->peek().type) {
+        case token_type::identifier:
+          v.visit_variable_use(this->peek().identifier_name());
+          this->lexer_.skip();
+          last_token_was_operator = false;
+          break;
+
+        case token_type::number:
+          this->lexer_.skip();
+          last_token_was_operator = false;
+          break;
+
+        case token_type::plus:
+          last_operator = this->peek();
+          this->lexer_.skip();
+          last_token_was_operator = true;
+          break;
+
+        case token_type::ampersand:
+        case token_type::circumflex:
+        case token_type::star:
+          if (is_first_token || last_token_was_operator) {
+            const token &bad_token =
+                last_token_was_operator ? last_operator : this->peek();
+            v.visit_error_missing_oprand_for_operator(
+                bad_token.range(this->original_input_));
+          }
+          last_operator = this->peek();
+          this->lexer_.skip();
+          last_token_was_operator = true;
+          break;
+
+        default:
+          if (last_token_was_operator) {
+            v.visit_error_missing_oprand_for_operator(
+                last_operator.range(this->original_input_));
+          }
+          return;
+      }
+      is_first_token = false;
+    }
+  }
+
  private:
   template <class Visitor>
   void parse_let_bindings(Visitor &v) {
@@ -76,12 +125,25 @@ struct visitor {
   };
   std::vector<visited_variable_declaration> variable_declarations;
 
+  void visit_variable_use(std::string_view name) {
+    this->variable_uses.emplace_back(visited_variable_use{std::string(name)});
+  }
+
+  struct visited_variable_use {
+    std::string name;
+  };
+  std::vector<visited_variable_use> variable_uses;
+
   void visit_error_invalid_binding_in_let_statement(source_range where) {
     this->errors.emplace_back(error_invalid_binding_in_let_statement{where});
   }
 
   void visit_error_let_with_no_bindings(source_range where) {
     this->errors.emplace_back(error_let_with_no_bindings{where});
+  }
+
+  void visit_error_missing_oprand_for_operator(source_range where) {
+    this->errors.emplace_back(error_missing_oprand_for_operator{where});
   }
 
   void visit_error_stray_comma_in_let_statement(source_range where) {
@@ -93,10 +155,11 @@ struct visitor {
   };
   struct error_invalid_binding_in_let_statement : error {};
   struct error_let_with_no_bindings : error {};
+  struct error_missing_oprand_for_operator : error {};
   struct error_stray_comma_in_let_statement : error {};
-  using visited_error = std::variant<error_invalid_binding_in_let_statement,
-                                     error_let_with_no_bindings,
-                                     error_stray_comma_in_let_statement>;
+  using visited_error = std::variant<
+      error_invalid_binding_in_let_statement, error_let_with_no_bindings,
+      error_missing_oprand_for_operator, error_stray_comma_in_let_statement>;
   std::vector<visited_error> errors;
 };
 
@@ -213,6 +276,100 @@ TEST_CASE("parse invalid let") {
     REQUIRE(error);
     CHECK(error->where.begin_offset() == 4);
     CHECK(error->where.end_offset() == 6);
+  }
+}
+
+TEST_CASE("parse math expression") {
+  for (const char *input : {"2", "2+2", "2^2", "2 + + 2"}) {
+    visitor v;
+    parser p(input);
+    p.parse_expression(v);
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("some_var");
+    p.parse_expression(v);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "some_var");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("some_var + some_other_var");
+    p.parse_expression(v);
+    REQUIRE(v.variable_uses.size() == 2);
+    CHECK(v.variable_uses[0].name == "some_var");
+    CHECK(v.variable_uses[1].name == "some_other_var");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("+ v");
+    p.parse_expression(v);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "v");
+    CHECK(v.errors.empty());
+  }
+}
+
+TEST_CASE("parse invalid math expression") {
+  {
+    visitor v;
+    parser p("2 +");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 1);
+    auto *error =
+        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 2);
+    CHECK(error->where.end_offset() == 3);
+  }
+
+  {
+    visitor v;
+    parser p("^ 2");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 1);
+    auto *error =
+        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 0);
+    CHECK(error->where.end_offset() == 1);
+  }
+
+  {
+    visitor v;
+    parser p("2 * * 2");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 1);
+    auto *error =
+        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 2);
+    CHECK(error->where.end_offset() == 3);
+  }
+
+  {
+    visitor v;
+    parser p("2 & & & 2");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 2);
+
+    auto *error =
+        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 2);
+    CHECK(error->where.end_offset() == 3);
+
+    error =
+        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[1]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 4);
+    CHECK(error->where.end_offset() == 5);
   }
 }
 }  // namespace
