@@ -124,7 +124,12 @@ std::string_view token::identifier_name() const noexcept {
   return std::string_view(this->begin, this->end - this->begin);
 }
 
+source_range token::range(const char* original_input) const noexcept {
+  return source_range(this->begin - original_input, this->end - original_input);
+}
+
 void lexer::parse_current_token() {
+  this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
     case '\0':
       this->last_token_.type = token_type::end_of_file;
@@ -139,7 +144,6 @@ void lexer::parse_current_token() {
       break;
 
     QLJS_CASE_IDENTIFIER_START : {
-      this->last_token_.begin = this->input_;
       this->input_ += 1;
       while (this->is_identifier_character(this->input_[0])) {
         this->input_ += 1;
@@ -362,6 +366,7 @@ void lexer::parse_current_token() {
       assert(false);
       break;
   }
+  this->last_token_.end = this->input_;
 
   this->skip_whitespace();
 }

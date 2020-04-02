@@ -110,8 +110,25 @@ enum class token_type {
   star_star_equal,
 };
 
+class source_range {
+ public:
+  using offset = std::size_t;
+
+  source_range(offset begin_offset, offset end_offset) noexcept
+      : begin_offset_(begin_offset), end_offset_(end_offset) {}
+
+  offset begin_offset() const noexcept { return this->begin_offset_; }
+  offset end_offset() const noexcept { return this->end_offset_; }
+
+ private:
+  offset begin_offset_;
+  offset end_offset_;
+};
+
 struct token {
   std::string_view identifier_name() const noexcept;
+
+  source_range range(const char* original_input) const noexcept;
 
   token_type type;
 
