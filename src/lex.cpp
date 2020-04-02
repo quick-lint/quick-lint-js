@@ -120,6 +120,7 @@ constexpr const char keywords[][11] = {
 }
 
 std::string_view token::identifier_name() const noexcept {
+  assert(this->type == token_type::identifier);
   return std::string_view(this->begin, this->end - this->begin);
 }
 
@@ -144,11 +145,11 @@ void lexer::parse_current_token() {
         this->input_ += 1;
       }
       this->last_token_.end = this->input_;
+      this->last_token_.type = token_type::identifier;
+
       auto found_keyword = std::find(std::begin(keywords), std::end(keywords),
                                      this->last_token_.identifier_name());
-      if (found_keyword == std::end(keywords)) {
-        this->last_token_.type = token_type::identifier;
-      } else {
+      if (found_keyword != std::end(keywords)) {
         this->last_token_.type =
             this->keyword_from_index(found_keyword - std::begin(keywords));
       }
