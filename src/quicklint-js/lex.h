@@ -83,6 +83,8 @@ class lexer {
  private:
   void skip_whitespace();
 
+  static bool is_identifier_character(char);
+
   token last_token_;
   const char* input_;
 };

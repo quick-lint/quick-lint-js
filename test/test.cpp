@@ -12,6 +12,14 @@ TEST_CASE("lex numbers") { check_single_token("2", token_type::number); }
 
 TEST_CASE("lex identifiers") {
   check_single_token("i", token_type::identifier);
+  check_single_token("_", token_type::identifier);
+  check_single_token("$", token_type::identifier);
+  check_single_token("id", token_type::identifier);
+  check_single_token("this_is_an_identifier", token_type::identifier);
+  check_single_token("MixedCaseIsAllowed", token_type::identifier);
+  check_single_token("ident$with$dollars", token_type::identifier);
+  check_single_token("digits0123456789", token_type::identifier);
+  // TODO(strager): Lex identifiers containing \u1234 or \u{1234}.
 }
 
 TEST_CASE("lex single-character symbols") {
