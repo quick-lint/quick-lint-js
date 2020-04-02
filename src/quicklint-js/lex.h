@@ -142,7 +142,7 @@ class lexer {
 
   void parse_current_token();
 
-  const token& peek() { return this->last_token_; }
+  const token& peek() const noexcept { return this->last_token_; }
 
   void skip() { this->parse_current_token(); }
 

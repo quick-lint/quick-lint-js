@@ -18,29 +18,28 @@ class parser {
  private:
   template <class Visitor>
   void parse_let_bindings(Visitor &v) {
-    token let = this->lexer_.peek();
+    token let = this->peek();
     this->lexer_.skip();
     bool first_binding = true;
     for (;;) {
       token comma;
       if (!first_binding) {
-        comma = this->lexer_.peek();
+        comma = this->peek();
         if (comma.type != token_type::comma) {
           break;
         }
         this->lexer_.skip();
       }
 
-      const token &t2 = this->lexer_.peek();
-      switch (t2.type) {
+      switch (this->peek().type) {
         case token_type::identifier:
-          v.visit_variable_declaration(t2.identifier_name());
+          v.visit_variable_declaration(this->peek().identifier_name());
           this->lexer_.skip();
           break;
         case token_type::_if:
         case token_type::number:
           v.visit_error_invalid_binding_in_let_statement(
-              t2.range(this->original_input_));
+              this->peek().range(this->original_input_));
           break;
         default:
           if (first_binding) {
@@ -55,10 +54,12 @@ class parser {
       first_binding = false;
     }
 
-    if (this->lexer_.peek().type == token_type::semicolon) {
+    if (this->peek().type == token_type::semicolon) {
       this->lexer_.skip();
     }
   }
+
+  const token &peek() const noexcept { return this->lexer_.peek(); }
 
   lexer lexer_;
   const char *original_input_;
