@@ -56,6 +56,18 @@
   case 'y':                        \
   case 'z'
 
+#define QLJS_CASE_DECIMAL_DIGIT \
+  case '0':                     \
+  case '1':                     \
+  case '2':                     \
+  case '3':                     \
+  case '4':                     \
+  case '5':                     \
+  case '6':                     \
+  case '7':                     \
+  case '8':                     \
+  case '9'
+
 namespace quicklint_js {
 void lexer::parse_current_token() {
   switch (this->input_[0]) {
@@ -63,9 +75,12 @@ void lexer::parse_current_token() {
       this->last_token_.type = token_type::end_of_file;
       break;
 
-    case '2':
+    QLJS_CASE_DECIMAL_DIGIT:
       this->last_token_.type = token_type::number;
       this->input_ += 1;
+      while (this->is_digit(this->input_[0])) {
+        this->input_ += 1;
+      }
       break;
 
     QLJS_CASE_IDENTIFIER_START:
@@ -292,19 +307,19 @@ void lexer::skip_whitespace() {
   }
 }
 
+bool lexer::is_digit(char c) {
+  switch (c) {
+  QLJS_CASE_DECIMAL_DIGIT:
+    return true;
+    default:
+      return false;
+  }
+}
+
 bool lexer::is_identifier_character(char c) {
   switch (c) {
   QLJS_CASE_IDENTIFIER_START:
-  case '0':
-  case '1':
-  case '2':
-  case '3':
-  case '4':
-  case '5':
-  case '6':
-  case '7':
-  case '8':
-  case '9':
+  QLJS_CASE_DECIMAL_DIGIT:
     return true;
     default:
       return false;

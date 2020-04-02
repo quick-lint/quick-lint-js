@@ -8,7 +8,11 @@ void check_single_token(const char* input, token_type expected_token_type);
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types);
 
-TEST_CASE("lex numbers") { check_single_token("2", token_type::number); }
+TEST_CASE("lex numbers") {
+  check_single_token("0", token_type::number);
+  check_single_token("2", token_type::number);
+  check_single_token("42", token_type::number);
+}
 
 TEST_CASE("lex identifiers") {
   check_single_token("i", token_type::identifier);
