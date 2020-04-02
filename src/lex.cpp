@@ -119,6 +119,10 @@ constexpr const char keywords[][11] = {
 };
 }
 
+std::string_view token::identifier_name() const noexcept {
+  return std::string_view(this->begin, this->end - this->begin);
+}
+
 void lexer::parse_current_token() {
   switch (this->input_[0]) {
     case '\0':
@@ -134,15 +138,14 @@ void lexer::parse_current_token() {
       break;
 
     QLJS_CASE_IDENTIFIER_START : {
-      const char *begin = this->input_;
+      this->last_token_.begin = this->input_;
       this->input_ += 1;
       while (this->is_identifier_character(this->input_[0])) {
         this->input_ += 1;
       }
-      const char *end = this->input_;
-      std::string_view identifier(begin, end - begin);
-      auto found_keyword =
-          std::find(std::begin(keywords), std::end(keywords), identifier);
+      this->last_token_.end = this->input_;
+      auto found_keyword = std::find(std::begin(keywords), std::end(keywords),
+                                     this->last_token_.identifier_name());
       if (found_keyword == std::end(keywords)) {
         this->last_token_.type = token_type::identifier;
       } else {

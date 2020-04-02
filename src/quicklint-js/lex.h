@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <string_view>
 
 namespace quicklint_js {
 enum class token_type {
@@ -110,7 +111,12 @@ enum class token_type {
 };
 
 struct token {
+  std::string_view identifier_name() const noexcept;
+
   token_type type;
+
+  const char* begin;
+  const char* end;
 };
 
 class lexer {
