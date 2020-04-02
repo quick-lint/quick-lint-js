@@ -20,8 +20,19 @@ class parser {
     bool is_first_token = true;
     bool last_token_was_operator = false;
     token last_operator;
+    std::vector<token> left_parens;
     for (;;) {
       switch (this->peek().type) {
+        case token_type::left_paren:
+          left_parens.emplace_back(this->peek());
+          this->lexer_.skip();
+          break;
+
+        case token_type::right_paren:
+          left_parens.pop_back();
+          this->lexer_.skip();
+          break;
+
         case token_type::identifier:
           v.visit_variable_use(this->peek().identifier_name());
           this->lexer_.skip();
@@ -57,6 +68,10 @@ class parser {
           if (last_token_was_operator) {
             v.visit_error_missing_oprand_for_operator(
                 last_operator.range(this->original_input_));
+          }
+          for (const token &left_paren : left_parens) {
+            v.visit_error_unmatched_parenthesis(
+                left_paren.range(this->original_input_));
           }
           return;
       }
@@ -150,6 +165,10 @@ struct visitor {
     this->errors.emplace_back(error_stray_comma_in_let_statement{where});
   }
 
+  void visit_error_unmatched_parenthesis(source_range where) {
+    this->errors.emplace_back(error_unmatched_parenthesis{where});
+  }
+
   struct error {
     source_range where;
   };
@@ -157,9 +176,11 @@ struct visitor {
   struct error_let_with_no_bindings : error {};
   struct error_missing_oprand_for_operator : error {};
   struct error_stray_comma_in_let_statement : error {};
+  struct error_unmatched_parenthesis : error {};
   using visited_error = std::variant<
       error_invalid_binding_in_let_statement, error_let_with_no_bindings,
-      error_missing_oprand_for_operator, error_stray_comma_in_let_statement>;
+      error_missing_oprand_for_operator, error_stray_comma_in_let_statement,
+      error_unmatched_parenthesis>;
   std::vector<visited_error> errors;
 };
 
@@ -280,7 +301,8 @@ TEST_CASE("parse invalid let") {
 }
 
 TEST_CASE("parse math expression") {
-  for (const char *input : {"2", "2+2", "2^2", "2 + + 2"}) {
+  for (const char *input : {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)"}) {
+    INFO("input = " << input);
     visitor v;
     parser p(input);
     p.parse_expression(v);
@@ -370,6 +392,36 @@ TEST_CASE("parse invalid math expression") {
     REQUIRE(error);
     CHECK(error->where.begin_offset() == 4);
     CHECK(error->where.end_offset() == 5);
+  }
+
+  {
+    visitor v;
+    parser p("2 * (3 + 4");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 1);
+    auto *error =
+        std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 4);
+    CHECK(error->where.end_offset() == 5);
+  }
+
+  {
+    visitor v;
+    parser p("2 * (3 + (4");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 2);
+
+    auto *error =
+        std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 4);
+    CHECK(error->where.end_offset() == 5);
+
+    error = std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[1]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 9);
+    CHECK(error->where.end_offset() == 10);
   }
 }
 }  // namespace
