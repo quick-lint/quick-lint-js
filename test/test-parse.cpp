@@ -301,7 +301,8 @@ TEST_CASE("parse invalid let") {
 }
 
 TEST_CASE("parse math expression") {
-  for (const char *input : {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)"}) {
+  for (const char *input :
+       {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {
     INFO("input = " << input);
     visitor v;
     parser p(input);
