@@ -30,8 +30,6 @@ class parser {
 
     std::optional<token> last_operator;
 
-    std::vector<token> left_parens;
-
     for (;;) {
       switch (this->peek().type) {
         case token_type::left_paren: {
@@ -104,9 +102,6 @@ class parser {
         done:
           if (last_operator.has_value()) {
             v.visit_error_missing_oprand_for_operator(last_operator->span());
-          }
-          for (const token &left_paren : left_parens) {
-            v.visit_error_unmatched_parenthesis(left_paren.span());
           }
           return;
       }
