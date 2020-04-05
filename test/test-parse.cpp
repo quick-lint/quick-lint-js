@@ -27,18 +27,20 @@ class parser {
 
     for (;;) {
       switch (this->peek().type) {
-        case token_type::left_paren:
-          left_parens.emplace_back(this->peek());
+        case token_type::left_paren: {
+          token left_paren = this->peek();
           this->lexer_.skip();
-          allow_identifier = true;
-          break;
-
-        case token_type::right_paren:
-          left_parens.pop_back();
-          this->lexer_.skip();
+          this->parse_expression(v);
+          if (this->peek().type == token_type::right_paren) {
+            this->lexer_.skip();
+          } else {
+            v.visit_error_unmatched_parenthesis(
+                left_paren.range(this->original_input_));
+          }
+          last_token_was_operator = false;
           allow_identifier = false;
-          allow_binary_operator = true;
           break;
+        }
 
         case token_type::identifier:
           if (!allow_identifier) {
@@ -83,6 +85,7 @@ class parser {
           allow_identifier = true;
           break;
 
+        case token_type::right_paren:
         default:
           if (last_token_was_operator) {
             v.visit_error_missing_oprand_for_operator(
@@ -420,6 +423,17 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
+    parser p("(2 *)");
+    p.parse_expression(v);
+    REQUIRE(v.errors.size() == 1);
+    auto *error =
+        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
+    REQUIRE(error);
+    CHECK(error->where.begin_offset() == 3);
+    CHECK(error->where.end_offset() == 4);
+  }
+  {
+    visitor v;
     parser p("2 * (3 + 4");
     p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
@@ -439,13 +453,13 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 5);
+    CHECK(error->where.begin_offset() == 9);
+    CHECK(error->where.end_offset() == 10);
 
     error = std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[1]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 9);
-    CHECK(error->where.end_offset() == 10);
+    CHECK(error->where.begin_offset() == 4);
+    CHECK(error->where.end_offset() == 5);
   }
 
   {
