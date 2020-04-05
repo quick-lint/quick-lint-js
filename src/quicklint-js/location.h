@@ -47,6 +47,6 @@ class locator {
  private:
   const char* input_;
 };
-}
+}  // namespace quicklint_js
 
 #endif
