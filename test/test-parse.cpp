@@ -68,6 +68,11 @@ class parser {
           allow_identifier = true;
           break;
 
+        case token_type::dot:
+          this->lexer_.skip();
+          this->lexer_.skip();
+          break;
+
         case token_type::ampersand:
         case token_type::circumflex:
         case token_type::comma:
@@ -496,6 +501,17 @@ TEST_CASE("parse function calls") {
     CHECK(v.variable_uses[2].name == "y");
     CHECK(v.errors.empty());
   }
+
+  {
+    visitor v;
+    parser p("o.f(x, y)");
+    p.parse_expression(v);
+    REQUIRE(v.variable_uses.size() == 3);
+    CHECK(v.variable_uses[0].name == "o");
+    CHECK(v.variable_uses[1].name == "x");
+    CHECK(v.variable_uses[2].name == "y");
+    CHECK(v.errors.empty());
+  }
 }
 
 TEST_CASE("parse invalid function calls") {
@@ -514,6 +530,17 @@ TEST_CASE("parse invalid function calls") {
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "x");
     CHECK(v.variable_uses[1].name == "f");
+  }
+}
+
+TEST_CASE("parse property lookup: variable.property") {
+  {
+    visitor v;
+    parser p("some_var.some_property");
+    p.parse_expression(v);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "some_var");
+    CHECK(v.errors.empty());
   }
 }
 }  // namespace
