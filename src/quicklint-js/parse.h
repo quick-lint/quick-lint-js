@@ -14,7 +14,9 @@ struct expression_options {
 class parser {
  public:
   explicit parser(const char *input, error_reporter *error_reporter)
-      : lexer_(input), locator_(input), error_reporter_(error_reporter) {}
+      : lexer_(input, error_reporter),
+        locator_(input),
+        error_reporter_(error_reporter) {}
 
   quicklint_js::locator &locator() noexcept { return this->locator_; }
 

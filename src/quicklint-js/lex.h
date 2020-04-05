@@ -7,6 +7,8 @@
 #include <string_view>
 
 namespace quicklint_js {
+class error_reporter;
+
 enum class token_type {
   // Single-character symbols:
   ampersand = '&',
@@ -137,7 +139,10 @@ struct token {
 
 class lexer {
  public:
-  lexer(const char* input) : input_(input) { this->parse_current_token(); }
+  explicit lexer(const char* input, error_reporter* error_reporter) noexcept
+      : input_(input), error_reporter_(error_reporter) {
+    this->parse_current_token();
+  }
 
   void parse_current_token();
 
@@ -154,6 +159,7 @@ class lexer {
 
   token last_token_;
   const char* input_;
+  error_reporter* error_reporter_;
 };
 }  // namespace quicklint_js
 

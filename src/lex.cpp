@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
 #include <string_view>
 #include <type_traits>
@@ -330,11 +331,13 @@ retry:
       } else if (this->input_[1] == '*') {
         const char* comment_end = std::strstr(this->input_ + 2, "*/");
         if (comment_end == nullptr) {
-          // TODO(strager): Report an error if /* has no matching */.
-          throw "not implemented";
+          this->error_reporter_->report_error_unclosed_block_comment(
+              source_code_span(&this->input_[0], &this->input_[2]));
+          this->input_ += std::strlen(this->input_);
+        } else {
+          this->input_ = comment_end + 2;
+          this->skip_whitespace();
         }
-        this->input_ = comment_end + 2;
-        this->skip_whitespace();
         goto retry;
       } else {
         this->last_token_.type = token_type::slash;

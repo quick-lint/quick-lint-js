@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 #include <initializer_list>
 #include <iostream>
+#include <quicklint-js/error-collector.h>
 #include <quicklint-js/lex.h>
+#include <quicklint-js/location.h>
 #include <string_view>
 
 namespace quicklint_js {
@@ -18,6 +20,18 @@ TEST_CASE("lex block comments") {
   check_single_token("/* comment /*/ hi", "hi");
   check_single_token("/* not /* nested */ ident", "ident");
   check_single_token("/**/", token_type::end_of_file);
+
+  {
+    error_collector v;
+    const char* input = "hello /* unterminated comment ";
+    lexer l(input, &v);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+    CHECK(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_block_comment);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 6);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 8);
+  }
 }
 
 TEST_CASE("lex numbers") {
@@ -160,7 +174,7 @@ TEST_CASE("lex symbols separated by whitespace") {
 }
 
 void check_single_token(const char* input, token_type expected_token_type) {
-  lexer l(input);
+  lexer l(input, &null_error_reporter::instance);
   CHECK(l.peek().type == expected_token_type);
   l.skip();
   CHECK(l.peek().type == token_type::end_of_file);
@@ -168,7 +182,7 @@ void check_single_token(const char* input, token_type expected_token_type) {
 
 void check_single_token(const char* input,
                         std::string_view expected_identifier_name) {
-  lexer l(input);
+  lexer l(input, &null_error_reporter::instance);
   CHECK(l.peek().type == token_type::identifier);
   CHECK(l.peek().identifier_name().string_view() == expected_identifier_name);
   l.skip();
@@ -177,7 +191,7 @@ void check_single_token(const char* input,
 
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types) {
-  lexer l(input);
+  lexer l(input, &null_error_reporter::instance);
   for (token_type expected_token_type : expected_token_types) {
     CHECK(l.peek().type == expected_token_type);
     l.skip();
