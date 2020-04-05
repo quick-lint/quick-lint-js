@@ -1,6 +1,7 @@
 #ifndef QUICKLINT_JS_ERROR_H
 #define QUICKLINT_JS_ERROR_H
 
+#include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
 
 namespace quicklint_js {
@@ -15,6 +16,8 @@ class error_reporter {
       source_code_span where) = 0;
   virtual void report_error_unexpected_identifier(source_code_span where) = 0;
   virtual void report_error_unmatched_parenthesis(source_code_span where) = 0;
+  virtual void report_error_variable_used_before_declaration(
+      identifier name) = 0;
 };
 }  // namespace quicklint_js
 

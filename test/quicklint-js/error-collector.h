@@ -36,7 +36,7 @@ struct error_collector : public error_reporter {
     this->errors.emplace_back(error{error_unmatched_parenthesis, where});
   }
 
-  void visit_error_variable_used_before_declaration(identifier name) {
+  void report_error_variable_used_before_declaration(identifier name) override {
     this->errors.emplace_back(
         error{error_variable_used_before_declaration, name.span()});
   }
