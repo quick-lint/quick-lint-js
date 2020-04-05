@@ -147,6 +147,8 @@ class identifier {
  public:
   explicit identifier(source_code_span span) noexcept : span_(span) {}
 
+  source_code_span span() const noexcept { return this->span_; }
+
   std::string_view string_view() const noexcept {
     return this->span_.string_view();
   }
