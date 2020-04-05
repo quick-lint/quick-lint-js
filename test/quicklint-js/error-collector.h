@@ -34,6 +34,12 @@ struct error_collector : public error_reporter {
         error{error_unclosed_block_comment, comment_open});
   }
 
+  void report_error_unclosed_string_literal(
+      source_code_span string_literal) override {
+    this->errors.emplace_back(
+        error{error_unclosed_string_literal, string_literal});
+  }
+
   void report_error_unexpected_identifier(source_code_span where) override {
     this->errors.emplace_back(error{error_unexpected_identifier, where});
   }
@@ -53,6 +59,7 @@ struct error_collector : public error_reporter {
     error_missing_oprand_for_operator,
     error_stray_comma_in_let_statement,
     error_unclosed_block_comment,
+    error_unclosed_string_literal,
     error_unexpected_identifier,
     error_unmatched_parenthesis,
     error_variable_used_before_declaration,

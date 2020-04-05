@@ -391,6 +391,52 @@ retry:
       }
       break;
 
+    case '"':
+    case '\'': {
+      char opening_quote = this->input_[0];
+
+      const char* c = &this->input_[1];
+      for (;;) {
+        switch (*c) {
+          case '\0':
+            // TODO(strager): Support other kinds of line terminators.
+          case '\n':
+            this->error_reporter_->report_error_unclosed_string_literal(
+                source_code_span(&this->input_[0], c));
+            goto done;
+
+          case '\\':
+            ++c;
+            switch (*c) {
+              case '\0':
+                this->error_reporter_->report_error_unclosed_string_literal(
+                    source_code_span(&this->input_[0], c));
+                goto done;
+              default:
+                ++c;
+                break;
+            }
+            break;
+
+          case '"':
+          case '\'':
+            if (*c == opening_quote) {
+              ++c;
+              goto done;
+            }
+            break;
+
+          default:
+            ++c;
+            break;
+        }
+      }
+    done:
+      this->last_token_.type = token_type::string;
+      this->input_ = c;
+      break;
+    }
+
     default:
       assert(false);
       break;
@@ -401,7 +447,7 @@ retry:
 }
 
 void lexer::skip_whitespace() {
-  while (this->input_[0] == ' ') {
+  while (this->input_[0] == ' ' || this->input_[0] == '\n') {
     this->input_ += 1;
   }
 }

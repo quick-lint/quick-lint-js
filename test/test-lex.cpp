@@ -40,6 +40,75 @@ TEST_CASE("lex numbers") {
   check_single_token("42", token_type::number);
 }
 
+TEST_CASE("lex strings") {
+  check_single_token(R"('hello')", token_type::string);
+  check_single_token(R"("hello")", token_type::string);
+  check_single_token(R"("hello\"world")", token_type::string);
+  check_single_token(R"('hello\'world')", token_type::string);
+
+  {
+    error_collector v;
+    const char* input = R"("unterminated)";
+    lexer l(input, &v);
+    CHECK(l.peek().type == token_type::string);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_string_literal);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 13);
+  }
+
+  {
+    error_collector v;
+    const char* input = "'unterminated\nhello";
+    lexer l(input, &v);
+    CHECK(l.peek().type == token_type::string);
+    l.skip();
+    CHECK(l.peek().type == token_type::identifier);
+    CHECK(l.peek().identifier_name().string_view() == "hello");
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_string_literal);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 13);
+  }
+
+  {
+    error_collector v;
+    const char* input = "'unterminated\\";
+    lexer l(input, &v);
+    CHECK(l.peek().type == token_type::string);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_string_literal);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 14);
+  }
+
+  // TODO(strager): Lex line continuations in string literals. For example:
+  //
+  // "hello\   (backslash followed by end of line)
+  // world"
+
+  // TODO(strager): Report invalid hex escape squences. For example:
+  //
+  // "hello\x1qworld"
+  // '\x'
+
+  // TODO(strager): Report invalid unicode escape sequences. For example:
+  //
+  // "hello\u"
+  // "hello\u{110000}"
+
+  // TODO(strager): Report octal escape sequences in strict mode.
+
+  // TODO(strager): Report invalid octal escape sequences in non-strict mode.
+}
+
 TEST_CASE("lex identifiers") {
   check_single_token("i", token_type::identifier);
   check_single_token("_", token_type::identifier);

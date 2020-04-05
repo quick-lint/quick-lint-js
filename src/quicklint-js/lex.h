@@ -39,6 +39,7 @@ enum class token_type {
   end_of_file,
   identifier,
   number,
+  string,
 
   // Keywords:
   first_keyword,
