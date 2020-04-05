@@ -12,6 +12,14 @@ void check_single_token(const char* input,
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types);
 
+TEST_CASE("lex block comments") {
+  check_single_token("/* */ hello", "hello");
+  check_single_token("/*/ comment */ hi", "hi");
+  check_single_token("/* comment /*/ hi", "hi");
+  check_single_token("/* not /* nested */ ident", "ident");
+  check_single_token("/**/", token_type::end_of_file);
+}
+
 TEST_CASE("lex numbers") {
   check_single_token("0", token_type::number);
   check_single_token("2", token_type::number);

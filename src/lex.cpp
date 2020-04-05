@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstring>
 #include <iterator>
 #include <quicklint-js/lex.h>
 #include <string_view>
@@ -141,6 +142,7 @@ source_code_span token::span() const noexcept {
 }
 
 void lexer::parse_current_token() {
+retry:
   this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
     case '\0':
@@ -325,6 +327,15 @@ void lexer::parse_current_token() {
       if (this->input_[1] == '=') {
         this->last_token_.type = token_type::slash_equal;
         this->input_ += 2;
+      } else if (this->input_[1] == '*') {
+        const char* comment_end = std::strstr(this->input_ + 2, "*/");
+        if (comment_end == nullptr) {
+          // TODO(strager): Report an error if /* has no matching */.
+          throw "not implemented";
+        }
+        this->input_ = comment_end + 2;
+        this->skip_whitespace();
+        goto retry;
       } else {
         this->last_token_.type = token_type::slash;
         this->input_ += 1;
