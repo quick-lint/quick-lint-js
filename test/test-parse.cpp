@@ -1,4 +1,5 @@
 #include <doctest/doctest.h>
+#include <optional>
 #include <quicklint-js/lex.h>
 #include <string>
 #include <string_view>
@@ -27,8 +28,7 @@ class parser {
     bool allow_binary_operator = false;
     bool allow_identifier = true;
 
-    bool last_token_was_operator = false;
-    token last_operator;
+    std::optional<token> last_operator;
 
     std::vector<token> left_parens;
 
@@ -43,7 +43,7 @@ class parser {
           } else {
             v.visit_error_unmatched_parenthesis(left_paren.span());
           }
-          last_token_was_operator = false;
+          last_operator = std::nullopt;
           allow_identifier = false;
           break;
         }
@@ -54,21 +54,20 @@ class parser {
           }
           v.visit_variable_use(this->peek().identifier_name());
           this->lexer_.skip();
-          last_token_was_operator = false;
+          last_operator = std::nullopt;
           allow_binary_operator = true;
           allow_identifier = false;
           break;
 
         case token_type::number:
           this->lexer_.skip();
-          last_token_was_operator = false;
+          last_operator = std::nullopt;
           allow_binary_operator = true;
           break;
 
         case token_type::plus:
           last_operator = this->peek();
           this->lexer_.skip();
-          last_token_was_operator = true;
           allow_binary_operator = false;
           allow_identifier = true;
           break;
@@ -91,12 +90,11 @@ class parser {
         parse_binary_operator:
           if (!allow_binary_operator) {
             const token &bad_token =
-                last_token_was_operator ? last_operator : this->peek();
+                last_operator.has_value() ? *last_operator : this->peek();
             v.visit_error_missing_oprand_for_operator(bad_token.span());
           }
           last_operator = this->peek();
           this->lexer_.skip();
-          last_token_was_operator = true;
           allow_binary_operator = false;
           allow_identifier = true;
           break;
@@ -104,8 +102,8 @@ class parser {
         case token_type::right_paren:
         default:
         done:
-          if (last_token_was_operator) {
-            v.visit_error_missing_oprand_for_operator(last_operator.span());
+          if (last_operator.has_value()) {
+            v.visit_error_missing_oprand_for_operator(last_operator->span());
           }
           for (const token &left_paren : left_parens) {
             v.visit_error_unmatched_parenthesis(left_paren.span());
