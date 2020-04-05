@@ -125,8 +125,26 @@ class source_range {
   offset end_offset_;
 };
 
+class source_code_span {
+ public:
+  explicit source_code_span(const char* begin, const char* end) noexcept
+      : begin_(begin), end_(end) {}
+
+  const char* begin() const noexcept { return this->begin_; }
+
+  const char* end() const noexcept { return this->end_; }
+
+  std::string_view string_view() const noexcept {
+    return std::string_view(this->begin(), this->end() - this->begin());
+  }
+
+ private:
+  const char* begin_;
+  const char* end_;
+};
+
 struct token {
-  std::string_view identifier_name() const noexcept;
+  source_code_span identifier_name() const noexcept;
 
   source_range range(const char* original_input) const noexcept;
 

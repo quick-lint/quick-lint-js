@@ -2,12 +2,13 @@
 #include <initializer_list>
 #include <iostream>
 #include <quicklint-js/lex.h>
+#include <string_view>
 
 namespace quicklint_js {
 namespace {
 void check_single_token(const char* input, token_type expected_token_type);
 void check_single_token(const char* input,
-                        const char* expected_identifier_name);
+                        std::string_view expected_identifier_name);
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types);
 
@@ -158,10 +159,10 @@ void check_single_token(const char* input, token_type expected_token_type) {
 }
 
 void check_single_token(const char* input,
-                        const char* expected_identifier_name) {
+                        std::string_view expected_identifier_name) {
   lexer l(input);
   CHECK(l.peek().type == token_type::identifier);
-  CHECK(l.peek().identifier_name() == expected_identifier_name);
+  CHECK(l.peek().identifier_name().string_view() == expected_identifier_name);
   l.skip();
   CHECK(l.peek().type == token_type::end_of_file);
 }

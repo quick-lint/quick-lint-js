@@ -119,9 +119,17 @@ constexpr const char keywords[][11] = {
 };
 }
 
-std::string_view token::identifier_name() const noexcept {
+bool operator==(source_code_span x, std::string_view y) noexcept {
+  return x.string_view() == y;
+}
+
+bool operator!=(source_code_span x, std::string_view y) noexcept {
+  return !(x == y);
+}
+
+source_code_span token::identifier_name() const noexcept {
   assert(this->type == token_type::identifier);
-  return std::string_view(this->begin, this->end - this->begin);
+  return source_code_span(this->begin, this->end);
 }
 
 source_range token::range(const char* original_input) const noexcept {
@@ -151,8 +159,11 @@ void lexer::parse_current_token() {
       this->last_token_.end = this->input_;
       this->last_token_.type = token_type::identifier;
 
-      auto found_keyword = std::find(std::begin(keywords), std::end(keywords),
-                                     this->last_token_.identifier_name());
+      source_code_span identifier_name = this->last_token_.identifier_name();
+      auto found_keyword = std::find_if(
+          std::begin(keywords), std::end(keywords), [&](const char* keyword) {
+            return identifier_name.string_view() == keyword;
+          });
       if (found_keyword != std::end(keywords)) {
         this->last_token_.type =
             this->keyword_from_index(found_keyword - std::begin(keywords));
