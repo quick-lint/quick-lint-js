@@ -39,7 +39,8 @@ class parser {
           if (this->peek().type == token_type::right_paren) {
             this->lexer_.skip();
           } else {
-            v.report_error_unmatched_parenthesis(left_paren_span);
+            this->error_reporter_->report_error_unmatched_parenthesis(
+                left_paren_span);
           }
           last_operator = std::nullopt;
           allow_identifier = false;
@@ -48,7 +49,8 @@ class parser {
 
         case token_type::identifier:
           if (!allow_identifier) {
-            v.report_error_unexpected_identifier(this->peek().span());
+            this->error_reporter_->report_error_unexpected_identifier(
+                this->peek().span());
           }
           v.visit_variable_use(this->peek().identifier_name());
           this->lexer_.skip();
@@ -90,7 +92,8 @@ class parser {
             const source_code_span &bad_token_span = last_operator.has_value()
                                                          ? *last_operator
                                                          : this->peek().span();
-            v.report_error_missing_oprand_for_operator(bad_token_span);
+            this->error_reporter_->report_error_missing_oprand_for_operator(
+                bad_token_span);
           }
           last_operator = this->peek().span();
           this->lexer_.skip();
@@ -102,7 +105,8 @@ class parser {
         default:
         done:
           if (last_operator.has_value()) {
-            v.report_error_missing_oprand_for_operator(*last_operator);
+            this->error_reporter_->report_error_missing_oprand_for_operator(
+                *last_operator);
           }
           return;
       }
@@ -139,14 +143,16 @@ class parser {
         }
         case token_type::_if:
         case token_type::number:
-          v.report_error_invalid_binding_in_let_statement(this->peek().span());
+          this->error_reporter_->report_error_invalid_binding_in_let_statement(
+              this->peek().span());
           break;
         default:
           if (first_binding) {
-            v.report_error_let_with_no_bindings(let_span);
+            this->error_reporter_->report_error_let_with_no_bindings(let_span);
           } else {
             assert(comma_span.has_value());
-            v.report_error_stray_comma_in_let_statement(*comma_span);
+            this->error_reporter_->report_error_stray_comma_in_let_statement(
+                *comma_span);
           }
           break;
       }
