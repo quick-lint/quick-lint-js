@@ -17,53 +17,60 @@ class parser {
 
   template <class Visitor>
   void parse_expression(Visitor &v) {
-    bool is_first_token = true;
+    bool allow_binary_operator = false;
+    bool allow_identifier = true;
+
     bool last_token_was_operator = false;
-    bool identifier_is_allowed = true;
     token last_operator;
+
     std::vector<token> left_parens;
+
     for (;;) {
       switch (this->peek().type) {
         case token_type::left_paren:
           left_parens.emplace_back(this->peek());
           this->lexer_.skip();
-          identifier_is_allowed = true;
+          allow_identifier = true;
           break;
 
         case token_type::right_paren:
           left_parens.pop_back();
           this->lexer_.skip();
-          identifier_is_allowed = false;
+          allow_identifier = false;
+          allow_binary_operator = true;
           break;
 
         case token_type::identifier:
-          if (!identifier_is_allowed) {
+          if (!allow_identifier) {
             v.visit_error_unexpected_identifier(
                 this->peek().range(this->original_input_));
           }
           v.visit_variable_use(this->peek().identifier_name());
           this->lexer_.skip();
           last_token_was_operator = false;
-          identifier_is_allowed = false;
+          allow_binary_operator = true;
+          allow_identifier = false;
           break;
 
         case token_type::number:
           this->lexer_.skip();
           last_token_was_operator = false;
+          allow_binary_operator = true;
           break;
 
         case token_type::plus:
           last_operator = this->peek();
           this->lexer_.skip();
           last_token_was_operator = true;
-          identifier_is_allowed = true;
+          allow_binary_operator = false;
+          allow_identifier = true;
           break;
 
         case token_type::ampersand:
         case token_type::circumflex:
         case token_type::comma:
         case token_type::star:
-          if (is_first_token || last_token_was_operator) {
+          if (!allow_binary_operator) {
             const token &bad_token =
                 last_token_was_operator ? last_operator : this->peek();
             v.visit_error_missing_oprand_for_operator(
@@ -72,7 +79,8 @@ class parser {
           last_operator = this->peek();
           this->lexer_.skip();
           last_token_was_operator = true;
-          identifier_is_allowed = true;
+          allow_binary_operator = false;
+          allow_identifier = true;
           break;
 
         default:
@@ -86,7 +94,6 @@ class parser {
           }
           return;
       }
-      is_first_token = false;
     }
   }
 
