@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <quicklint-js/location.h>
 #include <string_view>
 
 namespace quicklint_js {
@@ -110,39 +111,6 @@ enum class token_type {
   star_star_equal,
 };
 
-class source_range {
- public:
-  using offset = std::size_t;
-
-  source_range(offset begin_offset, offset end_offset) noexcept
-      : begin_offset_(begin_offset), end_offset_(end_offset) {}
-
-  offset begin_offset() const noexcept { return this->begin_offset_; }
-  offset end_offset() const noexcept { return this->end_offset_; }
-
- private:
-  offset begin_offset_;
-  offset end_offset_;
-};
-
-class source_code_span {
- public:
-  explicit source_code_span(const char* begin, const char* end) noexcept
-      : begin_(begin), end_(end) {}
-
-  const char* begin() const noexcept { return this->begin_; }
-
-  const char* end() const noexcept { return this->end_; }
-
-  std::string_view string_view() const noexcept {
-    return std::string_view(this->begin(), this->end() - this->begin());
-  }
-
- private:
-  const char* begin_;
-  const char* end_;
-};
-
 class identifier {
  public:
   explicit identifier(source_code_span span) noexcept : span_(span) {}
@@ -155,16 +123,6 @@ class identifier {
 
  private:
   source_code_span span_;
-};
-
-class locator {
- public:
-  explicit locator(const char* input) noexcept : input_(input) {}
-
-  source_range range(source_code_span) const;
-
- private:
-  const char* input_;
 };
 
 struct token {
