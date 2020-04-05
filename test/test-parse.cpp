@@ -1,4 +1,5 @@
 #include <doctest/doctest.h>
+#include <quicklint-js/error.h>
 #include <quicklint-js/location.h>
 #include <quicklint-js/parse.h>
 #include <string>
@@ -8,7 +9,7 @@
 
 namespace quicklint_js {
 namespace {
-struct visitor {
+struct visitor : public error_reporter {
   std::vector<const char *> visits;
 
   void visit_variable_declaration(identifier name) {
@@ -33,34 +34,34 @@ struct visitor {
   };
   std::vector<visited_variable_use> variable_uses;
 
-  void visit_error_invalid_binding_in_let_statement(source_code_span where) {
+  void report_error_invalid_binding_in_let_statement(source_code_span where) {
     this->errors.emplace_back(error_invalid_binding_in_let_statement{where});
-    this->visits.emplace_back("visit_error_invalid_binding_in_let_statement");
+    this->visits.emplace_back("report_error_invalid_binding_in_let_statement");
   }
 
-  void visit_error_let_with_no_bindings(source_code_span where) {
+  void report_error_let_with_no_bindings(source_code_span where) {
     this->errors.emplace_back(error_let_with_no_bindings{where});
-    this->visits.emplace_back("visit_error_let_with_no_bindings");
+    this->visits.emplace_back("report_error_let_with_no_bindings");
   }
 
-  void visit_error_missing_oprand_for_operator(source_code_span where) {
+  void report_error_missing_oprand_for_operator(source_code_span where) {
     this->errors.emplace_back(error_missing_oprand_for_operator{where});
-    this->visits.emplace_back("visit_error_missing_oprand_for_operator");
+    this->visits.emplace_back("report_error_missing_oprand_for_operator");
   }
 
-  void visit_error_stray_comma_in_let_statement(source_code_span where) {
+  void report_error_stray_comma_in_let_statement(source_code_span where) {
     this->errors.emplace_back(error_stray_comma_in_let_statement{where});
-    this->visits.emplace_back("visit_error_stray_comma_in_let_statement");
+    this->visits.emplace_back("report_error_stray_comma_in_let_statement");
   }
 
-  void visit_error_unexpected_identifier(source_code_span where) {
+  void report_error_unexpected_identifier(source_code_span where) {
     this->errors.emplace_back(error_unexpected_identifier{where});
-    this->visits.emplace_back("visit_error_unexpected_identifier");
+    this->visits.emplace_back("report_error_unexpected_identifier");
   }
 
-  void visit_error_unmatched_parenthesis(source_code_span where) {
+  void report_error_unmatched_parenthesis(source_code_span where) {
     this->errors.emplace_back(error_unmatched_parenthesis{where});
-    this->visits.emplace_back("visit_error_unmatched_parenthesis");
+    this->visits.emplace_back("report_error_unmatched_parenthesis");
   }
 
   struct error {
@@ -82,7 +83,7 @@ struct visitor {
 TEST_CASE("parse let") {
   {
     visitor v;
-    parser p("let x");
+    parser p("let x", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "x");
@@ -91,7 +92,7 @@ TEST_CASE("parse let") {
 
   {
     visitor v;
-    parser p("let a, b");
+    parser p("let a, b", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 2);
     CHECK(v.variable_declarations[0].name == "a");
@@ -101,7 +102,7 @@ TEST_CASE("parse let") {
 
   {
     visitor v;
-    parser p("let a, b, c, d, e, f, g");
+    parser p("let a, b, c, d, e, f, g", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 7);
     CHECK(v.variable_declarations[0].name == "a");
@@ -116,7 +117,7 @@ TEST_CASE("parse let") {
 
   {
     visitor v;
-    parser p("let first; let second");
+    parser p("let first; let second", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "first");
@@ -131,7 +132,7 @@ TEST_CASE("parse let") {
 TEST_CASE("parse let with initializers") {
   {
     visitor v;
-    parser p("let x = 2");
+    parser p("let x = 2", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "x");
@@ -140,7 +141,7 @@ TEST_CASE("parse let with initializers") {
 
   {
     visitor v;
-    parser p("let x = 2, y = 3");
+    parser p("let x = 2, y = 3", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 2);
     CHECK(v.variable_declarations[0].name == "x");
@@ -150,7 +151,7 @@ TEST_CASE("parse let with initializers") {
 
   {
     visitor v;
-    parser p("let x = other, y = x");
+    parser p("let x = other, y = x", &v);
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 2);
     CHECK(v.variable_declarations[0].name == "x");
@@ -167,7 +168,7 @@ TEST_CASE(
   using namespace std::literals::string_view_literals;
 
   visitor v;
-  parser p("let x = x");
+  parser p("let x = x", &v);
   p.parse_statement(v);
 
   REQUIRE(v.visits.size() == 2);
@@ -184,7 +185,7 @@ TEST_CASE(
 TEST_CASE("parse invalid let") {
   {
     visitor v;
-    parser p("let");
+    parser p("let", &v);
     p.parse_statement(v);
     CHECK(v.variable_declarations.empty());
     REQUIRE(v.errors.size() == 1);
@@ -197,7 +198,7 @@ TEST_CASE("parse invalid let") {
 
   {
     visitor v;
-    parser p("let a,");
+    parser p("let a,", &v);
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 1);
     REQUIRE(v.errors.size() == 1);
@@ -210,7 +211,7 @@ TEST_CASE("parse invalid let") {
 
   {
     visitor v;
-    parser p("let x, 42");
+    parser p("let x, 42", &v);
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 1);
     REQUIRE(v.errors.size() == 1);
@@ -223,7 +224,7 @@ TEST_CASE("parse invalid let") {
 
   {
     visitor v;
-    parser p("let if");
+    parser p("let if", &v);
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 0);
     REQUIRE(v.errors.size() == 1);
@@ -236,7 +237,7 @@ TEST_CASE("parse invalid let") {
 
   {
     visitor v;
-    parser p("let 42");
+    parser p("let 42", &v);
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 0);
     CHECK(v.errors.size() == 1);
@@ -255,14 +256,14 @@ TEST_CASE("parse math expression") {
        {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {
     INFO("input = " << input);
     visitor v;
-    parser p(input);
+    parser p(input, &v);
     p.parse_expression(v, options);
     CHECK(v.errors.empty());
   }
 
   {
     visitor v;
-    parser p("some_var");
+    parser p("some_var", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");
@@ -271,7 +272,7 @@ TEST_CASE("parse math expression") {
 
   {
     visitor v;
-    parser p("some_var + some_other_var");
+    parser p("some_var + some_other_var", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "some_var");
@@ -281,7 +282,7 @@ TEST_CASE("parse math expression") {
 
   {
     visitor v;
-    parser p("+ v");
+    parser p("+ v", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "v");
@@ -294,7 +295,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("2 +");
+    parser p("2 +", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -306,7 +307,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("^ 2");
+    parser p("^ 2", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -318,7 +319,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("2 * * 2");
+    parser p("2 * * 2", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -330,7 +331,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("2 & & & 2");
+    parser p("2 & & & 2", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 2);
 
@@ -349,7 +350,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("(2 *)");
+    parser p("(2 *)", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -360,7 +361,7 @@ TEST_CASE("parse invalid math expression") {
   }
   {
     visitor v;
-    parser p("2 * (3 + 4");
+    parser p("2 * (3 + 4", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -372,7 +373,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("2 * (3 + (4");
+    parser p("2 * (3 + (4", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 2);
 
@@ -390,7 +391,7 @@ TEST_CASE("parse invalid math expression") {
 
   {
     visitor v;
-    parser p("ten ten");
+    parser p("ten ten", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -406,7 +407,7 @@ TEST_CASE("parse function calls") {
 
   {
     visitor v;
-    parser p("f(x)");
+    parser p("f(x)", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "f");
@@ -416,7 +417,7 @@ TEST_CASE("parse function calls") {
 
   {
     visitor v;
-    parser p("f(x, y)");
+    parser p("f(x, y)", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "f");
@@ -427,7 +428,7 @@ TEST_CASE("parse function calls") {
 
   {
     visitor v;
-    parser p("o.f(x, y)");
+    parser p("o.f(x, y)", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "o");
@@ -442,7 +443,7 @@ TEST_CASE("parse invalid function calls") {
 
   {
     visitor v;
-    parser p("(x)f");
+    parser p("(x)f", &v);
     p.parse_expression(v, options);
 
     REQUIRE(v.errors.size() == 1);
@@ -463,7 +464,7 @@ TEST_CASE("parse property lookup: variable.property") {
 
   {
     visitor v;
-    parser p("some_var.some_property");
+    parser p("some_var.some_property", &v);
     p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");

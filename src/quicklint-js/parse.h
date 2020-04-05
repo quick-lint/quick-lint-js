@@ -2,6 +2,7 @@
 #define QUICKLINT_JS_PARSE_H
 
 #include <optional>
+#include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
 
@@ -12,7 +13,8 @@ struct expression_options {
 
 class parser {
  public:
-  parser(const char *input) : lexer_(input), locator_(input) {}
+  explicit parser(const char *input, error_reporter *error_reporter)
+      : lexer_(input), locator_(input), error_reporter_(error_reporter) {}
 
   quicklint_js::locator &locator() noexcept { return this->locator_; }
 
@@ -37,7 +39,7 @@ class parser {
           if (this->peek().type == token_type::right_paren) {
             this->lexer_.skip();
           } else {
-            v.visit_error_unmatched_parenthesis(left_paren_span);
+            v.report_error_unmatched_parenthesis(left_paren_span);
           }
           last_operator = std::nullopt;
           allow_identifier = false;
@@ -46,7 +48,7 @@ class parser {
 
         case token_type::identifier:
           if (!allow_identifier) {
-            v.visit_error_unexpected_identifier(this->peek().span());
+            v.report_error_unexpected_identifier(this->peek().span());
           }
           v.visit_variable_use(this->peek().identifier_name());
           this->lexer_.skip();
@@ -88,7 +90,7 @@ class parser {
             const source_code_span &bad_token_span = last_operator.has_value()
                                                          ? *last_operator
                                                          : this->peek().span();
-            v.visit_error_missing_oprand_for_operator(bad_token_span);
+            v.report_error_missing_oprand_for_operator(bad_token_span);
           }
           last_operator = this->peek().span();
           this->lexer_.skip();
@@ -100,7 +102,7 @@ class parser {
         default:
         done:
           if (last_operator.has_value()) {
-            v.visit_error_missing_oprand_for_operator(*last_operator);
+            v.report_error_missing_oprand_for_operator(*last_operator);
           }
           return;
       }
@@ -137,14 +139,14 @@ class parser {
         }
         case token_type::_if:
         case token_type::number:
-          v.visit_error_invalid_binding_in_let_statement(this->peek().span());
+          v.report_error_invalid_binding_in_let_statement(this->peek().span());
           break;
         default:
           if (first_binding) {
-            v.visit_error_let_with_no_bindings(let_span);
+            v.report_error_let_with_no_bindings(let_span);
           } else {
             assert(comma_span.has_value());
-            v.visit_error_stray_comma_in_let_statement(*comma_span);
+            v.report_error_stray_comma_in_let_statement(*comma_span);
           }
           break;
       }
@@ -160,6 +162,7 @@ class parser {
 
   lexer lexer_;
   quicklint_js::locator locator_;
+  error_reporter *error_reporter_;
 };
 }  // namespace quicklint_js
 
