@@ -4,7 +4,6 @@
 #include <quicklint-js/parse.h>
 #include <string>
 #include <string_view>
-#include <variant>
 #include <vector>
 
 namespace quicklint_js {
@@ -35,49 +34,49 @@ struct visitor : public error_reporter {
   std::vector<visited_variable_use> variable_uses;
 
   void report_error_invalid_binding_in_let_statement(source_code_span where) {
-    this->errors.emplace_back(error_invalid_binding_in_let_statement{where});
+    this->errors.emplace_back(
+        error{error_invalid_binding_in_let_statement, where});
     this->visits.emplace_back("report_error_invalid_binding_in_let_statement");
   }
 
   void report_error_let_with_no_bindings(source_code_span where) {
-    this->errors.emplace_back(error_let_with_no_bindings{where});
+    this->errors.emplace_back(error{error_let_with_no_bindings, where});
     this->visits.emplace_back("report_error_let_with_no_bindings");
   }
 
   void report_error_missing_oprand_for_operator(source_code_span where) {
-    this->errors.emplace_back(error_missing_oprand_for_operator{where});
+    this->errors.emplace_back(error{error_missing_oprand_for_operator, where});
     this->visits.emplace_back("report_error_missing_oprand_for_operator");
   }
 
   void report_error_stray_comma_in_let_statement(source_code_span where) {
-    this->errors.emplace_back(error_stray_comma_in_let_statement{where});
+    this->errors.emplace_back(error{error_stray_comma_in_let_statement, where});
     this->visits.emplace_back("report_error_stray_comma_in_let_statement");
   }
 
   void report_error_unexpected_identifier(source_code_span where) {
-    this->errors.emplace_back(error_unexpected_identifier{where});
+    this->errors.emplace_back(error{error_unexpected_identifier, where});
     this->visits.emplace_back("report_error_unexpected_identifier");
   }
 
   void report_error_unmatched_parenthesis(source_code_span where) {
-    this->errors.emplace_back(error_unmatched_parenthesis{where});
+    this->errors.emplace_back(error{error_unmatched_parenthesis, where});
     this->visits.emplace_back("report_error_unmatched_parenthesis");
   }
 
+  enum error_kind {
+    error_invalid_binding_in_let_statement,
+    error_let_with_no_bindings,
+    error_missing_oprand_for_operator,
+    error_stray_comma_in_let_statement,
+    error_unexpected_identifier,
+    error_unmatched_parenthesis,
+  };
   struct error {
+    error_kind kind;
     source_code_span where;
   };
-  struct error_invalid_binding_in_let_statement : error {};
-  struct error_let_with_no_bindings : error {};
-  struct error_missing_oprand_for_operator : error {};
-  struct error_stray_comma_in_let_statement : error {};
-  struct error_unexpected_identifier : error {};
-  struct error_unmatched_parenthesis : error {};
-  using visited_error = std::variant<
-      error_invalid_binding_in_let_statement, error_let_with_no_bindings,
-      error_missing_oprand_for_operator, error_stray_comma_in_let_statement,
-      error_unexpected_identifier, error_unmatched_parenthesis>;
-  std::vector<visited_error> errors;
+  std::vector<error> errors;
 };
 
 TEST_CASE("parse let") {
@@ -189,11 +188,10 @@ TEST_CASE("parse invalid let") {
     p.parse_statement(v);
     CHECK(v.variable_declarations.empty());
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_let_with_no_bindings>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 0);
-    CHECK(p.locator().range(error->where).end_offset() == 3);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_let_with_no_bindings);
+    CHECK(p.locator().range(error.where).begin_offset() == 0);
+    CHECK(p.locator().range(error.where).end_offset() == 3);
   }
 
   {
@@ -202,11 +200,10 @@ TEST_CASE("parse invalid let") {
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 1);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_stray_comma_in_let_statement>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 5);
-    CHECK(p.locator().range(error->where).end_offset() == 6);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_stray_comma_in_let_statement);
+    CHECK(p.locator().range(error.where).begin_offset() == 5);
+    CHECK(p.locator().range(error.where).end_offset() == 6);
   }
 
   {
@@ -215,11 +212,10 @@ TEST_CASE("parse invalid let") {
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 1);
     REQUIRE(v.errors.size() == 1);
-    auto *error = std::get_if<visitor::error_invalid_binding_in_let_statement>(
-        &v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 7);
-    CHECK(p.locator().range(error->where).end_offset() == 9);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
+    CHECK(p.locator().range(error.where).begin_offset() == 7);
+    CHECK(p.locator().range(error.where).end_offset() == 9);
   }
 
   {
@@ -228,11 +224,10 @@ TEST_CASE("parse invalid let") {
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 0);
     REQUIRE(v.errors.size() == 1);
-    auto *error = std::get_if<visitor::error_invalid_binding_in_let_statement>(
-        &v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 4);
-    CHECK(p.locator().range(error->where).end_offset() == 6);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
+    CHECK(p.locator().range(error.where).begin_offset() == 4);
+    CHECK(p.locator().range(error.where).end_offset() == 6);
   }
 
   {
@@ -241,11 +236,10 @@ TEST_CASE("parse invalid let") {
     p.parse_statement(v);
     CHECK(v.variable_declarations.size() == 0);
     CHECK(v.errors.size() == 1);
-    auto *error = std::get_if<visitor::error_invalid_binding_in_let_statement>(
-        &v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 4);
-    CHECK(p.locator().range(error->where).end_offset() == 6);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
+    CHECK(p.locator().range(error.where).begin_offset() == 4);
+    CHECK(p.locator().range(error.where).end_offset() == 6);
   }
 }
 
@@ -298,11 +292,10 @@ TEST_CASE("parse invalid math expression") {
     parser p("2 +", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 2);
-    CHECK(p.locator().range(error->where).end_offset() == 3);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(p.locator().range(error.where).begin_offset() == 2);
+    CHECK(p.locator().range(error.where).end_offset() == 3);
   }
 
   {
@@ -310,11 +303,10 @@ TEST_CASE("parse invalid math expression") {
     parser p("^ 2", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 0);
-    CHECK(p.locator().range(error->where).end_offset() == 1);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(p.locator().range(error.where).begin_offset() == 0);
+    CHECK(p.locator().range(error.where).end_offset() == 1);
   }
 
   {
@@ -322,11 +314,10 @@ TEST_CASE("parse invalid math expression") {
     parser p("2 * * 2", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 2);
-    CHECK(p.locator().range(error->where).end_offset() == 3);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(p.locator().range(error.where).begin_offset() == 2);
+    CHECK(p.locator().range(error.where).end_offset() == 3);
   }
 
   {
@@ -335,15 +326,13 @@ TEST_CASE("parse invalid math expression") {
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 2);
 
-    auto *error =
-        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
-    REQUIRE(error);
+    auto *error = &v.errors[0];
+    CHECK(error->kind == visitor::error_missing_oprand_for_operator);
     CHECK(p.locator().range(error->where).begin_offset() == 2);
     CHECK(p.locator().range(error->where).end_offset() == 3);
 
-    error =
-        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[1]);
-    REQUIRE(error);
+    error = &v.errors[1];
+    CHECK(error->kind == visitor::error_missing_oprand_for_operator);
     CHECK(p.locator().range(error->where).begin_offset() == 4);
     CHECK(p.locator().range(error->where).end_offset() == 5);
   }
@@ -353,22 +342,20 @@ TEST_CASE("parse invalid math expression") {
     parser p("(2 *)", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 3);
-    CHECK(p.locator().range(error->where).end_offset() == 4);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(p.locator().range(error.where).begin_offset() == 3);
+    CHECK(p.locator().range(error.where).end_offset() == 4);
   }
   {
     visitor v;
     parser p("2 * (3 + 4", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 4);
-    CHECK(p.locator().range(error->where).end_offset() == 5);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_unmatched_parenthesis);
+    CHECK(p.locator().range(error.where).begin_offset() == 4);
+    CHECK(p.locator().range(error.where).end_offset() == 5);
   }
 
   {
@@ -377,14 +364,13 @@ TEST_CASE("parse invalid math expression") {
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 2);
 
-    auto *error =
-        std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
-    REQUIRE(error);
+    auto *error = &v.errors[0];
+    CHECK(error->kind == visitor::error_unmatched_parenthesis);
     CHECK(p.locator().range(error->where).begin_offset() == 9);
     CHECK(p.locator().range(error->where).end_offset() == 10);
 
-    error = std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[1]);
-    REQUIRE(error);
+    error = &v.errors[1];
+    CHECK(error->kind == visitor::error_unmatched_parenthesis);
     CHECK(p.locator().range(error->where).begin_offset() == 4);
     CHECK(p.locator().range(error->where).end_offset() == 5);
   }
@@ -394,11 +380,10 @@ TEST_CASE("parse invalid math expression") {
     parser p("ten ten", &v);
     p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_unexpected_identifier>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 4);
-    CHECK(p.locator().range(error->where).end_offset() == 7);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_unexpected_identifier);
+    CHECK(p.locator().range(error.where).begin_offset() == 4);
+    CHECK(p.locator().range(error.where).end_offset() == 7);
   }
 }
 
@@ -447,11 +432,10 @@ TEST_CASE("parse invalid function calls") {
     p.parse_expression(v, options);
 
     REQUIRE(v.errors.size() == 1);
-    auto *error =
-        std::get_if<visitor::error_unexpected_identifier>(&v.errors[0]);
-    REQUIRE(error);
-    CHECK(p.locator().range(error->where).begin_offset() == 3);
-    CHECK(p.locator().range(error->where).end_offset() == 4);
+    auto &error = v.errors[0];
+    CHECK(error.kind == visitor::error_unexpected_identifier);
+    CHECK(p.locator().range(error.where).begin_offset() == 3);
+    CHECK(p.locator().range(error.where).end_offset() == 4);
 
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "x");

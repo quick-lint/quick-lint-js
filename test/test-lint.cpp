@@ -4,7 +4,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <variant>
 #include <vector>
 
 namespace quicklint_js {
@@ -13,15 +12,17 @@ class error_collector {
  public:
   void visit_error_variable_used_before_declaration(identifier name) {
     this->errors.emplace_back(
-        error_variable_used_before_declaration{name.span()});
+        error{error_variable_used_before_declaration, name.span()});
   }
 
+  enum error_kind {
+    error_variable_used_before_declaration,
+  };
   struct error {
+    error_kind kind;
     source_code_span where;
   };
-  struct error_variable_used_before_declaration : error {};
-  using visited_error = std::variant<error_variable_used_before_declaration>;
-  std::vector<visited_error> errors;
+  std::vector<error> errors;
 };
 
 class linter : public error_collector {
@@ -49,13 +50,12 @@ TEST_CASE("variable use before declaration") {
   l.visit_variable_use(identifier(source_code_span(&input[0], &input[1])));
   l.visit_variable_declaration(
       identifier(source_code_span(&input[2], &input[3])));
+
   REQUIRE(l.errors.size() == 1);
-  auto *error =
-      std::get_if<error_collector::error_variable_used_before_declaration>(
-          &l.errors[0]);
-  REQUIRE(error);
-  CHECK(locator(input).range(error->where).begin_offset() == 0);
-  CHECK(locator(input).range(error->where).end_offset() == 1);
+  CHECK(l.errors[0].kind ==
+        error_collector::error_variable_used_before_declaration);
+  CHECK(locator(input).range(l.errors[0].where).begin_offset() == 0);
+  CHECK(locator(input).range(l.errors[0].where).end_offset() == 1);
 }
 
 TEST_CASE("variable use after declaration") {
