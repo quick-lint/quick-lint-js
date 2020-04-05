@@ -127,9 +127,9 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
   return !(x == y);
 }
 
-source_code_span token::identifier_name() const noexcept {
+identifier token::identifier_name() const noexcept {
   assert(this->type == token_type::identifier);
-  return source_code_span(this->begin, this->end);
+  return identifier(source_code_span(this->begin, this->end));
 }
 
 source_range token::range(const char* original_input) const noexcept {
@@ -159,7 +159,7 @@ void lexer::parse_current_token() {
       this->last_token_.end = this->input_;
       this->last_token_.type = token_type::identifier;
 
-      source_code_span identifier_name = this->last_token_.identifier_name();
+      identifier identifier_name = this->last_token_.identifier_name();
       auto found_keyword = std::find_if(
           std::begin(keywords), std::end(keywords), [&](const char* keyword) {
             return identifier_name.string_view() == keyword;

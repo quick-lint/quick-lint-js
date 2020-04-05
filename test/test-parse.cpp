@@ -178,7 +178,7 @@ class parser {
 struct visitor {
   std::vector<const char *> visits;
 
-  void visit_variable_declaration(source_code_span name) {
+  void visit_variable_declaration(identifier name) {
     this->variable_declarations.emplace_back(
         visited_variable_declaration{std::string(name.string_view())});
     this->visits.emplace_back("visit_variable_declaration");
@@ -189,7 +189,7 @@ struct visitor {
   };
   std::vector<visited_variable_declaration> variable_declarations;
 
-  void visit_variable_use(source_code_span name) {
+  void visit_variable_use(identifier name) {
     this->variable_uses.emplace_back(
         visited_variable_use{std::string(name.string_view())});
     this->visits.emplace_back("visit_variable_use");

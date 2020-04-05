@@ -143,8 +143,20 @@ class source_code_span {
   const char* end_;
 };
 
+class identifier {
+ public:
+  explicit identifier(source_code_span span) noexcept : span_(span) {}
+
+  std::string_view string_view() const noexcept {
+    return this->span_.string_view();
+  }
+
+ private:
+  source_code_span span_;
+};
+
 struct token {
-  source_code_span identifier_name() const noexcept;
+  identifier identifier_name() const noexcept;
 
   source_range range(const char* original_input) const noexcept;
 
