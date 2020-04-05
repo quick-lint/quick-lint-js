@@ -6,6 +6,7 @@ add_executable(
   test-lint.cpp
   test-parse.cpp
 )
+target_include_directories(quicklint-js-test PRIVATE .)
 target_link_libraries(
   quicklint-js-test
   PRIVATE

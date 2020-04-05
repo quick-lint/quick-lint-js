@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <doctest/doctest.h>
+#include <quicklint-js/error-collector.h>
 #include <quicklint-js/lex.h>
 #include <sstream>
 #include <string>
@@ -8,23 +9,6 @@
 
 namespace quicklint_js {
 namespace {
-class error_collector {
- public:
-  void visit_error_variable_used_before_declaration(identifier name) {
-    this->errors.emplace_back(
-        error{error_variable_used_before_declaration, name.span()});
-  }
-
-  enum error_kind {
-    error_variable_used_before_declaration,
-  };
-  struct error {
-    error_kind kind;
-    source_code_span where;
-  };
-  std::vector<error> errors;
-};
-
 class linter : public error_collector {
  public:
   void visit_variable_declaration(identifier name) {
