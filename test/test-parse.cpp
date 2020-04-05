@@ -1,11 +1,16 @@
 #include <doctest/doctest.h>
 #include <quicklint-js/lex.h>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
 namespace quicklint_js {
 namespace {
+struct expression_options {
+  bool parse_commas;
+};
+
 class parser {
  public:
   parser(const char *input) : lexer_(input), original_input_(input) {}
@@ -16,7 +21,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_expression(Visitor &v) {
+  void parse_expression(Visitor &v, expression_options options) {
     bool allow_binary_operator = false;
     bool allow_identifier = true;
 
@@ -30,7 +35,7 @@ class parser {
         case token_type::left_paren: {
           token left_paren = this->peek();
           this->lexer_.skip();
-          this->parse_expression(v);
+          this->parse_expression(v, expression_options{.parse_commas = true});
           if (this->peek().type == token_type::right_paren) {
             this->lexer_.skip();
           } else {
@@ -73,10 +78,17 @@ class parser {
           this->lexer_.skip();
           break;
 
+        case token_type::comma:
+          if (options.parse_commas) {
+            goto parse_binary_operator;
+          } else {
+            goto done;
+          }
+
         case token_type::ampersand:
         case token_type::circumflex:
-        case token_type::comma:
         case token_type::star:
+        parse_binary_operator:
           if (!allow_binary_operator) {
             const token &bad_token =
                 last_token_was_operator ? last_operator : this->peek();
@@ -92,6 +104,7 @@ class parser {
 
         case token_type::right_paren:
         default:
+        done:
           if (last_token_was_operator) {
             v.visit_error_missing_oprand_for_operator(
                 last_operator.range(this->original_input_));
@@ -122,10 +135,17 @@ class parser {
       }
 
       switch (this->peek().type) {
-        case token_type::identifier:
-          v.visit_variable_declaration(this->peek().identifier_name());
+        case token_type::identifier: {
+          token identifier_token = this->peek();
           this->lexer_.skip();
+          if (this->peek().type == token_type::equal) {
+            this->lexer_.skip();
+            this->parse_expression(v,
+                                   expression_options{.parse_commas = false});
+          }
+          v.visit_variable_declaration(identifier_token.identifier_name());
           break;
+        }
         case token_type::_if:
         case token_type::number:
           v.visit_error_invalid_binding_in_let_statement(
@@ -156,9 +176,12 @@ class parser {
 };
 
 struct visitor {
+  std::vector<const char *> visits;
+
   void visit_variable_declaration(std::string_view name) {
     this->variable_declarations.emplace_back(
         visited_variable_declaration{std::string(name)});
+    this->visits.emplace_back("visit_variable_declaration");
   }
 
   struct visited_variable_declaration {
@@ -168,6 +191,7 @@ struct visitor {
 
   void visit_variable_use(std::string_view name) {
     this->variable_uses.emplace_back(visited_variable_use{std::string(name)});
+    this->visits.emplace_back("visit_variable_use");
   }
 
   struct visited_variable_use {
@@ -177,26 +201,32 @@ struct visitor {
 
   void visit_error_invalid_binding_in_let_statement(source_range where) {
     this->errors.emplace_back(error_invalid_binding_in_let_statement{where});
+    this->visits.emplace_back("visit_error_invalid_binding_in_let_statement");
   }
 
   void visit_error_let_with_no_bindings(source_range where) {
     this->errors.emplace_back(error_let_with_no_bindings{where});
+    this->visits.emplace_back("visit_error_let_with_no_bindings");
   }
 
   void visit_error_missing_oprand_for_operator(source_range where) {
     this->errors.emplace_back(error_missing_oprand_for_operator{where});
+    this->visits.emplace_back("visit_error_missing_oprand_for_operator");
   }
 
   void visit_error_stray_comma_in_let_statement(source_range where) {
     this->errors.emplace_back(error_stray_comma_in_let_statement{where});
+    this->visits.emplace_back("visit_error_stray_comma_in_let_statement");
   }
 
   void visit_error_unexpected_identifier(source_range where) {
     this->errors.emplace_back(error_unexpected_identifier{where});
+    this->visits.emplace_back("visit_error_unexpected_identifier");
   }
 
   void visit_error_unmatched_parenthesis(source_range where) {
     this->errors.emplace_back(error_unmatched_parenthesis{where});
+    this->visits.emplace_back("visit_error_unmatched_parenthesis");
   }
 
   struct error {
@@ -262,6 +292,59 @@ TEST_CASE("parse let") {
     CHECK(v.variable_declarations[1].name == "second");
     CHECK(v.errors.empty());
   }
+}
+
+TEST_CASE("parse let with initializers") {
+  {
+    visitor v;
+    parser p("let x = 2");
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("let x = 2, y = 3");
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 2);
+    CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.variable_declarations[1].name == "y");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("let x = other, y = x");
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 2);
+    CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.variable_declarations[1].name == "y");
+    REQUIRE(v.variable_uses.size() == 2);
+    CHECK(v.variable_uses[0].name == "other");
+    CHECK(v.variable_uses[1].name == "x");
+    CHECK(v.errors.empty());
+  }
+}
+
+TEST_CASE(
+    "variables used in let initializer are used before variable declaration") {
+  using namespace std::literals::string_view_literals;
+
+  visitor v;
+  parser p("let x = x");
+  p.parse_statement(v);
+
+  REQUIRE(v.visits.size() == 2);
+  CHECK(v.visits[0] == "visit_variable_use");
+  CHECK(v.visits[1] == "visit_variable_declaration");
+
+  REQUIRE(v.variable_declarations.size() == 1);
+  CHECK(v.variable_declarations[0].name == "x");
+  REQUIRE(v.variable_uses.size() == 1);
+  CHECK(v.variable_uses[0].name == "x");
+  CHECK(v.errors.empty());
 }
 
 TEST_CASE("parse invalid let") {
@@ -332,19 +415,21 @@ TEST_CASE("parse invalid let") {
 }
 
 TEST_CASE("parse math expression") {
+  expression_options options = {.parse_commas = true};
+
   for (const char *input :
        {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {
     INFO("input = " << input);
     visitor v;
     parser p(input);
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     CHECK(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("some_var");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.errors.empty());
@@ -353,7 +438,7 @@ TEST_CASE("parse math expression") {
   {
     visitor v;
     parser p("some_var + some_other_var");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.variable_uses[1].name == "some_other_var");
@@ -363,7 +448,7 @@ TEST_CASE("parse math expression") {
   {
     visitor v;
     parser p("+ v");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "v");
     CHECK(v.errors.empty());
@@ -371,10 +456,12 @@ TEST_CASE("parse math expression") {
 }
 
 TEST_CASE("parse invalid math expression") {
+  expression_options options = {.parse_commas = true};
+
   {
     visitor v;
     parser p("2 +");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
@@ -386,7 +473,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("^ 2");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
@@ -398,7 +485,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 * * 2");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
@@ -410,7 +497,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 & & & 2");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 2);
 
     auto *error =
@@ -429,7 +516,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("(2 *)");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
@@ -440,7 +527,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 * (3 + 4");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
         std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
@@ -452,7 +539,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 * (3 + (4");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 2);
 
     auto *error =
@@ -470,7 +557,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("ten ten");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.errors.size() == 1);
     auto *error =
         std::get_if<visitor::error_unexpected_identifier>(&v.errors[0]);
@@ -481,10 +568,12 @@ TEST_CASE("parse invalid math expression") {
 }
 
 TEST_CASE("parse function calls") {
+  expression_options options = {.parse_commas = true};
+
   {
     visitor v;
     parser p("f(x)");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "f");
     CHECK(v.variable_uses[1].name == "x");
@@ -494,7 +583,7 @@ TEST_CASE("parse function calls") {
   {
     visitor v;
     parser p("f(x, y)");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "f");
     CHECK(v.variable_uses[1].name == "x");
@@ -505,7 +594,7 @@ TEST_CASE("parse function calls") {
   {
     visitor v;
     parser p("o.f(x, y)");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "o");
     CHECK(v.variable_uses[1].name == "x");
@@ -515,10 +604,12 @@ TEST_CASE("parse function calls") {
 }
 
 TEST_CASE("parse invalid function calls") {
+  expression_options options = {.parse_commas = true};
+
   {
     visitor v;
     parser p("(x)f");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
 
     REQUIRE(v.errors.size() == 1);
     auto *error =
@@ -534,10 +625,12 @@ TEST_CASE("parse invalid function calls") {
 }
 
 TEST_CASE("parse property lookup: variable.property") {
+  expression_options options = {.parse_commas = true};
+
   {
     visitor v;
     parser p("some_var.some_property");
-    p.parse_expression(v);
+    p.parse_expression(v, options);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.errors.empty());
