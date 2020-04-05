@@ -13,7 +13,9 @@ struct expression_options {
 
 class parser {
  public:
-  parser(const char *input) : lexer_(input), original_input_(input) {}
+  parser(const char *input) : lexer_(input), locator_(input) {}
+
+  quicklint_js::locator &locator() noexcept { return this->locator_; }
 
   template <class Visitor>
   void parse_statement(Visitor &v) {
@@ -39,8 +41,7 @@ class parser {
           if (this->peek().type == token_type::right_paren) {
             this->lexer_.skip();
           } else {
-            v.visit_error_unmatched_parenthesis(
-                left_paren.range(this->original_input_));
+            v.visit_error_unmatched_parenthesis(left_paren.span());
           }
           last_token_was_operator = false;
           allow_identifier = false;
@@ -49,8 +50,7 @@ class parser {
 
         case token_type::identifier:
           if (!allow_identifier) {
-            v.visit_error_unexpected_identifier(
-                this->peek().range(this->original_input_));
+            v.visit_error_unexpected_identifier(this->peek().span());
           }
           v.visit_variable_use(this->peek().identifier_name());
           this->lexer_.skip();
@@ -92,8 +92,7 @@ class parser {
           if (!allow_binary_operator) {
             const token &bad_token =
                 last_token_was_operator ? last_operator : this->peek();
-            v.visit_error_missing_oprand_for_operator(
-                bad_token.range(this->original_input_));
+            v.visit_error_missing_oprand_for_operator(bad_token.span());
           }
           last_operator = this->peek();
           this->lexer_.skip();
@@ -106,12 +105,10 @@ class parser {
         default:
         done:
           if (last_token_was_operator) {
-            v.visit_error_missing_oprand_for_operator(
-                last_operator.range(this->original_input_));
+            v.visit_error_missing_oprand_for_operator(last_operator.span());
           }
           for (const token &left_paren : left_parens) {
-            v.visit_error_unmatched_parenthesis(
-                left_paren.range(this->original_input_));
+            v.visit_error_unmatched_parenthesis(left_paren.span());
           }
           return;
       }
@@ -148,16 +145,13 @@ class parser {
         }
         case token_type::_if:
         case token_type::number:
-          v.visit_error_invalid_binding_in_let_statement(
-              this->peek().range(this->original_input_));
+          v.visit_error_invalid_binding_in_let_statement(this->peek().span());
           break;
         default:
           if (first_binding) {
-            v.visit_error_let_with_no_bindings(
-                let.range(this->original_input_));
+            v.visit_error_let_with_no_bindings(let.span());
           } else {
-            v.visit_error_stray_comma_in_let_statement(
-                comma.range(this->original_input_));
+            v.visit_error_stray_comma_in_let_statement(comma.span());
           }
           break;
       }
@@ -172,7 +166,7 @@ class parser {
   const token &peek() const noexcept { return this->lexer_.peek(); }
 
   lexer lexer_;
-  const char *original_input_;
+  quicklint_js::locator locator_;
 };
 
 struct visitor {
@@ -200,38 +194,38 @@ struct visitor {
   };
   std::vector<visited_variable_use> variable_uses;
 
-  void visit_error_invalid_binding_in_let_statement(source_range where) {
+  void visit_error_invalid_binding_in_let_statement(source_code_span where) {
     this->errors.emplace_back(error_invalid_binding_in_let_statement{where});
     this->visits.emplace_back("visit_error_invalid_binding_in_let_statement");
   }
 
-  void visit_error_let_with_no_bindings(source_range where) {
+  void visit_error_let_with_no_bindings(source_code_span where) {
     this->errors.emplace_back(error_let_with_no_bindings{where});
     this->visits.emplace_back("visit_error_let_with_no_bindings");
   }
 
-  void visit_error_missing_oprand_for_operator(source_range where) {
+  void visit_error_missing_oprand_for_operator(source_code_span where) {
     this->errors.emplace_back(error_missing_oprand_for_operator{where});
     this->visits.emplace_back("visit_error_missing_oprand_for_operator");
   }
 
-  void visit_error_stray_comma_in_let_statement(source_range where) {
+  void visit_error_stray_comma_in_let_statement(source_code_span where) {
     this->errors.emplace_back(error_stray_comma_in_let_statement{where});
     this->visits.emplace_back("visit_error_stray_comma_in_let_statement");
   }
 
-  void visit_error_unexpected_identifier(source_range where) {
+  void visit_error_unexpected_identifier(source_code_span where) {
     this->errors.emplace_back(error_unexpected_identifier{where});
     this->visits.emplace_back("visit_error_unexpected_identifier");
   }
 
-  void visit_error_unmatched_parenthesis(source_range where) {
+  void visit_error_unmatched_parenthesis(source_code_span where) {
     this->errors.emplace_back(error_unmatched_parenthesis{where});
     this->visits.emplace_back("visit_error_unmatched_parenthesis");
   }
 
   struct error {
-    source_range where;
+    source_code_span where;
   };
   struct error_invalid_binding_in_let_statement : error {};
   struct error_let_with_no_bindings : error {};
@@ -358,8 +352,8 @@ TEST_CASE("parse invalid let") {
     auto *error =
         std::get_if<visitor::error_let_with_no_bindings>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 0);
-    CHECK(error->where.end_offset() == 3);
+    CHECK(p.locator().range(error->where).begin_offset() == 0);
+    CHECK(p.locator().range(error->where).end_offset() == 3);
   }
 
   {
@@ -371,8 +365,8 @@ TEST_CASE("parse invalid let") {
     auto *error =
         std::get_if<visitor::error_stray_comma_in_let_statement>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 5);
-    CHECK(error->where.end_offset() == 6);
+    CHECK(p.locator().range(error->where).begin_offset() == 5);
+    CHECK(p.locator().range(error->where).end_offset() == 6);
   }
 
   {
@@ -384,8 +378,8 @@ TEST_CASE("parse invalid let") {
     auto *error = std::get_if<visitor::error_invalid_binding_in_let_statement>(
         &v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 7);
-    CHECK(error->where.end_offset() == 9);
+    CHECK(p.locator().range(error->where).begin_offset() == 7);
+    CHECK(p.locator().range(error->where).end_offset() == 9);
   }
 
   {
@@ -397,8 +391,8 @@ TEST_CASE("parse invalid let") {
     auto *error = std::get_if<visitor::error_invalid_binding_in_let_statement>(
         &v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 6);
+    CHECK(p.locator().range(error->where).begin_offset() == 4);
+    CHECK(p.locator().range(error->where).end_offset() == 6);
   }
 
   {
@@ -410,8 +404,8 @@ TEST_CASE("parse invalid let") {
     auto *error = std::get_if<visitor::error_invalid_binding_in_let_statement>(
         &v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 6);
+    CHECK(p.locator().range(error->where).begin_offset() == 4);
+    CHECK(p.locator().range(error->where).end_offset() == 6);
   }
 }
 
@@ -467,8 +461,8 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 2);
-    CHECK(error->where.end_offset() == 3);
+    CHECK(p.locator().range(error->where).begin_offset() == 2);
+    CHECK(p.locator().range(error->where).end_offset() == 3);
   }
 
   {
@@ -479,8 +473,8 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 0);
-    CHECK(error->where.end_offset() == 1);
+    CHECK(p.locator().range(error->where).begin_offset() == 0);
+    CHECK(p.locator().range(error->where).end_offset() == 1);
   }
 
   {
@@ -491,8 +485,8 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 2);
-    CHECK(error->where.end_offset() == 3);
+    CHECK(p.locator().range(error->where).begin_offset() == 2);
+    CHECK(p.locator().range(error->where).end_offset() == 3);
   }
 
   {
@@ -504,14 +498,14 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 2);
-    CHECK(error->where.end_offset() == 3);
+    CHECK(p.locator().range(error->where).begin_offset() == 2);
+    CHECK(p.locator().range(error->where).end_offset() == 3);
 
     error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[1]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 5);
+    CHECK(p.locator().range(error->where).begin_offset() == 4);
+    CHECK(p.locator().range(error->where).end_offset() == 5);
   }
 
   {
@@ -522,8 +516,8 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_missing_oprand_for_operator>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 3);
-    CHECK(error->where.end_offset() == 4);
+    CHECK(p.locator().range(error->where).begin_offset() == 3);
+    CHECK(p.locator().range(error->where).end_offset() == 4);
   }
   {
     visitor v;
@@ -533,8 +527,8 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 5);
+    CHECK(p.locator().range(error->where).begin_offset() == 4);
+    CHECK(p.locator().range(error->where).end_offset() == 5);
   }
 
   {
@@ -546,13 +540,13 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 9);
-    CHECK(error->where.end_offset() == 10);
+    CHECK(p.locator().range(error->where).begin_offset() == 9);
+    CHECK(p.locator().range(error->where).end_offset() == 10);
 
     error = std::get_if<visitor::error_unmatched_parenthesis>(&v.errors[1]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 5);
+    CHECK(p.locator().range(error->where).begin_offset() == 4);
+    CHECK(p.locator().range(error->where).end_offset() == 5);
   }
 
   {
@@ -563,8 +557,8 @@ TEST_CASE("parse invalid math expression") {
     auto *error =
         std::get_if<visitor::error_unexpected_identifier>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 4);
-    CHECK(error->where.end_offset() == 7);
+    CHECK(p.locator().range(error->where).begin_offset() == 4);
+    CHECK(p.locator().range(error->where).end_offset() == 7);
   }
 }
 
@@ -616,8 +610,8 @@ TEST_CASE("parse invalid function calls") {
     auto *error =
         std::get_if<visitor::error_unexpected_identifier>(&v.errors[0]);
     REQUIRE(error);
-    CHECK(error->where.begin_offset() == 3);
-    CHECK(error->where.end_offset() == 4);
+    CHECK(p.locator().range(error->where).begin_offset() == 3);
+    CHECK(p.locator().range(error->where).end_offset() == 4);
 
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "x");

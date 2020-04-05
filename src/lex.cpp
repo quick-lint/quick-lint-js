@@ -127,13 +127,17 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
   return !(x == y);
 }
 
-identifier token::identifier_name() const noexcept {
-  assert(this->type == token_type::identifier);
-  return identifier(source_code_span(this->begin, this->end));
+source_range locator::range(source_code_span span) const {
+  return source_range(span.begin() - this->input_, span.end() - this->input_);
 }
 
-source_range token::range(const char* original_input) const noexcept {
-  return source_range(this->begin - original_input, this->end - original_input);
+identifier token::identifier_name() const noexcept {
+  assert(this->type == token_type::identifier);
+  return identifier(this->span());
+}
+
+source_code_span token::span() const noexcept {
+  return source_code_span(this->begin, this->end);
 }
 
 void lexer::parse_current_token() {

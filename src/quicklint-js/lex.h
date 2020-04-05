@@ -155,10 +155,19 @@ class identifier {
   source_code_span span_;
 };
 
+class locator {
+ public:
+  explicit locator(const char* input) noexcept : input_(input) {}
+
+  source_range range(source_code_span) const;
+
+ private:
+  const char* input_;
+};
+
 struct token {
   identifier identifier_name() const noexcept;
-
-  source_range range(const char* original_input) const noexcept;
+  source_code_span span() const noexcept;
 
   token_type type;
 
