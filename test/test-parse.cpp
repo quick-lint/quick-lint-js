@@ -396,6 +396,15 @@ TEST_CASE("parse function calls") {
     CHECK(v.variable_uses[2].name == "y");
     CHECK(v.errors.empty());
   }
+
+  {
+    visitor v;
+    parser p("console.log('hello', 42)", &v);
+    p.parse_expression(v, options);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "console");
+    CHECK(v.errors.empty());
+  }
 }
 
 TEST_CASE("parse invalid function calls") {

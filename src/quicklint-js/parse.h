@@ -78,6 +78,7 @@ class parser {
           break;
 
         case token_type::number:
+        case token_type::string:
           this->lexer_.skip();
           last_operator = std::nullopt;
           allow_binary_operator = true;
