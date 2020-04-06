@@ -447,6 +447,25 @@ TEST_CASE("parse invalid function calls") {
   }
 }
 
+TEST_CASE("parse function call as statement") {
+  {
+    visitor v;
+    parser p("f(x); g(y);", &v);
+
+    p.parse_statement(v);
+    REQUIRE(v.variable_uses.size() == 2);
+    CHECK(v.variable_uses[0].name == "f");
+    CHECK(v.variable_uses[1].name == "x");
+
+    p.parse_statement(v);
+    REQUIRE(v.variable_uses.size() == 4);
+    CHECK(v.variable_uses[2].name == "g");
+    CHECK(v.variable_uses[3].name == "y");
+
+    CHECK(v.errors.empty());
+  }
+}
+
 TEST_CASE("parse property lookup: variable.property") {
   expression_options options = {.parse_commas = true};
 

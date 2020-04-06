@@ -50,8 +50,15 @@ class parser {
         break;
 
       case token_type::_let:
-      default:
         this->parse_let_bindings(v);
+        break;
+
+      case token_type::identifier:
+        this->parse_expression(v, expression_options{.parse_commas = true});
+        break;
+
+      default:
+        std::abort();
         break;
     }
   }
