@@ -78,6 +78,7 @@ namespace quicklint_js {
 namespace {
 constexpr const char keywords[][11] = {
     // clang-format off
+  "as",
   "await",
   "break",
   "case",

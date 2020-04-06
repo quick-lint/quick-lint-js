@@ -216,6 +216,15 @@ TEST_CASE("parse import") {
     CHECK(v.variable_declarations[0].name == "fs");
     CHECK(v.errors.empty());
   }
+
+  {
+    visitor v;
+    parser p("import * as fs from 'fs'", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "fs");
+    CHECK(v.errors.empty());
+  }
 }
 
 TEST_CASE("parse math expression") {

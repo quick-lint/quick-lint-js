@@ -34,6 +34,9 @@ class parser {
         break;
 
       case token_type::_import:
+        this->parse_import(v);
+        break;
+
       case token_type::_let:
       default:
         this->parse_let_bindings(v);
@@ -180,6 +183,33 @@ class parser {
         v.visit_exit_function_scope();
         break;
       }
+    }
+  }
+
+  template <class Visitor>
+  void parse_import(Visitor &v) {
+    assert(this->peek().type == token_type::_import);
+    this->lexer_.skip();
+
+    switch (this->peek().type) {
+      case token_type::identifier:
+        v.visit_variable_declaration(this->peek().identifier_name());
+        break;
+
+      case token_type::star:
+        this->lexer_.skip();
+
+        if (this->peek().type != token_type::_as) {
+          std::abort();
+        }
+        this->lexer_.skip();
+
+        v.visit_variable_declaration(this->peek().identifier_name());
+        break;
+
+      default:
+        std::abort();
+        break;
     }
   }
 
