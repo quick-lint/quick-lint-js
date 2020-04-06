@@ -556,6 +556,25 @@ TEST_CASE("parse function statement") {
     CHECK(v.visits[4] == "visit_variable_declaration");  // y
     CHECK(v.visits[5] == "visit_exit_function_scope");
   }
+
+  {
+    visitor v;
+    parser p("function f() { return x; }", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "f");
+
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "x");
+
+    REQUIRE(v.visits.size() == 4);
+    CHECK(v.visits[0] == "visit_variable_declaration");  // f
+    CHECK(v.visits[1] == "visit_enter_function_scope");
+    CHECK(v.visits[2] == "visit_variable_use");  // x
+    CHECK(v.visits[3] == "visit_exit_function_scope");
+  }
 }
 }  // namespace
 }  // namespace quicklint_js

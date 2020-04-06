@@ -30,7 +30,6 @@ class parser {
 
   template <class Visitor>
   void parse_statement(Visitor &v) {
-  retry:
     switch (this->peek().type) {
       case token_type::_export:
         this->lexer_.skip();
@@ -39,7 +38,7 @@ class parser {
 
       case token_type::semicolon:
         this->lexer_.skip();
-        goto retry;
+        break;
 
       case token_type::_function:
         this->parse_declaration(v);
@@ -54,6 +53,16 @@ class parser {
         break;
 
       case token_type::identifier:
+        this->parse_expression(v, expression_options{.parse_commas = true});
+
+        if (this->peek().type != token_type::semicolon) {
+          std::abort();
+        }
+        this->lexer_.skip();
+        break;
+
+      case token_type::_return:
+        this->lexer_.skip();
         this->parse_expression(v, expression_options{.parse_commas = true});
         break;
 
@@ -199,6 +208,25 @@ class parser {
         }
       done:
 
+        if (this->peek().type != token_type::right_paren) {
+          std::abort();
+        }
+        this->lexer_.skip();
+
+        if (this->peek().type != token_type::left_curly) {
+          std::abort();
+        }
+        this->lexer_.skip();
+
+        while (this->peek().type != token_type::right_curly) {
+          this->parse_statement(v);
+        }
+
+        if (this->peek().type != token_type::right_curly) {
+          std::abort();
+        }
+        this->lexer_.skip();
+
         v.visit_exit_function_scope();
         break;
       }
@@ -242,6 +270,10 @@ class parser {
       std::abort();
     }
     this->lexer_.skip();
+
+    if (this->peek().type == token_type::semicolon) {
+      this->lexer_.skip();
+    }
   }
 
   template <class Visitor>
