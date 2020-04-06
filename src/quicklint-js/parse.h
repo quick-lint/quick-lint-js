@@ -22,6 +22,13 @@ class parser {
   quicklint_js::locator &locator() noexcept { return this->locator_; }
 
   template <class Visitor>
+  void parse_module(Visitor &v) {
+    while (this->peek().type != token_type::end_of_file) {
+      this->parse_statement(v);
+    }
+  }
+
+  template <class Visitor>
   void parse_statement(Visitor &v) {
   retry:
     switch (this->peek().type) {
