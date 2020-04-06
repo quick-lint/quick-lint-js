@@ -15,6 +15,10 @@ class linter {
   explicit linter(error_reporter *error_reporter) noexcept
       : error_reporter_(error_reporter) {}
 
+  void visit_enter_function_scope() {}
+
+  void visit_exit_function_scope() {}
+
   void visit_variable_declaration(identifier name) {
     this->declared_variables_.emplace_back(name.string_view());
   }

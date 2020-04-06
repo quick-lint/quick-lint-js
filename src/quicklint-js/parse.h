@@ -1,6 +1,7 @@
 #ifndef QUICKLINT_JS_PARSE_H
 #define QUICKLINT_JS_PARSE_H
 
+#include <cstdlib>
 #include <optional>
 #include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
@@ -22,7 +23,22 @@ class parser {
 
   template <class Visitor>
   void parse_statement(Visitor &v) {
-    this->parse_let_bindings(v);
+    switch (this->peek().type) {
+      case token_type::_export:
+        this->lexer_.skip();
+        this->parse_declaration(v);
+        break;
+
+      case token_type::_function:
+        this->parse_declaration(v);
+        break;
+
+      case token_type::_import:
+      case token_type::_let:
+      default:
+        this->parse_let_bindings(v);
+        break;
+    }
   }
 
   template <class Visitor>
@@ -117,6 +133,56 @@ class parser {
 
  private:
   template <class Visitor>
+  void parse_declaration(Visitor &v) {
+    switch (this->peek().type) {
+      default:
+      case token_type::_function: {
+        this->lexer_.skip();
+
+        if (this->peek().type != token_type::identifier) {
+          std::abort();
+        }
+        v.visit_variable_declaration(this->peek().identifier_name());
+        this->lexer_.skip();
+
+        if (this->peek().type != token_type::left_paren) {
+          std::abort();
+        }
+        this->lexer_.skip();
+        v.visit_enter_function_scope();
+
+        bool first_parameter = true;
+        for (;;) {
+          std::optional<source_code_span> comma_span = std::nullopt;
+          if (!first_parameter) {
+            if (this->peek().type != token_type::comma) {
+              break;
+            }
+            comma_span = this->peek().span();
+            this->lexer_.skip();
+          }
+
+          switch (this->peek().type) {
+            case token_type::identifier:
+              this->parse_binding_element(v);
+              break;
+            case token_type::right_paren:
+              goto done;
+            default:
+              std::abort();
+              break;
+          }
+          first_parameter = false;
+        }
+      done:
+
+        v.visit_exit_function_scope();
+        break;
+      }
+    }
+  }
+
+  template <class Visitor>
   void parse_let_bindings(Visitor &v) {
     source_code_span let_span = this->peek().span();
     this->lexer_.skip();
@@ -132,17 +198,9 @@ class parser {
       }
 
       switch (this->peek().type) {
-        case token_type::identifier: {
-          identifier variable_name = this->peek().identifier_name();
-          this->lexer_.skip();
-          if (this->peek().type == token_type::equal) {
-            this->lexer_.skip();
-            this->parse_expression(v,
-                                   expression_options{.parse_commas = false});
-          }
-          v.visit_variable_declaration(variable_name);
+        case token_type::identifier:
+          this->parse_binding_element(v);
           break;
-        }
         case token_type::_if:
         case token_type::number:
           this->error_reporter_->report_error_invalid_binding_in_let_statement(
@@ -163,6 +221,25 @@ class parser {
 
     if (this->peek().type == token_type::semicolon) {
       this->lexer_.skip();
+    }
+  }
+
+  template <class Visitor>
+  void parse_binding_element(Visitor &v) {
+    switch (this->peek().type) {
+      case token_type::identifier: {
+        identifier name = this->peek().identifier_name();
+        this->lexer_.skip();
+        if (this->peek().type == token_type::equal) {
+          this->lexer_.skip();
+          this->parse_expression(v, expression_options{.parse_commas = false});
+        }
+        v.visit_variable_declaration(name);
+        break;
+      }
+      default:
+        assert(false);
+        break;
     }
   }
 

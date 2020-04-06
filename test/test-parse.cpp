@@ -12,6 +12,14 @@ namespace {
 struct visitor : public error_collector {
   std::vector<const char *> visits;
 
+  void visit_enter_function_scope() {
+    this->visits.emplace_back("visit_enter_function_scope");
+  }
+
+  void visit_exit_function_scope() {
+    this->visits.emplace_back("visit_exit_function_scope");
+  }
+
   void visit_variable_declaration(identifier name) {
     this->variable_declarations.emplace_back(
         visited_variable_declaration{std::string(name.string_view())});
@@ -196,6 +204,17 @@ TEST_CASE("parse invalid let") {
     CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
     CHECK(p.locator().range(error.where).begin_offset() == 4);
     CHECK(p.locator().range(error.where).end_offset() == 6);
+  }
+}
+
+TEST_CASE("parse import") {
+  {
+    visitor v;
+    parser p("import fs from 'fs'", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "fs");
+    CHECK(v.errors.empty());
   }
 }
 
@@ -409,6 +428,85 @@ TEST_CASE("parse property lookup: variable.property") {
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.errors.empty());
+  }
+}
+
+TEST_CASE("parse function statement") {
+  {
+    visitor v;
+    parser p("function foo() {}", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "foo");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("export function foo() {}", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "foo");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("function sin(theta) {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 2);
+    CHECK(v.variable_declarations[0].name == "sin");
+    CHECK(v.variable_declarations[1].name == "theta");
+
+    REQUIRE(v.visits.size() == 4);
+    CHECK(v.visits[0] == "visit_variable_declaration");
+    CHECK(v.visits[1] == "visit_enter_function_scope");
+    CHECK(v.visits[2] == "visit_variable_declaration");
+    CHECK(v.visits[3] == "visit_exit_function_scope");
+  }
+
+  {
+    visitor v;
+    parser p("function pow(base, exponent) {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 3);
+    CHECK(v.variable_declarations[0].name == "pow");
+    CHECK(v.variable_declarations[1].name == "base");
+    CHECK(v.variable_declarations[2].name == "exponent");
+
+    REQUIRE(v.visits.size() == 5);
+    CHECK(v.visits[0] == "visit_variable_declaration");
+    CHECK(v.visits[1] == "visit_enter_function_scope");
+    CHECK(v.visits[2] == "visit_variable_declaration");
+    CHECK(v.visits[3] == "visit_variable_declaration");
+    CHECK(v.visits[4] == "visit_exit_function_scope");
+  }
+
+  {
+    visitor v;
+    parser p("function f(x, y = x) {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 3);
+    CHECK(v.variable_declarations[0].name == "f");
+    CHECK(v.variable_declarations[1].name == "x");
+    CHECK(v.variable_declarations[2].name == "y");
+
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "x");
+
+    REQUIRE(v.visits.size() == 6);
+    CHECK(v.visits[0] == "visit_variable_declaration");  // f
+    CHECK(v.visits[1] == "visit_enter_function_scope");
+    CHECK(v.visits[2] == "visit_variable_declaration");  // x
+    CHECK(v.visits[3] == "visit_variable_use");          // x
+    CHECK(v.visits[4] == "visit_variable_declaration");  // y
+    CHECK(v.visits[5] == "visit_exit_function_scope");
   }
 }
 }  // namespace
