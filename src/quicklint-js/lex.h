@@ -61,6 +61,7 @@ enum class token_type {
   _false,
   _finally,
   _for,
+  _from,
   _function,
   _if,
   _import,

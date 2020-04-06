@@ -225,6 +225,17 @@ TEST_CASE("parse import") {
     CHECK(v.variable_declarations[0].name == "fs");
     CHECK(v.errors.empty());
   }
+
+  {
+    visitor v;
+    parser p("import fs from 'fs'; import net from 'net';", &v);
+    p.parse_statement(v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 2);
+    CHECK(v.variable_declarations[0].name == "fs");
+    CHECK(v.variable_declarations[1].name == "net");
+    CHECK(v.errors.empty());
+  }
 }
 
 TEST_CASE("parse math expression") {

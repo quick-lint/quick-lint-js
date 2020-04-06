@@ -23,11 +23,16 @@ class parser {
 
   template <class Visitor>
   void parse_statement(Visitor &v) {
+  retry:
     switch (this->peek().type) {
       case token_type::_export:
         this->lexer_.skip();
         this->parse_declaration(v);
         break;
+
+      case token_type::semicolon:
+        this->lexer_.skip();
+        goto retry;
 
       case token_type::_function:
         this->parse_declaration(v);
@@ -194,6 +199,7 @@ class parser {
     switch (this->peek().type) {
       case token_type::identifier:
         v.visit_variable_declaration(this->peek().identifier_name());
+        this->lexer_.skip();
         break;
 
       case token_type::star:
@@ -205,12 +211,23 @@ class parser {
         this->lexer_.skip();
 
         v.visit_variable_declaration(this->peek().identifier_name());
+        this->lexer_.skip();
         break;
 
       default:
         std::abort();
         break;
     }
+
+    if (this->peek().type != token_type::_from) {
+      std::abort();
+    }
+    this->lexer_.skip();
+
+    if (this->peek().type != token_type::string) {
+      std::abort();
+    }
+    this->lexer_.skip();
   }
 
   template <class Visitor>

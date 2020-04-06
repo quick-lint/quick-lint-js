@@ -146,6 +146,7 @@ TEST_CASE("lex keywords") {
   check_single_token("false", token_type::_false);
   check_single_token("finally", token_type::_finally);
   check_single_token("for", token_type::_for);
+  check_single_token("from", token_type::_from);
   check_single_token("function", token_type::_function);
   check_single_token("if", token_type::_if);
   check_single_token("import", token_type::_import);

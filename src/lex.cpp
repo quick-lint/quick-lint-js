@@ -96,6 +96,7 @@ constexpr const char keywords[][11] = {
   "false",
   "finally",
   "for",
+  "from",
   "function",
   "if",
   "import",
