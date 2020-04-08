@@ -4,6 +4,7 @@ add_executable(
   quicklint-js-test
   test-lex.cpp
   test-lint.cpp
+  test-location.cpp
   test-options.cpp
   test-parse.cpp
 )

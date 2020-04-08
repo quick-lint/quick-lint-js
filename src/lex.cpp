@@ -131,10 +131,6 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
   return !(x == y);
 }
 
-source_range locator::range(source_code_span span) const {
-  return source_range(span.begin() - this->input_, span.end() - this->input_);
-}
-
 identifier token::identifier_name() const noexcept {
   assert(this->type == token_type::identifier);
   return identifier(this->span());

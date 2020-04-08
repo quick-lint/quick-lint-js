@@ -41,42 +41,66 @@ namespace quicklint_js {
 namespace {
 class debug_error_reporter : public error_reporter {
  public:
+  explicit debug_error_reporter(const char *input) noexcept : locator_(input) {}
+
   void report_error_invalid_binding_in_let_statement(
-      source_code_span) override {
+      source_code_span where) override {
+    log_location(where);
     std::cerr << "error: invalid binding in let statement\n";
   }
 
-  void report_error_let_with_no_bindings(source_code_span) override {
+  void report_error_let_with_no_bindings(source_code_span where) override {
+    log_location(where);
     std::cerr << "error: let with no bindings\n";
   }
 
-  void report_error_missing_oprand_for_operator(source_code_span) override {
+  void report_error_missing_oprand_for_operator(
+      source_code_span where) override {
+    log_location(where);
     std::cerr << "error: missing oprand for operator\n";
   }
 
-  void report_error_stray_comma_in_let_statement(source_code_span) override {
+  void report_error_stray_comma_in_let_statement(
+      source_code_span where) override {
+    log_location(where);
     std::cerr << "error: stray comma in let statement\n";
   }
 
-  void report_error_unclosed_block_comment(source_code_span) override {
+  void report_error_unclosed_block_comment(source_code_span where) override {
+    log_location(where);
     std::cerr << "error: unclosed block comment\n";
   }
 
-  void report_error_unclosed_string_literal(source_code_span) override {
+  void report_error_unclosed_string_literal(source_code_span where) override {
+    log_location(where);
     std::cerr << "error: unclosed string literal\n";
   }
 
-  void report_error_unexpected_identifier(source_code_span) override {
+  void report_error_unexpected_identifier(source_code_span where) override {
+    log_location(where);
     std::cerr << "error: unexpected identifier\n";
   }
 
-  void report_error_unmatched_parenthesis(source_code_span) override {
+  void report_error_unmatched_parenthesis(source_code_span where) override {
+    log_location(where);
     std::cerr << "error: unmatched parenthesis\n";
   }
 
-  void report_error_variable_used_before_declaration(identifier) override {
+  void report_error_variable_used_before_declaration(identifier name) override {
+    log_location(name);
     std::cerr << "error: variable used before declaration\n";
   }
+
+ private:
+  void log_location(identifier i) const { log_location(i.span()); }
+
+  void log_location(source_code_span span) const {
+    source_range r = this->locator_.range(span);
+    source_position p = r.begin();
+    std::cerr << p.line_number << ":" << p.column_number << ": ";
+  }
+
+  locator locator_;
 };
 
 class debug_visitor {
@@ -127,7 +151,7 @@ class multi_visitor {
 
 void process_file(const char *path, bool print_parser_visits) {
   std::string source = read_file(path);
-  debug_error_reporter error_reporter;
+  debug_error_reporter error_reporter(source.c_str());
   parser p(source.c_str(), &error_reporter);
   linter l(&error_reporter);
   if (print_parser_visits) {

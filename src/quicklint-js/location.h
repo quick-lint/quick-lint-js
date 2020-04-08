@@ -5,19 +5,28 @@
 #include <string_view>
 
 namespace quicklint_js {
+struct source_position {
+  int line_number;
+  int column_number;
+  std::size_t offset;
+};
+
 class source_range {
  public:
-  using offset = std::size_t;
+  using offset = decltype(source_position::offset);
 
-  source_range(offset begin_offset, offset end_offset) noexcept
-      : begin_offset_(begin_offset), end_offset_(end_offset) {}
+  explicit source_range(source_position begin, source_position end) noexcept
+      : begin_(begin), end_(end) {}
 
-  offset begin_offset() const noexcept { return this->begin_offset_; }
-  offset end_offset() const noexcept { return this->end_offset_; }
+  offset begin_offset() const noexcept { return this->begin_.offset; }
+  source_position begin() const noexcept;
+
+  offset end_offset() const noexcept { return this->end_.offset; }
+  source_position end() const noexcept;
 
  private:
-  offset begin_offset_;
-  offset end_offset_;
+  source_position begin_;
+  source_position end_;
 };
 
 class source_code_span {
@@ -43,6 +52,7 @@ class locator {
   explicit locator(const char* input) noexcept : input_(input) {}
 
   source_range range(source_code_span) const;
+  source_position position(const char*) const noexcept;
 
  private:
   const char* input_;
