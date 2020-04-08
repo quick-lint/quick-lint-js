@@ -4,6 +4,7 @@
 #include <iostream>
 #include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
+#include <quicklint-js/lint.h>
 #include <quicklint-js/location.h>
 #include <quicklint-js/parse.h>
 #include <string>
@@ -84,11 +85,44 @@ class debug_visitor {
   }
 };
 
+template <class Visitor1, class Visitor2>
+class multi_visitor {
+ public:
+  explicit multi_visitor(Visitor1 *visitor_1, Visitor2 *visitor_2) noexcept
+      : visitor_1_(visitor_1), visitor_2_(visitor_2) {}
+
+  void visit_enter_function_scope() {
+    this->visitor_1_->visit_enter_function_scope();
+    this->visitor_2_->visit_enter_function_scope();
+  }
+
+  void visit_exit_function_scope() {
+    this->visitor_1_->visit_exit_function_scope();
+    this->visitor_2_->visit_exit_function_scope();
+  }
+
+  void visit_variable_declaration(identifier name) {
+    this->visitor_1_->visit_variable_declaration(name);
+    this->visitor_2_->visit_variable_declaration(name);
+  }
+
+  void visit_variable_use(identifier name) {
+    this->visitor_1_->visit_variable_use(name);
+    this->visitor_2_->visit_variable_use(name);
+  }
+
+ private:
+  Visitor1 *visitor_1_;
+  Visitor2 *visitor_2_;
+};
+
 void process_file(const char *path) {
   std::string source = read_file(path);
   debug_error_reporter error_reporter;
   parser p(source.c_str(), &error_reporter);
-  debug_visitor visitor;
+  linter l(&error_reporter);
+  debug_visitor logger;
+  multi_visitor visitor(&logger, &l);
   p.parse_module(visitor);
 }
 
