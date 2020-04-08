@@ -6,23 +6,32 @@
 #include <quicklint-js/lex.h>
 #include <quicklint-js/lint.h>
 #include <quicklint-js/location.h>
+#include <quicklint-js/options.h>
 #include <quicklint-js/parse.h>
 #include <string>
 
 namespace quicklint_js {
 namespace {
-void process_file(const char *path);
+void process_file(const char *path, bool print_parser_visits);
 std::string read_file(const char *path);
 }  // namespace
 }  // namespace quicklint_js
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
+  quicklint_js::options o = quicklint_js::parse_options(argc, argv);
+  if (!o.error_unrecognized_options.empty()) {
+    for (const auto &option : o.error_unrecognized_options) {
+      std::cerr << "error: unrecognized option: " << option << '\n';
+    }
+    return 1;
+  }
+  if (o.files_to_lint.empty()) {
     std::cerr << "error: expected file name\n";
+    return 1;
   }
 
-  for (int i = 1; i < argc; ++i) {
-    quicklint_js::process_file(argv[i]);
+  for (const char *file_to_lint : o.files_to_lint) {
+    quicklint_js::process_file(file_to_lint, o.print_parser_visits);
   }
 
   return 0;
@@ -116,14 +125,18 @@ class multi_visitor {
   Visitor2 *visitor_2_;
 };
 
-void process_file(const char *path) {
+void process_file(const char *path, bool print_parser_visits) {
   std::string source = read_file(path);
   debug_error_reporter error_reporter;
   parser p(source.c_str(), &error_reporter);
   linter l(&error_reporter);
-  debug_visitor logger;
-  multi_visitor visitor(&logger, &l);
-  p.parse_module(visitor);
+  if (print_parser_visits) {
+    debug_visitor logger;
+    multi_visitor visitor(&logger, &l);
+    p.parse_module(visitor);
+  } else {
+    p.parse_module(l);
+  }
 }
 
 std::string read_file(const char *path) {

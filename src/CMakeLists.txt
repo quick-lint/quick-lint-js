@@ -9,5 +9,6 @@ target_link_libraries(quicklint-js PRIVATE quicklint-js-lib)
 add_library(
   quicklint-js-lib
   lex.cpp
+  options.cpp
 )
 target_include_directories(quicklint-js-lib PUBLIC .)

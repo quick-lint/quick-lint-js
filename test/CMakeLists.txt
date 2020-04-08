@@ -4,6 +4,7 @@ add_executable(
   quicklint-js-test
   test-lex.cpp
   test-lint.cpp
+  test-options.cpp
   test-parse.cpp
 )
 target_include_directories(quicklint-js-test PRIVATE .)
