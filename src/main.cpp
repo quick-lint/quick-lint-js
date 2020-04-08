@@ -41,7 +41,9 @@ namespace quicklint_js {
 namespace {
 class debug_error_reporter : public error_reporter {
  public:
-  explicit debug_error_reporter(const char *input) noexcept : locator_(input) {}
+  explicit debug_error_reporter(const char *input,
+                                const char *file_path) noexcept
+      : locator_(input), file_path_(file_path) {}
 
   void report_error_invalid_binding_in_let_statement(
       source_code_span where) override {
@@ -97,10 +99,12 @@ class debug_error_reporter : public error_reporter {
   void log_location(source_code_span span) const {
     source_range r = this->locator_.range(span);
     source_position p = r.begin();
-    std::cerr << p.line_number << ":" << p.column_number << ": ";
+    std::cerr << this->file_path_ << ":" << p.line_number << ":"
+              << p.column_number << ": ";
   }
 
   locator locator_;
+  const char *file_path_;
 };
 
 class debug_visitor {
@@ -151,7 +155,7 @@ class multi_visitor {
 
 void process_file(const char *path, bool print_parser_visits) {
   std::string source = read_file(path);
-  debug_error_reporter error_reporter(source.c_str());
+  debug_error_reporter error_reporter(source.c_str(), path);
   parser p(source.c_str(), &error_reporter);
   linter l(&error_reporter);
   if (print_parser_visits) {
