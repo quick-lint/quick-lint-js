@@ -16,3 +16,8 @@ target_link_libraries(
   doctest_with_main
   quicklint-js-lib
 )
+
+add_test(
+  NAME quicklint-js-test
+  COMMAND quicklint-js-test
+)
