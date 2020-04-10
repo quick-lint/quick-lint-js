@@ -8,6 +8,15 @@
 #include <quicklint-js/location.h>
 
 namespace quicklint_js {
+enum class variable_kind {
+  _const,
+  _function,
+  _import,
+  _let,
+  _parameter,
+  _var,
+};
+
 struct expression_options {
   bool parse_commas;
 };
@@ -48,8 +57,16 @@ class parser {
         this->parse_import(v);
         break;
 
+      case token_type::_const:
+        this->parse_let_bindings(v, variable_kind::_const);
+        break;
+
       case token_type::_let:
-        this->parse_let_bindings(v);
+        this->parse_let_bindings(v, variable_kind::_let);
+        break;
+
+      case token_type::_var:
+        this->parse_let_bindings(v, variable_kind::_var);
         break;
 
       case token_type::identifier:
@@ -174,7 +191,8 @@ class parser {
         if (this->peek().type != token_type::identifier) {
           std::abort();
         }
-        v.visit_variable_declaration(this->peek().identifier_name());
+        v.visit_variable_declaration(this->peek().identifier_name(),
+                                     variable_kind::_function);
         this->lexer_.skip();
 
         if (this->peek().type != token_type::left_paren) {
@@ -196,7 +214,7 @@ class parser {
 
           switch (this->peek().type) {
             case token_type::identifier:
-              this->parse_binding_element(v);
+              this->parse_binding_element(v, variable_kind::_parameter);
               break;
             case token_type::right_paren:
               goto done;
@@ -240,7 +258,8 @@ class parser {
 
     switch (this->peek().type) {
       case token_type::identifier:
-        v.visit_variable_declaration(this->peek().identifier_name());
+        v.visit_variable_declaration(this->peek().identifier_name(),
+                                     variable_kind::_import);
         this->lexer_.skip();
         break;
 
@@ -252,7 +271,8 @@ class parser {
         }
         this->lexer_.skip();
 
-        v.visit_variable_declaration(this->peek().identifier_name());
+        v.visit_variable_declaration(this->peek().identifier_name(),
+                                     variable_kind::_import);
         this->lexer_.skip();
         break;
 
@@ -277,7 +297,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_let_bindings(Visitor &v) {
+  void parse_let_bindings(Visitor &v, variable_kind declaration_kind) {
     source_code_span let_span = this->peek().span();
     this->lexer_.skip();
     bool first_binding = true;
@@ -293,7 +313,7 @@ class parser {
 
       switch (this->peek().type) {
         case token_type::identifier:
-          this->parse_binding_element(v);
+          this->parse_binding_element(v, declaration_kind);
           break;
         case token_type::_if:
         case token_type::number:
@@ -319,7 +339,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_binding_element(Visitor &v) {
+  void parse_binding_element(Visitor &v, variable_kind declaration_kind) {
     switch (this->peek().type) {
       case token_type::identifier: {
         identifier name = this->peek().identifier_name();
@@ -328,7 +348,7 @@ class parser {
           this->lexer_.skip();
           this->parse_expression(v, expression_options{.parse_commas = false});
         }
-        v.visit_variable_declaration(name);
+        v.visit_variable_declaration(name, declaration_kind);
         break;
       }
       default:

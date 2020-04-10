@@ -20,14 +20,15 @@ struct visitor : public error_collector {
     this->visits.emplace_back("visit_exit_function_scope");
   }
 
-  void visit_variable_declaration(identifier name) {
+  void visit_variable_declaration(identifier name, variable_kind kind) {
     this->variable_declarations.emplace_back(
-        visited_variable_declaration{std::string(name.string_view())});
+        visited_variable_declaration{std::string(name.string_view()), kind});
     this->visits.emplace_back("visit_variable_declaration");
   }
 
   struct visited_variable_declaration {
     std::string name;
+    variable_kind kind;
   };
   std::vector<visited_variable_declaration> variable_declarations;
 
@@ -50,6 +51,7 @@ TEST_CASE("parse let") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_let);
     CHECK(v.errors.empty());
   }
 
@@ -59,7 +61,9 @@ TEST_CASE("parse let") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 2);
     CHECK(v.variable_declarations[0].name == "a");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_let);
     CHECK(v.variable_declarations[1].name == "b");
+    CHECK(v.variable_declarations[1].kind == variable_kind::_let);
     CHECK(v.errors.empty());
   }
 
@@ -75,6 +79,9 @@ TEST_CASE("parse let") {
     CHECK(v.variable_declarations[4].name == "e");
     CHECK(v.variable_declarations[5].name == "f");
     CHECK(v.variable_declarations[6].name == "g");
+    for (const auto &declaration : v.variable_declarations) {
+      CHECK(declaration.kind == variable_kind::_let);
+    }
     CHECK(v.errors.empty());
   }
 
@@ -90,6 +97,26 @@ TEST_CASE("parse let") {
     CHECK(v.variable_declarations[1].name == "second");
     CHECK(v.errors.empty());
   }
+}
+
+TEST_CASE("parse var") {
+  visitor v;
+  parser p("var x", &v);
+  p.parse_statement(v);
+  REQUIRE(v.variable_declarations.size() == 1);
+  CHECK(v.variable_declarations[0].name == "x");
+  CHECK(v.variable_declarations[0].kind == variable_kind::_var);
+  CHECK(v.errors.empty());
+}
+
+TEST_CASE("parse const") {
+  visitor v;
+  parser p("const x", &v);
+  p.parse_statement(v);
+  REQUIRE(v.variable_declarations.size() == 1);
+  CHECK(v.variable_declarations[0].name == "x");
+  CHECK(v.variable_declarations[0].kind == variable_kind::_const);
+  CHECK(v.errors.empty());
 }
 
 TEST_CASE("parse let with initializers") {
@@ -214,6 +241,7 @@ TEST_CASE("parse import") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "fs");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
     CHECK(v.errors.empty());
   }
 
@@ -223,6 +251,7 @@ TEST_CASE("parse import") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "fs");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
     CHECK(v.errors.empty());
   }
 
@@ -233,7 +262,9 @@ TEST_CASE("parse import") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 2);
     CHECK(v.variable_declarations[0].name == "fs");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
     CHECK(v.variable_declarations[1].name == "net");
+    CHECK(v.variable_declarations[1].kind == variable_kind::_import);
     CHECK(v.errors.empty());
   }
 }
@@ -486,6 +517,7 @@ TEST_CASE("parse function statement") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "foo");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_function);
     CHECK(v.errors.empty());
   }
 
@@ -495,6 +527,7 @@ TEST_CASE("parse function statement") {
     p.parse_statement(v);
     REQUIRE(v.variable_declarations.size() == 1);
     CHECK(v.variable_declarations[0].name == "foo");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_function);
     CHECK(v.errors.empty());
   }
 
@@ -506,7 +539,9 @@ TEST_CASE("parse function statement") {
 
     REQUIRE(v.variable_declarations.size() == 2);
     CHECK(v.variable_declarations[0].name == "sin");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_function);
     CHECK(v.variable_declarations[1].name == "theta");
+    CHECK(v.variable_declarations[1].kind == variable_kind::_parameter);
 
     REQUIRE(v.visits.size() == 4);
     CHECK(v.visits[0] == "visit_variable_declaration");

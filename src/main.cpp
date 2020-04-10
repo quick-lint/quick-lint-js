@@ -113,7 +113,7 @@ class debug_visitor {
 
   void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
 
-  void visit_variable_declaration(identifier name) {
+  void visit_variable_declaration(identifier name, variable_kind) {
     std::cerr << "variable declaration: " << name.string_view() << '\n';
   }
 
@@ -138,9 +138,9 @@ class multi_visitor {
     this->visitor_2_->visit_exit_function_scope();
   }
 
-  void visit_variable_declaration(identifier name) {
-    this->visitor_1_->visit_variable_declaration(name);
-    this->visitor_2_->visit_variable_declaration(name);
+  void visit_variable_declaration(identifier name, variable_kind kind) {
+    this->visitor_1_->visit_variable_declaration(name, kind);
+    this->visitor_2_->visit_variable_declaration(name, kind);
   }
 
   void visit_variable_use(identifier name) {

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
+#include <quicklint-js/parse.h>
 #include <string>
 #include <vector>
 
@@ -17,7 +18,7 @@ class linter {
 
   void visit_exit_function_scope() {}
 
-  void visit_variable_declaration(identifier name) {
+  void visit_variable_declaration(identifier name, variable_kind) {
     this->declared_variables_.emplace_back(name.string_view());
   }
 

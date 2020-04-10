@@ -12,7 +12,7 @@ TEST_CASE("variable use before declaration") {
   linter l(&v);
   l.visit_variable_use(identifier(source_code_span(&input[0], &input[1])));
   l.visit_variable_declaration(
-      identifier(source_code_span(&input[2], &input[3])));
+      identifier(source_code_span(&input[2], &input[3])), variable_kind::_let);
 
   REQUIRE(v.errors.size() == 1);
   CHECK(v.errors[0].kind ==
@@ -40,7 +40,7 @@ TEST_CASE("variable use after declaration") {
   error_collector v;
   linter l(&v);
   l.visit_variable_declaration(
-      identifier(source_code_span(&input[0], &input[1])));
+      identifier(source_code_span(&input[0], &input[1])), variable_kind::_let);
   l.visit_variable_use(identifier(source_code_span(&input[2], &input[3])));
   CHECK(v.errors.empty());
 }
