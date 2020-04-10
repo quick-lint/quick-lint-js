@@ -28,4 +28,4 @@ add_library(
   location.cpp
   options.cpp
 )
-target_include_directories(quicklint-js-lib PUBLIC .)
+target_include_directories(quicklint-js-lib PUBLIC include)

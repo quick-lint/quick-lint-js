@@ -24,7 +24,7 @@ add_executable(
   test-options.cpp
   test-parse.cpp
 )
-target_include_directories(quicklint-js-test PRIVATE .)
+target_include_directories(quicklint-js-test PRIVATE include)
 target_link_libraries(
   quicklint-js-test
   PRIVATE
