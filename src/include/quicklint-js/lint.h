@@ -34,23 +34,47 @@ class linter {
 
   void visit_exit_function_scope() {}
 
-  void visit_variable_declaration(identifier name, variable_kind) {
-    this->declared_variables_.emplace_back(name.string_view());
+  void visit_variable_declaration(identifier name, variable_kind kind) {
+    this->declared_variables_.emplace_back(
+        declared_variable{std::string(name.string_view()), kind});
   }
 
   void visit_variable_use(identifier name) {
-    bool variable_is_declared =
-        std::find(this->declared_variables_.begin(),
-                  this->declared_variables_.end(),
-                  name.string_view()) != this->declared_variables_.end();
+    bool variable_is_declared = this->find_declared_variable(name);
     if (!variable_is_declared) {
-      this->error_reporter_->report_error_variable_used_before_declaration(
-          name);
+      this->variables_used_before_declaration_.emplace_back(name);
+    }
+  }
+
+  void visit_end_of_module() {
+    for (const identifier &name : this->variables_used_before_declaration_) {
+      const declared_variable *var = this->find_declared_variable(name);
+      if (!var || var->kind == variable_kind::_const ||
+          var->kind == variable_kind::_let) {
+        this->error_reporter_->report_error_variable_used_before_declaration(
+            name);
+      }
     }
   }
 
  private:
-  std::vector<std::string> declared_variables_;
+  struct declared_variable {
+    std::string name;
+    variable_kind kind;
+  };
+
+  const declared_variable *find_declared_variable(identifier name) const
+      noexcept {
+    auto it = std::find_if(this->declared_variables_.begin(),
+                           this->declared_variables_.end(),
+                           [&](const declared_variable &var) {
+                             return var.name == name.string_view();
+                           });
+    return &*it;
+  }
+
+  std::vector<declared_variable> declared_variables_;
+  std::vector<identifier> variables_used_before_declaration_;
   error_reporter *error_reporter_;
 };
 }  // namespace quicklint_js
