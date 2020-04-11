@@ -30,12 +30,12 @@ class linter {
   explicit linter(error_reporter *error_reporter) noexcept
       : error_reporter_(error_reporter) {}
 
-  void visit_enter_function_scope() {}
+  void visit_enter_function_scope() { this->scopes_.emplace_back(); }
 
-  void visit_exit_function_scope() {}
+  void visit_exit_function_scope() { this->scopes_.pop_back(); }
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->declared_variables_.emplace_back(
+    this->scopes_.back().declared_variables.emplace_back(
         declared_variable{std::string(name.string_view()), kind});
   }
 
@@ -65,15 +65,21 @@ class linter {
 
   const declared_variable *find_declared_variable(identifier name) const
       noexcept {
-    auto it = std::find_if(this->declared_variables_.begin(),
-                           this->declared_variables_.end(),
-                           [&](const declared_variable &var) {
-                             return var.name == name.string_view();
-                           });
-    return &*it;
+    for (const scope &s : this->scopes_) {
+      for (const declared_variable &var : s.declared_variables) {
+        if (var.name == name.string_view()) {
+          return &var;
+        }
+      }
+    }
+    return nullptr;
   }
 
-  std::vector<declared_variable> declared_variables_;
+  struct scope {
+    std::vector<declared_variable> declared_variables;
+  };
+
+  std::vector<scope> scopes_{1};
   std::vector<identifier> variables_used_before_declaration_;
   error_reporter *error_reporter_;
 };

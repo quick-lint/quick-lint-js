@@ -108,5 +108,43 @@ TEST_CASE("variable use with no declaration") {
         error_collector::error_variable_used_before_declaration);
   CHECK(v.errors[0].where.begin() == use);
 }
+
+TEST_CASE("variable use with declaration in different function") {
+  const char declaration[] = "x";
+  const char use[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_exit_function_scope();
+  l.visit_enter_function_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  REQUIRE(v.errors.size() == 1);
+  CHECK(v.errors[0].kind ==
+        error_collector::error_variable_used_before_declaration);
+  CHECK(v.errors[0].where.begin() == use);
+}
+
+TEST_CASE("use global variable within functions") {
+  const char declaration[] = "x";
+  const char use[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_enter_function_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_enter_function_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  CHECK(v.errors.empty());
+}
 }  // namespace
 }  // namespace quicklint_js
