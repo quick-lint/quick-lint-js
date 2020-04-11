@@ -19,19 +19,27 @@ on: [push]
 
 jobs:
   build:
-    name: build and test with ${{ matrix.toolchain.name }}
+    name: ${{ matrix.toolchain.name }} ${{ matrix.sanitize.name }}
     strategy:
       matrix:
         toolchain:
           - {name: "Clang 9", CC: clang-9, CXX: clang++-9}
           - {name: "GCC 8", CC: gcc-8, CXX: g++-8}
+        sanitize:
+          - {name: "", CFLAGS: ""}
+          - {name: "ASAN+UBSAN", CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
     runs-on: ubuntu-latest
     env:
-      CC: ${{ matrix.toolchain.CC }}
-      CXX: ${{ matrix.toolchain.CXX }}
+      CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
+      CMAKE_C_FLAGS: ${{ matrix.sanitize.CFLAGS }}
+      CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
+      CMAKE_CXX_FLAGS: ${{ matrix.sanitize.CFLAGS }}
+      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.sanitize.CFLAGS }}
+      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.sanitize.CFLAGS }}
     steps:
       - uses: actions/checkout@v1
       - uses: lukka/get-cmake@v2.3
-      - run: cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=YES -S . -B .
+      - run: env | grep '^CMAKE' | sort
+      - run: cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=YES -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}" -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}" -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -S . -B .
       - run: cmake --build . --config Debug
       - run: ctest --verbose
