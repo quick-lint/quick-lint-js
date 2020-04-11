@@ -22,19 +22,29 @@
 
 namespace quicklint_js {
 namespace {
+template <std::size_t N>
+source_code_span span_of(const char (&code)[N]) {
+  return source_code_span(&code[0], &code[N]);
+}
+
+template <std::size_t N>
+identifier identifier_of(const char (&name)[N]) {
+  return identifier(span_of(name));
+}
+
 TEST_CASE("variable use before declaration") {
-  const char *input = "x x";
+  const char declaration[] = "x";
+  const char use[] = "x";
+
   error_collector v;
   linter l(&v);
-  l.visit_variable_use(identifier(source_code_span(&input[0], &input[1])));
-  l.visit_variable_declaration(
-      identifier(source_code_span(&input[2], &input[3])), variable_kind::_let);
+  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
 
   REQUIRE(v.errors.size() == 1);
   CHECK(v.errors[0].kind ==
         error_collector::error_variable_used_before_declaration);
-  CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-  CHECK(locator(input).range(v.errors[0].where).end_offset() == 1);
+  CHECK(v.errors[0].where.begin() == use);
 }
 
 TEST_CASE("variable use before declaration (with parsing)") {
@@ -52,12 +62,13 @@ TEST_CASE("variable use before declaration (with parsing)") {
 }
 
 TEST_CASE("variable use after declaration") {
-  const char *input = "x x";
+  const char declaration[] = "x";
+  const char use[] = "x";
+
   error_collector v;
   linter l(&v);
-  l.visit_variable_declaration(
-      identifier(source_code_span(&input[0], &input[1])), variable_kind::_let);
-  l.visit_variable_use(identifier(source_code_span(&input[2], &input[3])));
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_use(identifier_of(use));
   CHECK(v.errors.empty());
 }
 }  // namespace
