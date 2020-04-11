@@ -18,6 +18,7 @@
 #define QUICKLINT_JS_LINT_H
 
 #include <algorithm>
+#include <cassert>
 #include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/parse.h>
@@ -32,7 +33,31 @@ class linter {
 
   void visit_enter_function_scope() { this->scopes_.emplace_back(); }
 
-  void visit_exit_function_scope() { this->scopes_.pop_back(); }
+  void visit_exit_function_scope() {
+    assert(this->scopes_.size() >= 2);
+    scope &current_scope = this->scopes_[this->scopes_.size() - 1];
+    scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
+
+    for (identifier &name :
+         this->scopes_.back().variables_used_before_declaration) {
+      const declared_variable *var = this->find_declared_variable(name);
+      if (var && (var->kind == variable_kind::_const ||
+                  var->kind == variable_kind::_let)) {
+        this->error_reporter_->report_error_variable_used_before_declaration(
+            name);
+      } else {
+        parent_scope.variables_used_in_descendant_scope.emplace_back(
+            std::move(name));
+      }
+    }
+
+    parent_scope.variables_used_in_descendant_scope.insert(
+        parent_scope.variables_used_in_descendant_scope.end(),
+        current_scope.variables_used_in_descendant_scope.begin(),
+        current_scope.variables_used_in_descendant_scope.end());
+
+    this->scopes_.pop_back();
+  }
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->scopes_.back().declared_variables.emplace_back(
@@ -42,15 +67,24 @@ class linter {
   void visit_variable_use(identifier name) {
     bool variable_is_declared = this->find_declared_variable(name);
     if (!variable_is_declared) {
-      this->variables_used_before_declaration_.emplace_back(name);
+      this->scopes_.back().variables_used_before_declaration.emplace_back(name);
     }
   }
 
   void visit_end_of_module() {
-    for (const identifier &name : this->variables_used_before_declaration_) {
+    for (const identifier &name :
+         this->scopes_.back().variables_used_before_declaration) {
       const declared_variable *var = this->find_declared_variable(name);
       if (!var || var->kind == variable_kind::_const ||
           var->kind == variable_kind::_let) {
+        this->error_reporter_->report_error_variable_used_before_declaration(
+            name);
+      }
+    }
+    for (const identifier &name :
+         this->scopes_.back().variables_used_in_descendant_scope) {
+      const declared_variable *var = this->find_declared_variable(name);
+      if (!var) {
         this->error_reporter_->report_error_variable_used_before_declaration(
             name);
       }
@@ -61,6 +95,12 @@ class linter {
   struct declared_variable {
     std::string name;
     variable_kind kind;
+  };
+
+  struct scope {
+    std::vector<declared_variable> declared_variables;
+    std::vector<identifier> variables_used_before_declaration;
+    std::vector<identifier> variables_used_in_descendant_scope;
   };
 
   const declared_variable *find_declared_variable(identifier name) const
@@ -75,12 +115,7 @@ class linter {
     return nullptr;
   }
 
-  struct scope {
-    std::vector<declared_variable> declared_variables;
-  };
-
   std::vector<scope> scopes_{1};
-  std::vector<identifier> variables_used_before_declaration_;
   error_reporter *error_reporter_;
 };
 }  // namespace quicklint_js

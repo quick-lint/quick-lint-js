@@ -125,6 +125,8 @@ class debug_error_reporter : public error_reporter {
 
 class debug_visitor {
  public:
+  void visit_end_of_module() { std::cerr << "end of module\n"; }
+
   void visit_enter_function_scope() { std::cerr << "entered function scope\n"; }
 
   void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
@@ -143,6 +145,11 @@ class multi_visitor {
  public:
   explicit multi_visitor(Visitor1 *visitor_1, Visitor2 *visitor_2) noexcept
       : visitor_1_(visitor_1), visitor_2_(visitor_2) {}
+
+  void visit_end_of_module() {
+    this->visitor_1_->visit_end_of_module();
+    this->visitor_2_->visit_end_of_module();
+  }
 
   void visit_enter_function_scope() {
     this->visitor_1_->visit_enter_function_scope();
