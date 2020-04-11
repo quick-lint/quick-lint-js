@@ -38,7 +38,6 @@ jobs:
       CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.sanitize.CFLAGS }}
     steps:
       - uses: actions/checkout@v1
-      - uses: lukka/get-cmake@v2.3
       - run: env | grep '^CMAKE' | sort
       - run: cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=YES -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}" -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}" -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -S . -B .
       - run: cmake --build . --config Debug
