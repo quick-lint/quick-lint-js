@@ -28,6 +28,10 @@ namespace {
 struct visitor : public error_collector {
   std::vector<const char *> visits;
 
+  void visit_end_of_module() {
+    this->visits.emplace_back("visit_end_of_module");
+  }
+
   void visit_enter_function_scope() {
     this->visits.emplace_back("visit_enter_function_scope");
   }
@@ -626,6 +630,16 @@ TEST_CASE("parse function statement") {
     CHECK(v.visits[2] == "visit_variable_use");  // x
     CHECK(v.visits[3] == "visit_exit_function_scope");
   }
+}
+
+TEST_CASE("parse empty module") {
+  visitor v;
+  parser p("", &v);
+  p.parse_module(v);
+  CHECK(v.errors.empty());
+
+  REQUIRE(v.visits.size() == 1);
+  CHECK(v.visits[0] == "visit_end_of_module");
 }
 }  // namespace
 }  // namespace quicklint_js

@@ -51,6 +51,7 @@ class parser {
     while (this->peek().type != token_type::end_of_file) {
       this->parse_statement(v);
     }
+    v.visit_end_of_module();
   }
 
   template <class Visitor>
