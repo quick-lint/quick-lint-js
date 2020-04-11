@@ -19,8 +19,16 @@ on: [push]
 
 jobs:
   build:
-    name: build and test
+    name: build and test with ${{ matrix.toolchain.name }}
+    strategy:
+      matrix:
+        toolchain:
+          - {name: "Clang 9", CC: clang-9, CXX: clang++-9}
+          - {name: "GCC 8", CC: gcc-8, CXX: g++-8}
     runs-on: ubuntu-latest
+    env:
+      CC: ${{ matrix.toolchain.CC }}
+      CXX: ${{ matrix.toolchain.CXX }}
     steps:
       - uses: actions/checkout@v1
       - uses: lukka/get-cmake@v2.3
