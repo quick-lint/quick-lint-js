@@ -65,17 +65,19 @@ TEST_CASE("let variable use before declaration (with parsing)") {
   CHECK(locator(input).range(v.errors[0].where).end_offset() == 9);
 }
 
-TEST_CASE("var variable use before declaration") {
-  const char declaration[] = "x";
-  const char use[] = "x";
+TEST_CASE("var or function variable use before declaration") {
+  for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
+    const char declaration[] = "x";
+    const char use[] = "x";
 
-  error_collector v;
-  linter l(&v);
-  l.visit_variable_use(identifier_of(use));
-  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var);
-  l.visit_end_of_module();
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_end_of_module();
 
-  REQUIRE(v.errors.empty());
+    REQUIRE(v.errors.empty());
+  }
 }
 
 TEST_CASE("variable use after declaration") {
@@ -91,6 +93,20 @@ TEST_CASE("variable use after declaration") {
     l.visit_end_of_module();
     CHECK(v.errors.empty());
   }
+}
+
+TEST_CASE("variable use with no declaration") {
+  const char use[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  REQUIRE(v.errors.size() == 1);
+  CHECK(v.errors[0].kind ==
+        error_collector::error_variable_used_before_declaration);
+  CHECK(v.errors[0].where.begin() == use);
 }
 }  // namespace
 }  // namespace quicklint_js
