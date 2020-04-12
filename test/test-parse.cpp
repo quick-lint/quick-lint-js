@@ -64,7 +64,7 @@ struct visitor : public error_collector {
   std::vector<visited_variable_use> variable_uses;
 };
 
-TEST_CASE("parse let") {
+TEST_CASE("parse simple let") {
   {
     visitor v;
     parser p("let x", &v);
@@ -119,7 +119,7 @@ TEST_CASE("parse let") {
   }
 }
 
-TEST_CASE("parse var") {
+TEST_CASE("parse simple var") {
   visitor v;
   parser p("var x", &v);
   p.parse_statement(v);
@@ -129,7 +129,7 @@ TEST_CASE("parse var") {
   CHECK(v.errors.empty());
 }
 
-TEST_CASE("parse const") {
+TEST_CASE("parse simple const") {
   visitor v;
   parser p("const x", &v);
   p.parse_statement(v);
@@ -171,6 +171,60 @@ TEST_CASE("parse let with initializers") {
     CHECK(v.variable_uses[1].name == "x");
     CHECK(v.errors.empty());
   }
+}
+
+TEST_CASE("parse let with object destructuring") {
+  {
+    visitor v;
+    parser p("let {x} = 2", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("let {x, y, z} = 2", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 3);
+    CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.variable_declarations[1].name == "y");
+    CHECK(v.variable_declarations[2].name == "z");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("let {{x}, {y}, {z}} = 2", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 3);
+    CHECK(v.variable_declarations[0].name == "x");
+    CHECK(v.variable_declarations[1].name == "y");
+    CHECK(v.variable_declarations[2].name == "z");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("let {} = x;", &v);
+    p.parse_statement(v);
+    CHECK(v.variable_declarations.empty());
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.errors.empty());
+  }
+}
+
+TEST_CASE("parse function parameters with object destructuring") {
+  visitor v;
+  parser p("function f({x, y, z}) {}", &v);
+  p.parse_statement(v);
+  REQUIRE(v.variable_declarations.size() == 4);
+  CHECK(v.variable_declarations[0].name == "f");
+  CHECK(v.variable_declarations[1].name == "x");
+  CHECK(v.variable_declarations[2].name == "y");
+  CHECK(v.variable_declarations[3].name == "z");
+  CHECK(v.errors.empty());
 }
 
 TEST_CASE(

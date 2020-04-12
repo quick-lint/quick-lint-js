@@ -22,6 +22,7 @@
 #include <quicklint-js/error.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
+#include <vector>
 
 namespace quicklint_js {
 enum class variable_kind {
@@ -235,6 +236,7 @@ class parser {
 
           switch (this->peek().type) {
             case token_type::identifier:
+            case token_type::left_curly:
               this->parse_binding_element(v, variable_kind::_parameter);
               break;
             case token_type::right_paren:
@@ -334,6 +336,7 @@ class parser {
 
       switch (this->peek().type) {
         case token_type::identifier:
+        case token_type::left_curly:
           this->parse_binding_element(v, declaration_kind);
           break;
         case token_type::_if:
@@ -361,21 +364,51 @@ class parser {
 
   template <class Visitor>
   void parse_binding_element(Visitor &v, variable_kind declaration_kind) {
+    buffering_visitor lhs;
+
     switch (this->peek().type) {
       case token_type::identifier: {
         identifier name = this->peek().identifier_name();
         this->lexer_.skip();
-        if (this->peek().type == token_type::equal) {
-          this->lexer_.skip();
-          this->parse_expression(v, expression_options{.parse_commas = false});
-        }
-        v.visit_variable_declaration(name, declaration_kind);
+        lhs.visit_variable_declaration(name, declaration_kind);
         break;
       }
+
+      case token_type::left_curly:
+        this->lexer_.skip();
+        switch (this->peek().type) {
+          case token_type::right_curly:
+            break;
+          default:
+            this->parse_binding_element(v, declaration_kind);
+            break;
+        }
+
+        while (this->peek().type == token_type::comma) {
+          this->lexer_.skip();
+          this->parse_binding_element(v, declaration_kind);
+        }
+
+        switch (this->peek().type) {
+          case token_type::right_curly:
+            this->lexer_.skip();
+            break;
+          default:
+            std::abort();
+            break;
+        }
+        break;
+
       default:
         assert(false);
         break;
     }
+
+    if (this->peek().type == token_type::equal) {
+      this->lexer_.skip();
+      this->parse_expression(v, expression_options{.parse_commas = false});
+    }
+    lhs.move_into(v);
   }
 
   template <class Visitor>
@@ -410,6 +443,29 @@ class parser {
   }
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
+
+  class buffering_visitor {
+   public:
+    template <class Visitor>
+    void move_into(Visitor &target) {
+      for (const visited_variable_declaration &visit :
+           this->visited_variable_declarations_) {
+        target.visit_variable_declaration(visit.name, visit.kind);
+      }
+    }
+
+    void visit_variable_declaration(identifier name, variable_kind kind) {
+      this->visited_variable_declarations_.emplace_back(
+          visited_variable_declaration{name, kind});
+    }
+
+   private:
+    struct visited_variable_declaration {
+      identifier name;
+      variable_kind kind;
+    };
+    std::vector<visited_variable_declaration> visited_variable_declarations_;
+  };
 
   lexer lexer_;
   quicklint_js::locator locator_;
