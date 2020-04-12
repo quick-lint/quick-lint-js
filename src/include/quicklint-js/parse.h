@@ -185,6 +185,10 @@ class parser {
           allow_identifier = true;
           break;
 
+        case token_type::incomplete_template:
+          this->parse_template(v);
+          break;
+
         case token_type::right_paren:
         default:
         done:
@@ -371,6 +375,37 @@ class parser {
       default:
         assert(false);
         break;
+    }
+  }
+
+  template <class Visitor>
+  void parse_template(Visitor &v) {
+    const char *template_begin = this->peek().begin;
+    for (;;) {
+      assert(this->peek().type == token_type::incomplete_template);
+      this->lexer_.skip();
+      this->parse_expression(v, expression_options{.parse_commas = true});
+      switch (this->peek().type) {
+        case token_type::right_curly:
+          this->lexer_.skip_in_template(template_begin);
+          switch (this->peek().type) {
+            case token_type::complete_template:
+              this->lexer_.skip();
+              return;
+
+            case token_type::incomplete_template:
+              continue;
+
+            default:
+              std::abort();
+              break;
+          }
+          break;
+
+        default:
+          std::abort();
+          break;
+      }
     }
   }
 

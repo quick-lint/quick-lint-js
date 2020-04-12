@@ -478,6 +478,47 @@ TEST_CASE("parse function calls") {
   }
 }
 
+TEST_CASE("parse templates in expressions") {
+  expression_options options = {.parse_commas = true};
+
+  {
+    visitor v;
+    parser p("`hello`", &v);
+    p.parse_expression(v, options);
+    CHECK(v.visits.empty());
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("`hello${world}`", &v);
+    p.parse_expression(v, options);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "world");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("`${one}${two}${three}`", &v);
+    p.parse_expression(v, options);
+    REQUIRE(v.variable_uses.size() == 3);
+    CHECK(v.variable_uses[0].name == "one");
+    CHECK(v.variable_uses[1].name == "two");
+    CHECK(v.variable_uses[2].name == "three");
+    CHECK(v.errors.empty());
+  }
+
+  {
+    visitor v;
+    parser p("`${2+2, four}`", &v);
+    p.parse_expression(v, options);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "four");
+    CHECK(v.errors.empty());
+  }
+}
+
 TEST_CASE("parse invalid function calls") {
   expression_options options = {.parse_commas = true};
 
