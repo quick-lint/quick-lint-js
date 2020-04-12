@@ -53,8 +53,10 @@ enum class token_type {
   star = '*',
   tilde = '~',
 
+  complete_template,
   end_of_file,
   identifier,
+  incomplete_template,
   number,
   string,
 
@@ -171,8 +173,18 @@ class lexer {
   const token& peek() const noexcept { return this->last_token_; }
 
   void skip() { this->parse_current_token(); }
+  void skip_in_template(const char* template_begin);
 
  private:
+  struct parsed_template_body {
+    token_type type;
+    const char* end;
+  };
+
+  static parsed_template_body parse_template_body(const char* input,
+                                                  const char* template_begin,
+                                                  error_reporter*);
+
   void skip_whitespace();
 
   static bool is_digit(char);

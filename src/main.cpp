@@ -94,6 +94,11 @@ class debug_error_reporter : public error_reporter {
     std::cerr << "error: unclosed string literal\n";
   }
 
+  void report_error_unclosed_template(source_code_span where) override {
+    log_location(where);
+    std::cerr << "error: unclosed template\n";
+  }
+
   void report_error_unexpected_identifier(source_code_span where) override {
     log_location(where);
     std::cerr << "error: unexpected identifier\n";

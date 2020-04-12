@@ -125,6 +125,128 @@ TEST_CASE("lex strings") {
   // TODO(strager): Report invalid octal escape sequences in non-strict mode.
 }
 
+TEST_CASE("lex templates") {
+  check_tokens("``", {token_type::complete_template});
+  check_tokens("`hello`", {token_type::complete_template});
+  check_tokens("`hello$world`", {token_type::complete_template});
+  check_tokens("`hello{world`", {token_type::complete_template});
+  check_tokens(R"(`hello\`world`)", {token_type::complete_template});
+  check_tokens(R"(`hello$\{world`)", {token_type::complete_template});
+  check_tokens(R"(`hello\${world`)", {token_type::complete_template});
+  check_tokens(R"(`hello
+world`)",
+               {token_type::complete_template});
+
+  {
+    lexer l("`hello${42}`", &null_error_reporter::instance);
+    CHECK(l.peek().type == token_type::incomplete_template);
+    CHECK(l.peek().span().string_view() == "`hello${");
+    const char* template_begin = l.peek().begin;
+    l.skip();
+    CHECK(l.peek().type == token_type::number);
+    l.skip();
+    CHECK(l.peek().type == token_type::right_curly);
+    l.skip_in_template(template_begin);
+    CHECK(l.peek().type == token_type::complete_template);
+    CHECK(l.peek().span().string_view() == "`");
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+  }
+
+  {
+    lexer l("`${42}world`", &null_error_reporter::instance);
+    CHECK(l.peek().type == token_type::incomplete_template);
+    CHECK(l.peek().span().string_view() == "`${");
+    const char* template_begin = l.peek().begin;
+    l.skip();
+    CHECK(l.peek().type == token_type::number);
+    l.skip();
+    CHECK(l.peek().type == token_type::right_curly);
+    l.skip_in_template(template_begin);
+    CHECK(l.peek().type == token_type::complete_template);
+    CHECK(l.peek().span().string_view() == "world`");
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+  }
+
+  {
+    lexer l("`${left}${right}`", &null_error_reporter::instance);
+    CHECK(l.peek().type == token_type::incomplete_template);
+    const char* template_begin = l.peek().begin;
+    l.skip();
+    CHECK(l.peek().type == token_type::identifier);
+    l.skip();
+    CHECK(l.peek().type == token_type::right_curly);
+    l.skip_in_template(template_begin);
+    CHECK(l.peek().type == token_type::incomplete_template);
+    l.skip();
+    CHECK(l.peek().type == token_type::identifier);
+    l.skip();
+    CHECK(l.peek().type == token_type::right_curly);
+    l.skip_in_template(template_begin);
+    CHECK(l.peek().type == token_type::complete_template);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+  }
+
+  // TODO(strager): Lex line continuations in templates. For example:
+  //
+  // `hello\   (backslash followed by end of line)
+  // world`
+
+  {
+    error_collector v;
+    const char* input = "`unterminated";
+    lexer l(input, &v);
+    CHECK(l.peek().type == token_type::complete_template);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_template);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 13);
+  }
+
+  {
+    error_collector v;
+    const char* input = "`${un}terminated";
+    lexer l(input, &v);
+    CHECK(l.peek().type == token_type::incomplete_template);
+    const char* template_begin = l.peek().begin;
+    l.skip();
+    CHECK(l.peek().type == token_type::identifier);
+    l.skip();
+    CHECK(l.peek().type == token_type::right_curly);
+    l.skip_in_template(template_begin);
+    CHECK(l.peek().type == token_type::complete_template);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_template);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 16);
+  }
+
+  {
+    error_collector v;
+    const char* input = "`unterminated\\";
+    lexer l(input, &v);
+    CHECK(l.peek().type == token_type::complete_template);
+    l.skip();
+    CHECK(l.peek().type == token_type::end_of_file);
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind == error_collector::error_unclosed_template);
+    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
+    CHECK(locator(input).range(v.errors[0].where).end_offset() == 14);
+  }
+
+  // TODO(strager): Report invalid escape squences, like with plain string
+  // literals.
+}
+
 TEST_CASE("lex identifiers") {
   check_single_token("i", token_type::identifier);
   check_single_token("_", token_type::identifier);

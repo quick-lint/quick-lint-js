@@ -451,6 +451,15 @@ retry:
       break;
     }
 
+    case '`': {
+      this->input_ += 1;
+      parsed_template_body body = this->parse_template_body(
+          this->input_, this->last_token_.begin, this->error_reporter_);
+      this->last_token_.type = body.type;
+      this->input_ = body.end;
+      break;
+    }
+
     default:
       assert(false);
       break;
@@ -458,6 +467,58 @@ retry:
   this->last_token_.end = this->input_;
 
   this->skip_whitespace();
+}
+
+void lexer::skip_in_template(const char* template_begin) {
+  this->last_token_.begin = this->input_;
+  parsed_template_body body = this->parse_template_body(
+      this->input_, template_begin, this->error_reporter_);
+  this->last_token_.type = body.type;
+  this->input_ = body.end;
+  this->last_token_.end = body.end;
+}
+
+lexer::parsed_template_body lexer::parse_template_body(
+    const char* input, const char* template_begin,
+    error_reporter* error_reporter) {
+  const char* c = input;
+  for (;;) {
+    switch (*c) {
+      case '\0':
+        error_reporter->report_error_unclosed_template(
+            source_code_span(template_begin, c));
+        return parsed_template_body{token_type::complete_template, c};
+
+      case '`':
+        ++c;
+        return parsed_template_body{token_type::complete_template, c};
+
+      case '\\':
+        ++c;
+        switch (*c) {
+          case '\0':
+            error_reporter->report_error_unclosed_template(
+                source_code_span(template_begin, c));
+            return parsed_template_body{token_type::complete_template, c};
+          default:
+            ++c;
+            break;
+        }
+        break;
+
+      case '$':
+        if (c[1] == '{') {
+          c += 2;
+          return parsed_template_body{token_type::incomplete_template, c};
+        }
+        ++c;
+        break;
+
+      default:
+        ++c;
+        break;
+    }
+  }
 }
 
 void lexer::skip_whitespace() {
@@ -548,6 +609,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(circumflex_equal)
     QLJS_CASE(colon)
     QLJS_CASE(comma)
+    QLJS_CASE(complete_template)
     QLJS_CASE(dot)
     QLJS_CASE(dot_dot_dot)
     QLJS_CASE(end_of_file)
@@ -562,6 +624,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(greater_greater_greater)
     QLJS_CASE(greater_greater_greater_equal)
     QLJS_CASE(identifier)
+    QLJS_CASE(incomplete_template)
     QLJS_CASE(left_curly)
     QLJS_CASE(left_paren)
     QLJS_CASE(left_square)
