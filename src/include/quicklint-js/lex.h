@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <iosfwd>
 #include <quicklint-js/location.h>
 #include <string_view>
 
@@ -131,6 +132,8 @@ enum class token_type {
   star_star,
   star_star_equal,
 };
+
+std::ostream& operator<<(std::ostream&, token_type);
 
 class identifier {
  public:
