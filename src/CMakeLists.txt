@@ -27,5 +27,6 @@ add_library(
   lex.cpp
   location.cpp
   options.cpp
+  parse.cpp
 )
 target_include_directories(quicklint-js-lib PUBLIC include)

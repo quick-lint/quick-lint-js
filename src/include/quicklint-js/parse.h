@@ -24,6 +24,11 @@
 #include <quicklint-js/location.h>
 #include <vector>
 
+#define QLJS_PARSER_UNIMPLEMENTED()                                   \
+  do {                                                                \
+    this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
+  } while (false)
+
 namespace quicklint_js {
 enum class variable_kind {
   _class,
@@ -92,7 +97,7 @@ class parser {
         this->parse_expression(v, expression_options{.parse_commas = true});
 
         if (this->peek().type != token_type::semicolon) {
-          std::abort();
+          QLJS_PARSER_UNIMPLEMENTED();
         }
         this->lexer_.skip();
         break;
@@ -107,7 +112,7 @@ class parser {
         break;
 
       default:
-        std::abort();
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
   }
@@ -216,7 +221,7 @@ class parser {
         this->lexer_.skip();
 
         if (this->peek().type != token_type::identifier) {
-          std::abort();
+          QLJS_PARSER_UNIMPLEMENTED();
         }
         v.visit_variable_declaration(this->peek().identifier_name(),
                                      variable_kind::_function);
@@ -235,7 +240,7 @@ class parser {
   template <class Visitor>
   void parse_function_parameters_and_body(Visitor &v) {
     if (this->peek().type != token_type::left_paren) {
-      std::abort();
+      QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
     v.visit_enter_function_scope();
@@ -259,7 +264,7 @@ class parser {
         case token_type::right_paren:
           goto done;
         default:
-          std::abort();
+          QLJS_PARSER_UNIMPLEMENTED();
           break;
       }
       first_parameter = false;
@@ -267,12 +272,12 @@ class parser {
   done:
 
     if (this->peek().type != token_type::right_paren) {
-      std::abort();
+      QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
 
     if (this->peek().type != token_type::left_curly) {
-      std::abort();
+      QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
 
@@ -281,7 +286,7 @@ class parser {
     }
 
     if (this->peek().type != token_type::right_curly) {
-      std::abort();
+      QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
 
@@ -306,7 +311,7 @@ class parser {
                                    expression_options{.parse_commas = false});
             break;
           default:
-            std::abort();
+            QLJS_PARSER_UNIMPLEMENTED();
             break;
         }
         break;
@@ -315,7 +320,7 @@ class parser {
         break;
 
       default:
-        std::abort();
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
 
@@ -330,7 +335,7 @@ class parser {
         break;
 
       default:
-        std::abort();
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
 
@@ -351,7 +356,7 @@ class parser {
               break;
 
             default:
-              std::abort();
+              QLJS_PARSER_UNIMPLEMENTED();
               break;
           }
           break;
@@ -366,7 +371,7 @@ class parser {
           return;
 
         default:
-          std::abort();
+          QLJS_PARSER_UNIMPLEMENTED();
           break;
       }
     }
@@ -387,7 +392,7 @@ class parser {
         this->lexer_.skip();
 
         if (this->peek().type != token_type::_as) {
-          std::abort();
+          QLJS_PARSER_UNIMPLEMENTED();
         }
         this->lexer_.skip();
 
@@ -397,17 +402,17 @@ class parser {
         break;
 
       default:
-        std::abort();
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
 
     if (this->peek().type != token_type::_from) {
-      std::abort();
+      QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
 
     if (this->peek().type != token_type::string) {
-      std::abort();
+      QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
 
@@ -491,13 +496,13 @@ class parser {
             this->lexer_.skip();
             break;
           default:
-            std::abort();
+            QLJS_PARSER_UNIMPLEMENTED();
             break;
         }
         break;
 
       default:
-        assert(false);
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
 
@@ -527,13 +532,13 @@ class parser {
               continue;
 
             default:
-              std::abort();
+              QLJS_PARSER_UNIMPLEMENTED();
               break;
           }
           break;
 
         default:
-          std::abort();
+          QLJS_PARSER_UNIMPLEMENTED();
           break;
       }
     }
@@ -564,10 +569,15 @@ class parser {
     std::vector<visited_variable_declaration> visited_variable_declarations_;
   };
 
+  void crash_on_unimplemented_token(const char *qljs_file_name, int qljs_line,
+                                    const char *qljs_function_name);
+
   lexer lexer_;
   quicklint_js::locator locator_;
   error_reporter *error_reporter_;
 };
 }  // namespace quicklint_js
+
+#undef QLJS_PARSER_UNIMPLEMENTED
 
 #endif
