@@ -26,6 +26,7 @@
 
 namespace quicklint_js {
 enum class variable_kind {
+  _class,
   _const,
   _function,
   _import,
@@ -94,6 +95,10 @@ class parser {
           std::abort();
         }
         this->lexer_.skip();
+        break;
+
+      case token_type::_class:
+        this->parse_class(v);
         break;
 
       case token_type::_return:
@@ -217,59 +222,152 @@ class parser {
                                      variable_kind::_function);
         this->lexer_.skip();
 
-        if (this->peek().type != token_type::left_paren) {
-          std::abort();
+        this->parse_function_parameters_and_body(v);
+        break;
+      }
+
+      case token_type::_class:
+        this->parse_class(v);
+        break;
+    }
+  }
+
+  template <class Visitor>
+  void parse_function_parameters_and_body(Visitor &v) {
+    if (this->peek().type != token_type::left_paren) {
+      std::abort();
+    }
+    this->lexer_.skip();
+    v.visit_enter_function_scope();
+
+    bool first_parameter = true;
+    for (;;) {
+      std::optional<source_code_span> comma_span = std::nullopt;
+      if (!first_parameter) {
+        if (this->peek().type != token_type::comma) {
+          break;
         }
+        comma_span = this->peek().span();
         this->lexer_.skip();
-        v.visit_enter_function_scope();
+      }
 
-        bool first_parameter = true;
-        for (;;) {
-          std::optional<source_code_span> comma_span = std::nullopt;
-          if (!first_parameter) {
-            if (this->peek().type != token_type::comma) {
-              break;
-            }
-            comma_span = this->peek().span();
-            this->lexer_.skip();
-          }
+      switch (this->peek().type) {
+        case token_type::identifier:
+        case token_type::left_curly:
+          this->parse_binding_element(v, variable_kind::_parameter);
+          break;
+        case token_type::right_paren:
+          goto done;
+        default:
+          std::abort();
+          break;
+      }
+      first_parameter = false;
+    }
+  done:
 
+    if (this->peek().type != token_type::right_paren) {
+      std::abort();
+    }
+    this->lexer_.skip();
+
+    if (this->peek().type != token_type::left_curly) {
+      std::abort();
+    }
+    this->lexer_.skip();
+
+    while (this->peek().type != token_type::right_curly) {
+      this->parse_statement(v);
+    }
+
+    if (this->peek().type != token_type::right_curly) {
+      std::abort();
+    }
+    this->lexer_.skip();
+
+    v.visit_exit_function_scope();
+  }
+
+  template <class Visitor>
+  void parse_class(Visitor &v) {
+    assert(this->peek().type == token_type::_class);
+    this->lexer_.skip();
+
+    identifier class_name = this->peek().identifier_name();
+    this->lexer_.skip();
+
+    switch (this->peek().type) {
+      case token_type::_extends:
+        this->lexer_.skip();
+        switch (this->peek().type) {
+          case token_type::identifier:
+            // TODO(strager): Don't allow extending any ol' expression.
+            this->parse_expression(v,
+                                   expression_options{.parse_commas = false});
+            break;
+          default:
+            std::abort();
+            break;
+        }
+        break;
+
+      case token_type::left_curly:
+        break;
+
+      default:
+        std::abort();
+        break;
+    }
+
+    v.visit_variable_declaration(class_name, variable_kind::_class);
+
+    v.visit_enter_class_scope();
+
+    switch (this->peek().type) {
+      case token_type::left_curly:
+        this->lexer_.skip();
+        this->parse_class_body(v);
+        break;
+
+      default:
+        std::abort();
+        break;
+    }
+
+    v.visit_exit_class_scope();
+  }
+
+  template <class Visitor>
+  void parse_class_body(Visitor &v) {
+    for (;;) {
+      switch (this->peek().type) {
+        case token_type::_static:
+          this->lexer_.skip();
           switch (this->peek().type) {
             case token_type::identifier:
-            case token_type::left_curly:
-              this->parse_binding_element(v, variable_kind::_parameter);
+              v.visit_property_declaration(this->peek().identifier_name());
+              this->lexer_.skip();
+              this->parse_function_parameters_and_body(v);
               break;
-            case token_type::right_paren:
-              goto done;
+
             default:
               std::abort();
               break;
           }
-          first_parameter = false;
-        }
-      done:
+          break;
 
-        if (this->peek().type != token_type::right_paren) {
+        case token_type::identifier:
+          v.visit_property_declaration(this->peek().identifier_name());
+          this->lexer_.skip();
+          this->parse_function_parameters_and_body(v);
+          break;
+
+        case token_type::right_curly:
+          return;
+
+        default:
           std::abort();
-        }
-        this->lexer_.skip();
-
-        if (this->peek().type != token_type::left_curly) {
-          std::abort();
-        }
-        this->lexer_.skip();
-
-        while (this->peek().type != token_type::right_curly) {
-          this->parse_statement(v);
-        }
-
-        if (this->peek().type != token_type::right_curly) {
-          std::abort();
-        }
-        this->lexer_.skip();
-
-        v.visit_exit_function_scope();
-        break;
+          break;
       }
     }
   }

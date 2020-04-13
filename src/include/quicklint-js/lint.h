@@ -31,7 +31,11 @@ class linter {
   explicit linter(error_reporter *error_reporter) noexcept
       : error_reporter_(error_reporter) {}
 
+  void visit_enter_class_scope() {}
+
   void visit_enter_function_scope() { this->scopes_.emplace_back(); }
+
+  void visit_exit_class_scope() {}
 
   void visit_exit_function_scope() {
     assert(this->scopes_.size() >= 2);
@@ -58,6 +62,8 @@ class linter {
 
     this->scopes_.pop_back();
   }
+
+  void visit_property_declaration(identifier) {}
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->scopes_.back().declared_variables.emplace_back(

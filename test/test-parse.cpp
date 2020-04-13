@@ -32,13 +32,32 @@ struct visitor : public error_collector {
     this->visits.emplace_back("visit_end_of_module");
   }
 
+  void visit_enter_class_scope() {
+    this->visits.emplace_back("visit_enter_class_scope");
+  }
+
   void visit_enter_function_scope() {
     this->visits.emplace_back("visit_enter_function_scope");
+  }
+
+  void visit_exit_class_scope() {
+    this->visits.emplace_back("visit_exit_class_scope");
   }
 
   void visit_exit_function_scope() {
     this->visits.emplace_back("visit_exit_function_scope");
   }
+
+  void visit_property_declaration(identifier name) {
+    this->property_declarations.emplace_back(
+        visited_property_declaration{std::string(name.string_view())});
+    this->visits.emplace_back("visit_property_declaration");
+  }
+
+  struct visited_property_declaration {
+    std::string name;
+  };
+  std::vector<visited_property_declaration> property_declarations;
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->variable_declarations.emplace_back(
@@ -735,6 +754,116 @@ TEST_CASE("parse empty module") {
 
   REQUIRE(v.visits.size() == 1);
   CHECK(v.visits[0] == "visit_end_of_module");
+}
+
+TEST_CASE("parse class statement") {
+  {
+    visitor v;
+    parser p("class C {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "C");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_class);
+
+    REQUIRE(v.visits.size() == 3);
+    CHECK(v.visits[0] == "visit_variable_declaration");
+    CHECK(v.visits[1] == "visit_enter_class_scope");
+    CHECK(v.visits[2] == "visit_exit_class_scope");
+  }
+
+  {
+    visitor v;
+    parser p("export class C {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "C");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_class);
+  }
+
+  {
+    visitor v;
+    parser p("class Derived extends Base {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "Derived");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_class);
+
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "Base");
+
+    REQUIRE(v.visits.size() == 4);
+    CHECK(v.visits[0] == "visit_variable_use");
+    CHECK(v.visits[1] == "visit_variable_declaration");
+    CHECK(v.visits[2] == "visit_enter_class_scope");
+    CHECK(v.visits[3] == "visit_exit_class_scope");
+  }
+
+  {
+    visitor v;
+    parser p("class FileStream extends fs.ReadStream {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "fs");
+  }
+
+  {
+    visitor v;
+    parser p("class Monster { eatMuffins(muffinCount) { } }", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_declarations.size() == 2);
+    CHECK(v.variable_declarations[0].name == "Monster");
+    CHECK(v.variable_declarations[1].name == "muffinCount");
+
+    REQUIRE(v.property_declarations.size() == 1);
+    CHECK(v.property_declarations[0].name == "eatMuffins");
+
+    REQUIRE(v.visits.size() == 7);
+    CHECK(v.visits[0] == "visit_variable_declaration");
+    CHECK(v.visits[1] == "visit_enter_class_scope");
+    CHECK(v.visits[2] == "visit_property_declaration");
+    CHECK(v.visits[3] == "visit_enter_function_scope");
+    CHECK(v.visits[4] == "visit_variable_declaration");
+    CHECK(v.visits[5] == "visit_exit_function_scope");
+    CHECK(v.visits[6] == "visit_exit_class_scope");
+  }
+
+  {
+    visitor v;
+    parser p("class C { static m() { } }", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.property_declarations.size() == 1);
+    CHECK(v.property_declarations[0].name == "m");
+
+    REQUIRE(v.visits.size() == 6);
+    CHECK(v.visits[0] == "visit_variable_declaration");
+    CHECK(v.visits[1] == "visit_enter_class_scope");
+    CHECK(v.visits[2] == "visit_property_declaration");
+    CHECK(v.visits[3] == "visit_enter_function_scope");
+    CHECK(v.visits[4] == "visit_exit_function_scope");
+    CHECK(v.visits[5] == "visit_exit_class_scope");
+  }
+
+  {
+    visitor v;
+    parser p("class C { a(){} b(){} c(){} }", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+    REQUIRE(v.property_declarations.size() == 3);
+    CHECK(v.property_declarations[0].name == "a");
+    CHECK(v.property_declarations[1].name == "b");
+    CHECK(v.property_declarations[2].name == "c");
+  }
 }
 }  // namespace
 }  // namespace quicklint_js
