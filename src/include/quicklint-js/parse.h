@@ -379,9 +379,8 @@ class parser {
 
     switch (this->peek().type) {
       case token_type::identifier:
-        v.visit_variable_declaration(this->peek().identifier_name(),
-                                     variable_kind::_import);
-        this->lexer_.skip();
+      case token_type::left_curly:
+        this->parse_binding_element(v, variable_kind::_import);
         break;
 
       case token_type::star:

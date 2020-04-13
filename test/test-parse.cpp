@@ -360,6 +360,18 @@ TEST_CASE("parse import") {
     CHECK(v.variable_declarations[1].kind == variable_kind::_import);
     CHECK(v.errors.empty());
   }
+
+  {
+    visitor v;
+    parser p("import { readFile, writeFile } from 'fs';", &v);
+    p.parse_statement(v);
+    REQUIRE(v.variable_declarations.size() == 2);
+    CHECK(v.variable_declarations[0].name == "readFile");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
+    CHECK(v.variable_declarations[1].name == "writeFile");
+    CHECK(v.variable_declarations[1].kind == variable_kind::_import);
+    CHECK(v.errors.empty());
+  }
 }
 
 TEST_CASE("parse math expression") {
