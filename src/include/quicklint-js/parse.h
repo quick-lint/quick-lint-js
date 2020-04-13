@@ -154,6 +154,7 @@ class parser {
           allow_identifier = false;
           break;
 
+        case token_type::_await:
         case token_type::_new:
           this->lexer_.skip();
           break;

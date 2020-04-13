@@ -669,6 +669,19 @@ TEST_CASE("parse new expression") {
   }
 }
 
+TEST_CASE("parse await expression") {
+  expression_options options = {.parse_commas = true};
+
+  {
+    visitor v;
+    parser p("await myPromise", &v);
+    p.parse_expression(v, options);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "myPromise");
+    CHECK(v.errors.empty());
+  }
+}
+
 TEST_CASE("parse function statement") {
   {
     visitor v;
