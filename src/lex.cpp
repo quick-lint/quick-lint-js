@@ -95,6 +95,7 @@ namespace {
 constexpr const char keywords[][11] = {
     // clang-format off
   "as",
+  "async",
   "await",
   "break",
   "case",
@@ -559,6 +560,7 @@ const char* to_string(token_type type) {
     return #t;
   switch (type) {
     QLJS_CASE(_as)
+    QLJS_CASE(_async)
     QLJS_CASE(_await)
     QLJS_CASE(_break)
     QLJS_CASE(_case)

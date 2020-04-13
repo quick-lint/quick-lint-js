@@ -63,6 +63,7 @@ enum class token_type {
   // Keywords:
   first_keyword,
   _as = first_keyword,
+  _async,
   _await,
   _break,
   _case,

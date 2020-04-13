@@ -758,6 +758,17 @@ TEST_CASE("parse function statement") {
   }
 }
 
+TEST_CASE("parse async function") {
+  {
+    visitor v;
+    parser p("async function f() {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "f");
+  }
+}
+
 TEST_CASE("parse empty module") {
   visitor v;
   parser p("", &v);

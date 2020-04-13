@@ -73,6 +73,7 @@ class parser {
         this->lexer_.skip();
         break;
 
+      case token_type::_async:
       case token_type::_function:
         this->parse_declaration(v);
         break;
@@ -216,25 +217,46 @@ class parser {
   template <class Visitor>
   void parse_declaration(Visitor &v) {
     switch (this->peek().type) {
-      default:
-      case token_type::_function: {
+      case token_type::_async:
         this->lexer_.skip();
+        switch (this->peek().type) {
+          case token_type::_function:
+            this->parse_function_declaration(v);
+            break;
 
-        if (this->peek().type != token_type::identifier) {
-          QLJS_PARSER_UNIMPLEMENTED();
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
         }
-        v.visit_variable_declaration(this->peek().identifier_name(),
-                                     variable_kind::_function);
-        this->lexer_.skip();
-
-        this->parse_function_parameters_and_body(v);
         break;
-      }
+
+      case token_type::_function:
+        this->parse_function_declaration(v);
+        break;
 
       case token_type::_class:
         this->parse_class(v);
         break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
     }
+  }
+
+  template <class Visitor>
+  void parse_function_declaration(Visitor &v) {
+    assert(this->peek().type == token_type::_function);
+    this->lexer_.skip();
+
+    if (this->peek().type != token_type::identifier) {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+    v.visit_variable_declaration(this->peek().identifier_name(),
+                                 variable_kind::_function);
+    this->lexer_.skip();
+
+    this->parse_function_parameters_and_body(v);
   }
 
   template <class Visitor>

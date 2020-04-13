@@ -267,6 +267,7 @@ TEST_CASE("lex identifiers which look like keywords") {
 
 TEST_CASE("lex keywords") {
   check_single_token("as", token_type::_as);
+  check_single_token("async", token_type::_async);
   check_single_token("await", token_type::_await);
   check_single_token("break", token_type::_break);
   check_single_token("case", token_type::_case);
