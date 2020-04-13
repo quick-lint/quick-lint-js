@@ -656,6 +656,19 @@ TEST_CASE("parse property lookup: variable.property") {
   }
 }
 
+TEST_CASE("parse new expression") {
+  expression_options options = {.parse_commas = true};
+
+  {
+    visitor v;
+    parser p("new Foo()", &v);
+    p.parse_expression(v, options);
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "Foo");
+    CHECK(v.errors.empty());
+  }
+}
+
 TEST_CASE("parse function statement") {
   {
     visitor v;
