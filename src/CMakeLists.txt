@@ -28,5 +28,6 @@ add_library(
   location.cpp
   options.cpp
   parse.cpp
+  parse-2.cpp
 )
 target_include_directories(quicklint-js-lib PUBLIC include)

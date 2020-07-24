@@ -23,6 +23,7 @@ add_executable(
   test-location.cpp
   test-options.cpp
   test-parse.cpp
+  test-parse-2.cpp
 )
 target_include_directories(quicklint-js-test PRIVATE include)
 target_link_libraries(

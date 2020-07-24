@@ -25,6 +25,8 @@ class error_reporter {
  public:
   virtual void report_error_invalid_binding_in_let_statement(
       source_code_span where) = 0;
+  virtual void report_error_invalid_expression_left_of_assignment(
+      source_code_span where) = 0;
   virtual void report_error_let_with_no_bindings(source_code_span where) = 0;
   virtual void report_error_missing_oprand_for_operator(
       source_code_span where) = 0;
@@ -47,6 +49,8 @@ class null_error_reporter : public error_reporter {
   static null_error_reporter instance;
 
   void report_error_invalid_binding_in_let_statement(
+      source_code_span) override {}
+  void report_error_invalid_expression_left_of_assignment(
       source_code_span) override {}
   void report_error_let_with_no_bindings(source_code_span) override {}
   void report_error_missing_oprand_for_operator(source_code_span) override {}

@@ -67,6 +67,12 @@ class debug_error_reporter : public error_reporter {
     std::cerr << "error: invalid binding in let statement\n";
   }
 
+  void report_error_invalid_expression_left_of_assignment(
+      source_code_span where) override {
+    log_location(where);
+    std::cerr << "error: invalid expression left of assignment\n";
+  }
+
   void report_error_let_with_no_bindings(source_code_span where) override {
     log_location(where);
     std::cerr << "error: let with no bindings\n";

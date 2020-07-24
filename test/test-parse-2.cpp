@@ -1,0 +1,325 @@
+// quicklint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include <doctest/doctest.h>
+#include <quicklint-js/error-collector.h>
+#include <quicklint-js/error.h>
+#include <quicklint-js/location.h>
+#include <quicklint-js/parse-2.h>
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace quicklint_js {
+namespace {
+std::string summarize(const expression &);
+std::string summarize(expression_ptr);
+
+class test_parser {
+ public:
+  explicit test_parser(const char *input) : parser_(input, &errors_) {}
+
+  expression_ptr parse_expression() { return this->parser_.parse_expression(); }
+
+  const std::vector<error_collector::error> &errors() const noexcept {
+    return this->errors_.errors;
+  }
+
+  source_range error_range(int error_index) const {
+    return this->parser_.locator().range(this->errors().at(error_index).where);
+  }
+
+  source_range range(expression_ptr ast) const {
+    return this->parser_.locator().range(ast->span());
+  }
+
+ private:
+  error_collector errors_;
+  parser2 parser_;
+};
+
+TEST_CASE("parse single-token expression") {
+  {
+    test_parser p("x");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::variable);
+    CHECK(ast->variable_identifier().string_view() == "x");
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 1);
+  }
+
+  {
+    test_parser p("42");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::literal);
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 2);
+  }
+}
+
+TEST_CASE("parse math expression") {
+  {
+    test_parser p("-x");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::unary_operator);
+    CHECK(ast->child_0()->kind() == expression_kind::variable);
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 2);
+  }
+
+  {
+    test_parser p("x+y");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, var y)");
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 3);
+  }
+
+  {
+    test_parser p("x+y-z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, var y, var z)");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("2-4+1");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, literal, literal)");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("-x+y");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(unary(var x), var y)");
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse function call") {
+  {
+    test_parser p("f()");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::call);
+    CHECK(summarize(ast->child_0()) == "var f");
+    CHECK(ast->child_count() == 1);
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 3);
+  }
+
+  {
+    test_parser p("f(x)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::call);
+    CHECK(summarize(ast->child_0()) == "var f");
+    CHECK(ast->child_count() == 2);
+    CHECK(summarize(ast->child(1)) == "var x");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("f(x,y)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::call);
+    CHECK(summarize(ast->child_0()) == "var f");
+    CHECK(ast->child_count() == 3);
+    CHECK(summarize(ast->child(1)) == "var x");
+    CHECK(summarize(ast->child(2)) == "var y");
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse dot expressions") {
+  {
+    test_parser p("x.prop");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::dot);
+    CHECK(summarize(ast->child_0()) == "var x");
+    CHECK(ast->variable_identifier().string_view() == "prop");
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 6);
+  }
+
+  {
+    test_parser p("x.p1.p2");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "dot(dot(var x, p1), p2)");
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse parenthesized expression") {
+  {
+    test_parser p("(x)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "var x");
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 1);
+    CHECK(p.range(ast).end_offset() == 2);
+  }
+
+  {
+    test_parser p("x+(y)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, var y)");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("x+(y+z)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, binary(var y, var z))");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("(x+y)+z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(binary(var x, var y), var z)");
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse assignment") {
+  {
+    test_parser p("x=y");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::assignment);
+    CHECK(summarize(ast->child_0()) == "var x");
+    CHECK(summarize(ast->child_1()) == "var y");
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 3);
+  }
+
+  {
+    test_parser p("x.p=z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::assignment);
+    CHECK(summarize(ast->child_0()) == "dot(var x, p)");
+    CHECK(summarize(ast->child_1()) == "var z");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("f().p=x");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "assign(dot(call(var f), p), var x)");
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse invalid assignment") {
+  {
+    test_parser p("x+y=z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "assign(binary(var x, var y), var z)");
+
+    REQUIRE(p.errors().size() == 1);
+    auto &error = p.errors()[0];
+    CHECK(error.kind ==
+          error_collector::error_invalid_expression_left_of_assignment);
+    CHECK(p.error_range(0).begin_offset() == 0);
+    CHECK(p.error_range(0).end_offset() == 3);
+  }
+
+  for (const char *code : {
+           "f()=x",
+           "-x=y",
+           "42=y",
+           "(x=y)=z",
+       }) {
+    test_parser p(code);
+    p.parse_expression();
+
+    REQUIRE(p.errors().size() == 1);
+    auto &error = p.errors()[0];
+    CHECK(error.kind ==
+          error_collector::error_invalid_expression_left_of_assignment);
+  }
+}
+
+TEST_CASE("parse mixed expression") {
+  {
+    test_parser p("a+f()");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var a, call(var f))");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("a+f(x+y,-z-w)+b");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) ==
+          "binary(var a, call(var f, binary(var x, var y), binary(unary(var "
+          "z), var w)), var b)");
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("(x+y).z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "dot(binary(var x, var y), z)");
+    CHECK(p.errors().empty());
+  }
+}
+
+std::string summarize(const expression &expression) {
+  auto children = [&] {
+    std::string result;
+    bool need_comma = false;
+    for (int i = 0; i < expression.child_count(); ++i) {
+      if (need_comma) {
+        result += ", ";
+      }
+      result += summarize(expression.child(i));
+      need_comma = true;
+    }
+    return result;
+  };
+  switch (expression.kind()) {
+    case expression_kind::assignment:
+      return "assign(" + children() + ")";
+    case expression_kind::call:
+      return "call(" + children() + ")";
+    case expression_kind::dot:
+      return "dot(" + summarize(expression.child_0()) + ", " +
+             std::string(expression.variable_identifier().string_view()) + ")";
+    case expression_kind::literal:
+      return "literal";
+    case expression_kind::variable:
+      return std::string("var ") +
+             std::string(expression.variable_identifier().string_view());
+    case expression_kind::unary_operator:
+      return "unary(" + summarize(expression.child_0()) + ")";
+    case expression_kind::binary_operator:
+      return "binary(" + children() + ")";
+  }
+  __builtin_unreachable();
+}
+
+std::string summarize(expression_ptr expression) {
+  return summarize(*expression);
+}
+}  // namespace
+}  // namespace quicklint_js
