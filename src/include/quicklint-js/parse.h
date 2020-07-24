@@ -129,11 +129,17 @@ class parser {
   }
 
  private:
+  enum class variable_context {
+    lhs,
+    rhs,
+  };
+
   template <class Visitor>
-  void visit_expression(expression_ptr ast, Visitor &v) {
+  void visit_expression(expression_ptr ast, Visitor &v,
+                        variable_context context) {
     auto visit_children = [&] {
       for (int i = 0; i < ast->child_count(); ++i) {
-        this->visit_expression(ast->child(i), v);
+        this->visit_expression(ast->child(i), v, context);
       }
     };
     switch (ast->kind()) {
@@ -145,24 +151,42 @@ class parser {
       case expression_kind::_template:
         visit_children();
         break;
-      case expression_kind::assignment:
+      case expression_kind::assignment: {
+        expression_ptr lhs = ast->child_0();
+        expression_ptr rhs = ast->child_1();
+        this->visit_expression(lhs, v, variable_context::lhs);
+        this->visit_expression(rhs, v, variable_context::rhs);
+        switch (lhs->kind()) {
+          case expression_kind::variable:
+            v.visit_variable_assignment(lhs->variable_identifier());
+            break;
+          default:
+            break;
+        }
         break;
+      }
       case expression_kind::await:
-        this->visit_expression(ast->child_0(), v);
+        this->visit_expression(ast->child_0(), v, context);
         break;
       case expression_kind::call:
         visit_children();
         break;
       case expression_kind::dot:
-        this->visit_expression(ast->child_0(), v);
+        this->visit_expression(ast->child_0(), v, variable_context::rhs);
         break;
       case expression_kind::literal:
         break;
       case expression_kind::variable:
-        v.visit_variable_use(ast->variable_identifier());
+        switch (context) {
+          case variable_context::lhs:
+            break;
+          case variable_context::rhs:
+            v.visit_variable_use(ast->variable_identifier());
+            break;
+        }
         break;
       case expression_kind::unary_operator:
-        this->visit_expression(ast->child_0(), v);
+        this->visit_expression(ast->child_0(), v, context);
         break;
       case expression_kind::binary_operator:
         visit_children();
@@ -500,7 +524,7 @@ class parser {
   template <class Visitor>
   void parse_expression(Visitor &v, precedence prec) {
     expression_ptr ast = this->parse_expression(prec);
-    this->visit_expression(ast, v);
+    this->visit_expression(ast, v, variable_context::rhs);
   }
 
   expression_ptr parse_expression(precedence);

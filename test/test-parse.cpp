@@ -59,6 +59,17 @@ struct visitor : public error_collector {
   };
   std::vector<visited_property_declaration> property_declarations;
 
+  void visit_variable_assignment(identifier name) {
+    this->variable_assignments.emplace_back(
+        visited_variable_assignment{std::string(name.string_view())});
+    this->visits.emplace_back("visit_variable_assignment");
+  }
+
+  struct visited_variable_assignment {
+    std::string name;
+  };
+  std::vector<visited_variable_assignment> variable_assignments;
+
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->variable_declarations.emplace_back(
         visited_variable_declaration{std::string(name.string_view()), kind});
@@ -513,6 +524,69 @@ TEST_CASE("parse invalid math expression 2" * ::doctest::skip()) {
     CHECK(error.kind == visitor::error_unexpected_identifier);
     CHECK(p.locator().range(error.where).begin_offset() == 4);
     CHECK(p.locator().range(error.where).end_offset() == 7);
+  }
+}
+
+TEST_CASE("parse assignment expression") {
+  {
+    visitor v;
+    parser p("x = y", &v);
+    p.parse_expression(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "y");
+
+    REQUIRE(v.variable_assignments.size() == 1);
+    CHECK(v.variable_assignments[0].name == "x");
+
+    REQUIRE(v.visits.size() == 2);
+    CHECK(v.visits[0] == "visit_variable_use");
+    CHECK(v.visits[1] == "visit_variable_assignment");
+  }
+
+  {
+    visitor v;
+    parser p("(x) = y", &v);
+    p.parse_expression(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "y");
+
+    REQUIRE(v.variable_assignments.size() == 1);
+    CHECK(v.variable_assignments[0].name == "x");
+
+    REQUIRE(v.visits.size() == 2);
+    CHECK(v.visits[0] == "visit_variable_use");
+    CHECK(v.visits[1] == "visit_variable_assignment");
+  }
+
+  {
+    visitor v;
+    parser p("x.p = y", &v);
+    p.parse_expression(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_uses.size() == 2);
+    CHECK(v.variable_uses[0].name == "x");
+    CHECK(v.variable_uses[1].name == "y");
+
+    CHECK(v.variable_assignments.size() == 0);
+  }
+
+  {
+    visitor v;
+    parser p("x = y = z", &v);
+    p.parse_expression(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.variable_uses.size() == 1);
+    CHECK(v.variable_uses[0].name == "z");
+
+    CHECK(v.variable_assignments.size() == 2);
+    CHECK(v.variable_assignments[0].name == "y");
+    CHECK(v.variable_assignments[1].name == "x");
   }
 }
 

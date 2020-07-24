@@ -70,6 +70,10 @@ class linter {
         declared_variable{std::string(name.string_view()), kind});
   }
 
+  void visit_variable_assignment(identifier) {
+    // TODO(strager)
+  }
+
   void visit_variable_use(identifier name) {
     bool variable_is_declared = this->find_declared_variable(name);
     if (!variable_is_declared) {

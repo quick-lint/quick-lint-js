@@ -150,6 +150,10 @@ class debug_visitor {
     std::cerr << "property declaration: " << name.string_view() << '\n';
   }
 
+  void visit_variable_assignment(identifier name) {
+    std::cerr << "variable assignment: " << name.string_view() << '\n';
+  }
+
   void visit_variable_declaration(identifier name, variable_kind) {
     std::cerr << "variable declaration: " << name.string_view() << '\n';
   }
@@ -193,6 +197,11 @@ class multi_visitor {
   void visit_property_declaration(identifier name) {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
+  }
+
+  void visit_variable_assignment(identifier name) {
+    this->visitor_1_->visit_variable_assignment(name);
+    this->visitor_2_->visit_variable_assignment(name);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
