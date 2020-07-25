@@ -49,7 +49,11 @@ class expression_ptr {
 };
 
 enum class expression_kind {
+  _invalid,
+  _new,
+  _template,
   assignment,
+  await,
   binary_operator,
   call,
   dot,
@@ -63,9 +67,32 @@ class expression {
   template <expression_kind Kind>
   struct tag {};
 
+  explicit expression(tag<expression_kind::_invalid>) noexcept
+      : kind_(expression_kind::_invalid) {}
+
+  explicit expression(tag<expression_kind::_new>,
+                      std::vector<expression_ptr> &&children,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::_new),
+        span_(span),
+        children_(std::move(children)) {}
+
+  explicit expression(tag<expression_kind::_template>,
+                      std::vector<expression_ptr> &&children,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::_template),
+        span_(span),
+        children_(std::move(children)) {}
+
   explicit expression(tag<expression_kind::assignment>, expression_ptr lhs,
                       expression_ptr rhs) noexcept
       : kind_(expression_kind::assignment), children_{lhs, rhs} {}
+
+  explicit expression(tag<expression_kind::await>, expression_ptr child,
+                      source_code_span operator_span) noexcept
+      : kind_(expression_kind::await),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
 
   explicit expression(tag<expression_kind::binary_operator>,
                       std::vector<expression_ptr> &&children) noexcept
@@ -87,7 +114,7 @@ class expression {
 
   explicit expression(tag<expression_kind::literal>,
                       source_code_span span) noexcept
-      : kind_(expression_kind::literal), literal_span_(span) {}
+      : kind_(expression_kind::literal), span_(span) {}
 
   explicit expression(tag<expression_kind::unary_operator>,
                       expression_ptr child,
@@ -117,6 +144,8 @@ class expression {
 
   int child_count() const noexcept {
     switch (this->kind_) {
+      case expression_kind::_new:
+      case expression_kind::_template:
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::call:
@@ -140,6 +169,13 @@ class expression {
 
   source_code_span span() const noexcept {
     switch (this->kind_) {
+      case expression_kind::_invalid:
+        assert(false && "Not yet implemented");
+        break;
+      case expression_kind::_new:
+      case expression_kind::_template:
+      case expression_kind::literal:
+        return this->span_;
       case expression_kind::assignment:
       case expression_kind::binary_operator:
         return source_code_span(this->children_.front()->span().begin(),
@@ -150,8 +186,7 @@ class expression {
       case expression_kind::dot:
         return source_code_span(this->child_0()->span().begin(),
                                 this->variable_identifier_.span().end());
-      case expression_kind::literal:
-        return this->literal_span_;
+      case expression_kind::await:
       case expression_kind::unary_operator:
         return source_code_span(this->unary_operator_begin_,
                                 this->child_0()->span().end());
@@ -164,15 +199,15 @@ class expression {
  private:
   expression_kind kind_;
   union {
-    identifier variable_identifier_;  // dot or variable
+    identifier variable_identifier_;  // dot, variable
     static_assert(std::is_trivially_destructible_v<identifier>);
 
     const char *call_right_paren_end_;  // call
 
-    source_code_span literal_span_;  // literal
+    source_code_span span_;  // _new, _template, literal
     static_assert(std::is_trivially_destructible_v<source_code_span>);
 
-    const char *unary_operator_begin_;  // unary_operator
+    const char *unary_operator_begin_;  // await, unary_operator
   };
   std::vector<expression_ptr> children_;
 };
@@ -200,6 +235,8 @@ class parser2 {
   expression_ptr parse_expression(precedence prec);
 
   expression_ptr parse_expression_remainder(expression_ptr);
+
+  expression_ptr parse_template();
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
 

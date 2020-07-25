@@ -70,6 +70,15 @@ TEST_CASE("parse single-token expression") {
     CHECK(p.range(ast).begin_offset() == 0);
     CHECK(p.range(ast).end_offset() == 2);
   }
+
+  {
+    test_parser p("'hello'");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::literal);
+    CHECK(p.errors().empty());
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 7);
+  }
 }
 
 TEST_CASE("parse math expression") {
@@ -81,6 +90,13 @@ TEST_CASE("parse math expression") {
     CHECK(p.errors().empty());
     CHECK(p.range(ast).begin_offset() == 0);
     CHECK(p.range(ast).end_offset() == 2);
+  }
+
+  {
+    test_parser p("+x");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "unary(var x)");
+    CHECK(p.errors().empty());
   }
 
   {
@@ -110,6 +126,114 @@ TEST_CASE("parse math expression") {
     test_parser p("-x+y");
     expression_ptr ast = p.parse_expression();
     CHECK(summarize(ast) == "binary(unary(var x), var y)");
+    CHECK(p.errors().empty());
+  }
+
+  for (const char *input : {"2+2", "2-2", "2*2", "2/2", "2%2", "2**2", "2^2",
+                            "2&2", "2|2", "2<<2", "2>>2", "2>>>2"}) {
+    INFO("input = " << input);
+    test_parser p(input);
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, literal)");
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse broken math expression") {
+  {
+    test_parser p("2+");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, ?)");
+    REQUIRE(p.errors().size() == 1);
+    CHECK(p.errors()[0].kind ==
+          error_collector::error_missing_oprand_for_operator);
+    CHECK(p.error_range(0).begin_offset() == 1);
+    CHECK(p.error_range(0).end_offset() == 2);
+  }
+
+  {
+    test_parser p("^2");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(?, literal)");
+    REQUIRE(p.errors().size() == 1);
+    CHECK(p.errors()[0].kind ==
+          error_collector::error_missing_oprand_for_operator);
+    CHECK(p.error_range(0).begin_offset() == 0);
+    CHECK(p.error_range(0).end_offset() == 1);
+  }
+
+  {
+    test_parser p("2 * * 2");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, ?, literal)");
+    REQUIRE(p.errors().size() == 1);
+    CHECK(p.errors()[0].kind ==
+          error_collector::error_missing_oprand_for_operator);
+    CHECK(p.error_range(0).begin_offset() == 2);
+    CHECK(p.error_range(0).end_offset() == 3);
+  }
+
+  {
+    test_parser p("2 & & & 2");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, ?, ?, literal)");
+    REQUIRE(p.errors().size() == 2);
+
+    CHECK(p.errors()[0].kind ==
+          error_collector::error_missing_oprand_for_operator);
+    CHECK(p.error_range(0).begin_offset() == 2);
+    CHECK(p.error_range(0).end_offset() == 3);
+
+    CHECK(p.errors()[1].kind ==
+          error_collector::error_missing_oprand_for_operator);
+    CHECK(p.error_range(1).begin_offset() == 4);
+    CHECK(p.error_range(1).end_offset() == 5);
+  }
+
+  {
+    test_parser p("(2*)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, ?)");
+    REQUIRE(p.errors().size() == 1);
+    CHECK(p.errors()[0].kind ==
+          error_collector::error_missing_oprand_for_operator);
+    CHECK(p.error_range(0).begin_offset() == 2);
+    CHECK(p.error_range(0).end_offset() == 3);
+  }
+
+  {
+    test_parser p("2 * (3 + 4");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, binary(literal, literal))");
+    REQUIRE(p.errors().size() == 1);
+    CHECK(p.errors()[0].kind == error_collector::error_unmatched_parenthesis);
+    CHECK(p.error_range(0).begin_offset() == 4);
+    CHECK(p.error_range(0).end_offset() == 5);
+  }
+
+  {
+    test_parser p("2 * (3 + (4");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, binary(literal, literal))");
+    REQUIRE(p.errors().size() == 2);
+
+    CHECK(p.errors()[0].kind == error_collector::error_unmatched_parenthesis);
+    CHECK(p.error_range(0).begin_offset() == 9);
+    CHECK(p.error_range(0).end_offset() == 10);
+
+    CHECK(p.errors()[1].kind == error_collector::error_unmatched_parenthesis);
+    CHECK(p.error_range(1).begin_offset() == 4);
+    CHECK(p.error_range(1).end_offset() == 5);
+  }
+}
+
+TEST_CASE("parse logical expression") {
+  for (const char *input : {"2==2", "2===2", "2!=2", "2!==2", "2>2", "2<2",
+                            "2>=2", "2<=2", "2&&2", "2||2"}) {
+    INFO("input = " << input);
+    test_parser p(input);
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(literal, literal)");
     CHECK(p.errors().empty());
   }
 }
@@ -200,6 +324,49 @@ TEST_CASE("parse parenthesized expression") {
   }
 }
 
+TEST_CASE("parse await expression") {
+  {
+    test_parser p("await myPromise");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::await);
+    CHECK(summarize(ast->child_0()) == "var myPromise");
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 15);
+    CHECK(p.errors().empty());
+  }
+}
+
+TEST_CASE("parse new expression") {
+  {
+    test_parser p("new Date");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::_new);
+    CHECK(ast->child_count() == 1);
+    CHECK(summarize(ast->child_0()) == "var Date");
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 8);
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("new Date()");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::_new);
+    CHECK(ast->child_count() == 1);
+    CHECK(summarize(ast->child_0()) == "var Date");
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 10);
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("new Date(y,m,d)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "new(var Date, var y, var m, var d)");
+    CHECK(p.errors().empty());
+  }
+}
+
 TEST_CASE("parse assignment") {
   {
     test_parser p("x=y");
@@ -259,6 +426,35 @@ TEST_CASE("parse invalid assignment") {
   }
 }
 
+TEST_CASE("parse template") {
+  {
+    test_parser p("`hello`");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::literal);
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 7);
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("`hello${world}`");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::_template);
+    CHECK(ast->child_count() == 1);
+    CHECK(summarize(ast->child(0)) == "var world");
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 15);
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("`${one}${two}${three}`");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "template(var one, var two, var three)");
+    CHECK(p.errors().empty());
+  }
+}
+
 TEST_CASE("parse mixed expression") {
   {
     test_parser p("a+f()");
@@ -298,8 +494,16 @@ std::string summarize(const expression &expression) {
     return result;
   };
   switch (expression.kind()) {
+    case expression_kind::_invalid:
+      return "?";
+    case expression_kind::_new:
+      return "new(" + children() + ")";
+    case expression_kind::_template:
+      return "template(" + children() + ")";
     case expression_kind::assignment:
       return "assign(" + children() + ")";
+    case expression_kind::await:
+      return "await(" + children() + ")";
     case expression_kind::call:
       return "call(" + children() + ")";
     case expression_kind::dot:
