@@ -455,6 +455,27 @@ TEST_CASE("parse template") {
   }
 }
 
+TEST_CASE("parse comma expression") {
+  {
+    test_parser p("x,y,z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(ast->kind() == expression_kind::binary_operator);
+    CHECK(summarize(ast->child(0)) == "var x");
+    CHECK(summarize(ast->child(1)) == "var y");
+    CHECK(summarize(ast->child(2)) == "var z");
+    CHECK(p.range(ast).begin_offset() == 0);
+    CHECK(p.range(ast).end_offset() == 5);
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("`${2+2, four}`");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "template(binary(literal, literal, var four))");
+    CHECK(p.errors().empty());
+  }
+}
+
 TEST_CASE("parse mixed expression") {
   {
     test_parser p("a+f()");

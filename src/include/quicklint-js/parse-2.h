@@ -224,17 +224,19 @@ class parser2 {
   }
 
   expression_ptr parse_expression() {
-    return this->parse_expression(precedence{.binary_operators = true});
+    return this->parse_expression(
+        precedence{.binary_operators = true, .commas = true});
   }
 
  private:
   struct precedence {
     bool binary_operators;
+    bool commas;
   };
 
-  expression_ptr parse_expression(precedence prec);
+  expression_ptr parse_expression(precedence);
 
-  expression_ptr parse_expression_remainder(expression_ptr);
+  expression_ptr parse_expression_remainder(expression_ptr, precedence);
 
   expression_ptr parse_template();
 

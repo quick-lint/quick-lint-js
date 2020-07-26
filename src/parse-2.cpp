@@ -38,7 +38,7 @@ expression_ptr parser2::parse_expression(precedence prec) {
       if (!prec.binary_operators) {
         return ast;
       }
-      return this->parse_expression_remainder(ast);
+      return this->parse_expression_remainder(ast, prec);
     }
     case token_type::complete_template:
     case token_type::number:
@@ -49,7 +49,7 @@ expression_ptr parser2::parse_expression(precedence prec) {
       if (!prec.binary_operators) {
         return ast;
       }
-      return this->parse_expression_remainder(ast);
+      return this->parse_expression_remainder(ast, prec);
     }
     case token_type::incomplete_template:
       return this->parse_template();
@@ -58,17 +58,19 @@ expression_ptr parser2::parse_expression(precedence prec) {
       this->lexer_.skip();
       expression_ptr child = this->parse_expression();
       return this->parse_expression_remainder(
-          this->make_expression<expression_kind::await>(child, operator_span));
+          this->make_expression<expression_kind::await>(child, operator_span),
+          prec);
     }
     case token_type::minus:
     case token_type::plus: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
-      expression_ptr child =
-          this->parse_expression(precedence{.binary_operators = false});
+      expression_ptr child = this->parse_expression(
+          precedence{.binary_operators = false, .commas = true});
       return this->parse_expression_remainder(
-          this->make_expression<expression_kind::unary_operator>(
-              child, operator_span));
+          this->make_expression<expression_kind::unary_operator>(child,
+                                                                 operator_span),
+          prec);
     }
     case token_type::left_paren: {
       source_code_span left_paren_span = this->peek().span();
@@ -83,7 +85,7 @@ expression_ptr parser2::parse_expression(precedence prec) {
               left_paren_span);
           break;
       }
-      return this->parse_expression_remainder(child);
+      return this->parse_expression_remainder(child, prec);
     }
     case token_type::_new: {
       source_code_span operator_span = this->peek().span();
@@ -112,7 +114,7 @@ expression_ptr parser2::parse_expression(precedence prec) {
       }
       this->error_reporter_->report_error_missing_oprand_for_operator(
           this->peek().span());
-      return this->parse_expression_remainder(ast);
+      return this->parse_expression_remainder(ast, prec);
     }
     default:
       QLJS_PARSER_UNIMPLEMENTED();
@@ -120,7 +122,12 @@ expression_ptr parser2::parse_expression(precedence prec) {
   }
 }
 
-expression_ptr parser2::parse_expression_remainder(expression_ptr ast) {
+expression_ptr parser2::parse_expression_remainder(expression_ptr ast,
+                                                   precedence prec) {
+  if (prec.commas) {
+    assert(prec.binary_operators);
+  }
+
   std::vector<expression_ptr> children{ast};
   auto build_expression = [&]() {
     if (children.size() == 1) {
@@ -134,76 +141,81 @@ expression_ptr parser2::parse_expression_remainder(expression_ptr ast) {
 
 next:
   switch (this->peek().type) {
-  QLJS_CASE_BINARY_ONLY_OPERATOR:
-  case token_type::minus:
-  case token_type::plus: {
-    source_code_span operator_span = this->peek().span();
-    this->lexer_.skip();
-    children.emplace_back(
-        this->parse_expression(precedence{.binary_operators = false}));
-    if (children.back()->kind() == expression_kind::_invalid) {
-      this->error_reporter_->report_error_missing_oprand_for_operator(
-          operator_span);
-    }
-    goto next;
-  }
-
-  // Function call: f(x, y, z)
-  case token_type::left_paren: {
-    std::vector<expression_ptr> call_children{children.back()};
-    this->lexer_.skip();
-    while (this->peek().type != token_type::right_paren) {
-      call_children.emplace_back(this->parse_expression());
-      if (this->peek().type != token_type::comma) {
+    case token_type::comma:
+      if (!prec.commas) {
         break;
       }
+      [[fallthrough]];
+    QLJS_CASE_BINARY_ONLY_OPERATOR:
+    case token_type::minus:
+    case token_type::plus: {
+      source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
+      children.emplace_back(this->parse_expression(
+          precedence{.binary_operators = false, .commas = false}));
+      if (children.back()->kind() == expression_kind::_invalid) {
+        this->error_reporter_->report_error_missing_oprand_for_operator(
+            operator_span);
+      }
+      goto next;
     }
-    assert(this->peek().type == token_type::right_paren);
-    source_code_span right_paren_span = this->peek().span();
-    this->lexer_.skip();
-    children.back() = this->make_expression<expression_kind::call>(
-        std::move(call_children), right_paren_span);
-    goto next;
-  }
 
-  case token_type::equal: {
-    this->lexer_.skip();
-    expression_ptr lhs = build_expression();
-    switch (lhs->kind()) {
-      default:
-        this->error_reporter_
-            ->report_error_invalid_expression_left_of_assignment(lhs->span());
-        break;
-      case expression_kind::dot:
-      case expression_kind::variable:
-        break;
-    }
-    expression_ptr rhs = this->parse_expression();
-    return this->make_expression<expression_kind::assignment>(lhs, rhs);
-  }
-
-  case token_type::dot: {
-    this->lexer_.skip();
-    switch (this->peek().type) {
-      case token_type::identifier:
-        children.back() = this->make_expression<expression_kind::dot>(
-            children.back(), this->peek().identifier_name());
+    // Function call: f(x, y, z)
+    case token_type::left_paren: {
+      std::vector<expression_ptr> call_children{children.back()};
+      this->lexer_.skip();
+      while (this->peek().type != token_type::right_paren) {
+        call_children.emplace_back(this->parse_expression(
+            precedence{.binary_operators = true, .commas = false}));
+        if (this->peek().type != token_type::comma) {
+          break;
+        }
         this->lexer_.skip();
-        goto next;
-
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
+      }
+      assert(this->peek().type == token_type::right_paren);
+      source_code_span right_paren_span = this->peek().span();
+      this->lexer_.skip();
+      children.back() = this->make_expression<expression_kind::call>(
+          std::move(call_children), right_paren_span);
+      goto next;
     }
-    break;
-  }
 
-  case token_type::comma:
-  case token_type::end_of_file:
-  case token_type::right_curly:
-  case token_type::right_paren:
-    break;
+    case token_type::equal: {
+      this->lexer_.skip();
+      expression_ptr lhs = build_expression();
+      switch (lhs->kind()) {
+        default:
+          this->error_reporter_
+              ->report_error_invalid_expression_left_of_assignment(lhs->span());
+          break;
+        case expression_kind::dot:
+        case expression_kind::variable:
+          break;
+      }
+      expression_ptr rhs = this->parse_expression();
+      return this->make_expression<expression_kind::assignment>(lhs, rhs);
+    }
+
+    case token_type::dot: {
+      this->lexer_.skip();
+      switch (this->peek().type) {
+        case token_type::identifier:
+          children.back() = this->make_expression<expression_kind::dot>(
+              children.back(), this->peek().identifier_name());
+          this->lexer_.skip();
+          goto next;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+      }
+      break;
+    }
+
+    case token_type::end_of_file:
+    case token_type::right_curly:
+    case token_type::right_paren:
+      break;
 
     default:
       QLJS_PARSER_UNIMPLEMENTED();
