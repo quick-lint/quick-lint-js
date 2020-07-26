@@ -17,9 +17,11 @@
 #ifndef QUICKLINT_JS_EXPRESSION_H
 #define QUICKLINT_JS_EXPRESSION_H
 
+#include <deque>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace quicklint_js {
@@ -206,6 +208,19 @@ class expression {
     const char *unary_operator_begin_;  // await, unary_operator
   };
   std::vector<expression_ptr> children_;
+};
+
+class expression_arena {
+ public:
+  template <expression_kind Kind, class... Args>
+  expression_ptr make_expression(Args &&... args) {
+    this->expressions_.emplace_back(expression::tag<Kind>(),
+                                    std::forward<Args>(args)...);
+    return expression_ptr(&this->expressions_.back());
+  }
+
+ private:
+  std::deque<expression> expressions_;
 };
 }  // namespace quicklint_js
 

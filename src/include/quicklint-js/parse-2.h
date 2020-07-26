@@ -18,12 +18,10 @@
 #define QUICKLINT_JS_PARSE_2_H
 
 #include <cstdlib>
-#include <deque>
 #include <quicklint-js/error.h>
 #include <quicklint-js/expression.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
-#include <type_traits>
 #include <vector>
 
 namespace quicklint_js {
@@ -63,16 +61,14 @@ class parser2 {
 
   template <expression_kind Kind, class... Args>
   expression_ptr make_expression(Args &&... args) {
-    this->expressions_.emplace_back(expression::tag<Kind>(),
-                                    std::forward<Args>(args)...);
-    return expression_ptr(&this->expressions_.back());
+    return this->expressions_.make_expression<Kind>(
+        std::forward<Args>(args)...);
   }
 
   lexer lexer_;
   quicklint_js::locator locator_;
   error_reporter *error_reporter_;
-
-  std::deque<expression> expressions_;
+  expression_arena expressions_;
 };
 }  // namespace quicklint_js
 
