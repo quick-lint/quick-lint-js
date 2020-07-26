@@ -216,8 +216,11 @@ next:
     }
 
     case token_type::end_of_file:
+    case token_type::identifier:
+    case token_type::left_curly:
     case token_type::right_curly:
     case token_type::right_paren:
+    case token_type::semicolon:
       break;
 
     default:

@@ -121,102 +121,9 @@ class parser {
 
   template <class Visitor>
   void parse_expression(Visitor &v, expression_options options) {
-    bool allow_binary_operator = false;
-    bool allow_identifier = true;
-
-    std::optional<source_code_span> last_operator;
-
-    for (;;) {
-      switch (this->peek().type) {
-        case token_type::left_paren: {
-          source_code_span left_paren_span = this->peek().span();
-          this->lexer_.skip();
-          this->parse_expression(v, expression_options{.parse_commas = true});
-          if (this->peek().type == token_type::right_paren) {
-            this->lexer_.skip();
-          } else {
-            this->error_reporter_->report_error_unmatched_parenthesis(
-                left_paren_span);
-          }
-          last_operator = std::nullopt;
-          allow_identifier = false;
-          break;
-        }
-
-        case token_type::identifier:
-          if (!allow_identifier) {
-            this->error_reporter_->report_error_unexpected_identifier(
-                this->peek().span());
-          }
-          v.visit_variable_use(this->peek().identifier_name());
-          this->lexer_.skip();
-          last_operator = std::nullopt;
-          allow_binary_operator = true;
-          allow_identifier = false;
-          break;
-
-        case token_type::_await:
-        case token_type::_new:
-          this->lexer_.skip();
-          break;
-
-        case token_type::number:
-        case token_type::string:
-          this->lexer_.skip();
-          last_operator = std::nullopt;
-          allow_binary_operator = true;
-          break;
-
-        case token_type::plus:
-          last_operator = this->peek().span();
-          this->lexer_.skip();
-          allow_binary_operator = false;
-          allow_identifier = true;
-          break;
-
-        case token_type::dot:
-          this->lexer_.skip();
-          this->lexer_.skip();
-          break;
-
-        case token_type::comma:
-          if (options.parse_commas) {
-            goto parse_binary_operator;
-          } else {
-            goto done;
-          }
-
-        case token_type::ampersand:
-        case token_type::circumflex:
-        case token_type::star:
-        parse_binary_operator:
-          if (!allow_binary_operator) {
-            const source_code_span &bad_token_span = last_operator.has_value()
-                                                         ? *last_operator
-                                                         : this->peek().span();
-            this->error_reporter_->report_error_missing_oprand_for_operator(
-                bad_token_span);
-          }
-          last_operator = this->peek().span();
-          this->lexer_.skip();
-          allow_binary_operator = false;
-          allow_identifier = true;
-          break;
-
-        case token_type::incomplete_template:
-          this->parse_template(v);
-          break;
-
-        case token_type::right_paren:
-        default:
-        done:
-          if (last_operator.has_value()) {
-            this->error_reporter_->report_error_missing_oprand_for_operator(
-                *last_operator);
-          }
-          return;
-      }
-    }
+    expression_ptr ast = this->parse_expression(
+        precedence{.binary_operators = true, .commas = options.parse_commas});
+    this->visit_expression(ast, v);
   }
 
   expression_ptr parse_expression() {
@@ -225,6 +132,47 @@ class parser {
   }
 
  private:
+  template <class Visitor>
+  void visit_expression(expression_ptr ast, Visitor &v) {
+    auto visit_children = [&] {
+      for (int i = 0; i < ast->child_count(); ++i) {
+        this->visit_expression(ast->child(i), v);
+      }
+    };
+    switch (ast->kind()) {
+      case expression_kind::_invalid:
+        break;
+      case expression_kind::_new:
+        visit_children();
+        break;
+      case expression_kind::_template:
+        visit_children();
+        break;
+      case expression_kind::assignment:
+        break;
+      case expression_kind::await:
+        this->visit_expression(ast->child_0(), v);
+        break;
+      case expression_kind::call:
+        visit_children();
+        break;
+      case expression_kind::dot:
+        this->visit_expression(ast->child_0(), v);
+        break;
+      case expression_kind::literal:
+        break;
+      case expression_kind::variable:
+        v.visit_variable_use(ast->variable_identifier());
+        break;
+      case expression_kind::unary_operator:
+        this->visit_expression(ast->child_0(), v);
+        break;
+      case expression_kind::binary_operator:
+        visit_children();
+        break;
+    }
+  }
+
   template <class Visitor>
   void parse_declaration(Visitor &v) {
     switch (this->peek().type) {
@@ -544,37 +492,6 @@ class parser {
       this->parse_expression(v, expression_options{.parse_commas = false});
     }
     lhs.move_into(v);
-  }
-
-  template <class Visitor>
-  void parse_template(Visitor &v) {
-    const char *template_begin = this->peek().begin;
-    for (;;) {
-      assert(this->peek().type == token_type::incomplete_template);
-      this->lexer_.skip();
-      this->parse_expression(v, expression_options{.parse_commas = true});
-      switch (this->peek().type) {
-        case token_type::right_curly:
-          this->lexer_.skip_in_template(template_begin);
-          switch (this->peek().type) {
-            case token_type::complete_template:
-              this->lexer_.skip();
-              return;
-
-            case token_type::incomplete_template:
-              continue;
-
-            default:
-              QLJS_PARSER_UNIMPLEMENTED();
-              break;
-          }
-          break;
-
-        default:
-          QLJS_PARSER_UNIMPLEMENTED();
-          break;
-      }
-    }
   }
 
   struct precedence {
