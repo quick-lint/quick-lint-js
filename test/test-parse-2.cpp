@@ -322,6 +322,13 @@ TEST_CASE("parse parenthesized expression") {
     CHECK(summarize(ast) == "binary(binary(var x, var y), var z)");
     CHECK(p.errors().empty());
   }
+
+  {
+    test_parser p("x+(y+z)+w");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, binary(var y, var z), var w)");
+    CHECK(p.errors().empty());
+  }
 }
 
 TEST_CASE("parse await expression") {
@@ -465,6 +472,13 @@ TEST_CASE("parse comma expression") {
     CHECK(summarize(ast->child(2)) == "var z");
     CHECK(p.range(ast).begin_offset() == 0);
     CHECK(p.range(ast).end_offset() == 5);
+    CHECK(p.errors().empty());
+  }
+
+  {
+    test_parser p("(x+(y,z)+w)");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, binary(var y, var z), var w)");
     CHECK(p.errors().empty());
   }
 

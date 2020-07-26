@@ -85,6 +85,9 @@ expression_ptr parser2::parse_expression(precedence prec) {
               left_paren_span);
           break;
       }
+      if (!prec.binary_operators) {
+        return child;
+      }
       return this->parse_expression_remainder(child, prec);
     }
     case token_type::_new: {
