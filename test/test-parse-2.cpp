@@ -18,7 +18,7 @@
 #include <quicklint-js/error-collector.h>
 #include <quicklint-js/error.h>
 #include <quicklint-js/location.h>
-#include <quicklint-js/parse-2.h>
+#include <quicklint-js/parse.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -38,17 +38,17 @@ class test_parser {
     return this->errors_.errors;
   }
 
-  source_range error_range(int error_index) const {
+  source_range error_range(int error_index) {
     return this->parser_.locator().range(this->errors().at(error_index).where);
   }
 
-  source_range range(expression_ptr ast) const {
+  source_range range(expression_ptr ast) {
     return this->parser_.locator().range(ast->span());
   }
 
  private:
   error_collector errors_;
-  parser2 parser_;
+  parser parser_;
 };
 
 TEST_CASE("parse single-token expression") {

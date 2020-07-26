@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <optional>
 #include <quicklint-js/error.h>
+#include <quicklint-js/expression.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
 #include <vector>
@@ -216,6 +217,11 @@ class parser {
           return;
       }
     }
+  }
+
+  expression_ptr parse_expression() {
+    return this->parse_expression(
+        precedence{.binary_operators = true, .commas = true});
   }
 
  private:
@@ -571,6 +577,17 @@ class parser {
     }
   }
 
+  struct precedence {
+    bool binary_operators;
+    bool commas;
+  };
+
+  expression_ptr parse_expression(precedence);
+
+  expression_ptr parse_expression_remainder(expression_ptr, precedence);
+
+  expression_ptr parse_template();
+
   const token &peek() const noexcept { return this->lexer_.peek(); }
 
   class buffering_visitor {
@@ -596,12 +613,20 @@ class parser {
     std::vector<visited_variable_declaration> visited_variable_declarations_;
   };
 
-  void crash_on_unimplemented_token(const char *qljs_file_name, int qljs_line,
-                                    const char *qljs_function_name);
+  [[noreturn]] void crash_on_unimplemented_token(
+      const char *qljs_file_name, int qljs_line,
+      const char *qljs_function_name);
+
+  template <expression_kind Kind, class... Args>
+  expression_ptr make_expression(Args &&... args) {
+    return this->expressions_.make_expression<Kind>(
+        std::forward<Args>(args)...);
+  }
 
   lexer lexer_;
   quicklint_js::locator locator_;
   error_reporter *error_reporter_;
+  expression_arena expressions_;
 };
 }  // namespace quicklint_js
 
