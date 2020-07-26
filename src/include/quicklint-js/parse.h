@@ -41,10 +41,6 @@ enum class variable_kind {
   _var,
 };
 
-struct expression_options {
-  bool parse_commas;
-};
-
 class parser {
  public:
   explicit parser(const char *input, error_reporter *error_reporter)
@@ -96,7 +92,8 @@ class parser {
         break;
 
       case token_type::identifier:
-        this->parse_expression(v, expression_options{.parse_commas = true});
+        this->parse_expression(
+            v, precedence{.binary_operators = true, .commas = true});
 
         if (this->peek().type != token_type::semicolon) {
           QLJS_PARSER_UNIMPLEMENTED();
@@ -110,7 +107,8 @@ class parser {
 
       case token_type::_return:
         this->lexer_.skip();
-        this->parse_expression(v, expression_options{.parse_commas = true});
+        this->parse_expression(
+            v, precedence{.binary_operators = true, .commas = true});
         break;
 
       default:
@@ -120,10 +118,9 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_expression(Visitor &v, expression_options options) {
-    expression_ptr ast = this->parse_expression(
-        precedence{.binary_operators = true, .commas = options.parse_commas});
-    this->visit_expression(ast, v);
+  void parse_expression(Visitor &v) {
+    this->parse_expression(
+        v, precedence{.binary_operators = true, .commas = true});
   }
 
   expression_ptr parse_expression() {
@@ -288,8 +285,8 @@ class parser {
         switch (this->peek().type) {
           case token_type::identifier:
             // TODO(strager): Don't allow extending any ol' expression.
-            this->parse_expression(v,
-                                   expression_options{.parse_commas = false});
+            this->parse_expression(
+                v, precedence{.binary_operators = true, .commas = false});
             break;
           default:
             QLJS_PARSER_UNIMPLEMENTED();
@@ -489,7 +486,8 @@ class parser {
 
     if (this->peek().type == token_type::equal) {
       this->lexer_.skip();
-      this->parse_expression(v, expression_options{.parse_commas = false});
+      this->parse_expression(
+          v, precedence{.binary_operators = true, .commas = false});
     }
     lhs.move_into(v);
   }
@@ -498,6 +496,12 @@ class parser {
     bool binary_operators;
     bool commas;
   };
+
+  template <class Visitor>
+  void parse_expression(Visitor &v, precedence prec) {
+    expression_ptr ast = this->parse_expression(prec);
+    this->visit_expression(ast, v);
+  }
 
   expression_ptr parse_expression(precedence);
 

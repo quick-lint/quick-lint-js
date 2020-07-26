@@ -375,21 +375,19 @@ TEST_CASE("parse import") {
 }
 
 TEST_CASE("parse math expression") {
-  expression_options options = {.parse_commas = true};
-
   for (const char *input :
        {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {
     INFO("input = " << input);
     visitor v;
     parser p(input, &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     CHECK(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("some_var", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.errors.empty());
@@ -398,7 +396,7 @@ TEST_CASE("parse math expression") {
   {
     visitor v;
     parser p("some_var + some_other_var", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.variable_uses[1].name == "some_other_var");
@@ -408,7 +406,7 @@ TEST_CASE("parse math expression") {
   {
     visitor v;
     parser p("+ v", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "v");
     CHECK(v.errors.empty());
@@ -416,12 +414,10 @@ TEST_CASE("parse math expression") {
 }
 
 TEST_CASE("parse invalid math expression") {
-  expression_options options = {.parse_commas = true};
-
   {
     visitor v;
     parser p("2 +", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
     CHECK(error.kind == visitor::error_missing_oprand_for_operator);
@@ -432,7 +428,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("^ 2", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
     CHECK(error.kind == visitor::error_missing_oprand_for_operator);
@@ -443,7 +439,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 * * 2", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
     CHECK(error.kind == visitor::error_missing_oprand_for_operator);
@@ -454,7 +450,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 & & & 2", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 2);
 
     auto *error = &v.errors[0];
@@ -471,7 +467,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("(2 *)", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
     CHECK(error.kind == visitor::error_missing_oprand_for_operator);
@@ -481,7 +477,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 * (3 + 4", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
     CHECK(error.kind == visitor::error_unmatched_parenthesis);
@@ -492,7 +488,7 @@ TEST_CASE("parse invalid math expression") {
   {
     visitor v;
     parser p("2 * (3 + (4", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.errors.size() == 2);
 
     auto *error = &v.errors[0];
@@ -521,12 +517,10 @@ TEST_CASE("parse invalid math expression 2" * ::doctest::skip()) {
 }
 
 TEST_CASE("parse function calls") {
-  expression_options options = {.parse_commas = true};
-
   {
     visitor v;
     parser p("f(x)", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 2);
     CHECK(v.variable_uses[0].name == "f");
     CHECK(v.variable_uses[1].name == "x");
@@ -536,7 +530,7 @@ TEST_CASE("parse function calls") {
   {
     visitor v;
     parser p("f(x, y)", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "f");
     CHECK(v.variable_uses[1].name == "x");
@@ -547,7 +541,7 @@ TEST_CASE("parse function calls") {
   {
     visitor v;
     parser p("o.f(x, y)", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "o");
     CHECK(v.variable_uses[1].name == "x");
@@ -558,7 +552,7 @@ TEST_CASE("parse function calls") {
   {
     visitor v;
     parser p("console.log('hello', 42)", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "console");
     CHECK(v.errors.empty());
@@ -566,12 +560,10 @@ TEST_CASE("parse function calls") {
 }
 
 TEST_CASE("parse templates in expressions") {
-  expression_options options = {.parse_commas = true};
-
   {
     visitor v;
     parser p("`hello`", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     CHECK(v.visits.empty());
     CHECK(v.errors.empty());
   }
@@ -579,7 +571,7 @@ TEST_CASE("parse templates in expressions") {
   {
     visitor v;
     parser p("`hello${world}`", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "world");
     CHECK(v.errors.empty());
@@ -588,7 +580,7 @@ TEST_CASE("parse templates in expressions") {
   {
     visitor v;
     parser p("`${one}${two}${three}`", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 3);
     CHECK(v.variable_uses[0].name == "one");
     CHECK(v.variable_uses[1].name == "two");
@@ -599,7 +591,7 @@ TEST_CASE("parse templates in expressions") {
   {
     visitor v;
     parser p("`${2+2, four}`", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "four");
     CHECK(v.errors.empty());
@@ -644,12 +636,10 @@ TEST_CASE("parse function call as statement") {
 }
 
 TEST_CASE("parse property lookup: variable.property") {
-  expression_options options = {.parse_commas = true};
-
   {
     visitor v;
     parser p("some_var.some_property", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "some_var");
     CHECK(v.errors.empty());
@@ -657,12 +647,10 @@ TEST_CASE("parse property lookup: variable.property") {
 }
 
 TEST_CASE("parse new expression") {
-  expression_options options = {.parse_commas = true};
-
   {
     visitor v;
     parser p("new Foo()", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "Foo");
     CHECK(v.errors.empty());
@@ -670,12 +658,10 @@ TEST_CASE("parse new expression") {
 }
 
 TEST_CASE("parse await expression") {
-  expression_options options = {.parse_commas = true};
-
   {
     visitor v;
     parser p("await myPromise", &v);
-    p.parse_expression(v, options);
+    p.parse_expression(v);
     REQUIRE(v.variable_uses.size() == 1);
     CHECK(v.variable_uses[0].name == "myPromise");
     CHECK(v.errors.empty());
