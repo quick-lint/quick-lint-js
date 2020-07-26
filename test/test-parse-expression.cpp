@@ -401,6 +401,13 @@ TEST_CASE("parse assignment") {
     CHECK(summarize(ast) == "assign(dot(call(var f), p), var x)");
     CHECK(p.errors().empty());
   }
+
+  {
+    test_parser p("x,y=z,w");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "binary(var x, assign(var y, var z), var w)");
+    CHECK(p.errors().empty());
+  }
 }
 
 TEST_CASE("parse invalid assignment") {

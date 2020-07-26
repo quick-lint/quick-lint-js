@@ -144,11 +144,21 @@ expression_ptr parser::parse_expression_remainder(expression_ptr ast,
 
 next:
   switch (this->peek().type) {
-    case token_type::comma:
+    case token_type::comma: {
       if (!prec.commas) {
         break;
       }
-      [[fallthrough]];
+      source_code_span operator_span = this->peek().span();
+      this->lexer_.skip();
+      children.emplace_back(this->parse_expression(
+          precedence{.binary_operators = true, .commas = false}));
+      if (children.back()->kind() == expression_kind::_invalid) {
+        this->error_reporter_->report_error_missing_oprand_for_operator(
+            operator_span);
+      }
+      goto next;
+    }
+
     QLJS_CASE_BINARY_ONLY_OPERATOR:
     case token_type::minus:
     case token_type::plus: {
@@ -195,7 +205,8 @@ next:
         case expression_kind::variable:
           break;
       }
-      expression_ptr rhs = this->parse_expression();
+      expression_ptr rhs = this->parse_expression(
+          precedence{.binary_operators = true, .commas = false});
       return this->make_expression<expression_kind::assignment>(lhs, rhs);
     }
 
