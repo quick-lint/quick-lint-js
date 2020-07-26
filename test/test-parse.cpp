@@ -17,6 +17,7 @@
 #include <doctest/doctest.h>
 #include <quicklint-js/error-collector.h>
 #include <quicklint-js/error.h>
+#include <quicklint-js/language.h>
 #include <quicklint-js/location.h>
 #include <quicklint-js/parse.h>
 #include <string>

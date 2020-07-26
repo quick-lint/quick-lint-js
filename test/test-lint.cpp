@@ -16,6 +16,7 @@
 
 #include <doctest/doctest.h>
 #include <quicklint-js/error-collector.h>
+#include <quicklint-js/language.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/lint.h>
 #include <quicklint-js/parse.h>
@@ -197,6 +198,47 @@ TEST_CASE("function uses global variable declared later in module") {
   l.visit_end_of_module();
 
   CHECK(v.errors.empty());
+}
+
+TEST_CASE("assign to mutable variable") {
+  for (variable_kind kind :
+       {variable_kind::_let, variable_kind::_var, variable_kind::_class,
+        variable_kind::_function, variable_kind::_parameter}) {
+    const char declaration[] = "x";
+    const char assignment[] = "x";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    CHECK(v.errors.empty());
+  }
+}
+
+TEST_CASE("assign to immutable variable") {
+  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
+    const char declaration[] = "x";
+    const char assignment[] = "x";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    REQUIRE(v.errors.size() == 1);
+    CHECK(v.errors[0].kind ==
+          error_collector::error_assignment_to_const_variable);
+    CHECK(v.errors[0].where.begin() == assignment);
+    CHECK(v.errors[0].other_where.begin() == declaration);
+    CHECK(v.errors[0].var_kind == kind);
+  }
 }
 }  // namespace
 }  // namespace quicklint_js

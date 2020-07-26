@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <quicklint-js/error.h>
+#include <quicklint-js/language.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/parse.h>
 #include <string>
@@ -67,11 +68,24 @@ class linter {
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->scopes_.back().declared_variables.emplace_back(
-        declared_variable{std::string(name.string_view()), kind});
+        declared_variable{std::string(name.string_view()), kind, name});
   }
 
-  void visit_variable_assignment(identifier) {
-    // TODO(strager)
+  void visit_variable_assignment(identifier name) {
+    const declared_variable *var = this->find_declared_variable(name);
+    switch (var->kind) {
+      case variable_kind::_const:
+      case variable_kind::_import:
+        this->error_reporter_->report_error_assignment_to_const_variable(
+            var->declaration, name, var->kind);
+        break;
+      case variable_kind::_class:
+      case variable_kind::_function:
+      case variable_kind::_let:
+      case variable_kind::_parameter:
+      case variable_kind::_var:
+        break;
+    }
   }
 
   void visit_variable_use(identifier name) {
@@ -105,6 +119,7 @@ class linter {
   struct declared_variable {
     std::string name;
     variable_kind kind;
+    identifier declaration;
   };
 
   struct scope {

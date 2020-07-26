@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iostream>
 #include <quicklint-js/error.h>
+#include <quicklint-js/language.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/lint.h>
 #include <quicklint-js/location.h>
@@ -60,6 +61,15 @@ class debug_error_reporter : public error_reporter {
   explicit debug_error_reporter(const char *input,
                                 const char *file_path) noexcept
       : locator_(input), file_path_(file_path) {}
+
+  void report_error_assignment_to_const_variable(identifier declaration,
+                                                 identifier assignment,
+                                                 variable_kind) override {
+    log_location(assignment);
+    std::cerr << "error: assignment to const variable\n";
+    log_location(declaration);
+    std::cerr << "note: const variable declared here\n";
+  }
 
   void report_error_invalid_binding_in_let_statement(
       source_code_span where) override {

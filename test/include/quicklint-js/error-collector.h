@@ -18,12 +18,23 @@
 #define QUICKLINT_JS_ERROR_COLLECTOR_H
 
 #include <quicklint-js/error.h>
+#include <quicklint-js/language.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
+#include <quicklint-js/parse.h>
+#include <type_traits>
 #include <vector>
 
 namespace quicklint_js {
 struct error_collector : public error_reporter {
+  void report_error_assignment_to_const_variable(
+      identifier declaration, identifier assignment,
+      variable_kind var_kind) override {
+    this->errors.emplace_back(error{error_assignment_to_const_variable,
+                                    assignment.span(), declaration.span(),
+                                    var_kind});
+  }
+
   void report_error_invalid_binding_in_let_statement(
       source_code_span where) override {
     this->errors.emplace_back(
@@ -82,6 +93,7 @@ struct error_collector : public error_reporter {
   }
 
   enum error_kind {
+    error_assignment_to_const_variable,
     error_invalid_binding_in_let_statement,
     error_invalid_expression_left_of_assignment,
     error_let_with_no_bindings,
@@ -95,8 +107,24 @@ struct error_collector : public error_reporter {
     error_variable_used_before_declaration,
   };
   struct error {
+    explicit error(error_kind kind, source_code_span where) noexcept
+        : kind(kind), where(where) {}
+
+    explicit error(error_kind kind, source_code_span where,
+                   source_code_span other_where,
+                   variable_kind var_kind) noexcept
+        : kind(kind),
+          where(where),
+          other_where(other_where),
+          var_kind(var_kind) {}
+
     error_kind kind;
     source_code_span where;
+    union {
+      source_code_span other_where;
+      static_assert(std::is_trivially_destructible_v<source_code_span>);
+    };
+    variable_kind var_kind;
   };
   std::vector<error> errors;
 };

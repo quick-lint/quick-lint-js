@@ -21,6 +21,7 @@
 #include <optional>
 #include <quicklint-js/error.h>
 #include <quicklint-js/expression.h>
+#include <quicklint-js/language.h>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
 #include <vector>
@@ -31,16 +32,6 @@
   } while (false)
 
 namespace quicklint_js {
-enum class variable_kind {
-  _class,
-  _const,
-  _function,
-  _import,
-  _let,
-  _parameter,
-  _var,
-};
-
 class parser {
  public:
   explicit parser(const char *input, error_reporter *error_reporter)
