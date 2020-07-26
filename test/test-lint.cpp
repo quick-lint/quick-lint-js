@@ -203,7 +203,8 @@ TEST_CASE("function uses global variable declared later in module") {
 TEST_CASE("assign to mutable variable") {
   for (variable_kind kind :
        {variable_kind::_let, variable_kind::_var, variable_kind::_class,
-        variable_kind::_function, variable_kind::_parameter}) {
+        variable_kind::_function, variable_kind::_catch,
+        variable_kind::_parameter}) {
     const char declaration[] = "x";
     const char assignment[] = "x";
 

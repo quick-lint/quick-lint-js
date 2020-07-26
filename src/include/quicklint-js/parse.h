@@ -31,6 +31,11 @@
     this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
   } while (false)
 
+#define QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(expected_token_type) \
+  if (this->peek().type != (expected_token_type)) {                 \
+    QLJS_PARSER_UNIMPLEMENTED();                                    \
+  }
+
 namespace quicklint_js {
 class parser {
  public:
@@ -100,6 +105,13 @@ class parser {
         this->lexer_.skip();
         this->parse_expression(
             v, precedence{.binary_operators = true, .commas = true});
+        break;
+
+      case token_type::_try:
+        this->parse_try(v);
+        break;
+
+      case token_type::right_curly:
         break;
 
       default:
@@ -367,6 +379,60 @@ class parser {
           QLJS_PARSER_UNIMPLEMENTED();
           break;
       }
+    }
+  }
+
+  template <class Visitor>
+  void parse_try(Visitor &v) {
+    assert(this->peek().type == token_type::_try);
+    this->lexer_.skip();
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+    this->lexer_.skip();
+    v.visit_enter_block_scope();
+
+    this->parse_statement(v);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+    this->lexer_.skip();
+    v.visit_exit_block_scope();
+
+    if (this->peek().type == token_type::_catch) {
+      this->lexer_.skip();
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+      this->lexer_.skip();
+      v.visit_enter_block_scope();
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      v.visit_variable_declaration(this->peek().identifier_name(),
+                                   variable_kind::_catch);
+      this->lexer_.skip();
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+      this->lexer_.skip();
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+      this->lexer_.skip();
+
+      this->parse_statement(v);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+      this->lexer_.skip();
+      v.visit_exit_block_scope();
+    }
+    if (this->peek().type == token_type::_finally) {
+      this->lexer_.skip();
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+      this->lexer_.skip();
+      v.visit_enter_block_scope();
+
+      this->parse_statement(v);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+      this->lexer_.skip();
+      v.visit_exit_block_scope();
     }
   }
 

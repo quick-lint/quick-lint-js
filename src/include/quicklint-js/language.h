@@ -18,6 +18,7 @@
 #define QUICKLINT_JS_LANGUAGE_H
 
 enum class variable_kind {
+  _catch,
   _class,
   _const,
   _function,

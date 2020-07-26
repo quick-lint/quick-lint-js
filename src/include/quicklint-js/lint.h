@@ -32,9 +32,13 @@ class linter {
   explicit linter(error_reporter *error_reporter) noexcept
       : error_reporter_(error_reporter) {}
 
+  void visit_enter_block_scope() {}
+
   void visit_enter_class_scope() {}
 
   void visit_enter_function_scope() { this->scopes_.emplace_back(); }
+
+  void visit_exit_block_scope() {}
 
   void visit_exit_class_scope() {}
 
@@ -79,6 +83,7 @@ class linter {
         this->error_reporter_->report_error_assignment_to_const_variable(
             var->declaration, name, var->kind);
         break;
+      case variable_kind::_catch:
       case variable_kind::_class:
       case variable_kind::_function:
       case variable_kind::_let:

@@ -33,12 +33,20 @@ struct visitor : public error_collector {
     this->visits.emplace_back("visit_end_of_module");
   }
 
+  void visit_enter_block_scope() {
+    this->visits.emplace_back("visit_enter_block_scope");
+  }
+
   void visit_enter_class_scope() {
     this->visits.emplace_back("visit_enter_class_scope");
   }
 
   void visit_enter_function_scope() {
     this->visits.emplace_back("visit_enter_function_scope");
+  }
+
+  void visit_exit_block_scope() {
+    this->visits.emplace_back("visit_exit_block_scope");
   }
 
   void visit_exit_class_scope() {
@@ -528,7 +536,7 @@ TEST_CASE("parse invalid math expression 2" * ::doctest::skip()) {
   }
 }
 
-TEST_CASE("parse assignment expression") {
+TEST_CASE("parse assignment") {
   {
     visitor v;
     parser p("x = y", &v);
@@ -973,6 +981,83 @@ TEST_CASE("parse class statement") {
     CHECK(v.property_declarations[0].name == "a");
     CHECK(v.property_declarations[1].name == "b");
     CHECK(v.property_declarations[2].name == "c");
+  }
+}
+
+TEST_CASE("parse try") {
+  {
+    visitor v;
+    parser p("try {} finally {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.visits.size() == 4);
+    CHECK(v.visits[0] == "visit_enter_block_scope");
+    CHECK(v.visits[1] == "visit_exit_block_scope");
+    CHECK(v.visits[2] == "visit_enter_block_scope");
+    CHECK(v.visits[3] == "visit_exit_block_scope");
+  }
+
+  {
+    visitor v;
+    parser p("try {} catch (e) {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.visits.size() == 5);
+    CHECK(v.visits[0] == "visit_enter_block_scope");
+    CHECK(v.visits[1] == "visit_exit_block_scope");
+    CHECK(v.visits[2] == "visit_enter_block_scope");
+    CHECK(v.visits[3] == "visit_variable_declaration");
+    CHECK(v.visits[4] == "visit_exit_block_scope");
+
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "e");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_catch);
+  }
+
+  {
+    visitor v;
+    parser p("try {} catch (e) {} finally {}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.visits.size() == 7);
+    CHECK(v.visits[0] == "visit_enter_block_scope");
+    CHECK(v.visits[1] == "visit_exit_block_scope");
+    CHECK(v.visits[2] == "visit_enter_block_scope");
+    CHECK(v.visits[3] == "visit_variable_declaration");
+    CHECK(v.visits[4] == "visit_exit_block_scope");
+    CHECK(v.visits[5] == "visit_enter_block_scope");
+    CHECK(v.visits[6] == "visit_exit_block_scope");
+
+    REQUIRE(v.variable_declarations.size() == 1);
+    CHECK(v.variable_declarations[0].name == "e");
+    CHECK(v.variable_declarations[0].kind == variable_kind::_catch);
+  }
+
+  {
+    visitor v;
+    parser p("try {f();} catch (e) {g();} finally {h();}", &v);
+    p.parse_statement(v);
+    CHECK(v.errors.empty());
+
+    REQUIRE(v.visits.size() == 10);
+    CHECK(v.visits[0] == "visit_enter_block_scope");
+    CHECK(v.visits[1] == "visit_variable_use");
+    CHECK(v.visits[2] == "visit_exit_block_scope");
+    CHECK(v.visits[3] == "visit_enter_block_scope");
+    CHECK(v.visits[4] == "visit_variable_declaration");
+    CHECK(v.visits[5] == "visit_variable_use");
+    CHECK(v.visits[6] == "visit_exit_block_scope");
+    CHECK(v.visits[7] == "visit_enter_block_scope");
+    CHECK(v.visits[8] == "visit_variable_use");
+    CHECK(v.visits[9] == "visit_exit_block_scope");
+
+    REQUIRE(v.variable_uses.size() == 3);
+    CHECK(v.variable_uses[0].name == "f");
+    CHECK(v.variable_uses[1].name == "g");
+    CHECK(v.variable_uses[2].name == "h");
   }
 }
 }  // namespace
