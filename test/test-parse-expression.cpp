@@ -403,6 +403,13 @@ TEST_CASE("parse assignment") {
   }
 
   {
+    test_parser p("x=y=z");
+    expression_ptr ast = p.parse_expression();
+    CHECK(summarize(ast) == "assign(var x, assign(var y, var z))");
+    CHECK(p.errors().empty());
+  }
+
+  {
     test_parser p("x,y=z,w");
     expression_ptr ast = p.parse_expression();
     CHECK(summarize(ast) == "binary(var x, assign(var y, var z), var w)");
