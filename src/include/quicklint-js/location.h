@@ -22,14 +22,16 @@
 
 namespace quicklint_js {
 struct source_position {
+  using offset_type = std::size_t;
+
   int line_number;
   int column_number;
-  std::size_t offset;
+  offset_type offset;
 };
 
 class source_range {
  public:
-  using offset = decltype(source_position::offset);
+  using offset = source_position::offset_type;
 
   explicit source_range(source_position begin, source_position end) noexcept
       : begin_(begin), end_(end) {}

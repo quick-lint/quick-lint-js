@@ -27,7 +27,7 @@ source_range locator::range(source_code_span span) const {
 }
 
 source_position locator::position(const char *source) const noexcept {
-  decltype(source_position::offset) offset = source - this->input_;
+  source_position::offset_type offset = source - this->input_;
   int number_of_line_terminators = 0;
   const char *last_line_terminator = nullptr;
   for (const char *c = this->input_; c != source; ++c) {
