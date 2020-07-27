@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <ostream>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <string_view>
