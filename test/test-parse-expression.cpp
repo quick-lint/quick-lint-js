@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error.h>
@@ -22,6 +23,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
@@ -57,7 +60,7 @@ TEST(test_parse_expression, parse_single_token_expression) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::variable);
     EXPECT_EQ(ast->variable_identifier().string_view(), "x");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 1);
   }
@@ -66,7 +69,7 @@ TEST(test_parse_expression, parse_single_token_expression) {
     test_parser p("42");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 2);
   }
@@ -75,7 +78,7 @@ TEST(test_parse_expression, parse_single_token_expression) {
     test_parser p("'hello'");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 7);
   }
@@ -87,7 +90,7 @@ TEST(test_parse_expression, parse_math_expression) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::unary_operator);
     EXPECT_EQ(ast->child_0()->kind(), expression_kind::variable);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 2);
   }
@@ -96,14 +99,14 @@ TEST(test_parse_expression, parse_math_expression) {
     test_parser p("+x");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(var x)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("x+y");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 3);
   }
@@ -112,21 +115,21 @@ TEST(test_parse_expression, parse_math_expression) {
     test_parser p("x+y-z");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y, var z)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("2-4+1");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal, literal)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("-x+y");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(unary(var x), var y)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   for (const char *input : {"2+2", "2-2", "2*2", "2/2", "2%2", "2**2", "2^2",
@@ -135,7 +138,7 @@ TEST(test_parse_expression, parse_math_expression) {
     test_parser p(input);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -234,7 +237,7 @@ TEST(test_parse_expression, parse_logical_expression) {
     test_parser p(input);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -245,7 +248,7 @@ TEST(test_parse_expression, parse_function_call) {
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 1);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 3);
   }
@@ -257,7 +260,7 @@ TEST(test_parse_expression, parse_function_call) {
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(1)), "var x");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -268,7 +271,7 @@ TEST(test_parse_expression, parse_function_call) {
     EXPECT_EQ(ast->child_count(), 3);
     EXPECT_EQ(summarize(ast->child(1)), "var x");
     EXPECT_EQ(summarize(ast->child(2)), "var y");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -279,7 +282,7 @@ TEST(test_parse_expression, parse_dot_expressions) {
     EXPECT_EQ(ast->kind(), expression_kind::dot);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(ast->variable_identifier().string_view(), "prop");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 6);
   }
@@ -288,7 +291,7 @@ TEST(test_parse_expression, parse_dot_expressions) {
     test_parser p("x.p1.p2");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(dot(var x, p1), p2)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -297,7 +300,7 @@ TEST(test_parse_expression, parse_parenthesized_expression) {
     test_parser p("(x)");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "var x");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 1);
     EXPECT_EQ(p.range(ast).end_offset(), 2);
   }
@@ -306,28 +309,28 @@ TEST(test_parse_expression, parse_parenthesized_expression) {
     test_parser p("x+(y)");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("x+(y+z)");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z))");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("(x+y)+z");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(binary(var x, var y), var z)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("x+(y+z)+w");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z), var w)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -339,7 +342,7 @@ TEST(test_parse_expression, parse_await_expression) {
     EXPECT_EQ(summarize(ast->child_0()), "var myPromise");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 15);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -352,7 +355,7 @@ TEST(test_parse_expression, parse_new_expression) {
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 8);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -363,14 +366,14 @@ TEST(test_parse_expression, parse_new_expression) {
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 10);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("new Date(y,m,d)");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Date, var y, var m, var d)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -381,7 +384,7 @@ TEST(test_parse_expression, parse_assignment) {
     EXPECT_EQ(ast->kind(), expression_kind::assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 3);
   }
@@ -392,28 +395,28 @@ TEST(test_parse_expression, parse_assignment) {
     EXPECT_EQ(ast->kind(), expression_kind::assignment);
     EXPECT_EQ(summarize(ast->child_0()), "dot(var x, p)");
     EXPECT_EQ(summarize(ast->child_1()), "var z");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("f().p=x");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(dot(call(var f), p), var x)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("x=y=z");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var x, assign(var y, var z))");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("x,y=z,w");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, assign(var y, var z), var w)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -454,7 +457,7 @@ TEST(test_parse_expression, parse_template) {
     EXPECT_EQ(ast->kind(), expression_kind::literal);
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 7);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -465,14 +468,14 @@ TEST(test_parse_expression, parse_template) {
     EXPECT_EQ(summarize(ast->child(0)), "var world");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 15);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("`${one}${two}${three}`");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var one, var two, var three)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -486,21 +489,21 @@ TEST(test_parse_expression, parse_comma_expression) {
     EXPECT_EQ(summarize(ast->child(2)), "var z");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 5);
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("(x+(y,z)+w)");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z), var w)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("`${2+2, four}`");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(binary(literal, literal, var four))");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -509,7 +512,7 @@ TEST(test_parse_expression, parse_mixed_expression) {
     test_parser p("a+f()");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var a, call(var f))");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -518,14 +521,14 @@ TEST(test_parse_expression, parse_mixed_expression) {
     EXPECT_EQ(summarize(ast),
               "binary(var a, call(var f, binary(var x, var y), "
               "binary(unary(var z), var w)), var b)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     test_parser p("(x+y).z");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(binary(var x, var y), z)");
-    EXPECT_TRUE(p.errors().empty());
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 

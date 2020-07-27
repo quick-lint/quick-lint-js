@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
@@ -22,6 +23,7 @@
 #include <string_view>
 #include <vector>
 
+using ::testing::IsEmpty;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
@@ -39,7 +41,7 @@ options parse_options(std::initializer_list<const char *> arguments) {
 TEST(test_options, default_options_with_no_files) {
   options o = parse_options({});
   EXPECT_FALSE(o.print_parser_visits);
-  EXPECT_TRUE(o.files_to_lint.empty());
+  EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
 
 TEST(test_options, default_options_with_files) {
@@ -60,7 +62,7 @@ TEST(test_options, invalid_option) {
   options o = parse_options({"--option-does-not-exist", "foo.js"});
   ASSERT_EQ(o.error_unrecognized_options.size(), 1);
   EXPECT_EQ(o.error_unrecognized_options[0], "--option-does-not-exist"sv);
-  EXPECT_TRUE(o.files_to_lint.empty());
+  EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
 }  // namespace
 }  // namespace quick_lint_js
