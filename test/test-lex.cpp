@@ -110,7 +110,7 @@ TEST_CASE("lex strings") {
   // "hello\   (backslash followed by end of line)
   // world"
 
-  // TODO(strager): Report invalid hex escape squences. For example:
+  // TODO(strager): Report invalid hex escape sequences. For example:
   //
   // "hello\x1qworld"
   // '\x'
@@ -243,7 +243,7 @@ world`)",
     CHECK(locator(input).range(v.errors[0].where).end_offset() == 14);
   }
 
-  // TODO(strager): Report invalid escape squences, like with plain string
+  // TODO(strager): Report invalid escape sequences, like with plain string
   // literals.
 }
 
