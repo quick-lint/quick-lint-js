@@ -49,19 +49,19 @@ class parser {
   quick_lint_js::locator &locator() noexcept { return this->locator_; }
 
   template <class Visitor>
-  void parse_module(Visitor &v) {
+  void parse_and_visit_module(Visitor &v) {
     while (this->peek().type != token_type::end_of_file) {
-      this->parse_statement(v);
+      this->parse_and_visit_statement(v);
     }
     v.visit_end_of_module();
   }
 
   template <class Visitor>
-  void parse_statement(Visitor &v) {
+  void parse_and_visit_statement(Visitor &v) {
     switch (this->peek().type) {
       case token_type::_export:
         this->lexer_.skip();
-        this->parse_declaration(v);
+        this->parse_and_visit_declaration(v);
         break;
 
       case token_type::semicolon:
@@ -70,27 +70,27 @@ class parser {
 
       case token_type::_async:
       case token_type::_function:
-        this->parse_declaration(v);
+        this->parse_and_visit_declaration(v);
         break;
 
       case token_type::_import:
-        this->parse_import(v);
+        this->parse_and_visit_import(v);
         break;
 
       case token_type::_const:
-        this->parse_let_bindings(v, variable_kind::_const);
+        this->parse_and_visit_let_bindings(v, variable_kind::_const);
         break;
 
       case token_type::_let:
-        this->parse_let_bindings(v, variable_kind::_let);
+        this->parse_and_visit_let_bindings(v, variable_kind::_let);
         break;
 
       case token_type::_var:
-        this->parse_let_bindings(v, variable_kind::_var);
+        this->parse_and_visit_let_bindings(v, variable_kind::_var);
         break;
 
       case token_type::identifier:
-        this->parse_expression(
+        this->parse_and_visit_expression(
             v, precedence{.binary_operators = true, .commas = true});
 
         if (this->peek().type != token_type::semicolon) {
@@ -100,17 +100,17 @@ class parser {
         break;
 
       case token_type::_class:
-        this->parse_class(v);
+        this->parse_and_visit_class(v);
         break;
 
       case token_type::_return:
         this->lexer_.skip();
-        this->parse_expression(
+        this->parse_and_visit_expression(
             v, precedence{.binary_operators = true, .commas = true});
         break;
 
       case token_type::_try:
-        this->parse_try(v);
+        this->parse_and_visit_try(v);
         break;
 
       case token_type::right_curly:
@@ -123,8 +123,8 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_expression(Visitor &v) {
-    this->parse_expression(
+  void parse_and_visit_expression(Visitor &v) {
+    this->parse_and_visit_expression(
         v, precedence{.binary_operators = true, .commas = true});
   }
 
@@ -191,13 +191,13 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_declaration(Visitor &v) {
+  void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
       case token_type::_async:
         this->lexer_.skip();
         switch (this->peek().type) {
           case token_type::_function:
-            this->parse_function_declaration(v);
+            this->parse_and_visit_function_declaration(v);
             break;
 
           default:
@@ -207,11 +207,11 @@ class parser {
         break;
 
       case token_type::_function:
-        this->parse_function_declaration(v);
+        this->parse_and_visit_function_declaration(v);
         break;
 
       case token_type::_class:
-        this->parse_class(v);
+        this->parse_and_visit_class(v);
         break;
 
       default:
@@ -221,7 +221,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_function_declaration(Visitor &v) {
+  void parse_and_visit_function_declaration(Visitor &v) {
     assert(this->peek().type == token_type::_function);
     this->lexer_.skip();
 
@@ -232,11 +232,11 @@ class parser {
                                  variable_kind::_function);
     this->lexer_.skip();
 
-    this->parse_function_parameters_and_body(v);
+    this->parse_and_visit_function_parameters_and_body(v);
   }
 
   template <class Visitor>
-  void parse_function_parameters_and_body(Visitor &v) {
+  void parse_and_visit_function_parameters_and_body(Visitor &v) {
     if (this->peek().type != token_type::left_paren) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -257,7 +257,7 @@ class parser {
       switch (this->peek().type) {
         case token_type::identifier:
         case token_type::left_curly:
-          this->parse_binding_element(v, variable_kind::_parameter);
+          this->parse_and_visit_binding_element(v, variable_kind::_parameter);
           break;
         case token_type::right_paren:
           goto done;
@@ -280,7 +280,7 @@ class parser {
     this->lexer_.skip();
 
     while (this->peek().type != token_type::right_curly) {
-      this->parse_statement(v);
+      this->parse_and_visit_statement(v);
     }
 
     if (this->peek().type != token_type::right_curly) {
@@ -292,7 +292,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_class(Visitor &v) {
+  void parse_and_visit_class(Visitor &v) {
     assert(this->peek().type == token_type::_class);
     this->lexer_.skip();
 
@@ -305,7 +305,7 @@ class parser {
         switch (this->peek().type) {
           case token_type::identifier:
             // TODO(strager): Don't allow extending any ol' expression.
-            this->parse_expression(
+            this->parse_and_visit_expression(
                 v, precedence{.binary_operators = true, .commas = false});
             break;
           default:
@@ -329,7 +329,7 @@ class parser {
     switch (this->peek().type) {
       case token_type::left_curly:
         this->lexer_.skip();
-        this->parse_class_body(v);
+        this->parse_and_visit_class_body(v);
         break;
 
       default:
@@ -341,7 +341,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_class_body(Visitor &v) {
+  void parse_and_visit_class_body(Visitor &v) {
     for (;;) {
       switch (this->peek().type) {
         case token_type::_static:
@@ -350,7 +350,7 @@ class parser {
             case token_type::identifier:
               v.visit_property_declaration(this->peek().identifier_name());
               this->lexer_.skip();
-              this->parse_function_parameters_and_body(v);
+              this->parse_and_visit_function_parameters_and_body(v);
               break;
 
             default:
@@ -362,7 +362,7 @@ class parser {
         case token_type::identifier:
           v.visit_property_declaration(this->peek().identifier_name());
           this->lexer_.skip();
-          this->parse_function_parameters_and_body(v);
+          this->parse_and_visit_function_parameters_and_body(v);
           break;
 
         case token_type::right_curly:
@@ -376,7 +376,7 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_try(Visitor &v) {
+  void parse_and_visit_try(Visitor &v) {
     assert(this->peek().type == token_type::_try);
     this->lexer_.skip();
 
@@ -384,7 +384,7 @@ class parser {
     this->lexer_.skip();
     v.visit_enter_block_scope();
 
-    this->parse_statement(v);
+    this->parse_and_visit_statement(v);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     this->lexer_.skip();
@@ -408,7 +408,7 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
       this->lexer_.skip();
 
-      this->parse_statement(v);
+      this->parse_and_visit_statement(v);
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
       this->lexer_.skip();
@@ -421,7 +421,7 @@ class parser {
       this->lexer_.skip();
       v.visit_enter_block_scope();
 
-      this->parse_statement(v);
+      this->parse_and_visit_statement(v);
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
       this->lexer_.skip();
@@ -430,14 +430,14 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_import(Visitor &v) {
+  void parse_and_visit_import(Visitor &v) {
     assert(this->peek().type == token_type::_import);
     this->lexer_.skip();
 
     switch (this->peek().type) {
       case token_type::identifier:
       case token_type::left_curly:
-        this->parse_binding_element(v, variable_kind::_import);
+        this->parse_and_visit_binding_element(v, variable_kind::_import);
         break;
 
       case token_type::star:
@@ -474,7 +474,8 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_let_bindings(Visitor &v, variable_kind declaration_kind) {
+  void parse_and_visit_let_bindings(Visitor &v,
+                                    variable_kind declaration_kind) {
     source_code_span let_span = this->peek().span();
     this->lexer_.skip();
     bool first_binding = true;
@@ -491,7 +492,7 @@ class parser {
       switch (this->peek().type) {
         case token_type::identifier:
         case token_type::left_curly:
-          this->parse_binding_element(v, declaration_kind);
+          this->parse_and_visit_binding_element(v, declaration_kind);
           break;
         case token_type::_if:
         case token_type::number:
@@ -517,7 +518,8 @@ class parser {
   }
 
   template <class Visitor>
-  void parse_binding_element(Visitor &v, variable_kind declaration_kind) {
+  void parse_and_visit_binding_element(Visitor &v,
+                                       variable_kind declaration_kind) {
     buffering_visitor lhs;
 
     switch (this->peek().type) {
@@ -534,13 +536,13 @@ class parser {
           case token_type::right_curly:
             break;
           default:
-            this->parse_binding_element(v, declaration_kind);
+            this->parse_and_visit_binding_element(v, declaration_kind);
             break;
         }
 
         while (this->peek().type == token_type::comma) {
           this->lexer_.skip();
-          this->parse_binding_element(v, declaration_kind);
+          this->parse_and_visit_binding_element(v, declaration_kind);
         }
 
         switch (this->peek().type) {
@@ -560,7 +562,7 @@ class parser {
 
     if (this->peek().type == token_type::equal) {
       this->lexer_.skip();
-      this->parse_expression(
+      this->parse_and_visit_expression(
           v, precedence{.binary_operators = true, .commas = false});
     }
     lhs.move_into(v);
@@ -572,7 +574,7 @@ class parser {
   };
 
   template <class Visitor>
-  void parse_expression(Visitor &v, precedence prec) {
+  void parse_and_visit_expression(Visitor &v, precedence prec) {
     expression_ptr ast = this->parse_expression(prec);
     this->visit_expression(ast, v, variable_context::rhs);
   }

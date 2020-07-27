@@ -56,7 +56,7 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   error_collector v;
   linter l(&v);
   parser p(input, &v);
-  p.parse_statement(l);
+  p.parse_and_visit_statement(l);
   l.visit_end_of_module();
 
   ASSERT_EQ(v.errors.size(), 1);

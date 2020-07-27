@@ -110,7 +110,7 @@ TEST(test_parse, parse_simple_let) {
   {
     visitor v;
     parser p("let x", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
@@ -120,7 +120,7 @@ TEST(test_parse, parse_simple_let) {
   {
     visitor v;
     parser p("let a, b", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, "a");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
@@ -132,7 +132,7 @@ TEST(test_parse, parse_simple_let) {
   {
     visitor v;
     parser p("let a, b, c, d, e, f, g", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 7);
     EXPECT_EQ(v.variable_declarations[0].name, "a");
     EXPECT_EQ(v.variable_declarations[1].name, "b");
@@ -150,10 +150,10 @@ TEST(test_parse, parse_simple_let) {
   {
     visitor v;
     parser p("let first; let second", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "first");
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, "first");
     EXPECT_EQ(v.variable_declarations[1].name, "second");
@@ -164,7 +164,7 @@ TEST(test_parse, parse_simple_let) {
 TEST(test_parse, parse_simple_var) {
   visitor v;
   parser p("var x", &v);
-  p.parse_statement(v);
+  p.parse_and_visit_statement(v);
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, "x");
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
@@ -174,7 +174,7 @@ TEST(test_parse, parse_simple_var) {
 TEST(test_parse, parse_simple_const) {
   visitor v;
   parser p("const x", &v);
-  p.parse_statement(v);
+  p.parse_and_visit_statement(v);
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, "x");
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
@@ -185,7 +185,7 @@ TEST(test_parse, parse_let_with_initializers) {
   {
     visitor v;
     parser p("let x = 2", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -194,7 +194,7 @@ TEST(test_parse, parse_let_with_initializers) {
   {
     visitor v;
     parser p("let x = 2, y = 3", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_EQ(v.variable_declarations[1].name, "y");
@@ -204,7 +204,7 @@ TEST(test_parse, parse_let_with_initializers) {
   {
     visitor v;
     parser p("let x = other, y = x", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_EQ(v.variable_declarations[1].name, "y");
@@ -219,7 +219,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   {
     visitor v;
     parser p("let {x} = 2", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -228,7 +228,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   {
     visitor v;
     parser p("let {x, y, z} = 2", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 3);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_EQ(v.variable_declarations[1].name, "y");
@@ -239,7 +239,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   {
     visitor v;
     parser p("let {{x}, {y}, {z}} = 2", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 3);
     EXPECT_EQ(v.variable_declarations[0].name, "x");
     EXPECT_EQ(v.variable_declarations[1].name, "y");
@@ -250,7 +250,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   {
     visitor v;
     parser p("let {} = x;", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -260,7 +260,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
 TEST(test_parse, parse_function_parameters_with_object_destructuring) {
   visitor v;
   parser p("function f({x, y, z}) {}", &v);
-  p.parse_statement(v);
+  p.parse_and_visit_statement(v);
   ASSERT_EQ(v.variable_declarations.size(), 4);
   EXPECT_EQ(v.variable_declarations[0].name, "f");
   EXPECT_EQ(v.variable_declarations[1].name, "x");
@@ -275,7 +275,7 @@ TEST(test_parse,
 
   visitor v;
   parser p("let x = x", &v);
-  p.parse_statement(v);
+  p.parse_and_visit_statement(v);
 
   ASSERT_EQ(v.visits.size(), 2);
   EXPECT_EQ(v.visits[0], "visit_variable_use");
@@ -292,7 +292,7 @@ TEST(test_parse, parse_invalid_let) {
   {
     visitor v;
     parser p("let", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -304,7 +304,7 @@ TEST(test_parse, parse_invalid_let) {
   {
     visitor v;
     parser p("let a,", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -316,7 +316,7 @@ TEST(test_parse, parse_invalid_let) {
   {
     visitor v;
     parser p("let x, 42", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -328,7 +328,7 @@ TEST(test_parse, parse_invalid_let) {
   {
     visitor v;
     parser p("let if", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -340,7 +340,7 @@ TEST(test_parse, parse_invalid_let) {
   {
     visitor v;
     parser p("let 42", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -350,11 +350,11 @@ TEST(test_parse, parse_invalid_let) {
   }
 }
 
-TEST(test_parse, parse_import) {
+TEST(test_parse, parse_and_visit_import) {
   {
     visitor v;
     parser p("import fs from 'fs'", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "fs");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
@@ -364,7 +364,7 @@ TEST(test_parse, parse_import) {
   {
     visitor v;
     parser p("import * as fs from 'fs'", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "fs");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
@@ -374,8 +374,8 @@ TEST(test_parse, parse_import) {
   {
     visitor v;
     parser p("import fs from 'fs'; import net from 'net';", &v);
-    p.parse_statement(v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, "fs");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
@@ -387,7 +387,7 @@ TEST(test_parse, parse_import) {
   {
     visitor v;
     parser p("import { readFile, writeFile } from 'fs';", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, "readFile");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
@@ -403,14 +403,14 @@ TEST(test_parse, parse_math_expression) {
     SCOPED_TRACE("input = " + std::string(input));
     visitor v;
     parser p(input, &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
   {
     visitor v;
     parser p("some_var", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "some_var");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -419,7 +419,7 @@ TEST(test_parse, parse_math_expression) {
   {
     visitor v;
     parser p("some_var + some_other_var", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, "some_var");
     EXPECT_EQ(v.variable_uses[1].name, "some_other_var");
@@ -429,7 +429,7 @@ TEST(test_parse, parse_math_expression) {
   {
     visitor v;
     parser p("+ v", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "v");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -440,7 +440,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("2 +", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
@@ -451,7 +451,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("^ 2", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
@@ -462,7 +462,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("2 * * 2", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
@@ -473,7 +473,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("2 & & & 2", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 2);
 
     auto *error = &v.errors[0];
@@ -490,7 +490,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("(2 *)", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
@@ -500,7 +500,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("2 * (3 + 4", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, visitor::error_unmatched_parenthesis);
@@ -511,7 +511,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("2 * (3 + (4", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 2);
 
     auto *error = &v.errors[0];
@@ -530,7 +530,7 @@ TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
   {
     visitor v;
     parser p("ten ten", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, visitor::error_unexpected_identifier);
@@ -543,7 +543,7 @@ TEST(test_parse, parse_assignment) {
   {
     visitor v;
     parser p("x = y", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_uses.size(), 1);
@@ -560,7 +560,7 @@ TEST(test_parse, parse_assignment) {
   {
     visitor v;
     parser p("(x) = y", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_uses.size(), 1);
@@ -577,7 +577,7 @@ TEST(test_parse, parse_assignment) {
   {
     visitor v;
     parser p("x.p = y", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_uses.size(), 2);
@@ -590,7 +590,7 @@ TEST(test_parse, parse_assignment) {
   {
     visitor v;
     parser p("x = y = z", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_uses.size(), 1);
@@ -606,7 +606,7 @@ TEST(test_parse, parse_function_calls) {
   {
     visitor v;
     parser p("f(x)", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, "f");
     EXPECT_EQ(v.variable_uses[1].name, "x");
@@ -616,7 +616,7 @@ TEST(test_parse, parse_function_calls) {
   {
     visitor v;
     parser p("f(x, y)", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 3);
     EXPECT_EQ(v.variable_uses[0].name, "f");
     EXPECT_EQ(v.variable_uses[1].name, "x");
@@ -627,7 +627,7 @@ TEST(test_parse, parse_function_calls) {
   {
     visitor v;
     parser p("o.f(x, y)", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 3);
     EXPECT_EQ(v.variable_uses[0].name, "o");
     EXPECT_EQ(v.variable_uses[1].name, "x");
@@ -638,7 +638,7 @@ TEST(test_parse, parse_function_calls) {
   {
     visitor v;
     parser p("console.log('hello', 42)", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "console");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -649,7 +649,7 @@ TEST(test_parse, parse_templates_in_expressions) {
   {
     visitor v;
     parser p("`hello`", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -657,7 +657,7 @@ TEST(test_parse, parse_templates_in_expressions) {
   {
     visitor v;
     parser p("`hello${world}`", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "world");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -666,7 +666,7 @@ TEST(test_parse, parse_templates_in_expressions) {
   {
     visitor v;
     parser p("`${one}${two}${three}`", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 3);
     EXPECT_EQ(v.variable_uses[0].name, "one");
     EXPECT_EQ(v.variable_uses[1].name, "two");
@@ -677,7 +677,7 @@ TEST(test_parse, parse_templates_in_expressions) {
   {
     visitor v;
     parser p("`${2+2, four}`", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "four");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -688,7 +688,7 @@ TEST(test_parse, DISABLED_parse_invalid_function_calls) {
   {
     visitor v;
     parser p("(x)f", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
 
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -707,12 +707,12 @@ TEST(test_parse, parse_function_call_as_statement) {
     visitor v;
     parser p("f(x); g(y);", &v);
 
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, "f");
     EXPECT_EQ(v.variable_uses[1].name, "x");
 
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_uses.size(), 4);
     EXPECT_EQ(v.variable_uses[2].name, "g");
     EXPECT_EQ(v.variable_uses[3].name, "y");
@@ -725,7 +725,7 @@ TEST(test_parse, parse_property_lookup) {
   {
     visitor v;
     parser p("some_var.some_property", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "some_var");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -736,7 +736,7 @@ TEST(test_parse, parse_new_expression) {
   {
     visitor v;
     parser p("new Foo()", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "Foo");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -747,7 +747,7 @@ TEST(test_parse, parse_await_expression) {
   {
     visitor v;
     parser p("await myPromise", &v);
-    p.parse_expression(v);
+    p.parse_and_visit_expression(v);
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "myPromise");
     EXPECT_THAT(v.errors, IsEmpty());
@@ -758,7 +758,7 @@ TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("function foo() {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "foo");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
@@ -768,7 +768,7 @@ TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("export function foo() {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "foo");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
@@ -778,7 +778,7 @@ TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("function sin(theta) {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 2);
@@ -797,7 +797,7 @@ TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("function pow(base, exponent) {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 3);
@@ -816,7 +816,7 @@ TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("function f(x, y = x) {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 3);
@@ -839,7 +839,7 @@ TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("function f() { return x; }", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -860,7 +860,7 @@ TEST(test_parse, parse_async_function) {
   {
     visitor v;
     parser p("async function f() {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "f");
@@ -870,7 +870,7 @@ TEST(test_parse, parse_async_function) {
 TEST(test_parse, parse_empty_module) {
   visitor v;
   parser p("", &v);
-  p.parse_module(v);
+  p.parse_and_visit_module(v);
   EXPECT_THAT(v.errors, IsEmpty());
 
   ASSERT_EQ(v.visits.size(), 1);
@@ -881,7 +881,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class C {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -897,7 +897,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("export class C {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -908,7 +908,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class Derived extends Base {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -928,7 +928,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class FileStream extends fs.ReadStream {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "fs");
@@ -937,7 +937,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class Monster { eatMuffins(muffinCount) { } }", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.variable_declarations.size(), 2);
@@ -960,7 +960,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class C { static m() { } }", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.property_declarations.size(), 1);
@@ -978,7 +978,7 @@ TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class C { a(){} b(){} c(){} }", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
     ASSERT_EQ(v.property_declarations.size(), 3);
     EXPECT_EQ(v.property_declarations[0].name, "a");
@@ -987,11 +987,11 @@ TEST(test_parse, parse_class_statement) {
   }
 }
 
-TEST(test_parse, parse_try) {
+TEST(test_parse, parse_and_visit_try) {
   {
     visitor v;
     parser p("try {} finally {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.visits.size(), 4);
@@ -1004,7 +1004,7 @@ TEST(test_parse, parse_try) {
   {
     visitor v;
     parser p("try {} catch (e) {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.visits.size(), 5);
@@ -1022,7 +1022,7 @@ TEST(test_parse, parse_try) {
   {
     visitor v;
     parser p("try {} catch (e) {} finally {}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.visits.size(), 7);
@@ -1042,7 +1042,7 @@ TEST(test_parse, parse_try) {
   {
     visitor v;
     parser p("try {f();} catch (e) {g();} finally {h();}", &v);
-    p.parse_statement(v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
 
     ASSERT_EQ(v.visits.size(), 10);

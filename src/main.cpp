@@ -251,9 +251,9 @@ void process_file(const char *path, bool print_parser_visits) {
   if (print_parser_visits) {
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
-    p.parse_module(visitor);
+    p.parse_and_visit_module(visitor);
   } else {
-    p.parse_module(l);
+    p.parse_and_visit_module(l);
   }
 }
 
