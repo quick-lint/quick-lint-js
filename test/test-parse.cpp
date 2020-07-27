@@ -440,7 +440,7 @@ TEST_CASE("parse invalid math expression") {
     p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(error.kind == visitor::error_missing_operand_for_operator);
     CHECK(p.locator().range(error.where).begin_offset() == 2);
     CHECK(p.locator().range(error.where).end_offset() == 3);
   }
@@ -451,7 +451,7 @@ TEST_CASE("parse invalid math expression") {
     p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(error.kind == visitor::error_missing_operand_for_operator);
     CHECK(p.locator().range(error.where).begin_offset() == 0);
     CHECK(p.locator().range(error.where).end_offset() == 1);
   }
@@ -462,7 +462,7 @@ TEST_CASE("parse invalid math expression") {
     p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(error.kind == visitor::error_missing_operand_for_operator);
     CHECK(p.locator().range(error.where).begin_offset() == 2);
     CHECK(p.locator().range(error.where).end_offset() == 3);
   }
@@ -474,12 +474,12 @@ TEST_CASE("parse invalid math expression") {
     REQUIRE(v.errors.size() == 2);
 
     auto *error = &v.errors[0];
-    CHECK(error->kind == visitor::error_missing_oprand_for_operator);
+    CHECK(error->kind == visitor::error_missing_operand_for_operator);
     CHECK(p.locator().range(error->where).begin_offset() == 2);
     CHECK(p.locator().range(error->where).end_offset() == 3);
 
     error = &v.errors[1];
-    CHECK(error->kind == visitor::error_missing_oprand_for_operator);
+    CHECK(error->kind == visitor::error_missing_operand_for_operator);
     CHECK(p.locator().range(error->where).begin_offset() == 4);
     CHECK(p.locator().range(error->where).end_offset() == 5);
   }
@@ -490,7 +490,7 @@ TEST_CASE("parse invalid math expression") {
     p.parse_expression(v);
     REQUIRE(v.errors.size() == 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_oprand_for_operator);
+    CHECK(error.kind == visitor::error_missing_operand_for_operator);
     CHECK(p.locator().range(error.where).begin_offset() == 3);
     CHECK(p.locator().range(error.where).end_offset() == 4);
   }

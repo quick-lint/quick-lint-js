@@ -88,10 +88,10 @@ class debug_error_reporter : public error_reporter {
     std::cerr << "error: let with no bindings\n";
   }
 
-  void report_error_missing_oprand_for_operator(
+  void report_error_missing_operand_for_operator(
       source_code_span where) override {
     log_location(where);
-    std::cerr << "error: missing oprand for operator\n";
+    std::cerr << "error: missing operand for operator\n";
   }
 
   void report_error_stray_comma_in_let_statement(

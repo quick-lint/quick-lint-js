@@ -146,7 +146,7 @@ TEST_CASE("parse broken math expression") {
     CHECK(summarize(ast) == "binary(literal, ?)");
     REQUIRE(p.errors().size() == 1);
     CHECK(p.errors()[0].kind ==
-          error_collector::error_missing_oprand_for_operator);
+          error_collector::error_missing_operand_for_operator);
     CHECK(p.error_range(0).begin_offset() == 1);
     CHECK(p.error_range(0).end_offset() == 2);
   }
@@ -157,7 +157,7 @@ TEST_CASE("parse broken math expression") {
     CHECK(summarize(ast) == "binary(?, literal)");
     REQUIRE(p.errors().size() == 1);
     CHECK(p.errors()[0].kind ==
-          error_collector::error_missing_oprand_for_operator);
+          error_collector::error_missing_operand_for_operator);
     CHECK(p.error_range(0).begin_offset() == 0);
     CHECK(p.error_range(0).end_offset() == 1);
   }
@@ -168,7 +168,7 @@ TEST_CASE("parse broken math expression") {
     CHECK(summarize(ast) == "binary(literal, ?, literal)");
     REQUIRE(p.errors().size() == 1);
     CHECK(p.errors()[0].kind ==
-          error_collector::error_missing_oprand_for_operator);
+          error_collector::error_missing_operand_for_operator);
     CHECK(p.error_range(0).begin_offset() == 2);
     CHECK(p.error_range(0).end_offset() == 3);
   }
@@ -180,12 +180,12 @@ TEST_CASE("parse broken math expression") {
     REQUIRE(p.errors().size() == 2);
 
     CHECK(p.errors()[0].kind ==
-          error_collector::error_missing_oprand_for_operator);
+          error_collector::error_missing_operand_for_operator);
     CHECK(p.error_range(0).begin_offset() == 2);
     CHECK(p.error_range(0).end_offset() == 3);
 
     CHECK(p.errors()[1].kind ==
-          error_collector::error_missing_oprand_for_operator);
+          error_collector::error_missing_operand_for_operator);
     CHECK(p.error_range(1).begin_offset() == 4);
     CHECK(p.error_range(1).end_offset() == 5);
   }
@@ -196,7 +196,7 @@ TEST_CASE("parse broken math expression") {
     CHECK(summarize(ast) == "binary(literal, ?)");
     REQUIRE(p.errors().size() == 1);
     CHECK(p.errors()[0].kind ==
-          error_collector::error_missing_oprand_for_operator);
+          error_collector::error_missing_operand_for_operator);
     CHECK(p.error_range(0).begin_offset() == 2);
     CHECK(p.error_range(0).end_offset() == 3);
   }

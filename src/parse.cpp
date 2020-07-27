@@ -115,7 +115,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       if (!prec.binary_operators) {
         return ast;
       }
-      this->error_reporter_->report_error_missing_oprand_for_operator(
+      this->error_reporter_->report_error_missing_operand_for_operator(
           this->peek().span());
       return this->parse_expression_remainder(ast, prec);
     }
@@ -153,7 +153,7 @@ next:
       children.emplace_back(this->parse_expression(
           precedence{.binary_operators = true, .commas = false}));
       if (children.back()->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report_error_missing_oprand_for_operator(
+        this->error_reporter_->report_error_missing_operand_for_operator(
             operator_span);
       }
       goto next;
@@ -167,7 +167,7 @@ next:
       children.emplace_back(this->parse_expression(
           precedence{.binary_operators = false, .commas = false}));
       if (children.back()->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report_error_missing_oprand_for_operator(
+        this->error_reporter_->report_error_missing_operand_for_operator(
             operator_span);
       }
       goto next;

@@ -51,9 +51,9 @@ struct error_collector : public error_reporter {
     this->errors.emplace_back(error{error_let_with_no_bindings, where});
   }
 
-  void report_error_missing_oprand_for_operator(
+  void report_error_missing_operand_for_operator(
       source_code_span where) override {
-    this->errors.emplace_back(error{error_missing_oprand_for_operator, where});
+    this->errors.emplace_back(error{error_missing_operand_for_operator, where});
   }
 
   void report_error_stray_comma_in_let_statement(
@@ -97,7 +97,7 @@ struct error_collector : public error_reporter {
     error_invalid_binding_in_let_statement,
     error_invalid_expression_left_of_assignment,
     error_let_with_no_bindings,
-    error_missing_oprand_for_operator,
+    error_missing_operand_for_operator,
     error_stray_comma_in_let_statement,
     error_unclosed_block_comment,
     error_unclosed_string_literal,
