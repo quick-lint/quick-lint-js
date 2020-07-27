@@ -93,7 +93,7 @@ class linter {
   }
 
   void visit_variable_use(identifier name) {
-    bool variable_is_declared = this->find_declared_variable(name);
+    bool variable_is_declared = this->find_declared_variable(name) != nullptr;
     if (!variable_is_declared) {
       this->scopes_.back().variables_used_before_declaration.emplace_back(name);
     }
