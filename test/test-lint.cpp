@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <doctest/doctest.h>
+#include <gtest/gtest.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -33,7 +33,7 @@ identifier identifier_of(const char (&name)[N]) {
   return identifier(span_of(name));
 }
 
-TEST_CASE("let or const variable use before declaration") {
+TEST(test_lint, let_or_const_variable_use_before_declaration) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_let}) {
     const char declaration[] = "x";
     const char use[] = "x";
@@ -44,14 +44,14 @@ TEST_CASE("let or const variable use before declaration") {
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_end_of_module();
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind ==
-          error_collector::error_variable_used_before_declaration);
-    CHECK(v.errors[0].where.begin() == use);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_variable_used_before_declaration);
+    EXPECT_EQ(v.errors[0].where.begin(), use);
   }
 }
 
-TEST_CASE("let variable use before declaration (with parsing)") {
+TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   const char *input = "let x = y, y = x;";
   error_collector v;
   linter l(&v);
@@ -59,14 +59,14 @@ TEST_CASE("let variable use before declaration (with parsing)") {
   p.parse_statement(l);
   l.visit_end_of_module();
 
-  REQUIRE(v.errors.size() == 1);
-  CHECK(v.errors[0].kind ==
-        error_collector::error_variable_used_before_declaration);
-  CHECK(locator(input).range(v.errors[0].where).begin_offset() == 8);
-  CHECK(locator(input).range(v.errors[0].where).end_offset() == 9);
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 8);
+  EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 9);
 }
 
-TEST_CASE("let variable use before declaration within function") {
+TEST(test_lint, let_variable_use_before_declaration_within_function) {
   const char declaration[] = "x";
   const char use[] = "x";
 
@@ -78,13 +78,13 @@ TEST_CASE("let variable use before declaration within function") {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  REQUIRE(v.errors.size() == 1);
-  CHECK(v.errors[0].kind ==
-        error_collector::error_variable_used_before_declaration);
-  CHECK(v.errors[0].where.begin() == use);
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
-TEST_CASE("let variable use before declaration of shadowing variable") {
+TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
   const char declaration[] = "x";
   const char use[] = "x";
 
@@ -97,13 +97,13 @@ TEST_CASE("let variable use before declaration of shadowing variable") {
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_end_of_module();
 
-  REQUIRE(v.errors.size() == 1);
-  CHECK(v.errors[0].kind ==
-        error_collector::error_variable_used_before_declaration);
-  CHECK(v.errors[0].where.begin() == use);
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
-TEST_CASE("var or function variable use before declaration") {
+TEST(test_lint, var_or_function_variable_use_before_declaration) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char declaration[] = "x";
     const char use[] = "x";
@@ -114,11 +114,11 @@ TEST_CASE("var or function variable use before declaration") {
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_end_of_module();
 
-    REQUIRE(v.errors.empty());
+    ASSERT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("variable use after declaration") {
+TEST(test_lint, variable_use_after_declaration) {
   for (variable_kind kind :
        {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
     const char declaration[] = "x";
@@ -129,11 +129,11 @@ TEST_CASE("variable use after declaration") {
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_variable_use(identifier_of(use));
     l.visit_end_of_module();
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("variable use with no declaration") {
+TEST(test_lint, variable_use_with_no_declaration) {
   const char use[] = "x";
 
   error_collector v;
@@ -141,13 +141,13 @@ TEST_CASE("variable use with no declaration") {
   l.visit_variable_use(identifier_of(use));
   l.visit_end_of_module();
 
-  REQUIRE(v.errors.size() == 1);
-  CHECK(v.errors[0].kind ==
-        error_collector::error_variable_used_before_declaration);
-  CHECK(v.errors[0].where.begin() == use);
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
-TEST_CASE("variable use with declaration in different function") {
+TEST(test_lint, variable_use_with_declaration_in_different_function) {
   const char declaration[] = "x";
   const char use[] = "x";
 
@@ -161,13 +161,13 @@ TEST_CASE("variable use with declaration in different function") {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  REQUIRE(v.errors.size() == 1);
-  CHECK(v.errors[0].kind ==
-        error_collector::error_variable_used_before_declaration);
-  CHECK(v.errors[0].where.begin() == use);
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
-TEST_CASE("use global variable within functions") {
+TEST(test_lint, use_global_variable_within_functions) {
   const char declaration[] = "x";
   const char use[] = "x";
 
@@ -182,10 +182,10 @@ TEST_CASE("use global variable within functions") {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  CHECK(v.errors.empty());
+  EXPECT_TRUE(v.errors.empty());
 }
 
-TEST_CASE("function uses global variable declared later in module") {
+TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   const char declaration[] = "x";
   const char use[] = "x";
 
@@ -197,10 +197,10 @@ TEST_CASE("function uses global variable declared later in module") {
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_end_of_module();
 
-  CHECK(v.errors.empty());
+  EXPECT_TRUE(v.errors.empty());
 }
 
-TEST_CASE("assign to mutable variable") {
+TEST(test_lint, assign_to_mutable_variable) {
   for (variable_kind kind :
        {variable_kind::_let, variable_kind::_var, variable_kind::_class,
         variable_kind::_function, variable_kind::_catch,
@@ -216,11 +216,11 @@ TEST_CASE("assign to mutable variable") {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("assign to immutable variable") {
+TEST(test_lint, assign_to_immutable_variable) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
     const char declaration[] = "x";
     const char assignment[] = "x";
@@ -233,12 +233,12 @@ TEST_CASE("assign to immutable variable") {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind ==
-          error_collector::error_assignment_to_const_variable);
-    CHECK(v.errors[0].where.begin() == assignment);
-    CHECK(v.errors[0].other_where.begin() == declaration);
-    CHECK(v.errors[0].var_kind == kind);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_assignment_to_const_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), assignment);
+    EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+    EXPECT_EQ(v.errors[0].var_kind, kind);
   }
 }
 }  // namespace

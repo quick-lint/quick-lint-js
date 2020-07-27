@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <doctest/doctest.h>
+#include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
 #include <quick-lint-js/error-collector.h>
@@ -30,7 +30,7 @@ void check_single_token(const char* input,
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types);
 
-TEST_CASE("lex block comments") {
+TEST(test_lex, lex_block_comments) {
   check_single_token("/* */ hello", "hello");
   check_single_token("/*/ comment */ hi", "hi");
   check_single_token("/* comment /*/ hi", "hi");
@@ -42,21 +42,21 @@ TEST_CASE("lex block comments") {
     const char* input = "hello /* unterminated comment ";
     lexer l(input, &v);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
-    CHECK(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_block_comment);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 6);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 8);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_block_comment);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 6);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 8);
   }
 }
 
-TEST_CASE("lex numbers") {
+TEST(test_lex, lex_numbers) {
   check_single_token("0", token_type::number);
   check_single_token("2", token_type::number);
   check_single_token("42", token_type::number);
 }
 
-TEST_CASE("lex strings") {
+TEST(test_lex, lex_strings) {
   check_single_token(R"('hello')", token_type::string);
   check_single_token(R"("hello")", token_type::string);
   check_single_token(R"("hello\"world")", token_type::string);
@@ -66,43 +66,43 @@ TEST_CASE("lex strings") {
     error_collector v;
     const char* input = R"("unterminated)";
     lexer l(input, &v);
-    CHECK(l.peek().type == token_type::string);
+    EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_string_literal);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 13);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 13);
   }
 
   {
     error_collector v;
     const char* input = "'unterminated\nhello";
     lexer l(input, &v);
-    CHECK(l.peek().type == token_type::string);
+    EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
-    CHECK(l.peek().type == token_type::identifier);
-    CHECK(l.peek().identifier_name().string_view() == "hello");
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().string_view(), "hello");
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_string_literal);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 13);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 13);
   }
 
   {
     error_collector v;
     const char* input = "'unterminated\\";
     lexer l(input, &v);
-    CHECK(l.peek().type == token_type::string);
+    EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_string_literal);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 14);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 14);
   }
 
   // TODO(strager): Lex line continuations in string literals. For example:
@@ -125,7 +125,7 @@ TEST_CASE("lex strings") {
   // TODO(strager): Report invalid octal escape sequences in non-strict mode.
 }
 
-TEST_CASE("lex templates") {
+TEST(test_lex, lex_templates) {
   check_tokens("``", {token_type::complete_template});
   check_tokens("`hello`", {token_type::complete_template});
   check_tokens("`hello$world`", {token_type::complete_template});
@@ -139,54 +139,54 @@ world`)",
 
   {
     lexer l("`hello${42}`", &null_error_reporter::instance);
-    CHECK(l.peek().type == token_type::incomplete_template);
-    CHECK(l.peek().span().string_view() == "`hello${");
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
+    EXPECT_EQ(l.peek().span().string_view(), "`hello${");
     const char* template_begin = l.peek().begin;
     l.skip();
-    CHECK(l.peek().type == token_type::number);
+    EXPECT_EQ(l.peek().type, token_type::number);
     l.skip();
-    CHECK(l.peek().type == token_type::right_curly);
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
-    CHECK(l.peek().type == token_type::complete_template);
-    CHECK(l.peek().span().string_view() == "`");
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_EQ(l.peek().span().string_view(), "`");
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
   {
     lexer l("`${42}world`", &null_error_reporter::instance);
-    CHECK(l.peek().type == token_type::incomplete_template);
-    CHECK(l.peek().span().string_view() == "`${");
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
+    EXPECT_EQ(l.peek().span().string_view(), "`${");
     const char* template_begin = l.peek().begin;
     l.skip();
-    CHECK(l.peek().type == token_type::number);
+    EXPECT_EQ(l.peek().type, token_type::number);
     l.skip();
-    CHECK(l.peek().type == token_type::right_curly);
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
-    CHECK(l.peek().type == token_type::complete_template);
-    CHECK(l.peek().span().string_view() == "world`");
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_EQ(l.peek().span().string_view(), "world`");
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
   {
     lexer l("`${left}${right}`", &null_error_reporter::instance);
-    CHECK(l.peek().type == token_type::incomplete_template);
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char* template_begin = l.peek().begin;
     l.skip();
-    CHECK(l.peek().type == token_type::identifier);
+    EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();
-    CHECK(l.peek().type == token_type::right_curly);
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
-    CHECK(l.peek().type == token_type::incomplete_template);
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     l.skip();
-    CHECK(l.peek().type == token_type::identifier);
+    EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();
-    CHECK(l.peek().type == token_type::right_curly);
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
-    CHECK(l.peek().type == token_type::complete_template);
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
   // TODO(strager): Lex line continuations in templates. For example:
@@ -198,56 +198,56 @@ world`)",
     error_collector v;
     const char* input = "`unterminated";
     lexer l(input, &v);
-    CHECK(l.peek().type == token_type::complete_template);
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_template);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 13);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 13);
   }
 
   {
     error_collector v;
     const char* input = "`${un}terminated";
     lexer l(input, &v);
-    CHECK(l.peek().type == token_type::incomplete_template);
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char* template_begin = l.peek().begin;
     l.skip();
-    CHECK(l.peek().type == token_type::identifier);
+    EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();
-    CHECK(l.peek().type == token_type::right_curly);
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
     l.skip_in_template(template_begin);
-    CHECK(l.peek().type == token_type::complete_template);
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_template);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 16);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 16);
   }
 
   {
     error_collector v;
     const char* input = "`unterminated\\";
     lexer l(input, &v);
-    CHECK(l.peek().type == token_type::complete_template);
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
     l.skip();
-    CHECK(l.peek().type == token_type::end_of_file);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    REQUIRE(v.errors.size() == 1);
-    CHECK(v.errors[0].kind == error_collector::error_unclosed_template);
-    CHECK(locator(input).range(v.errors[0].where).begin_offset() == 0);
-    CHECK(locator(input).range(v.errors[0].where).end_offset() == 14);
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 14);
   }
 
   // TODO(strager): Report invalid escape sequences, like with plain string
   // literals.
 }
 
-TEST_CASE("lex identifiers") {
+TEST(test_lex, lex_identifiers) {
   check_single_token("i", token_type::identifier);
   check_single_token("_", token_type::identifier);
   check_single_token("$", token_type::identifier);
@@ -260,12 +260,12 @@ TEST_CASE("lex identifiers") {
   // TODO(strager): Lex identifiers containing \u1234 or \u{1234}.
 }
 
-TEST_CASE("lex identifiers which look like keywords") {
+TEST(test_lex, lex_identifiers_which_look_like_keywords) {
   check_single_token("ifelse", token_type::identifier);
   check_single_token("IF", token_type::identifier);
 }
 
-TEST_CASE("lex keywords") {
+TEST(test_lex, lex_keywords) {
   check_single_token("as", token_type::_as);
   check_single_token("async", token_type::_async);
   check_single_token("await", token_type::_await);
@@ -310,7 +310,7 @@ TEST_CASE("lex keywords") {
   check_single_token("yield", token_type::_yield);
 }
 
-TEST_CASE("lex single-character symbols") {
+TEST(test_lex, lex_single_character_symbols) {
   check_single_token("+", token_type::plus);
   check_single_token("-", token_type::minus);
   check_single_token("*", token_type::star);
@@ -337,7 +337,7 @@ TEST_CASE("lex single-character symbols") {
   check_single_token("|", token_type::pipe);
 }
 
-TEST_CASE("lex multi-character symbols") {
+TEST(test_lex, lex_multi_character_symbols) {
   check_single_token("<=", token_type::less_equal);
   check_single_token(">=", token_type::greater_equal);
   check_single_token("==", token_type::equal_equal);
@@ -368,7 +368,7 @@ TEST_CASE("lex multi-character symbols") {
   check_single_token("...", token_type::dot_dot_dot);
 }
 
-TEST_CASE("lex adjacent symbols") {
+TEST(test_lex, lex_adjacent_symbols) {
   check_tokens("{}", {token_type::left_curly, token_type::right_curly});
   check_tokens("[]", {token_type::left_square, token_type::right_square});
   check_tokens("/!", {token_type::slash, token_type::bang});
@@ -377,7 +377,7 @@ TEST_CASE("lex adjacent symbols") {
   check_tokens("^>>", {token_type::circumflex, token_type::greater_greater});
 }
 
-TEST_CASE("lex symbols separated by whitespace") {
+TEST(test_lex, lex_symbols_separated_by_whitespace) {
   check_tokens("{ }", {token_type::left_curly, token_type::right_curly});
   check_tokens("< =", {token_type::less, token_type::equal});
   check_tokens(". . .", {token_type::dot, token_type::dot, token_type::dot});
@@ -385,28 +385,28 @@ TEST_CASE("lex symbols separated by whitespace") {
 
 void check_single_token(const char* input, token_type expected_token_type) {
   lexer l(input, &null_error_reporter::instance);
-  CHECK(l.peek().type == expected_token_type);
+  EXPECT_EQ(l.peek().type, expected_token_type);
   l.skip();
-  CHECK(l.peek().type == token_type::end_of_file);
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
 }
 
 void check_single_token(const char* input,
                         std::string_view expected_identifier_name) {
   lexer l(input, &null_error_reporter::instance);
-  CHECK(l.peek().type == token_type::identifier);
-  CHECK(l.peek().identifier_name().string_view() == expected_identifier_name);
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().string_view(), expected_identifier_name);
   l.skip();
-  CHECK(l.peek().type == token_type::end_of_file);
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
 }
 
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types) {
   lexer l(input, &null_error_reporter::instance);
   for (token_type expected_token_type : expected_token_types) {
-    CHECK(l.peek().type == expected_token_type);
+    EXPECT_EQ(l.peek().type, expected_token_type);
     l.skip();
   }
-  CHECK(l.peek().type == token_type::end_of_file);
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
 }
 }  // namespace
 }  // namespace quick_lint_js

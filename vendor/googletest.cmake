@@ -14,29 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.10)
+set(BUILD_GMOCK TRUE CACHE INTERNAL "")
+set(INSTALL_GTEST FALSE CACHE INTERNAL "")
+set(gmock_build_tests FALSE CACHE INTERNAL "")
+set(gtest_build_samples FALSE CACHE INTERNAL "")
+set(gtest_build_tests FALSE CACHE INTERNAL "")
 
-add_executable(
-  quick-lint-js-test
-  test-lex.cpp
-  test-lint.cpp
-  test-location.cpp
-  test-narrow-cast.cpp
-  test-options.cpp
-  test-parse-expression.cpp
-  test-parse.cpp
-)
-target_include_directories(quick-lint-js-test PRIVATE include)
-target_link_libraries(
-  quick-lint-js-test
-  PRIVATE
-  gmock
-  gmock_main
-  gtest
-  quick-lint-js-lib
-)
-
-add_test(
-  NAME quick-lint-js-test
-  COMMAND quick-lint-js-test
-)
+add_subdirectory(googletest)

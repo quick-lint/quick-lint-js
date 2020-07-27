@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <doctest/doctest.h>
+#include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
 #include <quick-lint-js/narrow-cast.h>
@@ -36,31 +36,31 @@ options parse_options(std::initializer_list<const char *> arguments) {
                                       argv.data());
 }
 
-TEST_CASE("default options with no files") {
+TEST(test_options, default_options_with_no_files) {
   options o = parse_options({});
-  CHECK_FALSE(o.print_parser_visits);
-  CHECK(o.files_to_lint.empty());
+  EXPECT_FALSE(o.print_parser_visits);
+  EXPECT_TRUE(o.files_to_lint.empty());
 }
 
-TEST_CASE("default options with files") {
+TEST(test_options, default_options_with_files) {
   options o = parse_options({"foo.js"});
-  CHECK_FALSE(o.print_parser_visits);
-  REQUIRE(o.files_to_lint.size() == 1);
-  CHECK(o.files_to_lint[0] == "foo.js"sv);
+  EXPECT_FALSE(o.print_parser_visits);
+  ASSERT_EQ(o.files_to_lint.size(), 1);
+  EXPECT_EQ(o.files_to_lint[0], "foo.js"sv);
 }
 
-TEST_CASE("--debug-parser-visits") {
+TEST(test_options, debug_parser_visits) {
   options o = parse_options({"--debug-parser-visits", "foo.js"});
-  CHECK(o.print_parser_visits);
-  REQUIRE(o.files_to_lint.size() == 1);
-  CHECK(o.files_to_lint[0] == "foo.js"sv);
+  EXPECT_TRUE(o.print_parser_visits);
+  ASSERT_EQ(o.files_to_lint.size(), 1);
+  EXPECT_EQ(o.files_to_lint[0], "foo.js"sv);
 }
 
-TEST_CASE("invalid option") {
+TEST(test_options, invalid_option) {
   options o = parse_options({"--option-does-not-exist", "foo.js"});
-  REQUIRE(o.error_unrecognized_options.size() == 1);
-  CHECK(o.error_unrecognized_options[0] == "--option-does-not-exist"sv);
-  CHECK(o.files_to_lint.empty());
+  ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+  EXPECT_EQ(o.error_unrecognized_options[0], "--option-does-not-exist"sv);
+  EXPECT_TRUE(o.files_to_lint.empty());
 }
 }  // namespace
 }  // namespace quick_lint_js

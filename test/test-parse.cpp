@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <doctest/doctest.h>
+#include <gtest/gtest.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
@@ -103,269 +103,269 @@ struct visitor : public error_collector {
   std::vector<visited_variable_use> variable_uses;
 };
 
-TEST_CASE("parse simple let") {
+TEST(test_parse, parse_simple_let) {
   {
     visitor v;
     parser p("let x", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_let);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let a, b", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "a");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_let);
-    CHECK(v.variable_declarations[1].name == "b");
-    CHECK(v.variable_declarations[1].kind == variable_kind::_let);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "a");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+    EXPECT_EQ(v.variable_declarations[1].name, "b");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_let);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let a, b, c, d, e, f, g", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 7);
-    CHECK(v.variable_declarations[0].name == "a");
-    CHECK(v.variable_declarations[1].name == "b");
-    CHECK(v.variable_declarations[2].name == "c");
-    CHECK(v.variable_declarations[3].name == "d");
-    CHECK(v.variable_declarations[4].name == "e");
-    CHECK(v.variable_declarations[5].name == "f");
-    CHECK(v.variable_declarations[6].name == "g");
+    ASSERT_EQ(v.variable_declarations.size(), 7);
+    EXPECT_EQ(v.variable_declarations[0].name, "a");
+    EXPECT_EQ(v.variable_declarations[1].name, "b");
+    EXPECT_EQ(v.variable_declarations[2].name, "c");
+    EXPECT_EQ(v.variable_declarations[3].name, "d");
+    EXPECT_EQ(v.variable_declarations[4].name, "e");
+    EXPECT_EQ(v.variable_declarations[5].name, "f");
+    EXPECT_EQ(v.variable_declarations[6].name, "g");
     for (const auto &declaration : v.variable_declarations) {
-      CHECK(declaration.kind == variable_kind::_let);
+      EXPECT_EQ(declaration.kind, variable_kind::_let);
     }
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let first; let second", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "first");
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "first");
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "first");
-    CHECK(v.variable_declarations[1].name == "second");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "first");
+    EXPECT_EQ(v.variable_declarations[1].name, "second");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse simple var") {
+TEST(test_parse, parse_simple_var) {
   visitor v;
   parser p("var x", &v);
   p.parse_statement(v);
-  REQUIRE(v.variable_declarations.size() == 1);
-  CHECK(v.variable_declarations[0].name == "x");
-  CHECK(v.variable_declarations[0].kind == variable_kind::_var);
-  CHECK(v.errors.empty());
+  ASSERT_EQ(v.variable_declarations.size(), 1);
+  EXPECT_EQ(v.variable_declarations[0].name, "x");
+  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
+  EXPECT_TRUE(v.errors.empty());
 }
 
-TEST_CASE("parse simple const") {
+TEST(test_parse, parse_simple_const) {
   visitor v;
   parser p("const x", &v);
   p.parse_statement(v);
-  REQUIRE(v.variable_declarations.size() == 1);
-  CHECK(v.variable_declarations[0].name == "x");
-  CHECK(v.variable_declarations[0].kind == variable_kind::_const);
-  CHECK(v.errors.empty());
+  ASSERT_EQ(v.variable_declarations.size(), 1);
+  EXPECT_EQ(v.variable_declarations[0].name, "x");
+  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
+  EXPECT_TRUE(v.errors.empty());
 }
 
-TEST_CASE("parse let with initializers") {
+TEST(test_parse, parse_let_with_initializers) {
   {
     visitor v;
     parser p("let x = 2", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let x = 2, y = 3", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.variable_declarations[1].name == "y");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_EQ(v.variable_declarations[1].name, "y");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let x = other, y = x", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.variable_declarations[1].name == "y");
-    REQUIRE(v.variable_uses.size() == 2);
-    CHECK(v.variable_uses[0].name == "other");
-    CHECK(v.variable_uses[1].name == "x");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_EQ(v.variable_declarations[1].name, "y");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, "other");
+    EXPECT_EQ(v.variable_uses[1].name, "x");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse let with object destructuring") {
+TEST(test_parse, parse_let_with_object_destructuring) {
   {
     visitor v;
     parser p("let {x} = 2", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let {x, y, z} = 2", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 3);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.variable_declarations[1].name == "y");
-    CHECK(v.variable_declarations[2].name == "z");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 3);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_EQ(v.variable_declarations[1].name, "y");
+    EXPECT_EQ(v.variable_declarations[2].name, "z");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let {{x}, {y}, {z}} = 2", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 3);
-    CHECK(v.variable_declarations[0].name == "x");
-    CHECK(v.variable_declarations[1].name == "y");
-    CHECK(v.variable_declarations[2].name == "z");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 3);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_EQ(v.variable_declarations[1].name, "y");
+    EXPECT_EQ(v.variable_declarations[2].name, "z");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("let {} = x;", &v);
     p.parse_statement(v);
-    CHECK(v.variable_declarations.empty());
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.variable_declarations.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse function parameters with object destructuring") {
+TEST(test_parse, parse_function_parameters_with_object_destructuring) {
   visitor v;
   parser p("function f({x, y, z}) {}", &v);
   p.parse_statement(v);
-  REQUIRE(v.variable_declarations.size() == 4);
-  CHECK(v.variable_declarations[0].name == "f");
-  CHECK(v.variable_declarations[1].name == "x");
-  CHECK(v.variable_declarations[2].name == "y");
-  CHECK(v.variable_declarations[3].name == "z");
-  CHECK(v.errors.empty());
+  ASSERT_EQ(v.variable_declarations.size(), 4);
+  EXPECT_EQ(v.variable_declarations[0].name, "f");
+  EXPECT_EQ(v.variable_declarations[1].name, "x");
+  EXPECT_EQ(v.variable_declarations[2].name, "y");
+  EXPECT_EQ(v.variable_declarations[3].name, "z");
+  EXPECT_TRUE(v.errors.empty());
 }
 
-TEST_CASE(
-    "variables used in let initializer are used before variable declaration") {
+TEST(test_parse,
+     variables_used_in_let_initializer_are_used_before_variable_declaration) {
   using namespace std::literals::string_view_literals;
 
   visitor v;
   parser p("let x = x", &v);
   p.parse_statement(v);
 
-  REQUIRE(v.visits.size() == 2);
-  CHECK(v.visits[0] == "visit_variable_use");
-  CHECK(v.visits[1] == "visit_variable_declaration");
+  ASSERT_EQ(v.visits.size(), 2);
+  EXPECT_EQ(v.visits[0], "visit_variable_use");
+  EXPECT_EQ(v.visits[1], "visit_variable_declaration");
 
-  REQUIRE(v.variable_declarations.size() == 1);
-  CHECK(v.variable_declarations[0].name == "x");
-  REQUIRE(v.variable_uses.size() == 1);
-  CHECK(v.variable_uses[0].name == "x");
-  CHECK(v.errors.empty());
+  ASSERT_EQ(v.variable_declarations.size(), 1);
+  EXPECT_EQ(v.variable_declarations[0].name, "x");
+  ASSERT_EQ(v.variable_uses.size(), 1);
+  EXPECT_EQ(v.variable_uses[0].name, "x");
+  EXPECT_TRUE(v.errors.empty());
 }
 
-TEST_CASE("parse invalid let") {
+TEST(test_parse, parse_invalid_let) {
   {
     visitor v;
     parser p("let", &v);
     p.parse_statement(v);
-    CHECK(v.variable_declarations.empty());
-    REQUIRE(v.errors.size() == 1);
+    EXPECT_TRUE(v.variable_declarations.empty());
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_let_with_no_bindings);
-    CHECK(p.locator().range(error.where).begin_offset() == 0);
-    CHECK(p.locator().range(error.where).end_offset() == 3);
+    EXPECT_EQ(error.kind, visitor::error_let_with_no_bindings);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 0);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 3);
   }
 
   {
     visitor v;
     parser p("let a,", &v);
     p.parse_statement(v);
-    CHECK(v.variable_declarations.size() == 1);
-    REQUIRE(v.errors.size() == 1);
+    EXPECT_EQ(v.variable_declarations.size(), 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_stray_comma_in_let_statement);
-    CHECK(p.locator().range(error.where).begin_offset() == 5);
-    CHECK(p.locator().range(error.where).end_offset() == 6);
+    EXPECT_EQ(error.kind, visitor::error_stray_comma_in_let_statement);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 5);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 6);
   }
 
   {
     visitor v;
     parser p("let x, 42", &v);
     p.parse_statement(v);
-    CHECK(v.variable_declarations.size() == 1);
-    REQUIRE(v.errors.size() == 1);
+    EXPECT_EQ(v.variable_declarations.size(), 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
-    CHECK(p.locator().range(error.where).begin_offset() == 7);
-    CHECK(p.locator().range(error.where).end_offset() == 9);
+    EXPECT_EQ(error.kind, visitor::error_invalid_binding_in_let_statement);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 7);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 9);
   }
 
   {
     visitor v;
     parser p("let if", &v);
     p.parse_statement(v);
-    CHECK(v.variable_declarations.size() == 0);
-    REQUIRE(v.errors.size() == 1);
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
-    CHECK(p.locator().range(error.where).begin_offset() == 4);
-    CHECK(p.locator().range(error.where).end_offset() == 6);
+    EXPECT_EQ(error.kind, visitor::error_invalid_binding_in_let_statement);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 6);
   }
 
   {
     visitor v;
     parser p("let 42", &v);
     p.parse_statement(v);
-    CHECK(v.variable_declarations.size() == 0);
-    CHECK(v.errors.size() == 1);
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    EXPECT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_invalid_binding_in_let_statement);
-    CHECK(p.locator().range(error.where).begin_offset() == 4);
-    CHECK(p.locator().range(error.where).end_offset() == 6);
+    EXPECT_EQ(error.kind, visitor::error_invalid_binding_in_let_statement);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 6);
   }
 }
 
-TEST_CASE("parse import") {
+TEST(test_parse, parse_import) {
   {
     visitor v;
     parser p("import fs from 'fs'", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "fs");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "fs");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("import * as fs from 'fs'", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "fs");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "fs");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
@@ -373,691 +373,691 @@ TEST_CASE("parse import") {
     parser p("import fs from 'fs'; import net from 'net';", &v);
     p.parse_statement(v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "fs");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
-    CHECK(v.variable_declarations[1].name == "net");
-    CHECK(v.variable_declarations[1].kind == variable_kind::_import);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "fs");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_EQ(v.variable_declarations[1].name, "net");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_import);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("import { readFile, writeFile } from 'fs';", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "readFile");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_import);
-    CHECK(v.variable_declarations[1].name == "writeFile");
-    CHECK(v.variable_declarations[1].kind == variable_kind::_import);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "readFile");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_EQ(v.variable_declarations[1].name, "writeFile");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_import);
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse math expression") {
+TEST(test_parse, parse_math_expression) {
   for (const char *input :
        {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {
-    INFO("input = " << input);
+    SCOPED_TRACE("input = " + std::string(input));
     visitor v;
     parser p(input, &v);
     p.parse_expression(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("some_var", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "some_var");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "some_var");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("some_var + some_other_var", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 2);
-    CHECK(v.variable_uses[0].name == "some_var");
-    CHECK(v.variable_uses[1].name == "some_other_var");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, "some_var");
+    EXPECT_EQ(v.variable_uses[1].name, "some_other_var");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("+ v", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "v");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "v");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse invalid math expression") {
+TEST(test_parse, parse_invalid_math_expression) {
   {
     visitor v;
     parser p("2 +", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_operand_for_operator);
-    CHECK(p.locator().range(error.where).begin_offset() == 2);
-    CHECK(p.locator().range(error.where).end_offset() == 3);
+    EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 2);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 3);
   }
 
   {
     visitor v;
     parser p("^ 2", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_operand_for_operator);
-    CHECK(p.locator().range(error.where).begin_offset() == 0);
-    CHECK(p.locator().range(error.where).end_offset() == 1);
+    EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 0);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 1);
   }
 
   {
     visitor v;
     parser p("2 * * 2", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_operand_for_operator);
-    CHECK(p.locator().range(error.where).begin_offset() == 2);
-    CHECK(p.locator().range(error.where).end_offset() == 3);
+    EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 2);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 3);
   }
 
   {
     visitor v;
     parser p("2 & & & 2", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 2);
+    ASSERT_EQ(v.errors.size(), 2);
 
     auto *error = &v.errors[0];
-    CHECK(error->kind == visitor::error_missing_operand_for_operator);
-    CHECK(p.locator().range(error->where).begin_offset() == 2);
-    CHECK(p.locator().range(error->where).end_offset() == 3);
+    EXPECT_EQ(error->kind, visitor::error_missing_operand_for_operator);
+    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 2);
+    EXPECT_EQ(p.locator().range(error->where).end_offset(), 3);
 
     error = &v.errors[1];
-    CHECK(error->kind == visitor::error_missing_operand_for_operator);
-    CHECK(p.locator().range(error->where).begin_offset() == 4);
-    CHECK(p.locator().range(error->where).end_offset() == 5);
+    EXPECT_EQ(error->kind, visitor::error_missing_operand_for_operator);
+    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 4);
+    EXPECT_EQ(p.locator().range(error->where).end_offset(), 5);
   }
 
   {
     visitor v;
     parser p("(2 *)", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_missing_operand_for_operator);
-    CHECK(p.locator().range(error.where).begin_offset() == 3);
-    CHECK(p.locator().range(error.where).end_offset() == 4);
+    EXPECT_EQ(error.kind, visitor::error_missing_operand_for_operator);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 3);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 4);
   }
   {
     visitor v;
     parser p("2 * (3 + 4", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_unmatched_parenthesis);
-    CHECK(p.locator().range(error.where).begin_offset() == 4);
-    CHECK(p.locator().range(error.where).end_offset() == 5);
+    EXPECT_EQ(error.kind, visitor::error_unmatched_parenthesis);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 5);
   }
 
   {
     visitor v;
     parser p("2 * (3 + (4", &v);
     p.parse_expression(v);
-    REQUIRE(v.errors.size() == 2);
+    ASSERT_EQ(v.errors.size(), 2);
 
     auto *error = &v.errors[0];
-    CHECK(error->kind == visitor::error_unmatched_parenthesis);
-    CHECK(p.locator().range(error->where).begin_offset() == 9);
-    CHECK(p.locator().range(error->where).end_offset() == 10);
+    EXPECT_EQ(error->kind, visitor::error_unmatched_parenthesis);
+    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 9);
+    EXPECT_EQ(p.locator().range(error->where).end_offset(), 10);
 
     error = &v.errors[1];
-    CHECK(error->kind == visitor::error_unmatched_parenthesis);
-    CHECK(p.locator().range(error->where).begin_offset() == 4);
-    CHECK(p.locator().range(error->where).end_offset() == 5);
+    EXPECT_EQ(error->kind, visitor::error_unmatched_parenthesis);
+    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 4);
+    EXPECT_EQ(p.locator().range(error->where).end_offset(), 5);
   }
 }
 
-TEST_CASE("parse invalid math expression 2" * ::doctest::skip()) {
+TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
   {
     visitor v;
     parser p("ten ten", &v);
     p.parse_statement(v);
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_unexpected_identifier);
-    CHECK(p.locator().range(error.where).begin_offset() == 4);
-    CHECK(p.locator().range(error.where).end_offset() == 7);
+    EXPECT_EQ(error.kind, visitor::error_unexpected_identifier);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 7);
   }
 }
 
-TEST_CASE("parse assignment") {
+TEST(test_parse, parse_assignment) {
   {
     visitor v;
     parser p("x = y", &v);
     p.parse_expression(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "y");
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "y");
 
-    REQUIRE(v.variable_assignments.size() == 1);
-    CHECK(v.variable_assignments[0].name == "x");
+    ASSERT_EQ(v.variable_assignments.size(), 1);
+    EXPECT_EQ(v.variable_assignments[0].name, "x");
 
-    REQUIRE(v.visits.size() == 2);
-    CHECK(v.visits[0] == "visit_variable_use");
-    CHECK(v.visits[1] == "visit_variable_assignment");
+    ASSERT_EQ(v.visits.size(), 2);
+    EXPECT_EQ(v.visits[0], "visit_variable_use");
+    EXPECT_EQ(v.visits[1], "visit_variable_assignment");
   }
 
   {
     visitor v;
     parser p("(x) = y", &v);
     p.parse_expression(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "y");
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "y");
 
-    REQUIRE(v.variable_assignments.size() == 1);
-    CHECK(v.variable_assignments[0].name == "x");
+    ASSERT_EQ(v.variable_assignments.size(), 1);
+    EXPECT_EQ(v.variable_assignments[0].name, "x");
 
-    REQUIRE(v.visits.size() == 2);
-    CHECK(v.visits[0] == "visit_variable_use");
-    CHECK(v.visits[1] == "visit_variable_assignment");
+    ASSERT_EQ(v.visits.size(), 2);
+    EXPECT_EQ(v.visits[0], "visit_variable_use");
+    EXPECT_EQ(v.visits[1], "visit_variable_assignment");
   }
 
   {
     visitor v;
     parser p("x.p = y", &v);
     p.parse_expression(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_uses.size() == 2);
-    CHECK(v.variable_uses[0].name == "x");
-    CHECK(v.variable_uses[1].name == "y");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, "x");
+    EXPECT_EQ(v.variable_uses[1].name, "y");
 
-    CHECK(v.variable_assignments.size() == 0);
+    EXPECT_EQ(v.variable_assignments.size(), 0);
   }
 
   {
     visitor v;
     parser p("x = y = z", &v);
     p.parse_expression(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "z");
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "z");
 
-    CHECK(v.variable_assignments.size() == 2);
-    CHECK(v.variable_assignments[0].name == "y");
-    CHECK(v.variable_assignments[1].name == "x");
+    EXPECT_EQ(v.variable_assignments.size(), 2);
+    EXPECT_EQ(v.variable_assignments[0].name, "y");
+    EXPECT_EQ(v.variable_assignments[1].name, "x");
   }
 }
 
-TEST_CASE("parse function calls") {
+TEST(test_parse, parse_function_calls) {
   {
     visitor v;
     parser p("f(x)", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 2);
-    CHECK(v.variable_uses[0].name == "f");
-    CHECK(v.variable_uses[1].name == "x");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, "f");
+    EXPECT_EQ(v.variable_uses[1].name, "x");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("f(x, y)", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 3);
-    CHECK(v.variable_uses[0].name == "f");
-    CHECK(v.variable_uses[1].name == "x");
-    CHECK(v.variable_uses[2].name == "y");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 3);
+    EXPECT_EQ(v.variable_uses[0].name, "f");
+    EXPECT_EQ(v.variable_uses[1].name, "x");
+    EXPECT_EQ(v.variable_uses[2].name, "y");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("o.f(x, y)", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 3);
-    CHECK(v.variable_uses[0].name == "o");
-    CHECK(v.variable_uses[1].name == "x");
-    CHECK(v.variable_uses[2].name == "y");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 3);
+    EXPECT_EQ(v.variable_uses[0].name, "o");
+    EXPECT_EQ(v.variable_uses[1].name, "x");
+    EXPECT_EQ(v.variable_uses[2].name, "y");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("console.log('hello', 42)", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "console");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "console");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse templates in expressions") {
+TEST(test_parse, parse_templates_in_expressions) {
   {
     visitor v;
     parser p("`hello`", &v);
     p.parse_expression(v);
-    CHECK(v.visits.empty());
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.visits.empty());
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("`hello${world}`", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "world");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "world");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("`${one}${two}${three}`", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 3);
-    CHECK(v.variable_uses[0].name == "one");
-    CHECK(v.variable_uses[1].name == "two");
-    CHECK(v.variable_uses[2].name == "three");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 3);
+    EXPECT_EQ(v.variable_uses[0].name, "one");
+    EXPECT_EQ(v.variable_uses[1].name, "two");
+    EXPECT_EQ(v.variable_uses[2].name, "three");
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("`${2+2, four}`", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "four");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "four");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse invalid function calls" * ::doctest::skip()) {
+TEST(test_parse, DISABLED_parse_invalid_function_calls) {
   {
     visitor v;
     parser p("(x)f", &v);
     p.parse_statement(v);
 
-    REQUIRE(v.errors.size() == 1);
+    ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
-    CHECK(error.kind == visitor::error_unexpected_identifier);
-    CHECK(p.locator().range(error.where).begin_offset() == 3);
-    CHECK(p.locator().range(error.where).end_offset() == 4);
+    EXPECT_EQ(error.kind, visitor::error_unexpected_identifier);
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 3);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(), 4);
 
-    REQUIRE(v.variable_uses.size() == 2);
-    CHECK(v.variable_uses[0].name == "x");
-    CHECK(v.variable_uses[1].name == "f");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, "x");
+    EXPECT_EQ(v.variable_uses[1].name, "f");
   }
 }
 
-TEST_CASE("parse function call as statement") {
+TEST(test_parse, parse_function_call_as_statement) {
   {
     visitor v;
     parser p("f(x); g(y);", &v);
 
     p.parse_statement(v);
-    REQUIRE(v.variable_uses.size() == 2);
-    CHECK(v.variable_uses[0].name == "f");
-    CHECK(v.variable_uses[1].name == "x");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, "f");
+    EXPECT_EQ(v.variable_uses[1].name, "x");
 
     p.parse_statement(v);
-    REQUIRE(v.variable_uses.size() == 4);
-    CHECK(v.variable_uses[2].name == "g");
-    CHECK(v.variable_uses[3].name == "y");
+    ASSERT_EQ(v.variable_uses.size(), 4);
+    EXPECT_EQ(v.variable_uses[2].name, "g");
+    EXPECT_EQ(v.variable_uses[3].name, "y");
 
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse property lookup: variable.property") {
+TEST(test_parse, parse_property_lookup) {
   {
     visitor v;
     parser p("some_var.some_property", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "some_var");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "some_var");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse new expression") {
+TEST(test_parse, parse_new_expression) {
   {
     visitor v;
     parser p("new Foo()", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "Foo");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "Foo");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse await expression") {
+TEST(test_parse, parse_await_expression) {
   {
     visitor v;
     parser p("await myPromise", &v);
     p.parse_expression(v);
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "myPromise");
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "myPromise");
+    EXPECT_TRUE(v.errors.empty());
   }
 }
 
-TEST_CASE("parse function statement") {
+TEST(test_parse, parse_function_statement) {
   {
     visitor v;
     parser p("function foo() {}", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "foo");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_function);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "foo");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("export function foo() {}", &v);
     p.parse_statement(v);
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "foo");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_function);
-    CHECK(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "foo");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_TRUE(v.errors.empty());
   }
 
   {
     visitor v;
     parser p("function sin(theta) {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "sin");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_function);
-    CHECK(v.variable_declarations[1].name == "theta");
-    CHECK(v.variable_declarations[1].kind == variable_kind::_parameter);
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "sin");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_EQ(v.variable_declarations[1].name, "theta");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
 
-    REQUIRE(v.visits.size() == 4);
-    CHECK(v.visits[0] == "visit_variable_declaration");
-    CHECK(v.visits[1] == "visit_enter_function_scope");
-    CHECK(v.visits[2] == "visit_variable_declaration");
-    CHECK(v.visits[3] == "visit_exit_function_scope");
+    ASSERT_EQ(v.visits.size(), 4);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
+    EXPECT_EQ(v.visits[2], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[3], "visit_exit_function_scope");
   }
 
   {
     visitor v;
     parser p("function pow(base, exponent) {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 3);
-    CHECK(v.variable_declarations[0].name == "pow");
-    CHECK(v.variable_declarations[1].name == "base");
-    CHECK(v.variable_declarations[2].name == "exponent");
+    ASSERT_EQ(v.variable_declarations.size(), 3);
+    EXPECT_EQ(v.variable_declarations[0].name, "pow");
+    EXPECT_EQ(v.variable_declarations[1].name, "base");
+    EXPECT_EQ(v.variable_declarations[2].name, "exponent");
 
-    REQUIRE(v.visits.size() == 5);
-    CHECK(v.visits[0] == "visit_variable_declaration");
-    CHECK(v.visits[1] == "visit_enter_function_scope");
-    CHECK(v.visits[2] == "visit_variable_declaration");
-    CHECK(v.visits[3] == "visit_variable_declaration");
-    CHECK(v.visits[4] == "visit_exit_function_scope");
+    ASSERT_EQ(v.visits.size(), 5);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
+    EXPECT_EQ(v.visits[2], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[3], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[4], "visit_exit_function_scope");
   }
 
   {
     visitor v;
     parser p("function f(x, y = x) {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 3);
-    CHECK(v.variable_declarations[0].name == "f");
-    CHECK(v.variable_declarations[1].name == "x");
-    CHECK(v.variable_declarations[2].name == "y");
+    ASSERT_EQ(v.variable_declarations.size(), 3);
+    EXPECT_EQ(v.variable_declarations[0].name, "f");
+    EXPECT_EQ(v.variable_declarations[1].name, "x");
+    EXPECT_EQ(v.variable_declarations[2].name, "y");
 
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "x");
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "x");
 
-    REQUIRE(v.visits.size() == 6);
-    CHECK(v.visits[0] == "visit_variable_declaration");  // f
-    CHECK(v.visits[1] == "visit_enter_function_scope");
-    CHECK(v.visits[2] == "visit_variable_declaration");  // x
-    CHECK(v.visits[3] == "visit_variable_use");          // x
-    CHECK(v.visits[4] == "visit_variable_declaration");  // y
-    CHECK(v.visits[5] == "visit_exit_function_scope");
+    ASSERT_EQ(v.visits.size(), 6);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");  // f
+    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
+    EXPECT_EQ(v.visits[2], "visit_variable_declaration");  // x
+    EXPECT_EQ(v.visits[3], "visit_variable_use");          // x
+    EXPECT_EQ(v.visits[4], "visit_variable_declaration");  // y
+    EXPECT_EQ(v.visits[5], "visit_exit_function_scope");
   }
 
   {
     visitor v;
     parser p("function f() { return x; }", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "f");
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "f");
 
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "x");
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "x");
 
-    REQUIRE(v.visits.size() == 4);
-    CHECK(v.visits[0] == "visit_variable_declaration");  // f
-    CHECK(v.visits[1] == "visit_enter_function_scope");
-    CHECK(v.visits[2] == "visit_variable_use");  // x
-    CHECK(v.visits[3] == "visit_exit_function_scope");
+    ASSERT_EQ(v.visits.size(), 4);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");  // f
+    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
+    EXPECT_EQ(v.visits[2], "visit_variable_use");  // x
+    EXPECT_EQ(v.visits[3], "visit_exit_function_scope");
   }
 }
 
-TEST_CASE("parse async function") {
+TEST(test_parse, parse_async_function) {
   {
     visitor v;
     parser p("async function f() {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "f");
+    EXPECT_TRUE(v.errors.empty());
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "f");
   }
 }
 
-TEST_CASE("parse empty module") {
+TEST(test_parse, parse_empty_module) {
   visitor v;
   parser p("", &v);
   p.parse_module(v);
-  CHECK(v.errors.empty());
+  EXPECT_TRUE(v.errors.empty());
 
-  REQUIRE(v.visits.size() == 1);
-  CHECK(v.visits[0] == "visit_end_of_module");
+  ASSERT_EQ(v.visits.size(), 1);
+  EXPECT_EQ(v.visits[0], "visit_end_of_module");
 }
 
-TEST_CASE("parse class statement") {
+TEST(test_parse, parse_class_statement) {
   {
     visitor v;
     parser p("class C {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "C");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_class);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "C");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
 
-    REQUIRE(v.visits.size() == 3);
-    CHECK(v.visits[0] == "visit_variable_declaration");
-    CHECK(v.visits[1] == "visit_enter_class_scope");
-    CHECK(v.visits[2] == "visit_exit_class_scope");
+    ASSERT_EQ(v.visits.size(), 3);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[1], "visit_enter_class_scope");
+    EXPECT_EQ(v.visits[2], "visit_exit_class_scope");
   }
 
   {
     visitor v;
     parser p("export class C {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "C");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_class);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "C");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
   }
 
   {
     visitor v;
     parser p("class Derived extends Base {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "Derived");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_class);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "Derived");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
 
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "Base");
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "Base");
 
-    REQUIRE(v.visits.size() == 4);
-    CHECK(v.visits[0] == "visit_variable_use");
-    CHECK(v.visits[1] == "visit_variable_declaration");
-    CHECK(v.visits[2] == "visit_enter_class_scope");
-    CHECK(v.visits[3] == "visit_exit_class_scope");
+    ASSERT_EQ(v.visits.size(), 4);
+    EXPECT_EQ(v.visits[0], "visit_variable_use");
+    EXPECT_EQ(v.visits[1], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[2], "visit_enter_class_scope");
+    EXPECT_EQ(v.visits[3], "visit_exit_class_scope");
   }
 
   {
     visitor v;
     parser p("class FileStream extends fs.ReadStream {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
-    REQUIRE(v.variable_uses.size() == 1);
-    CHECK(v.variable_uses[0].name == "fs");
+    EXPECT_TRUE(v.errors.empty());
+    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_EQ(v.variable_uses[0].name, "fs");
   }
 
   {
     visitor v;
     parser p("class Monster { eatMuffins(muffinCount) { } }", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.variable_declarations.size() == 2);
-    CHECK(v.variable_declarations[0].name == "Monster");
-    CHECK(v.variable_declarations[1].name == "muffinCount");
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, "Monster");
+    EXPECT_EQ(v.variable_declarations[1].name, "muffinCount");
 
-    REQUIRE(v.property_declarations.size() == 1);
-    CHECK(v.property_declarations[0].name == "eatMuffins");
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, "eatMuffins");
 
-    REQUIRE(v.visits.size() == 7);
-    CHECK(v.visits[0] == "visit_variable_declaration");
-    CHECK(v.visits[1] == "visit_enter_class_scope");
-    CHECK(v.visits[2] == "visit_property_declaration");
-    CHECK(v.visits[3] == "visit_enter_function_scope");
-    CHECK(v.visits[4] == "visit_variable_declaration");
-    CHECK(v.visits[5] == "visit_exit_function_scope");
-    CHECK(v.visits[6] == "visit_exit_class_scope");
+    ASSERT_EQ(v.visits.size(), 7);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[1], "visit_enter_class_scope");
+    EXPECT_EQ(v.visits[2], "visit_property_declaration");
+    EXPECT_EQ(v.visits[3], "visit_enter_function_scope");
+    EXPECT_EQ(v.visits[4], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[5], "visit_exit_function_scope");
+    EXPECT_EQ(v.visits[6], "visit_exit_class_scope");
   }
 
   {
     visitor v;
     parser p("class C { static m() { } }", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.property_declarations.size() == 1);
-    CHECK(v.property_declarations[0].name == "m");
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, "m");
 
-    REQUIRE(v.visits.size() == 6);
-    CHECK(v.visits[0] == "visit_variable_declaration");
-    CHECK(v.visits[1] == "visit_enter_class_scope");
-    CHECK(v.visits[2] == "visit_property_declaration");
-    CHECK(v.visits[3] == "visit_enter_function_scope");
-    CHECK(v.visits[4] == "visit_exit_function_scope");
-    CHECK(v.visits[5] == "visit_exit_class_scope");
+    ASSERT_EQ(v.visits.size(), 6);
+    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[1], "visit_enter_class_scope");
+    EXPECT_EQ(v.visits[2], "visit_property_declaration");
+    EXPECT_EQ(v.visits[3], "visit_enter_function_scope");
+    EXPECT_EQ(v.visits[4], "visit_exit_function_scope");
+    EXPECT_EQ(v.visits[5], "visit_exit_class_scope");
   }
 
   {
     visitor v;
     parser p("class C { a(){} b(){} c(){} }", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
-    REQUIRE(v.property_declarations.size() == 3);
-    CHECK(v.property_declarations[0].name == "a");
-    CHECK(v.property_declarations[1].name == "b");
-    CHECK(v.property_declarations[2].name == "c");
+    EXPECT_TRUE(v.errors.empty());
+    ASSERT_EQ(v.property_declarations.size(), 3);
+    EXPECT_EQ(v.property_declarations[0].name, "a");
+    EXPECT_EQ(v.property_declarations[1].name, "b");
+    EXPECT_EQ(v.property_declarations[2].name, "c");
   }
 }
 
-TEST_CASE("parse try") {
+TEST(test_parse, parse_try) {
   {
     visitor v;
     parser p("try {} finally {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.visits.size() == 4);
-    CHECK(v.visits[0] == "visit_enter_block_scope");
-    CHECK(v.visits[1] == "visit_exit_block_scope");
-    CHECK(v.visits[2] == "visit_enter_block_scope");
-    CHECK(v.visits[3] == "visit_exit_block_scope");
+    ASSERT_EQ(v.visits.size(), 4);
+    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[1], "visit_exit_block_scope");
+    EXPECT_EQ(v.visits[2], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[3], "visit_exit_block_scope");
   }
 
   {
     visitor v;
     parser p("try {} catch (e) {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.visits.size() == 5);
-    CHECK(v.visits[0] == "visit_enter_block_scope");
-    CHECK(v.visits[1] == "visit_exit_block_scope");
-    CHECK(v.visits[2] == "visit_enter_block_scope");
-    CHECK(v.visits[3] == "visit_variable_declaration");
-    CHECK(v.visits[4] == "visit_exit_block_scope");
+    ASSERT_EQ(v.visits.size(), 5);
+    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[1], "visit_exit_block_scope");
+    EXPECT_EQ(v.visits[2], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[3], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[4], "visit_exit_block_scope");
 
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "e");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_catch);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "e");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
   }
 
   {
     visitor v;
     parser p("try {} catch (e) {} finally {}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.visits.size() == 7);
-    CHECK(v.visits[0] == "visit_enter_block_scope");
-    CHECK(v.visits[1] == "visit_exit_block_scope");
-    CHECK(v.visits[2] == "visit_enter_block_scope");
-    CHECK(v.visits[3] == "visit_variable_declaration");
-    CHECK(v.visits[4] == "visit_exit_block_scope");
-    CHECK(v.visits[5] == "visit_enter_block_scope");
-    CHECK(v.visits[6] == "visit_exit_block_scope");
+    ASSERT_EQ(v.visits.size(), 7);
+    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[1], "visit_exit_block_scope");
+    EXPECT_EQ(v.visits[2], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[3], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[4], "visit_exit_block_scope");
+    EXPECT_EQ(v.visits[5], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[6], "visit_exit_block_scope");
 
-    REQUIRE(v.variable_declarations.size() == 1);
-    CHECK(v.variable_declarations[0].name == "e");
-    CHECK(v.variable_declarations[0].kind == variable_kind::_catch);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "e");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
   }
 
   {
     visitor v;
     parser p("try {f();} catch (e) {g();} finally {h();}", &v);
     p.parse_statement(v);
-    CHECK(v.errors.empty());
+    EXPECT_TRUE(v.errors.empty());
 
-    REQUIRE(v.visits.size() == 10);
-    CHECK(v.visits[0] == "visit_enter_block_scope");
-    CHECK(v.visits[1] == "visit_variable_use");
-    CHECK(v.visits[2] == "visit_exit_block_scope");
-    CHECK(v.visits[3] == "visit_enter_block_scope");
-    CHECK(v.visits[4] == "visit_variable_declaration");
-    CHECK(v.visits[5] == "visit_variable_use");
-    CHECK(v.visits[6] == "visit_exit_block_scope");
-    CHECK(v.visits[7] == "visit_enter_block_scope");
-    CHECK(v.visits[8] == "visit_variable_use");
-    CHECK(v.visits[9] == "visit_exit_block_scope");
+    ASSERT_EQ(v.visits.size(), 10);
+    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[1], "visit_variable_use");
+    EXPECT_EQ(v.visits[2], "visit_exit_block_scope");
+    EXPECT_EQ(v.visits[3], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[4], "visit_variable_declaration");
+    EXPECT_EQ(v.visits[5], "visit_variable_use");
+    EXPECT_EQ(v.visits[6], "visit_exit_block_scope");
+    EXPECT_EQ(v.visits[7], "visit_enter_block_scope");
+    EXPECT_EQ(v.visits[8], "visit_variable_use");
+    EXPECT_EQ(v.visits[9], "visit_exit_block_scope");
 
-    REQUIRE(v.variable_uses.size() == 3);
-    CHECK(v.variable_uses[0].name == "f");
-    CHECK(v.variable_uses[1].name == "g");
-    CHECK(v.variable_uses[2].name == "h");
+    ASSERT_EQ(v.variable_uses.size(), 3);
+    EXPECT_EQ(v.variable_uses[0].name, "f");
+    EXPECT_EQ(v.variable_uses[1].name, "g");
+    EXPECT_EQ(v.variable_uses[2].name, "h");
   }
 }
 }  // namespace
