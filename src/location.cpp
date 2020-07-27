@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <quicklint-js/location.h>
+#include <quicklint-js/narrow-cast.h>
 
 namespace quicklint_js {
 source_position source_range::begin() const noexcept { return this->begin_; }
@@ -38,9 +39,9 @@ source_position locator::position(const char *source) const noexcept {
   }
   int column_number;
   if (last_line_terminator) {
-    column_number = source - last_line_terminator;
+    column_number = narrow_cast<int>(source - last_line_terminator);
   } else {
-    column_number = offset + 1;
+    column_number = narrow_cast<int>(offset + 1);
   }
   return source_position{1 + number_of_line_terminators, column_number, offset};
 }

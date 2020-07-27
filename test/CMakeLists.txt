@@ -21,9 +21,10 @@ add_executable(
   test-lex.cpp
   test-lint.cpp
   test-location.cpp
+  test-narrow-cast.cpp
   test-options.cpp
-  test-parse.cpp
   test-parse-expression.cpp
+  test-parse.cpp
 )
 target_include_directories(quicklint-js-test PRIVATE include)
 target_link_libraries(

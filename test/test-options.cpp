@@ -17,6 +17,7 @@
 #include <doctest/doctest.h>
 #include <initializer_list>
 #include <iostream>
+#include <quicklint-js/narrow-cast.h>
 #include <quicklint-js/options.h>
 #include <string_view>
 #include <vector>
@@ -31,7 +32,8 @@ options parse_options(std::initializer_list<const char *> arguments) {
   for (const char *argument : arguments) {
     argv.emplace_back(const_cast<char *>(argument));
   }
-  return quicklint_js::parse_options(argv.size(), argv.data());
+  return quicklint_js::parse_options(narrow_cast<int>(argv.size()),
+                                     argv.data());
 }
 
 TEST_CASE("default options with no files") {

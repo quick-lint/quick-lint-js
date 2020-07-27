@@ -20,6 +20,7 @@
 #include <deque>
 #include <quicklint-js/lex.h>
 #include <quicklint-js/location.h>
+#include <quicklint-js/narrow-cast.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -152,7 +153,7 @@ class expression {
         assert(false);
         break;
     }
-    return this->children_.size();
+    return narrow_cast<int>(this->children_.size());
   }
 
   expression_ptr child_0() const noexcept { return this->child(0); }
