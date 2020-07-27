@@ -35,6 +35,15 @@ target_link_libraries(
   gtest
   quick-lint-js-lib
 )
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+  target_precompile_headers(
+    quick-lint-js-test
+    PRIVATE
+    <gmock/gmock.h>
+    <gtest/gtest.h>
+    <iostream>
+  )
+endif ()
 
 add_test(
   NAME quick-lint-js-test
