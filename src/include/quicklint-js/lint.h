@@ -55,8 +55,7 @@ class linter {
         this->error_reporter_->report_error_variable_used_before_declaration(
             name);
       } else {
-        parent_scope.variables_used_in_descendant_scope.emplace_back(
-            std::move(name));
+        parent_scope.variables_used_in_descendant_scope.emplace_back(name);
       }
     }
 
