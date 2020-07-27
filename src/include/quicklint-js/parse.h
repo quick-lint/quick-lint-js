@@ -32,9 +32,11 @@
   } while (false)
 
 #define QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(expected_token_type) \
-  if (this->peek().type != (expected_token_type)) {                 \
-    QLJS_PARSER_UNIMPLEMENTED();                                    \
-  }
+  do {                                                              \
+    if (this->peek().type != (expected_token_type)) {               \
+      QLJS_PARSER_UNIMPLEMENTED();                                  \
+    }                                                               \
+  } while (false)
 
 namespace quicklint_js {
 class parser {
