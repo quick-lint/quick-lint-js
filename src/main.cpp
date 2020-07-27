@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,24 +18,24 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <quicklint-js/error.h>
-#include <quicklint-js/language.h>
-#include <quicklint-js/lex.h>
-#include <quicklint-js/lint.h>
-#include <quicklint-js/location.h>
-#include <quicklint-js/options.h>
-#include <quicklint-js/parse.h>
+#include <quick-lint-js/error.h>
+#include <quick-lint-js/language.h>
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/lint.h>
+#include <quick-lint-js/location.h>
+#include <quick-lint-js/options.h>
+#include <quick-lint-js/parse.h>
 #include <string>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 void process_file(const char *path, bool print_parser_visits);
 std::string read_file(const char *path);
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js
 
 int main(int argc, char **argv) {
-  quicklint_js::options o = quicklint_js::parse_options(argc, argv);
+  quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
   if (!o.error_unrecognized_options.empty()) {
     for (const auto &option : o.error_unrecognized_options) {
       std::cerr << "error: unrecognized option: " << option << '\n';
@@ -48,13 +48,13 @@ int main(int argc, char **argv) {
   }
 
   for (const char *file_to_lint : o.files_to_lint) {
-    quicklint_js::process_file(file_to_lint, o.print_parser_visits);
+    quick_lint_js::process_file(file_to_lint, o.print_parser_visits);
   }
 
   return 0;
 }
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 class debug_error_reporter : public error_reporter {
  public:
@@ -298,4 +298,4 @@ std::string read_file(const char *path) {
   return contents;
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

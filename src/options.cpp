@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@
 #include <cassert>
 #include <cstdlib>
 #include <getopt.h>
-#include <quicklint-js/options.h>
+#include <quick-lint-js/options.h>
 #include <vector>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 options parse_options(int argc, char **argv) {
   options o;
 
@@ -76,4 +76,4 @@ done_parsing_options:
 
   return o;
 }
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

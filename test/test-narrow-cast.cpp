@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,9 +16,9 @@
 
 #include <doctest/doctest.h>
 #include <limits>
-#include <quicklint-js/narrow-cast.h>
+#include <quick-lint-js/narrow-cast.h>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 using schar = signed char;
 using llong = long long;
@@ -197,4 +197,4 @@ TEST_CASE("unsigned->signed narrow_cast fails if in range") {
   CHECK(!can_narrow_cast<llong>(ullong{ullong_limits::max()}));
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

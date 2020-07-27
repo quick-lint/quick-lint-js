@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -17,14 +17,14 @@
 #include <doctest/doctest.h>
 #include <initializer_list>
 #include <iostream>
-#include <quicklint-js/narrow-cast.h>
-#include <quicklint-js/options.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/options.h>
 #include <string_view>
 #include <vector>
 
 using namespace std::literals::string_view_literals;
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 options parse_options(std::initializer_list<const char *> arguments) {
   std::vector<char *> argv;
@@ -32,8 +32,8 @@ options parse_options(std::initializer_list<const char *> arguments) {
   for (const char *argument : arguments) {
     argv.emplace_back(const_cast<char *>(argument));
   }
-  return quicklint_js::parse_options(narrow_cast<int>(argv.size()),
-                                     argv.data());
+  return quick_lint_js::parse_options(narrow_cast<int>(argv.size()),
+                                      argv.data());
 }
 
 TEST_CASE("default options with no files") {
@@ -63,4 +63,4 @@ TEST_CASE("invalid option") {
   CHECK(o.files_to_lint.empty());
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

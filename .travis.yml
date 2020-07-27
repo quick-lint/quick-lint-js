@@ -1,4 +1,4 @@
-# quicklint-js finds bugs in JavaScript programs.
+# quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
 # This program is free software: you can redistribute it and/or modify

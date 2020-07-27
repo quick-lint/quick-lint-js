@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
-#include <quicklint-js/error.h>
-#include <quicklint-js/lex.h>
+#include <quick-lint-js/error.h>
+#include <quick-lint-js/lex.h>
 #include <string_view>
 #include <type_traits>
 
@@ -90,7 +90,7 @@
   case '8':                     \
   case '9'
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 constexpr const char keywords[][11] = {
     // clang-format off
@@ -668,4 +668,4 @@ std::ostream& operator<<(std::ostream& out, token_type type) {
   out << to_string(type);
   return out;
 }
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

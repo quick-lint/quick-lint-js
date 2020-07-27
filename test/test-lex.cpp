@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -17,12 +17,12 @@
 #include <doctest/doctest.h>
 #include <initializer_list>
 #include <iostream>
-#include <quicklint-js/error-collector.h>
-#include <quicklint-js/lex.h>
-#include <quicklint-js/location.h>
+#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/location.h>
 #include <string_view>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 void check_single_token(const char* input, token_type expected_token_type);
 void check_single_token(const char* input,
@@ -409,4 +409,4 @@ void check_tokens(const char* input,
   CHECK(l.peek().type == token_type::end_of_file);
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

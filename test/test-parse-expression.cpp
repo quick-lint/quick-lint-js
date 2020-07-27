@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,15 +15,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <doctest/doctest.h>
-#include <quicklint-js/error-collector.h>
-#include <quicklint-js/error.h>
-#include <quicklint-js/location.h>
-#include <quicklint-js/parse.h>
+#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/error.h>
+#include <quick-lint-js/location.h>
+#include <quick-lint-js/parse.h>
 #include <string>
 #include <string_view>
 #include <vector>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 std::string summarize(const expression &);
 std::string summarize(expression_ptr);
@@ -575,4 +575,4 @@ std::string summarize(expression_ptr expression) {
   return summarize(*expression);
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

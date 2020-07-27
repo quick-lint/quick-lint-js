@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,13 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <doctest/doctest.h>
-#include <quicklint-js/error-collector.h>
-#include <quicklint-js/language.h>
-#include <quicklint-js/lex.h>
-#include <quicklint-js/lint.h>
-#include <quicklint-js/parse.h>
+#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/language.h>
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/lint.h>
+#include <quick-lint-js/parse.h>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 template <std::size_t N>
 source_code_span span_of(const char (&code)[N]) {
@@ -242,4 +242,4 @@ TEST_CASE("assign to immutable variable") {
   }
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

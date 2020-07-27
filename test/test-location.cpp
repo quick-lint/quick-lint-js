@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,9 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <doctest/doctest.h>
-#include <quicklint-js/location.h>
+#include <quick-lint-js/location.h>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 namespace {
 TEST_CASE("ranges on first line") {
   const char code[] = "let x = 2;";
@@ -47,4 +47,4 @@ TEST_CASE("ranges on second line") {
   CHECK(x_range.end().column_number == 6);
 }
 }  // namespace
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

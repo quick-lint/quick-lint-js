@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICKLINT_JS_LEX_H
-#define QUICKLINT_JS_LEX_H
+#ifndef QUICK_LINT_JS_LEX_H
+#define QUICK_LINT_JS_LEX_H
 
 #include <cassert>
 #include <cstddef>
 #include <iosfwd>
-#include <quicklint-js/location.h>
+#include <quick-lint-js/location.h>
 #include <string_view>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 class error_reporter;
 
 enum class token_type {
@@ -196,6 +196,6 @@ class lexer {
   const char* input_;
   error_reporter* error_reporter_;
 };
-}  // namespace quicklint_js
+}  // namespace quick_lint_js
 
 #endif

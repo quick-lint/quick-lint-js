@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICKLINT_JS_LOCATION_H
-#define QUICKLINT_JS_LOCATION_H
+#ifndef QUICK_LINT_JS_LOCATION_H
+#define QUICK_LINT_JS_LOCATION_H
 
 #include <cstddef>
 #include <string_view>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 struct source_position {
   using offset_type = std::size_t;
 
@@ -75,6 +75,6 @@ class locator {
  private:
   const char* input_;
 };
-}  // namespace quicklint_js
+}  // namespace quick_lint_js
 
 #endif

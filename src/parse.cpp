@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
-#include <quicklint-js/lex.h>
-#include <quicklint-js/parse.h>
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse.h>
 
 #define QLJS_PARSER_UNIMPLEMENTED() \
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
@@ -28,7 +28,7 @@
   case token_type::star:                    \
   case token_type::star_star
 
-namespace quicklint_js {
+namespace quick_lint_js {
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
     case token_type::identifier: {
@@ -285,4 +285,4 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
             << ": " << this->peek().type << '\n';
   std::abort();
 }
-}  // namespace quicklint_js
+}  // namespace quick_lint_js

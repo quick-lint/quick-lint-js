@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICKLINT_JS_PARSE_H
-#define QUICKLINT_JS_PARSE_H
+#ifndef QUICK_LINT_JS_PARSE_H
+#define QUICK_LINT_JS_PARSE_H
 
 #include <cstdlib>
 #include <optional>
-#include <quicklint-js/error.h>
-#include <quicklint-js/expression.h>
-#include <quicklint-js/language.h>
-#include <quicklint-js/lex.h>
-#include <quicklint-js/location.h>
+#include <quick-lint-js/error.h>
+#include <quick-lint-js/expression.h>
+#include <quick-lint-js/language.h>
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/location.h>
 #include <vector>
 
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
@@ -38,7 +38,7 @@
     }                                                               \
   } while (false)
 
-namespace quicklint_js {
+namespace quick_lint_js {
 class parser {
  public:
   explicit parser(const char *input, error_reporter *error_reporter)
@@ -46,7 +46,7 @@ class parser {
         locator_(input),
         error_reporter_(error_reporter) {}
 
-  quicklint_js::locator &locator() noexcept { return this->locator_; }
+  quick_lint_js::locator &locator() noexcept { return this->locator_; }
 
   template <class Visitor>
   void parse_module(Visitor &v) {
@@ -619,11 +619,11 @@ class parser {
   }
 
   lexer lexer_;
-  quicklint_js::locator locator_;
+  quick_lint_js::locator locator_;
   error_reporter *error_reporter_;
   expression_arena expressions_;
 };
-}  // namespace quicklint_js
+}  // namespace quick_lint_js
 
 #undef QLJS_PARSER_UNIMPLEMENTED
 

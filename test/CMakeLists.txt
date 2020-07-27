@@ -1,4 +1,4 @@
-# quicklint-js finds bugs in JavaScript programs.
+# quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 add_executable(
-  quicklint-js-test
+  quick-lint-js-test
   test-lex.cpp
   test-lint.cpp
   test-location.cpp
@@ -26,16 +26,16 @@ add_executable(
   test-parse-expression.cpp
   test-parse.cpp
 )
-target_include_directories(quicklint-js-test PRIVATE include)
+target_include_directories(quick-lint-js-test PRIVATE include)
 target_link_libraries(
-  quicklint-js-test
+  quick-lint-js-test
   PRIVATE
   doctest
   doctest_with_main
-  quicklint-js-lib
+  quick-lint-js-lib
 )
 
 add_test(
-  NAME quicklint-js-test
-  COMMAND quicklint-js-test
+  NAME quick-lint-js-test
+  COMMAND quick-lint-js-test
 )

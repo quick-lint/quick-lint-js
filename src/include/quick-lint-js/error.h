@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICKLINT_JS_ERROR_H
-#define QUICKLINT_JS_ERROR_H
+#ifndef QUICK_LINT_JS_ERROR_H
+#define QUICK_LINT_JS_ERROR_H
 
-#include <quicklint-js/language.h>
-#include <quicklint-js/lex.h>
-#include <quicklint-js/location.h>
+#include <quick-lint-js/language.h>
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/location.h>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 class error_reporter {
  public:
   virtual void report_error_assignment_to_const_variable(
@@ -70,6 +70,6 @@ class null_error_reporter : public error_reporter {
 };
 inline null_error_reporter null_error_reporter::instance;
 
-}  // namespace quicklint_js
+}  // namespace quick_lint_js
 
 #endif

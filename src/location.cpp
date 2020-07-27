@@ -1,4 +1,4 @@
-// quicklint-js finds bugs in JavaScript programs.
+// quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
-#include <quicklint-js/location.h>
-#include <quicklint-js/narrow-cast.h>
+#include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
 
-namespace quicklint_js {
+namespace quick_lint_js {
 source_position source_range::begin() const noexcept { return this->begin_; }
 
 source_position source_range::end() const noexcept { return this->end_; }
@@ -45,4 +45,4 @@ source_position locator::position(const char *source) const noexcept {
   }
   return source_position{1 + number_of_line_terminators, column_number, offset};
 }
-}  // namespace quicklint_js
+}  // namespace quick_lint_js
