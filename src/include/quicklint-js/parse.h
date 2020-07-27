@@ -147,11 +147,12 @@ class parser {
     };
     switch (ast->kind()) {
       case expression_kind::_invalid:
+      case expression_kind::literal:
         break;
       case expression_kind::_new:
-        visit_children();
-        break;
       case expression_kind::_template:
+      case expression_kind::binary_operator:
+      case expression_kind::call:
         visit_children();
         break;
       case expression_kind::assignment: {
@@ -169,15 +170,11 @@ class parser {
         break;
       }
       case expression_kind::await:
+      case expression_kind::unary_operator:
         this->visit_expression(ast->child_0(), v, context);
-        break;
-      case expression_kind::call:
-        visit_children();
         break;
       case expression_kind::dot:
         this->visit_expression(ast->child_0(), v, variable_context::rhs);
-        break;
-      case expression_kind::literal:
         break;
       case expression_kind::variable:
         switch (context) {
@@ -187,12 +184,6 @@ class parser {
             v.visit_variable_use(ast->variable_identifier());
             break;
         }
-        break;
-      case expression_kind::unary_operator:
-        this->visit_expression(ast->child_0(), v, context);
-        break;
-      case expression_kind::binary_operator:
-        visit_children();
         break;
     }
   }
