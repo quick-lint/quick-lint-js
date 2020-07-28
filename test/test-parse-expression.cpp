@@ -472,6 +472,18 @@ TEST(test_parse_expression, parse_prefix_plusplus_minusminus) {
   }
 }
 
+TEST(test_parse_expression, parse_suffix_plusplus_minusminus) {
+  {
+    test_parser p("x++");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::rw_unary_suffix);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 3);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_template) {
   {
     test_parser p("`hello`");
@@ -627,6 +639,8 @@ std::string summarize(const expression &expression) {
              std::string(expression.variable_identifier().string_view());
     case expression_kind::rw_unary_prefix:
       return "rwunary(" + summarize(expression.child_0()) + ")";
+    case expression_kind::rw_unary_suffix:
+      return "rwunarysuffix(" + summarize(expression.child_0()) + ")";
     case expression_kind::unary_operator:
       return "unary(" + summarize(expression.child_0()) + ")";
     case expression_kind::variable:

@@ -268,6 +268,15 @@ next:
       break;
     }
 
+    case token_type::minus_minus:
+    case token_type::plus_plus: {
+      source_code_span operator_span = this->peek().span();
+      this->lexer_.skip();
+      children.back() = this->make_expression<expression_kind::rw_unary_suffix>(
+          children.back(), operator_span);
+      break;
+    }
+
     case token_type::end_of_file:
     case token_type::identifier:
     case token_type::left_curly:
