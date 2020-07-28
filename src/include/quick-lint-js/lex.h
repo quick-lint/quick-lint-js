@@ -160,6 +160,8 @@ struct token {
 
   const char* begin;
   const char* end;
+
+  bool has_leading_newline;
 };
 
 class lexer {

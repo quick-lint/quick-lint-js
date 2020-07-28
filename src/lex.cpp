@@ -159,6 +159,9 @@ source_code_span token::span() const noexcept {
 }
 
 void lexer::parse_current_token() {
+  this->last_token_.has_leading_newline = false;
+  this->skip_whitespace();
+
 retry:
   this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
@@ -459,8 +462,6 @@ retry:
       break;
   }
   this->last_token_.end = this->input_;
-
-  this->skip_whitespace();
 }
 
 void lexer::skip_in_template(const char* template_begin) {
@@ -517,6 +518,9 @@ lexer::parsed_template_body lexer::parse_template_body(
 
 void lexer::skip_whitespace() {
   while (this->input_[0] == ' ' || this->input_[0] == '\n') {
+    if (this->input_[0] == '\n') {
+      this->last_token_.has_leading_newline = true;
+    }
     this->input_ += 1;
   }
 }
@@ -529,10 +533,16 @@ void lexer::skip_comment() {
     this->error_reporter_->report_error_unclosed_block_comment(
         source_code_span(&this->input_[0], &this->input_[2]));
     this->input_ += std::strlen(this->input_);
-  } else {
-    this->input_ = comment_end + 2;
-    this->skip_whitespace();
+    return;
   }
+
+  const char* newline = std::find(this->input_ + 2, comment_end, '\n');
+  if (newline != comment_end) {
+    this->last_token_.has_leading_newline = true;
+  }
+
+  this->input_ = comment_end + 2;
+  this->skip_whitespace();
 }
 
 bool lexer::is_digit(char c) {

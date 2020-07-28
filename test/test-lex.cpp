@@ -383,6 +383,31 @@ TEST(test_lex, lex_symbols_separated_by_whitespace) {
   check_tokens(". . .", {token_type::dot, token_type::dot, token_type::dot});
 }
 
+TEST(test_lex, lex_token_notes_leading_newline) {
+  lexer l("a b\nc d", &null_error_reporter::instance);
+  EXPECT_FALSE(l.peek().has_leading_newline);  // a
+  l.skip();
+  EXPECT_FALSE(l.peek().has_leading_newline);  // b
+  l.skip();
+  EXPECT_TRUE(l.peek().has_leading_newline);  // c
+  l.skip();
+  EXPECT_FALSE(l.peek().has_leading_newline);  // d
+}
+
+TEST(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
+  lexer l("a /*\n*/ b", &null_error_reporter::instance);
+  EXPECT_FALSE(l.peek().has_leading_newline);  // a
+  l.skip();
+  EXPECT_TRUE(l.peek().has_leading_newline);  // b
+}
+
+TEST(test_lex, lex_token_notes_leading_newline_after_comment) {
+  lexer l("a /* comment */\nb", &null_error_reporter::instance);
+  EXPECT_FALSE(l.peek().has_leading_newline);  // a
+  l.skip();
+  EXPECT_TRUE(l.peek().has_leading_newline);  // b
+}
+
 void check_single_token(const char* input, token_type expected_token_type) {
   lexer l(input, &null_error_reporter::instance);
   EXPECT_EQ(l.peek().type, expected_token_type);
