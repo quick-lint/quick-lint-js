@@ -112,11 +112,12 @@ struct spy_visitor : public error_collector {
     variable_kind kind;
 
     bool operator==(const visited_variable_declaration &other) const {
-      return std::tie(name, kind) == std::tie(other.name, other.kind);
+      return std::tie(this->name, this->kind) ==
+             std::tie(other.name, other.kind);
     }
 
     bool operator!=(const visited_variable_declaration &other) const {
-      return !(other == *this);
+      return !(*this == other);
     }
   };
   std::vector<visited_variable_declaration> variable_declarations;
@@ -131,11 +132,11 @@ struct spy_visitor : public error_collector {
     std::string name;
 
     bool operator==(const visited_variable_use &other) const {
-      return name == other.name;
+      return this->name == other.name;
     }
 
     bool operator!=(const visited_variable_use &other) const {
-      return !(other == *this);
+      return !(*this == other);
     }
   };
   std::vector<visited_variable_use> variable_uses;
