@@ -61,6 +61,7 @@ enum class expression_kind {
   function,
   literal,
   named_function,
+  rw_unary_prefix,
   unary_operator,
   variable,
 };
@@ -133,6 +134,13 @@ class expression {
         variable_identifier_(name),
         span_(span),
         child_visits_(std::move(child_visits)) {}
+
+  explicit expression(tag<expression_kind::rw_unary_prefix>,
+                      expression_ptr child,
+                      source_code_span operator_span) noexcept
+      : kind_(expression_kind::rw_unary_prefix),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
 
   explicit expression(tag<expression_kind::unary_operator>,
                       expression_ptr child,
@@ -226,6 +234,7 @@ class expression {
         return source_code_span(this->child_0()->span().begin(),
                                 this->variable_identifier_.span().end());
       case expression_kind::await:
+      case expression_kind::rw_unary_prefix:
       case expression_kind::unary_operator:
         return source_code_span(this->unary_operator_begin_,
                                 this->child_0()->span().end());
@@ -243,7 +252,8 @@ class expression {
 
     const char *call_right_paren_end_;  // call
 
-    const char *unary_operator_begin_;  // await, unary_operator
+    const char
+        *unary_operator_begin_;  // await, rw_unary_prefix, unary_operator
   };
   union {
     source_code_span

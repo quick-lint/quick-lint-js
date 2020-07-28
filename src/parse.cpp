@@ -64,6 +64,7 @@ expression_ptr parser::parse_expression(precedence prec) {
           this->make_expression<expression_kind::await>(child, operator_span),
           prec);
     }
+
     case token_type::minus:
     case token_type::plus: {
       source_code_span operator_span = this->peek().span();
@@ -75,6 +76,19 @@ expression_ptr parser::parse_expression(precedence prec) {
                                                                  operator_span),
           prec);
     }
+
+    case token_type::minus_minus:
+    case token_type::plus_plus: {
+      source_code_span operator_span = this->peek().span();
+      this->lexer_.skip();
+      expression_ptr child = this->parse_expression(
+          precedence{.binary_operators = false, .commas = true});
+      return this->parse_expression_remainder(
+          this->make_expression<expression_kind::rw_unary_prefix>(
+              child, operator_span),
+          prec);
+    }
+
     case token_type::left_paren: {
       source_code_span left_paren_span = this->peek().span();
       this->lexer_.skip();

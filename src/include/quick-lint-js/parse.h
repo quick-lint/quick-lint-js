@@ -149,6 +149,15 @@ class parser {
         this->visit_expression(ast->child(i), v, context);
       }
     };
+    auto maybe_visit_assignment = [&](expression_ptr ast) {
+      switch (ast->kind()) {
+        case expression_kind::variable:
+          v.visit_variable_assignment(ast->variable_identifier());
+          break;
+        default:
+          break;
+      }
+    };
     switch (ast->kind()) {
       case expression_kind::_invalid:
       case expression_kind::literal:
@@ -164,13 +173,7 @@ class parser {
         expression_ptr rhs = ast->child_1();
         this->visit_expression(lhs, v, variable_context::lhs);
         this->visit_expression(rhs, v, variable_context::rhs);
-        switch (lhs->kind()) {
-          case expression_kind::variable:
-            v.visit_variable_assignment(lhs->variable_identifier());
-            break;
-          default:
-            break;
-        }
+        maybe_visit_assignment(lhs);
         break;
       }
       case expression_kind::await:
@@ -180,6 +183,12 @@ class parser {
       case expression_kind::dot:
         this->visit_expression(ast->child_0(), v, variable_context::rhs);
         break;
+      case expression_kind::rw_unary_prefix: {
+        expression_ptr child = ast->child_0();
+        this->visit_expression(child, v, variable_context::rhs);
+        maybe_visit_assignment(child);
+        break;
+      }
       case expression_kind::variable:
         switch (context) {
           case variable_context::lhs:

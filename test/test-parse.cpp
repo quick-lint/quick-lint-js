@@ -529,6 +529,22 @@ TEST(test_parse, parse_assignment) {
   }
 }
 
+TEST(test_parse, parse_prefix_plusplus_minusminus) {
+  {
+    visitor v;
+    parser p("++x", &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"x"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(visitor::visited_variable_assignment{"x"}));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use", "visit_variable_assignment"));
+  }
+}
+
 TEST(test_parse, parse_function_calls) {
   {
     visitor v;

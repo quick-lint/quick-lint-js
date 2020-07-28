@@ -98,6 +98,14 @@ struct spy_visitor : public error_collector {
 
   struct visited_variable_assignment {
     std::string name;
+
+    bool operator==(const visited_variable_assignment &other) const {
+      return this->name == other.name;
+    }
+
+    bool operator!=(const visited_variable_assignment &other) const {
+      return !(*this == other);
+    }
   };
   std::vector<visited_variable_assignment> variable_assignments;
 
