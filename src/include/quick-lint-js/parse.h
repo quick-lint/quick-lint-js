@@ -91,6 +91,7 @@ class parser {
         break;
 
       case token_type::identifier:
+      case token_type::left_paren:
         this->parse_and_visit_expression(
             v, precedence{.binary_operators = true, .commas = true});
 
@@ -189,6 +190,10 @@ class parser {
         }
         break;
       case expression_kind::function:
+        v.visit_enter_function_scope();
+        ast->visit_children(v);
+        v.visit_exit_function_scope();
+        break;
       case expression_kind::named_function:
         assert(false && "TODO(strager)");
         break;

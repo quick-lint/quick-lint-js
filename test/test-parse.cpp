@@ -25,6 +25,7 @@
 #include <string_view>
 #include <vector>
 
+using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -91,6 +92,14 @@ struct visitor : public error_collector {
   struct visited_variable_declaration {
     std::string name;
     variable_kind kind;
+
+    bool operator==(const visited_variable_declaration &other) const {
+      return std::tie(name, kind) == std::tie(other.name, other.kind);
+    }
+
+    bool operator!=(const visited_variable_declaration &other) const {
+      return !(other == *this);
+    }
   };
   std::vector<visited_variable_declaration> variable_declarations;
 
@@ -102,6 +111,14 @@ struct visitor : public error_collector {
 
   struct visited_variable_use {
     std::string name;
+
+    bool operator==(const visited_variable_use &other) const {
+      return name == other.name;
+    }
+
+    bool operator!=(const visited_variable_use &other) const {
+      return !(other == *this);
+    }
   };
   std::vector<visited_variable_use> variable_uses;
 };
@@ -864,6 +881,62 @@ TEST(test_parse, parse_async_function) {
     EXPECT_THAT(v.errors, IsEmpty());
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "f");
+  }
+}
+
+TEST(test_parse, parse_function_expression) {
+  {
+    visitor v;
+    parser p("(function() {});", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_exit_function_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("(function(x, y) {});", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",  //
+                            "visit_variable_declaration",  //
+                            "visit_variable_declaration",  //
+                            "visit_exit_function_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("(function() {let x = y;});", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",  //
+                            "visit_variable_use",          //
+                            "visit_variable_declaration",  //
+                            "visit_exit_function_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("(a, function(b) {c;}(d));", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",          //
+                            "visit_enter_function_scope",  //
+                            "visit_variable_declaration",  //
+                            "visit_variable_use",          //
+                            "visit_exit_function_scope",   //
+                            "visit_variable_use"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(visitor::visited_variable_declaration{
+                    "b", variable_kind::_parameter}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"a"},
+                            visitor::visited_variable_use{"c"},
+                            visitor::visited_variable_use{"d"}));
   }
 }
 

@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/lex.h>
@@ -101,8 +102,9 @@ expression_ptr parser::parse_expression(precedence prec) {
         function_name = this->peek().identifier_name();
         this->lexer_.skip();
       }
-      buffering_visitor v;
-      this->parse_and_visit_function_parameters_and_body(v);
+      std::unique_ptr<buffering_visitor> v =
+          std::make_unique<buffering_visitor>();
+      this->parse_and_visit_function_parameters_and_body(*v);
       // TODO(strager): The span should stop at the end of the }, not at the
       // beginning of the following token.
       const char *span_end = this->peek().begin;
@@ -111,7 +113,7 @@ expression_ptr parser::parse_expression(precedence prec) {
               ? this->make_expression<expression_kind::named_function>(
                     *function_name, source_code_span(span_begin, span_end))
               : this->make_expression<expression_kind::function>(
-                    source_code_span(span_begin, span_end));
+                    std::move(v), source_code_span(span_begin, span_end));
       return this->parse_expression_remainder(function, prec);
     }
 

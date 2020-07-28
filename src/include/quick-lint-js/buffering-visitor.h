@@ -19,6 +19,8 @@
 
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <utility>
+#include <variant>
 #include <vector>
 
 namespace quick_lint_js {
@@ -26,9 +28,22 @@ class buffering_visitor {
  public:
   template <class Visitor>
   void move_into(Visitor &target) {
-    for (const visited_variable_declaration &visit :
-         this->visited_variable_declarations_) {
-      target.visit_variable_declaration(visit.name, visit.kind);
+    struct variant_visitor {
+      explicit variant_visitor(Visitor &target) noexcept : target(target) {}
+
+      void operator()(visited_variable_declaration &visit) {
+        this->target.visit_variable_declaration(visit.name, visit.kind);
+      }
+
+      void operator()(visited_variable_use &visit) {
+        this->target.visit_variable_use(visit.name);
+      }
+
+      Visitor &target;
+    };
+
+    for (auto &visit : this->visits_) {
+      std::visit(variant_visitor(target), visit);
     }
   }
 
@@ -51,18 +66,23 @@ class buffering_visitor {
   void visit_variable_assignment(identifier) {}
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->visited_variable_declarations_.emplace_back(
-        visited_variable_declaration{name, kind});
+    this->visits_.emplace_back(visited_variable_declaration{name, kind});
   }
 
-  void visit_variable_use(identifier) {}
+  void visit_variable_use(identifier name) {
+    this->visits_.emplace_back(visited_variable_use{name});
+  }
 
  private:
   struct visited_variable_declaration {
     identifier name;
     variable_kind kind;
   };
-  std::vector<visited_variable_declaration> visited_variable_declarations_;
+  struct visited_variable_use {
+    identifier name;
+  };
+  std::vector<std::variant<visited_variable_use, visited_variable_declaration>>
+      visits_;
 };
 }  // namespace quick_lint_js
 

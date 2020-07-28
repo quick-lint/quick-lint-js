@@ -18,6 +18,8 @@
 #define QUICK_LINT_JS_EXPRESSION_H
 
 #include <deque>
+#include <memory>
+#include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -30,10 +32,10 @@ class expression;
 
 class expression_ptr {
  public:
-  explicit expression_ptr(const expression *ptr) noexcept : ptr_(ptr) {}
+  explicit expression_ptr(expression *ptr) noexcept : ptr_(ptr) {}
 
-  const expression *operator->() const noexcept { return this->ptr_; }
-  const expression &operator*() const noexcept { return *this->ptr_; }
+  expression *operator->() const noexcept { return this->ptr_; }
+  expression &operator*() const noexcept { return *this->ptr_; }
 
   bool operator==(expression_ptr other) const noexcept {
     return this->ptr_ == other.ptr_;
@@ -44,7 +46,7 @@ class expression_ptr {
   }
 
  private:
-  const expression *ptr_;
+  expression *ptr_;
 };
 
 enum class expression_kind {
@@ -114,8 +116,11 @@ class expression {
         children_{lhs} {}
 
   explicit expression(tag<expression_kind::function>,
+                      std::unique_ptr<buffering_visitor> &&child_visits,
                       source_code_span span) noexcept
-      : kind_(expression_kind::function), span_(span) {}
+      : kind_(expression_kind::function),
+        span_(span),
+        child_visits_(std::move(child_visits)) {}
 
   explicit expression(tag<expression_kind::literal>,
                       source_code_span span) noexcept
@@ -179,6 +184,24 @@ class expression {
     return this->children_[index];
   }
 
+  // Can be called at most once.
+  template <class Visitor>
+  void visit_children(Visitor &v) {
+    switch (this->kind_) {
+      case expression_kind::function:
+      case expression_kind::named_function:
+        break;
+      default:
+        assert(false);
+        break;
+    }
+    assert(
+        this->child_visits_ &&
+        "visit_children can be called at most once, but it was called twice");
+    this->child_visits_->move_into(v);
+    this->child_visits_.reset();
+  }
+
   source_code_span span() const noexcept {
     switch (this->kind_) {
       case expression_kind::_invalid:
@@ -226,6 +249,7 @@ class expression {
     static_assert(std::is_trivially_destructible_v<source_code_span>);
   };
   std::vector<expression_ptr> children_;
+  std::unique_ptr<buffering_visitor> child_visits_;  // function, named_function
 };
 
 class expression_arena {
