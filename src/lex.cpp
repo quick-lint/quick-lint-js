@@ -345,15 +345,7 @@ retry:
         this->last_token_.type = token_type::slash_equal;
         this->input_ += 2;
       } else if (this->input_[1] == '*') {
-        const char* comment_end = std::strstr(this->input_ + 2, "*/");
-        if (comment_end == nullptr) {
-          this->error_reporter_->report_error_unclosed_block_comment(
-              source_code_span(&this->input_[0], &this->input_[2]));
-          this->input_ += std::strlen(this->input_);
-        } else {
-          this->input_ = comment_end + 2;
-          this->skip_whitespace();
-        }
+        this->skip_comment();
         goto retry;
       } else {
         this->last_token_.type = token_type::slash;
@@ -526,6 +518,20 @@ lexer::parsed_template_body lexer::parse_template_body(
 void lexer::skip_whitespace() {
   while (this->input_[0] == ' ' || this->input_[0] == '\n') {
     this->input_ += 1;
+  }
+}
+
+void lexer::skip_comment() {
+  assert(this->input_[0] == '/' && this->input_[1] == '*');
+
+  const char* comment_end = std::strstr(this->input_ + 2, "*/");
+  if (comment_end == nullptr) {
+    this->error_reporter_->report_error_unclosed_block_comment(
+        source_code_span(&this->input_[0], &this->input_[2]));
+    this->input_ += std::strlen(this->input_);
+  } else {
+    this->input_ = comment_end + 2;
+    this->skip_whitespace();
   }
 }
 

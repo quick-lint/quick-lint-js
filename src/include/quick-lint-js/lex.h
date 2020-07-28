@@ -187,6 +187,7 @@ class lexer {
                                                   error_reporter*);
 
   void skip_whitespace();
+  void skip_comment();
 
   static bool is_digit(char);
   static bool is_identifier_character(char);
