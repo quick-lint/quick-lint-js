@@ -154,6 +154,10 @@ class debug_visitor {
 
   void visit_enter_function_scope() { std::cerr << "entered function scope\n"; }
 
+  void visit_enter_named_function_scope(identifier) {
+    std::cerr << "entered named function scope\n";
+  }
+
   void visit_exit_block_scope() { std::cerr << "exited block scope\n"; }
 
   void visit_exit_class_scope() { std::cerr << "exited class scope\n"; }
@@ -201,6 +205,11 @@ class multi_visitor {
   void visit_enter_function_scope() {
     this->visitor_1_->visit_enter_function_scope();
     this->visitor_2_->visit_enter_function_scope();
+  }
+
+  void visit_enter_named_function_scope(identifier name) {
+    this->visitor_1_->visit_enter_named_function_scope(name);
+    this->visitor_2_->visit_enter_named_function_scope(name);
   }
 
   void visit_exit_block_scope() {

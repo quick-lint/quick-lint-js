@@ -111,7 +111,8 @@ expression_ptr parser::parse_expression(precedence prec) {
       expression_ptr function =
           function_name.has_value()
               ? this->make_expression<expression_kind::named_function>(
-                    *function_name, source_code_span(span_begin, span_end))
+                    *function_name, std::move(v),
+                    source_code_span(span_begin, span_end))
               : this->make_expression<expression_kind::function>(
                     std::move(v), source_code_span(span_begin, span_end));
       return this->parse_expression_remainder(function, prec);

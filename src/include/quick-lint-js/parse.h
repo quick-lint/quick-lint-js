@@ -195,7 +195,9 @@ class parser {
         v.visit_exit_function_scope();
         break;
       case expression_kind::named_function:
-        assert(false && "TODO(strager)");
+        v.visit_enter_named_function_scope(ast->variable_identifier());
+        ast->visit_children(v);
+        v.visit_exit_function_scope();
         break;
     }
   }

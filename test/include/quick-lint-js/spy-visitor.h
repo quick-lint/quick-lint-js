@@ -48,6 +48,25 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_enter_function_scope");
   }
 
+  void visit_enter_named_function_scope(identifier name) {
+    this->enter_named_function_scopes.emplace_back(
+        visited_enter_named_function_scope{std::string(name.string_view())});
+    this->visits.emplace_back("visit_enter_named_function_scope");
+  }
+
+  struct visited_enter_named_function_scope {
+    std::string name;
+
+    bool operator==(const visited_enter_named_function_scope &other) const {
+      return this->name == other.name;
+    }
+
+    bool operator!=(const visited_enter_named_function_scope &other) const {
+      return !(*this == other);
+    }
+  };
+  std::vector<visited_enter_named_function_scope> enter_named_function_scopes;
+
   void visit_exit_block_scope() {
     this->visits.emplace_back("visit_exit_block_scope");
   }

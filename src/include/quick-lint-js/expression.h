@@ -127,10 +127,12 @@ class expression {
       : kind_(expression_kind::literal), span_(span) {}
 
   explicit expression(tag<expression_kind::named_function>, identifier name,
+                      std::unique_ptr<buffering_visitor> &&child_visits,
                       source_code_span span) noexcept
       : kind_(expression_kind::named_function),
         variable_identifier_(name),
-        span_(span) {}
+        span_(span),
+        child_visits_(std::move(child_visits)) {}
 
   explicit expression(tag<expression_kind::unary_operator>,
                       expression_ptr child,

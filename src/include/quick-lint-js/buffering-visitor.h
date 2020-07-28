@@ -47,6 +47,10 @@ class buffering_visitor {
         this->target.visit_enter_function_scope();
       }
 
+      void operator()(visited_enter_named_function_scope &visit) {
+        this->target.visit_enter_named_function_scope(visit.name);
+      }
+
       void operator()(visited_exit_block_scope &) {
         this->target.visit_exit_block_scope();
       }
@@ -99,6 +103,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visited_enter_function_scope{});
   }
 
+  void visit_enter_named_function_scope(identifier name) {
+    this->visits_.emplace_back(visited_enter_named_function_scope{name});
+  }
+
   void visit_exit_block_scope() {
     this->visits_.emplace_back(visited_exit_block_scope{});
   }
@@ -132,6 +140,9 @@ class buffering_visitor {
   struct visited_enter_block_scope {};
   struct visited_enter_class_scope {};
   struct visited_enter_function_scope {};
+  struct visited_enter_named_function_scope {
+    identifier name;
+  };
   struct visited_exit_block_scope {};
   struct visited_exit_class_scope {};
   struct visited_exit_function_scope {};
@@ -148,13 +159,18 @@ class buffering_visitor {
   struct visited_variable_use {
     identifier name;
   };
-  std::vector<
-      std::variant<visited_end_of_module, visited_enter_block_scope,
-                   visited_enter_class_scope, visited_enter_function_scope,
-                   visited_exit_block_scope, visited_exit_class_scope,
-                   visited_exit_function_scope, visited_property_declaration,
-                   visited_variable_assignment, visited_variable_use,
-                   visited_variable_declaration>>
+  std::vector<std::variant<visited_end_of_module,               //
+                           visited_enter_block_scope,           //
+                           visited_enter_class_scope,           //
+                           visited_enter_function_scope,        //
+                           visited_enter_named_function_scope,  //
+                           visited_exit_block_scope,            //
+                           visited_exit_class_scope,            //
+                           visited_exit_function_scope,         //
+                           visited_property_declaration,        //
+                           visited_variable_assignment,         //
+                           visited_variable_use,                //
+                           visited_variable_declaration>>
       visits_;
 };
 }  // namespace quick_lint_js

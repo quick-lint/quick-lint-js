@@ -848,6 +848,20 @@ TEST(test_parse, parse_function_expression) {
                             visitor::visited_variable_use{"c"},
                             visitor::visited_variable_use{"d"}));
   }
+
+  {
+    visitor v;
+    parser p("(function recur() { recur(); })();", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_named_function_scope",  //
+                            "visit_variable_use",                //
+                            "visit_exit_function_scope"));
+    EXPECT_THAT(
+        v.enter_named_function_scopes,
+        ElementsAre(visitor::visited_enter_named_function_scope{"recur"}));
+  }
 }
 
 TEST(test_parse, parse_empty_module) {

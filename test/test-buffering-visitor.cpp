@@ -36,6 +36,7 @@ identifier identifier_of(const char (&name)[N]) {
 }
 
 TEST(test_buffering_visitor, buffers_all_visits) {
+  const char function_name[] = "function";
   const char property_name[] = "property";
   const char variable_name[] = "variable";
 
@@ -43,6 +44,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_end_of_module();
   v.visit_enter_block_scope();
   v.visit_enter_class_scope();
+  v.visit_enter_named_function_scope(identifier_of(function_name));
   v.visit_enter_function_scope();
   v.visit_exit_block_scope();
   v.visit_exit_class_scope();
@@ -56,16 +58,17 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   spy_visitor spy;
   v.move_into(spy);
   EXPECT_THAT(spy.visits,
-              ElementsAre("visit_end_of_module",         //
-                          "visit_enter_block_scope",     //
-                          "visit_enter_class_scope",     //
-                          "visit_enter_function_scope",  //
-                          "visit_exit_block_scope",      //
-                          "visit_exit_class_scope",      //
-                          "visit_exit_function_scope",   //
-                          "visit_property_declaration",  //
-                          "visit_variable_assignment",   //
-                          "visit_variable_declaration",  //
+              ElementsAre("visit_end_of_module",               //
+                          "visit_enter_block_scope",           //
+                          "visit_enter_class_scope",           //
+                          "visit_enter_named_function_scope",  //
+                          "visit_enter_function_scope",        //
+                          "visit_exit_block_scope",            //
+                          "visit_exit_class_scope",            //
+                          "visit_exit_function_scope",         //
+                          "visit_property_declaration",        //
+                          "visit_variable_assignment",         //
+                          "visit_variable_declaration",        //
                           "visit_variable_use"));
 }
 }  // namespace
