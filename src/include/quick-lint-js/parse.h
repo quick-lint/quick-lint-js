@@ -190,9 +190,7 @@ class parser {
         }
         break;
       case expression_kind::function:
-        v.visit_enter_function_scope();
         ast->visit_children(v);
-        v.visit_exit_function_scope();
         break;
       case expression_kind::named_function:
         assert(false && "TODO(strager)");

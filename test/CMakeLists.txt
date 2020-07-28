@@ -18,6 +18,7 @@ cmake_minimum_required(VERSION 3.10)
 
 add_executable(
   quick-lint-js-test
+  test-buffering-visitor.cpp
   test-lex.cpp
   test-lint.cpp
   test-location.cpp

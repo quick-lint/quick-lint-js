@@ -31,6 +31,42 @@ class buffering_visitor {
     struct variant_visitor {
       explicit variant_visitor(Visitor &target) noexcept : target(target) {}
 
+      void operator()(visited_end_of_module &) {
+        this->target.visit_end_of_module();
+      }
+
+      void operator()(visited_enter_block_scope &) {
+        this->target.visit_enter_block_scope();
+      }
+
+      void operator()(visited_enter_class_scope &) {
+        this->target.visit_enter_class_scope();
+      }
+
+      void operator()(visited_enter_function_scope &) {
+        this->target.visit_enter_function_scope();
+      }
+
+      void operator()(visited_exit_block_scope &) {
+        this->target.visit_exit_block_scope();
+      }
+
+      void operator()(visited_exit_class_scope &) {
+        this->target.visit_exit_class_scope();
+      }
+
+      void operator()(visited_exit_function_scope &) {
+        this->target.visit_exit_function_scope();
+      }
+
+      void operator()(visited_property_declaration &visit) {
+        this->target.visit_property_declaration(visit.name);
+      }
+
+      void operator()(visited_variable_assignment &visit) {
+        this->target.visit_variable_assignment(visit.name);
+      }
+
       void operator()(visited_variable_declaration &visit) {
         this->target.visit_variable_declaration(visit.name, visit.kind);
       }
@@ -47,23 +83,41 @@ class buffering_visitor {
     }
   }
 
-  void visit_end_of_module() {}
+  void visit_end_of_module() {
+    this->visits_.emplace_back(visited_end_of_module{});
+  }
 
-  void visit_enter_block_scope() {}
+  void visit_enter_block_scope() {
+    this->visits_.emplace_back(visited_enter_block_scope{});
+  }
 
-  void visit_enter_class_scope() {}
+  void visit_enter_class_scope() {
+    this->visits_.emplace_back(visited_enter_class_scope{});
+  }
 
-  void visit_enter_function_scope() {}
+  void visit_enter_function_scope() {
+    this->visits_.emplace_back(visited_enter_function_scope{});
+  }
 
-  void visit_exit_block_scope() {}
+  void visit_exit_block_scope() {
+    this->visits_.emplace_back(visited_exit_block_scope{});
+  }
 
-  void visit_exit_class_scope() {}
+  void visit_exit_class_scope() {
+    this->visits_.emplace_back(visited_exit_class_scope{});
+  }
 
-  void visit_exit_function_scope() {}
+  void visit_exit_function_scope() {
+    this->visits_.emplace_back(visited_exit_function_scope{});
+  }
 
-  void visit_property_declaration(identifier) {}
+  void visit_property_declaration(identifier name) {
+    this->visits_.emplace_back(visited_property_declaration{name});
+  }
 
-  void visit_variable_assignment(identifier) {}
+  void visit_variable_assignment(identifier name) {
+    this->visits_.emplace_back(visited_variable_assignment{name});
+  }
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->visits_.emplace_back(visited_variable_declaration{name, kind});
@@ -74,6 +128,19 @@ class buffering_visitor {
   }
 
  private:
+  struct visited_end_of_module {};
+  struct visited_enter_block_scope {};
+  struct visited_enter_class_scope {};
+  struct visited_enter_function_scope {};
+  struct visited_exit_block_scope {};
+  struct visited_exit_class_scope {};
+  struct visited_exit_function_scope {};
+  struct visited_property_declaration {
+    identifier name;
+  };
+  struct visited_variable_assignment {
+    identifier name;
+  };
   struct visited_variable_declaration {
     identifier name;
     variable_kind kind;
@@ -81,7 +148,13 @@ class buffering_visitor {
   struct visited_variable_use {
     identifier name;
   };
-  std::vector<std::variant<visited_variable_use, visited_variable_declaration>>
+  std::vector<
+      std::variant<visited_end_of_module, visited_enter_block_scope,
+                   visited_enter_class_scope, visited_enter_function_scope,
+                   visited_exit_block_scope, visited_exit_class_scope,
+                   visited_exit_function_scope, visited_property_declaration,
+                   visited_variable_assignment, visited_variable_use,
+                   visited_variable_declaration>>
       visits_;
 };
 }  // namespace quick_lint_js
