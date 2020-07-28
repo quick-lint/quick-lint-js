@@ -104,7 +104,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       }
       std::unique_ptr<buffering_visitor> v =
           std::make_unique<buffering_visitor>();
-      this->parse_and_visit_function_parameters_and_body(*v);
+      this->parse_and_visit_function_parameters_and_body_no_scope(*v);
       // TODO(strager): The span should stop at the end of the }, not at the
       // beginning of the following token.
       const char *span_end = this->peek().begin;

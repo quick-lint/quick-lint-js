@@ -190,7 +190,9 @@ class parser {
         }
         break;
       case expression_kind::function:
+        v.visit_enter_function_scope();
         ast->visit_children(v);
+        v.visit_exit_function_scope();
         break;
       case expression_kind::named_function:
         assert(false && "TODO(strager)");
@@ -245,11 +247,17 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_function_parameters_and_body(Visitor &v) {
+    v.visit_enter_function_scope();
+    this->parse_and_visit_function_parameters_and_body_no_scope(v);
+    v.visit_exit_function_scope();
+  }
+
+  template <class Visitor>
+  void parse_and_visit_function_parameters_and_body_no_scope(Visitor &v) {
     if (this->peek().type != token_type::left_paren) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
-    v.visit_enter_function_scope();
 
     bool first_parameter = true;
     for (;;) {
@@ -295,8 +303,6 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
-
-    v.visit_exit_function_scope();
   }
 
   template <class Visitor>
