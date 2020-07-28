@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 
@@ -90,6 +91,29 @@ expression_ptr parser::parse_expression(precedence prec) {
       }
       return this->parse_expression_remainder(child, prec);
     }
+
+    case token_type::_function: {
+      const char *span_begin = this->peek().begin;
+      this->lexer_.skip();
+      std::optional<identifier> function_name = std::nullopt;
+      if (this->peek().type == token_type::identifier) {
+        function_name = this->peek().identifier_name();
+        this->lexer_.skip();
+      }
+      buffering_visitor v;
+      this->parse_and_visit_function_parameters_and_body(v);
+      // TODO(strager): The span should stop at the end of the }, not at the
+      // beginning of the following token.
+      const char *span_end = this->peek().begin;
+      expression_ptr function =
+          function_name.has_value()
+              ? this->make_expression<expression_kind::named_function>(
+                    *function_name, source_code_span(span_begin, span_end))
+              : this->make_expression<expression_kind::function>(
+                    source_code_span(span_begin, span_end));
+      return this->parse_expression_remainder(function, prec);
+    }
+
     case token_type::_new: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();

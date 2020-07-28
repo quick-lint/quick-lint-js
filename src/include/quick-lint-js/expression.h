@@ -56,7 +56,9 @@ enum class expression_kind {
   binary_operator,
   call,
   dot,
+  function,
   literal,
+  named_function,
   unary_operator,
   variable,
 };
@@ -111,9 +113,19 @@ class expression {
         variable_identifier_(rhs),
         children_{lhs} {}
 
+  explicit expression(tag<expression_kind::function>,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::function), span_(span) {}
+
   explicit expression(tag<expression_kind::literal>,
                       source_code_span span) noexcept
       : kind_(expression_kind::literal), span_(span) {}
+
+  explicit expression(tag<expression_kind::named_function>, identifier name,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::named_function),
+        variable_identifier_(name),
+        span_(span) {}
 
   explicit expression(tag<expression_kind::unary_operator>,
                       expression_ptr child,
@@ -132,6 +144,7 @@ class expression {
   identifier variable_identifier() const noexcept {
     switch (this->kind_) {
       case expression_kind::dot:
+      case expression_kind::named_function:
       case expression_kind::variable:
         break;
       default:
@@ -173,7 +186,9 @@ class expression {
         break;
       case expression_kind::_new:
       case expression_kind::_template:
+      case expression_kind::function:
       case expression_kind::literal:
+      case expression_kind::named_function:
         return this->span_;
       case expression_kind::assignment:
       case expression_kind::binary_operator:
@@ -198,15 +213,17 @@ class expression {
  private:
   expression_kind kind_;
   union {
-    identifier variable_identifier_;  // dot, variable
+    identifier variable_identifier_;  // dot, named_function, variable
     static_assert(std::is_trivially_destructible_v<identifier>);
 
     const char *call_right_paren_end_;  // call
 
-    source_code_span span_;  // _new, _template, literal
-    static_assert(std::is_trivially_destructible_v<source_code_span>);
-
     const char *unary_operator_begin_;  // await, unary_operator
+  };
+  union {
+    source_code_span
+        span_;  // _new, _template, function, literal, named_function
+    static_assert(std::is_trivially_destructible_v<source_code_span>);
   };
   std::vector<expression_ptr> children_;
 };

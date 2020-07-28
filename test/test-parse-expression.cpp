@@ -507,6 +507,41 @@ TEST(test_parse_expression, parse_comma_expression) {
   }
 }
 
+TEST(test_parse_expression, parse_function_expression) {
+  {
+    test_parser p("function(){}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::function);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 12);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("function(x, y){}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::function);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("function(){}()");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::call);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(ast->child_0()->kind(), expression_kind::function);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("function f(){}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::named_function);
+    EXPECT_EQ(ast->variable_identifier().string_view(), "f");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_mixed_expression) {
   {
     test_parser p("a+f()");
@@ -561,8 +596,13 @@ std::string summarize(const expression &expression) {
     case expression_kind::dot:
       return "dot(" + summarize(expression.child_0()) + ", " +
              std::string(expression.variable_identifier().string_view()) + ")";
+    case expression_kind::function:
+      return "function";
     case expression_kind::literal:
       return "literal";
+    case expression_kind::named_function:
+      return "function " +
+             std::string(expression.variable_identifier().string_view());
     case expression_kind::variable:
       return std::string("var ") +
              std::string(expression.variable_identifier().string_view());

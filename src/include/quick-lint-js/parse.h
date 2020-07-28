@@ -187,6 +187,10 @@ class parser {
             break;
         }
         break;
+      case expression_kind::function:
+      case expression_kind::named_function:
+        assert(false && "TODO(strager)");
+        break;
     }
   }
 
@@ -597,10 +601,30 @@ class parser {
       }
     }
 
+    void visit_end_of_module() {}
+
+    void visit_enter_block_scope() {}
+
+    void visit_enter_class_scope() {}
+
+    void visit_enter_function_scope() {}
+
+    void visit_exit_block_scope() {}
+
+    void visit_exit_class_scope() {}
+
+    void visit_exit_function_scope() {}
+
+    void visit_property_declaration(identifier) {}
+
+    void visit_variable_assignment(identifier) {}
+
     void visit_variable_declaration(identifier name, variable_kind kind) {
       this->visited_variable_declarations_.emplace_back(
           visited_variable_declaration{name, kind});
     }
+
+    void visit_variable_use(identifier) {}
 
    private:
     struct visited_variable_declaration {
