@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <optional>
+#include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 

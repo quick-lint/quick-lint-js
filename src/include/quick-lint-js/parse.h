@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <optional>
+#include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/expression.h>
 #include <quick-lint-js/language.h>
@@ -590,49 +591,6 @@ class parser {
   expression_ptr parse_template();
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
-
-  class buffering_visitor {
-   public:
-    template <class Visitor>
-    void move_into(Visitor &target) {
-      for (const visited_variable_declaration &visit :
-           this->visited_variable_declarations_) {
-        target.visit_variable_declaration(visit.name, visit.kind);
-      }
-    }
-
-    void visit_end_of_module() {}
-
-    void visit_enter_block_scope() {}
-
-    void visit_enter_class_scope() {}
-
-    void visit_enter_function_scope() {}
-
-    void visit_exit_block_scope() {}
-
-    void visit_exit_class_scope() {}
-
-    void visit_exit_function_scope() {}
-
-    void visit_property_declaration(identifier) {}
-
-    void visit_variable_assignment(identifier) {}
-
-    void visit_variable_declaration(identifier name, variable_kind kind) {
-      this->visited_variable_declarations_.emplace_back(
-          visited_variable_declaration{name, kind});
-    }
-
-    void visit_variable_use(identifier) {}
-
-   private:
-    struct visited_variable_declaration {
-      identifier name;
-      variable_kind kind;
-    };
-    std::vector<visited_variable_declaration> visited_variable_declarations_;
-  };
 
   [[noreturn]] void crash_on_unimplemented_token(
       const char *qljs_file_name, int qljs_line,
