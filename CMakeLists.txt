@@ -17,8 +17,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(quick-lint-js)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(QuickLintJSCompiler)
+
+quick_lint_js_set_cxx_standard()
 
 add_subdirectory(vendor)
 

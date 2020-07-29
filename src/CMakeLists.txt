@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
+include(QuickLintJSCompiler)
 
 add_executable(
   quick-lint-js
@@ -29,5 +30,7 @@ add_library(
   options.cpp
   parse.cpp
 )
+quick_lint_js_check_finally(EXTRA_COMPILE_OPTIONS)
+target_compile_options(quick-lint-js-lib PUBLIC "${EXTRA_COMPILE_OPTIONS}")
 target_include_directories(quick-lint-js-lib PUBLIC include)
 target_link_libraries(quick-lint-js-lib PRIVATE gnulib-getopt)
