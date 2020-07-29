@@ -20,6 +20,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/unreachable.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -669,7 +670,7 @@ std::string summarize(const expression &expression) {
     case expression_kind::binary_operator:
       return "binary(" + children() + ")";
   }
-  __builtin_unreachable();
+  QLJS_UNREACHABLE();
 }
 
 std::string summarize(expression_ptr expression) {

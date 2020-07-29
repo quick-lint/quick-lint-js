@@ -23,6 +23,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/unreachable.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -252,7 +253,7 @@ class expression {
       case expression_kind::variable:
         return this->variable_identifier_.span();
     }
-    __builtin_unreachable();
+    QLJS_UNREACHABLE();
   }
 
  private:
