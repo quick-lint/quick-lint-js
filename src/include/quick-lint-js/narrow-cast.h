@@ -43,7 +43,7 @@ constexpr bool can_narrow_cast([[maybe_unused]] In x) noexcept {
 template <class Out, class In>
 Out narrow_cast(In x) noexcept {
   assert(can_narrow_cast<Out>(x));
-  return x;
+  return static_cast<Out>(x);
 }
 }  // namespace quick_lint_js
 
