@@ -30,3 +30,4 @@ add_library(
   parse.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
+target_link_libraries(quick-lint-js-lib PRIVATE gnulib-getopt)
