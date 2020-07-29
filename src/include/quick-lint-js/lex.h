@@ -168,6 +168,8 @@ class lexer {
  public:
   explicit lexer(const char* input, error_reporter* error_reporter) noexcept
       : input_(input), error_reporter_(error_reporter) {
+    this->last_token_.begin = nullptr;
+    this->last_last_token_end_ = nullptr;
     this->parse_current_token();
   }
 
@@ -177,6 +179,8 @@ class lexer {
 
   void skip() { this->parse_current_token(); }
   void skip_in_template(const char* template_begin);
+
+  void insert_semicolon();
 
  private:
   struct parsed_template_body {
@@ -196,6 +200,7 @@ class lexer {
   static token_type keyword_from_index(std::ptrdiff_t);
 
   token last_token_;
+  const char* last_last_token_end_;
   const char* input_;
   error_reporter* error_reporter_;
 };

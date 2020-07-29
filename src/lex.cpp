@@ -159,6 +159,7 @@ source_code_span token::span() const noexcept {
 }
 
 void lexer::parse_current_token() {
+  this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
@@ -514,6 +515,15 @@ lexer::parsed_template_body lexer::parse_template_body(
         break;
     }
   }
+}
+
+void lexer::insert_semicolon() {
+  this->input_ = this->last_last_token_end_;
+
+  this->last_token_.type = token_type::semicolon;
+  this->last_token_.has_leading_newline = false;
+  this->last_token_.begin = this->input_;
+  this->last_token_.end = this->input_;
 }
 
 void lexer::skip_whitespace() {
