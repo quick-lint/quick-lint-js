@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_NARROW_CAST_H
 
 #include <cassert>
+#include <limits>
 #include <type_traits>
 
 namespace quick_lint_js {
