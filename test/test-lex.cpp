@@ -408,6 +408,64 @@ TEST(test_lex, lex_token_notes_leading_newline_after_comment) {
   EXPECT_TRUE(l.peek().has_leading_newline);  // b
 }
 
+TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
+  const char code[] = "hello\nworld";
+  lexer l(code, &null_error_reporter::instance);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().string_view(), "hello");
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  const char* hello_end = l.peek().end;
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().string_view(), "world");
+  EXPECT_TRUE(l.peek().has_leading_newline);
+  l.insert_semicolon();
+  EXPECT_EQ(l.peek().type, token_type::semicolon);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  EXPECT_EQ(l.peek().begin, hello_end);
+  EXPECT_EQ(l.peek().end, hello_end);
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().string_view(), "world");
+  EXPECT_TRUE(l.peek().has_leading_newline);
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+}
+
+TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
+  const char code[] = "{ x }";
+  lexer l(code, &null_error_reporter::instance);
+
+  EXPECT_EQ(l.peek().type, token_type::left_curly);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().string_view(), "x");
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  const char* x_end = l.peek().end;
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::right_curly);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  l.insert_semicolon();
+  EXPECT_EQ(l.peek().type, token_type::semicolon);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  EXPECT_EQ(l.peek().begin, x_end);
+  EXPECT_EQ(l.peek().end, x_end);
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::right_curly);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  l.skip();
+
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+}
+
 void check_single_token(const char* input, token_type expected_token_type) {
   lexer l(input, &null_error_reporter::instance);
   EXPECT_EQ(l.peek().type, expected_token_type);

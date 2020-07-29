@@ -559,6 +559,26 @@ TEST(test_parse, parse_plusplus_minusminus) {
   }
 }
 
+TEST(test_parse, asi_plusplus_minusminus) {
+  {
+    visitor v;
+    parser p("x\n++\ny;", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"x"},  //
+                            visitor::visited_variable_use{"y"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(visitor::visited_variable_assignment{"y"}));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",  //
+                            "visit_variable_use",  //
+                            "visit_variable_assignment"));
+  }
+}
+
 TEST(test_parse, parse_function_calls) {
   {
     visitor v;

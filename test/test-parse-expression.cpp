@@ -49,9 +49,11 @@ class test_parser {
     return this->parser_.locator().range(ast->span());
   }
 
+  quick_lint_js::lexer &lexer() noexcept { return this->parser_.lexer(); }
+
  private:
   error_collector errors_;
-  parser parser_;
+  quick_lint_js::parser parser_;
 };
 
 TEST(test_parse_expression, parse_single_token_expression) {
@@ -480,6 +482,24 @@ TEST(test_parse_expression, parse_suffix_plusplus_minusminus) {
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 3);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST(test_parse_expression, suffix_plusplus_minusminus_disallows_line_break) {
+  {
+    test_parser p("x\n++\ny");
+
+    expression_ptr ast_1 = p.parse_expression();
+    EXPECT_EQ(summarize(ast_1), "var x");
+
+    ASSERT_EQ(p.lexer().peek().type, token_type::semicolon)
+        << "Semicolon should be inserted (ASI)";
+    p.lexer().skip();
+
+    expression_ptr ast_2 = p.parse_expression();
+    EXPECT_EQ(summarize(ast_2), "rwunary(var y)");
+
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }

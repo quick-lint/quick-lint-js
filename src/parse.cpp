@@ -269,13 +269,19 @@ next:
     }
 
     case token_type::minus_minus:
-    case token_type::plus_plus: {
-      source_code_span operator_span = this->peek().span();
-      this->lexer_.skip();
-      children.back() = this->make_expression<expression_kind::rw_unary_suffix>(
-          children.back(), operator_span);
+    case token_type::plus_plus:
+      if (this->peek().has_leading_newline) {
+        // Newline is not allowed before suffix ++ or --. Treat as a semicolon.
+        this->lexer_.insert_semicolon();
+        goto semicolon;
+      } else {
+        source_code_span operator_span = this->peek().span();
+        this->lexer_.skip();
+        children.back() =
+            this->make_expression<expression_kind::rw_unary_suffix>(
+                children.back(), operator_span);
+      }
       break;
-    }
 
     case token_type::end_of_file:
     case token_type::identifier:
@@ -283,6 +289,7 @@ next:
     case token_type::right_curly:
     case token_type::right_paren:
     case token_type::semicolon:
+    semicolon:
       break;
 
     default:

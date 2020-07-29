@@ -47,6 +47,7 @@ class parser {
         locator_(input),
         error_reporter_(error_reporter) {}
 
+  quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
   quick_lint_js::locator &locator() noexcept { return this->locator_; }
 
   template <class Visitor>
@@ -92,6 +93,8 @@ class parser {
 
       case token_type::identifier:
       case token_type::left_paren:
+      case token_type::minus_minus:
+      case token_type::plus_plus:
         this->parse_and_visit_expression(
             v, precedence{.binary_operators = true, .commas = true});
 
@@ -623,7 +626,7 @@ class parser {
         std::forward<Args>(args)...);
   }
 
-  lexer lexer_;
+  quick_lint_js::lexer lexer_;
   quick_lint_js::locator locator_;
   error_reporter *error_reporter_;
   expression_arena expressions_;
