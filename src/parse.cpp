@@ -283,6 +283,7 @@ next:
       }
       break;
 
+    case token_type::_in:
     case token_type::end_of_file:
     case token_type::identifier:
     case token_type::left_curly:

@@ -1297,5 +1297,25 @@ TEST(test_parse, c_style_for_loop) {
                                       "visit_exit_block_scope"));
   }
 }
+
+TEST(test_parse, for_in_loop) {
+  {
+    visitor v;
+    parser p("for (x in xs) { body; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         //
+                                      "visit_variable_assignment",  //
+                                      "visit_enter_block_scope",    //
+                                      "visit_variable_use",         //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(visitor::visited_variable_assignment{"x"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"xs"},  //
+                            visitor::visited_variable_use{"body"}));
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

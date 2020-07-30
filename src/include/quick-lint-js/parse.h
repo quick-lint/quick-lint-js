@@ -533,44 +533,65 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
     this->lexer_.skip();
 
+    std::optional<expression_ptr> after_expression;
+    auto parse_c_style_head_remainder = [&]() {
+      if (this->peek().type != token_type::semicolon) {
+        this->parse_and_visit_expression(v);
+      }
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
+      this->lexer_.skip();
+
+      if (this->peek().type != token_type::right_paren) {
+        after_expression = this->parse_expression(
+            precedence{.binary_operators = true, .commas = true});
+      }
+    };
+
     bool entered_for_scope = false;
 
     switch (this->peek().type) {
       case token_type::semicolon:
         this->lexer_.skip();
+        parse_c_style_head_remainder();
         break;
       case token_type::_const:
         v.visit_enter_for_scope();
         entered_for_scope = true;
         this->parse_and_visit_let_bindings(v, variable_kind::_const);
+        parse_c_style_head_remainder();
         break;
       case token_type::_let:
         v.visit_enter_for_scope();
         entered_for_scope = true;
         this->parse_and_visit_let_bindings(v, variable_kind::_let);
+        parse_c_style_head_remainder();
         break;
       case token_type::_var:
         this->parse_and_visit_let_bindings(v, variable_kind::_var);
+        parse_c_style_head_remainder();
         break;
-      default:
-        this->parse_and_visit_expression(v);
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
-        this->lexer_.skip();
+      default: {
+        expression_ptr init_expression = this->parse_expression();
+        switch (this->peek().type) {
+          case token_type::semicolon:
+            this->lexer_.skip();
+            this->visit_expression(init_expression, v, variable_context::rhs);
+            parse_c_style_head_remainder();
+            break;
+          case token_type::_in: {
+            this->lexer_.skip();
+            expression_ptr rhs = this->parse_expression();
+            this->visit_assignment_expression(init_expression, rhs, v);
+            break;
+          }
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+        }
         break;
+      }
     }
 
-    if (this->peek().type != token_type::semicolon) {
-      this->parse_and_visit_expression(v);
-    }
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
-    this->lexer_.skip();
-
-    std::optional<expression_ptr> after_expression;
-
-    if (this->peek().type != token_type::right_paren) {
-      after_expression = this->parse_expression(
-          precedence{.binary_operators = true, .commas = true});
-    }
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->lexer_.skip();
 
