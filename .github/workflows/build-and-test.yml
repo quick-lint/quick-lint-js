@@ -23,11 +23,12 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - {name: "Clang 9", CC: clang-9, CXX: clang++-9, CFLAGS: ""}
-          - {name: "Clang 9 ASAN+UBSAN", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
-          - {name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: ""}
-          - {name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
-    runs-on: ubuntu-latest
+          - {runs_on: ubuntu-latest, name: "Clang 9", CC: clang-9, CXX: clang++-9, CFLAGS: ""}
+          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
+          - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: ""}
+          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
+          - {runs_on: windows-latest, name: "MSVC", CFLAGS: ""}
+    runs-on: ${{ matrix.toolchain.runs_on }}
     env:
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
       CMAKE_C_FLAGS: ${{ matrix.toolchain.CFLAGS }}
@@ -41,8 +42,9 @@ jobs:
       - name: configure
         run: |
           env | grep '^CMAKE' | sort
-          cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=YES -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}" -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}" -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -S . -B .
+          cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=YES ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -S . -B .
+        shell: bash
       - name: build
         run: cmake --build . --config Debug
       - name: test
-        run: ctest --verbose
+        run: ctest --build-config Debug --verbose
