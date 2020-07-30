@@ -95,8 +95,7 @@ class parser {
       case token_type::left_paren:
       case token_type::minus_minus:
       case token_type::plus_plus:
-        this->parse_and_visit_expression(
-            v, precedence{.binary_operators = true, .commas = true});
+        this->parse_and_visit_expression(v);
 
         switch (this->peek().type) {
           case token_type::semicolon:
@@ -126,8 +125,7 @@ class parser {
 
       case token_type::_return:
         this->lexer_.skip();
-        this->parse_and_visit_expression(
-            v, precedence{.binary_operators = true, .commas = true});
+        this->parse_and_visit_expression(v);
         break;
 
       case token_type::_try:
@@ -169,13 +167,11 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_expression(Visitor &v) {
-    this->parse_and_visit_expression(
-        v, precedence{.binary_operators = true, .commas = true});
+    this->parse_and_visit_expression(v, precedence{});
   }
 
   expression_ptr parse_expression() {
-    return this->parse_expression(
-        precedence{.binary_operators = true, .commas = true});
+    return this->parse_expression(precedence{});
   }
 
  private:
@@ -382,8 +378,7 @@ class parser {
         switch (this->peek().type) {
           case token_type::identifier:
             // TODO(strager): Don't allow extending any ol' expression.
-            this->parse_and_visit_expression(
-                v, precedence{.binary_operators = true, .commas = false});
+            this->parse_and_visit_expression(v, precedence{.commas = false});
             break;
           default:
             QLJS_PARSER_UNIMPLEMENTED();
@@ -542,8 +537,7 @@ class parser {
       this->lexer_.skip();
 
       if (this->peek().type != token_type::right_paren) {
-        after_expression = this->parse_expression(
-            precedence{.binary_operators = true, .commas = true});
+        after_expression = this->parse_expression();
       }
     };
 
@@ -571,8 +565,8 @@ class parser {
         parse_c_style_head_remainder();
         break;
       default: {
-        expression_ptr init_expression = this->parse_expression(precedence{
-            .binary_operators = true, .commas = true, .in_operator = false});
+        expression_ptr init_expression =
+            this->parse_expression(precedence{.in_operator = false});
         switch (this->peek().type) {
           case token_type::semicolon:
             this->lexer_.skip();
@@ -760,15 +754,14 @@ class parser {
 
     if (this->peek().type == token_type::equal) {
       this->lexer_.skip();
-      this->parse_and_visit_expression(
-          v, precedence{.binary_operators = true, .commas = false});
+      this->parse_and_visit_expression(v, precedence{.commas = false});
     }
     lhs.move_into(v);
   }
 
   struct precedence {
-    bool binary_operators;
-    bool commas;
+    bool binary_operators = true;
+    bool commas = true;
     bool in_operator = true;
   };
 
