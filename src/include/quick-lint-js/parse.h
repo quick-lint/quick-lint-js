@@ -525,11 +525,31 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
     this->lexer_.skip();
 
-    if (this->peek().type != token_type::semicolon) {
-      this->parse_and_visit_expression(v);
+    bool entered_for_scope = false;
+
+    switch (this->peek().type) {
+      case token_type::semicolon:
+        this->lexer_.skip();
+        break;
+      case token_type::_const:
+        v.visit_enter_for_scope();
+        entered_for_scope = true;
+        this->parse_and_visit_let_bindings(v, variable_kind::_const);
+        break;
+      case token_type::_let:
+        v.visit_enter_for_scope();
+        entered_for_scope = true;
+        this->parse_and_visit_let_bindings(v, variable_kind::_let);
+        break;
+      case token_type::_var:
+        this->parse_and_visit_let_bindings(v, variable_kind::_var);
+        break;
+      default:
+        this->parse_and_visit_expression(v);
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
+        this->lexer_.skip();
+        break;
     }
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
-    this->lexer_.skip();
 
     if (this->peek().type != token_type::semicolon) {
       this->parse_and_visit_expression(v);
@@ -550,6 +570,9 @@ class parser {
 
     if (after_expression.has_value()) {
       this->visit_expression(*after_expression, v, variable_context::rhs);
+    }
+    if (entered_for_scope) {
+      v.visit_exit_for_scope();
     }
   }
 

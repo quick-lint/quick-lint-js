@@ -38,6 +38,9 @@ class buffering_visitor {
         case visit_kind::enter_class_scope:
           target.visit_enter_class_scope();
           break;
+        case visit_kind::enter_for_scope:
+          target.visit_enter_for_scope();
+          break;
         case visit_kind::enter_function_scope:
           target.visit_enter_function_scope();
           break;
@@ -49,6 +52,9 @@ class buffering_visitor {
           break;
         case visit_kind::exit_class_scope:
           target.visit_exit_class_scope();
+          break;
+        case visit_kind::exit_for_scope:
+          target.visit_exit_for_scope();
           break;
         case visit_kind::exit_function_scope:
           target.visit_exit_function_scope();
@@ -81,6 +87,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::enter_class_scope);
   }
 
+  void visit_enter_for_scope() {
+    this->visits_.emplace_back(visit_kind::enter_for_scope);
+  }
+
   void visit_enter_function_scope() {
     this->visits_.emplace_back(visit_kind::enter_function_scope);
   }
@@ -95,6 +105,10 @@ class buffering_visitor {
 
   void visit_exit_class_scope() {
     this->visits_.emplace_back(visit_kind::exit_class_scope);
+  }
+
+  void visit_exit_for_scope() {
+    this->visits_.emplace_back(visit_kind::exit_for_scope);
   }
 
   void visit_exit_function_scope() {
@@ -122,10 +136,12 @@ class buffering_visitor {
     end_of_module,
     enter_block_scope,
     enter_class_scope,
+    enter_for_scope,
     enter_function_scope,
     enter_named_function_scope,
     exit_block_scope,
     exit_class_scope,
+    exit_for_scope,
     exit_function_scope,
     property_declaration,
     variable_assignment,

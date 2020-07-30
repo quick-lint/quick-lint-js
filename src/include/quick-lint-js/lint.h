@@ -36,6 +36,8 @@ class linter {
 
   void visit_enter_class_scope() {}
 
+  void visit_enter_for_scope() { this->scopes_.emplace_back(); }
+
   void visit_enter_function_scope() { this->scopes_.emplace_back(); }
 
   void visit_enter_named_function_scope(identifier) {
@@ -46,6 +48,8 @@ class linter {
   void visit_exit_block_scope() {}
 
   void visit_exit_class_scope() {}
+
+  void visit_exit_for_scope() {}
 
   void visit_exit_function_scope() {
     assert(this->scopes_.size() >= 2);

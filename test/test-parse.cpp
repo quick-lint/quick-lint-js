@@ -1265,6 +1265,37 @@ TEST(test_parse, c_style_for_loop) {
                             visitor::visited_variable_use{"body"},  //
                             visitor::visited_variable_use{"after"}));
   }
+
+  for (const char *variable_kind : {"const", "let"}) {
+    SCOPED_TRACE(variable_kind);
+    visitor v;
+    std::string code =
+        std::string("for (") + variable_kind + " i = 0; cond; after) { body; }";
+    parser p(code.c_str(), &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_declaration",  //
+                                      "visit_variable_use",          //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_use",          //
+                                      "visit_exit_block_scope",      //
+                                      "visit_variable_use",          //
+                                      "visit_exit_for_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("for (var i = 0; ; ) { body; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_use",          //
+                                      "visit_exit_block_scope"));
+  }
 }
 }  // namespace
 }  // namespace quick_lint_js

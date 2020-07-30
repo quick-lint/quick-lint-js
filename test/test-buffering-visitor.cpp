@@ -44,10 +44,12 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_end_of_module();
   v.visit_enter_block_scope();
   v.visit_enter_class_scope();
+  v.visit_enter_for_scope();
   v.visit_enter_named_function_scope(identifier_of(function_name));
   v.visit_enter_function_scope();
   v.visit_exit_block_scope();
   v.visit_exit_class_scope();
+  v.visit_exit_for_scope();
   v.visit_exit_function_scope();
   v.visit_property_declaration(identifier_of(property_name));
   v.visit_variable_assignment(identifier_of(variable_name));
@@ -61,10 +63,12 @@ TEST(test_buffering_visitor, buffers_all_visits) {
               ElementsAre("visit_end_of_module",               //
                           "visit_enter_block_scope",           //
                           "visit_enter_class_scope",           //
+                          "visit_enter_for_scope",             //
                           "visit_enter_named_function_scope",  //
                           "visit_enter_function_scope",        //
                           "visit_exit_block_scope",            //
                           "visit_exit_class_scope",            //
+                          "visit_exit_for_scope",              //
                           "visit_exit_function_scope",         //
                           "visit_property_declaration",        //
                           "visit_variable_assignment",         //
