@@ -399,6 +399,9 @@ class parser {
       case token_type::left_curly:
         this->lexer_.skip();
         this->parse_and_visit_class_body(v);
+
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+        this->lexer_.skip();
         break;
 
       default:

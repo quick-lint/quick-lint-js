@@ -1090,6 +1090,20 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_EQ(v.property_declarations[1].name, "b");
     EXPECT_EQ(v.property_declarations[2].name, "c");
   }
+
+  {
+    visitor v;
+    parser p("class A {} class B {}", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            visitor::visited_variable_declaration{"A", variable_kind::_class},
+            visitor::visited_variable_declaration{"B", variable_kind::_class}));
+  }
 }
 
 TEST(test_parse, parse_and_visit_try) {
