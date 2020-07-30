@@ -1234,5 +1234,37 @@ TEST(test_parse, do_while) {
                                       "visit_variable_use"));
   }
 }
+
+TEST(test_parse, c_style_for_loop) {
+  {
+    visitor v;
+    parser p("for (;;) { a; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("for (init; cond; after) { body; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       //
+                                      "visit_variable_use",       //
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"init"},  //
+                            visitor::visited_variable_use{"cond"},  //
+                            visitor::visited_variable_use{"body"},  //
+                            visitor::visited_variable_use{"after"}));
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

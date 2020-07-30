@@ -138,6 +138,10 @@ class parser {
         this->parse_and_visit_do_while(v);
         break;
 
+      case token_type::_for:
+        this->parse_and_visit_for(v);
+        break;
+
       case token_type::_if:
         this->parse_and_visit_if(v);
         break;
@@ -511,6 +515,42 @@ class parser {
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->lexer_.skip();
+  }
+
+  template <class Visitor>
+  void parse_and_visit_for(Visitor &v) {
+    assert(this->peek().type == token_type::_for);
+    this->lexer_.skip();
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    this->lexer_.skip();
+
+    if (this->peek().type != token_type::semicolon) {
+      this->parse_and_visit_expression(v);
+    }
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
+    this->lexer_.skip();
+
+    if (this->peek().type != token_type::semicolon) {
+      this->parse_and_visit_expression(v);
+    }
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
+    this->lexer_.skip();
+
+    std::optional<expression_ptr> after_expression;
+
+    if (this->peek().type != token_type::right_paren) {
+      after_expression = this->parse_expression(
+          precedence{.binary_operators = true, .commas = true});
+    }
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_statement(v);
+
+    if (after_expression.has_value()) {
+      this->visit_expression(*after_expression, v, variable_context::rhs);
+    }
   }
 
   template <class Visitor>
