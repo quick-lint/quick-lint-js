@@ -137,8 +137,8 @@ class linter {
     std::vector<identifier> variables_used_in_descendant_scope;
   };
 
-  const declared_variable *find_declared_variable(
-      identifier name) const noexcept {
+  const declared_variable *find_declared_variable(identifier name) const
+      noexcept {
     for (const scope &s : this->scopes_) {
       for (const declared_variable &var : s.declared_variables) {
         if (var.name == name.string_view()) {
