@@ -1220,5 +1220,19 @@ TEST(test_parse, if_with_else) {
                                       "visit_variable_use"));
   }
 }
+
+TEST(test_parse, do_while) {
+  {
+    visitor v;
+    parser p("do { a; } while (b)", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js
