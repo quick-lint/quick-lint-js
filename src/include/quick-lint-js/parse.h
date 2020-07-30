@@ -81,14 +81,23 @@ class parser {
 
       case token_type::_const:
         this->parse_and_visit_let_bindings(v, variable_kind::_const);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+        }
         break;
 
       case token_type::_let:
         this->parse_and_visit_let_bindings(v, variable_kind::_let);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+        }
         break;
 
       case token_type::_var:
         this->parse_and_visit_let_bindings(v, variable_kind::_var);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+        }
         break;
 
       case token_type::identifier:
@@ -552,16 +561,25 @@ class parser {
         v.visit_enter_for_scope();
         entered_for_scope = true;
         this->parse_and_visit_let_bindings(v, variable_kind::_const);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+        }
         parse_c_style_head_remainder();
         break;
       case token_type::_let:
         v.visit_enter_for_scope();
         entered_for_scope = true;
         this->parse_and_visit_let_bindings(v, variable_kind::_let);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+        }
         parse_c_style_head_remainder();
         break;
       case token_type::_var:
         this->parse_and_visit_let_bindings(v, variable_kind::_var);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+        }
         parse_c_style_head_remainder();
         break;
       default: {
@@ -702,10 +720,6 @@ class parser {
           break;
       }
       first_binding = false;
-    }
-
-    if (this->peek().type == token_type::semicolon) {
-      this->lexer_.skip();
     }
   }
 
