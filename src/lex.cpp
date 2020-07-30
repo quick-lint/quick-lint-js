@@ -123,6 +123,7 @@ constexpr const char keywords[][11] = {
   "let",
   "new",
   "null",
+  "of",
   "return",
   "static",
   "super",
@@ -614,6 +615,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(_let)
     QLJS_CASE(_new)
     QLJS_CASE(_null)
+    QLJS_CASE(_of)
     QLJS_CASE(_return)
     QLJS_CASE(_static)
     QLJS_CASE(_super)

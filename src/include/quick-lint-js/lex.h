@@ -90,6 +90,7 @@ enum class token_type {
   _let,
   _new,
   _null,
+  _of,
   _return,
   _static,
   _super,

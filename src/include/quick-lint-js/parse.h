@@ -559,7 +559,8 @@ class parser {
             lhs.move_into(v);
             parse_c_style_head_remainder();
             break;
-          case token_type::_in: {
+          case token_type::_in:
+          case token_type::_of: {
             this->lexer_.skip();
             expression_ptr rhs = this->parse_expression();
             this->visit_expression(rhs, v, variable_context::rhs);
@@ -581,7 +582,8 @@ class parser {
             this->visit_expression(init_expression, v, variable_context::rhs);
             parse_c_style_head_remainder();
             break;
-          case token_type::_in: {
+          case token_type::_in:
+          case token_type::_of: {
             this->lexer_.skip();
             expression_ptr rhs = this->parse_expression();
             this->visit_assignment_expression(init_expression, rhs, v);

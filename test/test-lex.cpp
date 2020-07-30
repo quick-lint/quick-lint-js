@@ -294,6 +294,7 @@ TEST(test_lex, lex_keywords) {
   check_single_token("let", token_type::_let);
   check_single_token("new", token_type::_new);
   check_single_token("null", token_type::_null);
+  check_single_token("of", token_type::_of);
   check_single_token("return", token_type::_return);
   check_single_token("static", token_type::_static);
   check_single_token("super", token_type::_super);
