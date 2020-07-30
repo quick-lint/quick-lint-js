@@ -550,13 +550,28 @@ class parser {
         v.visit_enter_for_scope();
         entered_for_scope = true;
         [[fallthrough]];
-      case token_type::_var:
-        this->parse_and_visit_let_bindings(v, this->peek().type);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
+      case token_type::_var: {
+        buffering_visitor lhs;
+        this->parse_and_visit_let_bindings(lhs, this->peek().type);
+        switch (this->peek().type) {
+          case token_type::semicolon:
+            this->lexer_.skip();
+            lhs.move_into(v);
+            parse_c_style_head_remainder();
+            break;
+          case token_type::_in: {
+            this->lexer_.skip();
+            expression_ptr rhs = this->parse_expression();
+            this->visit_expression(rhs, v, variable_context::rhs);
+            lhs.move_into(v);
+            break;
+          }
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
         }
-        parse_c_style_head_remainder();
         break;
+      }
       default: {
         expression_ptr init_expression =
             this->parse_expression(precedence{.in_operator = false});
