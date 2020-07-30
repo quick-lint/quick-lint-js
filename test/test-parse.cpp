@@ -579,6 +579,22 @@ TEST(test_parse, asi_plusplus_minusminus) {
   }
 }
 
+TEST(test_parse, asi_for_statement_at_right_curly) {
+  {
+    visitor v;
+    parser p("function f() { console.log(\"hello\") } function g() { }", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    visitor::visited_variable_declaration{
+                        "f", variable_kind::_function},
+                    visitor::visited_variable_declaration{
+                        "g", variable_kind::_function}));
+  }
+}
+
 TEST(test_parse, parse_function_calls) {
   {
     visitor v;

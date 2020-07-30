@@ -98,10 +98,17 @@ class parser {
         this->parse_and_visit_expression(
             v, precedence{.binary_operators = true, .commas = true});
 
-        if (this->peek().type != token_type::semicolon) {
-          QLJS_PARSER_UNIMPLEMENTED();
+        switch (this->peek().type) {
+          case token_type::semicolon:
+            this->lexer_.skip();
+            break;
+          case token_type::right_curly:
+            // Automatically insert a semicolon, then consume it.
+            break;
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
         }
-        this->lexer_.skip();
         break;
 
       case token_type::_class:
