@@ -80,21 +80,9 @@ class parser {
         break;
 
       case token_type::_const:
-        this->parse_and_visit_let_bindings(v, variable_kind::_const);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
-        }
-        break;
-
       case token_type::_let:
-        this->parse_and_visit_let_bindings(v, variable_kind::_let);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
-        }
-        break;
-
       case token_type::_var:
-        this->parse_and_visit_let_bindings(v, variable_kind::_var);
+        this->parse_and_visit_let_bindings(v, this->peek().type);
         if (this->peek().type == token_type::semicolon) {
           this->lexer_.skip();
         }
@@ -558,25 +546,12 @@ class parser {
         parse_c_style_head_remainder();
         break;
       case token_type::_const:
-        v.visit_enter_for_scope();
-        entered_for_scope = true;
-        this->parse_and_visit_let_bindings(v, variable_kind::_const);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
-        }
-        parse_c_style_head_remainder();
-        break;
       case token_type::_let:
         v.visit_enter_for_scope();
         entered_for_scope = true;
-        this->parse_and_visit_let_bindings(v, variable_kind::_let);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
-        }
-        parse_c_style_head_remainder();
-        break;
+        [[fallthrough]];
       case token_type::_var:
-        this->parse_and_visit_let_bindings(v, variable_kind::_var);
+        this->parse_and_visit_let_bindings(v, this->peek().type);
         if (this->peek().type == token_type::semicolon) {
           this->lexer_.skip();
         }
@@ -681,6 +656,27 @@ class parser {
     if (this->peek().type == token_type::semicolon) {
       this->lexer_.skip();
     }
+  }
+
+  template <class Visitor>
+  void parse_and_visit_let_bindings(Visitor &v, token_type declaring_token) {
+    variable_kind declaration_kind;
+    switch (declaring_token) {
+      case token_type::_const:
+        declaration_kind = variable_kind::_const;
+        break;
+      case token_type::_let:
+        declaration_kind = variable_kind::_let;
+        break;
+      case token_type::_var:
+        declaration_kind = variable_kind::_var;
+        break;
+      default:
+        assert(false);
+        declaration_kind = variable_kind::_let;
+        break;
+    }
+    this->parse_and_visit_let_bindings(v, declaration_kind);
   }
 
   template <class Visitor>
