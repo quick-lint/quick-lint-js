@@ -19,23 +19,22 @@ on: [push]
 
 jobs:
   build:
-    name: ${{ matrix.toolchain.name }} ${{ matrix.sanitize.name }}
+    name: ${{ matrix.toolchain.name }}
     strategy:
       matrix:
         toolchain:
-          - {name: "Clang 9", CC: clang-9, CXX: clang++-9}
-          - {name: "GCC 8", CC: gcc-8, CXX: g++-8}
-        sanitize:
-          - {name: "", CFLAGS: ""}
-          - {name: "ASAN+UBSAN", CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
+          - {name: "Clang 9", CC: clang-9, CXX: clang++-9, CFLAGS: ""}
+          - {name: "Clang 9 ASAN+UBSAN", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
+          - {name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: ""}
+          - {name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined"}
     runs-on: ubuntu-latest
     env:
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
-      CMAKE_C_FLAGS: ${{ matrix.sanitize.CFLAGS }}
+      CMAKE_C_FLAGS: ${{ matrix.toolchain.CFLAGS }}
       CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
-      CMAKE_CXX_FLAGS: ${{ matrix.sanitize.CFLAGS }}
-      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.sanitize.CFLAGS }}
-      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.sanitize.CFLAGS }}
+      CMAKE_CXX_FLAGS: ${{ matrix.toolchain.CFLAGS }}
+      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.toolchain.CFLAGS }}
+      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.toolchain.CFLAGS }}
     steps:
       - name: check out
         uses: actions/checkout@v1
