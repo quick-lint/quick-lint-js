@@ -192,15 +192,6 @@ class parser {
         this->visit_expression(ast->child(i), v, context);
       }
     };
-    auto maybe_visit_assignment = [&](expression_ptr ast) {
-      switch (ast->kind()) {
-        case expression_kind::variable:
-          v.visit_variable_assignment(ast->variable_identifier());
-          break;
-        default:
-          break;
-      }
-    };
     switch (ast->kind()) {
       case expression_kind::_invalid:
       case expression_kind::literal:
@@ -214,9 +205,7 @@ class parser {
       case expression_kind::assignment: {
         expression_ptr lhs = ast->child_0();
         expression_ptr rhs = ast->child_1();
-        this->visit_expression(lhs, v, variable_context::lhs);
-        this->visit_expression(rhs, v, variable_context::rhs);
-        maybe_visit_assignment(lhs);
+        this->visit_assignment_expression(lhs, rhs, v);
         break;
       }
       case expression_kind::await:
@@ -230,7 +219,7 @@ class parser {
       case expression_kind::rw_unary_suffix: {
         expression_ptr child = ast->child_0();
         this->visit_expression(child, v, variable_context::rhs);
-        maybe_visit_assignment(child);
+        this->maybe_visit_assignment(child, v);
         break;
       }
       case expression_kind::variable:
@@ -251,6 +240,25 @@ class parser {
         v.visit_enter_named_function_scope(ast->variable_identifier());
         ast->visit_children(v);
         v.visit_exit_function_scope();
+        break;
+    }
+  }
+
+  template <class Visitor>
+  void visit_assignment_expression(expression_ptr lhs, expression_ptr rhs,
+                                   Visitor &v) {
+    this->visit_expression(lhs, v, variable_context::lhs);
+    this->visit_expression(rhs, v, variable_context::rhs);
+    this->maybe_visit_assignment(lhs, v);
+  }
+
+  template <class Visitor>
+  void maybe_visit_assignment(expression_ptr ast, Visitor &v) {
+    switch (ast->kind()) {
+      case expression_kind::variable:
+        v.visit_variable_assignment(ast->variable_identifier());
+        break;
+      default:
         break;
     }
   }
