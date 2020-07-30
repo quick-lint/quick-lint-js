@@ -1168,5 +1168,57 @@ TEST(test_parse, parse_and_visit_try) {
     EXPECT_EQ(v.variable_uses[2].name, "h");
   }
 }
+
+TEST(test_parse, if_without_else) {
+  {
+    visitor v;
+    parser p("if (a) { b; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       //
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("if (a) b;", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                      "visit_variable_use"));
+  }
+}
+
+TEST(test_parse, if_with_else) {
+  {
+    visitor v;
+    parser p("if (a) { b; } else { c; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       //
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope",   //
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("if (a) b; else c;", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                      "visit_variable_use",  //
+                                      "visit_variable_use"));
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

@@ -134,6 +134,22 @@ class parser {
         this->parse_and_visit_try(v);
         break;
 
+      case token_type::_if:
+        this->parse_and_visit_if(v);
+        break;
+
+      case token_type::left_curly:
+        this->lexer_.skip();
+        v.visit_enter_block_scope();
+
+        this->parse_and_visit_statement(v);
+
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+        this->lexer_.skip();
+        v.visit_exit_block_scope();
+
+        break;
+
       case token_type::right_curly:
         break;
 
@@ -471,6 +487,27 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
       this->lexer_.skip();
       v.visit_exit_block_scope();
+    }
+  }
+
+  template <class Visitor>
+  void parse_and_visit_if(Visitor &v) {
+    assert(this->peek().type == token_type::_if);
+    this->lexer_.skip();
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_expression(v);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_statement(v);
+
+    if (this->peek().type == token_type::_else) {
+      this->lexer_.skip();
+      this->parse_and_visit_statement(v);
     }
   }
 
