@@ -244,6 +244,15 @@ TEST(test_parse_expression, parse_logical_expression) {
   }
 }
 
+TEST(test_parse_expression, parse_keyword_binary_operators) {
+  {
+    test_parser p("prop in object");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var prop, var object)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_function_call) {
   {
     test_parser p("f()");

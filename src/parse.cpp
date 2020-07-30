@@ -284,6 +284,13 @@ next:
       break;
 
     case token_type::_in:
+      if (!prec.in_operator) {
+        break;
+      }
+      this->lexer_.skip();
+      children.emplace_back(this->parse_expression(prec));
+      goto next;
+
     case token_type::end_of_file:
     case token_type::identifier:
     case token_type::left_curly:

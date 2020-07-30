@@ -571,7 +571,8 @@ class parser {
         parse_c_style_head_remainder();
         break;
       default: {
-        expression_ptr init_expression = this->parse_expression();
+        expression_ptr init_expression = this->parse_expression(precedence{
+            .binary_operators = true, .commas = true, .in_operator = false});
         switch (this->peek().type) {
           case token_type::semicolon:
             this->lexer_.skip();
@@ -768,6 +769,7 @@ class parser {
   struct precedence {
     bool binary_operators;
     bool commas;
+    bool in_operator = true;
   };
 
   template <class Visitor>
