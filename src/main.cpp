@@ -94,6 +94,12 @@ class debug_error_reporter : public error_reporter {
     std::cerr << "error: missing operand for operator\n";
   }
 
+  void report_error_missing_semicolon_after_expression(
+      source_code_span where) override {
+    log_location(where);
+    std::cerr << "error: missing semicolon after expression\n";
+  }
+
   void report_error_stray_comma_in_let_statement(
       source_code_span where) override {
     log_location(where);

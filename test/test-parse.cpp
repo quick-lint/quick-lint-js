@@ -595,6 +595,48 @@ TEST(test_parse, asi_for_statement_at_right_curly) {
   }
 }
 
+TEST(test_parse, asi_for_statement_at_newline) {
+  {
+    visitor v;
+    parser p("console.log('hello')\nconsole.log('world')\n", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"console"},
+                            visitor::visited_variable_use{"console"}));
+  }
+
+  {
+    // This code should emit an error, but also use ASI for error recovery.
+    visitor v;
+    parser p("console.log('hello') console.log('world');", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"console"},
+                            visitor::visited_variable_use{"console"}));
+
+    ASSERT_EQ(v.errors.size(), 1);
+    auto &error = v.errors[0];
+    EXPECT_EQ(error.kind, visitor::error_missing_semicolon_after_expression);
+    int end_of_first_expression = strlen("console.log('hello')");
+    EXPECT_EQ(p.locator().range(error.where).begin_offset(),
+              end_of_first_expression);
+    EXPECT_EQ(p.locator().range(error.where).end_offset(),
+              end_of_first_expression);
+  }
+}
+
+TEST(test_parse, asi_for_statement_at_end_of_file) {
+  {
+    visitor v;
+    parser p("console.log(2+2)", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_parse, parse_function_calls) {
   {
     visitor v;

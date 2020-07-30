@@ -102,11 +102,20 @@ class parser {
           case token_type::semicolon:
             this->lexer_.skip();
             break;
+          case token_type::end_of_file:
           case token_type::right_curly:
             // Automatically insert a semicolon, then consume it.
             break;
           default:
-            QLJS_PARSER_UNIMPLEMENTED();
+            if (this->peek().has_leading_newline) {
+              // Automatically insert a semicolon, then consume it.
+            } else {
+              this->lexer_.insert_semicolon();
+              this->error_reporter_
+                  ->report_error_missing_semicolon_after_expression(
+                      this->peek().span());
+              this->lexer_.skip();
+            }
             break;
         }
         break;

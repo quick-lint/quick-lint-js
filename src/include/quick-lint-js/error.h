@@ -34,6 +34,8 @@ class error_reporter {
   virtual void report_error_let_with_no_bindings(source_code_span where) = 0;
   virtual void report_error_missing_operand_for_operator(
       source_code_span where) = 0;
+  virtual void report_error_missing_semicolon_after_expression(
+      source_code_span where) = 0;
   virtual void report_error_stray_comma_in_let_statement(
       source_code_span where) = 0;
   virtual void report_error_unclosed_block_comment(
@@ -60,6 +62,8 @@ class null_error_reporter : public error_reporter {
       source_code_span) override {}
   void report_error_let_with_no_bindings(source_code_span) override {}
   void report_error_missing_operand_for_operator(source_code_span) override {}
+  void report_error_missing_semicolon_after_expression(
+      source_code_span) override {}
   void report_error_stray_comma_in_let_statement(source_code_span) override {}
   void report_error_unclosed_block_comment(source_code_span) override {}
   void report_error_unclosed_string_literal(source_code_span) override {}
