@@ -398,6 +398,7 @@ class parser {
   void parse_and_visit_class_body(Visitor &v) {
     for (;;) {
       switch (this->peek().type) {
+        case token_type::_async:
         case token_type::_static:
           this->lexer_.skip();
           switch (this->peek().type) {

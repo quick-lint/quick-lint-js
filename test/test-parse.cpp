@@ -1132,6 +1132,16 @@ TEST(test_parse, parse_class_statement) {
 
   {
     visitor v;
+    parser p("class C { async m() { } }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(visitor::visited_property_declaration{"m"}));
+  }
+
+  {
+    visitor v;
     parser p("class C { a(){} b(){} c(){} }", &v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());

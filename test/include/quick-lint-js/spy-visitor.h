@@ -95,6 +95,14 @@ struct spy_visitor : public error_collector {
 
   struct visited_property_declaration {
     std::string name;
+
+    bool operator==(const visited_property_declaration &other) const {
+      return this->name == other.name;
+    }
+
+    bool operator!=(const visited_property_declaration &other) const {
+      return !(*this == other);
+    }
   };
   std::vector<visited_property_declaration> property_declarations;
 
