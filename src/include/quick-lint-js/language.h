@@ -17,6 +17,7 @@
 #ifndef QUICK_LINT_JS_LANGUAGE_H
 #define QUICK_LINT_JS_LANGUAGE_H
 
+namespace quick_lint_js {
 enum class variable_kind {
   _catch,
   _class,
@@ -27,5 +28,6 @@ enum class variable_kind {
   _parameter,
   _var,
 };
+}
 
 #endif
