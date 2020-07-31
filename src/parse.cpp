@@ -10,6 +10,7 @@
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR      \
+  case token_type::_instanceof:             \
   case token_type::ampersand:               \
   case token_type::ampersand_ampersand:     \
   case token_type::bang_equal:              \

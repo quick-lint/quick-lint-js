@@ -251,6 +251,13 @@ TEST(test_parse_expression, parse_keyword_binary_operators) {
     EXPECT_EQ(summarize(ast), "binary(var prop, var object)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p("object instanceof Class");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var object, var Class)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST(test_parse_expression, parse_function_call) {
