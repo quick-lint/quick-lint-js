@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstring>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
@@ -21,16 +23,113 @@
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/parse.h>
 
+using ::testing::IsEmpty;
+
 namespace quick_lint_js {
 namespace {
-template <std::size_t N>
-source_code_span span_of(const char (&code)[N]) {
-  return source_code_span(&code[0], &code[N]);
+source_code_span span_of(const char *code) {
+  return source_code_span(&code[0], &code[std::strlen(code)]);
 }
 
-template <std::size_t N>
-identifier identifier_of(const char (&name)[N]) {
-  return identifier(span_of(name));
+identifier identifier_of(const char *name) { return identifier(span_of(name)); }
+
+constexpr const char *writable_global_variables[] = {
+    // ECMA-262 18.1 Value Properties of the Global Object
+    "globalThis",
+
+    // ECMA-262 18.2 Function Properties of the Global Object
+    "decodeURI",
+    "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+    "eval",
+    "isFinite",
+    "isNaN",
+    "parseFloat",
+    "parseInt",
+
+    // ECMA-262 18.3 Constructor Properties of the Global Object
+    "Array",
+    "ArrayBuffer",
+    "BigInt",
+    "BigInt64Array",
+    "BigUint64Array",
+    "Boolean",
+    "DataView",
+    "Date",
+    "Error",
+    "EvalError",
+    "Float32Array",
+    "Float64Array",
+    "Function",
+    "Int16Array",
+    "Int32Array",
+    "Int8Array",
+    "Map",
+    "Number",
+    "Object",
+    "Promise",
+    "Proxy",
+    "RangeError",
+    "ReferenceError",
+    "RegExp",
+    "Set",
+    "SharedArrayBuffer",
+    "String",
+    "Symbol",
+    "SyntaxError",
+    "TypeError",
+    "URIError",
+    "Uint16Array",
+    "Uint32Array",
+    "Uint8Array",
+    "Uint8ClampedArray",
+    "WeakMap",
+    "WeakSet",
+
+    // ECMA-262 18.4 Other Properties of the Global Object
+    "Atomics",
+    "JSON",
+    "Math",
+    "Reflect",
+};
+
+constexpr const char *non_writable_global_variables[] = {
+    // ECMA-262 18.1 Value Properties of the Global Object
+    "Infinity",
+    "NaN",
+    "undefined",
+};
+
+TEST(test_lint, global_variables_are_usable) {
+  error_collector v;
+  linter l(&v);
+  for (const char *global_variable : writable_global_variables) {
+    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_use(identifier_of(global_variable));
+  }
+  for (const char *global_variable : non_writable_global_variables) {
+    l.visit_variable_use(identifier_of(global_variable));
+  }
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, immutable_global_variables_are_not_assignable) {
+  for (const char *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(global_variable);
+
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_assignment_to_const_global_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), global_variable);
+  }
 }
 
 TEST(test_lint, let_or_const_variable_use_before_declaration) {

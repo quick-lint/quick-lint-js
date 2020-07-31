@@ -24,6 +24,8 @@
 namespace quick_lint_js {
 class error_reporter {
  public:
+  virtual void report_error_assignment_to_const_global_variable(
+      identifier assignment) = 0;
   virtual void report_error_assignment_to_const_variable(
       identifier declaration, identifier assignment,
       variable_kind var_kind) = 0;
@@ -56,6 +58,7 @@ class null_error_reporter : public error_reporter {
  public:
   static null_error_reporter instance;
 
+  void report_error_assignment_to_const_global_variable(identifier) override {}
   void report_error_assignment_to_const_variable(identifier, identifier,
                                                  variable_kind) override {}
   void report_error_assignment_to_undeclared_variable(identifier) override {}

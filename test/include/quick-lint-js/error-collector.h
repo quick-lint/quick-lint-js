@@ -27,6 +27,12 @@
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
+  void report_error_assignment_to_const_global_variable(
+      identifier assignment) override {
+    this->errors.emplace_back(error_assignment_to_const_global_variable,
+                              assignment.span());
+  }
+
   void report_error_assignment_to_const_variable(
       identifier declaration, identifier assignment,
       variable_kind var_kind) override {
@@ -105,6 +111,7 @@ struct error_collector : public error_reporter {
   }
 
   enum error_kind {
+    error_assignment_to_const_global_variable,
     error_assignment_to_const_variable,
     error_assignment_to_undeclared_variable,
     error_invalid_binding_in_let_statement,

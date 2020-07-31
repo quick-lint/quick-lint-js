@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <optional>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -29,8 +30,94 @@
 namespace quick_lint_js {
 class linter {
  public:
-  explicit linter(error_reporter *error_reporter) noexcept
-      : error_reporter_(error_reporter) {}
+  explicit linter(error_reporter *error_reporter)
+      : error_reporter_(error_reporter) {
+    this->scopes_.emplace_back();
+    scope &global_scope = this->scopes_.back();
+
+    const char *writable_global_variables[] = {
+        // ECMA-262 18.1 Value Properties of the Global Object
+        "globalThis",
+
+        // ECMA-262 18.2 Function Properties of the Global Object
+        "decodeURI",
+        "decodeURIComponent",
+        "encodeURI",
+        "encodeURIComponent",
+        "eval",
+        "isFinite",
+        "isNaN",
+        "parseFloat",
+        "parseInt",
+
+        // ECMA-262 18.3 Constructor Properties of the Global Object
+        "Array",
+        "ArrayBuffer",
+        "BigInt",
+        "BigInt64Array",
+        "BigUint64Array",
+        "Boolean",
+        "DataView",
+        "Date",
+        "Error",
+        "EvalError",
+        "Float32Array",
+        "Float64Array",
+        "Function",
+        "Int16Array",
+        "Int32Array",
+        "Int8Array",
+        "Map",
+        "Number",
+        "Object",
+        "Promise",
+        "Proxy",
+        "RangeError",
+        "ReferenceError",
+        "RegExp",
+        "Set",
+        "SharedArrayBuffer",
+        "String",
+        "Symbol",
+        "SyntaxError",
+        "TypeError",
+        "URIError",
+        "Uint16Array",
+        "Uint32Array",
+        "Uint8Array",
+        "Uint8ClampedArray",
+        "WeakMap",
+        "WeakSet",
+
+        // ECMA-262 18.4 Other Properties of the Global Object
+        "Atomics",
+        "JSON",
+        "Math",
+        "Reflect",
+    };
+
+    for (const char *global_variable : writable_global_variables) {
+      global_scope.declared_variables.emplace_back(declared_variable{
+          .name = global_variable,
+          .kind = variable_kind::_function,
+          .declaration = std::nullopt,
+      });
+    }
+
+    const char *non_writable_global_variables[] = {
+        // ECMA-262 18.1 Value Properties of the Global Object
+        "Infinity",
+        "NaN",
+        "undefined",
+    };
+    for (const char *global_variable : non_writable_global_variables) {
+      global_scope.declared_variables.emplace_back(declared_variable{
+          .name = global_variable,
+          .kind = variable_kind::_const,
+          .declaration = std::nullopt,
+      });
+    }
+  }
 
   void visit_enter_block_scope() {}
 
@@ -89,8 +176,13 @@ class linter {
       switch (var->kind) {
         case variable_kind::_const:
         case variable_kind::_import:
-          this->error_reporter_->report_error_assignment_to_const_variable(
-              var->declaration, name, var->kind);
+          if (var->declaration.has_value()) {
+            this->error_reporter_->report_error_assignment_to_const_variable(
+                *var->declaration, name, var->kind);
+          } else {
+            this->error_reporter_
+                ->report_error_assignment_to_const_global_variable(name);
+          }
           break;
         case variable_kind::_catch:
         case variable_kind::_class:
@@ -137,7 +229,7 @@ class linter {
   struct declared_variable {
     std::string name;
     variable_kind kind;
-    identifier declaration;
+    std::optional<identifier> declaration;
   };
 
   struct scope {
@@ -158,7 +250,7 @@ class linter {
     return nullptr;
   }
 
-  std::vector<scope> scopes_{1};
+  std::vector<scope> scopes_;
   error_reporter *error_reporter_;
 };
 }  // namespace quick_lint_js

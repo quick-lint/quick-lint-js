@@ -62,6 +62,12 @@ class debug_error_reporter : public error_reporter {
                                 const char *file_path) noexcept
       : locator_(input), file_path_(file_path) {}
 
+  virtual void report_error_assignment_to_const_global_variable(
+      identifier assignment) override {
+    log_location(assignment);
+    std::cerr << "error: assignment to const global variable\n";
+  }
+
   void report_error_assignment_to_const_variable(identifier declaration,
                                                  identifier assignment,
                                                  variable_kind) override {
