@@ -71,6 +71,12 @@ class debug_error_reporter : public error_reporter {
     std::cerr << "note: const variable declared here\n";
   }
 
+  void report_error_assignment_to_undeclared_variable(
+      identifier assignment) override {
+    log_location(assignment);
+    std::cerr << "error: assignment to undeclared variable\n";
+  }
+
   void report_error_invalid_binding_in_let_statement(
       source_code_span where) override {
     log_location(where);

@@ -27,6 +27,8 @@ class error_reporter {
   virtual void report_error_assignment_to_const_variable(
       identifier declaration, identifier assignment,
       variable_kind var_kind) = 0;
+  virtual void report_error_assignment_to_undeclared_variable(
+      identifier assignment) = 0;
   virtual void report_error_invalid_binding_in_let_statement(
       source_code_span where) = 0;
   virtual void report_error_invalid_expression_left_of_assignment(
@@ -56,6 +58,7 @@ class null_error_reporter : public error_reporter {
 
   void report_error_assignment_to_const_variable(identifier, identifier,
                                                  variable_kind) override {}
+  void report_error_assignment_to_undeclared_variable(identifier) override {}
   void report_error_invalid_binding_in_let_statement(
       source_code_span) override {}
   void report_error_invalid_expression_left_of_assignment(

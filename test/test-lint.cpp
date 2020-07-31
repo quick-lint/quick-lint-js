@@ -241,5 +241,19 @@ TEST(test_lint, assign_to_immutable_variable) {
     EXPECT_EQ(v.errors[0].var_kind, kind);
   }
 }
+
+TEST(test_lint, assign_to_undeclared_variable) {
+  const char assignment[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_assignment_to_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), assignment);
+}
 }  // namespace
 }  // namespace quick_lint_js

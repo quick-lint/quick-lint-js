@@ -85,19 +85,24 @@ class linter {
 
   void visit_variable_assignment(identifier name) {
     const declared_variable *var = this->find_declared_variable(name);
-    switch (var->kind) {
-      case variable_kind::_const:
-      case variable_kind::_import:
-        this->error_reporter_->report_error_assignment_to_const_variable(
-            var->declaration, name, var->kind);
-        break;
-      case variable_kind::_catch:
-      case variable_kind::_class:
-      case variable_kind::_function:
-      case variable_kind::_let:
-      case variable_kind::_parameter:
-      case variable_kind::_var:
-        break;
+    if (var) {
+      switch (var->kind) {
+        case variable_kind::_const:
+        case variable_kind::_import:
+          this->error_reporter_->report_error_assignment_to_const_variable(
+              var->declaration, name, var->kind);
+          break;
+        case variable_kind::_catch:
+        case variable_kind::_class:
+        case variable_kind::_function:
+        case variable_kind::_let:
+        case variable_kind::_parameter:
+        case variable_kind::_var:
+          break;
+      }
+    } else {
+      this->error_reporter_->report_error_assignment_to_undeclared_variable(
+          name);
     }
   }
 
