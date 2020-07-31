@@ -346,9 +346,12 @@ expression_ptr parser::parse_template() {
 void parser::crash_on_unimplemented_token(const char *qljs_file_name,
                                           int qljs_line,
                                           const char *qljs_function_name) {
+  source_position token_position = this->locator().position(this->peek().begin);
   std::cerr << qljs_file_name << ":" << qljs_line
             << ": fatal: token not implemented in " << qljs_function_name
-            << ": " << this->peek().type << '\n';
+            << ": " << this->peek().type << " on line "
+            << token_position.line_number << " column "
+            << token_position.column_number << '\n';
   std::abort();
 }
 }  // namespace quick_lint_js
