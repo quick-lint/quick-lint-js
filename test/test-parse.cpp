@@ -188,9 +188,8 @@ TEST(test_parse,
   parser p("let x = x", &v);
   p.parse_and_visit_statement(v);
 
-  ASSERT_EQ(v.visits.size(), 2);
-  EXPECT_EQ(v.visits[0], "visit_variable_use");
-  EXPECT_EQ(v.visits[1], "visit_variable_declaration");
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                    "visit_variable_declaration"));
 
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, "x");
@@ -485,9 +484,8 @@ TEST(test_parse, parse_assignment) {
     ASSERT_EQ(v.variable_assignments.size(), 1);
     EXPECT_EQ(v.variable_assignments[0].name, "x");
 
-    ASSERT_EQ(v.visits.size(), 2);
-    EXPECT_EQ(v.visits[0], "visit_variable_use");
-    EXPECT_EQ(v.visits[1], "visit_variable_assignment");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                      "visit_variable_assignment"));
   }
 
   {
@@ -499,9 +497,8 @@ TEST(test_parse, parse_assignment) {
     ASSERT_EQ(v.variable_assignments.size(), 1);
     EXPECT_EQ(v.variable_assignments[0].name, "x");
 
-    ASSERT_EQ(v.visits.size(), 2);
-    EXPECT_EQ(v.visits[0], "visit_variable_use");
-    EXPECT_EQ(v.visits[1], "visit_variable_assignment");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                      "visit_variable_assignment"));
   }
 
   {
@@ -844,11 +841,10 @@ TEST(test_parse, parse_function_statement) {
     EXPECT_EQ(v.variable_declarations[1].name, "theta");
     EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
 
-    ASSERT_EQ(v.visits.size(), 4);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
-    EXPECT_EQ(v.visits[2], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[3], "visit_exit_function_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  //
+                                      "visit_exit_function_scope"));
   }
 
   {
@@ -860,12 +856,11 @@ TEST(test_parse, parse_function_statement) {
     EXPECT_EQ(v.variable_declarations[1].name, "base");
     EXPECT_EQ(v.variable_declarations[2].name, "exponent");
 
-    ASSERT_EQ(v.visits.size(), 5);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
-    EXPECT_EQ(v.visits[2], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[3], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[4], "visit_exit_function_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  //
+                                      "visit_variable_declaration",  //
+                                      "visit_exit_function_scope"));
   }
 
   {
@@ -879,13 +874,12 @@ TEST(test_parse, parse_function_statement) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "x");
 
-    ASSERT_EQ(v.visits.size(), 6);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");  // f
-    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
-    EXPECT_EQ(v.visits[2], "visit_variable_declaration");  // x
-    EXPECT_EQ(v.visits[3], "visit_variable_use");          // x
-    EXPECT_EQ(v.visits[4], "visit_variable_declaration");  // y
-    EXPECT_EQ(v.visits[5], "visit_exit_function_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_exit_function_scope"));
   }
 
   {
@@ -897,11 +891,10 @@ TEST(test_parse, parse_function_statement) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "x");
 
-    ASSERT_EQ(v.visits.size(), 4);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");  // f
-    EXPECT_EQ(v.visits[1], "visit_enter_function_scope");
-    EXPECT_EQ(v.visits[2], "visit_variable_use");  // x
-    EXPECT_EQ(v.visits[3], "visit_exit_function_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_use",          // x
+                                      "visit_exit_function_scope"));
   }
 }
 
@@ -974,9 +967,7 @@ TEST(test_parse, parse_empty_module) {
   parser p("", &v);
   p.parse_and_visit_module(v);
   EXPECT_THAT(v.errors, IsEmpty());
-
-  ASSERT_EQ(v.visits.size(), 1);
-  EXPECT_EQ(v.visits[0], "visit_end_of_module");
+  EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
 }
 
 TEST(test_parse, parse_class_statement) {
@@ -987,10 +978,9 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_EQ(v.variable_declarations[0].name, "C");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
 
-    ASSERT_EQ(v.visits.size(), 3);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[1], "visit_enter_class_scope");
-    EXPECT_EQ(v.visits[2], "visit_exit_class_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_class_scope",     //
+                                      "visit_exit_class_scope"));
   }
 
   {
@@ -1011,11 +1001,10 @@ TEST(test_parse, parse_class_statement) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, "Base");
 
-    ASSERT_EQ(v.visits.size(), 4);
-    EXPECT_EQ(v.visits[0], "visit_variable_use");
-    EXPECT_EQ(v.visits[1], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[2], "visit_enter_class_scope");
-    EXPECT_EQ(v.visits[3], "visit_exit_class_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          //
+                                      "visit_variable_declaration",  //
+                                      "visit_enter_class_scope",     //
+                                      "visit_exit_class_scope"));
   }
 
   {
@@ -1036,14 +1025,13 @@ TEST(test_parse, parse_class_statement) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, "eatMuffins");
 
-    ASSERT_EQ(v.visits.size(), 7);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[1], "visit_enter_class_scope");
-    EXPECT_EQ(v.visits[2], "visit_property_declaration");
-    EXPECT_EQ(v.visits[3], "visit_enter_function_scope");
-    EXPECT_EQ(v.visits[4], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[5], "visit_exit_function_scope");
-    EXPECT_EQ(v.visits[6], "visit_exit_class_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_class_scope",     //
+                                      "visit_property_declaration",  //
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  //
+                                      "visit_exit_function_scope",   //
+                                      "visit_exit_class_scope"));
   }
 
   {
@@ -1052,13 +1040,12 @@ TEST(test_parse, parse_class_statement) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, "m");
 
-    ASSERT_EQ(v.visits.size(), 6);
-    EXPECT_EQ(v.visits[0], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[1], "visit_enter_class_scope");
-    EXPECT_EQ(v.visits[2], "visit_property_declaration");
-    EXPECT_EQ(v.visits[3], "visit_enter_function_scope");
-    EXPECT_EQ(v.visits[4], "visit_exit_function_scope");
-    EXPECT_EQ(v.visits[5], "visit_exit_class_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_class_scope",     //
+                                      "visit_property_declaration",  //
+                                      "visit_enter_function_scope",  //
+                                      "visit_exit_function_scope",   //
+                                      "visit_exit_class_scope"));
   }
 
   {
@@ -1092,22 +1079,20 @@ TEST(test_parse, parse_class_statement) {
 TEST(test_parse, parse_and_visit_try) {
   {
     spy_visitor v = parse_and_visit_statement("try {} finally {}");
-    ASSERT_EQ(v.visits.size(), 4);
-    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[1], "visit_exit_block_scope");
-    EXPECT_EQ(v.visits[2], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[3], "visit_exit_block_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement("try {} catch (e) {}");
 
-    ASSERT_EQ(v.visits.size(), 5);
-    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[1], "visit_exit_block_scope");
-    EXPECT_EQ(v.visits[2], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[3], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[4], "visit_exit_block_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  //
+                                      "visit_exit_block_scope"));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "e");
@@ -1117,14 +1102,13 @@ TEST(test_parse, parse_and_visit_try) {
   {
     spy_visitor v = parse_and_visit_statement("try {} catch (e) {} finally {}");
 
-    ASSERT_EQ(v.visits.size(), 7);
-    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[1], "visit_exit_block_scope");
-    EXPECT_EQ(v.visits[2], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[3], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[4], "visit_exit_block_scope");
-    EXPECT_EQ(v.visits[5], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[6], "visit_exit_block_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "e");
@@ -1135,17 +1119,16 @@ TEST(test_parse, parse_and_visit_try) {
     spy_visitor v =
         parse_and_visit_statement("try {f();} catch (e) {g();} finally {h();}");
 
-    ASSERT_EQ(v.visits.size(), 10);
-    EXPECT_EQ(v.visits[0], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[1], "visit_variable_use");
-    EXPECT_EQ(v.visits[2], "visit_exit_block_scope");
-    EXPECT_EQ(v.visits[3], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[4], "visit_variable_declaration");
-    EXPECT_EQ(v.visits[5], "visit_variable_use");
-    EXPECT_EQ(v.visits[6], "visit_exit_block_scope");
-    EXPECT_EQ(v.visits[7], "visit_enter_block_scope");
-    EXPECT_EQ(v.visits[8], "visit_variable_use");
-    EXPECT_EQ(v.visits[9], "visit_exit_block_scope");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_variable_use",          //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  //
+                                      "visit_variable_use",          //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_use",          //
+                                      "visit_exit_block_scope"));
 
     ASSERT_EQ(v.variable_uses.size(), 3);
     EXPECT_EQ(v.variable_uses[0].name, "f");
