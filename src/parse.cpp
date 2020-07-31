@@ -254,6 +254,7 @@ next:
               ->report_error_invalid_expression_left_of_assignment(lhs->span());
           break;
         case expression_kind::dot:
+        case expression_kind::index:
         case expression_kind::variable:
           break;
       }
@@ -280,6 +281,16 @@ next:
           break;
       }
       break;
+    }
+
+    case token_type::left_square: {
+      this->lexer_.skip();
+      expression_ptr subscript = this->parse_expression();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+      children.back() = this->make_expression<expression_kind::index>(
+          children.back(), subscript, this->peek().end);
+      this->lexer_.skip();
+      goto next;
     }
 
     case token_type::minus_minus:
@@ -312,6 +323,7 @@ next:
     case token_type::left_curly:
     case token_type::right_curly:
     case token_type::right_paren:
+    case token_type::right_square:
     case token_type::semicolon:
     semicolon:
       break;

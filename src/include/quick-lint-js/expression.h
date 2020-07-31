@@ -60,6 +60,7 @@ enum class expression_kind {
   call,
   dot,
   function,
+  index,
   literal,
   named_function,
   rw_unary_prefix,
@@ -125,6 +126,13 @@ class expression {
       : kind_(expression_kind::function),
         span_(span),
         child_visits_(std::move(child_visits)) {}
+
+  explicit expression(tag<expression_kind::index>, expression_ptr container,
+                      expression_ptr subscript,
+                      const char *subscript_end) noexcept
+      : kind_(expression_kind::index),
+        index_subscript_end_(subscript_end),
+        children_{container, subscript} {}
 
   explicit expression(tag<expression_kind::literal>,
                       source_code_span span) noexcept
@@ -249,6 +257,9 @@ class expression {
       case expression_kind::dot:
         return source_code_span(this->child_0()->span().begin(),
                                 this->variable_identifier_.span().end());
+      case expression_kind::index:
+        return source_code_span(this->child_0()->span().begin(),
+                                this->index_subscript_end_);
       case expression_kind::await:
       case expression_kind::rw_unary_prefix:
       case expression_kind::unary_operator:
@@ -270,6 +281,8 @@ class expression {
     static_assert(std::is_trivially_destructible_v<identifier>);
 
     const char *call_right_paren_end_;  // call
+
+    const char *index_subscript_end_;  // index
 
     const char
         *unary_operator_begin_;  // await, rw_unary_prefix, unary_operator

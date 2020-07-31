@@ -577,6 +577,19 @@ TEST(test_parse, parse_assignment) {
     EXPECT_EQ(v.variable_assignments[0].name, "y");
     EXPECT_EQ(v.variable_assignments[1].name, "x");
   }
+
+  {
+    visitor v;
+    parser p("xs[i] = j", &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.variable_assignments, IsEmpty());
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"xs"},  //
+                            visitor::visited_variable_use{"i"},   //
+                            visitor::visited_variable_use{"j"}));
+  }
 }
 
 TEST(test_parse, parse_updating_assignment) {
@@ -638,6 +651,21 @@ TEST(test_parse, parse_plusplus_minusminus) {
                 ElementsAre(visitor::visited_variable_assignment{"y"}));
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use", "visit_variable_assignment"));
+  }
+}
+
+TEST(test_parse, parse_array_subscript) {
+  {
+    visitor v;
+    parser p("array[index]", &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use", "visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"array"},
+                            visitor::visited_variable_use{"index"}));
   }
 }
 

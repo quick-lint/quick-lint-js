@@ -366,6 +366,19 @@ TEST(test_parse_expression, parse_dot_expressions) {
   }
 }
 
+TEST(test_parse_expression, parse_indexing_expression) {
+  {
+    test_parser p("xs[i]");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::index);
+    EXPECT_EQ(summarize(ast->child_0()), "var xs");
+    EXPECT_EQ(summarize(ast->child_1()), "var i");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 5);
+  }
+}
+
 TEST(test_parse_expression, parse_parenthesized_expression) {
   {
     test_parser p("(x)");
@@ -734,6 +747,8 @@ std::string summarize(const expression &expression) {
              std::string(expression.variable_identifier().string_view()) + ")";
     case expression_kind::function:
       return "function";
+    case expression_kind::index:
+      return "index(" + children() + ")";
     case expression_kind::literal:
       return "literal";
     case expression_kind::named_function:

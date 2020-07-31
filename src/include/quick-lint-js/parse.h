@@ -198,6 +198,10 @@ class parser {
       case expression_kind::dot:
         this->visit_expression(ast->child_0(), v, variable_context::rhs);
         break;
+      case expression_kind::index:
+        this->visit_expression(ast->child_0(), v, variable_context::rhs);
+        this->visit_expression(ast->child_1(), v, variable_context::rhs);
+        break;
       case expression_kind::rw_unary_prefix:
       case expression_kind::rw_unary_suffix: {
         expression_ptr child = ast->child_0();
