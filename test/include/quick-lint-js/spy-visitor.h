@@ -22,7 +22,6 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <string_view>
-#include <tuple>
 #include <vector>
 
 // HACK(strager): Improve formatting of googletest diagnostics.
@@ -138,8 +137,7 @@ struct spy_visitor : public error_collector {
     variable_kind kind;
 
     bool operator==(const visited_variable_declaration &other) const {
-      return std::tie(this->name, this->kind) ==
-             std::tie(other.name, other.kind);
+      return this->name == other.name && this->kind == other.kind;
     }
 
     bool operator!=(const visited_variable_declaration &other) const {
