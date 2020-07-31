@@ -44,6 +44,9 @@ expression_ptr parser::parse_expression(precedence prec) {
       }
       return this->parse_expression_remainder(ast, prec);
     }
+
+    case token_type::_null:
+    case token_type::_this:
     case token_type::complete_template:
     case token_type::number:
     case token_type::string: {
@@ -55,6 +58,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       }
       return this->parse_expression_remainder(ast, prec);
     }
+
     case token_type::incomplete_template:
       return this->parse_template();
     case token_type::_await: {
