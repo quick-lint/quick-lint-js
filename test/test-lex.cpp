@@ -50,6 +50,14 @@ TEST(test_lex, lex_block_comments) {
   }
 }
 
+TEST(test_lex, lex_line_comments) {
+  check_single_token("// hello", token_type::end_of_file);
+  check_single_token("// hello\nworld", "world");
+  check_single_token("// hello\n// world", token_type::end_of_file);
+  check_tokens("hello//*/\n \n \nworld",
+               {token_type::identifier, token_type::identifier});
+}
+
 TEST(test_lex, lex_numbers) {
   check_single_token("0", token_type::number);
   check_single_token("2", token_type::number);

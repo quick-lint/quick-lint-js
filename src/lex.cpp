@@ -350,7 +350,10 @@ retry:
         this->last_token_.type = token_type::slash_equal;
         this->input_ += 2;
       } else if (this->input_[1] == '*') {
-        this->skip_comment();
+        this->skip_block_comment();
+        goto retry;
+      } else if (this->input_[1] == '/') {
+        this->skip_line_comment();
         goto retry;
       } else {
         this->last_token_.type = token_type::slash;
@@ -536,7 +539,7 @@ void lexer::skip_whitespace() {
   }
 }
 
-void lexer::skip_comment() {
+void lexer::skip_block_comment() {
   assert(this->input_[0] == '/' && this->input_[1] == '*');
 
   const char* comment_end = std::strstr(this->input_ + 2, "*/");
@@ -554,6 +557,17 @@ void lexer::skip_comment() {
 
   this->input_ = comment_end + 2;
   this->skip_whitespace();
+}
+
+void lexer::skip_line_comment() {
+  assert(this->input_[0] == '/' && this->input_[1] == '/');
+  const char* comment_end = std::strchr(this->input_ + 2, '\n');
+  if (comment_end == nullptr) {
+    this->input_ += std::strlen(this->input_);
+  } else {
+    this->input_ = comment_end + 1;
+    this->skip_whitespace();
+  }
 }
 
 bool lexer::is_digit(char c) {
