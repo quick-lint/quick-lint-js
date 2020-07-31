@@ -21,7 +21,6 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/parse.h>
 #include <type_traits>
 #include <vector>
 
