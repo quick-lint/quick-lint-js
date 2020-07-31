@@ -362,6 +362,18 @@ TEST(test_parse, return_statement) {
   }
 }
 
+TEST(test_parse, throw_statement) {
+  {
+    visitor v;
+    parser p("throw new Error('ouch');", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"Error"}));
+  }
+}
+
 TEST(test_parse, parse_math_expression) {
   for (const char *input :
        {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {

@@ -101,6 +101,7 @@ class parser {
         break;
 
       case token_type::_return:
+      case token_type::_throw:
         this->lexer_.skip();
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
