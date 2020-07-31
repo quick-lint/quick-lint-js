@@ -65,6 +65,7 @@ enum class expression_kind {
   rw_unary_prefix,
   rw_unary_suffix,
   unary_operator,
+  updating_assignment,
   variable,
 };
 
@@ -158,6 +159,10 @@ class expression {
         unary_operator_begin_(operator_span.begin()),
         children_{child} {}
 
+  explicit expression(tag<expression_kind::updating_assignment>,
+                      expression_ptr lhs, expression_ptr rhs) noexcept
+      : kind_(expression_kind::updating_assignment), children_{lhs, rhs} {}
+
   explicit expression(tag<expression_kind::variable>,
                       identifier variable_identifier) noexcept
       : kind_(expression_kind::variable),
@@ -185,6 +190,7 @@ class expression {
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::call:
+      case expression_kind::updating_assignment:
         break;
       default:
         assert(false);
@@ -234,6 +240,7 @@ class expression {
         return this->span_;
       case expression_kind::assignment:
       case expression_kind::binary_operator:
+      case expression_kind::updating_assignment:
         return source_code_span(this->children_.front()->span().begin(),
                                 this->children_.back()->span().end());
       case expression_kind::call:

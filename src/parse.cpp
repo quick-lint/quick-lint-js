@@ -240,7 +240,9 @@ next:
       goto next;
     }
 
-    case token_type::equal: {
+    case token_type::equal:
+    case token_type::plus_equal: {
+      bool is_plain_assignment = this->peek().type == token_type::equal;
       this->lexer_.skip();
       expression_ptr lhs = build_expression();
       switch (lhs->kind()) {
@@ -253,7 +255,12 @@ next:
           break;
       }
       expression_ptr rhs = this->parse_expression(precedence{.commas = false});
-      return this->make_expression<expression_kind::assignment>(lhs, rhs);
+      if (is_plain_assignment) {
+        return this->make_expression<expression_kind::assignment>(lhs, rhs);
+      } else {
+        return this->make_expression<expression_kind::updating_assignment>(lhs,
+                                                                           rhs);
+      }
     }
 
     case token_type::dot: {

@@ -579,6 +579,38 @@ TEST(test_parse, parse_assignment) {
   }
 }
 
+TEST(test_parse, parse_updating_assignment) {
+  {
+    visitor v;
+    parser p("x += y", &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                      "visit_variable_use",  //
+                                      "visit_variable_assignment"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"x"},  //
+                            visitor::visited_variable_use{"y"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(visitor::visited_variable_assignment{"x"}));
+  }
+
+  {
+    visitor v;
+    parser p("x.p += y", &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                      "visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"x"},  //
+                            visitor::visited_variable_use{"y"}));
+    EXPECT_THAT(v.variable_assignments, IsEmpty());
+  }
+}
+
 TEST(test_parse, parse_plusplus_minusminus) {
   {
     visitor v;

@@ -185,6 +185,12 @@ class parser {
         this->visit_assignment_expression(lhs, rhs, v);
         break;
       }
+      case expression_kind::updating_assignment: {
+        expression_ptr lhs = ast->child_0();
+        expression_ptr rhs = ast->child_1();
+        this->visit_updating_assignment_expression(lhs, rhs, v);
+        break;
+      }
       case expression_kind::await:
       case expression_kind::unary_operator:
         this->visit_expression(ast->child_0(), v, context);
@@ -225,6 +231,14 @@ class parser {
   void visit_assignment_expression(expression_ptr lhs, expression_ptr rhs,
                                    Visitor &v) {
     this->visit_expression(lhs, v, variable_context::lhs);
+    this->visit_expression(rhs, v, variable_context::rhs);
+    this->maybe_visit_assignment(lhs, v);
+  }
+
+  template <class Visitor>
+  void visit_updating_assignment_expression(expression_ptr lhs,
+                                            expression_ptr rhs, Visitor &v) {
+    this->visit_expression(lhs, v, variable_context::rhs);
     this->visit_expression(rhs, v, variable_context::rhs);
     this->maybe_visit_assignment(lhs, v);
   }

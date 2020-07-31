@@ -457,6 +457,19 @@ TEST(test_parse_expression, parse_assignment) {
   }
 }
 
+TEST(test_parse_expression, parse_updating_assignment) {
+  {
+    test_parser p("x += y");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::updating_assignment);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_EQ(summarize(ast->child_1()), "var y");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 6);
+  }
+}
+
 TEST(test_parse_expression, parse_invalid_assignment) {
   {
     test_parser p("x+y=z");
@@ -698,6 +711,8 @@ std::string summarize(const expression &expression) {
       return "rwunarysuffix(" + summarize(expression.child_0()) + ")";
     case expression_kind::unary_operator:
       return "unary(" + summarize(expression.child_0()) + ")";
+    case expression_kind::updating_assignment:
+      return "upassign(" + children() + ")";
     case expression_kind::variable:
       return std::string("var ") +
              std::string(expression.variable_identifier().string_view());
