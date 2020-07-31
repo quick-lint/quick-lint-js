@@ -70,6 +70,7 @@ expression_ptr parser::parse_expression(precedence prec) {
           prec);
     }
 
+    case token_type::_typeof:
     case token_type::minus:
     case token_type::plus: {
       source_code_span operator_span = this->peek().span();

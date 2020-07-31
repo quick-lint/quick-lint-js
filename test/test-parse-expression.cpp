@@ -278,6 +278,22 @@ TEST(test_parse_expression, parse_keyword_binary_operators) {
   }
 }
 
+TEST(test_parse_expression, parse_typeof_unary_operator) {
+  {
+    test_parser p("typeof o");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "unary(var o)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("typeof o === 'number'");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(unary(var o), literal)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_function_call) {
   {
     test_parser p("f()");
