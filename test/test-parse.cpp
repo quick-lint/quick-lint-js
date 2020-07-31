@@ -1599,5 +1599,34 @@ TEST(test_parse, for_of_loop) {
                             visitor::visited_variable_use{"body"}));
   }
 }
+
+TEST(test_parse, block_statement) {
+  {
+    visitor v;
+    parser p("{ }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    visitor v;
+    parser p("{ first; second; third; }", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       //
+                                      "visit_variable_use",       //
+                                      "visit_variable_use",       //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"first"},   //
+                            visitor::visited_variable_use{"second"},  //
+                            visitor::visited_variable_use{"third"}));
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

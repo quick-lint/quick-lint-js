@@ -128,13 +128,17 @@ class parser {
       case token_type::left_curly:
         this->lexer_.skip();
         v.visit_enter_block_scope();
-
-        this->parse_and_visit_statement(v);
-
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-        this->lexer_.skip();
+        for (;;) {
+          this->parse_and_visit_statement(v);
+          if (this->peek().type == token_type::right_curly) {
+            this->lexer_.skip();
+            break;
+          }
+          if (this->peek().type == token_type::end_of_file) {
+            QLJS_PARSER_UNIMPLEMENTED();
+          }
+        }
         v.visit_exit_block_scope();
-
         break;
 
       case token_type::right_curly:
