@@ -17,6 +17,7 @@
 #ifndef QUICK_LINT_JS_ERROR_COLLECTOR_H
 #define QUICK_LINT_JS_ERROR_COLLECTOR_H
 
+#include <iosfwd>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -148,6 +149,8 @@ struct error_collector : public error_reporter {
   };
   std::vector<error> errors;
 };
+
+void PrintTo(const error_collector::error &, std::ostream *);
 }  // namespace quick_lint_js
 
 #endif

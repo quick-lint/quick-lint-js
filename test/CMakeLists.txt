@@ -18,6 +18,8 @@ cmake_minimum_required(VERSION 3.10)
 
 add_executable(
   quick-lint-js-test
+  error-collector.cpp
+  spy-visitor.cpp
   test-buffering-visitor.cpp
   test-lex.cpp
   test-lint.cpp
