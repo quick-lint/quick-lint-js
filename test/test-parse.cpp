@@ -324,6 +324,44 @@ TEST(test_parse, parse_and_visit_import) {
   }
 }
 
+TEST(test_parse, return_statement) {
+  {
+    visitor v;
+    parser p("return a;", &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"a"}));
+  }
+
+  {
+    visitor v;
+    parser p("return a\nreturn b", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use", "visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"a"},
+                            visitor::visited_variable_use{"b"}));
+  }
+
+  {
+    visitor v;
+    parser p("return a; return b;", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use", "visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(visitor::visited_variable_use{"a"},
+                            visitor::visited_variable_use{"b"}));
+  }
+}
+
 TEST(test_parse, parse_math_expression) {
   for (const char *input :
        {"2", "2+2", "2^2", "2 + + 2", "2 * (3 + 4)", "1+1+1+1+1"}) {

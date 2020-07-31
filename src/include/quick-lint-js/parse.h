@@ -93,27 +93,7 @@ class parser {
       case token_type::minus_minus:
       case token_type::plus_plus:
         this->parse_and_visit_expression(v);
-
-        switch (this->peek().type) {
-          case token_type::semicolon:
-            this->lexer_.skip();
-            break;
-          case token_type::end_of_file:
-          case token_type::right_curly:
-            // Automatically insert a semicolon, then consume it.
-            break;
-          default:
-            if (this->peek().has_leading_newline) {
-              // Automatically insert a semicolon, then consume it.
-            } else {
-              this->lexer_.insert_semicolon();
-              this->error_reporter_
-                  ->report_error_missing_semicolon_after_expression(
-                      this->peek().span());
-              this->lexer_.skip();
-            }
-            break;
-        }
+        this->consume_semicolon();
         break;
 
       case token_type::_class:
@@ -123,6 +103,7 @@ class parser {
       case token_type::_return:
         this->lexer_.skip();
         this->parse_and_visit_expression(v);
+        this->consume_semicolon();
         break;
 
       case token_type::_try:
@@ -806,6 +787,8 @@ class parser {
   expression_ptr parse_expression_remainder(expression_ptr, precedence);
 
   expression_ptr parse_template();
+
+  void consume_semicolon();
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
 
