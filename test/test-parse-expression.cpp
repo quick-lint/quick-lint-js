@@ -96,6 +96,24 @@ TEST(test_parse_expression, parse_single_token_expression) {
   }
 
   {
+    test_parser p("true");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::literal);
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 4);
+  }
+
+  {
+    test_parser p("false");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::literal);
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 5);
+  }
+
+  {
     test_parser p("this");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
