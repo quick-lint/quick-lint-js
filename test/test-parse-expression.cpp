@@ -278,6 +278,13 @@ TEST(test_parse_expression, parse_logical_expression) {
     EXPECT_EQ(summarize(ast), "binary(literal, literal)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p("!x");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "unary(var x)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST(test_parse_expression, parse_keyword_binary_operators) {
