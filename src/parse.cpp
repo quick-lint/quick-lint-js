@@ -107,12 +107,27 @@ expression_ptr parser::parse_expression(precedence prec) {
         if (this->peek().type == token_type::equal_greater) {
           this->lexer_.skip();
           // Arrow function: () => expression-or-block
-          expression_ptr body =
-              this->parse_expression(precedence{.commas = false});
-          expression_ptr ast = this->make_expression<
-              expression_kind::arrow_function_with_expression>(
-              body, left_paren_span.begin());
-          return this->parse_expression_remainder(ast, prec);
+          std::optional<expression_ptr> ast;
+          if (this->peek().type == token_type::left_curly) {
+            std::unique_ptr<buffering_visitor> v =
+                std::make_unique<buffering_visitor>();
+            this->parse_and_visit_statement_block_no_scope(*v);
+            // TODO(strager): The span should stop at the end of the }, not at
+            // the beginning of the following token.
+            const char *span_end = this->peek().begin;
+            ast = this->make_expression<
+                expression_kind::arrow_function_with_statements>(
+                std::move(v),
+                source_code_span(left_paren_span.begin(), span_end));
+          } else {
+            expression_ptr body =
+                this->parse_expression(precedence{.commas = false});
+            ast = this->make_expression<
+                expression_kind::arrow_function_with_expression>(
+                body, left_paren_span.begin());
+          }
+          assert(ast.has_value());
+          return this->parse_expression_remainder(*ast, prec);
         } else {
           QLJS_PARSER_UNIMPLEMENTED();
         }
@@ -364,6 +379,8 @@ next:
 
     // Arrow function: (parameters, go, here) => expression-or-block
     case token_type::equal_greater: {
+      const char *left_paren_begin = this->peek().begin;  // FIXME(strager)
+
       this->lexer_.skip();
       if (children.size() != 1) {
         assert(false && "Not yet implemented");
@@ -385,10 +402,28 @@ next:
           assert(false && "Not yet implemented");
           break;
       }
-      expression_ptr body = this->parse_expression(precedence{.commas = false});
-      children.back() = this->make_expression<
-          expression_kind::arrow_function_with_expression>(
-          std::move(parameters), body);
+
+      std::optional<expression_ptr> ast;
+      if (this->peek().type == token_type::left_curly) {
+        std::unique_ptr<buffering_visitor> v =
+            std::make_unique<buffering_visitor>();
+        this->parse_and_visit_statement_block_no_scope(*v);
+        // TODO(strager): The span should stop at the end of the }, not at the
+        // beginning of the following token.
+        const char *span_end = this->peek().begin;
+        ast = this->make_expression<
+            expression_kind::arrow_function_with_statements>(
+            std::move(parameters), std::move(v),
+            source_code_span(left_paren_begin, span_end));
+      } else {
+        expression_ptr body =
+            this->parse_expression(precedence{.commas = false});
+        ast = this->make_expression<
+            expression_kind::arrow_function_with_expression>(
+            std::move(parameters), body);
+      }
+      assert(ast.has_value());
+      children.back() = *ast;
       goto next;
     }
 

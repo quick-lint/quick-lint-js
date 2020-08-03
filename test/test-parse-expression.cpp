@@ -736,7 +736,7 @@ TEST(test_parse_expression, parse_function_expression) {
   }
 }
 
-TEST(test_parse_expression, arrow_function) {
+TEST(test_parse_expression, arrow_function_with_expression) {
   {
     test_parser p("() => a");
     expression_ptr ast = p.parse_expression();
@@ -798,6 +798,29 @@ TEST(test_parse_expression, arrow_function) {
   }
 }
 
+TEST(test_parse_expression, arrow_function_with_statements) {
+  {
+    test_parser p("() => { a; }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 12);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("a => { b; }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(summarize(ast->child(0)), "var a");
+    // TODO(strager): Implement begin_offset.
+    EXPECT_EQ(p.range(ast).end_offset(), 11);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_mixed_expression) {
   {
     test_parser p("a+f()");
@@ -847,6 +870,8 @@ std::string summarize(const expression &expression) {
       return "array(" + children() + ")";
     case expression_kind::arrow_function_with_expression:
       return "arrowexpr(" + children() + ")";
+    case expression_kind::arrow_function_with_statements:
+      return "arrowblock(" + children() + ")";
     case expression_kind::assignment:
       return "assign(" + children() + ")";
     case expression_kind::await:

@@ -56,6 +56,7 @@ enum class expression_kind {
   _template,
   array,
   arrow_function_with_expression,
+  arrow_function_with_statements,
   assignment,
   await,
   binary_operator,
@@ -116,6 +117,23 @@ class expression {
       : kind_(expression_kind::arrow_function_with_expression),
         parameter_list_begin_(parameter_list_begin),
         children_{body} {}
+
+  explicit expression(tag<expression_kind::arrow_function_with_statements>,
+                      std::unique_ptr<buffering_visitor> &&child_visits,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::arrow_function_with_statements),
+        span_(span),
+        children_(),
+        child_visits_(std::move(child_visits)) {}
+
+  explicit expression(tag<expression_kind::arrow_function_with_statements>,
+                      std::vector<expression_ptr> &&parameters,
+                      std::unique_ptr<buffering_visitor> &&child_visits,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::arrow_function_with_statements),
+        span_(span),
+        children_(std::move(parameters)),
+        child_visits_(std::move(child_visits)) {}
 
   explicit expression(tag<expression_kind::assignment>, expression_ptr lhs,
                       expression_ptr rhs) noexcept
@@ -222,6 +240,7 @@ class expression {
       case expression_kind::_template:
       case expression_kind::array:
       case expression_kind::arrow_function_with_expression:
+      case expression_kind::arrow_function_with_statements:
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::call:
@@ -248,6 +267,7 @@ class expression {
   template <class Visitor>
   void visit_children(Visitor &v) {
     switch (this->kind_) {
+      case expression_kind::arrow_function_with_statements:
       case expression_kind::function:
       case expression_kind::named_function:
         break;
@@ -270,6 +290,7 @@ class expression {
       case expression_kind::_new:
       case expression_kind::_template:
       case expression_kind::array:
+      case expression_kind::arrow_function_with_statements:
       case expression_kind::function:
       case expression_kind::literal:
       case expression_kind::named_function:
@@ -326,12 +347,15 @@ class expression {
     const char *unary_operator_end_;  // rw_unary_suffix
   };
   union {
-    // _new, _template, array, function, literal, named_function
+    // _new, _template, array, arrow_function_with_statements, function,
+    // literal, named_function
     source_code_span span_;
     static_assert(std::is_trivially_destructible_v<source_code_span>);
   };
   std::vector<expression_ptr> children_;
-  std::unique_ptr<buffering_visitor> child_visits_;  // function, named_function
+
+  // arrow_function_with_statements, function, named_function
+  std::unique_ptr<buffering_visitor> child_visits_;
 };
 
 class expression_arena {
