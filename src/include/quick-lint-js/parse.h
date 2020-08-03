@@ -126,18 +126,8 @@ class parser {
         break;
 
       case token_type::left_curly:
-        this->lexer_.skip();
         v.visit_enter_block_scope();
-        for (;;) {
-          this->parse_and_visit_statement(v);
-          if (this->peek().type == token_type::right_curly) {
-            this->lexer_.skip();
-            break;
-          }
-          if (this->peek().type == token_type::end_of_file) {
-            QLJS_PARSER_UNIMPLEMENTED();
-          }
-        }
+        this->parse_and_visit_statement_block_no_scope(v);
         v.visit_exit_block_scope();
         break;
 
@@ -314,6 +304,22 @@ class parser {
   }
 
   template <class Visitor>
+  void parse_and_visit_statement_block_no_scope(Visitor &v) {
+    assert(this->peek().type == token_type::left_curly);
+    this->lexer_.skip();
+    for (;;) {
+      this->parse_and_visit_statement(v);
+      if (this->peek().type == token_type::right_curly) {
+        this->lexer_.skip();
+        break;
+      }
+      if (this->peek().type == token_type::end_of_file) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+    }
+  }
+
+  template <class Visitor>
   void parse_and_visit_function_declaration(Visitor &v) {
     assert(this->peek().type == token_type::_function);
     this->lexer_.skip();
@@ -373,19 +379,7 @@ class parser {
     }
     this->lexer_.skip();
 
-    if (this->peek().type != token_type::left_curly) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    this->lexer_.skip();
-
-    while (this->peek().type != token_type::right_curly) {
-      this->parse_and_visit_statement(v);
-    }
-
-    if (this->peek().type != token_type::right_curly) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    this->lexer_.skip();
+    this->parse_and_visit_statement_block_no_scope(v);
   }
 
   template <class Visitor>
@@ -480,14 +474,8 @@ class parser {
     assert(this->peek().type == token_type::_try);
     this->lexer_.skip();
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
-    this->lexer_.skip();
     v.visit_enter_block_scope();
-
-    this->parse_and_visit_statement(v);
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-    this->lexer_.skip();
+    this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
 
     if (this->peek().type == token_type::_catch) {
@@ -505,26 +493,14 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
       this->lexer_.skip();
 
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
-      this->lexer_.skip();
-
-      this->parse_and_visit_statement(v);
-
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-      this->lexer_.skip();
+      this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
     }
     if (this->peek().type == token_type::_finally) {
       this->lexer_.skip();
 
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
-      this->lexer_.skip();
       v.visit_enter_block_scope();
-
-      this->parse_and_visit_statement(v);
-
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-      this->lexer_.skip();
+      this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
     }
   }
