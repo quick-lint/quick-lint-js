@@ -541,6 +541,32 @@ TEST(test_parse, parse_assignment) {
                             spy_visitor::visited_variable_use{"i"},   //
                             spy_visitor::visited_variable_use{"j"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_expression("{x: y} = z");
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{"y"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"z"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression("{[x]: y} = z");
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{"y"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"x"},  //
+                            spy_visitor::visited_variable_use{"z"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression("{k1: {k2: x, k3: y}} = z");
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{"x"},  //
+                            spy_visitor::visited_variable_assignment{"y"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"z"}));
+  }
 }
 
 TEST(test_parse, parse_updating_assignment) {

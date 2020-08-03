@@ -191,7 +191,6 @@ class parser {
       case expression_kind::array:
       case expression_kind::binary_operator:
       case expression_kind::call:
-      case expression_kind::object:
         visit_children();
         break;
       case expression_kind::arrow_function_with_expression: {
@@ -231,6 +230,15 @@ class parser {
       case expression_kind::index:
         this->visit_expression(ast->child_0(), v, variable_context::rhs);
         this->visit_expression(ast->child_1(), v, variable_context::rhs);
+        break;
+      case expression_kind::object:
+        assert(ast->child_count() % 2 == 0);
+        for (int i = 0; i < ast->child_count(); i += 2) {
+          expression_ptr key = ast->child(i + 0);
+          expression_ptr value = ast->child(i + 1);
+          this->visit_expression(key, v, variable_context::rhs);
+          this->visit_expression(value, v, context);
+        }
         break;
       case expression_kind::rw_unary_prefix:
       case expression_kind::rw_unary_suffix: {
@@ -280,6 +288,13 @@ class parser {
   template <class Visitor>
   void maybe_visit_assignment(expression_ptr ast, Visitor &v) {
     switch (ast->kind()) {
+      case expression_kind::object:
+        assert(ast->child_count() % 2 == 0);
+        for (int i = 0; i < ast->child_count(); i += 2) {
+          expression_ptr value = ast->child(i + 1);
+          this->maybe_visit_assignment(value, v);
+        }
+        break;
       case expression_kind::variable:
         v.visit_variable_assignment(ast->variable_identifier());
         break;

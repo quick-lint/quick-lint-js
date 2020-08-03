@@ -303,6 +303,7 @@ next:
           break;
         case expression_kind::dot:
         case expression_kind::index:
+        case expression_kind::object:
         case expression_kind::variable:
           break;
       }
