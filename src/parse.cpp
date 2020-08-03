@@ -464,25 +464,33 @@ expression_ptr parser::parse_object_literal() {
         assert(false);
         break;
 
-      case token_type::identifier: {
+      case token_type::identifier:
+      case token_type::string: {
         expression_ptr key = this->make_expression<expression_kind::literal>(
             this->peek().span());
         children.emplace_back(key);
         this->lexer_.skip();
-
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
-        this->lexer_.skip();
-
-        expression_ptr value =
-            this->parse_expression(precedence{.commas = false});
-        children.emplace_back(value);
         break;
       }
 
+      case token_type::left_square: {
+        this->lexer_.skip();
+        expression_ptr key = this->parse_expression();
+        children.emplace_back(key);
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+        this->lexer_.skip();
+        break;
+      }
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+    this->lexer_.skip();
+
+    expression_ptr value = this->parse_expression(precedence{.commas = false});
+    children.emplace_back(value);
   }
   return this->make_expression<expression_kind::object>(
       std::move(children), source_code_span(left_curly_begin, right_curly_end));
