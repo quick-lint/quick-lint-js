@@ -18,6 +18,11 @@
 #include <quick-lint-js/spy-visitor.h>
 
 namespace quick_lint_js {
+void PrintTo(const spy_visitor::visited_variable_assignment &x,
+             std::ostream *out) {
+  *out << x.name;
+}
+
 void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {
   *out << x.name;
 }
