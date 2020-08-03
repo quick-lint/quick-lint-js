@@ -104,9 +104,10 @@ class expression {
 
   explicit expression(tag<expression_kind::arrow_function_with_expression>,
                       std::vector<expression_ptr> &&parameters,
-                      expression_ptr body) noexcept
+                      expression_ptr body,
+                      const char *parameter_list_begin) noexcept
       : kind_(expression_kind::arrow_function_with_expression),
-        parameter_list_begin_(nullptr),
+        parameter_list_begin_(parameter_list_begin),
         children_(std::move(parameters)) {
     this->children_.emplace_back(body);
   }
@@ -296,9 +297,7 @@ class expression {
       case expression_kind::named_function:
         return this->span_;
       case expression_kind::arrow_function_with_expression:
-        return source_code_span(this->parameter_list_begin_
-                                    ? this->parameter_list_begin_
-                                    : this->children_.front()->span().begin(),
+        return source_code_span(this->parameter_list_begin_,
                                 this->children_.back()->span().end());
       case expression_kind::assignment:
       case expression_kind::binary_operator:

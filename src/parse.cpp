@@ -420,7 +420,7 @@ next:
             this->parse_expression(precedence{.commas = false});
         ast = this->make_expression<
             expression_kind::arrow_function_with_expression>(
-            std::move(parameters), body);
+            std::move(parameters), body, left_paren_begin);
       }
       assert(ast.has_value());
       children.back() = *ast;
