@@ -54,6 +54,7 @@ enum class expression_kind {
   _invalid,
   _new,
   _template,
+  arrow_function_with_expression,
   assignment,
   await,
   binary_operator,
@@ -91,6 +92,22 @@ class expression {
       : kind_(expression_kind::_template),
         span_(span),
         children_(std::move(children)) {}
+
+  explicit expression(tag<expression_kind::arrow_function_with_expression>,
+                      std::vector<expression_ptr> &&parameters,
+                      expression_ptr body) noexcept
+      : kind_(expression_kind::arrow_function_with_expression),
+        parameter_list_begin_(nullptr),
+        children_(std::move(parameters)) {
+    this->children_.emplace_back(body);
+  }
+
+  explicit expression(tag<expression_kind::arrow_function_with_expression>,
+                      expression_ptr body,
+                      const char *parameter_list_begin) noexcept
+      : kind_(expression_kind::arrow_function_with_expression),
+        parameter_list_begin_(parameter_list_begin),
+        children_{body} {}
 
   explicit expression(tag<expression_kind::assignment>, expression_ptr lhs,
                       expression_ptr rhs) noexcept
@@ -195,6 +212,7 @@ class expression {
     switch (this->kind_) {
       case expression_kind::_new:
       case expression_kind::_template:
+      case expression_kind::arrow_function_with_expression:
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::call:
@@ -246,6 +264,11 @@ class expression {
       case expression_kind::literal:
       case expression_kind::named_function:
         return this->span_;
+      case expression_kind::arrow_function_with_expression:
+        return source_code_span(this->parameter_list_begin_
+                                    ? this->parameter_list_begin_
+                                    : this->children_.front()->span().begin(),
+                                this->children_.back()->span().end());
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::updating_assignment:
@@ -283,6 +306,9 @@ class expression {
     const char *call_right_paren_end_;  // call
 
     const char *index_subscript_end_;  // index
+
+    // arrow_function_with_expression (optional)
+    const char *parameter_list_begin_;
 
     const char
         *unary_operator_begin_;  // await, rw_unary_prefix, unary_operator

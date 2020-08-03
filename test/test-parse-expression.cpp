@@ -698,6 +698,68 @@ TEST(test_parse_expression, parse_function_expression) {
   }
 }
 
+TEST(test_parse_expression, arrow_function) {
+  {
+    test_parser p("() => a");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(summarize(ast->child_0()), "var a");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 7);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("a => b");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "var a");
+    EXPECT_EQ(summarize(ast->child(1)), "var b");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 6);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("(a) => b");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "var a");
+    EXPECT_EQ(summarize(ast->child(1)), "var b");
+    // TODO(strager): Implement begin_offset.
+    EXPECT_EQ(p.range(ast).end_offset(), 8);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("(a, b) => c");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->child_count(), 3);
+    EXPECT_EQ(summarize(ast->child(0)), "var a");
+    EXPECT_EQ(summarize(ast->child(1)), "var b");
+    EXPECT_EQ(summarize(ast->child(2)), "var c");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("() => a, b");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a), var b)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("a => b, c");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a, var b), var c)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_mixed_expression) {
   {
     test_parser p("a+f()");
@@ -743,6 +805,8 @@ std::string summarize(const expression &expression) {
       return "new(" + children() + ")";
     case expression_kind::_template:
       return "template(" + children() + ")";
+    case expression_kind::arrow_function_with_expression:
+      return "arrowexpr(" + children() + ")";
     case expression_kind::assignment:
       return "assign(" + children() + ")";
     case expression_kind::await:

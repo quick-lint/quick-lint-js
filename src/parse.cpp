@@ -101,6 +101,23 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::left_paren: {
       source_code_span left_paren_span = this->peek().span();
       this->lexer_.skip();
+
+      if (this->peek().type == token_type::right_paren) {
+        this->lexer_.skip();
+        if (this->peek().type == token_type::equal_greater) {
+          this->lexer_.skip();
+          // Arrow function: () => expression-or-block
+          expression_ptr body =
+              this->parse_expression(precedence{.commas = false});
+          expression_ptr ast = this->make_expression<
+              expression_kind::arrow_function_with_expression>(
+              body, left_paren_span.begin());
+          return this->parse_expression_remainder(ast, prec);
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+      }
+
       expression_ptr child = this->parse_expression();
       switch (this->peek().type) {
         case token_type::right_paren:
@@ -316,6 +333,36 @@ next:
       this->lexer_.skip();
       children.emplace_back(this->parse_expression(prec));
       goto next;
+
+    // Arrow function: (parameters, go, here) => expression-or-block
+    case token_type::equal_greater: {
+      this->lexer_.skip();
+      if (children.size() != 1) {
+        assert(false && "Not yet implemented");
+      }
+      expression_ptr lhs = children.back();
+      std::vector<expression_ptr> parameters;
+      switch (lhs->kind()) {
+        case expression_kind::binary_operator:
+          // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
+          // for example.
+          for (int i = 0; i < lhs->child_count(); ++i) {
+            parameters.emplace_back(lhs->child(i));
+          }
+          break;
+        case expression_kind::variable:
+          parameters.emplace_back(lhs);
+          break;
+        default:
+          assert(false && "Not yet implemented");
+          break;
+      }
+      expression_ptr body = this->parse_expression(precedence{.commas = false});
+      children.back() = this->make_expression<
+          expression_kind::arrow_function_with_expression>(
+          std::move(parameters), body);
+      goto next;
+    }
 
     case token_type::_of:
     case token_type::_return:

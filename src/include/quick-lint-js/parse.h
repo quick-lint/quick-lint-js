@@ -183,6 +183,26 @@ class parser {
       case expression_kind::call:
         visit_children();
         break;
+      case expression_kind::arrow_function_with_expression: {
+        v.visit_enter_function_scope();
+        int body_child_index = ast->child_count() - 1;
+        for (int i = 0; i < body_child_index; ++i) {
+          expression_ptr parameter = ast->child(i);
+          switch (parameter->kind()) {
+            case expression_kind::variable:
+              v.visit_variable_declaration(parameter->variable_identifier(),
+                                           variable_kind::_parameter);
+              break;
+            default:
+              assert(false && "Not yet implemented");
+              break;
+          }
+        }
+        this->visit_expression(ast->child(body_child_index), v,
+                               variable_context::rhs);
+        v.visit_exit_function_scope();
+        break;
+      }
       case expression_kind::assignment: {
         expression_ptr lhs = ast->child_0();
         expression_ptr rhs = ast->child_1();

@@ -962,6 +962,30 @@ TEST(test_parse, parse_function_expression) {
   }
 }
 
+TEST(test_parse, arrow_function_expression) {
+  {
+    spy_visitor v = parse_and_visit_statement("(() => x);");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_use",          //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement("(x => y);");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // y
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    "x", variable_kind::_parameter}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"y"}));
+  }
+}
+
 TEST(test_parse, parse_empty_module) {
   spy_visitor v;
   parser p("", &v);
