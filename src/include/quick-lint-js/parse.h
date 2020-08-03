@@ -179,6 +179,7 @@ class parser {
         break;
       case expression_kind::_new:
       case expression_kind::_template:
+      case expression_kind::array:
       case expression_kind::binary_operator:
       case expression_kind::call:
         visit_children();

@@ -54,6 +54,7 @@ enum class expression_kind {
   _invalid,
   _new,
   _template,
+  array,
   arrow_function_with_expression,
   assignment,
   await,
@@ -90,6 +91,13 @@ class expression {
                       std::vector<expression_ptr> &&children,
                       source_code_span span) noexcept
       : kind_(expression_kind::_template),
+        span_(span),
+        children_(std::move(children)) {}
+
+  explicit expression(tag<expression_kind::array>,
+                      std::vector<expression_ptr> &&children,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::array),
         span_(span),
         children_(std::move(children)) {}
 
@@ -212,6 +220,7 @@ class expression {
     switch (this->kind_) {
       case expression_kind::_new:
       case expression_kind::_template:
+      case expression_kind::array:
       case expression_kind::arrow_function_with_expression:
       case expression_kind::assignment:
       case expression_kind::binary_operator:
@@ -260,6 +269,7 @@ class expression {
         break;
       case expression_kind::_new:
       case expression_kind::_template:
+      case expression_kind::array:
       case expression_kind::function:
       case expression_kind::literal:
       case expression_kind::named_function:
@@ -316,8 +326,8 @@ class expression {
     const char *unary_operator_end_;  // rw_unary_suffix
   };
   union {
-    source_code_span
-        span_;  // _new, _template, function, literal, named_function
+    // _new, _template, array, function, literal, named_function
+    source_code_span span_;
     static_assert(std::is_trivially_destructible_v<source_code_span>);
   };
   std::vector<expression_ptr> children_;

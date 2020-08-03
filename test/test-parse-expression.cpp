@@ -635,6 +635,44 @@ TEST(test_parse_expression, parse_template) {
   }
 }
 
+TEST(test_parse_expression, array_literal) {
+  {
+    test_parser p("[]");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::array);
+    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 2);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("[x]");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::array);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(summarize(ast->child(0)), "var x");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("[x, y]");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::array);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "var x");
+    EXPECT_EQ(summarize(ast->child(1)), "var y");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("[,,x,,y,,]");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "array(var x, var y)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_comma_expression) {
   {
     test_parser p("x,y,z");
@@ -805,6 +843,8 @@ std::string summarize(const expression &expression) {
       return "new(" + children() + ")";
     case expression_kind::_template:
       return "template(" + children() + ")";
+    case expression_kind::array:
+      return "array(" + children() + ")";
     case expression_kind::arrow_function_with_expression:
       return "arrowexpr(" + children() + ")";
     case expression_kind::assignment:

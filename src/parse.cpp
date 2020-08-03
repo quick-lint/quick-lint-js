@@ -134,6 +134,34 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(child, prec);
     }
 
+    case token_type::left_square: {
+      const char *left_square_begin = this->peek().begin;
+      const char *right_square_end;
+      this->lexer_.skip();
+
+      std::vector<expression_ptr> children;
+      for (;;) {
+        if (this->peek().type == token_type::right_square) {
+          right_square_end = this->peek().end;
+          this->lexer_.skip();
+          break;
+        }
+        if (this->peek().type == token_type::comma) {
+          this->lexer_.skip();
+          continue;
+        }
+        if (this->peek().type == token_type::end_of_file) {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+        children.emplace_back(
+            this->parse_expression(precedence{.commas = false}));
+      }
+      expression_ptr ast = this->make_expression<expression_kind::array>(
+          std::move(children),
+          source_code_span(left_square_begin, right_square_end));
+      return this->parse_expression_remainder(ast, prec);
+    }
+
     case token_type::_function: {
       const char *span_begin = this->peek().begin;
       this->lexer_.skip();
