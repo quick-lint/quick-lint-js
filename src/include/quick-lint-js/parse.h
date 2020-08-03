@@ -818,6 +818,13 @@ class parser {
 
   expression_ptr parse_expression_remainder(expression_ptr, precedence);
 
+  // Args is either of the following:
+  // * std::vector<expression_ptr> &&parameters
+  // * (none)
+  template <class... Args>
+  expression_ptr parse_arrow_function_body(const char *parameter_list_begin,
+                                           Args &&... args);
+
   expression_ptr parse_template();
 
   void consume_semicolon();
