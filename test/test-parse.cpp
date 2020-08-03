@@ -332,6 +332,17 @@ TEST(test_parse, return_statement) {
                 ElementsAre(spy_visitor::visited_variable_use{"a"},
                             spy_visitor::visited_variable_use{"b"}));
   }
+
+  {
+    spy_visitor v;
+    parser p("if (true) return; x;", &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"x"}));
+  }
 }
 
 TEST(test_parse, throw_statement) {

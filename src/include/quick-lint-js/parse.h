@@ -105,6 +105,11 @@ class parser {
       case token_type::_return:
       case token_type::_throw:
         this->lexer_.skip();
+        if (this->peek().type == token_type::semicolon) {
+          // TODO(strager): Require expression for throw statements.
+          this->lexer_.skip();
+          break;
+        }
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
         break;
