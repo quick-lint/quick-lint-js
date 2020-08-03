@@ -159,6 +159,11 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(ast, prec);
     }
 
+    case token_type::left_curly: {
+      expression_ptr ast = this->parse_object_literal();
+      return this->parse_expression_remainder(ast, prec);
+    }
+
     case token_type::_function: {
       const char *span_begin = this->peek().begin;
       this->lexer_.skip();
@@ -430,6 +435,57 @@ expression_ptr parser::parse_arrow_function_body(
         ->make_expression<expression_kind::arrow_function_with_expression>(
             std::forward<Args>(args)..., body, parameter_list_begin);
   }
+}
+
+expression_ptr parser::parse_object_literal() {
+  assert(this->peek().type == token_type::left_curly);
+  const char *left_curly_begin = this->peek().begin;
+  const char *right_curly_end;
+  this->lexer_.skip();
+
+  std::vector<expression_ptr> children;
+  for (;;) {
+    if (this->peek().type == token_type::right_curly) {
+      right_curly_end = this->peek().end;
+      this->lexer_.skip();
+      break;
+    }
+    if (this->peek().type == token_type::comma) {
+      this->lexer_.skip();
+      continue;
+    }
+    if (this->peek().type == token_type::end_of_file) {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+    switch (this->peek().type) {
+      case token_type::comma:
+      case token_type::end_of_file:
+      case token_type::right_curly:
+        assert(false);
+        break;
+
+      case token_type::identifier: {
+        expression_ptr key = this->make_expression<expression_kind::literal>(
+            this->peek().span());
+        children.emplace_back(key);
+        this->lexer_.skip();
+
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+        this->lexer_.skip();
+
+        expression_ptr value =
+            this->parse_expression(precedence{.commas = false});
+        children.emplace_back(value);
+        break;
+      }
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+    }
+  }
+  return this->make_expression<expression_kind::object>(
+      std::move(children), source_code_span(left_curly_begin, right_curly_end));
 }
 
 expression_ptr parser::parse_template() {

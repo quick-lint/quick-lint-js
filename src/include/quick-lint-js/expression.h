@@ -66,6 +66,7 @@ enum class expression_kind {
   index,
   literal,
   named_function,
+  object,
   rw_unary_prefix,
   rw_unary_suffix,
   unary_operator,
@@ -190,6 +191,13 @@ class expression {
         span_(span),
         child_visits_(std::move(child_visits)) {}
 
+  explicit expression(tag<expression_kind::object>,
+                      std::vector<expression_ptr> &&children,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::object),
+        span_(span),
+        children_(std::move(children)) {}
+
   explicit expression(tag<expression_kind::rw_unary_prefix>,
                       expression_ptr child,
                       source_code_span operator_span) noexcept
@@ -245,6 +253,7 @@ class expression {
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::call:
+      case expression_kind::object:
       case expression_kind::updating_assignment:
         break;
       default:
@@ -295,6 +304,7 @@ class expression {
       case expression_kind::function:
       case expression_kind::literal:
       case expression_kind::named_function:
+      case expression_kind::object:
         return this->span_;
       case expression_kind::arrow_function_with_expression:
         return source_code_span(this->parameter_list_begin_,

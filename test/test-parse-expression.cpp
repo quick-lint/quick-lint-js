@@ -673,6 +673,40 @@ TEST(test_parse_expression, array_literal) {
   }
 }
 
+TEST(test_parse_expression, object_literal) {
+  {
+    test_parser p("{}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 2);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("{key: value}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "literal");
+    EXPECT_EQ(summarize(ast->child(1)), "var value");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("{key1: value1, key2: value2}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->child_count(), 4);
+    EXPECT_EQ(summarize(ast->child(0)), "literal");
+    EXPECT_EQ(summarize(ast->child(1)), "var value1");
+    EXPECT_EQ(summarize(ast->child(2)), "literal");
+    EXPECT_EQ(summarize(ast->child(3)), "var value2");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_comma_expression) {
   {
     test_parser p("x,y,z");
@@ -890,6 +924,8 @@ std::string summarize(const expression &expression) {
     case expression_kind::named_function:
       return "function " +
              std::string(expression.variable_identifier().string_view());
+    case expression_kind::object:
+      return "object(" + children() + ")";
     case expression_kind::rw_unary_prefix:
       return "rwunary(" + summarize(expression.child_0()) + ")";
     case expression_kind::rw_unary_suffix:

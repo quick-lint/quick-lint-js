@@ -186,6 +186,7 @@ class parser {
       case expression_kind::array:
       case expression_kind::binary_operator:
       case expression_kind::call:
+      case expression_kind::object:
         visit_children();
         break;
       case expression_kind::arrow_function_with_expression: {
@@ -824,6 +825,8 @@ class parser {
   template <class... Args>
   expression_ptr parse_arrow_function_body(const char *parameter_list_begin,
                                            Args &&... args);
+
+  expression_ptr parse_object_literal();
 
   expression_ptr parse_template();
 

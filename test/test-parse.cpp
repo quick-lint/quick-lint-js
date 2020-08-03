@@ -589,6 +589,15 @@ TEST(test_parse, parse_array_subscript) {
   }
 }
 
+TEST(test_parse, object_literal) {
+  {
+    spy_visitor v = parse_and_visit_expression("{key: value}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"value"}));
+  }
+}
+
 TEST(test_parse, expression_statement) {
   {
     spy_visitor v = parse_and_visit_statement("console.log('hello');");
