@@ -173,16 +173,7 @@ retry:
 
     QLJS_CASE_DECIMAL_DIGIT:
       this->last_token_.type = token_type::number;
-      this->input_ += 1;
-      while (this->is_digit(this->input_[0])) {
-        this->input_ += 1;
-      }
-      if (this->input_[0] == '.') {
-        this->input_ += 1;
-        while (this->is_digit(this->input_[0])) {
-          this->input_ += 1;
-        }
-      }
+      this->parse_number();
       break;
 
     QLJS_CASE_IDENTIFIER_START : {
@@ -226,10 +217,7 @@ retry:
         this->input_ += 3;
       } else if (this->is_digit(this->input_[1])) {
         this->last_token_.type = token_type::number;
-        this->input_ += 1;
-        while (this->is_digit(this->input_[0])) {
-          this->input_ += 1;
-        }
+        this->parse_number();
       } else {
         this->last_token_.type = token_type::dot;
         this->input_ += 1;
@@ -540,6 +528,19 @@ void lexer::insert_semicolon() {
   this->last_token_.has_leading_newline = false;
   this->last_token_.begin = this->input_;
   this->last_token_.end = this->input_;
+}
+
+void lexer::parse_number() {
+  assert(this->is_digit(this->input_[0]) || this->input_[0] == '.');
+  while (this->is_digit(this->input_[0])) {
+    this->input_ += 1;
+  }
+  if (this->input_[0] == '.') {
+    this->input_ += 1;
+    while (this->is_digit(this->input_[0])) {
+      this->input_ += 1;
+    }
+  }
 }
 
 void lexer::skip_whitespace() {

@@ -193,6 +193,8 @@ class lexer {
                                                   const char* template_begin,
                                                   error_reporter*);
 
+  void parse_number();
+
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment();
