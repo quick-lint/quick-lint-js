@@ -445,6 +445,10 @@ expression_ptr parser::parse_object_literal() {
   this->lexer_.skip();
 
   std::vector<expression_ptr> children;
+  auto parse_value_expression = [&]() {
+    expression_ptr value = this->parse_expression(precedence{.commas = false});
+    children.emplace_back(value);
+  };
   for (;;) {
     if (this->peek().type == token_type::right_curly) {
       right_curly_end = this->peek().end;
@@ -467,10 +471,30 @@ expression_ptr parser::parse_object_literal() {
 
       case token_type::identifier:
       case token_type::string: {
-        expression_ptr key = this->make_expression<expression_kind::literal>(
-            this->peek().span());
+        source_code_span key_span = this->peek().span();
+        expression_ptr key =
+            this->make_expression<expression_kind::literal>(key_span);
         children.emplace_back(key);
         this->lexer_.skip();
+        switch (this->peek().type) {
+          case token_type::comma:
+          case token_type::right_curly: {
+            // Name and value are the same: {keyandvalue}
+            // TODO(strager): Only allow this for identifiers, not strings.
+            expression_ptr value =
+                this->make_expression<expression_kind::variable>(
+                    identifier(key_span));
+            children.emplace_back(value);
+            break;
+          }
+          case token_type::colon:
+            this->lexer_.skip();
+            parse_value_expression();
+            break;
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+        }
         break;
       }
 
@@ -480,18 +504,15 @@ expression_ptr parser::parse_object_literal() {
         children.emplace_back(key);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
         this->lexer_.skip();
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+        this->lexer_.skip();
+        parse_value_expression();
         break;
       }
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
-    this->lexer_.skip();
-
-    expression_ptr value = this->parse_expression(precedence{.commas = false});
-    children.emplace_back(value);
   }
   return this->make_expression<expression_kind::object>(
       std::move(children), source_code_span(left_curly_begin, right_curly_end));

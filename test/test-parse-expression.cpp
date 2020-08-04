@@ -725,6 +725,29 @@ TEST(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->child(1)), "var value");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p("{thing}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "literal");
+    EXPECT_EQ(p.range(ast->child(0)).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->child(0)).end_offset(), 6);
+    EXPECT_EQ(summarize(ast->child(1)), "var thing");
+    EXPECT_EQ(p.range(ast->child(1)).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->child(1)).end_offset(), 6);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("{key1: value1, thing2, key3: value3}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "object(literal, var value1, literal, var thing2, literal, var "
+              "value3)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST(test_parse_expression, parse_comma_expression) {
