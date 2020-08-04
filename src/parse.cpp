@@ -396,6 +396,7 @@ next:
       goto next;
     }
 
+    case token_type::_from:
     case token_type::_of:
     case token_type::_return:
     case token_type::end_of_file:

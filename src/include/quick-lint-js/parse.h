@@ -776,51 +776,34 @@ class parser {
   template <class Visitor>
   void parse_and_visit_binding_element(Visitor &v,
                                        variable_kind declaration_kind) {
-    buffering_visitor lhs;
+    expression_ptr ast = this->parse_expression(
+        precedence{.commas = false, .in_operator = false});
+    this->visit_binding_element(ast, v, declaration_kind);
+  }
 
-    switch (this->peek().type) {
-      case token_type::identifier: {
-        identifier name = this->peek().identifier_name();
-        this->lexer_.skip();
-        lhs.visit_variable_declaration(name, declaration_kind);
+  template <class Visitor>
+  void visit_binding_element(expression_ptr ast, Visitor &v,
+                             variable_kind declaration_kind) {
+    switch (ast->kind()) {
+      case expression_kind::assignment:
+        this->visit_expression(ast->child_1(), v, variable_context::rhs);
+        this->visit_binding_element(ast->child_0(), v, declaration_kind);
         break;
-      }
-
-      case token_type::left_curly:
-        this->lexer_.skip();
-        switch (this->peek().type) {
-          case token_type::right_curly:
-            break;
-          default:
-            this->parse_and_visit_binding_element(v, declaration_kind);
-            break;
-        }
-
-        while (this->peek().type == token_type::comma) {
-          this->lexer_.skip();
-          this->parse_and_visit_binding_element(v, declaration_kind);
-        }
-
-        switch (this->peek().type) {
-          case token_type::right_curly:
-            this->lexer_.skip();
-            break;
-          default:
-            QLJS_PARSER_UNIMPLEMENTED();
-            break;
+      case expression_kind::variable:
+        v.visit_variable_declaration(ast->variable_identifier(),
+                                     declaration_kind);
+        break;
+      case expression_kind::object:
+        assert(ast->child_count() % 2 == 0);
+        for (int i = 0; i < ast->child_count(); i += 2) {
+          expression_ptr value = ast->child(i + 1);
+          this->visit_binding_element(value, v, declaration_kind);
         }
         break;
-
       default:
-        QLJS_PARSER_UNIMPLEMENTED();
+        assert(false && "Not yet implemented");
         break;
     }
-
-    if (this->peek().type == token_type::equal) {
-      this->lexer_.skip();
-      this->parse_and_visit_expression(v, precedence{.commas = false});
-    }
-    lhs.move_into(v);
   }
 
   struct precedence {
