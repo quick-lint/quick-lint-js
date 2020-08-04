@@ -1445,5 +1445,47 @@ TEST(test_parse, block_statement) {
                             spy_visitor::visited_variable_use{"third"}));
   }
 }
+
+TEST(test_parse, switch_statement) {
+  {
+    spy_visitor v = parse_and_visit_statement("switch (x) {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement("switch (true) {case y:}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // y
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement("switch (true) {default:}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        "switch (true) {case x: case y: default: case z:}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // x
+                                      "visit_variable_use",       // y
+                                      "visit_variable_use",       // z
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement("switch (true) { case true: x; let y; z; }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_variable_use",          // z
+                                      "visit_exit_block_scope"));
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

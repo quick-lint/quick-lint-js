@@ -102,6 +102,10 @@ class parser {
         this->parse_and_visit_class(v);
         break;
 
+      case token_type::_switch:
+        this->parse_and_visit_switch(v);
+        break;
+
       case token_type::_return:
       case token_type::_throw:
         this->lexer_.skip();
@@ -497,6 +501,50 @@ class parser {
           break;
       }
     }
+  }
+
+  template <class Visitor>
+  void parse_and_visit_switch(Visitor &v) {
+    assert(this->peek().type == token_type::_switch);
+    this->lexer_.skip();
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_expression(v);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->lexer_.skip();
+
+    v.visit_enter_block_scope();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+    this->lexer_.skip();
+
+    bool keep_going = true;
+    while (keep_going) {
+      switch (this->peek().type) {
+        case token_type::right_curly:
+          this->lexer_.skip();
+          keep_going = false;
+          break;
+        case token_type::_case:
+          this->lexer_.skip();
+          this->parse_and_visit_expression(v);
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+          this->lexer_.skip();
+          break;
+        case token_type::_default:
+          this->lexer_.skip();
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+          this->lexer_.skip();
+          break;
+        default:
+          this->parse_and_visit_statement(v);
+          break;
+      }
+    }
+
+    v.visit_exit_block_scope();
   }
 
   template <class Visitor>
