@@ -62,6 +62,9 @@ TEST(test_lex, lex_numbers) {
   check_single_token("0", token_type::number);
   check_single_token("2", token_type::number);
   check_single_token("42", token_type::number);
+  check_single_token("12.34", token_type::number);
+  check_single_token(".34", token_type::number);
+  check_tokens("123. 456", {token_type::number, token_type::number});
 }
 
 TEST(test_lex, lex_strings) {

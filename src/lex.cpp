@@ -177,6 +177,12 @@ retry:
       while (this->is_digit(this->input_[0])) {
         this->input_ += 1;
       }
+      if (this->input_[0] == '.') {
+        this->input_ += 1;
+        while (this->is_digit(this->input_[0])) {
+          this->input_ += 1;
+        }
+      }
       break;
 
     QLJS_CASE_IDENTIFIER_START : {
@@ -218,6 +224,12 @@ retry:
       if (this->input_[1] == '.' && this->input_[2] == '.') {
         this->last_token_.type = token_type::dot_dot_dot;
         this->input_ += 3;
+      } else if (this->is_digit(this->input_[1])) {
+        this->last_token_.type = token_type::number;
+        this->input_ += 1;
+        while (this->is_digit(this->input_[0])) {
+          this->input_ += 1;
+        }
       } else {
         this->last_token_.type = token_type::dot;
         this->input_ += 1;
