@@ -429,6 +429,7 @@ TEST(test_parse_expression, parse_await_expression) {
   {
     test_parser p("await myPromise");
     expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "await(var myPromise)");
     EXPECT_EQ(ast->kind(), expression_kind::await);
     EXPECT_EQ(summarize(ast->child_0()), "var myPromise");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
@@ -952,7 +953,7 @@ std::string summarize(const expression &expression) {
     case expression_kind::assignment:
       return "assign(" + children() + ")";
     case expression_kind::await:
-      return "await(" + children() + ")";
+      return "await(" + summarize(expression.child_0()) + ")";
     case expression_kind::call:
       return "call(" + children() + ")";
     case expression_kind::dot:
