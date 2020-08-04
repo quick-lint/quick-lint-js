@@ -954,6 +954,13 @@ TEST(test_parse, parse_async_function) {
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "f");
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement("async function f() { await null; }");
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, "f");
+  }
 }
 
 TEST(test_parse, parse_function_expression) {
