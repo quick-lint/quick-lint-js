@@ -154,14 +154,6 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement("let {{x}, {y}, {z}} = 2");
-    ASSERT_EQ(v.variable_declarations.size(), 3);
-    EXPECT_EQ(v.variable_declarations[0].name, "x");
-    EXPECT_EQ(v.variable_declarations[1].name, "y");
-    EXPECT_EQ(v.variable_declarations[2].name, "z");
-  }
-
-  {
     spy_visitor v = parse_and_visit_statement("let {} = x;");
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     ASSERT_EQ(v.variable_uses.size(), 1);
