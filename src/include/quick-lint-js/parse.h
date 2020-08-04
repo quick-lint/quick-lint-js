@@ -134,6 +134,11 @@ class parser {
         this->parse_and_visit_if(v);
         break;
 
+      case token_type::_break:
+        this->lexer_.skip();
+        this->consume_semicolon();
+        break;
+
       case token_type::left_curly:
         v.visit_enter_block_scope();
         this->parse_and_visit_statement_block_no_scope(v);

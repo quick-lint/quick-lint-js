@@ -1487,5 +1487,12 @@ TEST(test_parse, switch_statement) {
                                       "visit_exit_block_scope"));
   }
 }
+
+TEST(test_parse, break_statement) {
+  {
+    spy_visitor v = parse_and_visit_statement("break;");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js
