@@ -195,6 +195,7 @@ class parser {
     };
     switch (ast->kind()) {
       case expression_kind::_invalid:
+      case expression_kind::import:
       case expression_kind::literal:
       case expression_kind::super:
         break;

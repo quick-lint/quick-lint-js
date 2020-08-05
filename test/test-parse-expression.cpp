@@ -485,6 +485,22 @@ TEST(test_parse_expression, super) {
   }
 }
 
+TEST(test_parse_expression, import) {
+  {
+    test_parser p("import(url)");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(import, var url)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("import.meta");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(import, meta)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_assignment) {
   {
     test_parser p("x=y");
@@ -977,6 +993,8 @@ std::string summarize(const expression &expression) {
              std::string(expression.variable_identifier().string_view()) + ")";
     case expression_kind::function:
       return "function";
+    case expression_kind::import:
+      return "import";
     case expression_kind::index:
       return "index(" + children() + ")";
     case expression_kind::literal:
