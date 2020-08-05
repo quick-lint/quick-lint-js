@@ -61,6 +61,16 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(ast, prec);
     }
 
+    case token_type::_super: {
+      expression_ptr ast =
+          this->make_expression<expression_kind::super>(this->peek().span());
+      this->lexer_.skip();
+      if (!prec.binary_operators) {
+        return ast;
+      }
+      return this->parse_expression_remainder(ast, prec);
+    }
+
     case token_type::incomplete_template:
       return this->parse_template();
     case token_type::_await: {

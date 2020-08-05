@@ -90,6 +90,7 @@ class parser {
 
       case token_type::_await:
       case token_type::_null:
+      case token_type::_super:
       case token_type::_this:
       case token_type::identifier:
       case token_type::left_paren:
@@ -195,6 +196,7 @@ class parser {
     switch (ast->kind()) {
       case expression_kind::_invalid:
       case expression_kind::literal:
+      case expression_kind::super:
         break;
       case expression_kind::_new:
       case expression_kind::_template:

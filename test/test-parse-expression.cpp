@@ -469,6 +469,22 @@ TEST(test_parse_expression, parse_new_expression) {
   }
 }
 
+TEST(test_parse_expression, super) {
+  {
+    test_parser p("super()");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(super)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("super.method()");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(dot(super, method))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_assignment) {
   {
     test_parser p("x=y");
@@ -974,6 +990,8 @@ std::string summarize(const expression &expression) {
       return "rwunary(" + summarize(expression.child_0()) + ")";
     case expression_kind::rw_unary_suffix:
       return "rwunarysuffix(" + summarize(expression.child_0()) + ")";
+    case expression_kind::super:
+      return "super";
     case expression_kind::unary_operator:
       return "unary(" + summarize(expression.child_0()) + ")";
     case expression_kind::updating_assignment:

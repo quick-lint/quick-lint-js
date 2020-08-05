@@ -69,6 +69,7 @@ enum class expression_kind {
   object,
   rw_unary_prefix,
   rw_unary_suffix,
+  super,
   unary_operator,
   updating_assignment,
   variable,
@@ -212,6 +213,10 @@ class expression {
         unary_operator_end_(operator_span.end()),
         children_{child} {}
 
+  explicit expression(tag<expression_kind::super>,
+                      source_code_span span) noexcept
+      : kind_(expression_kind::super), span_(span) {}
+
   explicit expression(tag<expression_kind::unary_operator>,
                       expression_ptr child,
                       source_code_span operator_span) noexcept
@@ -305,6 +310,7 @@ class expression {
       case expression_kind::literal:
       case expression_kind::named_function:
       case expression_kind::object:
+      case expression_kind::super:
         return this->span_;
       case expression_kind::arrow_function_with_expression:
         return source_code_span(this->parameter_list_begin_,
@@ -357,7 +363,7 @@ class expression {
   };
   union {
     // _new, _template, array, arrow_function_with_statements, function,
-    // literal, named_function
+    // literal, named_function, super
     source_code_span span_;
     static_assert(std::is_trivially_destructible_v<source_code_span>);
   };

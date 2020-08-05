@@ -867,6 +867,14 @@ TEST(test_parse, parse_await_expression) {
   }
 }
 
+TEST(test_parse, super_in_class) {
+  {
+    spy_visitor v = parse_and_visit_statement(
+        "class C extends Base { constructor() { super(); } }");
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_parse, parse_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement("function foo() {}");
