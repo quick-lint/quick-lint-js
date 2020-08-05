@@ -33,6 +33,10 @@
   case token_type::star_star
 
 namespace quick_lint_js {
+namespace {
+std::vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
+}  // namespace
+
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
     case token_type::identifier: {
@@ -127,8 +131,8 @@ expression_ptr parser::parse_expression(precedence prec) {
         if (this->peek().type == token_type::equal_greater) {
           this->lexer_.skip();
           // Arrow function: () => expression-or-block
-          expression_ptr ast =
-              this->parse_arrow_function_body(left_paren_span.begin());
+          expression_ptr ast = this->parse_arrow_function_body(
+              function_attributes::normal, left_paren_span.begin());
           return this->parse_expression_remainder(ast, prec);
         } else {
           QLJS_PARSER_UNIMPLEMENTED();
@@ -149,6 +153,52 @@ expression_ptr parser::parse_expression(precedence prec) {
         return child;
       }
       return this->parse_expression_remainder(child, prec);
+    }
+
+    case token_type::_async: {
+      const char *async_begin = this->peek().begin;
+      this->lexer_.skip();
+
+      std::vector<expression_ptr> parameters;
+      switch (this->peek().type) {
+        case token_type::left_paren:
+          this->lexer_.skip();
+
+          if (this->peek().type == token_type::right_paren) {
+            // Arrow function: async () => expression-or-block
+          } else {
+            // Arrow function: async (parameters, go, here) =>
+            // expression-or-block
+            expression_ptr parenthesized_parameters = this->parse_expression();
+            assert(parameters.empty());
+            parameters =
+                arrow_function_parameters_from_lhs(parenthesized_parameters);
+          }
+
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+          this->lexer_.skip();
+
+          break;
+
+        // Arrow function: async parameter => expression-or-block
+        case token_type::identifier:
+          parameters.emplace_back(
+              this->make_expression<expression_kind::variable>(
+                  identifier(this->peek().span())));
+          this->lexer_.skip();
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+      }
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+      this->lexer_.skip();
+
+      expression_ptr ast = this->parse_arrow_function_body(
+          function_attributes::async, async_begin, std::move(parameters));
+      return this->parse_expression_remainder(ast, prec);
     }
 
     case token_type::left_square: {
@@ -394,25 +444,9 @@ next:
         assert(false && "Not yet implemented");
       }
       expression_ptr lhs = children.back();
-      std::vector<expression_ptr> parameters;
-      switch (lhs->kind()) {
-        case expression_kind::binary_operator:
-          // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
-          // for example.
-          for (int i = 0; i < lhs->child_count(); ++i) {
-            parameters.emplace_back(lhs->child(i));
-          }
-          break;
-        case expression_kind::variable:
-          parameters.emplace_back(lhs);
-          break;
-        default:
-          assert(false && "Not yet implemented");
-          break;
-      }
-
-      children.back() = this->parse_arrow_function_body(left_paren_begin,
-                                                        std::move(parameters));
+      children.back() = this->parse_arrow_function_body(
+          function_attributes::normal, left_paren_begin,
+          arrow_function_parameters_from_lhs(lhs));
       goto next;
     }
 
@@ -440,7 +474,8 @@ next:
 
 template <class... Args>
 expression_ptr parser::parse_arrow_function_body(
-    const char *parameter_list_begin, Args &&... args) {
+    function_attributes attributes, const char *parameter_list_begin,
+    Args &&... args) {
   if (this->peek().type == token_type::left_curly) {
     std::unique_ptr<buffering_visitor> v =
         std::make_unique<buffering_visitor>();
@@ -450,13 +485,14 @@ expression_ptr parser::parse_arrow_function_body(
     const char *span_end = this->peek().begin;
     return this
         ->make_expression<expression_kind::arrow_function_with_statements>(
-            std::forward<Args>(args)..., std::move(v),
+            attributes, std::forward<Args>(args)..., std::move(v),
             source_code_span(parameter_list_begin, span_end));
   } else {
     expression_ptr body = this->parse_expression(precedence{.commas = false});
     return this
         ->make_expression<expression_kind::arrow_function_with_expression>(
-            std::forward<Args>(args)..., body, parameter_list_begin);
+            attributes, std::forward<Args>(args)..., body,
+            parameter_list_begin);
   }
 }
 
@@ -608,4 +644,27 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
             << token_position.column_number << '\n';
   std::abort();
 }
+
+namespace {
+std::vector<expression_ptr> arrow_function_parameters_from_lhs(
+    expression_ptr lhs) {
+  std::vector<expression_ptr> parameters;
+  switch (lhs->kind()) {
+    case expression_kind::binary_operator:
+      // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
+      // for example.
+      for (int i = 0; i < lhs->child_count(); ++i) {
+        parameters.emplace_back(lhs->child(i));
+      }
+      break;
+    case expression_kind::variable:
+      parameters.emplace_back(lhs);
+      break;
+    default:
+      assert(false && "Not yet implemented");
+      break;
+  }
+  return parameters;
+}
+}  // namespace
 }  // namespace quick_lint_js

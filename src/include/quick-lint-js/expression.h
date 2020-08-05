@@ -106,36 +106,43 @@ class expression {
         children_(std::move(children)) {}
 
   explicit expression(tag<expression_kind::arrow_function_with_expression>,
+                      function_attributes attributes,
                       std::vector<expression_ptr> &&parameters,
                       expression_ptr body,
                       const char *parameter_list_begin) noexcept
       : kind_(expression_kind::arrow_function_with_expression),
         parameter_list_begin_(parameter_list_begin),
+        function_attributes_(attributes),
         children_(std::move(parameters)) {
     this->children_.emplace_back(body);
   }
 
   explicit expression(tag<expression_kind::arrow_function_with_expression>,
-                      expression_ptr body,
+                      function_attributes attributes, expression_ptr body,
                       const char *parameter_list_begin) noexcept
       : kind_(expression_kind::arrow_function_with_expression),
         parameter_list_begin_(parameter_list_begin),
+        function_attributes_(attributes),
         children_{body} {}
 
   explicit expression(tag<expression_kind::arrow_function_with_statements>,
+                      function_attributes attributes,
                       std::unique_ptr<buffering_visitor> &&child_visits,
                       source_code_span span) noexcept
       : kind_(expression_kind::arrow_function_with_statements),
         span_(span),
+        function_attributes_(attributes),
         children_(),
         child_visits_(std::move(child_visits)) {}
 
   explicit expression(tag<expression_kind::arrow_function_with_statements>,
+                      function_attributes attributes,
                       std::vector<expression_ptr> &&parameters,
                       std::unique_ptr<buffering_visitor> &&child_visits,
                       source_code_span span) noexcept
       : kind_(expression_kind::arrow_function_with_statements),
         span_(span),
+        function_attributes_(attributes),
         children_(std::move(parameters)),
         child_visits_(std::move(child_visits)) {}
 
@@ -349,6 +356,17 @@ class expression {
     QLJS_UNREACHABLE();
   }
 
+  function_attributes attributes() const noexcept {
+    switch (this->kind_) {
+      case expression_kind::arrow_function_with_expression:
+      case expression_kind::arrow_function_with_statements:
+        return this->function_attributes_;
+      default:
+        assert(false);
+        break;
+    }
+  }
+
  private:
   expression_kind kind_;
   union {
@@ -372,6 +390,11 @@ class expression {
     // literal, named_function, super
     source_code_span span_;
     static_assert(std::is_trivially_destructible_v<source_code_span>);
+  };
+  union {
+    // arrow_function_with_expression, arrow_function_with_statements
+    function_attributes function_attributes_;
+    static_assert(std::is_trivially_destructible_v<function_attributes>);
   };
   std::vector<expression_ptr> children_;
 

@@ -851,6 +851,7 @@ TEST(test_parse_expression, arrow_function_with_expression) {
     test_parser p("() => a");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
@@ -862,6 +863,7 @@ TEST(test_parse_expression, arrow_function_with_expression) {
     test_parser p("a => b");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
@@ -874,6 +876,7 @@ TEST(test_parse_expression, arrow_function_with_expression) {
     test_parser p("(a) => b");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
@@ -886,6 +889,7 @@ TEST(test_parse_expression, arrow_function_with_expression) {
     test_parser p("(a, b) => c");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 3);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
@@ -913,6 +917,7 @@ TEST(test_parse_expression, arrow_function_with_statements) {
     test_parser p("() => { a; }");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 12);
@@ -923,10 +928,71 @@ TEST(test_parse_expression, arrow_function_with_statements) {
     test_parser p("a => { b; }");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     // TODO(strager): Implement begin_offset.
     EXPECT_EQ(p.range(ast).end_offset(), 11);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST(test_parse_expression, async_arrow_function) {
+  {
+    test_parser p("async () => { a; }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(ast->attributes(), function_attributes::async);
+    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 18);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("async x => { y; }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(ast->attributes(), function_attributes::async);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(summarize(ast->child(0)), "var x");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("async (x, y, z) => { w; }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "asyncarrowblock(var x, var y, var z)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("async () => a");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::async);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(summarize(ast->child(0)), "var a");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 13);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("async x => y");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::async);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "var x");
+    EXPECT_EQ(summarize(ast->child(1)), "var y");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("async (x, y, z) => w");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z, var w)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -969,6 +1035,15 @@ std::string summarize(const expression &expression) {
     }
     return result;
   };
+  auto function_attributes = [&]() -> std::string {
+    switch (expression.attributes()) {
+      case function_attributes::normal:
+        return "";
+      case function_attributes::async:
+        return "async";
+    }
+    QLJS_UNREACHABLE();
+  };
   switch (expression.kind()) {
     case expression_kind::_invalid:
       return "?";
@@ -979,9 +1054,9 @@ std::string summarize(const expression &expression) {
     case expression_kind::array:
       return "array(" + children() + ")";
     case expression_kind::arrow_function_with_expression:
-      return "arrowexpr(" + children() + ")";
+      return function_attributes() + "arrowexpr(" + children() + ")";
     case expression_kind::arrow_function_with_statements:
-      return "arrowblock(" + children() + ")";
+      return function_attributes() + "arrowblock(" + children() + ")";
     case expression_kind::assignment:
       return "assign(" + children() + ")";
     case expression_kind::await:

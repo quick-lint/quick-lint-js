@@ -28,6 +28,11 @@ enum class variable_kind {
   _parameter,
   _var,
 };
-}
+
+enum class function_attributes {
+  async,
+  normal,
+};
+}  // namespace quick_lint_js
 
 #endif

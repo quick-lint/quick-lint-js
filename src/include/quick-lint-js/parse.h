@@ -883,7 +883,8 @@ class parser {
   // * std::vector<expression_ptr> &&parameters
   // * (none)
   template <class... Args>
-  expression_ptr parse_arrow_function_body(const char *parameter_list_begin,
+  expression_ptr parse_arrow_function_body(function_attributes,
+                                           const char *parameter_list_begin,
                                            Args &&... args);
 
   expression_ptr parse_object_literal();
