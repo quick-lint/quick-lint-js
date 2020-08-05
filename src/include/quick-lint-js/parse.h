@@ -237,6 +237,11 @@ class parser {
       case expression_kind::unary_operator:
         this->visit_expression(ast->child_0(), v, context);
         break;
+      case expression_kind::conditional:
+        this->visit_expression(ast->child_0(), v, context);
+        this->visit_expression(ast->child_1(), v, context);
+        this->visit_expression(ast->child_2(), v, context);
+        break;
       case expression_kind::dot:
         this->visit_expression(ast->child_0(), v, variable_context::rhs);
         break;

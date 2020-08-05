@@ -875,6 +875,16 @@ TEST(test_parse, super_in_class) {
   }
 }
 
+TEST(test_parse, conditional_expression) {
+  {
+    spy_visitor v = parse_and_visit_expression("x ? y : z");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"x"},  //
+                            spy_visitor::visited_variable_use{"y"},  //
+                            spy_visitor::visited_variable_use{"z"}));
+  }
+}
+
 TEST(test_parse, parse_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement("function foo() {}");

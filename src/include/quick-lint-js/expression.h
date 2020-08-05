@@ -61,6 +61,7 @@ enum class expression_kind {
   await,
   binary_operator,
   call,
+  conditional,
   dot,
   function,
   import,
@@ -167,6 +168,12 @@ class expression {
       : kind_(expression_kind::call),
         call_right_paren_end_(span.end()),
         children_(std::move(children)) {}
+
+  explicit expression(tag<expression_kind::conditional>,
+                      expression_ptr condition, expression_ptr true_branch,
+                      expression_ptr false_branch) noexcept
+      : kind_(expression_kind::conditional),
+        children_{condition, true_branch, false_branch} {}
 
   explicit expression(tag<expression_kind::dot>, expression_ptr lhs,
                       identifier rhs) noexcept
@@ -281,8 +288,8 @@ class expression {
   }
 
   expression_ptr child_0() const noexcept { return this->child(0); }
-
   expression_ptr child_1() const noexcept { return this->child(1); }
+  expression_ptr child_2() const noexcept { return this->child(2); }
 
   expression_ptr child(int index) const noexcept {
     assert(index >= 0);
@@ -330,6 +337,7 @@ class expression {
                                 this->children_.back()->span().end());
       case expression_kind::assignment:
       case expression_kind::binary_operator:
+      case expression_kind::conditional:
       case expression_kind::updating_assignment:
         return source_code_span(this->children_.front()->span().begin(),
                                 this->children_.back()->span().end());

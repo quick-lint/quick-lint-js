@@ -328,6 +328,37 @@ TEST(test_parse_expression, parse_typeof_unary_operator) {
   }
 }
 
+TEST(test_parse_expression, conditional_expression) {
+  {
+    test_parser p("x?y:z");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::conditional);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_EQ(summarize(ast->child_1()), "var y");
+    EXPECT_EQ(summarize(ast->child_2()), "var z");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 5);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("x+x?y+y:z+z");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::conditional);
+    EXPECT_EQ(summarize(ast->child_0()), "binary(var x, var x)");
+    EXPECT_EQ(summarize(ast->child_1()), "binary(var y, var y)");
+    EXPECT_EQ(summarize(ast->child_2()), "binary(var z, var z)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("a ? b : c ? d : e");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, cond(var c, var d, var e))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, parse_function_call) {
   {
     test_parser p("f()");
@@ -1088,6 +1119,10 @@ std::string summarize(const expression &expression) {
       return "await(" + summarize(expression.child_0()) + ")";
     case expression_kind::call:
       return "call(" + children() + ")";
+    case expression_kind::conditional:
+      return "cond(" + summarize(expression.child_0()) + ", " +
+             summarize(expression.child_1()) + ", " +
+             summarize(expression.child_2()) + ")";
     case expression_kind::dot:
       return "dot(" + summarize(expression.child_0()) + ", " +
              std::string(expression.variable_identifier().string_view()) + ")";

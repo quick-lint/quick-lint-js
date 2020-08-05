@@ -444,6 +444,21 @@ next:
       children.emplace_back(this->parse_expression(prec));
       goto next;
 
+    case token_type::question: {
+      this->lexer_.skip();
+
+      expression_ptr condition = build_expression();
+      expression_ptr true_expression = this->parse_expression(prec);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+      this->lexer_.skip();
+
+      expression_ptr false_expression = this->parse_expression(prec);
+
+      return this->make_expression<expression_kind::conditional>(
+          condition, true_expression, false_expression);
+    }
+
     // Arrow function: (parameters, go, here) => expression-or-block
     case token_type::equal_greater: {
       const char *left_paren_begin = this->peek().begin;  // FIXME(strager)
