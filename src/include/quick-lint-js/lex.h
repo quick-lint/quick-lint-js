@@ -23,6 +23,51 @@
 #include <quick-lint-js/location.h>
 #include <string_view>
 
+#define QLJS_CASE_KEYWORD                        \
+  case ::quick_lint_js::token_type::_as:         \
+  case ::quick_lint_js::token_type::_async:      \
+  case ::quick_lint_js::token_type::_await:      \
+  case ::quick_lint_js::token_type::_break:      \
+  case ::quick_lint_js::token_type::_case:       \
+  case ::quick_lint_js::token_type::_catch:      \
+  case ::quick_lint_js::token_type::_class:      \
+  case ::quick_lint_js::token_type::_const:      \
+  case ::quick_lint_js::token_type::_continue:   \
+  case ::quick_lint_js::token_type::_debugger:   \
+  case ::quick_lint_js::token_type::_default:    \
+  case ::quick_lint_js::token_type::_delete:     \
+  case ::quick_lint_js::token_type::_do:         \
+  case ::quick_lint_js::token_type::_else:       \
+  case ::quick_lint_js::token_type::_export:     \
+  case ::quick_lint_js::token_type::_extends:    \
+  case ::quick_lint_js::token_type::_false:      \
+  case ::quick_lint_js::token_type::_finally:    \
+  case ::quick_lint_js::token_type::_for:        \
+  case ::quick_lint_js::token_type::_from:       \
+  case ::quick_lint_js::token_type::_function:   \
+  case ::quick_lint_js::token_type::_if:         \
+  case ::quick_lint_js::token_type::_import:     \
+  case ::quick_lint_js::token_type::_in:         \
+  case ::quick_lint_js::token_type::_instanceof: \
+  case ::quick_lint_js::token_type::_let:        \
+  case ::quick_lint_js::token_type::_new:        \
+  case ::quick_lint_js::token_type::_null:       \
+  case ::quick_lint_js::token_type::_of:         \
+  case ::quick_lint_js::token_type::_return:     \
+  case ::quick_lint_js::token_type::_static:     \
+  case ::quick_lint_js::token_type::_super:      \
+  case ::quick_lint_js::token_type::_switch:     \
+  case ::quick_lint_js::token_type::_this:       \
+  case ::quick_lint_js::token_type::_throw:      \
+  case ::quick_lint_js::token_type::_true:       \
+  case ::quick_lint_js::token_type::_try:        \
+  case ::quick_lint_js::token_type::_typeof:     \
+  case ::quick_lint_js::token_type::_var:        \
+  case ::quick_lint_js::token_type::_void:       \
+  case ::quick_lint_js::token_type::_while:      \
+  case ::quick_lint_js::token_type::_with:       \
+  case ::quick_lint_js::token_type::_yield
+
 namespace quick_lint_js {
 class error_reporter;
 

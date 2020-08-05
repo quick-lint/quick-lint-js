@@ -380,6 +380,15 @@ TEST(test_parse_expression, parse_dot_expressions) {
     EXPECT_EQ(summarize(ast), "dot(dot(var x, p1), p2)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  for (std::string keyword : {"catch", "class", "default", "try"}) {
+    SCOPED_TRACE(keyword);
+    std::string code = "promise." + keyword;
+    test_parser p(code.c_str());
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(var promise, " + keyword + ")");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST(test_parse_expression, parse_indexing_expression) {

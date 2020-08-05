@@ -151,7 +151,14 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
 }
 
 identifier token::identifier_name() const noexcept {
-  assert(this->type == token_type::identifier);
+  switch (this->type) {
+  QLJS_CASE_KEYWORD:
+  case token_type::identifier:
+    break;
+    default:
+      assert(false);
+      break;
+  }
   return identifier(this->span());
 }
 

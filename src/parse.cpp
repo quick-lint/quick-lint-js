@@ -398,6 +398,7 @@ next:
       this->lexer_.skip();
       switch (this->peek().type) {
         case token_type::identifier:
+        QLJS_CASE_KEYWORD:
           children.back() = this->make_expression<expression_kind::dot>(
               children.back(), this->peek().identifier_name());
           this->lexer_.skip();
