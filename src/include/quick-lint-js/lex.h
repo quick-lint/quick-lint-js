@@ -58,6 +58,7 @@ enum class token_type {
   identifier,
   incomplete_template,
   number,
+  regexp,
   string,
 
   // Keywords:
@@ -180,6 +181,8 @@ class lexer {
 
   void skip() { this->parse_current_token(); }
   void skip_in_template(const char* template_begin);
+
+  void reparse_as_regexp();
 
   void insert_semicolon();
 

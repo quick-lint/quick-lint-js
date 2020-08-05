@@ -123,6 +123,11 @@ class debug_error_reporter : public error_reporter {
     std::cerr << "error: unclosed block comment\n";
   }
 
+  void report_error_unclosed_regexp_literal(source_code_span where) override {
+    log_location(where);
+    std::cerr << "error: unclosed regexp literal\n";
+  }
+
   void report_error_unclosed_string_literal(source_code_span where) override {
     log_location(where);
     std::cerr << "error: unclosed string literal\n";

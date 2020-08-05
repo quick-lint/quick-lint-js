@@ -521,6 +521,24 @@ lexer::parsed_template_body lexer::parse_template_body(
   }
 }
 
+void lexer::reparse_as_regexp() {
+  assert(this->last_token_.type == token_type::slash);
+
+  this->input_ = this->last_token_.begin;
+  assert(this->input_[0] == '/');
+  this->last_token_.type = token_type::regexp;
+
+  const char* closing_slash = std::strchr(this->input_ + 1, '/');
+  if (closing_slash == nullptr) {
+    this->input_ += std::strlen(this->input_);
+    this->error_reporter_->report_error_unclosed_regexp_literal(
+        source_code_span(this->last_token_.begin, this->input_));
+  } else {
+    this->input_ = closing_slash + 1;
+  }
+  this->last_token_.end = this->input_;
+}
+
 void lexer::insert_semicolon() {
   this->input_ = this->last_last_token_end_;
 
@@ -703,6 +721,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(plus_equal)
     QLJS_CASE(plus_plus)
     QLJS_CASE(question)
+    QLJS_CASE(regexp)
     QLJS_CASE(right_curly)
     QLJS_CASE(right_paren)
     QLJS_CASE(right_square)

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstring>
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
@@ -256,6 +257,66 @@ world`)",
 
   // TODO(strager): Report invalid escape sequences, like with plain string
   // literals.
+}
+
+TEST(test_lex, lex_regular_expression_literals) {
+  {
+    const char code[] = "/ /";
+    lexer l(code, &null_error_reporter::instance);
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_EQ(l.peek().begin, &code[0]);
+    EXPECT_EQ(l.peek().end, &code[std::strlen(code)]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    error_collector v;
+    const char code[] = "/end_of_file";
+    lexer l(code, &v);
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_EQ(l.peek().begin, &code[0]);
+    EXPECT_EQ(l.peek().end, &code[std::strlen(code)]);
+
+    EXPECT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_regexp_literal);
+    EXPECT_EQ(locator(code).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(code).range(v.errors[0].where).end_offset(),
+              std::strlen(code));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  // TODO(strager): Parse trailing flags.
+
+  // TODO(strager): Parse '/' inside character classes.
+
+  // TODO(strager): Report invalid escape sequences.
+
+  // TODO(strager): Report invalid characters and mismatched brackets.
+}
+
+TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
+  {
+    const char code[] = "\n/ /";
+    lexer l(code, &null_error_reporter::instance);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_TRUE(l.peek().has_leading_newline);
+  }
+
+  {
+    const char code[] = "/ /";
+    lexer l(code, &null_error_reporter::instance);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_FALSE(l.peek().has_leading_newline);
+  }
 }
 
 TEST(test_lex, lex_identifiers) {

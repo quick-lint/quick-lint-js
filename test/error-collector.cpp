@@ -34,6 +34,7 @@ void PrintTo(const error_collector::error &x, std::ostream *out) {
     QLJS_CASE(error_missing_semicolon_after_expression)
     QLJS_CASE(error_stray_comma_in_let_statement)
     QLJS_CASE(error_unclosed_block_comment)
+    QLJS_CASE(error_unclosed_regexp_literal)
     QLJS_CASE(error_unclosed_string_literal)
     QLJS_CASE(error_unclosed_template)
     QLJS_CASE(error_unexpected_identifier)

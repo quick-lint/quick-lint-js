@@ -85,6 +85,12 @@ struct error_collector : public error_reporter {
         error{error_unclosed_block_comment, comment_open});
   }
 
+  void report_error_unclosed_regexp_literal(
+      source_code_span regexp_literal) override {
+    this->errors.emplace_back(
+        error{error_unclosed_regexp_literal, regexp_literal});
+  }
+
   void report_error_unclosed_string_literal(
       source_code_span string_literal) override {
     this->errors.emplace_back(
@@ -121,6 +127,7 @@ struct error_collector : public error_reporter {
     error_missing_semicolon_after_expression,
     error_stray_comma_in_let_statement,
     error_unclosed_block_comment,
+    error_unclosed_regexp_literal,
     error_unclosed_string_literal,
     error_unclosed_template,
     error_unexpected_identifier,
