@@ -28,7 +28,6 @@
   case token_type::percent:                 \
   case token_type::pipe:                    \
   case token_type::pipe_pipe:               \
-  case token_type::slash:                   \
   case token_type::star:                    \
   case token_type::star_star
 
@@ -278,6 +277,14 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::right_paren:
       return this->make_expression<expression_kind::_invalid>();
 
+    case token_type::slash: {
+      this->lexer_.reparse_as_regexp();
+      expression_ptr regexp =
+          this->make_expression<expression_kind::literal>(this->peek().span());
+      this->lexer_.skip();
+      return this->parse_expression_remainder(regexp, prec);
+    }
+
     QLJS_CASE_BINARY_ONLY_OPERATOR : {
       expression_ptr ast = this->make_expression<expression_kind::_invalid>();
       if (!prec.binary_operators) {
@@ -329,7 +336,8 @@ next:
 
     QLJS_CASE_BINARY_ONLY_OPERATOR:
     case token_type::minus:
-    case token_type::plus: {
+    case token_type::plus:
+    case token_type::slash: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       children.emplace_back(this->parse_expression(

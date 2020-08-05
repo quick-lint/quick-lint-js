@@ -121,6 +121,15 @@ TEST(test_parse_expression, parse_single_token_expression) {
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 4);
   }
+
+  {
+    test_parser p("/regexp/");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::literal);
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 8);
+  }
 }
 
 TEST(test_parse_expression, parse_math_expression) {
@@ -1018,6 +1027,13 @@ TEST(test_parse_expression, parse_mixed_expression) {
     test_parser p("(x+y).z");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(binary(var x, var y), z)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("/hello/.test(string)");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(dot(literal, test), var string)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
