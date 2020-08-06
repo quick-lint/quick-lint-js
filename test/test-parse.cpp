@@ -1577,5 +1577,12 @@ TEST(test_parse, break_statement) {
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
+
+TEST(test_parse, continue_statement) {
+  {
+    spy_visitor v = parse_and_visit_statement("continue;");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

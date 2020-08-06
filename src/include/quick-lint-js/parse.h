@@ -137,6 +137,7 @@ class parser {
         break;
 
       case token_type::_break:
+      case token_type::_continue:
         this->lexer_.skip();
         this->consume_semicolon();
         break;
