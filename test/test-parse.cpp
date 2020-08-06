@@ -181,6 +181,23 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   }
 }
 
+TEST(test_parse, parse_let_with_array_destructuring) {
+  {
+    spy_visitor v = parse_and_visit_statement("let [first, second] = xs;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // x
+                                      "visit_variable_declaration",    // first
+                                      "visit_variable_declaration"));  // second
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        "first", variable_kind::_let},
+                    spy_visitor::visited_variable_declaration{
+                        "second", variable_kind::_let}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"xs"}));
+  }
+}
+
 TEST(test_parse, parse_function_parameters_with_object_destructuring) {
   spy_visitor v;
   parser p("function f({x, y, z}) {}", &v);

@@ -821,6 +821,7 @@ class parser {
       switch (this->peek().type) {
         case token_type::identifier:
         case token_type::left_curly:
+        case token_type::left_square:
           this->parse_and_visit_binding_element(v, declaration_kind);
           break;
         case token_type::_if:
@@ -854,6 +855,11 @@ class parser {
   void visit_binding_element(expression_ptr ast, Visitor &v,
                              variable_kind declaration_kind) {
     switch (ast->kind()) {
+      case expression_kind::array:
+        for (int i = 0; i < ast->child_count(); ++i) {
+          this->visit_binding_element(ast->child(i), v, declaration_kind);
+        }
+        break;
       case expression_kind::assignment:
         this->visit_expression(ast->child_1(), v, variable_context::rhs);
         this->visit_binding_element(ast->child_0(), v, declaration_kind);

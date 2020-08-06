@@ -392,6 +392,7 @@ next:
           this->error_reporter_
               ->report_error_invalid_expression_left_of_assignment(lhs->span());
           break;
+        case expression_kind::array:
         case expression_kind::dot:
         case expression_kind::index:
         case expression_kind::object:
