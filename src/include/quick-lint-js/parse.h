@@ -623,6 +623,10 @@ class parser {
     assert(this->peek().type == token_type::_for);
     this->lexer_.skip();
 
+    if (this->peek().type == token_type::_await) {
+      this->lexer_.skip();
+    }
+
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
     this->lexer_.skip();
 

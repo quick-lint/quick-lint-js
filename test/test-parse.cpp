@@ -1473,6 +1473,18 @@ TEST(test_parse, for_of_loop) {
                 ElementsAre(spy_visitor::visited_variable_use{"xs"},  //
                             spy_visitor::visited_variable_use{"body"}));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement("for await (let x of xs) { body; }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          //
+                                      "visit_variable_declaration",  //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_use",          //
+                                      "visit_exit_block_scope",      //
+                                      "visit_exit_for_scope"));
+  }
 }
 
 TEST(test_parse, block_statement) {
