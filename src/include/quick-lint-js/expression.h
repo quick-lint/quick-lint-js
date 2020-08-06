@@ -80,6 +80,11 @@ enum class expression_kind {
 
 class expression {
  public:
+  struct object_property_value_pair {
+    expression_ptr property;
+    expression_ptr value;
+  };
+
   template <expression_kind Kind>
   struct tag {};
 
@@ -284,7 +289,6 @@ class expression {
       case expression_kind::assignment:
       case expression_kind::binary_operator:
       case expression_kind::call:
-      case expression_kind::object:
       case expression_kind::updating_assignment:
         break;
       default:
@@ -299,6 +303,7 @@ class expression {
   expression_ptr child_2() const noexcept { return this->child(2); }
 
   expression_ptr child(int index) const noexcept {
+    assert(this->kind_ != expression_kind::object);
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
     return this->children_[index];
@@ -321,6 +326,22 @@ class expression {
         "visit_children can be called at most once, but it was called twice");
     this->child_visits_->move_into(v);
     this->child_visits_.reset();
+  }
+
+  int object_entry_count() const noexcept {
+    assert(this->kind_ == expression_kind::object);
+    assert(this->children_.size() % 2 == 0);
+    return narrow_cast<int>(this->children_.size() / 2);
+  }
+
+  object_property_value_pair object_entry(int index) const noexcept {
+    assert(this->kind_ == expression_kind::object);
+    assert(index >= 0);
+    assert(index < this->object_entry_count());
+    return object_property_value_pair{
+        .property = this->children_[index * 2 + 0],
+        .value = this->children_[index * 2 + 1],
+    };
   }
 
   source_code_span span() const noexcept {

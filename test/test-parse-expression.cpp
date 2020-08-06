@@ -771,7 +771,7 @@ TEST(test_parse_expression, object_literal) {
     test_parser p("{}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(ast->object_entry_count(), 0);
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 2);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -781,9 +781,9 @@ TEST(test_parse_expression, object_literal) {
     test_parser p("{key: value}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->child_count(), 2);
-    EXPECT_EQ(summarize(ast->child(0)), "literal");
-    EXPECT_EQ(summarize(ast->child(1)), "var value");
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "var value");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -791,11 +791,11 @@ TEST(test_parse_expression, object_literal) {
     test_parser p("{key1: value1, key2: value2}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->child_count(), 4);
-    EXPECT_EQ(summarize(ast->child(0)), "literal");
-    EXPECT_EQ(summarize(ast->child(1)), "var value1");
-    EXPECT_EQ(summarize(ast->child(2)), "literal");
-    EXPECT_EQ(summarize(ast->child(3)), "var value2");
+    EXPECT_EQ(ast->object_entry_count(), 2);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "var value1");
+    EXPECT_EQ(summarize(ast->object_entry(1).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(1).value), "var value2");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -803,9 +803,9 @@ TEST(test_parse_expression, object_literal) {
     test_parser p("{'key': value}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->child_count(), 2);
-    EXPECT_EQ(summarize(ast->child(0)), "literal");
-    EXPECT_EQ(summarize(ast->child(1)), "var value");
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "var value");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -813,9 +813,9 @@ TEST(test_parse_expression, object_literal) {
     test_parser p("{[key]: value}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->child_count(), 2);
-    EXPECT_EQ(summarize(ast->child(0)), "var key");
-    EXPECT_EQ(summarize(ast->child(1)), "var value");
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "var key");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "var value");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -823,13 +823,14 @@ TEST(test_parse_expression, object_literal) {
     test_parser p("{thing}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->child_count(), 2);
-    EXPECT_EQ(summarize(ast->child(0)), "literal");
-    EXPECT_EQ(p.range(ast->child(0)).begin_offset(), 1);
-    EXPECT_EQ(p.range(ast->child(0)).end_offset(), 6);
-    EXPECT_EQ(summarize(ast->child(1)), "var thing");
-    EXPECT_EQ(p.range(ast->child(1)).begin_offset(), 1);
-    EXPECT_EQ(p.range(ast->child(1)).end_offset(), 6);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    auto entry = ast->object_entry(0);
+    EXPECT_EQ(summarize(entry.property), "literal");
+    EXPECT_EQ(p.range(entry.property).begin_offset(), 1);
+    EXPECT_EQ(p.range(entry.property).end_offset(), 6);
+    EXPECT_EQ(summarize(entry.value), "var thing");
+    EXPECT_EQ(p.range(entry.value).begin_offset(), 1);
+    EXPECT_EQ(p.range(entry.value).end_offset(), 6);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -1148,8 +1149,22 @@ std::string summarize(const expression &expression) {
     case expression_kind::named_function:
       return "function " +
              std::string(expression.variable_identifier().string_view());
-    case expression_kind::object:
-      return "object(" + children() + ")";
+    case expression_kind::object: {
+      std::string result = "object(";
+      bool need_comma = false;
+      for (int i = 0; i < expression.object_entry_count(); ++i) {
+        if (need_comma) {
+          result += ", ";
+        }
+        auto entry = expression.object_entry(i);
+        result += summarize(entry.property);
+        result += ", ";
+        result += summarize(entry.value);
+        need_comma = true;
+      }
+      result += ")";
+      return result;
+    }
     case expression_kind::rw_unary_prefix:
       return "rwunary(" + summarize(expression.child_0()) + ")";
     case expression_kind::rw_unary_suffix:

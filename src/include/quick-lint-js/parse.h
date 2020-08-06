@@ -251,12 +251,10 @@ class parser {
         this->visit_expression(ast->child_1(), v, variable_context::rhs);
         break;
       case expression_kind::object:
-        assert(ast->child_count() % 2 == 0);
-        for (int i = 0; i < ast->child_count(); i += 2) {
-          expression_ptr key = ast->child(i + 0);
-          expression_ptr value = ast->child(i + 1);
-          this->visit_expression(key, v, variable_context::rhs);
-          this->visit_expression(value, v, context);
+        for (int i = 0; i < ast->object_entry_count(); ++i) {
+          auto entry = ast->object_entry(i);
+          this->visit_expression(entry.property, v, variable_context::rhs);
+          this->visit_expression(entry.value, v, context);
         }
         break;
       case expression_kind::rw_unary_prefix:
@@ -308,9 +306,8 @@ class parser {
   void maybe_visit_assignment(expression_ptr ast, Visitor &v) {
     switch (ast->kind()) {
       case expression_kind::object:
-        assert(ast->child_count() % 2 == 0);
-        for (int i = 0; i < ast->child_count(); i += 2) {
-          expression_ptr value = ast->child(i + 1);
+        for (int i = 0; i < ast->object_entry_count(); ++i) {
+          expression_ptr value = ast->object_entry(i).value;
           this->maybe_visit_assignment(value, v);
         }
         break;
@@ -862,9 +859,8 @@ class parser {
                                      declaration_kind);
         break;
       case expression_kind::object:
-        assert(ast->child_count() % 2 == 0);
-        for (int i = 0; i < ast->child_count(); i += 2) {
-          expression_ptr value = ast->child(i + 1);
+        for (int i = 0; i < ast->object_entry_count(); ++i) {
+          expression_ptr value = ast->object_entry(i).value;
           this->visit_binding_element(value, v, declaration_kind);
         }
         break;
