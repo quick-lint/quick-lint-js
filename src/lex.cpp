@@ -545,6 +545,19 @@ next:
           source_code_span(this->last_token_.begin, c));
       break;
 
+    case '\\':
+      ++c;
+      switch (*c) {
+        case '\0':
+          this->error_reporter_->report_error_unclosed_regexp_literal(
+              source_code_span(this->last_token_.begin, c));
+          break;
+        default:
+          ++c;
+          goto next;
+      }
+      break;
+
     case '/':
       ++c;
       break;

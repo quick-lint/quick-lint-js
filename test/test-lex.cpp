@@ -262,8 +262,8 @@ world`)",
 }
 
 TEST(test_lex, lex_regular_expression_literals) {
-  {
-    const char code[] = "/ /";
+  for (const char* code : {"/ /", R"(/hello\/world/)"}) {
+    SCOPED_TRACE(code);
     lexer l(code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
@@ -274,9 +274,9 @@ TEST(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
-  {
+  for (const char* code : {"/end_of_file", R"(/eof\)"}) {
+    SCOPED_TRACE(code);
     error_collector v;
-    const char code[] = "/end_of_file";
     lexer l(code, &v);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
