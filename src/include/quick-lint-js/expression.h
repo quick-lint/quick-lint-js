@@ -28,6 +28,12 @@
 #include <utility>
 #include <vector>
 
+#define QLJS_UNEXPECTED_EXPRESSION_KIND()                                 \
+  do {                                                                    \
+    assert(false && "function not implemented for this expression kind"); \
+    QLJS_UNREACHABLE();                                                   \
+  } while (false)
+
 namespace quick_lint_js {
 class expression;
 
@@ -80,262 +86,569 @@ enum class expression_kind {
 
 class expression {
  public:
+  class _invalid;
+  class _new;
+  class _template;
+  class array;
+  class arrow_function_with_expression;
+  class arrow_function_with_statements;
+  class assignment;
+  class await;
+  class binary_operator;
+  class call;
+  class conditional;
+  class dot;
+  class function;
+  class import;
+  class index;
+  class literal;
+  class named_function;
+  class object;
+  class rw_unary_prefix;
+  class rw_unary_suffix;
+  class spread;
+  class super;
+  class unary_operator;
+  class updating_assignment;
+  class variable;
+
   struct object_property_value_pair {
     expression_ptr property;
     expression_ptr value;
   };
 
-  template <expression_kind Kind>
-  struct tag {};
-
-  explicit expression(tag<expression_kind::_invalid>) noexcept
-      : kind_(expression_kind::_invalid) {}
-
-  explicit expression(tag<expression_kind::_new>,
-                      std::vector<expression_ptr> &&children,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::_new),
-        span_(span),
-        children_(std::move(children)) {}
-
-  explicit expression(tag<expression_kind::_template>,
-                      std::vector<expression_ptr> &&children,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::_template),
-        span_(span),
-        children_(std::move(children)) {}
-
-  explicit expression(tag<expression_kind::array>,
-                      std::vector<expression_ptr> &&children,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::array),
-        span_(span),
-        children_(std::move(children)) {}
-
-  explicit expression(tag<expression_kind::arrow_function_with_expression>,
-                      function_attributes attributes,
-                      std::vector<expression_ptr> &&parameters,
-                      expression_ptr body,
-                      const char *parameter_list_begin) noexcept
-      : kind_(expression_kind::arrow_function_with_expression),
-        parameter_list_begin_(parameter_list_begin),
-        function_attributes_(attributes),
-        children_(std::move(parameters)) {
-    this->children_.emplace_back(body);
-  }
-
-  explicit expression(tag<expression_kind::arrow_function_with_expression>,
-                      function_attributes attributes, expression_ptr body,
-                      const char *parameter_list_begin) noexcept
-      : kind_(expression_kind::arrow_function_with_expression),
-        parameter_list_begin_(parameter_list_begin),
-        function_attributes_(attributes),
-        children_{body} {}
-
-  explicit expression(tag<expression_kind::arrow_function_with_statements>,
-                      function_attributes attributes,
-                      std::unique_ptr<buffering_visitor> &&child_visits,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::arrow_function_with_statements),
-        span_(span),
-        function_attributes_(attributes),
-        children_(),
-        child_visits_(std::move(child_visits)) {}
-
-  explicit expression(tag<expression_kind::arrow_function_with_statements>,
-                      function_attributes attributes,
-                      std::vector<expression_ptr> &&parameters,
-                      std::unique_ptr<buffering_visitor> &&child_visits,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::arrow_function_with_statements),
-        span_(span),
-        function_attributes_(attributes),
-        children_(std::move(parameters)),
-        child_visits_(std::move(child_visits)) {}
-
-  explicit expression(tag<expression_kind::assignment>, expression_ptr lhs,
-                      expression_ptr rhs) noexcept
-      : kind_(expression_kind::assignment), children_{lhs, rhs} {}
-
-  explicit expression(tag<expression_kind::await>, expression_ptr child,
-                      source_code_span operator_span) noexcept
-      : kind_(expression_kind::await),
-        unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
-
-  explicit expression(tag<expression_kind::binary_operator>,
-                      std::vector<expression_ptr> &&children) noexcept
-      : kind_(expression_kind::binary_operator),
-        children_(std::move(children)) {}
-
-  explicit expression(tag<expression_kind::call>,
-                      std::vector<expression_ptr> &&children,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::call),
-        call_right_paren_end_(span.end()),
-        children_(std::move(children)) {}
-
-  explicit expression(tag<expression_kind::conditional>,
-                      expression_ptr condition, expression_ptr true_branch,
-                      expression_ptr false_branch) noexcept
-      : kind_(expression_kind::conditional),
-        children_{condition, true_branch, false_branch} {}
-
-  explicit expression(tag<expression_kind::dot>, expression_ptr lhs,
-                      identifier rhs) noexcept
-      : kind_(expression_kind::dot),
-        variable_identifier_(rhs),
-        children_{lhs} {}
-
-  explicit expression(tag<expression_kind::function>,
-                      std::unique_ptr<buffering_visitor> &&child_visits,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::function),
-        span_(span),
-        child_visits_(std::move(child_visits)) {}
-
-  explicit expression(tag<expression_kind::import>,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::import), span_(span) {}
-
-  explicit expression(tag<expression_kind::index>, expression_ptr container,
-                      expression_ptr subscript,
-                      const char *subscript_end) noexcept
-      : kind_(expression_kind::index),
-        index_subscript_end_(subscript_end),
-        children_{container, subscript} {}
-
-  explicit expression(tag<expression_kind::literal>,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::literal), span_(span) {}
-
-  explicit expression(tag<expression_kind::named_function>, identifier name,
-                      std::unique_ptr<buffering_visitor> &&child_visits,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::named_function),
-        variable_identifier_(name),
-        span_(span),
-        child_visits_(std::move(child_visits)) {}
-
-  explicit expression(tag<expression_kind::object>,
-                      std::vector<expression_ptr> &&children,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::object),
-        span_(span),
-        children_(std::move(children)) {}
-
-  explicit expression(tag<expression_kind::rw_unary_prefix>,
-                      expression_ptr child,
-                      source_code_span operator_span) noexcept
-      : kind_(expression_kind::rw_unary_prefix),
-        unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
-
-  explicit expression(tag<expression_kind::rw_unary_suffix>,
-                      expression_ptr child,
-                      source_code_span operator_span) noexcept
-      : kind_(expression_kind::rw_unary_suffix),
-        unary_operator_end_(operator_span.end()),
-        children_{child} {}
-
-  explicit expression(tag<expression_kind::spread>, expression_ptr child,
-                      source_code_span operator_span) noexcept
-      : kind_(expression_kind::spread),
-        unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
-
-  explicit expression(tag<expression_kind::super>,
-                      source_code_span span) noexcept
-      : kind_(expression_kind::super), span_(span) {}
-
-  explicit expression(tag<expression_kind::unary_operator>,
-                      expression_ptr child,
-                      source_code_span operator_span) noexcept
-      : kind_(expression_kind::unary_operator),
-        unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
-
-  explicit expression(tag<expression_kind::updating_assignment>,
-                      expression_ptr lhs, expression_ptr rhs) noexcept
-      : kind_(expression_kind::updating_assignment), children_{lhs, rhs} {}
-
-  explicit expression(tag<expression_kind::variable>,
-                      identifier variable_identifier) noexcept
-      : kind_(expression_kind::variable),
-        variable_identifier_(variable_identifier) {}
+  virtual ~expression() = default;
 
   expression_kind kind() const noexcept { return this->kind_; }
 
-  identifier variable_identifier() const noexcept {
-    switch (this->kind_) {
-      case expression_kind::dot:
-      case expression_kind::named_function:
-      case expression_kind::variable:
-        break;
-      default:
-        assert(false);
-        break;
-    }
-    return this->variable_identifier_;
+  virtual identifier variable_identifier() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
-  int child_count() const noexcept {
-    switch (this->kind_) {
-      case expression_kind::_new:
-      case expression_kind::_template:
-      case expression_kind::array:
-      case expression_kind::arrow_function_with_expression:
-      case expression_kind::arrow_function_with_statements:
-      case expression_kind::assignment:
-      case expression_kind::binary_operator:
-      case expression_kind::call:
-      case expression_kind::updating_assignment:
-        break;
-      default:
-        assert(false);
-        break;
-    }
-    return narrow_cast<int>(this->children_.size());
+  virtual int child_count() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
   expression_ptr child_0() const noexcept { return this->child(0); }
   expression_ptr child_1() const noexcept { return this->child(1); }
   expression_ptr child_2() const noexcept { return this->child(2); }
 
-  expression_ptr child(int index) const noexcept {
-    assert(this->kind_ != expression_kind::object);
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+  virtual expression_ptr child(int) const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
   // Can be called at most once.
   template <class Visitor>
   void visit_children(Visitor &v) {
-    switch (this->kind_) {
-      case expression_kind::arrow_function_with_statements:
-      case expression_kind::function:
-      case expression_kind::named_function:
-        break;
-      default:
-        assert(false);
-        break;
-    }
+    std::unique_ptr<buffering_visitor> child_visits = this->take_child_visits();
     assert(
-        this->child_visits_ &&
+        child_visits &&
         "visit_children can be called at most once, but it was called twice");
-    this->child_visits_->move_into(v);
-    this->child_visits_.reset();
+    child_visits->move_into(v);
   }
 
-  int object_entry_count() const noexcept {
-    assert(this->kind_ == expression_kind::object);
+  virtual int object_entry_count() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  virtual object_property_value_pair object_entry(int) const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  virtual source_code_span span() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  virtual function_attributes attributes() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+ protected:
+  explicit expression(expression_kind kind) noexcept : kind_(kind) {}
+
+  virtual std::unique_ptr<buffering_visitor> take_child_visits() noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+ private:
+  expression_kind kind_;
+};
+
+class expression::_invalid : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_invalid;
+
+  explicit _invalid() noexcept : expression(kind) {}
+
+  source_code_span span() const noexcept override {
+    assert(false && "Not yet implemented");
+    QLJS_UNREACHABLE();
+  }
+};
+
+class expression::_new : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_new;
+
+  explicit _new(std::vector<expression_ptr> &&children,
+                source_code_span span) noexcept
+      : expression(kind), span_(span), children_(std::move(children)) {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::_template : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_template;
+
+  explicit _template(std::vector<expression_ptr> &&children,
+                     source_code_span span) noexcept
+      : expression(kind), span_(span), children_(std::move(children)) {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::array : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::array;
+
+  explicit array(std::vector<expression_ptr> &&children,
+                 source_code_span span) noexcept
+      : expression(kind), span_(span), children_(std::move(children)) {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::arrow_function_with_expression : public expression {
+ public:
+  static constexpr expression_kind kind =
+      expression_kind::arrow_function_with_expression;
+
+  explicit arrow_function_with_expression(
+      function_attributes attributes, expression_ptr body,
+      const char *parameter_list_begin) noexcept
+      : expression(kind),
+        parameter_list_begin_(parameter_list_begin),
+        function_attributes_(attributes),
+        children_{body} {}
+
+  explicit arrow_function_with_expression(
+      function_attributes attributes, std::vector<expression_ptr> &&parameters,
+      expression_ptr body, const char *parameter_list_begin) noexcept
+      : expression(kind),
+        parameter_list_begin_(parameter_list_begin),
+        function_attributes_(attributes),
+        children_(std::move(parameters)) {
+    this->children_.emplace_back(body);
+  }
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->parameter_list_begin_,
+                            this->children_.back()->span().end());
+  }
+
+  function_attributes attributes() const noexcept override {
+    return this->function_attributes_;
+  }
+
+ private:
+  const char *parameter_list_begin_;
+  function_attributes function_attributes_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::arrow_function_with_statements : public expression {
+ public:
+  static constexpr expression_kind kind =
+      expression_kind::arrow_function_with_statements;
+
+  explicit arrow_function_with_statements(
+      function_attributes attributes,
+      std::unique_ptr<buffering_visitor> &&child_visits,
+      source_code_span span) noexcept
+      : expression(kind),
+        function_attributes_(attributes),
+        span_(span),
+        child_visits_(std::move(child_visits)) {}
+
+  explicit arrow_function_with_statements(
+      function_attributes attributes, std::vector<expression_ptr> &&parameters,
+      std::unique_ptr<buffering_visitor> &&child_visits,
+      source_code_span span) noexcept
+      : expression(kind),
+        function_attributes_(attributes),
+        span_(span),
+        child_visits_(std::move(child_visits)),
+        children_(std::move(parameters)) {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+  function_attributes attributes() const noexcept override {
+    return this->function_attributes_;
+  }
+
+ protected:
+  std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
+    return std::move(this->child_visits_);
+  }
+
+ private:
+  function_attributes function_attributes_;
+  source_code_span span_;
+  std::unique_ptr<buffering_visitor> child_visits_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::assignment : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::assignment;
+
+  explicit assignment(expression_ptr lhs, expression_ptr rhs) noexcept
+      : expression(kind), children_{lhs, rhs} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->children_.front()->span().begin(),
+                            this->children_.back()->span().end());
+  }
+
+ private:
+  std::vector<expression_ptr> children_;
+};
+
+class expression::await : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::await;
+
+  explicit await(expression_ptr child, source_code_span operator_span) noexcept
+      : expression(kind),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->unary_operator_begin_,
+                            this->child_0()->span().end());
+  }
+
+ private:
+  const char *unary_operator_begin_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::binary_operator : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::binary_operator;
+
+  explicit binary_operator(std::vector<expression_ptr> &&children) noexcept
+      : expression(kind), children_(std::move(children)) {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->children_.front()->span().begin(),
+                            this->children_.back()->span().end());
+  }
+
+ private:
+  std::vector<expression_ptr> children_;
+};
+
+class expression::call : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::call;
+
+  explicit call(std::vector<expression_ptr> &&children,
+                source_code_span span) noexcept
+      : expression(kind),
+        call_right_paren_end_(span.end()),
+        children_(std::move(children)) {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->children_.front()->span().begin(),
+                            this->call_right_paren_end_);
+  }
+
+ private:
+  const char *call_right_paren_end_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::conditional : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::conditional;
+
+  explicit conditional(expression_ptr condition, expression_ptr true_branch,
+                       expression_ptr false_branch) noexcept
+      : expression(kind), children_{condition, true_branch, false_branch} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->children_.front()->span().begin(),
+                            this->children_.back()->span().end());
+  }
+
+ private:
+  std::vector<expression_ptr> children_;
+};
+
+class expression::dot : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::dot;
+
+  explicit dot(expression_ptr lhs, identifier rhs) noexcept
+      : expression(kind), variable_identifier_(rhs), children_{lhs} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  identifier variable_identifier() const noexcept override {
+    return this->variable_identifier_;
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->child_0()->span().begin(),
+                            this->variable_identifier_.span().end());
+  }
+
+ private:
+  identifier variable_identifier_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::function : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::function;
+
+  explicit function(std::unique_ptr<buffering_visitor> &&child_visits,
+                    source_code_span span) noexcept
+      : expression(kind), child_visits_(std::move(child_visits)), span_(span) {}
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ protected:
+  std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
+    return std::move(this->child_visits_);
+  }
+
+ private:
+  std::unique_ptr<buffering_visitor> child_visits_;
+  source_code_span span_;
+};
+
+class expression::import : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::import;
+
+  explicit import(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+
+class expression::index : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::index;
+
+  explicit index(expression_ptr container, expression_ptr subscript,
+                 const char *subscript_end) noexcept
+      : expression(kind),
+        index_subscript_end_(subscript_end),
+        children_{container, subscript} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->child_0()->span().begin(),
+                            this->index_subscript_end_);
+  }
+
+ private:
+  const char *index_subscript_end_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::literal : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::literal;
+
+  explicit literal(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+
+class expression::named_function : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::named_function;
+
+  explicit named_function(identifier name,
+                          std::unique_ptr<buffering_visitor> &&child_visits,
+                          source_code_span span) noexcept
+      : expression(kind),
+        child_visits_(std::move(child_visits)),
+        variable_identifier_(name),
+        span_(span) {}
+
+  identifier variable_identifier() const noexcept override {
+    return this->variable_identifier_;
+  }
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ protected:
+  std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
+    return std::move(this->child_visits_);
+  }
+
+ private:
+  std::unique_ptr<buffering_visitor> child_visits_;
+  identifier variable_identifier_;
+  source_code_span span_;
+};
+
+class expression::object : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::object;
+
+  explicit object(std::vector<expression_ptr> &&children,
+                  source_code_span span) noexcept
+      : expression(kind), span_(span), children_(std::move(children)) {}
+
+  int object_entry_count() const noexcept override {
     assert(this->children_.size() % 2 == 0);
     return narrow_cast<int>(this->children_.size() / 2);
   }
 
-  object_property_value_pair object_entry(int index) const noexcept {
-    assert(this->kind_ == expression_kind::object);
+  object_property_value_pair object_entry(int index) const noexcept override {
     assert(index >= 0);
     assert(index < this->object_entry_count());
     return object_property_value_pair{
@@ -344,113 +657,205 @@ class expression {
     };
   }
 
-  source_code_span span() const noexcept {
-    switch (this->kind_) {
-      case expression_kind::_invalid:
-        assert(false && "Not yet implemented");
-        break;
-      case expression_kind::_new:
-      case expression_kind::_template:
-      case expression_kind::array:
-      case expression_kind::arrow_function_with_statements:
-      case expression_kind::function:
-      case expression_kind::import:
-      case expression_kind::literal:
-      case expression_kind::named_function:
-      case expression_kind::object:
-      case expression_kind::super:
-        return this->span_;
-      case expression_kind::arrow_function_with_expression:
-        return source_code_span(this->parameter_list_begin_,
-                                this->children_.back()->span().end());
-      case expression_kind::assignment:
-      case expression_kind::binary_operator:
-      case expression_kind::conditional:
-      case expression_kind::updating_assignment:
-        return source_code_span(this->children_.front()->span().begin(),
-                                this->children_.back()->span().end());
-      case expression_kind::call:
-        return source_code_span(this->children_.front()->span().begin(),
-                                this->call_right_paren_end_);
-      case expression_kind::dot:
-        return source_code_span(this->child_0()->span().begin(),
-                                this->variable_identifier_.span().end());
-      case expression_kind::index:
-        return source_code_span(this->child_0()->span().begin(),
-                                this->index_subscript_end_);
-      case expression_kind::await:
-      case expression_kind::rw_unary_prefix:
-      case expression_kind::spread:
-      case expression_kind::unary_operator:
-        return source_code_span(this->unary_operator_begin_,
-                                this->child_0()->span().end());
-      case expression_kind::rw_unary_suffix:
-        return source_code_span(this->child_0()->span().begin(),
-                                this->unary_operator_end_);
-      case expression_kind::variable:
-        return this->variable_identifier_.span();
-    }
-    QLJS_UNREACHABLE();
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::rw_unary_prefix : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::rw_unary_prefix;
+
+  explicit rw_unary_prefix(expression_ptr child,
+                           source_code_span operator_span) noexcept
+      : expression(kind),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
   }
 
-  function_attributes attributes() const noexcept {
-    switch (this->kind_) {
-      case expression_kind::arrow_function_with_expression:
-      case expression_kind::arrow_function_with_statements:
-        return this->function_attributes_;
-      default:
-        assert(false);
-        break;
-    }
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->unary_operator_begin_,
+                            this->child_0()->span().end());
   }
 
  private:
-  expression_kind kind_;
-  union {
-    identifier variable_identifier_;  // dot, named_function, variable
-    static_assert(std::is_trivially_destructible_v<identifier>);
-
-    const char *call_right_paren_end_;  // call
-
-    const char *index_subscript_end_;  // index
-
-    // arrow_function_with_expression (optional)
-    const char *parameter_list_begin_;
-
-    // await, rw_unary_prefix, spread, unary_operator
-    const char *unary_operator_begin_;
-
-    const char *unary_operator_end_;  // rw_unary_suffix
-  };
-  union {
-    // _new, _template, array, arrow_function_with_statements, function, import,
-    // literal, named_function, super
-    source_code_span span_;
-    static_assert(std::is_trivially_destructible_v<source_code_span>);
-  };
-  union {
-    // arrow_function_with_expression, arrow_function_with_statements
-    function_attributes function_attributes_;
-    static_assert(std::is_trivially_destructible_v<function_attributes>);
-  };
+  const char *unary_operator_begin_;
   std::vector<expression_ptr> children_;
+};
 
-  // arrow_function_with_statements, function, named_function
-  std::unique_ptr<buffering_visitor> child_visits_;
+class expression::rw_unary_suffix : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::rw_unary_suffix;
+
+  explicit rw_unary_suffix(expression_ptr child,
+                           source_code_span operator_span) noexcept
+      : expression(kind),
+        unary_operator_end_(operator_span.end()),
+        children_{child} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->child_0()->span().begin(),
+                            this->unary_operator_end_);
+  }
+
+ private:
+  const char *unary_operator_end_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::spread : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::spread;
+
+  explicit spread(expression_ptr child, source_code_span operator_span) noexcept
+      : expression(kind),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->unary_operator_begin_,
+                            this->child_0()->span().end());
+  }
+
+ private:
+  const char *unary_operator_begin_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::super : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::super;
+
+  explicit super(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span() const noexcept override { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+
+class expression::unary_operator : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::unary_operator;
+
+  explicit unary_operator(expression_ptr child,
+                          source_code_span operator_span) noexcept
+      : expression(kind),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->unary_operator_begin_,
+                            this->child_0()->span().end());
+  }
+
+ private:
+  const char *unary_operator_begin_;
+  std::vector<expression_ptr> children_;
+};
+
+class expression::updating_assignment : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::updating_assignment;
+
+  explicit updating_assignment(expression_ptr lhs, expression_ptr rhs) noexcept
+      : expression(kind), children_{lhs, rhs} {}
+
+  int child_count() const noexcept override {
+    return narrow_cast<int>(this->children_.size());
+  }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index >= 0);
+    assert(index < static_cast<int>(this->children_.size()));
+    return this->children_[index];
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->children_.front()->span().begin(),
+                            this->children_.back()->span().end());
+  }
+
+ private:
+  std::vector<expression_ptr> children_;
+};
+
+class expression::variable : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::variable;
+
+  explicit variable(identifier variable_identifier) noexcept
+      : expression(kind), variable_identifier_(variable_identifier) {}
+
+  identifier variable_identifier() const noexcept override {
+    return this->variable_identifier_;
+  }
+
+  source_code_span span() const noexcept override {
+    return this->variable_identifier_.span();
+  }
+
+ private:
+  identifier variable_identifier_;
 };
 
 class expression_arena {
  public:
-  template <expression_kind Kind, class... Args>
+  template <class Expression, class... Args>
   expression_ptr make_expression(Args &&... args) {
-    this->expressions_.emplace_back(expression::tag<Kind>(),
-                                    std::forward<Args>(args)...);
-    return expression_ptr(&this->expressions_.back());
+    std::unique_ptr<Expression> ast =
+        std::make_unique<Expression>(std::forward<Args>(args)...);
+    this->expressions_.emplace_back(std::move(ast));
+    return expression_ptr(this->expressions_.back().get());
   }
 
  private:
-  std::deque<expression> expressions_;
+  std::deque<std::unique_ptr<expression>> expressions_;
 };
 }  // namespace quick_lint_js
+
+#undef QLJS_UNEXPECTED_EXPRESSION_KIND
 
 #endif

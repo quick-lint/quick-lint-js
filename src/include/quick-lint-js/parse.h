@@ -911,9 +911,9 @@ class parser {
       const char *qljs_file_name, int qljs_line,
       const char *qljs_function_name);
 
-  template <expression_kind Kind, class... Args>
+  template <class Expression, class... Args>
   expression_ptr make_expression(Args &&... args) {
-    return this->expressions_.make_expression<Kind>(
+    return this->expressions_.make_expression<Expression>(
         std::forward<Args>(args)...);
   }
 
