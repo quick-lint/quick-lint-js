@@ -154,6 +154,14 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement("let {key: variable} = 2");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    "variable", variable_kind::_let}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement("let {} = x;");
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     ASSERT_EQ(v.variable_uses.size(), 1);
