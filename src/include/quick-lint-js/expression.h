@@ -71,6 +71,7 @@ enum class expression_kind {
   object,
   rw_unary_prefix,
   rw_unary_suffix,
+  spread,
   super,
   unary_operator,
   updating_assignment,
@@ -232,6 +233,12 @@ class expression {
         unary_operator_end_(operator_span.end()),
         children_{child} {}
 
+  explicit expression(tag<expression_kind::spread>, expression_ptr child,
+                      source_code_span operator_span) noexcept
+      : kind_(expression_kind::spread),
+        unary_operator_begin_(operator_span.begin()),
+        children_{child} {}
+
   explicit expression(tag<expression_kind::super>,
                       source_code_span span) noexcept
       : kind_(expression_kind::super), span_(span) {}
@@ -352,6 +359,7 @@ class expression {
                                 this->index_subscript_end_);
       case expression_kind::await:
       case expression_kind::rw_unary_prefix:
+      case expression_kind::spread:
       case expression_kind::unary_operator:
         return source_code_span(this->unary_operator_begin_,
                                 this->child_0()->span().end());
@@ -388,8 +396,8 @@ class expression {
     // arrow_function_with_expression (optional)
     const char *parameter_list_begin_;
 
-    const char
-        *unary_operator_begin_;  // await, rw_unary_prefix, unary_operator
+    // await, rw_unary_prefix, spread, unary_operator
+    const char *unary_operator_begin_;
 
     const char *unary_operator_end_;  // rw_unary_suffix
   };

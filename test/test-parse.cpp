@@ -618,6 +618,19 @@ TEST(test_parse, parse_array_subscript) {
   }
 }
 
+TEST(test_parse, array_literal) {
+  {
+    spy_visitor v = parse_and_visit_expression("[]");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression("[...elements]");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"elements"}));
+  }
+}
+
 TEST(test_parse, object_literal) {
   {
     spy_visitor v = parse_and_visit_expression("{key: value}");
@@ -963,6 +976,18 @@ TEST(test_parse, parse_function_statement) {
                                       "visit_enter_function_scope",  //
                                       "visit_variable_use",          // x
                                       "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement("function g(first, ...args) {}");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        "g", variable_kind::_function},
+                    spy_visitor::visited_variable_declaration{
+                        "first", variable_kind::_parameter},
+                    spy_visitor::visited_variable_declaration{
+                        "args", variable_kind::_parameter}));
   }
 }
 

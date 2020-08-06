@@ -167,6 +167,7 @@ struct spy_visitor : public error_collector {
 };
 
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
+void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_use &, std::ostream *);
 }  // namespace quick_lint_js
 

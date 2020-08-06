@@ -86,12 +86,22 @@ expression_ptr parser::parse_expression(precedence prec) {
 
     case token_type::incomplete_template:
       return this->parse_template();
+
     case token_type::_await: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr child = this->parse_expression();
       return this->parse_expression_remainder(
           this->make_expression<expression_kind::await>(child, operator_span),
+          prec);
+    }
+
+    case token_type::dot_dot_dot: {
+      source_code_span operator_span = this->peek().span();
+      this->lexer_.skip();
+      expression_ptr child = this->parse_expression();
+      return this->parse_expression_remainder(
+          this->make_expression<expression_kind::spread>(child, operator_span),
           prec);
     }
 

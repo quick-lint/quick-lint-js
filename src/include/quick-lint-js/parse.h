@@ -234,6 +234,7 @@ class parser {
         break;
       }
       case expression_kind::await:
+      case expression_kind::spread:
       case expression_kind::unary_operator:
         this->visit_expression(ast->child_0(), v, context);
         break;
@@ -408,6 +409,7 @@ class parser {
       }
 
       switch (this->peek().type) {
+        case token_type::dot_dot_dot:
         case token_type::identifier:
         case token_type::left_curly:
           this->parse_and_visit_binding_element(v, variable_kind::_parameter);
@@ -861,6 +863,9 @@ class parser {
           expression_ptr value = ast->child(i + 1);
           this->visit_binding_element(value, v, declaration_kind);
         }
+        break;
+      case expression_kind::spread:
+        this->visit_binding_element(ast->child_0(), v, declaration_kind);
         break;
       default:
         assert(false && "Not yet implemented");
