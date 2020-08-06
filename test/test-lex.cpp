@@ -73,6 +73,8 @@ TEST(test_lex, lex_strings) {
   check_single_token(R"("hello")", token_type::string);
   check_single_token(R"("hello\"world")", token_type::string);
   check_single_token(R"('hello\'world')", token_type::string);
+  check_single_token(R"('hello"world')", token_type::string);
+  check_single_token(R"("hello'world")", token_type::string);
 
   {
     error_collector v;

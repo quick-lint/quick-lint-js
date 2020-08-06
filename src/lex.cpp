@@ -447,6 +447,7 @@ retry:
               ++c;
               goto done;
             }
+            ++c;
             break;
 
           default:
