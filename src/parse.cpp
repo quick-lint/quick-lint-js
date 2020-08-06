@@ -583,6 +583,15 @@ expression_ptr parser::parse_object_literal() {
             this->lexer_.skip();
             parse_value_expression();
             break;
+          case token_type::equal: {
+            // TODO(strager): Only allow this for identifiers, not strings.
+            expression_ptr value = this->parse_expression_remainder(
+                this->make_expression<expression_kind::variable>(
+                    identifier(key_span)),
+                precedence{.commas = false});
+            children.emplace_back(value);
+            break;
+          }
           default:
             QLJS_PARSER_UNIMPLEMENTED();
             break;

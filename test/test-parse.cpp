@@ -166,6 +166,19 @@ TEST(test_parse, parse_let_with_object_destructuring) {
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     ASSERT_EQ(v.variable_uses.size(), 1);
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement("let {key = defaultValue} = x;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_variable_use",  // defaultValue
+                                      "visit_variable_declaration"));  // key
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    "key", variable_kind::_let}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"x"},  //
+                            spy_visitor::visited_variable_use{"defaultValue"}));
+  }
 }
 
 TEST(test_parse, parse_function_parameters_with_object_destructuring) {

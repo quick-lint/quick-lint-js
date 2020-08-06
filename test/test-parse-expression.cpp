@@ -842,6 +842,28 @@ TEST(test_parse_expression, object_literal) {
               "value3)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p("{key: variable = value}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value),
+              "assign(var variable, var value)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("{key = value}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value),
+              "assign(var key, var value)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST(test_parse_expression, parse_comma_expression) {
