@@ -1110,6 +1110,15 @@ TEST(test_parse_expression, parse_mixed_expression) {
     EXPECT_EQ(summarize(ast), "call(dot(literal, test), var string)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p("!/hello/.test(string)");
+    expression_ptr ast = p.parse_expression();
+    if (false) {  // TODO(strager): Check AST.
+      EXPECT_EQ(summarize(ast), "unary(call(dot(literal, test), var string))");
+    }
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 std::string summarize(const expression &expression) {

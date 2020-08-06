@@ -292,6 +292,9 @@ expression_ptr parser::parse_expression(precedence prec) {
       expression_ptr regexp =
           this->make_expression<expression_kind::literal>(this->peek().span());
       this->lexer_.skip();
+      if (!prec.binary_operators) {
+        return regexp;
+      }
       return this->parse_expression_remainder(regexp, prec);
     }
 
