@@ -1119,6 +1119,14 @@ TEST(test_parse_expression, parse_mixed_expression) {
     }
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p("{a: new A(), b: new B()}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "object(literal, new(var A), literal, new(var B))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 std::string summarize(const expression &expression) {

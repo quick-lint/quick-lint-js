@@ -270,7 +270,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::_new: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
-      expression_ptr target = this->parse_expression();
+      expression_ptr target = this->parse_expression(prec);
       std::vector<expression_ptr> children;
       if (target->kind() == expression_kind::call) {
         for (int i = 0; i < target->child_count(); ++i) {
