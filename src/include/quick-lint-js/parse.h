@@ -501,6 +501,9 @@ class parser {
           }
           break;
 
+        case token_type::_get:
+          this->lexer_.skip();
+          [[fallthrough]];
         case token_type::identifier:
           v.visit_property_declaration(this->peek().identifier_name());
           this->lexer_.skip();

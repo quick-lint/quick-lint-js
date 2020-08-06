@@ -116,6 +116,7 @@ constexpr const char keywords[][11] = {
   "for",
   "from",
   "function",
+  "get",
   "if",
   "import",
   "in",
@@ -661,6 +662,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(_for)
     QLJS_CASE(_from)
     QLJS_CASE(_function)
+    QLJS_CASE(_get)
     QLJS_CASE(_if)
     QLJS_CASE(_import)
     QLJS_CASE(_in)

@@ -45,6 +45,7 @@
   case ::quick_lint_js::token_type::_for:        \
   case ::quick_lint_js::token_type::_from:       \
   case ::quick_lint_js::token_type::_function:   \
+  case ::quick_lint_js::token_type::_get:        \
   case ::quick_lint_js::token_type::_if:         \
   case ::quick_lint_js::token_type::_import:     \
   case ::quick_lint_js::token_type::_in:         \
@@ -129,6 +130,7 @@ enum class token_type {
   _for,
   _from,
   _function,
+  _get,
   _if,
   _import,
   _in,

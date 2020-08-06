@@ -1224,6 +1224,13 @@ TEST(test_parse, parse_class_statement) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement("class C { get length() { } }");
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{"length"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement("class C { a(){} b(){} c(){} }");
     ASSERT_EQ(v.property_declarations.size(), 3);
     EXPECT_EQ(v.property_declarations[0].name, "a");

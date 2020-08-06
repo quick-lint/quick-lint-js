@@ -423,7 +423,7 @@ TEST(test_parse_expression, parse_dot_expressions) {
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
-  for (std::string keyword : {"catch", "class", "default", "try"}) {
+  for (std::string keyword : {"catch", "class", "default", "get", "try"}) {
     SCOPED_TRACE(keyword);
     std::string code = "promise." + keyword;
     test_parser p(code.c_str());

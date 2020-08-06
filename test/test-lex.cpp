@@ -385,6 +385,11 @@ TEST(test_lex, lex_keywords) {
   check_single_token("yield", token_type::_yield);
 }
 
+TEST(test_lex, lex_contextual_keywords) {
+  // TODO(strager): Move some assertions from lex_keywords into here.
+  check_single_token("get", token_type::_get);
+}
+
 TEST(test_lex, lex_single_character_symbols) {
   check_single_token("+", token_type::plus);
   check_single_token("-", token_type::minus);
