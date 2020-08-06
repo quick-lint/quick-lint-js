@@ -183,15 +183,7 @@ class parser {
     auto visit_parameters = [&](int parameter_count) {
       for (int i = 0; i < parameter_count; ++i) {
         expression_ptr parameter = ast->child(i);
-        switch (parameter->kind()) {
-          case expression_kind::variable:
-            v.visit_variable_declaration(parameter->variable_identifier(),
-                                         variable_kind::_parameter);
-            break;
-          default:
-            assert(false && "Not yet implemented");
-            break;
-        }
+        this->visit_binding_element(parameter, v, variable_kind::_parameter);
       }
     };
     switch (ast->kind()) {

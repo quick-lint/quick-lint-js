@@ -199,15 +199,22 @@ TEST(test_parse, parse_let_with_array_destructuring) {
 }
 
 TEST(test_parse, parse_function_parameters_with_object_destructuring) {
-  spy_visitor v;
-  parser p("function f({x, y, z}) {}", &v);
-  p.parse_and_visit_statement(v);
-  ASSERT_EQ(v.variable_declarations.size(), 4);
-  EXPECT_EQ(v.variable_declarations[0].name, "f");
-  EXPECT_EQ(v.variable_declarations[1].name, "x");
-  EXPECT_EQ(v.variable_declarations[2].name, "y");
-  EXPECT_EQ(v.variable_declarations[3].name, "z");
-  EXPECT_THAT(v.errors, IsEmpty());
+  {
+    spy_visitor v = parse_and_visit_statement("function f({x, y, z}) {}");
+    ASSERT_EQ(v.variable_declarations.size(), 4);
+    EXPECT_EQ(v.variable_declarations[0].name, "f");
+    EXPECT_EQ(v.variable_declarations[1].name, "x");
+    EXPECT_EQ(v.variable_declarations[2].name, "y");
+    EXPECT_EQ(v.variable_declarations[3].name, "z");
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression("({x, y, z}) => {}");
+    ASSERT_EQ(v.variable_declarations.size(), 3);
+    EXPECT_EQ(v.variable_declarations[0].name, "x");
+    EXPECT_EQ(v.variable_declarations[1].name, "y");
+    EXPECT_EQ(v.variable_declarations[2].name, "z");
+  }
 }
 
 TEST(test_parse,

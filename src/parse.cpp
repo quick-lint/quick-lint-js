@@ -704,6 +704,8 @@ std::vector<expression_ptr> arrow_function_parameters_from_lhs(
         parameters.emplace_back(lhs->child(i));
       }
       break;
+    case expression_kind::array:
+    case expression_kind::object:
     case expression_kind::variable:
       parameters.emplace_back(lhs);
       break;

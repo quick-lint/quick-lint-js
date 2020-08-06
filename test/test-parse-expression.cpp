@@ -1020,6 +1020,31 @@ TEST(test_parse_expression, arrow_function_with_statements) {
   }
 }
 
+TEST(test_parse_expression, arrow_function_with_destructuring_parameters) {
+  {
+    test_parser p("({a, b}) => c");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)),
+              "object(literal, var a, literal, var b)");
+    EXPECT_EQ(summarize(ast->child(1)), "var c");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("([a, b]) => c");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
+    EXPECT_EQ(summarize(ast->child(1)), "var c");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, async_arrow_function) {
   {
     test_parser p("async () => { a; }");
