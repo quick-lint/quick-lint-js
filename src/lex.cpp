@@ -537,14 +537,24 @@ void lexer::reparse_as_regexp() {
   assert(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
 
-  const char* closing_slash = std::strchr(this->input_ + 1, '/');
-  if (closing_slash == nullptr) {
-    this->input_ += std::strlen(this->input_);
-    this->error_reporter_->report_error_unclosed_regexp_literal(
-        source_code_span(this->last_token_.begin, this->input_));
-  } else {
-    this->input_ = closing_slash + 1;
+  const char* c = &this->input_[1];
+next:
+  switch (*c) {
+    case '\0':
+      this->error_reporter_->report_error_unclosed_regexp_literal(
+          source_code_span(this->last_token_.begin, c));
+      break;
+
+    case '/':
+      ++c;
+      break;
+
+    default:
+      ++c;
+      goto next;
   }
+
+  this->input_ = c;
   this->last_token_.end = this->input_;
 }
 
