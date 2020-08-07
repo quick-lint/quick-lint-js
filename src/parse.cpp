@@ -398,13 +398,10 @@ next:
           break;
       }
       expression_ptr rhs = this->parse_expression(precedence{.commas = false});
-      if (is_plain_assignment) {
-        return this->make_expression<expression::assignment>(
-            expression_kind::assignment, lhs, rhs);
-      } else {
-        return this->make_expression<expression::assignment>(
-            expression_kind::updating_assignment, lhs, rhs);
-      }
+      return this->make_expression<expression::assignment>(
+          is_plain_assignment ? expression_kind::assignment
+                              : expression_kind::updating_assignment,
+          lhs, rhs);
     }
 
     case token_type::dot: {
