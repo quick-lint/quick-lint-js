@@ -17,6 +17,7 @@
 #ifndef QUICK_LINT_JS_EXPRESSION_H
 #define QUICK_LINT_JS_EXPRESSION_H
 
+#include <array>
 #include <deque>
 #include <memory>
 #include <quick-lint-js/buffering-visitor.h>
@@ -384,7 +385,7 @@ class expression::assignment : public expression {
   }
 
  private:
-  std::vector<expression_ptr> children_;
+  std::array<expression_ptr, 2> children_;
 };
 
 class expression::await : public expression {
@@ -493,7 +494,7 @@ class expression::conditional : public expression {
   }
 
  private:
-  std::vector<expression_ptr> children_;
+  std::array<expression_ptr, 3> children_;
 };
 
 class expression::dot : public expression {
@@ -584,7 +585,7 @@ class expression::index : public expression {
 
  private:
   const char *index_subscript_end_;
-  std::vector<expression_ptr> children_;
+  std::array<expression_ptr, 2> children_;
 };
 
 class expression::literal : public expression {
@@ -801,7 +802,7 @@ class expression::updating_assignment : public expression {
   }
 
  private:
-  std::vector<expression_ptr> children_;
+  std::array<expression_ptr, 2> children_;
 };
 
 class expression::variable : public expression {
