@@ -87,6 +87,8 @@ enum class expression_kind {
 
 class expression {
  public:
+  class expression_with_prefix_operator_base;
+
   class _invalid;
   class _new;
   class _template;
@@ -173,6 +175,32 @@ class expression {
 
  private:
   expression_kind kind_;
+};
+
+class expression::expression_with_prefix_operator_base : public expression {
+ public:
+  explicit expression_with_prefix_operator_base(
+      expression_kind kind, expression_ptr child,
+      source_code_span operator_span) noexcept
+      : expression(kind),
+        unary_operator_begin_(operator_span.begin()),
+        child_(child) {}
+
+  int child_count() const noexcept override { return 1; }
+
+  expression_ptr child(int index) const noexcept override {
+    assert(index == 0);
+    return this->child_;
+  }
+
+  source_code_span span() const noexcept override {
+    return source_code_span(this->unary_operator_begin_,
+                            this->child_->span().end());
+  }
+
+ private:
+  const char *unary_operator_begin_;
+  expression_ptr child_;
 };
 
 class expression::_invalid : public expression {
@@ -388,30 +416,14 @@ class expression::assignment : public expression {
   std::array<expression_ptr, 2> children_;
 };
 
-class expression::await : public expression {
+class expression::await
+    : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::await;
 
   explicit await(expression_ptr child, source_code_span operator_span) noexcept
-      : expression(kind),
-        unary_operator_begin_(operator_span.begin()),
-        child_(child) {}
-
-  int child_count() const noexcept override { return 1; }
-
-  expression_ptr child(int index) const noexcept override {
-    assert(index == 0);
-    return this->child_;
-  }
-
-  source_code_span span() const noexcept override {
-    return source_code_span(this->unary_operator_begin_,
-                            this->child_->span().end());
-  }
-
- private:
-  const char *unary_operator_begin_;
-  expression_ptr child_;
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
 };
 
 class expression::binary_operator : public expression {
@@ -659,31 +671,15 @@ class expression::object : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::rw_unary_prefix : public expression {
+class expression::rw_unary_prefix
+    : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::rw_unary_prefix;
 
   explicit rw_unary_prefix(expression_ptr child,
                            source_code_span operator_span) noexcept
-      : expression(kind),
-        unary_operator_begin_(operator_span.begin()),
-        child_(child) {}
-
-  int child_count() const noexcept override { return 1; }
-
-  expression_ptr child(int index) const noexcept override {
-    assert(index == 0);
-    return this->child_;
-  }
-
-  source_code_span span() const noexcept override {
-    return source_code_span(this->unary_operator_begin_,
-                            this->child_->span().end());
-  }
-
- private:
-  const char *unary_operator_begin_;
-  expression_ptr child_;
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
 };
 
 class expression::rw_unary_suffix : public expression {
@@ -713,30 +709,14 @@ class expression::rw_unary_suffix : public expression {
   expression_ptr child_;
 };
 
-class expression::spread : public expression {
+class expression::spread
+    : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::spread;
 
   explicit spread(expression_ptr child, source_code_span operator_span) noexcept
-      : expression(kind),
-        unary_operator_begin_(operator_span.begin()),
-        child_(child) {}
-
-  int child_count() const noexcept override { return 1; }
-
-  expression_ptr child(int index) const noexcept override {
-    assert(index == 0);
-    return this->child_;
-  }
-
-  source_code_span span() const noexcept override {
-    return source_code_span(this->unary_operator_begin_,
-                            this->child_->span().end());
-  }
-
- private:
-  const char *unary_operator_begin_;
-  expression_ptr child_;
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
 };
 
 class expression::super : public expression {
@@ -752,31 +732,15 @@ class expression::super : public expression {
   source_code_span span_;
 };
 
-class expression::unary_operator : public expression {
+class expression::unary_operator
+    : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::unary_operator;
 
   explicit unary_operator(expression_ptr child,
                           source_code_span operator_span) noexcept
-      : expression(kind),
-        unary_operator_begin_(operator_span.begin()),
-        child_(child) {}
-
-  int child_count() const noexcept override { return 1; }
-
-  expression_ptr child(int index) const noexcept override {
-    assert(index == 0);
-    return this->child_;
-  }
-
-  source_code_span span() const noexcept override {
-    return source_code_span(this->unary_operator_begin_,
-                            this->child_->span().end());
-  }
-
- private:
-  const char *unary_operator_begin_;
-  expression_ptr child_;
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
 };
 
 class expression::updating_assignment : public expression {
