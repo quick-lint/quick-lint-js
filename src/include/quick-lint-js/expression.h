@@ -394,26 +394,23 @@ class expression::await : public expression {
   explicit await(expression_ptr child, source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
+        child_(child) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return 1; }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    assert(index == 0);
+    return this->child_;
   }
 
   source_code_span span() const noexcept override {
     return source_code_span(this->unary_operator_begin_,
-                            this->child_0()->span().end());
+                            this->child_->span().end());
   }
 
  private:
   const char *unary_operator_begin_;
-  std::vector<expression_ptr> children_;
+  expression_ptr child_;
 };
 
 class expression::binary_operator : public expression {
@@ -504,16 +501,13 @@ class expression::dot : public expression {
   static constexpr expression_kind kind = expression_kind::dot;
 
   explicit dot(expression_ptr lhs, identifier rhs) noexcept
-      : expression(kind), variable_identifier_(rhs), children_{lhs} {}
+      : expression(kind), variable_identifier_(rhs), child_(lhs) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return 1; }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    assert(index == 0);
+    return this->child_;
   }
 
   identifier variable_identifier() const noexcept override {
@@ -527,7 +521,7 @@ class expression::dot : public expression {
 
  private:
   identifier variable_identifier_;
-  std::vector<expression_ptr> children_;
+  expression_ptr child_;
 };
 
 class expression::function : public expression {
@@ -672,26 +666,23 @@ class expression::rw_unary_prefix : public expression {
                            source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
+        child_(child) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return 1; }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    assert(index == 0);
+    return this->child_;
   }
 
   source_code_span span() const noexcept override {
     return source_code_span(this->unary_operator_begin_,
-                            this->child_0()->span().end());
+                            this->child_->span().end());
   }
 
  private:
   const char *unary_operator_begin_;
-  std::vector<expression_ptr> children_;
+  expression_ptr child_;
 };
 
 class expression::rw_unary_suffix : public expression {
@@ -702,26 +693,23 @@ class expression::rw_unary_suffix : public expression {
                            source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_end_(operator_span.end()),
-        children_{child} {}
+        child_(child) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return 1; }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    assert(index == 0);
+    return this->child_;
   }
 
   source_code_span span() const noexcept override {
-    return source_code_span(this->child_0()->span().begin(),
+    return source_code_span(this->child_->span().begin(),
                             this->unary_operator_end_);
   }
 
  private:
   const char *unary_operator_end_;
-  std::vector<expression_ptr> children_;
+  expression_ptr child_;
 };
 
 class expression::spread : public expression {
@@ -731,26 +719,23 @@ class expression::spread : public expression {
   explicit spread(expression_ptr child, source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
+        child_(child) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return 1; }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    assert(index == 0);
+    return this->child_;
   }
 
   source_code_span span() const noexcept override {
     return source_code_span(this->unary_operator_begin_,
-                            this->child_0()->span().end());
+                            this->child_->span().end());
   }
 
  private:
   const char *unary_operator_begin_;
-  std::vector<expression_ptr> children_;
+  expression_ptr child_;
 };
 
 class expression::super : public expression {
@@ -774,26 +759,23 @@ class expression::unary_operator : public expression {
                           source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_begin_(operator_span.begin()),
-        children_{child} {}
+        child_(child) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return 1; }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    assert(index == 0);
+    return this->child_;
   }
 
   source_code_span span() const noexcept override {
     return source_code_span(this->unary_operator_begin_,
-                            this->child_0()->span().end());
+                            this->child_->span().end());
   }
 
  private:
   const char *unary_operator_begin_;
-  std::vector<expression_ptr> children_;
+  expression_ptr child_;
 };
 
 class expression::updating_assignment : public expression {
