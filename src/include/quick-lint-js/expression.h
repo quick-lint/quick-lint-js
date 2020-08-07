@@ -112,7 +112,6 @@ class expression {
   class spread;
   class super;
   class unary_operator;
-  class updating_assignment;
   class variable;
 
   struct object_property_value_pair {
@@ -394,8 +393,12 @@ class expression::assignment : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::assignment;
 
-  explicit assignment(expression_ptr lhs, expression_ptr rhs) noexcept
-      : expression(kind), children_{lhs, rhs} {}
+  explicit assignment(expression_kind kind, expression_ptr lhs,
+                      expression_ptr rhs) noexcept
+      : expression(kind), children_{lhs, rhs} {
+    assert(kind == expression_kind::assignment ||
+           kind == expression_kind::updating_assignment);
+  }
 
   int child_count() const noexcept override {
     return narrow_cast<int>(this->children_.size());
@@ -741,32 +744,6 @@ class expression::unary_operator
                           source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
-};
-
-class expression::updating_assignment : public expression {
- public:
-  static constexpr expression_kind kind = expression_kind::updating_assignment;
-
-  explicit updating_assignment(expression_ptr lhs, expression_ptr rhs) noexcept
-      : expression(kind), children_{lhs, rhs} {}
-
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
-
-  expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
-  }
-
-  source_code_span span() const noexcept override {
-    return source_code_span(this->children_.front()->span().begin(),
-                            this->children_.back()->span().end());
-  }
-
- private:
-  std::array<expression_ptr, 2> children_;
 };
 
 class expression::variable : public expression {
