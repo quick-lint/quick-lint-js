@@ -93,6 +93,13 @@ TEST(test_parse, parse_simple_let) {
   }
 }
 
+TEST(test_parse, export_let) {
+  {
+    spy_visitor v = parse_and_visit_statement("export let x;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+  }
+}
+
 TEST(test_parse, parse_simple_var) {
   spy_visitor v;
   parser p("var x", &v);

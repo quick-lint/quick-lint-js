@@ -71,21 +71,15 @@ class parser {
         break;
 
       case token_type::_async:
+      case token_type::_const:
       case token_type::_function:
+      case token_type::_let:
+      case token_type::_var:
         this->parse_and_visit_declaration(v);
         break;
 
       case token_type::_import:
         this->parse_and_visit_import(v);
-        break;
-
-      case token_type::_const:
-      case token_type::_let:
-      case token_type::_var:
-        this->parse_and_visit_let_bindings(v, this->peek().type);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
-        }
         break;
 
       case token_type::_await:
@@ -325,6 +319,15 @@ class parser {
           default:
             QLJS_PARSER_UNIMPLEMENTED();
             break;
+        }
+        break;
+
+      case token_type::_const:
+      case token_type::_let:
+      case token_type::_var:
+        this->parse_and_visit_let_bindings(v, this->peek().type);
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
         }
         break;
 
