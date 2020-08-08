@@ -242,26 +242,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     }
 
     case token_type::_function: {
-      const char *span_begin = this->peek().begin;
-      this->lexer_.skip();
-      std::optional<identifier> function_name = std::nullopt;
-      if (this->peek().type == token_type::identifier) {
-        function_name = this->peek().identifier_name();
-        this->lexer_.skip();
-      }
-      std::unique_ptr<buffering_visitor> v =
-          std::make_unique<buffering_visitor>();
-      this->parse_and_visit_function_parameters_and_body_no_scope(*v);
-      // TODO(strager): The span should stop at the end of the }, not at the
-      // beginning of the following token.
-      const char *span_end = this->peek().begin;
-      expression_ptr function =
-          function_name.has_value()
-              ? this->make_expression<expression::named_function>(
-                    *function_name, std::move(v),
-                    source_code_span(span_begin, span_end))
-              : this->make_expression<expression::function>(
-                    std::move(v), source_code_span(span_begin, span_end));
+      expression_ptr function = this->parse_function_expression();
       return this->parse_expression_remainder(function, prec);
     }
 
@@ -524,6 +505,28 @@ expression_ptr parser::parse_arrow_function_body(
     return this->make_expression<expression::arrow_function_with_expression>(
         attributes, std::forward<Args>(args)..., body, parameter_list_begin);
   }
+}
+
+expression_ptr parser::parse_function_expression() {
+  assert(this->peek().type == token_type::_function);
+  const char *span_begin = this->peek().begin;
+  this->lexer_.skip();
+  std::optional<identifier> function_name = std::nullopt;
+  if (this->peek().type == token_type::identifier) {
+    function_name = this->peek().identifier_name();
+    this->lexer_.skip();
+  }
+  std::unique_ptr<buffering_visitor> v = std::make_unique<buffering_visitor>();
+  this->parse_and_visit_function_parameters_and_body_no_scope(*v);
+  // TODO(strager): The span should stop at the end of the }, not at the
+  // beginning of the following token.
+  const char *span_end = this->peek().begin;
+  return function_name.has_value()
+             ? this->make_expression<expression::named_function>(
+                   *function_name, std::move(v),
+                   source_code_span(span_begin, span_end))
+             : this->make_expression<expression::function>(
+                   std::move(v), source_code_span(span_begin, span_end));
 }
 
 expression_ptr parser::parse_object_literal() {
