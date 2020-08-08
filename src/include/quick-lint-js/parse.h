@@ -480,40 +480,42 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_class_body(Visitor &v) {
-    for (;;) {
-      switch (this->peek().type) {
-        case token_type::_async:
-        case token_type::_static:
-          this->lexer_.skip();
-          switch (this->peek().type) {
-            case token_type::identifier:
-              v.visit_property_declaration(this->peek().identifier_name());
-              this->lexer_.skip();
-              this->parse_and_visit_function_parameters_and_body(v);
-              break;
+    while (this->peek().type != token_type::right_curly) {
+      this->parse_and_visit_class_member(v);
+    }
+  }
 
-            default:
-              QLJS_PARSER_UNIMPLEMENTED();
-              break;
-          }
-          break;
+  template <class Visitor>
+  void parse_and_visit_class_member(Visitor &v) {
+    switch (this->peek().type) {
+      case token_type::_async:
+      case token_type::_static:
+        this->lexer_.skip();
+        switch (this->peek().type) {
+          case token_type::identifier:
+            v.visit_property_declaration(this->peek().identifier_name());
+            this->lexer_.skip();
+            this->parse_and_visit_function_parameters_and_body(v);
+            break;
 
-        case token_type::_get:
-          this->lexer_.skip();
-          [[fallthrough]];
-        case token_type::identifier:
-          v.visit_property_declaration(this->peek().identifier_name());
-          this->lexer_.skip();
-          this->parse_and_visit_function_parameters_and_body(v);
-          break;
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+        }
+        break;
 
-        case token_type::right_curly:
-          return;
+      case token_type::_get:
+        this->lexer_.skip();
+        [[fallthrough]];
+      case token_type::identifier:
+        v.visit_property_declaration(this->peek().identifier_name());
+        this->lexer_.skip();
+        this->parse_and_visit_function_parameters_and_body(v);
+        break;
 
-        default:
-          QLJS_PARSER_UNIMPLEMENTED();
-          break;
-      }
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
     }
   }
 
