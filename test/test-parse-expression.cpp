@@ -868,12 +868,14 @@ TEST(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser p("{...other}");
+    test_parser p("{...other, k: v}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
-    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(ast->object_entry_count(), 2);
     EXPECT_FALSE(ast->object_entry(0).property.has_value());
     EXPECT_EQ(summarize(ast->object_entry(0).value), "spread(var other)");
+    EXPECT_EQ(summarize(ast->object_entry(1).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(1).value), "var v");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
