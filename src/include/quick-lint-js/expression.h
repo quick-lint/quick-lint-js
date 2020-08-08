@@ -115,6 +115,10 @@ class expression {
   class variable;
 
   struct object_property_value_pair {
+    explicit object_property_value_pair(expression_ptr property,
+                                        expression_ptr value) noexcept
+        : property(property), value(value) {}
+
     expression_ptr property;
     expression_ptr value;
   };
@@ -649,29 +653,25 @@ class expression::object : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::object;
 
-  explicit object(std::vector<expression_ptr> &&children,
+  explicit object(std::vector<object_property_value_pair> &&entries,
                   source_code_span span) noexcept
-      : expression(kind), span_(span), children_(std::move(children)) {}
+      : expression(kind), span_(span), entries_(std::move(entries)) {}
 
   int object_entry_count() const noexcept override {
-    assert(this->children_.size() % 2 == 0);
-    return narrow_cast<int>(this->children_.size() / 2);
+    return narrow_cast<int>(this->entries_.size());
   }
 
   object_property_value_pair object_entry(int index) const noexcept override {
     assert(index >= 0);
     assert(index < this->object_entry_count());
-    return object_property_value_pair{
-        .property = this->children_[index * 2 + 0],
-        .value = this->children_[index * 2 + 1],
-    };
+    return this->entries_[index];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
 
  private:
   source_code_span span_;
-  std::vector<expression_ptr> children_;
+  std::vector<expression::object_property_value_pair> entries_;
 };
 
 class expression::rw_unary_prefix
