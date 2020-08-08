@@ -560,6 +560,9 @@ next:
 
     case '/':
       ++c;
+      while (this->is_identifier_character(*c)) {
+        ++c;
+      }
       break;
 
     default:

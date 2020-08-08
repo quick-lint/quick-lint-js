@@ -262,7 +262,7 @@ world`)",
 }
 
 TEST(test_lex, lex_regular_expression_literals) {
-  for (const char* code : {"/ /", R"(/hello\/world/)"}) {
+  for (const char* code : {"/ /", R"(/hello\/world/)", "/re/g"}) {
     SCOPED_TRACE(code);
     lexer l(code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::slash);
