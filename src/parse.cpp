@@ -195,6 +195,13 @@ expression_ptr parser::parse_expression(precedence prec) {
           this->lexer_.skip();
           break;
 
+        // async function f(parameters) { statements; }
+        case token_type::_function: {
+          expression_ptr function = this->parse_function_expression(
+              function_attributes::async, async_begin);
+          return this->parse_expression_remainder(function, prec);
+        }
+
         default:
           QLJS_PARSER_UNIMPLEMENTED();
           break;
@@ -242,7 +249,8 @@ expression_ptr parser::parse_expression(precedence prec) {
     }
 
     case token_type::_function: {
-      expression_ptr function = this->parse_function_expression();
+      expression_ptr function = this->parse_function_expression(
+          function_attributes::normal, this->peek().begin);
       return this->parse_expression_remainder(function, prec);
     }
 
@@ -507,9 +515,9 @@ expression_ptr parser::parse_arrow_function_body(
   }
 }
 
-expression_ptr parser::parse_function_expression() {
+expression_ptr parser::parse_function_expression(function_attributes attributes,
+                                                 const char *span_begin) {
   assert(this->peek().type == token_type::_function);
-  const char *span_begin = this->peek().begin;
   this->lexer_.skip();
   std::optional<identifier> function_name = std::nullopt;
   if (this->peek().type == token_type::identifier) {
@@ -523,10 +531,11 @@ expression_ptr parser::parse_function_expression() {
   const char *span_end = this->peek().begin;
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
-                   *function_name, std::move(v),
+                   attributes, *function_name, std::move(v),
                    source_code_span(span_begin, span_end))
              : this->make_expression<expression::function>(
-                   std::move(v), source_code_span(span_begin, span_end));
+                   attributes, std::move(v),
+                   source_code_span(span_begin, span_end));
 }
 
 expression_ptr parser::parse_object_literal() {

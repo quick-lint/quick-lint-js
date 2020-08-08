@@ -929,7 +929,8 @@ class parser {
                                            const char *parameter_list_begin,
                                            Args &&... args);
 
-  expression_ptr parse_function_expression();
+  expression_ptr parse_function_expression(function_attributes,
+                                           const char *span_begin);
 
   expression_ptr parse_object_literal();
 

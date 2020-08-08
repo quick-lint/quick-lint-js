@@ -552,11 +552,19 @@ class expression::function : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::function;
 
-  explicit function(std::unique_ptr<buffering_visitor> &&child_visits,
+  explicit function(function_attributes attributes,
+                    std::unique_ptr<buffering_visitor> &&child_visits,
                     source_code_span span) noexcept
-      : expression(kind), child_visits_(std::move(child_visits)), span_(span) {}
+      : expression(kind),
+        function_attributes_(attributes),
+        child_visits_(std::move(child_visits)),
+        span_(span) {}
 
   source_code_span span() const noexcept override { return this->span_; }
+
+  function_attributes attributes() const noexcept override {
+    return this->function_attributes_;
+  }
 
  protected:
   std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
@@ -564,6 +572,7 @@ class expression::function : public expression {
   }
 
  private:
+  function_attributes function_attributes_;
   std::unique_ptr<buffering_visitor> child_visits_;
   source_code_span span_;
 };
@@ -628,10 +637,11 @@ class expression::named_function : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::named_function;
 
-  explicit named_function(identifier name,
+  explicit named_function(function_attributes attributes, identifier name,
                           std::unique_ptr<buffering_visitor> &&child_visits,
                           source_code_span span) noexcept
       : expression(kind),
+        function_attributes_(attributes),
         child_visits_(std::move(child_visits)),
         variable_identifier_(name),
         span_(span) {}
@@ -642,12 +652,17 @@ class expression::named_function : public expression {
 
   source_code_span span() const noexcept override { return this->span_; }
 
+  function_attributes attributes() const noexcept override {
+    return this->function_attributes_;
+  }
+
  protected:
   std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
     return std::move(this->child_visits_);
   }
 
  private:
+  function_attributes function_attributes_;
   std::unique_ptr<buffering_visitor> child_visits_;
   identifier variable_identifier_;
   source_code_span span_;

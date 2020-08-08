@@ -913,6 +913,7 @@ TEST(test_parse_expression, parse_function_expression) {
     test_parser p("function(){}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::function);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 12);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -938,7 +939,30 @@ TEST(test_parse_expression, parse_function_expression) {
     test_parser p("function f(){}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::named_function);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->variable_identifier().string_view(), "f");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST(test_parse_expression, async_function_expression) {
+  {
+    test_parser p("async function(){}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::function);
+    EXPECT_EQ(ast->attributes(), function_attributes::async);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 18);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("async function f(){}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::named_function);
+    EXPECT_EQ(ast->attributes(), function_attributes::async);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 20);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
