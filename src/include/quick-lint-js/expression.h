@@ -20,6 +20,7 @@
 #include <array>
 #include <deque>
 #include <memory>
+#include <optional>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -119,7 +120,10 @@ class expression {
                                         expression_ptr value) noexcept
         : property(property), value(value) {}
 
-    expression_ptr property;
+    explicit object_property_value_pair(expression_ptr value) noexcept
+        : property(std::nullopt), value(value) {}
+
+    std::optional<expression_ptr> property;
     expression_ptr value;
   };
 

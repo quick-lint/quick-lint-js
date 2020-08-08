@@ -702,6 +702,16 @@ TEST(test_parse, object_literal) {
                             spy_visitor::visited_variable_use{"key2"},
                             spy_visitor::visited_variable_use{"value"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_expression("{...other1, ...other2}");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",    // other1
+                            "visit_variable_use"));  // other2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"other1"},
+                            spy_visitor::visited_variable_use{"other2"}));
+  }
 }
 
 TEST(test_parse, expression_statement) {

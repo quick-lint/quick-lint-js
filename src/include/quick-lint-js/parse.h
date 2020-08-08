@@ -240,7 +240,9 @@ class parser {
       case expression_kind::object:
         for (int i = 0; i < ast->object_entry_count(); ++i) {
           auto entry = ast->object_entry(i);
-          this->visit_expression(entry.property, v, variable_context::rhs);
+          if (entry.property.has_value()) {
+            this->visit_expression(*entry.property, v, variable_context::rhs);
+          }
           this->visit_expression(entry.value, v, context);
         }
         break;

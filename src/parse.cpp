@@ -602,6 +602,11 @@ expression_ptr parser::parse_object_literal() {
         entries.emplace_back(key, parse_value_expression());
         break;
       }
+
+      case token_type::dot_dot_dot:
+        entries.emplace_back(parse_value_expression());
+        break;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;

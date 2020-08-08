@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <optional>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
@@ -31,6 +32,7 @@ namespace quick_lint_js {
 namespace {
 std::string summarize(const expression &);
 std::string summarize(expression_ptr);
+std::string summarize(std::optional<expression_ptr>);
 
 class test_parser {
  public:
@@ -826,8 +828,8 @@ TEST(test_parse_expression, object_literal) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     auto entry = ast->object_entry(0);
     EXPECT_EQ(summarize(entry.property), "literal");
-    EXPECT_EQ(p.range(entry.property).begin_offset(), 1);
-    EXPECT_EQ(p.range(entry.property).end_offset(), 6);
+    EXPECT_EQ(p.range(entry.property.value()).begin_offset(), 1);
+    EXPECT_EQ(p.range(entry.property.value()).end_offset(), 6);
     EXPECT_EQ(summarize(entry.value), "var thing");
     EXPECT_EQ(p.range(entry.value).begin_offset(), 1);
     EXPECT_EQ(p.range(entry.value).end_offset(), 6);
@@ -862,6 +864,16 @@ TEST(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value),
               "assign(var key, var value)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("{...other}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_FALSE(ast->object_entry(0).property.has_value());
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "spread(var other)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -1252,6 +1264,14 @@ std::string summarize(const expression &expression) {
 
 std::string summarize(expression_ptr expression) {
   return summarize(*expression);
+}
+
+std::string summarize(std::optional<expression_ptr> expression) {
+  if (expression.has_value()) {
+    return summarize(*expression);
+  } else {
+    return "(null)";
+  }
 }
 }  // namespace
 }  // namespace quick_lint_js
