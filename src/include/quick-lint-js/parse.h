@@ -126,6 +126,10 @@ class parser {
         this->parse_and_visit_for(v);
         break;
 
+      case token_type::_while:
+        this->parse_and_visit_while(v);
+        break;
+
       case token_type::_if:
         this->parse_and_visit_if(v);
         break;
@@ -716,6 +720,22 @@ class parser {
     if (entered_for_scope) {
       v.visit_exit_for_scope();
     }
+  }
+
+  template <class Visitor>
+  void parse_and_visit_while(Visitor &v) {
+    assert(this->peek().type == token_type::_while);
+    this->lexer_.skip();
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_expression(v);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_statement(v);
   }
 
   template <class Visitor>
