@@ -1265,6 +1265,13 @@ TEST(test_parse, parse_class_statement) {
   }
 
   {
+    spy_visitor v =
+        parse_and_visit_statement("class C { static async m() { } }");
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{"m"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement("class C { get length() { } }");
     EXPECT_THAT(
         v.property_declarations,
