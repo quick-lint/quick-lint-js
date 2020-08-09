@@ -330,6 +330,24 @@ TEST(test_parse_expression, parse_typeof_unary_operator) {
   }
 }
 
+TEST(test_parse_expression, delete_unary_operator) {
+  {
+    test_parser p("delete variable");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "unary(var variable)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p("delete variable.property");
+    expression_ptr ast = p.parse_expression();
+    if (false) {  // TODO(strager): Check AST.
+      EXPECT_EQ(summarize(ast), "unary(dot(var variable, property))");
+    }
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, spread) {
   {
     test_parser p("...args");

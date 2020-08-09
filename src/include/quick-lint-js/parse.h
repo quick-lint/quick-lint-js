@@ -83,6 +83,7 @@ class parser {
         break;
 
       case token_type::_await:
+      case token_type::_delete:
       case token_type::_null:
       case token_type::_super:
       case token_type::_this:

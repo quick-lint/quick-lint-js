@@ -104,6 +104,7 @@ expression_ptr parser::parse_expression(precedence prec) {
           prec);
     }
 
+    case token_type::_delete:
     case token_type::_typeof:
     case token_type::bang:
     case token_type::minus:
