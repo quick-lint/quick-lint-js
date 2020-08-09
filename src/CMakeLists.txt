@@ -30,6 +30,7 @@ add_library(
   location.cpp
   options.cpp
   parse.cpp
+  text-error-reporter.cpp
 )
 quick_lint_js_check_finally(EXTRA_COMPILE_OPTIONS)
 target_compile_options(quick-lint-js-lib PUBLIC "${EXTRA_COMPILE_OPTIONS}")

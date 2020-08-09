@@ -28,6 +28,7 @@ add_executable(
   test-options.cpp
   test-parse-expression.cpp
   test-parse.cpp
+  test-text-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE include)
 target_link_libraries(

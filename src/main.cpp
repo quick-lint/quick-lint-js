@@ -25,6 +25,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/text-error-reporter.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -56,117 +57,6 @@ int main(int argc, char **argv) {
 
 namespace quick_lint_js {
 namespace {
-class debug_error_reporter : public error_reporter {
- public:
-  explicit debug_error_reporter(const char *input,
-                                const char *file_path) noexcept
-      : locator_(input), file_path_(file_path) {}
-
-  virtual void report_error_assignment_to_const_global_variable(
-      identifier assignment) override {
-    log_location(assignment);
-    std::cerr << "error: assignment to const global variable\n";
-  }
-
-  void report_error_assignment_to_const_variable(identifier declaration,
-                                                 identifier assignment,
-                                                 variable_kind) override {
-    log_location(assignment);
-    std::cerr << "error: assignment to const variable\n";
-    log_location(declaration);
-    std::cerr << "note: const variable declared here\n";
-  }
-
-  void report_error_assignment_to_undeclared_variable(
-      identifier assignment) override {
-    log_location(assignment);
-    std::cerr << "error: assignment to undeclared variable\n";
-  }
-
-  void report_error_invalid_binding_in_let_statement(
-      source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: invalid binding in let statement\n";
-  }
-
-  void report_error_invalid_expression_left_of_assignment(
-      source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: invalid expression left of assignment\n";
-  }
-
-  void report_error_let_with_no_bindings(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: let with no bindings\n";
-  }
-
-  void report_error_missing_operand_for_operator(
-      source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: missing operand for operator\n";
-  }
-
-  void report_error_missing_semicolon_after_expression(
-      source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: missing semicolon after expression\n";
-  }
-
-  void report_error_stray_comma_in_let_statement(
-      source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: stray comma in let statement\n";
-  }
-
-  void report_error_unclosed_block_comment(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: unclosed block comment\n";
-  }
-
-  void report_error_unclosed_regexp_literal(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: unclosed regexp literal\n";
-  }
-
-  void report_error_unclosed_string_literal(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: unclosed string literal\n";
-  }
-
-  void report_error_unclosed_template(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: unclosed template\n";
-  }
-
-  void report_error_unexpected_identifier(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: unexpected identifier\n";
-  }
-
-  void report_error_unmatched_parenthesis(source_code_span where) override {
-    log_location(where);
-    std::cerr << "error: unmatched parenthesis\n";
-  }
-
-  void report_error_variable_used_before_declaration(identifier name) override {
-    log_location(name);
-    std::cerr << "error: variable used before declaration\n";
-  }
-
- private:
-  void log_location(identifier i) const { log_location(i.span()); }
-
-  void log_location(source_code_span span) const {
-    source_range r = this->locator_.range(span);
-    source_position p = r.begin();
-    std::cerr << this->file_path_ << ":" << p.line_number << ":"
-              << p.column_number << ": ";
-  }
-
-  locator locator_;
-  const char *file_path_;
-};
-
 class debug_visitor {
  public:
   void visit_end_of_module() { std::cerr << "end of module\n"; }
@@ -291,7 +181,7 @@ class multi_visitor {
 
 void process_file(const char *path, bool print_parser_visits) {
   std::string source = read_file(path);
-  debug_error_reporter error_reporter(source.c_str(), path);
+  text_error_reporter error_reporter(std::cerr, source.c_str(), path);
   parser p(source.c_str(), &error_reporter);
   linter l(&error_reporter);
   if (print_parser_visits) {
