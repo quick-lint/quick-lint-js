@@ -610,6 +610,21 @@ expression_ptr parser::parse_object_literal() {
             entries.emplace_back(key, value);
             break;
           }
+
+          case token_type::left_paren: {
+            std::unique_ptr<buffering_visitor> v =
+                std::make_unique<buffering_visitor>();
+            this->parse_and_visit_function_parameters_and_body_no_scope(*v);
+            // TODO(strager): The span should stop at the end of the }, not at
+            // the beginning of the following token.
+            const char *span_end = this->peek().begin;
+            expression_ptr func = this->make_expression<expression::function>(
+                function_attributes::normal, std::move(v),
+                source_code_span(key_span.begin(), span_end));
+            entries.emplace_back(key, func);
+            break;
+          }
+
           default:
             QLJS_PARSER_UNIMPLEMENTED();
             break;

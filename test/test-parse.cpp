@@ -712,6 +712,15 @@ TEST(test_parse, object_literal) {
                 ElementsAre(spy_visitor::visited_variable_use{"other1"},
                             spy_visitor::visited_variable_use{"other2"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_expression("{func(a, b) { body; }}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_variable_declaration",  // a
+                                      "visit_variable_declaration",  // b
+                                      "visit_variable_use",          // body
+                                      "visit_exit_function_scope"));
+  }
 }
 
 TEST(test_parse, expression_statement) {
