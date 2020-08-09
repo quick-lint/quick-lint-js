@@ -153,7 +153,9 @@ class linter {
 
   const declared_variable *find_declared_variable(identifier name) const
       noexcept {
-    for (const scope &s : this->scopes_) {
+    for (auto scope_it = this->scopes_.rbegin();
+         scope_it != this->scopes_.rend(); ++scope_it) {
+      const scope &s = *scope_it;
       for (const declared_variable &var : s.declared_variables) {
         if (var.name == name.string_view()) {
           return &var;

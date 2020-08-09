@@ -319,6 +319,25 @@ TEST(test_lint, assign_to_mutable_variable) {
   }
 }
 
+TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
+  const char immutable_declaration[] = "x";
+  const char mutable_declaration[] = "x";
+  const char assignment[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(immutable_declaration),
+                               variable_kind::_import);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(mutable_declaration),
+                               variable_kind::_let);
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, assign_to_immutable_variable) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
     const char declaration[] = "x";
