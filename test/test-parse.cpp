@@ -753,6 +753,13 @@ TEST(test_parse, expression_statement) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{"x"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement("void x;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{"x"}));
+  }
 }
 
 TEST(test_parse, asi_plusplus_minusminus) {

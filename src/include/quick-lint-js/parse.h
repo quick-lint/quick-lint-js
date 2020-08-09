@@ -87,6 +87,7 @@ class parser {
       case token_type::_null:
       case token_type::_super:
       case token_type::_this:
+      case token_type::_void:
       case token_type::identifier:
       case token_type::left_paren:
       case token_type::minus_minus:

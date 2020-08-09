@@ -348,6 +348,15 @@ TEST(test_parse_expression, delete_unary_operator) {
   }
 }
 
+TEST(test_parse_expression, void_unary_operator) {
+  {
+    test_parser p("void 0");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "unary(literal)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST(test_parse_expression, spread) {
   {
     test_parser p("...args");
