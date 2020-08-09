@@ -370,8 +370,19 @@ next:
       goto next;
     }
 
+    case token_type::ampersand_equal:
+    case token_type::circumflex_equal:
     case token_type::equal:
-    case token_type::plus_equal: {
+    case token_type::greater_greater_equal:
+    case token_type::greater_greater_greater_equal:
+    case token_type::less_less_equal:
+    case token_type::minus_equal:
+    case token_type::percent_equal:
+    case token_type::pipe_equal:
+    case token_type::plus_equal:
+    case token_type::slash_equal:
+    case token_type::star_equal:
+    case token_type::star_star_equal: {
       bool is_plain_assignment = this->peek().type == token_type::equal;
       this->lexer_.skip();
       expression_ptr lhs = build_expression();
