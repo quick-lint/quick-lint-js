@@ -115,6 +115,13 @@ void text_error_reporter::report_error_unmatched_parenthesis(
   this->output_ << "error: unmatched parenthesis\n";
 }
 
+void text_error_reporter::report_error_use_of_undeclared_variable(
+    identifier name) {
+  log_location(name);
+  this->output_ << "error: use of undeclared variable: " << name.string_view()
+                << '\n';
+}
+
 void text_error_reporter::report_error_variable_used_before_declaration(
     identifier name) {
   log_location(name);

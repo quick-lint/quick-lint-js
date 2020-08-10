@@ -191,6 +191,17 @@ TEST_F(test_text_error_reporter, unmatched_parenthesis) {
   EXPECT_EQ(this->get_output(), "FILE:1:2: error: unmatched parenthesis\n");
 }
 
+TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
+  const char *input = "myvar;";
+  source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
+  ASSERT_EQ(myvar_span.string_view(), "myvar");
+
+  this->make_reporter(input).report_error_use_of_undeclared_variable(
+      identifier(myvar_span));
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:1: error: use of undeclared variable: myvar\n");
+}
+
 TEST_F(test_text_error_reporter, variable_used_before_declaration) {
   const char *input = "myvar;";
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);

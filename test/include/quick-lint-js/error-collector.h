@@ -111,6 +111,11 @@ struct error_collector : public error_reporter {
     this->errors.emplace_back(error{error_unmatched_parenthesis, where});
   }
 
+  void report_error_use_of_undeclared_variable(identifier name) override {
+    this->errors.emplace_back(
+        error{error_use_of_undeclared_variable, name.span()});
+  }
+
   void report_error_variable_used_before_declaration(identifier name) override {
     this->errors.emplace_back(
         error{error_variable_used_before_declaration, name.span()});
@@ -132,6 +137,7 @@ struct error_collector : public error_reporter {
     error_unclosed_template,
     error_unexpected_identifier,
     error_unmatched_parenthesis,
+    error_use_of_undeclared_variable,
     error_variable_used_before_declaration,
   };
   struct error {

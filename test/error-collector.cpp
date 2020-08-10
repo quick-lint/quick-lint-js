@@ -39,6 +39,7 @@ void PrintTo(const error_collector::error &x, std::ostream *out) {
     QLJS_CASE(error_unclosed_template)
     QLJS_CASE(error_unexpected_identifier)
     QLJS_CASE(error_unmatched_parenthesis)
+    QLJS_CASE(error_use_of_undeclared_variable)
     QLJS_CASE(error_variable_used_before_declaration)
   }
 #undef QLJS_CASE

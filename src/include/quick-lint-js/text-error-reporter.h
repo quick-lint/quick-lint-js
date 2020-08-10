@@ -58,6 +58,7 @@ class text_error_reporter : public error_reporter {
   void report_error_unexpected_identifier(source_code_span where) override;
   void report_error_unmatched_parenthesis(source_code_span where) override;
   void report_error_variable_used_before_declaration(identifier name) override;
+  void report_error_use_of_undeclared_variable(identifier name) override;
 
  private:
   void log_location(identifier) const;

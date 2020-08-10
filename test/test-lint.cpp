@@ -242,7 +242,23 @@ TEST(test_lint, variable_use_with_no_declaration) {
 
   ASSERT_EQ(v.errors.size(), 1);
   EXPECT_EQ(v.errors[0].kind,
-            error_collector::error_variable_used_before_declaration);
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
+}
+
+TEST(test_lint, variable_use_in_function_with_no_declaration) {
+  const char use[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_use_of_undeclared_variable);
   EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
@@ -262,7 +278,7 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
 
   ASSERT_EQ(v.errors.size(), 1);
   EXPECT_EQ(v.errors[0].kind,
-            error_collector::error_variable_used_before_declaration);
+            error_collector::error_use_of_undeclared_variable);
   EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
