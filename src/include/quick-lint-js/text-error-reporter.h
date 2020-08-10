@@ -60,6 +60,8 @@ class text_error_reporter : public error_reporter {
   void report_error_use_of_undeclared_variable(identifier name) override;
   void report_error_variable_used_before_declaration(
       identifier use, identifier declaration) override;
+  void report_error_missing_comma_between_object_literal_entries(
+      source_code_span where) override;
 
  private:
   void log_location(identifier) const;

@@ -922,6 +922,21 @@ TEST(test_parse_expression, object_literal) {
   }
 }
 
+TEST(test_parse_expression, malformed_object_literal) {
+  {
+    test_parser p("{p1: v1 p2}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var v1, literal, var p2)");
+    ASSERT_EQ(p.errors().size(), 1);
+    EXPECT_EQ(
+        p.errors()[0].kind,
+        error_collector::error_missing_comma_between_object_literal_entries);
+    // TODO(strager): Locate the error just after 'v1'.
+    EXPECT_EQ(p.error_range(0).begin_offset(), 8);
+    EXPECT_EQ(p.error_range(0).end_offset(), 8);
+  }
+}
+
 TEST(test_parse_expression, parse_comma_expression) {
   {
     test_parser p("x,y,z");

@@ -102,6 +102,19 @@ TEST_F(test_text_error_reporter, let_with_no_bindings) {
   EXPECT_EQ(this->get_output(), "FILE:1:1: error: let with no bindings\n");
 }
 
+TEST_F(test_text_error_reporter, missing_comma_between_object_literal_entries) {
+  const char *input = "{k v}";
+  source_code_span plus_span(&input[3 - 1], &input[3 - 1]);
+  ASSERT_EQ(plus_span.string_view(), "")
+      << "span should be empty because the inserted comma does not exist "
+         "in the source code";
+
+  this->make_reporter(input)
+      .report_error_missing_comma_between_object_literal_entries(plus_span);
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:3: error: missing comma between object literal entries\n");
+}
+
 TEST_F(test_text_error_reporter, missing_operand_for_operator) {
   const char *input = "2 + ";
   source_code_span plus_span(&input[3 - 1], &input[3 + 1 - 1]);

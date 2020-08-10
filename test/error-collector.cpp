@@ -30,6 +30,7 @@ void PrintTo(const error_collector::error &x, std::ostream *out) {
     QLJS_CASE(error_invalid_binding_in_let_statement)
     QLJS_CASE(error_invalid_expression_left_of_assignment)
     QLJS_CASE(error_let_with_no_bindings)
+    QLJS_CASE(error_missing_comma_between_object_literal_entries)
     QLJS_CASE(error_missing_operand_for_operator)
     QLJS_CASE(error_missing_semicolon_after_expression)
     QLJS_CASE(error_stray_comma_in_let_statement)

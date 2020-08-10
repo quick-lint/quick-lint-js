@@ -561,6 +561,7 @@ expression_ptr parser::parse_object_literal() {
   auto parse_value_expression = [&]() {
     return this->parse_expression(precedence{.commas = false});
   };
+  bool expect_comma_or_end = false;
   for (;;) {
     if (this->peek().type == token_type::right_curly) {
       right_curly_end = this->peek().end;
@@ -569,7 +570,13 @@ expression_ptr parser::parse_object_literal() {
     }
     if (this->peek().type == token_type::comma) {
       this->lexer_.skip();
+      expect_comma_or_end = false;
       continue;
+    }
+    if (expect_comma_or_end) {
+      this->error_reporter_
+          ->report_error_missing_comma_between_object_literal_entries(
+              source_code_span(this->peek().begin, this->peek().begin));
     }
     if (this->peek().type == token_type::end_of_file) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -651,6 +658,7 @@ expression_ptr parser::parse_object_literal() {
         QLJS_PARSER_UNIMPLEMENTED();
         break;
     }
+    expect_comma_or_end = true;
   }
   return this->make_expression<expression::object>(
       std::move(entries), source_code_span(left_curly_begin, right_curly_end));

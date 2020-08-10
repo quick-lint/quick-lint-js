@@ -36,6 +36,8 @@ class error_reporter {
   virtual void report_error_invalid_expression_left_of_assignment(
       source_code_span where) = 0;
   virtual void report_error_let_with_no_bindings(source_code_span where) = 0;
+  virtual void report_error_missing_comma_between_object_literal_entries(
+      source_code_span where) = 0;
   virtual void report_error_missing_operand_for_operator(
       source_code_span where) = 0;
   virtual void report_error_missing_semicolon_after_expression(
@@ -70,6 +72,8 @@ class null_error_reporter : public error_reporter {
   void report_error_invalid_expression_left_of_assignment(
       source_code_span) override {}
   void report_error_let_with_no_bindings(source_code_span) override {}
+  void report_error_missing_comma_between_object_literal_entries(
+      source_code_span) override {}
   void report_error_missing_operand_for_operator(source_code_span) override {}
   void report_error_missing_semicolon_after_expression(
       source_code_span) override {}

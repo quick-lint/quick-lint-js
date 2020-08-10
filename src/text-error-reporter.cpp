@@ -61,6 +61,13 @@ void text_error_reporter::report_error_let_with_no_bindings(
   this->output_ << "error: let with no bindings\n";
 }
 
+void text_error_reporter::
+    report_error_missing_comma_between_object_literal_entries(
+        source_code_span where) {
+  log_location(where);
+  this->output_ << "error: missing comma between object literal entries\n";
+}
+
 void text_error_reporter::report_error_missing_operand_for_operator(
     source_code_span where) {
   log_location(where);
