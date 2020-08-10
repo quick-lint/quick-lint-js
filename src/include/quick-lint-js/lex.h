@@ -233,6 +233,10 @@ class lexer {
 
   void insert_semicolon();
 
+  // Do not call this after calling insert_semicolon, unless skip has been
+  // called after.
+  const char* end_of_previous_token() const noexcept;
+
  private:
   struct parsed_template_body {
     token_type type;

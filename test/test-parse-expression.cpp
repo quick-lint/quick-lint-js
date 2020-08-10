@@ -910,14 +910,14 @@ TEST(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser p("{func(a, b) { }}");
+    test_parser p("{ func(a, b) { } }");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 1);
-    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 15);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 16);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -931,9 +931,8 @@ TEST(test_parse_expression, malformed_object_literal) {
     EXPECT_EQ(
         p.errors()[0].kind,
         error_collector::error_missing_comma_between_object_literal_entries);
-    // TODO(strager): Locate the error just after 'v1'.
-    EXPECT_EQ(p.error_range(0).begin_offset(), 8);
-    EXPECT_EQ(p.error_range(0).end_offset(), 8);
+    EXPECT_EQ(p.error_range(0).begin_offset(), 7);
+    EXPECT_EQ(p.error_range(0).end_offset(), 7);
   }
 }
 
@@ -967,7 +966,7 @@ TEST(test_parse_expression, parse_comma_expression) {
 
 TEST(test_parse_expression, parse_function_expression) {
   {
-    test_parser p("function(){}");
+    test_parser p("function(){} /* */");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::function);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
@@ -1103,7 +1102,7 @@ TEST(test_parse_expression, arrow_function_with_statements) {
   }
 
   {
-    test_parser p("a => { b; }");
+    test_parser p("a => { b; } /* */");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_statements);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);

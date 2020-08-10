@@ -583,6 +583,15 @@ void lexer::insert_semicolon() {
   this->last_token_.end = this->input_;
 }
 
+const char* lexer::end_of_previous_token() const noexcept {
+  bool semicolon_was_inserted =
+      this->last_token_.type == token_type::semicolon &&
+      this->last_token_.begin == this->last_token_.end;
+  assert(!semicolon_was_inserted);
+
+  return this->last_last_token_end_;
+}
+
 void lexer::parse_number() {
   assert(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   while (this->is_digit(this->input_[0])) {

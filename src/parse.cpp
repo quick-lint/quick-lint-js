@@ -515,9 +515,7 @@ expression_ptr parser::parse_arrow_function_body(
     std::unique_ptr<buffering_visitor> v =
         std::make_unique<buffering_visitor>();
     this->parse_and_visit_statement_block_no_scope(*v);
-    // TODO(strager): The span should stop at the end of the }, not at the
-    // beginning of the following token.
-    const char *span_end = this->peek().begin;
+    const char *span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
         attributes, std::forward<Args>(args)..., std::move(v),
         source_code_span(parameter_list_begin, span_end));
@@ -539,9 +537,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   }
   std::unique_ptr<buffering_visitor> v = std::make_unique<buffering_visitor>();
   this->parse_and_visit_function_parameters_and_body_no_scope(*v);
-  // TODO(strager): The span should stop at the end of the }, not at the
-  // beginning of the following token.
-  const char *span_end = this->peek().begin;
+  const char *span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
                    attributes, *function_name, std::move(v),
@@ -574,9 +570,10 @@ expression_ptr parser::parse_object_literal() {
       continue;
     }
     if (expect_comma_or_end) {
+      const char *comma_location = this->lexer_.end_of_previous_token();
       this->error_reporter_
           ->report_error_missing_comma_between_object_literal_entries(
-              source_code_span(this->peek().begin, this->peek().begin));
+              source_code_span(comma_location, comma_location));
     }
     if (this->peek().type == token_type::end_of_file) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -622,9 +619,7 @@ expression_ptr parser::parse_object_literal() {
             std::unique_ptr<buffering_visitor> v =
                 std::make_unique<buffering_visitor>();
             this->parse_and_visit_function_parameters_and_body_no_scope(*v);
-            // TODO(strager): The span should stop at the end of the }, not at
-            // the beginning of the following token.
-            const char *span_end = this->peek().begin;
+            const char *span_end = this->lexer_.end_of_previous_token();
             expression_ptr func = this->make_expression<expression::function>(
                 function_attributes::normal, std::move(v),
                 source_code_span(key_span.begin(), span_end));
