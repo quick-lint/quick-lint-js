@@ -116,9 +116,10 @@ struct error_collector : public error_reporter {
         error{error_use_of_undeclared_variable, name.span()});
   }
 
-  void report_error_variable_used_before_declaration(identifier name) override {
-    this->errors.emplace_back(
-        error{error_variable_used_before_declaration, name.span()});
+  void report_error_variable_used_before_declaration(
+      identifier use, identifier declaration) override {
+    this->errors.emplace_back(error(error_variable_used_before_declaration,
+                                    use.span(), declaration.span()));
   }
 
   enum error_kind {
@@ -143,6 +144,10 @@ struct error_collector : public error_reporter {
   struct error {
     explicit error(error_kind kind, source_code_span where) noexcept
         : kind(kind), where(where) {}
+
+    explicit error(error_kind kind, source_code_span where,
+                   source_code_span other_where) noexcept
+        : kind(kind), where(where), other_where(other_where) {}
 
     explicit error(error_kind kind, source_code_span where,
                    source_code_span other_where,

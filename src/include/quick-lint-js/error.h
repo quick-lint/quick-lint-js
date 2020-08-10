@@ -54,7 +54,7 @@ class error_reporter {
   virtual void report_error_unmatched_parenthesis(source_code_span where) = 0;
   virtual void report_error_use_of_undeclared_variable(identifier name) = 0;
   virtual void report_error_variable_used_before_declaration(
-      identifier name) = 0;
+      identifier use, identifier declaration) = 0;
 };
 
 class null_error_reporter : public error_reporter {
@@ -81,7 +81,8 @@ class null_error_reporter : public error_reporter {
   void report_error_unexpected_identifier(source_code_span) override {}
   void report_error_unmatched_parenthesis(source_code_span) override {}
   void report_error_use_of_undeclared_variable(identifier) override {}
-  void report_error_variable_used_before_declaration(identifier) override {}
+  void report_error_variable_used_before_declaration(identifier,
+                                                     identifier) override {}
 };
 inline null_error_reporter null_error_reporter::instance;
 

@@ -203,14 +203,17 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
 }
 
 TEST_F(test_text_error_reporter, variable_used_before_declaration) {
-  const char *input = "myvar;";
-  source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(myvar_span.string_view(), "myvar");
+  const char *input = "myvar; let myvar;";
+  source_code_span use_span(&input[1 - 1], &input[5 + 1 - 1]);
+  ASSERT_EQ(use_span.string_view(), "myvar");
+  source_code_span declaration_span(&input[12 - 1], &input[16 + 1 - 1]);
+  ASSERT_EQ(declaration_span.string_view(), "myvar");
 
   this->make_reporter(input).report_error_variable_used_before_declaration(
-      identifier(myvar_span));
+      identifier(use_span), identifier(declaration_span));
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: variable used before declaration: myvar\n");
+            "FILE:1:1: error: variable used before declaration: myvar\n"
+            "FILE:1:12: note: variable declared here\n");
 }
 }  // namespace
 }  // namespace quick_lint_js

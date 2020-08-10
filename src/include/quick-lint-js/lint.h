@@ -61,8 +61,9 @@ class linter {
       const declared_variable *var = this->find_declared_variable(name);
       if (var && (var->kind == variable_kind::_const ||
                   var->kind == variable_kind::_let)) {
+        assert(var->declaration.has_value());
         this->error_reporter_->report_error_variable_used_before_declaration(
-            name);
+            name, *var->declaration);
       } else {
         parent_scope.variables_used_in_descendant_scope.emplace_back(name);
       }
@@ -126,8 +127,9 @@ class linter {
         this->error_reporter_->report_error_use_of_undeclared_variable(name);
       } else if (var->kind == variable_kind::_const ||
                  var->kind == variable_kind::_let) {
+        assert(var->declaration.has_value());
         this->error_reporter_->report_error_variable_used_before_declaration(
-            name);
+            name, *var->declaration);
       }
     }
     for (const identifier &name :

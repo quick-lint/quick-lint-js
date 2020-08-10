@@ -147,6 +147,7 @@ TEST(test_lint, let_or_const_variable_use_before_declaration) {
     EXPECT_EQ(v.errors[0].kind,
               error_collector::error_variable_used_before_declaration);
     EXPECT_EQ(v.errors[0].where.begin(), use);
+    EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
   }
 }
 
@@ -163,6 +164,7 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
             error_collector::error_variable_used_before_declaration);
   EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 8);
   EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 9);
+  EXPECT_EQ(locator(input).range(v.errors[0].other_where).begin_offset(), 11);
 }
 
 TEST(test_lint, let_variable_use_before_declaration_within_function) {
@@ -181,6 +183,7 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
   EXPECT_EQ(v.errors[0].kind,
             error_collector::error_variable_used_before_declaration);
   EXPECT_EQ(v.errors[0].where.begin(), use);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
 }
 
 TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
@@ -200,6 +203,7 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
   EXPECT_EQ(v.errors[0].kind,
             error_collector::error_variable_used_before_declaration);
   EXPECT_EQ(v.errors[0].where.begin(), use);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
 }
 
 TEST(test_lint, var_or_function_variable_use_before_declaration) {

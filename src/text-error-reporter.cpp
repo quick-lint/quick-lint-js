@@ -123,10 +123,12 @@ void text_error_reporter::report_error_use_of_undeclared_variable(
 }
 
 void text_error_reporter::report_error_variable_used_before_declaration(
-    identifier name) {
-  log_location(name);
+    identifier use, identifier declaration) {
+  log_location(use);
   this->output_ << "error: variable used before declaration: "
-                << name.string_view() << '\n';
+                << use.string_view() << '\n';
+  log_location(declaration);
+  this->output_ << "note: variable declared here\n";
 }
 
 void text_error_reporter::log_location(identifier i) const {
