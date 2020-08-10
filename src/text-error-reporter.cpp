@@ -118,7 +118,8 @@ void text_error_reporter::report_error_unmatched_parenthesis(
 void text_error_reporter::report_error_variable_used_before_declaration(
     identifier name) {
   log_location(name);
-  this->output_ << "error: variable used before declaration\n";
+  this->output_ << "error: variable used before declaration: "
+                << name.string_view() << '\n';
 }
 
 void text_error_reporter::log_location(identifier i) const {

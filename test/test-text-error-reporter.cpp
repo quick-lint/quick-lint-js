@@ -199,7 +199,7 @@ TEST_F(test_text_error_reporter, variable_used_before_declaration) {
   this->make_reporter(input).report_error_variable_used_before_declaration(
       identifier(myvar_span));
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: variable used before declaration\n");
+            "FILE:1:1: error: variable used before declaration: myvar\n");
 }
 }  // namespace
 }  // namespace quick_lint_js
