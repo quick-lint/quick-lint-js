@@ -247,6 +247,7 @@ class lexer {
                                                   const char* template_begin,
                                                   error_reporter*);
 
+  void parse_hexadecimal_number();
   void parse_number();
 
   void skip_whitespace();
@@ -254,6 +255,7 @@ class lexer {
   void skip_line_comment();
 
   static bool is_digit(char);
+  static bool is_hex_digit(char);
   static bool is_identifier_character(char);
   static token_type keyword_from_index(std::ptrdiff_t);
 

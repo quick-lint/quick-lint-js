@@ -68,6 +68,12 @@ TEST(test_lex, lex_numbers) {
   check_tokens("123. 456", {token_type::number, token_type::number});
 }
 
+TEST(test_lex, lex_hex_numbers) {
+  check_single_token("0x0", token_type::number);
+  check_single_token("0x123456789abcdef", token_type::number);
+  check_single_token("0X123456789ABCDEF", token_type::number);
+}
+
 TEST(test_lex, lex_strings) {
   check_single_token(R"('hello')", token_type::string);
   check_single_token(R"("hello")", token_type::string);

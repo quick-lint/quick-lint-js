@@ -181,7 +181,20 @@ retry:
 
     QLJS_CASE_DECIMAL_DIGIT:
       this->last_token_.type = token_type::number;
-      this->parse_number();
+      if (this->input_[0] == '0') {
+        switch (this->input_[1]) {
+          case 'x':
+          case 'X':
+            this->input_ += 2;
+            this->parse_hexadecimal_number();
+            break;
+          default:
+            this->parse_number();
+            break;
+        }
+      } else {
+        this->parse_number();
+      }
       break;
 
     QLJS_CASE_IDENTIFIER_START : {
@@ -592,6 +605,13 @@ const char* lexer::end_of_previous_token() const noexcept {
   return this->last_last_token_end_;
 }
 
+void lexer::parse_hexadecimal_number() {
+  assert(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
+  while (this->is_hex_digit(this->input_[0])) {
+    this->input_ += 1;
+  }
+}
+
 void lexer::parse_number() {
   assert(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   while (this->is_digit(this->input_[0])) {
@@ -648,6 +668,27 @@ void lexer::skip_line_comment() {
 bool lexer::is_digit(char c) {
   switch (c) {
   QLJS_CASE_DECIMAL_DIGIT:
+    return true;
+    default:
+      return false;
+  }
+}
+
+bool lexer::is_hex_digit(char c) {
+  switch (c) {
+  QLJS_CASE_DECIMAL_DIGIT:
+  case 'a':
+  case 'b':
+  case 'c':
+  case 'd':
+  case 'e':
+  case 'f':
+  case 'A':
+  case 'B':
+  case 'C':
+  case 'D':
+  case 'E':
+  case 'F':
     return true;
     default:
       return false;
