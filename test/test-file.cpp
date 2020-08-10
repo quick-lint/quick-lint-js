@@ -17,6 +17,7 @@
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -25,11 +26,17 @@
 #include <quick-lint-js/have.h>
 #include <stdlib.h>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <vector>
 
 #if defined(_WIN32)
 #include <Windows.h>
+#endif
+
+#if QLJS_HAVE_MKFIFO
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 namespace quick_lint_js {
@@ -53,6 +60,22 @@ TEST_F(test_file, read_regular_file) {
   std::string file_content = read_file(temp_file_path.string().c_str());
   EXPECT_EQ(file_content, "hello\nworld!\n");
 }
+
+#if QLJS_HAVE_MKFIFO
+TEST_F(test_file, read_fifo) {
+  std::filesystem::path temp_file_path =
+      this->make_temporary_directory() / "fifo.js";
+  ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
+
+  std::thread writer_thread(
+      [&]() { write_file(temp_file_path, "hello from fifo"); });
+
+  std::string file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_EQ(file_content, "hello from fifo");
+
+  writer_thread.join();
+}
+#endif
 
 #if QLJS_HAVE_MKDTEMP
 std::filesystem::path make_temporary_directory() {

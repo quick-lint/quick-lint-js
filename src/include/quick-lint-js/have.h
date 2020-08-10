@@ -43,4 +43,12 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_MKFIFO)
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L
+#define QLJS_HAVE_MKFIFO 1
+#else
+#define QLJS_HAVE_MKFIFO 0
+#endif
+#endif
+
 #endif

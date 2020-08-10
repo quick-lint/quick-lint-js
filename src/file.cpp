@@ -18,10 +18,47 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <ios>
 #include <iostream>
 #include <string>
 
 namespace quick_lint_js {
+namespace {
+std::string read_file_buffered(FILE *file, std::streamsize buffer_size) {
+  std::string contents;
+  while (!std::feof(file)) {
+    std::size_t size_before = contents.size();
+    contents.resize(size_before + buffer_size);
+    std::size_t read_size =
+        std::fread(&contents.data()[size_before], 1, buffer_size, file);
+    contents.resize(size_before + read_size);
+  }
+  return contents;
+}
+
+std::string read_file(const char *path, FILE *file) {
+  if (std::fseek(file, 0, SEEK_END) == -1) {
+    std::streamsize buffer_size = 1024;  // TODO(strager): Compute using stat.
+    return read_file_buffered(file, buffer_size);
+  } else {
+    long file_size = std::ftell(file);
+    if (file_size == -1) {
+      std::cerr << "error: failed to get size of " << path << ": "
+                << std::strerror(errno) << '\n';
+      exit(1);
+    }
+
+    if (std::fseek(file, 0, SEEK_SET) == -1) {
+      std::cerr << "error: failed to seek to beginning of " << path << ": "
+                << std::strerror(errno) << '\n';
+      exit(1);
+    }
+
+    return read_file_buffered(file, file_size);
+  }
+}
+}  // namespace
+
 std::string read_file(const char *path) {
   FILE *file = std::fopen(path, "rb");
   if (!file) {
@@ -30,29 +67,7 @@ std::string read_file(const char *path) {
     exit(1);
   }
 
-  if (std::fseek(file, 0, SEEK_END) == -1) {
-    std::cerr << "error: failed to seek to end of " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  long file_size = std::ftell(file);
-  if (file_size == -1) {
-    std::cerr << "error: failed to get size of " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  if (std::fseek(file, 0, SEEK_SET) == -1) {
-    std::cerr << "error: failed to seek to beginning of " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  std::string contents;
-  contents.resize(file_size);
-  std::size_t read_size = std::fread(contents.data(), 1, file_size, file);
-  contents.resize(read_size);
+  std::string contents = read_file(path, file);
 
   if (std::fclose(file) == -1) {
     std::cerr << "error: failed to close " << path << ": "
