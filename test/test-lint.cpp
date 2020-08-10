@@ -415,22 +415,26 @@ TEST(test_lint, assign_to_undeclared_variable) {
   EXPECT_EQ(v.errors[0].where.begin(), assignment);
 }
 
-TEST(test_lint, use_hoisted_variable_in_parent_function) {
-  const char declaration[] = "f";
-  const char use[] = "f";
+TEST(test_lint, use_variable_declared_in_parent_function) {
+  for (variable_kind var_kind :
+       {variable_kind::_function, variable_kind::_let}) {
+    SCOPED_TRACE(::testing::PrintToString(var_kind));
 
-  error_collector v;
-  linter l(&v);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope();
-  l.visit_variable_use(identifier_of(use));
-  l.visit_exit_function_scope();
-  l.visit_variable_declaration(identifier_of(declaration),
-                               variable_kind::_function);
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
+    const char declaration[] = "f";
+    const char use[] = "f";
 
-  EXPECT_THAT(v.errors, IsEmpty());
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration), var_kind);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 }  // namespace
 }  // namespace quick_lint_js
