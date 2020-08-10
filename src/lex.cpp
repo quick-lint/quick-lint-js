@@ -20,6 +20,7 @@
 #include <ostream>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <string_view>
 #include <type_traits>
 
@@ -195,17 +196,10 @@ retry:
         this->input_ += 1;
       }
       this->last_token_.end = this->input_;
-      this->last_token_.type = token_type::identifier;
-
-      identifier identifier_name = this->last_token_.identifier_name();
-      auto found_keyword = std::find_if(
-          std::begin(keywords), std::end(keywords), [&](const char* keyword) {
-            return identifier_name.string_view() == keyword;
-          });
-      if (found_keyword != std::end(keywords)) {
-        this->last_token_.type =
-            this->keyword_from_index(found_keyword - std::begin(keywords));
-      }
+      this->last_token_.type = this->identifier_token_type(
+          std::string_view(this->last_token_.begin,
+                           narrow_cast<std::size_t>(this->last_token_.end -
+                                                    this->last_token_.begin)));
       break;
     }
 
@@ -779,7 +773,18 @@ bool lexer::is_identifier_character(char c) {
   }
 }
 
-token_type lexer::keyword_from_index(std::ptrdiff_t index) {
+token_type lexer::identifier_token_type(std::string_view identifier) noexcept {
+  auto found_keyword =
+      std::find_if(std::begin(keywords), std::end(keywords),
+                   [&](const char* keyword) { return identifier == keyword; });
+  if (found_keyword == std::end(keywords)) {
+    return token_type::identifier;
+  } else {
+    return lexer::keyword_from_index(found_keyword - std::begin(keywords));
+  }
+}
+
+token_type lexer::keyword_from_index(std::ptrdiff_t index) noexcept {
   using token_type_int = std::underlying_type_t<token_type>;
   return static_cast<token_type>(
       static_cast<token_type_int>(token_type::first_keyword) + index);

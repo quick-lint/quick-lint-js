@@ -257,7 +257,9 @@ class lexer {
   static bool is_digit(char);
   static bool is_hex_digit(char);
   static bool is_identifier_character(char);
-  static token_type keyword_from_index(std::ptrdiff_t);
+
+  static token_type identifier_token_type(std::string_view) noexcept;
+  static token_type keyword_from_index(std::ptrdiff_t) noexcept;
 
   token last_token_;
   const char* last_last_token_end_;
