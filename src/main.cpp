@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iostream>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
@@ -31,7 +32,6 @@
 namespace quick_lint_js {
 namespace {
 void process_file(const char *path, bool print_parser_visits);
-std::string read_file(const char *path);
 }  // namespace
 }  // namespace quick_lint_js
 
@@ -191,47 +191,6 @@ void process_file(const char *path, bool print_parser_visits) {
   } else {
     p.parse_and_visit_module(l);
   }
-}
-
-std::string read_file(const char *path) {
-  FILE *file = std::fopen(path, "rb");
-  if (!file) {
-    std::cerr << "error: failed to open " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  if (std::fseek(file, 0, SEEK_END) == -1) {
-    std::cerr << "error: failed to seek to end of " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  long file_size = std::ftell(file);
-  if (file_size == -1) {
-    std::cerr << "error: failed to get size of " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  if (std::fseek(file, 0, SEEK_SET) == -1) {
-    std::cerr << "error: failed to seek to beginning of " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  std::string contents;
-  contents.resize(file_size);
-  std::size_t read_size = std::fread(contents.data(), 1, file_size, file);
-  contents.resize(read_size);
-
-  if (std::fclose(file) == -1) {
-    std::cerr << "error: failed to close " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
-  }
-
-  return contents;
 }
 }  // namespace
 }  // namespace quick_lint_js

@@ -25,6 +25,7 @@ target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
 
 add_library(
   quick-lint-js-lib
+  file.cpp
   lex.cpp
   lint.cpp
   location.cpp

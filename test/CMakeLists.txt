@@ -16,11 +16,14 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+include(QuickLintJSCompiler)
+
 add_executable(
   quick-lint-js-test
   error-collector.cpp
   spy-visitor.cpp
   test-buffering-visitor.cpp
+  test-file.cpp
   test-lex.cpp
   test-lint.cpp
   test-location.cpp
@@ -39,6 +42,7 @@ target_link_libraries(
   gtest
   quick-lint-js-lib
 )
+quick_lint_js_use_cxx_filesystem(quick-lint-js-test PRIVATE)
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-test

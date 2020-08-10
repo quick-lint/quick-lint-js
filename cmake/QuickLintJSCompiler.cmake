@@ -7,6 +7,35 @@ function (quick_lint_js_check_designated_initializers OUT)
   )
 endfunction ()
 
+function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
+  set(STD_FILESYSTEM_SOURCE "#include <filesystem>\nint main() { return ::std::filesystem::temp_directory_path().is_absolute(); }")
+
+  check_cxx_source_compiles(
+    "${STD_FILESYSTEM_SOURCE}"
+    QUICK_LINT_JS_HAVE_STD_FILESYSTEM
+  )
+
+  list(APPEND CMAKE_REQUIRED_LIBRARIES stdc++fs)
+  check_cxx_source_compiles(
+    "${STD_FILESYSTEM_SOURCE}"
+    QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS
+  )
+
+  if (QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS)
+    # On some systems, linking to stdc++fs is required even if complication
+    # succeeds without stdc++fs. Be conservative and link to stdc++fs if it
+    # exists.
+    # Example: https://stackoverflow.com/questions/56615841/passing-stdfilesystempath-to-a-function-segfaults
+    target_link_libraries("${TARGET}" "${VISIBILITY}" stdc++fs)
+    return ()
+  endif ()
+  if (QUICK_LINT_JS_HAVE_STD_FILESYSTEM)
+    return ()
+  endif ()
+
+  message(FATAL_ERROR "C++ compiler does not support C++17 std::filesystem")
+endfunction ()
+
 function (quick_lint_js_set_cxx_standard)
   set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
   if (cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
