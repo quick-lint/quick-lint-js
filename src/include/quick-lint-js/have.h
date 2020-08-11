@@ -25,9 +25,29 @@
 #elif defined(__unix__)
 #define QLJS_HAVE_UNISTD_H 1
 #endif
-
 #if !defined(QLJS_HAVE_UNISTD_H)
 #define QLJS_HAVE_UNISTD_H 0
+#endif
+
+#if defined(QLJS_HAVE_FILESYSTEM_HEADER) && QLJS_HAVE_FILESYSTEM_HEADER
+#elif defined(__has_include)
+#if __has_include(<filesystem>)
+#define QLJS_HAVE_FILESYSTEM_HEADER 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_FILESYSTEM_HEADER)
+#define QLJS_HAVE_FILESYSTEM_HEADER 0
+#endif
+
+#if defined(QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER) && \
+    QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER
+#elif defined(__has_include)
+#if __has_include(<experimental/filesystem>)
+#define QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER)
+#define QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER 0
 #endif
 
 #if QLJS_HAVE_UNISTD_H

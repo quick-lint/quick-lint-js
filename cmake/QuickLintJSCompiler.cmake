@@ -9,10 +9,15 @@ endfunction ()
 
 function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
   set(STD_FILESYSTEM_SOURCE "#include <filesystem>\nint main() { return ::std::filesystem::temp_directory_path().is_absolute(); }")
+  set(STD_EXPERIMENTAL_FILESYSTEM_SOURCE "#include <experimental/filesystem>\nint main() { return ::std::experimental::filesystem::temp_directory_path().is_absolute(); }")
 
   check_cxx_source_compiles(
     "${STD_FILESYSTEM_SOURCE}"
     QUICK_LINT_JS_HAVE_STD_FILESYSTEM
+  )
+  check_cxx_source_compiles(
+    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
+    QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM
   )
 
   list(APPEND CMAKE_REQUIRED_LIBRARIES stdc++fs)
@@ -20,8 +25,15 @@ function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
     "${STD_FILESYSTEM_SOURCE}"
     QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS
   )
+  check_cxx_source_compiles(
+    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
+    QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_STDCXXFS
+  )
 
-  if (QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS)
+  if (
+    QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS
+    OR QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_STDCXXFS
+  )
     # On some systems, linking to stdc++fs is required even if complication
     # succeeds without stdc++fs. Be conservative and link to stdc++fs if it
     # exists.
@@ -29,7 +41,10 @@ function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
     target_link_libraries("${TARGET}" "${VISIBILITY}" stdc++fs)
     return ()
   endif ()
-  if (QUICK_LINT_JS_HAVE_STD_FILESYSTEM)
+  if (
+    QUICK_LINT_JS_HAVE_STD_FILESYSTEM
+    OR QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM
+  )
     return ()
   endif ()
 
