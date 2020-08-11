@@ -32,7 +32,5 @@ add_library(
   parse.cpp
   text-error-reporter.cpp
 )
-quick_lint_js_check_finally(EXTRA_COMPILE_OPTIONS)
-target_compile_options(quick-lint-js-lib PUBLIC "${EXTRA_COMPILE_OPTIONS}")
 target_include_directories(quick-lint-js-lib PUBLIC include)
 target_link_libraries(quick-lint-js-lib PRIVATE gnulib-getopt)

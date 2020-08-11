@@ -23,6 +23,15 @@
 #include <quick-lint-js/location.h>
 #include <string_view>
 
+// HACK(strager): Work around _finally and _try being keywords in MSVC with /Ze
+// (enabled by default). We can't use /Za to disable these keywords because /Za
+// breaks including <Windows.h>.
+//
+// TODO(strager): Rename token types to UPPER_SNAKE_CASE to avoid MSVC problems
+// without resorting to these macros.
+#define _finally _FINALLY
+#define _try _TRY
+
 #define QLJS_CASE_KEYWORD                        \
   case ::quick_lint_js::token_type::_as:         \
   case ::quick_lint_js::token_type::_async:      \

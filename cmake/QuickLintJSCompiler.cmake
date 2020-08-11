@@ -1,24 +1,5 @@
 include(CheckCXXSourceCompiles)
 
-function (quick_lint_js_check_finally OUT_EXTRA_COMPILE_OPTIONS)
-  check_cxx_source_compiles(
-    "int main() { int _finally = 0; return _finally; }"
-    QUICK_LINT_JS_COMPILER_ALLOWS_VARIABLE_NAMED_FINALLY
-  )
-
-  if (QUICK_LINT_JS_COMPILER_ALLOWS_VARIABLE_NAMED_FINALLY)
-    set(QUICK_LINT_JS_COMPILER_ALLOWS_VARIABLE_NAMED_FINALLY_WITH_ZA FALSE CACHE INTERNAL "")
-    set("${OUT_EXTRA_COMPILE_OPTIONS}" "" PARENT_SCOPE)
-  else ()
-    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} /Za")
-    check_cxx_source_compiles(
-      "int main() { int _finally = 0; return _finally; }"
-      QUICK_LINT_JS_COMPILER_ALLOWS_VARIABLE_NAMED_FINALLY_WITH_ZA
-    )
-    set("${OUT_EXTRA_COMPILE_OPTIONS}" "/Za" PARENT_SCOPE)
-  endif ()
-endfunction ()
-
 function (quick_lint_js_check_designated_initializers OUT)
   check_cxx_source_compiles(
     "struct s { int m; }; int main() { s x{.m = 0}; return x.m; }"
