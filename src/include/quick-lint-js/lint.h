@@ -49,7 +49,7 @@ class linter {
 
   void visit_exit_class_scope() {}
 
-  void visit_exit_for_scope() {}
+  void visit_exit_for_scope() { this->scopes_.pop_back(); }
 
   void visit_exit_function_scope() {
     assert(this->scopes_.size() >= 2);

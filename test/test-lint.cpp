@@ -436,5 +436,28 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
+  const char declaration[] = "element";
+  const char use_before[] = "element";
+  const char use_after[] = "element";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use_before));
+  l.visit_enter_for_scope();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_exit_for_scope();
+  l.visit_variable_use(identifier_of(use_after));
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 2);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), use_before);
+  EXPECT_EQ(v.errors[1].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[1].where.begin(), use_after);
+}
 }  // namespace
 }  // namespace quick_lint_js
