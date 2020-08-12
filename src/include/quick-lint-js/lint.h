@@ -86,7 +86,7 @@ class linter {
         };
 
     for (const identifier &name :
-         this->scopes_.back().variables_used_before_declaration) {
+         current_scope.variables_used_before_declaration) {
       check_variable_possibly_used_before_declaration(
           name, /*used_in_descendant_scope=*/false);
     }
