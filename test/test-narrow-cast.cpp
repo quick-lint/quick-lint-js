@@ -175,7 +175,7 @@ TEST(test_narrow_cast, unsigned_signed_narrow_cast_succeeds_if_in_range) {
   EXPECT_TRUE(can_narrow_cast<llong>(ullong{llong_limits::max()}));
 }
 
-TEST(test_narrow_cast, unsigned_to_signed_narrow_cast_fails_if_in_range) {
+TEST(test_narrow_cast, signed_to_unsigned_narrow_cast_fails_if_out_of_range) {
   EXPECT_FALSE(can_narrow_cast<schar>(uchar{uchar_limits::max()}));
   EXPECT_FALSE(can_narrow_cast<schar>(ushort{uchar_limits::max()}));
   EXPECT_FALSE(can_narrow_cast<schar>(uint{uchar_limits::max()}));
