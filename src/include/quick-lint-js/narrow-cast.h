@@ -32,7 +32,7 @@ constexpr bool can_narrow_cast([[maybe_unused]] In x) noexcept {
     return out_limits::lowest() <= x && x <= out_limits::max();
   } else if constexpr (std::is_signed_v<In> && !std::is_signed_v<Out>) {
     static_assert(!(std::is_signed_v<In> && !std::is_signed_v<Out>),
-                  "TODO(strager): Implement unsigned->signed narrow_cast");
+                  "TODO(strager): Implement signed->unsigned narrow_cast");
   } else if constexpr (!std::is_signed_v<In> && std::is_signed_v<Out>) {
     return x <= unsigned_out{out_limits::max()};
   } else if constexpr (!std::is_signed_v<In> && !std::is_signed_v<Out>) {
