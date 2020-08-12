@@ -186,6 +186,25 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
   EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
 }
 
+TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
+  const char declaration[] = "x";
+  const char use[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_for_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_exit_for_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+}
+
 TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
   const char declaration[] = "x";
   const char use[] = "x";
@@ -218,6 +237,23 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
     l.visit_end_of_module();
 
     ASSERT_TRUE(v.errors.empty());
+  }
+}
+
+TEST(test_lint, var_or_function_variable_use_before_declaration_in_for_scope) {
+  for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
+    const char declaration[] = "x";
+    const char use[] = "x";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_for_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_exit_for_scope();
+    l.visit_end_of_module();
+
+    ASSERT_THAT(v.errors, IsEmpty());
   }
 }
 

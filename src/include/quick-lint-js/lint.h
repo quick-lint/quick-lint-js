@@ -56,7 +56,17 @@ class linter {
 
     for (const identifier &name :
          current_scope.variables_used_before_declaration) {
-      parent_scope.variables_used_before_declaration.emplace_back(name);
+      const declared_variable *var = this->find_declared_variable(name);
+      if (var) {
+        if (var->kind == variable_kind::_const ||
+            var->kind == variable_kind::_let) {
+          assert(var->declaration.has_value());
+          this->error_reporter_->report_error_variable_used_before_declaration(
+              name, *var->declaration);
+        }
+      } else {
+        parent_scope.variables_used_before_declaration.emplace_back(name);
+      }
     }
 
     this->scopes_.pop_back();
