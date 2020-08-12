@@ -459,5 +459,59 @@ TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
             error_collector::error_use_of_undeclared_variable);
   EXPECT_EQ(v.errors[1].where.begin(), use_after);
 }
+
+TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
+  {
+    const char declaration[] = "v";
+    const char use[] = "v";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let);
+    l.visit_enter_for_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_for_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const char declaration[] = "v";
+    const char use[] = "v";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_for_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_for_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_var);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const char declaration[] = "v";
+    const char use[] = "v";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_for_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_for_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let);
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_variable_used_before_declaration);
+    EXPECT_EQ(v.errors[0].where.begin(), use);
+    EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

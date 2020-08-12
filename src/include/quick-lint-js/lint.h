@@ -49,7 +49,18 @@ class linter {
 
   void visit_exit_class_scope() {}
 
-  void visit_exit_for_scope() { this->scopes_.pop_back(); }
+  void visit_exit_for_scope() {
+    assert(this->scopes_.size() >= 2);
+    scope &current_scope = this->scopes_[this->scopes_.size() - 1];
+    scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
+
+    for (const identifier &name :
+         current_scope.variables_used_before_declaration) {
+      parent_scope.variables_used_before_declaration.emplace_back(name);
+    }
+
+    this->scopes_.pop_back();
+  }
 
   void visit_exit_function_scope() {
     assert(this->scopes_.size() >= 2);
