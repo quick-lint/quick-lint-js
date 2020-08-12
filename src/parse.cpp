@@ -402,7 +402,7 @@ next:
       expression_ptr rhs = this->parse_expression(precedence{.commas = false});
       return this->make_expression<expression::assignment>(
           is_plain_assignment ? expression_kind::assignment
-                              : expression_kind::updating_assignment,
+                              : expression_kind::compound_assignment,
           lhs, rhs);
     }
 

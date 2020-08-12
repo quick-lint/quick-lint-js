@@ -633,14 +633,14 @@ TEST(test_parse_expression, parse_assignment) {
   }
 }
 
-TEST(test_parse_expression, parse_updating_assignment) {
+TEST(test_parse_expression, parse_compound_assignment) {
   for (std::string op : {"*=", "/=", "%=", "+=", "-=", "<<=", ">>=", ">>>=",
                          "&=", "^=", "|=", "**="}) {
     SCOPED_TRACE(op);
     std::string code = "x " + op + " y";
     test_parser p(code.c_str());
     expression_ptr ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::updating_assignment);
+    EXPECT_EQ(ast->kind(), expression_kind::compound_assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -1333,7 +1333,7 @@ std::string summarize(const expression &expression) {
       return "super";
     case expression_kind::unary_operator:
       return "unary(" + summarize(expression.child_0()) + ")";
-    case expression_kind::updating_assignment:
+    case expression_kind::compound_assignment:
       return "upassign(" + children() + ")";
     case expression_kind::variable:
       return std::string("var ") +

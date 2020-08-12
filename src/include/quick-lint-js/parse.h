@@ -220,10 +220,10 @@ class parser {
         this->visit_assignment_expression(lhs, rhs, v);
         break;
       }
-      case expression_kind::updating_assignment: {
+      case expression_kind::compound_assignment: {
         expression_ptr lhs = ast->child_0();
         expression_ptr rhs = ast->child_1();
-        this->visit_updating_assignment_expression(lhs, rhs, v);
+        this->visit_compound_assignment_expression(lhs, rhs, v);
         break;
       }
       case expression_kind::await:
@@ -290,7 +290,7 @@ class parser {
   }
 
   template <class Visitor>
-  void visit_updating_assignment_expression(expression_ptr lhs,
+  void visit_compound_assignment_expression(expression_ptr lhs,
                                             expression_ptr rhs, Visitor &v) {
     this->visit_expression(lhs, v, variable_context::rhs);
     this->visit_expression(rhs, v, variable_context::rhs);

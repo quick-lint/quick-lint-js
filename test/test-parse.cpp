@@ -613,7 +613,7 @@ TEST(test_parse, parse_assignment) {
   }
 }
 
-TEST(test_parse, parse_updating_assignment) {
+TEST(test_parse, parse_compound_assignment) {
   {
     spy_visitor v = parse_and_visit_expression("x += y");
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //

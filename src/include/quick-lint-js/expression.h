@@ -69,6 +69,7 @@ enum class expression_kind {
   await,
   binary_operator,
   call,
+  compound_assignment,
   conditional,
   dot,
   function,
@@ -82,7 +83,6 @@ enum class expression_kind {
   spread,
   super,
   unary_operator,
-  updating_assignment,
   variable,
 };
 
@@ -405,7 +405,7 @@ class expression::assignment : public expression {
                       expression_ptr rhs) noexcept
       : expression(kind), children_{lhs, rhs} {
     assert(kind == expression_kind::assignment ||
-           kind == expression_kind::updating_assignment);
+           kind == expression_kind::compound_assignment);
   }
 
   int child_count() const noexcept override {
