@@ -25,14 +25,14 @@ namespace quick_lint_js {
 template <class Out, class In>
 constexpr bool can_narrow_cast([[maybe_unused]] In x) noexcept {
   using out_limits = std::numeric_limits<Out>;
+  using unsigned_in = std::make_unsigned_t<In>;
   using unsigned_out = std::make_unsigned_t<Out>;
   if constexpr (std::is_same_v<In, Out>) {
     return true;
   } else if constexpr (std::is_signed_v<In> && std::is_signed_v<Out>) {
     return out_limits::lowest() <= x && x <= out_limits::max();
   } else if constexpr (std::is_signed_v<In> && !std::is_signed_v<Out>) {
-    static_assert(!(std::is_signed_v<In> && !std::is_signed_v<Out>),
-                  "TODO(strager): Implement signed->unsigned narrow_cast");
+    return 0 <= x && static_cast<unsigned_in>(x) <= out_limits::max();
   } else if constexpr (!std::is_signed_v<In> && std::is_signed_v<Out>) {
     return x <= unsigned_out{out_limits::max()};
   } else if constexpr (!std::is_signed_v<In> && !std::is_signed_v<Out>) {

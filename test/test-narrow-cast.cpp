@@ -175,7 +175,7 @@ TEST(test_narrow_cast, unsigned_signed_narrow_cast_succeeds_if_in_range) {
   EXPECT_TRUE(can_narrow_cast<llong>(ullong{llong_limits::max()}));
 }
 
-TEST(test_narrow_cast, signed_to_unsigned_narrow_cast_fails_if_out_of_range) {
+TEST(test_narrow_cast, unsigned_to_signed_narrow_cast_fails_if_out_of_range) {
   EXPECT_FALSE(can_narrow_cast<schar>(uchar{uchar_limits::max()}));
   EXPECT_FALSE(can_narrow_cast<schar>(ushort{uchar_limits::max()}));
   EXPECT_FALSE(can_narrow_cast<schar>(uint{uchar_limits::max()}));
@@ -195,6 +195,101 @@ TEST(test_narrow_cast, signed_to_unsigned_narrow_cast_fails_if_out_of_range) {
   EXPECT_FALSE(can_narrow_cast<long>(ullong{ulong_limits::max()}));
 
   EXPECT_FALSE(can_narrow_cast<llong>(ullong{ullong_limits::max()}));
+}
+
+TEST(test_narrow_cast, signed_unsigned_narrow_cast_succeeds_if_in_range) {
+  EXPECT_TRUE(can_narrow_cast<uchar>(schar{0}));
+  EXPECT_TRUE(can_narrow_cast<uchar>(short{0}));
+  EXPECT_TRUE(can_narrow_cast<uchar>(int{0}));
+  EXPECT_TRUE(can_narrow_cast<uchar>(long{0}));
+  EXPECT_TRUE(can_narrow_cast<uchar>(llong{0}));
+
+  EXPECT_TRUE(can_narrow_cast<ushort>(schar{0}));
+  EXPECT_TRUE(can_narrow_cast<ushort>(short{0}));
+  EXPECT_TRUE(can_narrow_cast<ushort>(int{0}));
+  EXPECT_TRUE(can_narrow_cast<ushort>(long{0}));
+  EXPECT_TRUE(can_narrow_cast<ushort>(llong{0}));
+
+  EXPECT_TRUE(can_narrow_cast<uint>(schar{0}));
+  EXPECT_TRUE(can_narrow_cast<uint>(short{0}));
+  EXPECT_TRUE(can_narrow_cast<uint>(int{0}));
+  EXPECT_TRUE(can_narrow_cast<uint>(long{0}));
+  EXPECT_TRUE(can_narrow_cast<uint>(llong{0}));
+
+  EXPECT_TRUE(can_narrow_cast<ulong>(schar{0}));
+  EXPECT_TRUE(can_narrow_cast<ulong>(short{0}));
+  EXPECT_TRUE(can_narrow_cast<ulong>(int{0}));
+  EXPECT_TRUE(can_narrow_cast<ulong>(long{0}));
+  EXPECT_TRUE(can_narrow_cast<ulong>(llong{0}));
+
+  EXPECT_TRUE(can_narrow_cast<ullong>(schar{0}));
+  EXPECT_TRUE(can_narrow_cast<ullong>(short{0}));
+  EXPECT_TRUE(can_narrow_cast<ullong>(int{0}));
+  EXPECT_TRUE(can_narrow_cast<ullong>(long{0}));
+  EXPECT_TRUE(can_narrow_cast<ullong>(llong{0}));
+
+  EXPECT_TRUE(can_narrow_cast<uchar>(schar{schar_limits::max()}));
+  EXPECT_TRUE(can_narrow_cast<ushort>(short{short_limits::max()}));
+  EXPECT_TRUE(can_narrow_cast<uint>(int{int_limits::max()}));
+  EXPECT_TRUE(can_narrow_cast<ulong>(long{long_limits::max()}));
+  EXPECT_TRUE(can_narrow_cast<ullong>(llong{llong_limits::max()}));
+}
+
+TEST(test_narrow_cast,
+     signed_to_unsigned_narrow_cast_fails_if_input_is_negative) {
+  EXPECT_FALSE(can_narrow_cast<uchar>(schar{schar_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(short{short_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(int{int_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(long{long_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(llong{llong_limits::lowest()}));
+
+  EXPECT_FALSE(can_narrow_cast<ushort>(schar{schar_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ushort>(short{short_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ushort>(int{int_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ushort>(long{long_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ushort>(llong{llong_limits::lowest()}));
+
+  EXPECT_FALSE(can_narrow_cast<uint>(schar{schar_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uint>(short{short_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uint>(int{int_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uint>(long{long_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<uint>(llong{llong_limits::lowest()}));
+
+  EXPECT_FALSE(can_narrow_cast<ulong>(schar{schar_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ulong>(short{short_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ulong>(int{int_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ulong>(long{long_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ulong>(llong{llong_limits::lowest()}));
+
+  EXPECT_FALSE(can_narrow_cast<ullong>(schar{schar_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ullong>(short{short_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ullong>(int{int_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ullong>(long{long_limits::lowest()}));
+  EXPECT_FALSE(can_narrow_cast<ullong>(llong{llong_limits::lowest()}));
+}
+
+TEST(test_narrow_cast, signed_to_unsigned_narrow_cast_fails_if_out_of_range) {
+  static_assert(sizeof(short) > sizeof(uchar));
+  EXPECT_FALSE(can_narrow_cast<uchar>(short{short_limits::max()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(int{int_limits::max()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(long{long_limits::max()}));
+  EXPECT_FALSE(can_narrow_cast<uchar>(llong{llong_limits::max()}));
+
+  static_assert(sizeof(int) > sizeof(ushort));
+  EXPECT_FALSE(can_narrow_cast<ushort>(int{int_limits::max()}));
+  EXPECT_FALSE(can_narrow_cast<ushort>(long{long_limits::max()}));
+  EXPECT_FALSE(can_narrow_cast<ushort>(llong{llong_limits::max()}));
+
+  if (sizeof(long) > sizeof(uint)) {
+    EXPECT_FALSE(can_narrow_cast<uint>(long{long_limits::max()}));
+  }
+  if (sizeof(llong) > sizeof(uint)) {
+    EXPECT_FALSE(can_narrow_cast<uint>(llong{llong_limits::max()}));
+  }
+
+  if (sizeof(llong) > sizeof(ulong)) {
+    EXPECT_FALSE(can_narrow_cast<ulong>(llong{llong_limits::max()}));
+  }
 }
 }  // namespace
 }  // namespace quick_lint_js
