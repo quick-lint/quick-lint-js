@@ -549,5 +549,23 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
   }
 }
+
+TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
+  const char use[] = "v";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_for_scope();
+  l.visit_enter_function_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_exit_for_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
+}
 }  // namespace
 }  // namespace quick_lint_js

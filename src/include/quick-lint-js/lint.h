@@ -68,6 +68,10 @@ class linter {
         parent_scope.variables_used_before_declaration.emplace_back(name);
       }
     }
+    for (const identifier &name :
+         current_scope.variables_used_in_descendant_scope) {
+      parent_scope.variables_used_before_declaration.emplace_back(name);
+    }
 
     this->scopes_.pop_back();
   }
