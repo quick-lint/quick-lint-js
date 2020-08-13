@@ -237,7 +237,7 @@ class expression::_new : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
@@ -262,7 +262,7 @@ class expression::_template : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
@@ -287,7 +287,7 @@ class expression::array : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
@@ -327,7 +327,7 @@ class expression::arrow_function_with_expression : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override {
@@ -376,7 +376,7 @@ class expression::arrow_function_with_statements : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
@@ -399,8 +399,6 @@ class expression::arrow_function_with_statements : public expression {
 
 class expression::assignment : public expression {
  public:
-  static constexpr expression_kind kind = expression_kind::assignment;
-
   explicit assignment(expression_kind kind, expression_ptr lhs,
                       expression_ptr rhs) noexcept
       : expression(kind), children_{lhs, rhs} {
@@ -415,7 +413,7 @@ class expression::assignment : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override {
@@ -451,7 +449,7 @@ class expression::binary_operator : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override {
@@ -480,7 +478,7 @@ class expression::call : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override {
@@ -508,7 +506,7 @@ class expression::conditional : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override {
@@ -607,7 +605,7 @@ class expression::index : public expression {
   expression_ptr child(int index) const noexcept override {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[index];
+    return this->children_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override {
@@ -683,7 +681,7 @@ class expression::object : public expression {
   object_property_value_pair object_entry(int index) const noexcept override {
     assert(index >= 0);
     assert(index < this->object_entry_count());
-    return this->entries_[index];
+    return this->entries_[narrow_cast<unsigned>(index)];
   }
 
   source_code_span span() const noexcept override { return this->span_; }

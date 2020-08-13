@@ -24,6 +24,8 @@
 namespace quick_lint_js {
 class error_reporter {
  public:
+  virtual ~error_reporter() = default;
+
   virtual void report_error_assignment_to_const_global_variable(
       identifier assignment) = 0;
   virtual void report_error_assignment_to_const_variable(

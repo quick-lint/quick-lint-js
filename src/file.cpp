@@ -20,11 +20,13 @@
 #include <cstring>
 #include <ios>
 #include <iostream>
+#include <quick-lint-js/file.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <string>
 
 namespace quick_lint_js {
 namespace {
-std::string read_file_buffered(FILE *file, std::streamsize buffer_size) {
+std::string read_file_buffered(FILE *file, std::size_t buffer_size) {
   std::string contents;
   while (!std::feof(file)) {
     std::size_t size_before = contents.size();
@@ -38,7 +40,7 @@ std::string read_file_buffered(FILE *file, std::streamsize buffer_size) {
 
 std::string read_file(const char *path, FILE *file) {
   if (std::fseek(file, 0, SEEK_END) == -1) {
-    std::streamsize buffer_size = 1024;  // TODO(strager): Compute using stat.
+    std::size_t buffer_size = 1024;  // TODO(strager): Compute using stat.
     return read_file_buffered(file, buffer_size);
   } else {
     long file_size = std::ftell(file);
@@ -47,6 +49,7 @@ std::string read_file(const char *path, FILE *file) {
                 << std::strerror(errno) << '\n';
       exit(1);
     }
+    // TODO(strager): Fail if file_size exceeds std::size_t.
 
     if (std::fseek(file, 0, SEEK_SET) == -1) {
       std::cerr << "error: failed to seek to beginning of " << path << ": "
@@ -54,7 +57,7 @@ std::string read_file(const char *path, FILE *file) {
       exit(1);
     }
 
-    return read_file_buffered(file, file_size);
+    return read_file_buffered(file, narrow_cast<std::size_t>(file_size));
   }
 }
 }  // namespace

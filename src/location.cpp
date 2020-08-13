@@ -23,12 +23,21 @@ source_position source_range::begin() const noexcept { return this->begin_; }
 
 source_position source_range::end() const noexcept { return this->end_; }
 
+bool operator==(source_code_span x, std::string_view y) noexcept {
+  return x.string_view() == y;
+}
+
+bool operator!=(source_code_span x, std::string_view y) noexcept {
+  return !(x == y);
+}
+
 source_range locator::range(source_code_span span) const {
   return source_range(this->position(span.begin()), this->position(span.end()));
 }
 
 source_position locator::position(const char *source) const noexcept {
-  source_position::offset_type offset = source - this->input_;
+  source_position::offset_type offset =
+      narrow_cast<source_position::offset_type>(source - this->input_);
   int number_of_line_terminators = 0;
   const char *last_line_terminator = nullptr;
   for (const char *c = this->input_; c != source; ++c) {

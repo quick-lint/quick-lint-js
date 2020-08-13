@@ -148,4 +148,4 @@ void text_error_reporter::log_location(source_code_span span) const {
   this->output_ << this->file_path_ << ":" << p.line_number << ":"
                 << p.column_number << ": ";
 }
-};  // namespace quick_lint_js
+}  // namespace quick_lint_js

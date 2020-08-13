@@ -27,8 +27,8 @@ class buffering_visitor {
  public:
   template <class Visitor>
   void move_into(Visitor &target) {
-    for (auto &visit : this->visits_) {
-      switch (visit.kind) {
+    for (auto &v : this->visits_) {
+      switch (v.kind) {
         case visit_kind::end_of_module:
           target.visit_end_of_module();
           break;
@@ -45,7 +45,7 @@ class buffering_visitor {
           target.visit_enter_function_scope();
           break;
         case visit_kind::enter_named_function_scope:
-          target.visit_enter_named_function_scope(visit.name);
+          target.visit_enter_named_function_scope(v.name);
           break;
         case visit_kind::exit_block_scope:
           target.visit_exit_block_scope();
@@ -60,16 +60,16 @@ class buffering_visitor {
           target.visit_exit_function_scope();
           break;
         case visit_kind::property_declaration:
-          target.visit_property_declaration(visit.name);
+          target.visit_property_declaration(v.name);
           break;
         case visit_kind::variable_assignment:
-          target.visit_variable_assignment(visit.name);
+          target.visit_variable_assignment(v.name);
           break;
         case visit_kind::variable_use:
-          target.visit_variable_use(visit.name);
+          target.visit_variable_use(v.name);
           break;
         case visit_kind::variable_declaration:
-          target.visit_variable_declaration(visit.name, visit.var_kind);
+          target.visit_variable_declaration(v.name, v.var_kind);
           break;
       }
     }

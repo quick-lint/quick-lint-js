@@ -20,6 +20,7 @@
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/unreachable.h>
 #include <string>
@@ -45,7 +46,8 @@ class test_parser {
   }
 
   source_range error_range(int error_index) {
-    return this->parser_.locator().range(this->errors().at(error_index).where);
+    return this->parser_.locator().range(
+        this->errors().at(narrow_cast<std::size_t>(error_index)).where);
   }
 
   source_range range(expression_ptr ast) {

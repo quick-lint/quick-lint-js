@@ -143,14 +143,6 @@ constexpr const char keywords[][11] = {
 };
 }
 
-bool operator==(source_code_span x, std::string_view y) noexcept {
-  return x.string_view() == y;
-}
-
-bool operator!=(source_code_span x, std::string_view y) noexcept {
-  return !(x == y);
-}
-
 identifier token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:

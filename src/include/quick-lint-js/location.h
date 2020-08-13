@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_LOCATION_H
 
 #include <cstddef>
+#include <quick-lint-js/narrow-cast.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -57,13 +58,17 @@ class source_code_span {
   const char* end() const noexcept { return this->end_; }
 
   std::string_view string_view() const noexcept {
-    return std::string_view(this->begin(), this->end() - this->begin());
+    return std::string_view(
+        this->begin(), narrow_cast<std::size_t>(this->end() - this->begin()));
   }
 
  private:
   const char* begin_;
   const char* end_;
 };
+
+bool operator==(source_code_span, std::string_view) noexcept;
+bool operator!=(source_code_span, std::string_view) noexcept;
 
 class locator {
  public:
