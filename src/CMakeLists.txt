@@ -16,14 +16,15 @@
 
 cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSCompiler)
+include(QuickLintJSTarget)
 
-add_executable(
+quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
 )
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
 
-add_library(
+quick_lint_js_add_library(
   quick-lint-js-lib
   file.cpp
   lex.cpp

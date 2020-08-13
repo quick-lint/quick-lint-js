@@ -15,10 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
-
 include(QuickLintJSCompiler)
+include(QuickLintJSTarget)
 
-add_executable(
+quick_lint_js_add_executable(
   quick-lint-js-test
   error-collector.cpp
   spy-visitor.cpp
