@@ -24,6 +24,14 @@
 namespace quick_lint_js {
 class error_reporter {
  public:
+  error_reporter() noexcept = default;
+
+  error_reporter(const error_reporter &) noexcept = default;
+  error_reporter &operator=(const error_reporter &) noexcept = default;
+
+  error_reporter(error_reporter &&) noexcept = default;
+  error_reporter &operator=(error_reporter &&) noexcept = default;
+
   virtual ~error_reporter() = default;
 
   virtual void report_error_assignment_to_const_global_variable(
