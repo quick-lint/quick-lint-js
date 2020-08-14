@@ -32,6 +32,7 @@ quick_lint_js_add_executable(
   test-parse-expression.cpp
   test-parse.cpp
   test-text-error-reporter.cpp
+  test-vim-qflist-json-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE include)
 target_link_libraries(
@@ -40,6 +41,7 @@ target_link_libraries(
   gmock
   gmock_main
   gtest
+  jsoncpp_lib
   quick-lint-js-lib
 )
 quick_lint_js_use_cxx_filesystem(quick-lint-js-test PRIVATE)
@@ -50,6 +52,9 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>
+    <json/reader.h>
+    <json/value.h>
+    <json/writer.h>
   )
 endif ()
 

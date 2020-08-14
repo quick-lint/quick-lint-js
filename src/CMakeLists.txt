@@ -33,6 +33,7 @@ quick_lint_js_add_library(
   options.cpp
   parse.cpp
   text-error-reporter.cpp
+  vim-qflist-json-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
 target_link_libraries(quick-lint-js-lib PRIVATE gnulib-getopt)
