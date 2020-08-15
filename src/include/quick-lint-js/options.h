@@ -17,6 +17,7 @@
 #ifndef QUICK_LINT_JS_OPTIONS_H
 #define QUICK_LINT_JS_OPTIONS_H
 
+#include <optional>
 #include <vector>
 
 namespace quick_lint_js {
@@ -26,9 +27,8 @@ enum class output_format {
 };
 
 struct file_to_lint {
-  explicit file_to_lint(const char *path) noexcept : path(path) {}
-
   const char *path;
+  std::optional<int> vim_bufnr;
 };
 
 struct options {

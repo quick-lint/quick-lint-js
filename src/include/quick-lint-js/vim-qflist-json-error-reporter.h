@@ -30,6 +30,8 @@ class vim_qflist_json_error_reporter : public error_reporter {
   explicit vim_qflist_json_error_reporter(std::ostream &output);
 
   void set_source(const char *input, const char *file_name, int vim_bufnr);
+  void set_source(const char *input, const char *file_name,
+                  std::optional<int> vim_bufnr);
   void set_source(const char *input, const char *file_name);
   void set_source(const char *input, int vim_bufnr);
 

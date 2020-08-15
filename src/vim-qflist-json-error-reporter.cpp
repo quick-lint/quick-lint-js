@@ -31,16 +31,21 @@ vim_qflist_json_error_reporter::vim_qflist_json_error_reporter(
 void vim_qflist_json_error_reporter::set_source(const char *input,
                                                 const char *file_name,
                                                 int vim_bufnr) {
+  this->set_source(input, /*file_name=*/file_name,
+                   /*vim_bufnr=*/std::optional<int>(vim_bufnr));
+}
+
+void vim_qflist_json_error_reporter::set_source(const char *input,
+                                                const char *file_name,
+                                                std::optional<int> vim_bufnr) {
   this->locator_.emplace(input);
   this->file_name_ = file_name;
-  this->bufnr_ = std::to_string(vim_bufnr);
+  this->bufnr_ = vim_bufnr.has_value() ? std::to_string(*vim_bufnr) : "";
 }
 
 void vim_qflist_json_error_reporter::set_source(const char *input,
                                                 const char *file_name) {
-  this->locator_.emplace(input);
-  this->file_name_ = file_name;
-  this->bufnr_.clear();
+  this->set_source(input, /*file_name=*/file_name, /*vim_bufnr=*/std::nullopt);
 }
 
 void vim_qflist_json_error_reporter::set_source(const char *input,

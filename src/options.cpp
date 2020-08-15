@@ -16,7 +16,9 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <getopt.h>
+#include <quick-lint-js/integer.h>
 #include <quick-lint-js/options.h>
 #include <string_view>
 #include <vector>
@@ -30,19 +32,24 @@ options parse_options(int argc, char **argv) {
   enum option_value {
     no_option = -1,
     flag_option = 0,
+    non_option = 1,
     unknown_option = '?',
     option_missing_argument = ':',
 
     debug_parser_visits = 0x80,
     output_format,
+    vim_file_bufnr,
   };
 
   static const struct ::option getopt_long_options[] = {
       {"debug-parser-visits", no_argument, nullptr, debug_parser_visits},
       {"output-format", required_argument, nullptr, output_format},
+      {"vim-file-bufnr", required_argument, nullptr, vim_file_bufnr},
       {nullptr, 0, nullptr, 0},
   };
-  static const char getopt_short_options[] = "";
+  static const char getopt_short_options[] = "-";
+
+  std::optional<int> next_vim_file_bufnr;
 
   ::optind = 1;
   for (;;) {
@@ -64,10 +71,28 @@ options parse_options(int argc, char **argv) {
         }
         break;
 
-      case no_option:
-        for (int i = ::optind; i < argc; ++i) {
-          o.files_to_lint.emplace_back(argv[i]);
+      case vim_file_bufnr: {
+        int bufnr;
+        from_chars_result result =
+            from_chars(::optarg, &::optarg[std::strlen(::optarg)], bufnr);
+        if (*result.ptr != '\0' || result.ec != std::errc{}) {
+          o.error_unrecognized_options.emplace_back(::optarg);
+        } else {
+          next_vim_file_bufnr = bufnr;
         }
+        break;
+      }
+
+      case non_option: {
+        file_to_lint file{.path = argv[::optind - 1],
+                          .vim_bufnr = next_vim_file_bufnr};
+        o.files_to_lint.emplace_back(file);
+        next_vim_file_bufnr = std::nullopt;
+        break;
+      }
+
+      case no_option:
+        assert(::optind == argc);
         goto done_parsing_options;
 
       case unknown_option:

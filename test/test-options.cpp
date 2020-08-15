@@ -81,6 +81,48 @@ TEST(test_options, output_format) {
   }
 }
 
+TEST(test_options, vim_file_bufnr) {
+  {
+    options o = parse_options({"one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, std::nullopt);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, std::nullopt);
+  }
+
+  {
+    options o = parse_options({"--vim-file-bufnr", "3", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 3);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, std::nullopt);
+  }
+
+  {
+    options o = parse_options({"one.js", "--vim-file-bufnr=10", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, std::nullopt);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, 10);
+  }
+
+  {
+    options o = parse_options(
+        {"--vim-file-bufnr=1", "one.js", "--vim-file-bufnr=2", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, 2);
+  }
+}
+
+TEST(test_options, invalid_vim_file_bufnr) {
+  options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
+  ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+  EXPECT_EQ(o.error_unrecognized_options[0], "garbage"sv);
+}
+
+// TODO(strager): Report warning for trailing (ununsed) --vim-file-bufnr.
+
+// TODO(strager): Report warning for using --vim-file-bufnr without
+// --output-format.
+
 TEST(test_options, invalid_option) {
   options o = parse_options({"--option-does-not-exist", "foo.js"});
   ASSERT_EQ(o.error_unrecognized_options.size(), 1);

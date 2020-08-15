@@ -46,9 +46,18 @@ class any_error_reporter {
     QLJS_UNREACHABLE();
   }
 
-  void set_source(const char *input, const char *file_name) {
-    std::visit([&](auto &r) { r.set_source(input, file_name); },
-               this->reporter_);
+  void set_source(const char *input, const file_to_lint &file) {
+    std::visit(
+        [&](auto &r) {
+          using reporter_type = std::decay_t<decltype(r)>;
+          if constexpr (std::is_base_of_v<vim_qflist_json_error_reporter,
+                                          reporter_type>) {
+            r.set_source(input, file.path, file.vim_bufnr);
+          } else {
+            r.set_source(input, file.path);
+          }
+        },
+        this->reporter_);
   }
 
   error_reporter *get() noexcept {
@@ -99,7 +108,7 @@ int main(int argc, char **argv) {
       quick_lint_js::any_error_reporter::make(o.output_format);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
     std::string source = quick_lint_js::read_file(file.path);
-    reporter.set_source(source.c_str(), file.path);
+    reporter.set_source(source.c_str(), file);
     quick_lint_js::process_file(source, reporter.get(), o.print_parser_visits);
   }
   reporter.finish();
