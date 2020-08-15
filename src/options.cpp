@@ -18,7 +18,10 @@
 #include <cstdlib>
 #include <getopt.h>
 #include <quick-lint-js/options.h>
+#include <string_view>
 #include <vector>
+
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 options parse_options(int argc, char **argv) {
@@ -31,10 +34,12 @@ options parse_options(int argc, char **argv) {
     option_missing_argument = ':',
 
     debug_parser_visits = 0x80,
+    output_format,
   };
 
   static const struct ::option getopt_long_options[] = {
       {"debug-parser-visits", no_argument, nullptr, debug_parser_visits},
+      {"output-format", required_argument, nullptr, output_format},
       {nullptr, 0, nullptr, 0},
   };
   static const char getopt_short_options[] = "";
@@ -47,6 +52,16 @@ options parse_options(int argc, char **argv) {
     switch (c) {
       case debug_parser_visits:
         o.print_parser_visits = true;
+        break;
+
+      case output_format:
+        if (optarg == "gnu-like"sv) {
+          o.output_format = quick_lint_js::output_format::gnu_like;
+        } else if (optarg == "vim-qflist-json"sv) {
+          o.output_format = quick_lint_js::output_format::vim_qflist_json;
+        } else {
+          o.error_unrecognized_options.emplace_back(optarg);
+        }
         break;
 
       case no_option:

@@ -20,8 +20,15 @@
 #include <vector>
 
 namespace quick_lint_js {
+enum class output_format {
+  gnu_like,
+  vim_qflist_json,
+};
+
 struct options {
   bool print_parser_visits = false;
+  quick_lint_js::output_format output_format =
+      quick_lint_js::output_format::gnu_like;
   std::vector<const char *> files_to_lint;
 
   std::vector<const char *> error_unrecognized_options;

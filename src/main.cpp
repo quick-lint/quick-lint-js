@@ -27,11 +27,58 @@
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
+#include <variant>
 
 namespace quick_lint_js {
 namespace {
-void process_file(const char *path, bool print_parser_visits);
+class any_error_reporter {
+ public:
+  static any_error_reporter make(output_format format) {
+    switch (format) {
+      case output_format::gnu_like:
+        return any_error_reporter(text_error_reporter(std::cerr));
+      case output_format::vim_qflist_json:
+        return any_error_reporter(vim_qflist_json_error_reporter(std::cerr));
+    }
+    QLJS_UNREACHABLE();
+  }
+
+  void set_source(const char *input, const char *file_name) {
+    std::visit([&](auto &r) { r.set_source(input, file_name); },
+               this->reporter_);
+  }
+
+  error_reporter *get() noexcept {
+    return std::visit([](error_reporter &r) { return &r; }, this->reporter_);
+  }
+
+  void finish() {
+    std::visit(
+        [&](auto &r) {
+          using reporter_type = std::decay_t<decltype(r)>;
+          if constexpr (std::is_base_of_v<vim_qflist_json_error_reporter,
+                                          reporter_type>) {
+            r.finish();
+          }
+        },
+        this->reporter_);
+  }
+
+ private:
+  using reporter_variant =
+      std::variant<text_error_reporter, vim_qflist_json_error_reporter>;
+
+  explicit any_error_reporter(reporter_variant &&reporter)
+      : reporter_(std::move(reporter)) {}
+
+  reporter_variant reporter_;
+};
+
+void process_file(const std::string &input, error_reporter *,
+                  bool print_parser_visits);
 }  // namespace
 }  // namespace quick_lint_js
 
@@ -48,9 +95,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  quick_lint_js::any_error_reporter reporter =
+      quick_lint_js::any_error_reporter::make(o.output_format);
   for (const char *file_to_lint : o.files_to_lint) {
-    quick_lint_js::process_file(file_to_lint, o.print_parser_visits);
+    std::string source = quick_lint_js::read_file(file_to_lint);
+    reporter.set_source(source.c_str(), file_to_lint);
+    quick_lint_js::process_file(source, reporter.get(), o.print_parser_visits);
   }
+  reporter.finish();
 
   return 0;
 }
@@ -179,12 +231,10 @@ class multi_visitor {
   Visitor2 *visitor_2_;
 };
 
-void process_file(const char *path, bool print_parser_visits) {
-  std::string source = read_file(path);
-  text_error_reporter error_reporter(std::cerr);
-  error_reporter.set_source(source.c_str(), path);
-  parser p(source.c_str(), &error_reporter);
-  linter l(&error_reporter);
+void process_file(const std::string &input, error_reporter *error_reporter,
+                  bool print_parser_visits) {
+  parser p(input.c_str(), error_reporter);
+  linter l(error_reporter);
   if (print_parser_visits) {
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);

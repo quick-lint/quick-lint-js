@@ -23,6 +23,7 @@
 #include <string_view>
 #include <vector>
 
+using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using namespace std::literals::string_view_literals;
 
@@ -41,6 +42,7 @@ options parse_options(std::initializer_list<const char *> arguments) {
 TEST(test_options, default_options_with_no_files) {
   options o = parse_options({});
   EXPECT_FALSE(o.print_parser_visits);
+  EXPECT_EQ(o.output_format, output_format::gnu_like);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
 
@@ -56,6 +58,27 @@ TEST(test_options, debug_parser_visits) {
   EXPECT_TRUE(o.print_parser_visits);
   ASSERT_EQ(o.files_to_lint.size(), 1);
   EXPECT_EQ(o.files_to_lint[0], "foo.js"sv);
+}
+
+TEST(test_options, output_format) {
+  {
+    options o = parse_options({"--output-format=gnu-like"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    EXPECT_EQ(o.output_format, output_format::gnu_like);
+  }
+
+  {
+    options o = parse_options({"--output-format=vim-qflist-json"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    EXPECT_EQ(o.output_format, output_format::vim_qflist_json);
+  }
+
+  {
+    options o = parse_options({"--output-format=unknown-garbage"});
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("unknown-garbage"sv));
+    EXPECT_EQ(o.output_format, output_format::gnu_like)
+        << "output_format should remain the default";
+  }
 }
 
 TEST(test_options, invalid_option) {
