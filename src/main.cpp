@@ -181,7 +181,8 @@ class multi_visitor {
 
 void process_file(const char *path, bool print_parser_visits) {
   std::string source = read_file(path);
-  text_error_reporter error_reporter(std::cerr, source.c_str(), path);
+  text_error_reporter error_reporter(std::cerr);
+  error_reporter.set_source(source.c_str(), path);
   parser p(source.c_str(), &error_reporter);
   linter l(&error_reporter);
   if (print_parser_visits) {

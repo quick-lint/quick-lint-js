@@ -18,10 +18,13 @@
 #include <quick-lint-js/text-error-reporter.h>
 
 namespace quick_lint_js {
-text_error_reporter::text_error_reporter(std::ostream &output,
-                                         const char *input,
-                                         const char *file_path)
-    : output_(output), locator_(input), file_path_(file_path) {}
+text_error_reporter::text_error_reporter(std::ostream &output)
+    : output_(output) {}
+
+void text_error_reporter::set_source(const char *input, const char *file_path) {
+  this->locator_.emplace(input);
+  this->file_path_ = file_path;
+}
 
 void text_error_reporter::report_error_assignment_to_const_global_variable(
     identifier assignment) {
@@ -143,7 +146,7 @@ void text_error_reporter::log_location(identifier i) const {
 }
 
 void text_error_reporter::log_location(source_code_span span) const {
-  source_range r = this->locator_.range(span);
+  source_range r = this->locator_->range(span);
   source_position p = r.begin();
   this->output_ << this->file_path_ << ":" << p.line_number << ":"
                 << p.column_number << ": ";

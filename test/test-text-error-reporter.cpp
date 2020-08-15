@@ -23,8 +23,14 @@ namespace quick_lint_js {
 namespace {
 class test_text_error_reporter : public ::testing::Test {
  protected:
+  text_error_reporter make_reporter() {
+    return text_error_reporter(this->stream_);
+  }
+
   text_error_reporter make_reporter(const char *input) {
-    return text_error_reporter(this->stream_, input, this->file_path_);
+    text_error_reporter reporter(this->stream_);
+    reporter.set_source(input, this->file_path_);
+    return reporter;
   }
 
   std::string get_output() { return this->stream_.str(); }
@@ -33,6 +39,24 @@ class test_text_error_reporter : public ::testing::Test {
   std::ostringstream stream_;
   static constexpr const char *file_path_ = "FILE";
 };
+
+TEST_F(test_text_error_reporter, change_source) {
+  text_error_reporter reporter = this->make_reporter();
+
+  const char *input_1 = "aaaaaaaa";
+  reporter.set_source(input_1, /*file_name=*/"hello.js");
+  reporter.report_error_assignment_to_const_global_variable(
+      identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1])));
+
+  const char *input_2 = "bbbbbbbb";
+  reporter.set_source(input_2, /*file_name=*/"world.js");
+  reporter.report_error_assignment_to_const_global_variable(
+      identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1])));
+
+  EXPECT_EQ(this->get_output(),
+            "hello.js:1:4: error: assignment to const global variable\n"
+            "world.js:1:5: error: assignment to const global variable\n");
+}
 
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   const char *input = "to Infinity and beyond";

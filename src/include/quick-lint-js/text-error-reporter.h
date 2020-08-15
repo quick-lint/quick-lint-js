@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_TEXT_ERROR_REPORTER_H
 
 #include <iosfwd>
+#include <optional>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -26,8 +27,9 @@
 namespace quick_lint_js {
 class text_error_reporter : public error_reporter {
  public:
-  explicit text_error_reporter(std::ostream &output, const char *input,
-                               const char *file_path);
+  explicit text_error_reporter(std::ostream &output);
+
+  void set_source(const char *input, const char *file_name);
 
   void report_error_assignment_to_const_global_variable(
       identifier assignment) override;
@@ -68,7 +70,7 @@ class text_error_reporter : public error_reporter {
   void log_location(source_code_span) const;
 
   std::ostream &output_;
-  locator locator_;
+  std::optional<locator> locator_;
   const char *file_path_;
 };
 }  // namespace quick_lint_js
