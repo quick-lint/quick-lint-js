@@ -50,14 +50,14 @@ TEST(test_options, default_options_with_files) {
   options o = parse_options({"foo.js"});
   EXPECT_FALSE(o.print_parser_visits);
   ASSERT_EQ(o.files_to_lint.size(), 1);
-  EXPECT_EQ(o.files_to_lint[0], "foo.js"sv);
+  EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
 TEST(test_options, debug_parser_visits) {
   options o = parse_options({"--debug-parser-visits", "foo.js"});
   EXPECT_TRUE(o.print_parser_visits);
   ASSERT_EQ(o.files_to_lint.size(), 1);
-  EXPECT_EQ(o.files_to_lint[0], "foo.js"sv);
+  EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
 TEST(test_options, output_format) {

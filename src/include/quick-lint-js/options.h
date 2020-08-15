@@ -25,11 +25,17 @@ enum class output_format {
   vim_qflist_json,
 };
 
+struct file_to_lint {
+  explicit file_to_lint(const char *path) noexcept : path(path) {}
+
+  const char *path;
+};
+
 struct options {
   bool print_parser_visits = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::gnu_like;
-  std::vector<const char *> files_to_lint;
+  std::vector<file_to_lint> files_to_lint;
 
   std::vector<const char *> error_unrecognized_options;
 };

@@ -97,9 +97,9 @@ int main(int argc, char **argv) {
 
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format);
-  for (const char *file_to_lint : o.files_to_lint) {
-    std::string source = quick_lint_js::read_file(file_to_lint);
-    reporter.set_source(source.c_str(), file_to_lint);
+  for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
+    std::string source = quick_lint_js::read_file(file.path);
+    reporter.set_source(source.c_str(), file.path);
     quick_lint_js::process_file(source, reporter.get(), o.print_parser_visits);
   }
   reporter.finish();
