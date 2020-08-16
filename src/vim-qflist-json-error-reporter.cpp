@@ -175,12 +175,16 @@ void vim_qflist_json_error_reporter::write_qflist_entry_header(
 void vim_qflist_json_error_reporter::write_qflist_entry_header(
     source_code_span span) {
   source_range r = this->locator_->range(span);
-  source_position p = r.begin();
   if (this->need_comma_) {
     this->output_ << ",\n";
   }
-  this->output_ << "{\"col\": " << p.column_number
-                << ", \"lnum\": " << p.line_number << ", \"vcol\": 0";
+  auto end_column_number = span.begin() == span.end()
+                               ? r.begin().column_number
+                               : (r.end().column_number - 1);
+  this->output_ << "{\"col\": " << r.begin().column_number
+                << ", \"lnum\": " << r.begin().line_number
+                << ", \"end_col\": " << end_column_number
+                << ", \"end_lnum\": " << r.end().line_number << ", \"vcol\": 0";
   if (!this->bufnr_.empty()) {
     this->output_ << ", \"bufnr\": " << this->bufnr_;
   }

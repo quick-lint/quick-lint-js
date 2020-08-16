@@ -183,6 +183,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 4);
+  EXPECT_EQ(qflist[0]["end_col"], 11);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "assignment to const global variable");
   EXPECT_EQ(qflist[0]["vcol"], 0);
@@ -205,6 +207,8 @@ TEST_F(test_vim_qflist_json_error_reporter, assignment_to_const_variable) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 11);
+  EXPECT_EQ(qflist[0]["end_col"], 11);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "assignment to const variable");
   EXPECT_EQ(qflist[0]["vcol"], 0);
@@ -224,6 +228,8 @@ TEST_F(test_vim_qflist_json_error_reporter, assignment_to_undeclared_variable) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 4);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "assignment to undeclared variable");
 }
@@ -241,6 +247,8 @@ TEST_F(test_vim_qflist_json_error_reporter, invalid_binding_in_let_statement) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 5);
+  EXPECT_EQ(qflist[0]["end_col"], 5);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "invalid binding in let statement");
 }
@@ -259,6 +267,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 1);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "invalid expression left of assignment");
 }
@@ -276,6 +286,8 @@ TEST_F(test_vim_qflist_json_error_reporter, let_with_no_bindings) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 3);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "let with no bindings");
 }
@@ -296,6 +308,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 3);
+  EXPECT_EQ(qflist[0]["end_col"], 3);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "missing comma between object literal entries");
 }
@@ -313,6 +327,8 @@ TEST_F(test_vim_qflist_json_error_reporter, missing_operand_for_operator) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 3);
+  EXPECT_EQ(qflist[0]["end_col"], 3);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "missing operand for operator");
 }
@@ -334,6 +350,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 4);
+  EXPECT_EQ(qflist[0]["end_col"], 4);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "missing semicolon after expression");
 }
@@ -351,6 +369,8 @@ TEST_F(test_vim_qflist_json_error_reporter, stray_comma_in_let_statement) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 9);
+  EXPECT_EQ(qflist[0]["end_col"], 9);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "stray comma in let statement");
 }
@@ -368,6 +388,8 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_block_comment) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 8);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "unclosed block comment");
 }
@@ -385,6 +407,8 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_regexp_literal) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 6);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "unclosed regexp literal");
 }
@@ -402,6 +426,8 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_string_literal) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 6);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "unclosed string literal");
 }
@@ -419,6 +445,8 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_template) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 6);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "unclosed template");
 }
@@ -436,6 +464,8 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_identifier) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 7);
+  EXPECT_EQ(qflist[0]["end_col"], 7);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "unexpected identifier");
 }
@@ -453,6 +483,8 @@ TEST_F(test_vim_qflist_json_error_reporter, unmatched_parenthesis) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 2);
+  EXPECT_EQ(qflist[0]["end_col"], 2);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "unmatched parenthesis");
 }
@@ -470,6 +502,8 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 5);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "use of undeclared variable");
 }
@@ -490,6 +524,8 @@ TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
   ::Json::Value qflist = this->parse_json()["qflist"];
   ASSERT_EQ(qflist.size(), 1);
   EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 5);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "variable used before declaration");
 }
