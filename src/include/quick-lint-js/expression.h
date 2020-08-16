@@ -317,6 +317,9 @@ class expression::arrow_function_with_expression : public expression {
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
         children_(std::move(parameters)) {
+    if (!this->parameter_list_begin_) {
+      assert(!this->children_.empty());
+    }
     this->children_.emplace_back(body);
   }
 
@@ -331,8 +334,13 @@ class expression::arrow_function_with_expression : public expression {
   }
 
   source_code_span span() const noexcept override {
-    return source_code_span(this->parameter_list_begin_,
-                            this->children_.back()->span().end());
+    if (this->parameter_list_begin_) {
+      return source_code_span(this->parameter_list_begin_,
+                              this->children_.back()->span().end());
+    } else {
+      return source_code_span(this->children_.front()->span().begin(),
+                              this->children_.back()->span().end());
+    }
   }
 
   function_attributes attributes() const noexcept override {
@@ -353,21 +361,29 @@ class expression::arrow_function_with_statements : public expression {
   explicit arrow_function_with_statements(
       function_attributes attributes,
       std::unique_ptr<buffering_visitor> &&child_visits,
-      source_code_span span) noexcept
+      const char *parameter_list_begin, const char *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
-        span_(span),
-        child_visits_(std::move(child_visits)) {}
+        parameter_list_begin_(parameter_list_begin),
+        span_end_(span_end),
+        child_visits_(std::move(child_visits)) {
+    assert(this->parameter_list_begin_);
+  }
 
   explicit arrow_function_with_statements(
       function_attributes attributes, std::vector<expression_ptr> &&parameters,
       std::unique_ptr<buffering_visitor> &&child_visits,
-      source_code_span span) noexcept
+      const char *parameter_list_begin, const char *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
-        span_(span),
+        parameter_list_begin_(parameter_list_begin),
+        span_end_(span_end),
         child_visits_(std::move(child_visits)),
-        children_(std::move(parameters)) {}
+        children_(std::move(parameters)) {
+    if (!this->parameter_list_begin_) {
+      assert(!this->children_.empty());
+    }
+  }
 
   int child_count() const noexcept override {
     return narrow_cast<int>(this->children_.size());
@@ -379,7 +395,14 @@ class expression::arrow_function_with_statements : public expression {
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span() const noexcept override {
+    if (this->parameter_list_begin_) {
+      return source_code_span(this->parameter_list_begin_, this->span_end_);
+    } else {
+      return source_code_span(this->children_.front()->span().begin(),
+                              span_end_);
+    }
+  }
 
   function_attributes attributes() const noexcept override {
     return this->function_attributes_;
@@ -392,7 +415,8 @@ class expression::arrow_function_with_statements : public expression {
 
  private:
   function_attributes function_attributes_;
-  source_code_span span_;
+  const char *parameter_list_begin_;
+  const char *span_end_;
   std::unique_ptr<buffering_visitor> child_visits_;
   std::vector<expression_ptr> children_;
 };

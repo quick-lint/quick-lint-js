@@ -472,15 +472,13 @@ next:
 
     // Arrow function: (parameters, go, here) => expression-or-block
     case token_type::equal_greater: {
-      const char *left_paren_begin = this->peek().begin;  // FIXME(strager)
-
       this->lexer_.skip();
       if (children.size() != 1) {
         assert(false && "Not yet implemented");
       }
       expression_ptr lhs = children.back();
       children.back() = this->parse_arrow_function_body(
-          function_attributes::normal, left_paren_begin,
+          function_attributes::normal, /*parameter_list_begin=*/nullptr,
           arrow_function_parameters_from_lhs(lhs));
       goto next;
     }
@@ -518,7 +516,7 @@ expression_ptr parser::parse_arrow_function_body(
     const char *span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
         attributes, std::forward<Args>(args)..., std::move(v),
-        source_code_span(parameter_list_begin, span_end));
+        parameter_list_begin, span_end);
   } else {
     expression_ptr body = this->parse_expression(precedence{.commas = false});
     return this->make_expression<expression::arrow_function_with_expression>(
