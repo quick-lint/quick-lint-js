@@ -24,6 +24,7 @@ quick_lint_js_add_executable(
   spy-visitor.cpp
   test-buffering-visitor.cpp
   test-file.cpp
+  test-integer.cpp
   test-lex.cpp
   test-lint.cpp
   test-location.cpp

@@ -73,4 +73,13 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_CHARCONV_HEADER) && defined(__has_include)
+#if __has_include(<charconv>)
+#define QLJS_HAVE_CHARCONV_HEADER 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_CHARCONV_HEADER)
+#define QLJS_HAVE_CHARCONV_HEADER 0
+#endif
+
 #endif
