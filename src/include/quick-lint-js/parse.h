@@ -61,7 +61,7 @@ class parser {
   template <class Visitor>
   void parse_and_visit_statement(Visitor &v) {
     switch (this->peek().type) {
-      case token_type::_export:
+      case token_type::kw_export:
         this->lexer_.skip();
         this->parse_and_visit_declaration(v);
         break;
@@ -70,24 +70,24 @@ class parser {
         this->lexer_.skip();
         break;
 
-      case token_type::_async:
-      case token_type::_const:
-      case token_type::_function:
-      case token_type::_let:
-      case token_type::_var:
+      case token_type::kw_async:
+      case token_type::kw_const:
+      case token_type::kw_function:
+      case token_type::kw_let:
+      case token_type::kw_var:
         this->parse_and_visit_declaration(v);
         break;
 
-      case token_type::_import:
+      case token_type::kw_import:
         this->parse_and_visit_import(v);
         break;
 
-      case token_type::_await:
-      case token_type::_delete:
-      case token_type::_null:
-      case token_type::_super:
-      case token_type::_this:
-      case token_type::_void:
+      case token_type::kw_await:
+      case token_type::kw_delete:
+      case token_type::kw_null:
+      case token_type::kw_super:
+      case token_type::kw_this:
+      case token_type::kw_void:
       case token_type::identifier:
       case token_type::left_paren:
       case token_type::minus_minus:
@@ -96,16 +96,16 @@ class parser {
         this->consume_semicolon();
         break;
 
-      case token_type::_class:
+      case token_type::kw_class:
         this->parse_and_visit_class(v);
         break;
 
-      case token_type::_switch:
+      case token_type::kw_switch:
         this->parse_and_visit_switch(v);
         break;
 
-      case token_type::_return:
-      case token_type::_throw:
+      case token_type::kw_return:
+      case token_type::kw_throw:
         this->lexer_.skip();
         if (this->peek().type == token_type::semicolon) {
           // TODO(strager): Require expression for throw statements.
@@ -116,28 +116,28 @@ class parser {
         this->consume_semicolon();
         break;
 
-      case token_type::_try:
+      case token_type::kw_try:
         this->parse_and_visit_try(v);
         break;
 
-      case token_type::_do:
+      case token_type::kw_do:
         this->parse_and_visit_do_while(v);
         break;
 
-      case token_type::_for:
+      case token_type::kw_for:
         this->parse_and_visit_for(v);
         break;
 
-      case token_type::_while:
+      case token_type::kw_while:
         this->parse_and_visit_while(v);
         break;
 
-      case token_type::_if:
+      case token_type::kw_if:
         this->parse_and_visit_if(v);
         break;
 
-      case token_type::_break:
-      case token_type::_continue:
+      case token_type::kw_break:
+      case token_type::kw_continue:
         this->lexer_.skip();
         this->consume_semicolon();
         break;
@@ -317,10 +317,10 @@ class parser {
   template <class Visitor>
   void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
-      case token_type::_async:
+      case token_type::kw_async:
         this->lexer_.skip();
         switch (this->peek().type) {
-          case token_type::_function:
+          case token_type::kw_function:
             this->parse_and_visit_function_declaration(v);
             break;
 
@@ -330,20 +330,20 @@ class parser {
         }
         break;
 
-      case token_type::_const:
-      case token_type::_let:
-      case token_type::_var:
+      case token_type::kw_const:
+      case token_type::kw_let:
+      case token_type::kw_var:
         this->parse_and_visit_let_bindings(v, this->peek().type);
         if (this->peek().type == token_type::semicolon) {
           this->lexer_.skip();
         }
         break;
 
-      case token_type::_function:
+      case token_type::kw_function:
         this->parse_and_visit_function_declaration(v);
         break;
 
-      case token_type::_class:
+      case token_type::kw_class:
         this->parse_and_visit_class(v);
         break;
 
@@ -371,7 +371,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_function_declaration(Visitor &v) {
-    assert(this->peek().type == token_type::_function);
+    assert(this->peek().type == token_type::kw_function);
     this->lexer_.skip();
 
     if (this->peek().type != token_type::identifier) {
@@ -435,14 +435,14 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_class(Visitor &v) {
-    assert(this->peek().type == token_type::_class);
+    assert(this->peek().type == token_type::kw_class);
     this->lexer_.skip();
 
     identifier class_name = this->peek().identifier_name();
     this->lexer_.skip();
 
     switch (this->peek().type) {
-      case token_type::_extends:
+      case token_type::kw_extends:
         this->lexer_.skip();
         switch (this->peek().type) {
           case token_type::identifier:
@@ -493,12 +493,12 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_class_member(Visitor &v) {
-    if (this->peek().type == token_type::_static) {
+    if (this->peek().type == token_type::kw_static) {
       this->lexer_.skip();
     }
 
     switch (this->peek().type) {
-      case token_type::_async:
+      case token_type::kw_async:
         this->lexer_.skip();
         switch (this->peek().type) {
           case token_type::identifier:
@@ -513,7 +513,7 @@ class parser {
         }
         break;
 
-      case token_type::_get:
+      case token_type::kw_get:
         this->lexer_.skip();
         [[fallthrough]];
       case token_type::identifier:
@@ -530,7 +530,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_switch(Visitor &v) {
-    assert(this->peek().type == token_type::_switch);
+    assert(this->peek().type == token_type::kw_switch);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -552,13 +552,13 @@ class parser {
           this->lexer_.skip();
           keep_going = false;
           break;
-        case token_type::_case:
+        case token_type::kw_case:
           this->lexer_.skip();
           this->parse_and_visit_expression(v);
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
           this->lexer_.skip();
           break;
-        case token_type::_default:
+        case token_type::kw_default:
           this->lexer_.skip();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
           this->lexer_.skip();
@@ -574,14 +574,14 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_try(Visitor &v) {
-    assert(this->peek().type == token_type::_try);
+    assert(this->peek().type == token_type::kw_try);
     this->lexer_.skip();
 
     v.visit_enter_block_scope();
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
 
-    if (this->peek().type == token_type::_catch) {
+    if (this->peek().type == token_type::kw_catch) {
       this->lexer_.skip();
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -599,7 +599,7 @@ class parser {
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
     }
-    if (this->peek().type == token_type::_finally) {
+    if (this->peek().type == token_type::kw_finally) {
       this->lexer_.skip();
 
       v.visit_enter_block_scope();
@@ -610,12 +610,12 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_do_while(Visitor &v) {
-    assert(this->peek().type == token_type::_do);
+    assert(this->peek().type == token_type::kw_do);
     this->lexer_.skip();
 
     this->parse_and_visit_statement(v);
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::_while);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_while);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -629,10 +629,10 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_for(Visitor &v) {
-    assert(this->peek().type == token_type::_for);
+    assert(this->peek().type == token_type::kw_for);
     this->lexer_.skip();
 
-    if (this->peek().type == token_type::_await) {
+    if (this->peek().type == token_type::kw_await) {
       this->lexer_.skip();
     }
 
@@ -659,12 +659,12 @@ class parser {
         this->lexer_.skip();
         parse_c_style_head_remainder();
         break;
-      case token_type::_const:
-      case token_type::_let:
+      case token_type::kw_const:
+      case token_type::kw_let:
         v.visit_enter_for_scope();
         entered_for_scope = true;
         [[fallthrough]];
-      case token_type::_var: {
+      case token_type::kw_var: {
         buffering_visitor lhs;
         this->parse_and_visit_let_bindings(lhs, this->peek().type);
         switch (this->peek().type) {
@@ -673,8 +673,8 @@ class parser {
             lhs.move_into(v);
             parse_c_style_head_remainder();
             break;
-          case token_type::_in:
-          case token_type::_of: {
+          case token_type::kw_in:
+          case token_type::kw_of: {
             this->lexer_.skip();
             expression_ptr rhs = this->parse_expression();
             this->visit_expression(rhs, v, variable_context::rhs);
@@ -696,8 +696,8 @@ class parser {
             this->visit_expression(init_expression, v, variable_context::rhs);
             parse_c_style_head_remainder();
             break;
-          case token_type::_in:
-          case token_type::_of: {
+          case token_type::kw_in:
+          case token_type::kw_of: {
             this->lexer_.skip();
             expression_ptr rhs = this->parse_expression();
             this->visit_assignment_expression(init_expression, rhs, v);
@@ -726,7 +726,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_while(Visitor &v) {
-    assert(this->peek().type == token_type::_while);
+    assert(this->peek().type == token_type::kw_while);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -742,7 +742,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_if(Visitor &v) {
-    assert(this->peek().type == token_type::_if);
+    assert(this->peek().type == token_type::kw_if);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -755,7 +755,7 @@ class parser {
 
     this->parse_and_visit_statement(v);
 
-    if (this->peek().type == token_type::_else) {
+    if (this->peek().type == token_type::kw_else) {
       this->lexer_.skip();
       this->parse_and_visit_statement(v);
     }
@@ -763,7 +763,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_import(Visitor &v) {
-    assert(this->peek().type == token_type::_import);
+    assert(this->peek().type == token_type::kw_import);
     this->lexer_.skip();
 
     switch (this->peek().type) {
@@ -775,7 +775,7 @@ class parser {
       case token_type::star:
         this->lexer_.skip();
 
-        if (this->peek().type != token_type::_as) {
+        if (this->peek().type != token_type::kw_as) {
           QLJS_PARSER_UNIMPLEMENTED();
         }
         this->lexer_.skip();
@@ -790,7 +790,7 @@ class parser {
         break;
     }
 
-    if (this->peek().type != token_type::_from) {
+    if (this->peek().type != token_type::kw_from) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
@@ -809,13 +809,13 @@ class parser {
   void parse_and_visit_let_bindings(Visitor &v, token_type declaring_token) {
     variable_kind declaration_kind;
     switch (declaring_token) {
-      case token_type::_const:
+      case token_type::kw_const:
         declaration_kind = variable_kind::_const;
         break;
-      case token_type::_let:
+      case token_type::kw_let:
         declaration_kind = variable_kind::_let;
         break;
-      case token_type::_var:
+      case token_type::kw_var:
         declaration_kind = variable_kind::_var;
         break;
       default:
@@ -848,7 +848,7 @@ class parser {
         case token_type::left_square:
           this->parse_and_visit_binding_element(v, declaration_kind);
           break;
-        case token_type::_if:
+        case token_type::kw_if:
         case token_type::number:
           this->error_reporter_->report_error_invalid_binding_in_let_statement(
               this->peek().span());

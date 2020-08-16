@@ -23,60 +23,51 @@
 #include <quick-lint-js/location.h>
 #include <string_view>
 
-// HACK(strager): Work around _finally and _try being keywords in MSVC with /Ze
-// (enabled by default). We can't use /Za to disable these keywords because /Za
-// breaks including <Windows.h>.
-//
-// TODO(strager): Rename token types to UPPER_SNAKE_CASE to avoid MSVC problems
-// without resorting to these macros.
-#define _finally _FINALLY
-#define _try _TRY
-
-#define QLJS_CASE_KEYWORD                        \
-  case ::quick_lint_js::token_type::_as:         \
-  case ::quick_lint_js::token_type::_async:      \
-  case ::quick_lint_js::token_type::_await:      \
-  case ::quick_lint_js::token_type::_break:      \
-  case ::quick_lint_js::token_type::_case:       \
-  case ::quick_lint_js::token_type::_catch:      \
-  case ::quick_lint_js::token_type::_class:      \
-  case ::quick_lint_js::token_type::_const:      \
-  case ::quick_lint_js::token_type::_continue:   \
-  case ::quick_lint_js::token_type::_debugger:   \
-  case ::quick_lint_js::token_type::_default:    \
-  case ::quick_lint_js::token_type::_delete:     \
-  case ::quick_lint_js::token_type::_do:         \
-  case ::quick_lint_js::token_type::_else:       \
-  case ::quick_lint_js::token_type::_export:     \
-  case ::quick_lint_js::token_type::_extends:    \
-  case ::quick_lint_js::token_type::_false:      \
-  case ::quick_lint_js::token_type::_finally:    \
-  case ::quick_lint_js::token_type::_for:        \
-  case ::quick_lint_js::token_type::_from:       \
-  case ::quick_lint_js::token_type::_function:   \
-  case ::quick_lint_js::token_type::_get:        \
-  case ::quick_lint_js::token_type::_if:         \
-  case ::quick_lint_js::token_type::_import:     \
-  case ::quick_lint_js::token_type::_in:         \
-  case ::quick_lint_js::token_type::_instanceof: \
-  case ::quick_lint_js::token_type::_let:        \
-  case ::quick_lint_js::token_type::_new:        \
-  case ::quick_lint_js::token_type::_null:       \
-  case ::quick_lint_js::token_type::_of:         \
-  case ::quick_lint_js::token_type::_return:     \
-  case ::quick_lint_js::token_type::_static:     \
-  case ::quick_lint_js::token_type::_super:      \
-  case ::quick_lint_js::token_type::_switch:     \
-  case ::quick_lint_js::token_type::_this:       \
-  case ::quick_lint_js::token_type::_throw:      \
-  case ::quick_lint_js::token_type::_true:       \
-  case ::quick_lint_js::token_type::_try:        \
-  case ::quick_lint_js::token_type::_typeof:     \
-  case ::quick_lint_js::token_type::_var:        \
-  case ::quick_lint_js::token_type::_void:       \
-  case ::quick_lint_js::token_type::_while:      \
-  case ::quick_lint_js::token_type::_with:       \
-  case ::quick_lint_js::token_type::_yield
+#define QLJS_CASE_KEYWORD                          \
+  case ::quick_lint_js::token_type::kw_as:         \
+  case ::quick_lint_js::token_type::kw_async:      \
+  case ::quick_lint_js::token_type::kw_await:      \
+  case ::quick_lint_js::token_type::kw_break:      \
+  case ::quick_lint_js::token_type::kw_case:       \
+  case ::quick_lint_js::token_type::kw_catch:      \
+  case ::quick_lint_js::token_type::kw_class:      \
+  case ::quick_lint_js::token_type::kw_const:      \
+  case ::quick_lint_js::token_type::kw_continue:   \
+  case ::quick_lint_js::token_type::kw_debugger:   \
+  case ::quick_lint_js::token_type::kw_default:    \
+  case ::quick_lint_js::token_type::kw_delete:     \
+  case ::quick_lint_js::token_type::kw_do:         \
+  case ::quick_lint_js::token_type::kw_else:       \
+  case ::quick_lint_js::token_type::kw_export:     \
+  case ::quick_lint_js::token_type::kw_extends:    \
+  case ::quick_lint_js::token_type::kw_false:      \
+  case ::quick_lint_js::token_type::kw_finally:    \
+  case ::quick_lint_js::token_type::kw_for:        \
+  case ::quick_lint_js::token_type::kw_from:       \
+  case ::quick_lint_js::token_type::kw_function:   \
+  case ::quick_lint_js::token_type::kw_get:        \
+  case ::quick_lint_js::token_type::kw_if:         \
+  case ::quick_lint_js::token_type::kw_import:     \
+  case ::quick_lint_js::token_type::kw_in:         \
+  case ::quick_lint_js::token_type::kw_instanceof: \
+  case ::quick_lint_js::token_type::kw_let:        \
+  case ::quick_lint_js::token_type::kw_new:        \
+  case ::quick_lint_js::token_type::kw_null:       \
+  case ::quick_lint_js::token_type::kw_of:         \
+  case ::quick_lint_js::token_type::kw_return:     \
+  case ::quick_lint_js::token_type::kw_static:     \
+  case ::quick_lint_js::token_type::kw_super:      \
+  case ::quick_lint_js::token_type::kw_switch:     \
+  case ::quick_lint_js::token_type::kw_this:       \
+  case ::quick_lint_js::token_type::kw_throw:      \
+  case ::quick_lint_js::token_type::kw_true:       \
+  case ::quick_lint_js::token_type::kw_try:        \
+  case ::quick_lint_js::token_type::kw_typeof:     \
+  case ::quick_lint_js::token_type::kw_var:        \
+  case ::quick_lint_js::token_type::kw_void:       \
+  case ::quick_lint_js::token_type::kw_while:      \
+  case ::quick_lint_js::token_type::kw_with:       \
+  case ::quick_lint_js::token_type::kw_yield
 
 namespace quick_lint_js {
 class error_reporter;
@@ -116,52 +107,52 @@ enum class token_type {
   regexp,
   string,
 
-  // Keywords:
+  // Keywords ('kw' stands for 'KeyWord'):
   first_keyword,
-  _as = first_keyword,
-  _async,
-  _await,
-  _break,
-  _case,
-  _catch,
-  _class,
-  _const,
-  _continue,
-  _debugger,
-  _default,
-  _delete,
-  _do,
-  _else,
-  _export,
-  _extends,
-  _false,
-  _finally,
-  _for,
-  _from,
-  _function,
-  _get,
-  _if,
-  _import,
-  _in,
-  _instanceof,
-  _let,
-  _new,
-  _null,
-  _of,
-  _return,
-  _static,
-  _super,
-  _switch,
-  _this,
-  _throw,
-  _true,
-  _try,
-  _typeof,
-  _var,
-  _void,
-  _while,
-  _with,
-  _yield,
+  kw_as = first_keyword,
+  kw_async,
+  kw_await,
+  kw_break,
+  kw_case,
+  kw_catch,
+  kw_class,
+  kw_const,
+  kw_continue,
+  kw_debugger,
+  kw_default,
+  kw_delete,
+  kw_do,
+  kw_else,
+  kw_export,
+  kw_extends,
+  kw_false,
+  kw_finally,
+  kw_for,
+  kw_from,
+  kw_function,
+  kw_get,
+  kw_if,
+  kw_import,
+  kw_in,
+  kw_instanceof,
+  kw_let,
+  kw_new,
+  kw_null,
+  kw_of,
+  kw_return,
+  kw_static,
+  kw_super,
+  kw_switch,
+  kw_this,
+  kw_throw,
+  kw_true,
+  kw_try,
+  kw_typeof,
+  kw_var,
+  kw_void,
+  kw_while,
+  kw_with,
+  kw_yield,
 
   // Symbols:
   ampersand_ampersand,

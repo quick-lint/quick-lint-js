@@ -10,7 +10,7 @@
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR      \
-  case token_type::_instanceof:             \
+  case token_type::kw_instanceof:           \
   case token_type::ampersand:               \
   case token_type::ampersand_ampersand:     \
   case token_type::bang_equal:              \
@@ -48,10 +48,10 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(ast, prec);
     }
 
-    case token_type::_false:
-    case token_type::_null:
-    case token_type::_this:
-    case token_type::_true:
+    case token_type::kw_false:
+    case token_type::kw_null:
+    case token_type::kw_this:
+    case token_type::kw_true:
     case token_type::complete_template:
     case token_type::number:
     case token_type::string: {
@@ -64,7 +64,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(ast, prec);
     }
 
-    case token_type::_import: {
+    case token_type::kw_import: {
       expression_ptr ast =
           this->make_expression<expression::import>(this->peek().span());
       this->lexer_.skip();
@@ -74,7 +74,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(ast, prec);
     }
 
-    case token_type::_super: {
+    case token_type::kw_super: {
       expression_ptr ast =
           this->make_expression<expression::super>(this->peek().span());
       this->lexer_.skip();
@@ -87,7 +87,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::incomplete_template:
       return this->parse_template();
 
-    case token_type::_await: {
+    case token_type::kw_await: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr child = this->parse_expression();
@@ -104,9 +104,9 @@ expression_ptr parser::parse_expression(precedence prec) {
           prec);
     }
 
-    case token_type::_delete:
-    case token_type::_typeof:
-    case token_type::_void:
+    case token_type::kw_delete:
+    case token_type::kw_typeof:
+    case token_type::kw_void:
     case token_type::bang:
     case token_type::minus:
     case token_type::plus: {
@@ -165,7 +165,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(child, prec);
     }
 
-    case token_type::_async: {
+    case token_type::kw_async: {
       const char *async_begin = this->peek().begin;
       this->lexer_.skip();
 
@@ -198,7 +198,7 @@ expression_ptr parser::parse_expression(precedence prec) {
           break;
 
         // async function f(parameters) { statements; }
-        case token_type::_function: {
+        case token_type::kw_function: {
           expression_ptr function = this->parse_function_expression(
               function_attributes::async, async_begin);
           return this->parse_expression_remainder(function, prec);
@@ -250,13 +250,13 @@ expression_ptr parser::parse_expression(precedence prec) {
       return this->parse_expression_remainder(ast, prec);
     }
 
-    case token_type::_function: {
+    case token_type::kw_function: {
       expression_ptr function = this->parse_function_expression(
           function_attributes::normal, this->peek().begin);
       return this->parse_expression_remainder(function, prec);
     }
 
-    case token_type::_new: {
+    case token_type::kw_new: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr target = this->parse_expression(prec);
@@ -447,7 +447,7 @@ next:
       }
       break;
 
-    case token_type::_in:
+    case token_type::kw_in:
       if (!prec.in_operator) {
         break;
       }
@@ -483,9 +483,9 @@ next:
       goto next;
     }
 
-    case token_type::_from:
-    case token_type::_of:
-    case token_type::_return:
+    case token_type::kw_from:
+    case token_type::kw_of:
+    case token_type::kw_return:
     case token_type::colon:
     case token_type::end_of_file:
     case token_type::identifier:
@@ -526,7 +526,7 @@ expression_ptr parser::parse_arrow_function_body(
 
 expression_ptr parser::parse_function_expression(function_attributes attributes,
                                                  const char *span_begin) {
-  assert(this->peek().type == token_type::_function);
+  assert(this->peek().type == token_type::kw_function);
   this->lexer_.skip();
   std::optional<identifier> function_name = std::nullopt;
   if (this->peek().type == token_type::identifier) {
