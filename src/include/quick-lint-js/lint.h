@@ -54,8 +54,7 @@ class linter {
     scope &current_scope = this->scopes_[this->scopes_.size() - 1];
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
-    for (const identifier &name :
-         current_scope.variables_used_before_declaration) {
+    for (const identifier &name : current_scope.variables_used) {
       const declared_variable *var = this->find_declared_variable(name);
       if (var) {
         if (var->kind == variable_kind::_const ||
@@ -65,12 +64,12 @@ class linter {
               name, *var->declaration);
         }
       } else {
-        parent_scope.variables_used_before_declaration.emplace_back(name);
+        parent_scope.variables_used.emplace_back(name);
       }
     }
     for (const identifier &name :
          current_scope.variables_used_in_descendant_scope) {
-      parent_scope.variables_used_before_declaration.emplace_back(name);
+      parent_scope.variables_used.emplace_back(name);
     }
 
     this->scopes_.pop_back();
@@ -99,8 +98,7 @@ class linter {
           }
         };
 
-    for (const identifier &name :
-         current_scope.variables_used_before_declaration) {
+    for (const identifier &name : current_scope.variables_used) {
       check_variable_possibly_used_before_declaration(
           name, /*used_in_descendant_scope=*/false);
     }
@@ -151,13 +149,12 @@ class linter {
   void visit_variable_use(identifier name) {
     bool variable_is_declared = this->find_declared_variable(name) != nullptr;
     if (!variable_is_declared) {
-      this->scopes_.back().variables_used_before_declaration.emplace_back(name);
+      this->scopes_.back().variables_used.emplace_back(name);
     }
   }
 
   void visit_end_of_module() {
-    for (const identifier &name :
-         this->scopes_.back().variables_used_before_declaration) {
+    for (const identifier &name : this->scopes_.back().variables_used) {
       const declared_variable *var = this->find_declared_variable(name);
       if (!var) {
         this->error_reporter_->report_error_use_of_undeclared_variable(name);
@@ -186,7 +183,7 @@ class linter {
 
   struct scope {
     std::vector<declared_variable> declared_variables;
-    std::vector<identifier> variables_used_before_declaration;
+    std::vector<identifier> variables_used;
     std::vector<identifier> variables_used_in_descendant_scope;
   };
 
