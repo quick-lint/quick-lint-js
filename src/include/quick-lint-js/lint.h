@@ -71,20 +71,16 @@ class linter {
     scope &current_scope = this->scopes_[this->scopes_.size() - 1];
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
-    auto check_used_variables = [&](const identifier &name) {
-      const declared_variable *var = this->find_declared_variable(name);
-      if (!var) {
-        parent_scope.variables_used_in_descendant_scope.emplace_back(name);
-      }
-    };
-
     for (const identifier &name : current_scope.variables_used) {
       assert(!this->find_declared_variable(name));
       parent_scope.variables_used_in_descendant_scope.emplace_back(name);
     }
     for (const identifier &name :
          current_scope.variables_used_in_descendant_scope) {
-      check_used_variables(name);
+      const declared_variable *var = this->find_declared_variable(name);
+      if (!var) {
+        parent_scope.variables_used_in_descendant_scope.emplace_back(name);
+      }
     }
 
     this->scopes_.pop_back();
