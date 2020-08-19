@@ -56,14 +56,7 @@ class linter {
 
     for (const identifier &name : current_scope.variables_used) {
       const declared_variable *var = this->find_declared_variable(name);
-      if (var) {
-        if (var->kind == variable_kind::_const ||
-            var->kind == variable_kind::_let) {
-          assert(var->declaration.has_value());
-          this->error_reporter_->report_error_variable_used_before_declaration(
-              name, *var->declaration);
-        }
-      } else {
+      if (!var) {
         parent_scope.variables_used.emplace_back(name);
       }
     }
@@ -81,19 +74,10 @@ class linter {
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
     auto check_variable_possibly_used_before_declaration =
-        [&](const identifier &name, bool used_in_descendant_scope) {
+        [&](const identifier &name,
+            [[maybe_unused]] bool used_in_descendant_scope) {
           const declared_variable *var = this->find_declared_variable(name);
-          if (var) {
-            if (!used_in_descendant_scope) {
-              if (var->kind == variable_kind::_const ||
-                  var->kind == variable_kind::_let) {
-                assert(var->declaration.has_value());
-                this->error_reporter_
-                    ->report_error_variable_used_before_declaration(
-                        name, *var->declaration);
-              }
-            }
-          } else {
+          if (!var) {
             parent_scope.variables_used_in_descendant_scope.emplace_back(name);
           }
         };
@@ -114,8 +98,19 @@ class linter {
   void visit_property_declaration(identifier) {}
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->scopes_.back().declared_variables.emplace_back(
+    scope &current_scope = this->scopes_.back();
+
+    current_scope.declared_variables.emplace_back(
         declared_variable{std::string(name.string_view()), kind, name});
+
+    if (kind == variable_kind::_const || kind == variable_kind::_let) {
+      for (const identifier &variable_use : current_scope.variables_used) {
+        if (name.string_view() == variable_use.string_view()) {
+          this->error_reporter_->report_error_variable_used_before_declaration(
+              variable_use, name);
+        }
+      }
+    }
   }
 
   void visit_variable_assignment(identifier name) {
@@ -158,11 +153,6 @@ class linter {
       const declared_variable *var = this->find_declared_variable(name);
       if (!var) {
         this->error_reporter_->report_error_use_of_undeclared_variable(name);
-      } else if (var->kind == variable_kind::_const ||
-                 var->kind == variable_kind::_let) {
-        assert(var->declaration.has_value());
-        this->error_reporter_->report_error_variable_used_before_declaration(
-            name, *var->declaration);
       }
     }
     for (const identifier &name :
