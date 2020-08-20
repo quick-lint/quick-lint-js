@@ -469,6 +469,37 @@ TEST(test_lex, lex_symbols_separated_by_whitespace) {
   check_tokens(". . .", {token_type::dot, token_type::dot, token_type::dot});
 }
 
+TEST(test_lex, lex_whitespace) {
+  for (const char* whitespace : {
+           " ",
+           "\n",
+           "\t",
+           "\f",
+           "\xc2\xa0",      // U+00A0 No-Break Space (NBSP)
+           "\xe1\x9a\x80",  // U+1680 Ogham Space Mark
+           "\xe2\x80\x80",  // U+2000 En Quad
+           "\xe2\x80\x81",  // U+2001 Em Quad
+           "\xe2\x80\x82",  // U+2002 En Space
+           "\xe2\x80\x83",  // U+2003 Em Space
+           "\xe2\x80\x84",  // U+2004 Three-Per-Em Space
+           "\xe2\x80\x85",  // U+2005 Four-Per-Em Space
+           "\xe2\x80\x86",  // U+2006 Six-Per-Em Space
+           "\xe2\x80\x87",  // U+2007 Figure Space
+           "\xe2\x80\x88",  // U+2008 Punctuation Space
+           "\xe2\x80\x89",  // U+2009 Thin Space
+           "\xe2\x80\x8a",  // U+200A Hair Space
+           "\xe2\x80\xaf",  // U+202F Narrow No-Break Space (NNBSP)
+           "\xe2\x81\x9f",  // U+205F Medium Mathematical Space (MMSP)
+           "\xe3\x80\x80",  // U+3000 Ideographic Space
+           "\xef\xbb\xbf",  // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
+       }) {
+    std::string input = std::string("a") + whitespace + "b";
+    SCOPED_TRACE(input);
+    check_tokens(input.c_str(),
+                 {token_type::identifier, token_type::identifier});
+  }
+}
+
 TEST(test_lex, lex_token_notes_leading_newline) {
   lexer l("a b\nc d", &null_error_reporter::instance);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a

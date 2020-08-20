@@ -618,11 +618,93 @@ void lexer::parse_number() {
 }
 
 void lexer::skip_whitespace() {
-  while (this->input_[0] == ' ' || this->input_[0] == '\n') {
-    if (this->input_[0] == '\n') {
+next:
+  switch (this->input_[0]) {
+    case ' ':
+    case '\f':
+    case '\t':
+      this->input_ += 1;
+      goto next;
+
+    case '\n':
       this->last_token_.has_leading_newline = true;
-    }
-    this->input_ += 1;
+      this->input_ += 1;
+      goto next;
+
+    case static_cast<char>(0xe1):
+      if (this->input_[1] == static_cast<char>(0x9a) &&
+          this->input_[2] == static_cast<char>(0x80)) {
+        // U+1680 Ogham Space Mark
+        this->input_ += 3;
+        goto next;
+      } else {
+        return;
+      }
+
+    case static_cast<char>(0xe2):
+      if (this->input_[1] == static_cast<char>(0x80)) {
+        switch (this->input_[2]) {
+          case static_cast<char>(0x80):  // U+2000 En Quad
+          case static_cast<char>(0x81):  // U+2001 Em Quad
+          case static_cast<char>(0x82):  // U+2002 En Space
+          case static_cast<char>(0x83):  // U+2003 Em Space
+          case static_cast<char>(0x84):  // U+2004 Three-Per-Em Space
+          case static_cast<char>(0x85):  // U+2005 Four-Per-Em Space
+          case static_cast<char>(0x86):  // U+2006 Six-Per-Em Space
+          case static_cast<char>(0x87):  // U+2007 Figure Space
+          case static_cast<char>(0x88):  // U+2008 Punctuation Space
+          case static_cast<char>(0x89):  // U+2009 Thin Space
+          case static_cast<char>(0x8a):  // U+200A Hair Space
+          case static_cast<char>(0xaf):  // U+202F Narrow No-Break Space (NNBSP)
+            this->input_ += 3;
+            goto next;
+
+          default:
+            return;
+        }
+      } else if (this->input_[1] == static_cast<char>(0x81)) {
+        if (this->input_[2] == static_cast<char>(0x9f)) {
+          // U+205F Medium Mathematical Space (MMSP)
+          this->input_ += 3;
+          goto next;
+        } else {
+          return;
+        }
+      } else {
+        return;
+      }
+
+    case static_cast<char>(0xe3):
+      if (this->input_[1] == static_cast<char>(0x80) &&
+          this->input_[2] == static_cast<char>(0x80)) {
+        // U+3000 Ideographic Space
+        this->input_ += 3;
+        goto next;
+      } else {
+        return;
+      }
+
+    case static_cast<char>(0xef):
+      if (this->input_[1] == static_cast<char>(0xbb) &&
+          this->input_[2] == static_cast<char>(0xbf)) {
+        // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
+        this->input_ += 3;
+        goto next;
+      } else {
+        return;
+      }
+
+    case static_cast<char>(0xc2):
+      if (this->input_[1] == static_cast<char>(0xa0)) {
+        // U+00A0 No-Break Space (NBSP)
+        this->input_ += 2;
+        goto next;
+      } else {
+        return;
+      }
+
+    default:
+      return;
   }
 }
 
