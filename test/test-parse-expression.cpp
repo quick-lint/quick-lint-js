@@ -910,6 +910,12 @@ TEST_F(test_parse_expression, parse_comma_expression) {
     expression_ptr ast = this->parse_expression("`${2+2, four}`");
     EXPECT_EQ(summarize(ast), "template(binary(literal, literal, var four))");
   }
+
+  {
+    expression_ptr ast = this->parse_expression("i = 0, j = 0");
+    EXPECT_EQ(summarize(ast),
+              "binary(assign(var i, literal), assign(var j, literal))");
+  }
 }
 
 TEST_F(test_parse_expression, parse_function_expression) {

@@ -1483,6 +1483,16 @@ TEST(test_parse, c_style_for_loop) {
                                       "visit_variable_use",          //
                                       "visit_exit_block_scope"));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement("for (i = 0, j = 0; ; ) { body; }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment",  // i
+                                      "visit_variable_assignment",  // j
+                                      "visit_enter_block_scope",    //
+                                      "visit_variable_use",         // body
+                                      "visit_exit_block_scope"));
+  }
 }
 
 TEST(test_parse, for_in_loop) {

@@ -401,10 +401,12 @@ next:
           break;
       }
       expression_ptr rhs = this->parse_expression(precedence{.commas = false});
-      return this->make_expression<expression::assignment>(
+      children.clear();
+      children.emplace_back(this->make_expression<expression::assignment>(
           is_plain_assignment ? expression_kind::assignment
                               : expression_kind::compound_assignment,
-          lhs, rhs);
+          lhs, rhs));
+      goto next;
     }
 
     case token_type::dot: {
