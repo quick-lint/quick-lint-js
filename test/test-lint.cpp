@@ -687,5 +687,29 @@ TEST(test_lint,
   EXPECT_EQ(v.errors[0].where.begin(), use);
   EXPECT_EQ(v.errors[0].other_where.begin(), inner_declaration);
 }
+
+TEST(
+    test_lint,
+    assign_to_variable_before_declaration_but_variable_is_declared_in_outer_scope) {
+  const char outer_declaration[] = "v";
+  const char inner_declaration[] = "v";
+  const char assignment[] = "v";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(outer_declaration),
+                               variable_kind::_let);
+  l.visit_enter_for_scope();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_declaration(identifier_of(inner_declaration),
+                               variable_kind::_let);
+  l.visit_exit_for_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_assignment_to_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), assignment);
+}
 }  // namespace
 }  // namespace quick_lint_js

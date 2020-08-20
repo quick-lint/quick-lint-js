@@ -104,7 +104,9 @@ class linter {
   }
 
   void visit_variable_assignment(identifier name) {
-    const declared_variable *var = this->find_declared_variable(name);
+    assert(!this->scopes_.empty());
+    scope &current_scope = this->scopes_.back();
+    const declared_variable *var = current_scope.find_declared_variable(name);
     if (var) {
       switch (var->kind) {
         case variable_kind::_const:
@@ -126,8 +128,6 @@ class linter {
           break;
       }
     } else {
-      assert(!this->scopes_.empty());
-      scope &current_scope = this->scopes_.back();
       current_scope.variables_used.emplace_back(name,
                                                 used_variable_kind::assignment);
     }
