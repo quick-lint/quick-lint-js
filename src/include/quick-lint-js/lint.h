@@ -155,17 +155,25 @@ class linter {
     std::vector<declared_variable> declared_variables;
     std::vector<identifier> variables_used;
     std::vector<identifier> variables_used_in_descendant_scope;
+
+    const declared_variable *find_declared_variable(identifier name) const
+        noexcept {
+      for (const declared_variable &var : this->declared_variables) {
+        if (var.name == name.string_view()) {
+          return &var;
+        }
+      }
+      return nullptr;
+    }
   };
 
   const declared_variable *find_declared_variable(identifier name) const
       noexcept {
     for (auto scope_it = this->scopes_.rbegin();
          scope_it != this->scopes_.rend(); ++scope_it) {
-      const scope &s = *scope_it;
-      for (const declared_variable &var : s.declared_variables) {
-        if (var.name == name.string_view()) {
-          return &var;
-        }
+      const declared_variable *var = scope_it->find_declared_variable(name);
+      if (var) {
+        return var;
       }
     }
     return nullptr;
