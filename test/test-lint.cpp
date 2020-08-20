@@ -476,6 +476,35 @@ TEST(test_lint, assign_to_undeclared_variable) {
   EXPECT_EQ(v.errors[0].where.begin(), assignment);
 }
 
+TEST(test_lint, assign_to_variable_before_declaration) {
+  const char assignment[] = "x";
+  const char declaration[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_assignment_to_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), assignment);
+}
+
+TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
+  const char assignment[] = "x";
+  const char declaration[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, use_variable_declared_in_parent_function) {
   for (variable_kind var_kind :
        {variable_kind::_function, variable_kind::_let}) {

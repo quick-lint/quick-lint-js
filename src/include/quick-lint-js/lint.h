@@ -79,8 +79,18 @@ class linter {
     erase_if(current_scope.variables_used, [&](const used_variable &used_var) {
       if (name.string_view() == used_var.name.string_view()) {
         if (kind == variable_kind::_const || kind == variable_kind::_let) {
-          this->error_reporter_->report_error_variable_used_before_declaration(
-              used_var.name, name);
+          switch (used_var.kind) {
+            case used_variable_kind::assignment:
+              this->error_reporter_
+                  ->report_error_assignment_to_undeclared_variable(
+                      used_var.name);
+              break;
+            case used_variable_kind::use:
+              this->error_reporter_
+                  ->report_error_variable_used_before_declaration(used_var.name,
+                                                                  name);
+              break;
+          }
         }
         return true;
       } else {
@@ -116,8 +126,10 @@ class linter {
           break;
       }
     } else {
-      this->error_reporter_->report_error_assignment_to_undeclared_variable(
-          name);
+      assert(!this->scopes_.empty());
+      scope &current_scope = this->scopes_.back();
+      current_scope.variables_used.emplace_back(name,
+                                                used_variable_kind::assignment);
     }
   }
 
@@ -127,7 +139,7 @@ class linter {
     bool variable_is_declared =
         current_scope.find_declared_variable(name) != nullptr;
     if (!variable_is_declared) {
-      current_scope.variables_used.emplace_back(name);
+      current_scope.variables_used.emplace_back(name, used_variable_kind::use);
     }
   }
 
@@ -136,8 +148,16 @@ class linter {
       const declared_variable *var =
           this->find_declared_variable(used_var.name);
       if (!var) {
-        this->error_reporter_->report_error_use_of_undeclared_variable(
-            used_var.name);
+        switch (used_var.kind) {
+          case used_variable_kind::assignment:
+            this->error_reporter_
+                ->report_error_assignment_to_undeclared_variable(used_var.name);
+            break;
+          case used_variable_kind::use:
+            this->error_reporter_->report_error_use_of_undeclared_variable(
+                used_var.name);
+            break;
+        }
       }
     }
     for (const used_variable &used_var :
@@ -158,10 +178,17 @@ class linter {
     std::optional<identifier> declaration;
   };
 
+  enum class used_variable_kind {
+    assignment,
+    use,
+  };
+
   struct used_variable {
-    explicit used_variable(identifier name) noexcept : name(name) {}
+    explicit used_variable(identifier name, used_variable_kind kind) noexcept
+        : name(name), kind(kind) {}
 
     identifier name;
+    used_variable_kind kind;
   };
 
   struct scope {
@@ -206,14 +233,13 @@ class linter {
         (allow_variable_use_before_declaration
              ? parent_scope.variables_used_in_descendant_scope
              : parent_scope.variables_used)
-            .emplace_back(used_var.name);
+            .emplace_back(used_var);
       }
     }
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
       assert(!this->find_declared_variable(used_var.name));
-      parent_scope.variables_used_in_descendant_scope.emplace_back(
-          used_var.name);
+      parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
     }
   }
 
