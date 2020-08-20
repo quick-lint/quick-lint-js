@@ -122,9 +122,12 @@ class linter {
   }
 
   void visit_variable_use(identifier name) {
-    bool variable_is_declared = this->find_declared_variable(name) != nullptr;
+    assert(!this->scopes_.empty());
+    scope &current_scope = this->scopes_.back();
+    bool variable_is_declared =
+        current_scope.find_declared_variable(name) != nullptr;
     if (!variable_is_declared) {
-      this->scopes_.back().variables_used.emplace_back(name);
+      current_scope.variables_used.emplace_back(name);
     }
   }
 
@@ -186,11 +189,14 @@ class linter {
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
     for (const identifier &name : current_scope.variables_used) {
-      assert(!this->find_declared_variable(name));
-      (allow_variable_use_before_declaration
-           ? parent_scope.variables_used_in_descendant_scope
-           : parent_scope.variables_used)
-          .emplace_back(name);
+      assert(!current_scope.find_declared_variable(name));
+      const declared_variable *var = this->find_declared_variable(name);
+      if (!var) {
+        (allow_variable_use_before_declaration
+             ? parent_scope.variables_used_in_descendant_scope
+             : parent_scope.variables_used)
+            .emplace_back(name);
+      }
     }
     for (const identifier &name :
          current_scope.variables_used_in_descendant_scope) {

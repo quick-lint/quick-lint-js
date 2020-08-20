@@ -361,6 +361,31 @@ TEST(test_lint, use_global_variable_within_functions) {
   EXPECT_TRUE(v.errors.empty());
 }
 
+TEST(test_lint, function_uses_variable_declared_in_outer_function) {
+  const char declaration[] = "x";
+  const char use[] = "x";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  {
+    l.visit_enter_function_scope();
+    { l.visit_variable_use(identifier_of(use)); }
+    l.visit_exit_function_scope();
+
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let);
+
+    l.visit_enter_function_scope();
+    { l.visit_variable_use(identifier_of(use)); }
+    l.visit_exit_function_scope();
+  }
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_TRUE(v.errors.empty());
+}
+
 TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   const char declaration[] = "x";
   const char use[] = "x";
@@ -608,6 +633,30 @@ TEST(test_lint,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint,
+     use_variable_before_declaration_but_variable_is_declared_in_outer_scope) {
+  const char outer_declaration[] = "v";
+  const char inner_declaration[] = "v";
+  const char use[] = "v";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(outer_declaration),
+                               variable_kind::_let);
+  l.visit_enter_for_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(inner_declaration),
+                               variable_kind::_let);
+  l.visit_exit_for_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
+  EXPECT_EQ(v.errors[0].other_where.begin(), inner_declaration);
 }
 }  // namespace
 }  // namespace quick_lint_js
