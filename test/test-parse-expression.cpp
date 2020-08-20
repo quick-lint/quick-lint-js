@@ -1173,6 +1173,15 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
                 "index(var o, var k), literal)");
     }
   }
+
+  {
+    expression_ptr ast = this->parse_expression("!!o && k in o");
+    if (false) {  // TODO(strager): Check AST.
+      EXPECT_EQ(summarize(ast),
+                "binary(unary(unary(var o)), "
+                "binary(var k, var o))");
+    }
+  }
 }
 
 std::string summarize(const expression &expression) {
