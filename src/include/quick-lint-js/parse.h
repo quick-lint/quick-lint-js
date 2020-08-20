@@ -82,16 +82,17 @@ class parser {
         this->parse_and_visit_import(v);
         break;
 
+      case token_type::identifier:
       case token_type::kw_await:
       case token_type::kw_delete:
       case token_type::kw_null:
       case token_type::kw_super:
       case token_type::kw_this:
       case token_type::kw_void:
-      case token_type::identifier:
       case token_type::left_paren:
       case token_type::minus_minus:
       case token_type::plus_plus:
+      case token_type::string:
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
         break;

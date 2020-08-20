@@ -769,6 +769,11 @@ TEST(test_parse, expression_statement) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{"x"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(R"("use strict";)");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
 }
 
 TEST(test_parse, asi_plusplus_minusminus) {
