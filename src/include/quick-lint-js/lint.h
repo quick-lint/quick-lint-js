@@ -50,38 +50,16 @@ class linter {
   void visit_exit_class_scope() {}
 
   void visit_exit_for_scope() {
-    assert(this->scopes_.size() >= 2);
-    scope &current_scope = this->scopes_[this->scopes_.size() - 1];
-    scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
-
-    for (const identifier &name : current_scope.variables_used) {
-      assert(!this->find_declared_variable(name));
-      parent_scope.variables_used.emplace_back(name);
-    }
-    for (const identifier &name :
-         current_scope.variables_used_in_descendant_scope) {
-      assert(!this->find_declared_variable(name));
-      parent_scope.variables_used_in_descendant_scope.emplace_back(name);
-    }
-
+    assert(!this->scopes_.empty());
+    this->propagate_variable_uses_to_parent_scope(
+        /*allow_variable_use_before_declaration=*/false);
     this->scopes_.pop_back();
   }
 
   void visit_exit_function_scope() {
-    assert(this->scopes_.size() >= 2);
-    scope &current_scope = this->scopes_[this->scopes_.size() - 1];
-    scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
-
-    for (const identifier &name : current_scope.variables_used) {
-      assert(!this->find_declared_variable(name));
-      parent_scope.variables_used_in_descendant_scope.emplace_back(name);
-    }
-    for (const identifier &name :
-         current_scope.variables_used_in_descendant_scope) {
-      assert(!this->find_declared_variable(name));
-      parent_scope.variables_used_in_descendant_scope.emplace_back(name);
-    }
-
+    assert(!this->scopes_.empty());
+    this->propagate_variable_uses_to_parent_scope(
+        /*allow_variable_use_before_declaration=*/true);
     this->scopes_.pop_back();
   }
 
@@ -191,6 +169,26 @@ class linter {
       }
     }
     return nullptr;
+  }
+
+  void propagate_variable_uses_to_parent_scope(
+      bool allow_variable_use_before_declaration) {
+    assert(this->scopes_.size() >= 2);
+    scope &current_scope = this->scopes_[this->scopes_.size() - 1];
+    scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
+
+    for (const identifier &name : current_scope.variables_used) {
+      assert(!this->find_declared_variable(name));
+      (allow_variable_use_before_declaration
+           ? parent_scope.variables_used_in_descendant_scope
+           : parent_scope.variables_used)
+          .emplace_back(name);
+    }
+    for (const identifier &name :
+         current_scope.variables_used_in_descendant_scope) {
+      assert(!this->find_declared_variable(name));
+      parent_scope.variables_used_in_descendant_scope.emplace_back(name);
+    }
   }
 
   std::vector<scope> scopes_;
