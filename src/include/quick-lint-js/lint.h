@@ -76,11 +76,11 @@ class linter {
           std::remove_if(variables.begin(), variables.end(), predicate),
           variables.end());
     };
-    erase_if(current_scope.variables_used, [&](const identifier &variable_use) {
-      if (name.string_view() == variable_use.string_view()) {
+    erase_if(current_scope.variables_used, [&](const used_variable &used_var) {
+      if (name.string_view() == used_var.name.string_view()) {
         if (kind == variable_kind::_const || kind == variable_kind::_let) {
           this->error_reporter_->report_error_variable_used_before_declaration(
-              variable_use, name);
+              used_var.name, name);
         }
         return true;
       } else {
@@ -88,8 +88,8 @@ class linter {
       }
     });
     erase_if(current_scope.variables_used_in_descendant_scope,
-             [&](const identifier &variable_use) {
-               return name.string_view() == variable_use.string_view();
+             [&](const used_variable &used_var) {
+               return name.string_view() == used_var.name.string_view();
              });
   }
 
@@ -132,17 +132,21 @@ class linter {
   }
 
   void visit_end_of_module() {
-    for (const identifier &name : this->scopes_.back().variables_used) {
-      const declared_variable *var = this->find_declared_variable(name);
+    for (const used_variable &used_var : this->scopes_.back().variables_used) {
+      const declared_variable *var =
+          this->find_declared_variable(used_var.name);
       if (!var) {
-        this->error_reporter_->report_error_use_of_undeclared_variable(name);
+        this->error_reporter_->report_error_use_of_undeclared_variable(
+            used_var.name);
       }
     }
-    for (const identifier &name :
+    for (const used_variable &used_var :
          this->scopes_.back().variables_used_in_descendant_scope) {
-      const declared_variable *var = this->find_declared_variable(name);
+      const declared_variable *var =
+          this->find_declared_variable(used_var.name);
       if (!var) {
-        this->error_reporter_->report_error_use_of_undeclared_variable(name);
+        this->error_reporter_->report_error_use_of_undeclared_variable(
+            used_var.name);
       }
     }
   }
@@ -154,10 +158,16 @@ class linter {
     std::optional<identifier> declaration;
   };
 
+  struct used_variable {
+    explicit used_variable(identifier name) noexcept : name(name) {}
+
+    identifier name;
+  };
+
   struct scope {
     std::vector<declared_variable> declared_variables;
-    std::vector<identifier> variables_used;
-    std::vector<identifier> variables_used_in_descendant_scope;
+    std::vector<used_variable> variables_used;
+    std::vector<used_variable> variables_used_in_descendant_scope;
 
     const declared_variable *find_declared_variable(identifier name) const
         noexcept {
@@ -188,20 +198,22 @@ class linter {
     scope &current_scope = this->scopes_[this->scopes_.size() - 1];
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
-    for (const identifier &name : current_scope.variables_used) {
-      assert(!current_scope.find_declared_variable(name));
-      const declared_variable *var = this->find_declared_variable(name);
+    for (const used_variable &used_var : current_scope.variables_used) {
+      assert(!current_scope.find_declared_variable(used_var.name));
+      const declared_variable *var =
+          this->find_declared_variable(used_var.name);
       if (!var) {
         (allow_variable_use_before_declaration
              ? parent_scope.variables_used_in_descendant_scope
              : parent_scope.variables_used)
-            .emplace_back(name);
+            .emplace_back(used_var.name);
       }
     }
-    for (const identifier &name :
+    for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      assert(!this->find_declared_variable(name));
-      parent_scope.variables_used_in_descendant_scope.emplace_back(name);
+      assert(!this->find_declared_variable(used_var.name));
+      parent_scope.variables_used_in_descendant_scope.emplace_back(
+          used_var.name);
     }
   }
 
