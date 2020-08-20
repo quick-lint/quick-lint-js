@@ -41,7 +41,7 @@ class linter {
   void visit_enter_function_scope() { this->scopes_.emplace_back(); }
 
   void visit_enter_named_function_scope(identifier) {
-    // TODO(strager): Use given identifier.
+    // TODO(strager): Declare the given identifier.
     this->scopes_.emplace_back();
   }
 
