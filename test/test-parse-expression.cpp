@@ -874,6 +874,11 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
   }
 }
 
+TEST_F(test_parse_expression, object_literal_with_number_key) {
+  expression_ptr ast = this->parse_expression("{1234: null}");
+  EXPECT_EQ(summarize(ast), "object(literal, literal)");
+}
+
 TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p("{p1: v1 p2}");

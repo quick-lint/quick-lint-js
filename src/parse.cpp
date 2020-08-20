@@ -588,6 +588,7 @@ expression_ptr parser::parse_object_literal() {
 
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
+      case token_type::number:
       case token_type::string: {
         source_code_span key_span = this->peek().span();
         expression_ptr key =
@@ -597,7 +598,8 @@ expression_ptr parser::parse_object_literal() {
           case token_type::comma:
           case token_type::right_curly: {
             // Name and value are the same: {keyandvalue}
-            // TODO(strager): Only allow this for identifiers, not strings.
+            // TODO(strager): Only allow this for identifiers, not numbers or
+            // strings.
             expression_ptr value = this->make_expression<expression::variable>(
                 identifier(key_span));
             entries.emplace_back(key, value);
@@ -608,7 +610,8 @@ expression_ptr parser::parse_object_literal() {
             entries.emplace_back(key, parse_value_expression());
             break;
           case token_type::equal: {
-            // TODO(strager): Only allow this for identifiers, not strings.
+            // TODO(strager): Only allow this for identifiers, not numbers or
+            // strings.
             expression_ptr value = this->parse_expression_remainder(
                 this->make_expression<expression::variable>(
                     identifier(key_span)),
