@@ -1154,6 +1154,16 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
     EXPECT_EQ(summarize(ast),
               "object(literal, new(var A), literal, new(var B))");
   }
+
+  {
+    expression_ptr ast =
+        this->parse_expression("o && typeof o === 'object' ? o[k] : null");
+    if (false) {  // TODO(strager): Check AST.
+      EXPECT_EQ(summarize(ast),
+                "cond(binary(var o, binary(unary(var o), literal)), "
+                "index(var o, var k), literal)");
+    }
+  }
 }
 
 std::string summarize(const expression &expression) {

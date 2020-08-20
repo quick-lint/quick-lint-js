@@ -459,7 +459,7 @@ next:
       this->lexer_.skip();
 
       expression_ptr condition = build_expression();
-      expression_ptr true_expression = this->parse_expression(prec);
+      expression_ptr true_expression = this->parse_expression();
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
       this->lexer_.skip();
