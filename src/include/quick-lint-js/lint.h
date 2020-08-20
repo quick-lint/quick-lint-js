@@ -77,10 +77,8 @@ class linter {
     }
     for (const identifier &name :
          current_scope.variables_used_in_descendant_scope) {
-      const declared_variable *var = this->find_declared_variable(name);
-      if (!var) {
-        parent_scope.variables_used_in_descendant_scope.emplace_back(name);
-      }
+      assert(!this->find_declared_variable(name));
+      parent_scope.variables_used_in_descendant_scope.emplace_back(name);
     }
 
     this->scopes_.pop_back();
@@ -110,6 +108,10 @@ class linter {
         return false;
       }
     });
+    erase_if(current_scope.variables_used_in_descendant_scope,
+             [&](const identifier &variable_use) {
+               return name.string_view() == variable_use.string_view();
+             });
   }
 
   void visit_variable_assignment(identifier name) {

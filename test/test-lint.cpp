@@ -473,6 +473,30 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
   }
 }
 
+TEST(test_lint, use_variable_declared_in_grandparent_function) {
+  for (variable_kind var_kind :
+       {variable_kind::_function, variable_kind::_let}) {
+    SCOPED_TRACE(::testing::PrintToString(var_kind));
+
+    const char declaration[] = "f";
+    const char use[] = "f";
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration), var_kind);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
   const char declaration[] = "element";
   const char use_before[] = "element";
