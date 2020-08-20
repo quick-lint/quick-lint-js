@@ -94,25 +94,22 @@ class linter {
     current_scope.declared_variables.emplace_back(
         declared_variable{std::string(name.string_view()), kind, name});
 
-    auto variable_use_it = current_scope.variables_used.begin();
-    while (variable_use_it != current_scope.variables_used.end()) {
-      const identifier &variable_use = *variable_use_it;
-      bool remove_variable_use = false;
-
+    auto erase_if = [](auto &variables, auto predicate) {
+      variables.erase(
+          std::remove_if(variables.begin(), variables.end(), predicate),
+          variables.end());
+    };
+    erase_if(current_scope.variables_used, [&](const identifier &variable_use) {
       if (name.string_view() == variable_use.string_view()) {
         if (kind == variable_kind::_const || kind == variable_kind::_let) {
           this->error_reporter_->report_error_variable_used_before_declaration(
               variable_use, name);
         }
-        remove_variable_use = true;
-      }
-
-      if (remove_variable_use) {
-        variable_use_it = current_scope.variables_used.erase(variable_use_it);
+        return true;
       } else {
-        ++variable_use_it;
+        return false;
       }
-    }
+    });
   }
 
   void visit_variable_assignment(identifier name) {
