@@ -1193,6 +1193,11 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
                 "binary(var k, var o))");
     }
   }
+
+  {
+    expression_ptr ast = this->parse_expression("x --> 0");
+    EXPECT_EQ(summarize(ast), "binary(rwunarysuffix(var x), literal)");
+  }
 }
 
 std::string summarize(const expression &expression) {

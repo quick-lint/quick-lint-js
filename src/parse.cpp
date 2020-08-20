@@ -448,7 +448,7 @@ next:
         children.back() = this->make_expression<expression::rw_unary_suffix>(
             children.back(), operator_span);
       }
-      break;
+      goto next;
 
     case token_type::kw_in:
       if (!prec.in_operator) {
