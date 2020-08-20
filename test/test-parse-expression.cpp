@@ -860,6 +860,15 @@ TEST_F(test_parse_expression, object_literal) {
   }
 }
 
+TEST_F(test_parse_expression, object_literal_with_keyword_key) {
+  for (std::string keyword : {"catch", "class", "default", "get", "try"}) {
+    SCOPED_TRACE(keyword);
+    std::string code = "{" + keyword + ": null}";
+    expression_ptr ast = this->parse_expression(code.c_str());
+    EXPECT_EQ(summarize(ast), "object(literal, literal)");
+  }
+}
+
 TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p("{p1: v1 p2}");

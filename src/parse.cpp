@@ -583,6 +583,7 @@ expression_ptr parser::parse_object_literal() {
         assert(false);
         break;
 
+      QLJS_CASE_KEYWORD:
       case token_type::identifier:
       case token_type::string: {
         source_code_span key_span = this->peek().span();
