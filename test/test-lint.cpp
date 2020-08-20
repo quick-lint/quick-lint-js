@@ -591,5 +591,23 @@ TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
             error_collector::error_use_of_undeclared_variable);
   EXPECT_EQ(v.errors[0].where.begin(), use);
 }
+
+TEST(test_lint,
+     use_variable_in_function_scope_in_for_scope_before_declaration) {
+  const char declaration[] = "v";
+  const char use[] = "v";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_for_scope();
+  l.visit_enter_function_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_exit_for_scope();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }  // namespace
 }  // namespace quick_lint_js
