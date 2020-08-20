@@ -168,6 +168,11 @@ TEST_F(test_parse_expression, parse_math_expression) {
   }
 
   {
+    expression_ptr ast = this->parse_expression("~x");
+    EXPECT_EQ(summarize(ast), "unary(var x)");
+  }
+
+  {
     test_parser p("x+y");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y)");

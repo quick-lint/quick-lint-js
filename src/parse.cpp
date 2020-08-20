@@ -104,12 +104,13 @@ expression_ptr parser::parse_expression(precedence prec) {
           prec);
     }
 
+    case token_type::bang:
     case token_type::kw_delete:
     case token_type::kw_typeof:
     case token_type::kw_void:
-    case token_type::bang:
     case token_type::minus:
-    case token_type::plus: {
+    case token_type::plus:
+    case token_type::tilde: {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr child = this->parse_expression(
