@@ -2,6 +2,23 @@
 
 This vendor directory contains third-party software.
 
+## benchmark
+
+The benchmark directory contains Google Benchmark, a performance measurement
+framework for C++ code.
+
+Copyright: Copyright 2015 Google Inc. All rights reserved.; Copyright 2016 Ismael Jimenez Martinez. All rights reserved.
+Download URL: https://codeload.github.com/google/benchmark/tar.gz/v1.5.1
+Download date: August 20, 2020
+Git commit: 8039b4030795b1c9b8cedb78e3a2a6fb89574b6e
+License file: LICENSE
+License type: Apache-2.0
+Location: benchmark
+Project URL: https://github.com/google/benchmark
+Release URL: https://github.com/google/benchmark/releases/tag/v1.5.1
+Release date: June 9, 2020
+Version: v1.5.1
+
 ## gnulib
 
 The gnulib directory contains Gnulib, the GNU portability library.

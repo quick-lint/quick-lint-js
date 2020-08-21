@@ -14,9 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.10)
+set(BENCHMARK_DOWNLOAD_DEPENDENCIES FALSE CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_ASSEMBLY_TEST FALSE CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_EXCEPTIONS FALSE CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_GTEST_TESTS FALSE CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_INSTALL FALSE CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_LTO FALSE CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_TESTING FALSE CACHE INTERNAL "")
+set(BENCHMARK_USE_LIBCXX FALSE CACHE INTERNAL "")
 
-include(benchmark.cmake)
-include(gnulib.cmake)
-include(googletest.cmake)
-include(jsoncpp.cmake)
+add_subdirectory(benchmark)
