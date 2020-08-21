@@ -1,0 +1,108 @@
+%compare-strncmp
+%define class-name lexer_keyword
+%define initializer-suffix ,0
+%define lookup-function-name look_up
+%define slot-name string_offset
+%enum
+%language=C++
+%pic
+%readonly-tables
+%struct-type
+
+%{
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include <quick-lint-js/lex.h>
+#include <quick-lint-js/warning.h>
+#include <stddef.h>
+#include <string.h>
+#include <string_view>
+
+QLJS_WARNING_IGNORE_CLANG("-Wold-style-cast")
+QLJS_WARNING_IGNORE_CLANG("-Wshorten-64-to-32")
+QLJS_WARNING_IGNORE_CLANG("-Wzero-as-null-pointer-constant")
+QLJS_WARNING_IGNORE_GCC("-Wconversion")
+QLJS_WARNING_IGNORE_GCC("-Wold-style-cast")
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+
+namespace quick_lint_js {
+namespace {
+%}
+struct keyword_entry {
+  int string_offset;
+  int index;
+};
+
+// Keep this list in sync with the token_type enum.
+%%
+as,         0
+async,      1
+await,      2
+break,      3
+case,       4
+catch,      5
+class,      6
+const,      7
+continue,   8
+debugger,   9
+default,    10
+delete,     11
+do,         12
+else,       13
+export,     14
+extends,    15
+false,      16
+finally,    17
+for,        18
+from,       19
+function,   20
+get,        21
+if,         22
+import,     23
+in,         24
+instanceof, 25
+let,        26
+new,        27
+null,       28
+of,         29
+return,     30
+static,     31
+super,      32
+switch,     33
+this,       34
+throw,      35
+true,       36
+try,        37
+typeof,     38
+var,        39
+void,       40
+while,      41
+with,       42
+yield,      43
+%%
+}
+
+token_type lexer::identifier_token_type(std::string_view identifier) noexcept {
+  const keyword_entry *entry =
+      lexer_keyword::look_up(identifier.data(), identifier.size());
+  if (entry) {
+    return lexer::keyword_from_index(entry->index);
+  } else {
+    return token_type::identifier;
+  }
+}
+}

@@ -29,6 +29,7 @@ quick_lint_js_add_library(
   file.cpp
   integer.cpp
   lex.cpp
+  lex-keyword.cpp
   lint.cpp
   location.cpp
   options.cpp
@@ -38,3 +39,19 @@ quick_lint_js_add_library(
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
 target_link_libraries(quick-lint-js-lib PRIVATE gnulib-getopt)
+
+# HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
+# strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
+# invoking undefined behaviour though with our string table offset pointer
+# arithmetic? Unsure.) The bug appears to be fixed in GCC 10.1.0.
+# Possibly related: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92765
+if (
+  CMAKE_CXX_COMPILER_ID STREQUAL GNU
+  AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.1.0
+)
+  set_source_files_properties(
+    lex-keyword.cpp
+    PROPERTIES
+    COMPILE_OPTIONS -fno-builtin
+  )
+endif ()

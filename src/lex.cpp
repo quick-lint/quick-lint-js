@@ -93,57 +93,6 @@
   case '9'
 
 namespace quick_lint_js {
-namespace {
-constexpr const char keywords[][11] = {
-    // clang-format off
-  "as",
-  "async",
-  "await",
-  "break",
-  "case",
-  "catch",
-  "class",
-  "const",
-  "continue",
-  "debugger",
-  "default",
-  "delete",
-  "do",
-  "else",
-  "export",
-  "extends",
-  "false",
-  "finally",
-  "for",
-  "from",
-  "function",
-  "get",
-  "if",
-  "import",
-  "in",
-  "instanceof",
-  "let",
-  "new",
-  "null",
-  "of",
-  "return",
-  "static",
-  "super",
-  "switch",
-  "this",
-  "throw",
-  "true",
-  "try",
-  "typeof",
-  "var",
-  "void",
-  "while",
-  "with",
-  "yield",
-    // clang-format on
-};
-}
-
 identifier token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
@@ -770,17 +719,6 @@ bool lexer::is_identifier_character(char c) {
     return true;
     default:
       return false;
-  }
-}
-
-token_type lexer::identifier_token_type(std::string_view identifier) noexcept {
-  auto found_keyword =
-      std::find_if(std::begin(keywords), std::end(keywords),
-                   [&](const char* keyword) { return identifier == keyword; });
-  if (found_keyword == std::end(keywords)) {
-    return token_type::identifier;
-  } else {
-    return lexer::keyword_from_index(found_keyword - std::begin(keywords));
   }
 }
 
