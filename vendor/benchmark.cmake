@@ -24,3 +24,17 @@ set(BENCHMARK_ENABLE_TESTING FALSE CACHE INTERNAL "")
 set(BENCHMARK_USE_LIBCXX FALSE CACHE INTERNAL "")
 
 add_subdirectory(benchmark)
+
+# HACK(strager): Avoid 'function can be marked override' warnings
+# (-Wsuggest-override) when including <benchmark/benchmark.h>.
+get_property(
+  BENCHMARK_INCLUDE_DIRECTORIES
+  TARGET benchmark
+  PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+)
+set_property(
+  TARGET benchmark
+  APPEND PROPERTY
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+  "${BENCHMARK_INCLUDE_DIRECTORIES}"
+)

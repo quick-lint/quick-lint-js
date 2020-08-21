@@ -15,19 +15,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
-project(quick-lint-js)
+include(QuickLintJSTarget)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-include(QuickLintJSCompiler)
-
-quick_lint_js_set_cxx_standard()
-
-add_subdirectory(vendor)
-
-add_subdirectory(benchmark)
-add_subdirectory(src)
-include(CTest)
-if (BUILD_TESTING)
-  add_subdirectory(test)
-endif ()
+quick_lint_js_add_executable(
+  quick-lint-js-benchmark-parse
+  benchmark-parse.cpp
+)
+target_link_libraries(
+  quick-lint-js-benchmark-parse
+  PRIVATE
+  benchmark::benchmark
+  benchmark::benchmark_main
+  quick-lint-js-lib
+)
