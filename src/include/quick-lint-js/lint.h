@@ -81,6 +81,8 @@ class linter {
         if (kind == variable_kind::_const || kind == variable_kind::_let) {
           switch (used_var.kind) {
             case used_variable_kind::assignment:
+              // TODO(strager): Should we also report an error when assigning to
+              // a const variable?
               this->error_reporter_
                   ->report_error_assignment_to_undeclared_variable(
                       used_var.name);
@@ -99,6 +101,7 @@ class linter {
     });
     erase_if(current_scope.variables_used_in_descendant_scope,
              [&](const used_variable &used_var) {
+               // TODO(strager): Should we check used_var.kind?
                return name.string_view() == used_var.name.string_view();
              });
   }
@@ -165,6 +168,7 @@ class linter {
       const declared_variable *var =
           this->find_declared_variable(used_var.name);
       if (!var) {
+        // TODO(strager): Should we check used_var.kind?
         this->error_reporter_->report_error_use_of_undeclared_variable(
             used_var.name);
       }
