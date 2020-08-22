@@ -45,5 +45,20 @@ void benchmark_location_scale_of_empty_lines(::benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_location_scale_of_empty_lines);
+
+void benchmark_range_scale_of_empty_lines(::benchmark::State &state) {
+  std::size_t line_length = 10'000;
+  std::size_t span_length = 5;
+  std::string line(line_length, '\n');
+  for (auto _ : state) {
+    locator l(line.c_str());
+    for (std::size_t i = 0; i < line_length - span_length; i += span_length) {
+      source_code_span span(&line[i], &line[i + span_length]);
+      source_range r = l.range(span);
+      ::benchmark::DoNotOptimize(r);
+    }
+  }
+}
+BENCHMARK(benchmark_range_scale_of_empty_lines);
 }  // namespace
 }  // namespace quick_lint_js

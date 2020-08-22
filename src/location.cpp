@@ -45,7 +45,9 @@ locator::locator(const char *input) noexcept
       last_position_number_of_line_terminators_(0) {}
 
 source_range locator::range(source_code_span span) const {
-  return source_range(this->position(span.begin()), this->position(span.end()));
+  source_position begin = this->position(span.begin());
+  source_position end = this->position(span.end());
+  return source_range(begin, end);
 }
 
 source_position locator::position(const char *source) const noexcept {
