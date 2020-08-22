@@ -21,6 +21,7 @@ jobs:
   build:
     name: ${{ matrix.toolchain.name }}
     strategy:
+      fail-fast: false
       matrix:
         toolchain:
           - {runs_on: ubuntu-latest, name: "Clang 9", CC: clang-9, CXX: clang++-9, CFLAGS: "", WARNINGS: "-Werror;{1}"}
