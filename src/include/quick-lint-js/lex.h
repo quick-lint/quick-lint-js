@@ -108,8 +108,7 @@ enum class token_type {
   string,
 
   // Keywords ('kw' stands for 'KeyWord'):
-  first_keyword,
-  kw_as = first_keyword,
+  kw_as,
   kw_async,
   kw_await,
   kw_break,
@@ -259,7 +258,6 @@ class lexer {
   static bool is_identifier_character(char);
 
   static token_type identifier_token_type(std::string_view) noexcept;
-  static token_type keyword_from_index(std::ptrdiff_t) noexcept;
 
   token last_token_;
   const char* last_last_token_end_;

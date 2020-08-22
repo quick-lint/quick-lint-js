@@ -722,12 +722,6 @@ bool lexer::is_identifier_character(char c) {
   }
 }
 
-token_type lexer::keyword_from_index(std::ptrdiff_t index) noexcept {
-  using token_type_int = std::underlying_type_t<token_type>;
-  return static_cast<token_type>(
-      static_cast<token_type_int>(token_type::first_keyword) + index);
-}
-
 namespace {
 const char* to_string(token_type type) {
 #define QLJS_CASE(t)  \

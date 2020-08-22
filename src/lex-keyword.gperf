@@ -1,6 +1,6 @@
 %compare-strncmp
 %define class-name lexer_keyword
-%define initializer-suffix ,0
+%define initializer-suffix ,static_cast<token_type>(0)
 %define lookup-function-name look_up
 %define slot-name string_offset
 %enum
@@ -44,55 +44,54 @@ namespace {
 %}
 struct keyword_entry {
   int string_offset;
-  int index;
+  token_type type;
 };
 
-// Keep this list in sync with the token_type enum.
 %%
-as,         0
-async,      1
-await,      2
-break,      3
-case,       4
-catch,      5
-class,      6
-const,      7
-continue,   8
-debugger,   9
-default,    10
-delete,     11
-do,         12
-else,       13
-export,     14
-extends,    15
-false,      16
-finally,    17
-for,        18
-from,       19
-function,   20
-get,        21
-if,         22
-import,     23
-in,         24
-instanceof, 25
-let,        26
-new,        27
-null,       28
-of,         29
-return,     30
-static,     31
-super,      32
-switch,     33
-this,       34
-throw,      35
-true,       36
-try,        37
-typeof,     38
-var,        39
-void,       40
-while,      41
-with,       42
-yield,      43
+as,         token_type::kw_as
+async,      token_type::kw_async
+await,      token_type::kw_await
+break,      token_type::kw_break
+case,       token_type::kw_case
+catch,      token_type::kw_catch
+class,      token_type::kw_class
+const,      token_type::kw_const
+continue,   token_type::kw_continue
+debugger,   token_type::kw_debugger
+default,    token_type::kw_default
+delete,     token_type::kw_delete
+do,         token_type::kw_do
+else,       token_type::kw_else
+export,     token_type::kw_export
+extends,    token_type::kw_extends
+false,      token_type::kw_false
+finally,    token_type::kw_finally
+for,        token_type::kw_for
+from,       token_type::kw_from
+function,   token_type::kw_function
+get,        token_type::kw_get
+if,         token_type::kw_if
+import,     token_type::kw_import
+in,         token_type::kw_in
+instanceof, token_type::kw_instanceof
+let,        token_type::kw_let
+new,        token_type::kw_new
+null,       token_type::kw_null
+of,         token_type::kw_of
+return,     token_type::kw_return
+static,     token_type::kw_static
+super,      token_type::kw_super
+switch,     token_type::kw_switch
+this,       token_type::kw_this
+throw,      token_type::kw_throw
+true,       token_type::kw_true
+try,        token_type::kw_try
+typeof,     token_type::kw_typeof
+var,        token_type::kw_var
+void,       token_type::kw_void
+while,      token_type::kw_while
+with,       token_type::kw_with
+yield,      token_type::kw_yield
 %%
 }
 
@@ -100,7 +99,7 @@ token_type lexer::identifier_token_type(std::string_view identifier) noexcept {
   const keyword_entry *entry =
       lexer_keyword::look_up(identifier.data(), identifier.size());
   if (entry) {
-    return lexer::keyword_from_index(entry->index);
+    return entry->type;
   } else {
     return token_type::identifier;
   }
