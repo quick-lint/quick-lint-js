@@ -18,6 +18,17 @@
 #define QUICK_LINT_JS_WARNING_H
 
 #if defined(__clang__)
+#define QLJS_WARNING_PUSH _Pragma("clang diagnostic push")
+#define QLJS_WARNING_POP _Pragma("clang diagnostic pop")
+#elif defined(__GNUC__)
+#define QLJS_WARNING_PUSH _Pragma("GCC diagnostic push")
+#define QLJS_WARNING_POP _Pragma("GCC diagnostic pop")
+#else
+#define QLJS_WARNING_PUSH /* empty */
+#define QLJS_WARNING_POP  /* empty */
+#endif
+
+#if defined(__clang__)
 #define QLJS_WARNING_IGNORE_CLANG(warning_name) \
   _Pragma(QLJS_WARNING_PRAGMA_STRING(clang diagnostic ignored, warning_name))
 #else

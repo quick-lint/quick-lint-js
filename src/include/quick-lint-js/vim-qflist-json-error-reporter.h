@@ -25,7 +25,7 @@
 #include <string>
 
 namespace quick_lint_js {
-class vim_qflist_json_error_reporter : public error_reporter {
+class vim_qflist_json_error_reporter final : public error_reporter {
  public:
   explicit vim_qflist_json_error_reporter(std::ostream &output);
 

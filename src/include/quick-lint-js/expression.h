@@ -195,7 +195,7 @@ class expression::expression_with_prefix_operator_base : public expression {
 
   int child_count() const noexcept override { return 1; }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child([[maybe_unused]] int index) const noexcept override {
     assert(index == 0);
     return this->child_;
   }
@@ -210,7 +210,7 @@ class expression::expression_with_prefix_operator_base : public expression {
   expression_ptr child_;
 };
 
-class expression::_invalid : public expression {
+class expression::_invalid final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_invalid;
 
@@ -222,7 +222,7 @@ class expression::_invalid : public expression {
   }
 };
 
-class expression::_new : public expression {
+class expression::_new final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_new;
 
@@ -247,7 +247,7 @@ class expression::_new : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::_template : public expression {
+class expression::_template final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_template;
 
@@ -272,7 +272,7 @@ class expression::_template : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::array : public expression {
+class expression::array final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::array;
 
@@ -297,7 +297,7 @@ class expression::array : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::arrow_function_with_expression : public expression {
+class expression::arrow_function_with_expression final : public expression {
  public:
   static constexpr expression_kind kind =
       expression_kind::arrow_function_with_expression;
@@ -353,7 +353,7 @@ class expression::arrow_function_with_expression : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::arrow_function_with_statements : public expression {
+class expression::arrow_function_with_statements final : public expression {
  public:
   static constexpr expression_kind kind =
       expression_kind::arrow_function_with_statements;
@@ -421,7 +421,7 @@ class expression::arrow_function_with_statements : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::assignment : public expression {
+class expression::assignment final : public expression {
  public:
   explicit assignment(expression_kind kind, expression_ptr lhs,
                       expression_ptr rhs) noexcept
@@ -449,7 +449,7 @@ class expression::assignment : public expression {
   std::array<expression_ptr, 2> children_;
 };
 
-class expression::await
+class expression::await final
     : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::await;
@@ -459,7 +459,7 @@ class expression::await
                                                          operator_span) {}
 };
 
-class expression::binary_operator : public expression {
+class expression::binary_operator final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
@@ -485,7 +485,7 @@ class expression::binary_operator : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::call : public expression {
+class expression::call final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::call;
 
@@ -515,7 +515,7 @@ class expression::call : public expression {
   std::vector<expression_ptr> children_;
 };
 
-class expression::conditional : public expression {
+class expression::conditional final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::conditional;
 
@@ -542,7 +542,7 @@ class expression::conditional : public expression {
   std::array<expression_ptr, 3> children_;
 };
 
-class expression::dot : public expression {
+class expression::dot final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::dot;
 
@@ -551,7 +551,7 @@ class expression::dot : public expression {
 
   int child_count() const noexcept override { return 1; }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child([[maybe_unused]] int index) const noexcept override {
     assert(index == 0);
     return this->child_;
   }
@@ -570,7 +570,7 @@ class expression::dot : public expression {
   expression_ptr child_;
 };
 
-class expression::function : public expression {
+class expression::function final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::function;
 
@@ -599,7 +599,7 @@ class expression::function : public expression {
   source_code_span span_;
 };
 
-class expression::import : public expression {
+class expression::import final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::import;
 
@@ -612,7 +612,7 @@ class expression::import : public expression {
   source_code_span span_;
 };
 
-class expression::index : public expression {
+class expression::index final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::index;
 
@@ -642,7 +642,7 @@ class expression::index : public expression {
   std::array<expression_ptr, 2> children_;
 };
 
-class expression::literal : public expression {
+class expression::literal final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::literal;
 
@@ -655,7 +655,7 @@ class expression::literal : public expression {
   source_code_span span_;
 };
 
-class expression::named_function : public expression {
+class expression::named_function final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::named_function;
 
@@ -690,7 +690,7 @@ class expression::named_function : public expression {
   source_code_span span_;
 };
 
-class expression::object : public expression {
+class expression::object final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::object;
 
@@ -715,7 +715,7 @@ class expression::object : public expression {
   std::vector<expression::object_property_value_pair> entries_;
 };
 
-class expression::rw_unary_prefix
+class expression::rw_unary_prefix final
     : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::rw_unary_prefix;
@@ -726,7 +726,7 @@ class expression::rw_unary_prefix
                                                          operator_span) {}
 };
 
-class expression::rw_unary_suffix : public expression {
+class expression::rw_unary_suffix final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::rw_unary_suffix;
 
@@ -738,7 +738,7 @@ class expression::rw_unary_suffix : public expression {
 
   int child_count() const noexcept override { return 1; }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child([[maybe_unused]] int index) const noexcept override {
     assert(index == 0);
     return this->child_;
   }
@@ -753,7 +753,7 @@ class expression::rw_unary_suffix : public expression {
   expression_ptr child_;
 };
 
-class expression::spread
+class expression::spread final
     : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::spread;
@@ -763,7 +763,7 @@ class expression::spread
                                                          operator_span) {}
 };
 
-class expression::super : public expression {
+class expression::super final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::super;
 
@@ -776,7 +776,7 @@ class expression::super : public expression {
   source_code_span span_;
 };
 
-class expression::unary_operator
+class expression::unary_operator final
     : public expression::expression_with_prefix_operator_base {
  public:
   static constexpr expression_kind kind = expression_kind::unary_operator;
@@ -787,7 +787,7 @@ class expression::unary_operator
                                                          operator_span) {}
 };
 
-class expression::variable : public expression {
+class expression::variable final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::variable;
 

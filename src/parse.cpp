@@ -5,6 +5,7 @@
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/warning.h>
 
 #define QLJS_PARSER_UNIMPLEMENTED() \
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
@@ -534,7 +535,10 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
                                                  const char *span_begin) {
   assert(this->peek().type == token_type::kw_function);
   this->lexer_.skip();
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   std::optional<identifier> function_name = std::nullopt;
+  QLJS_WARNING_POP
   if (this->peek().type == token_type::identifier) {
     function_name = this->peek().identifier_name();
     this->lexer_.skip();

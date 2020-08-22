@@ -25,7 +25,7 @@
 #include <quick-lint-js/location.h>
 
 namespace quick_lint_js {
-class text_error_reporter : public error_reporter {
+class text_error_reporter final : public error_reporter {
  public:
   explicit text_error_reporter(std::ostream &output);
 

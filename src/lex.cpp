@@ -532,7 +532,7 @@ void lexer::insert_semicolon() {
 }
 
 const char* lexer::end_of_previous_token() const noexcept {
-  bool semicolon_was_inserted =
+  [[maybe_unused]] bool semicolon_was_inserted =
       this->last_token_.type == token_type::semicolon &&
       this->last_token_.begin == this->last_token_.end;
   assert(!semicolon_was_inserted);
