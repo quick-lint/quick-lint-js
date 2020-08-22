@@ -844,6 +844,19 @@ TEST(test_parse, asi_for_statement_at_newline) {
     EXPECT_EQ(p.locator().range(error.where).end_offset(),
               end_of_first_expression);
   }
+
+  for (std::string variable_kind : {"const", "let", "var"}) {
+    std::string code = variable_kind + " a = 1\n" + variable_kind + " b = 2\n";
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(code.c_str(), &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // a
+                            "visit_variable_declaration"));  // b
+  }
 }
 
 TEST(test_parse, asi_for_statement_at_end_of_file) {
