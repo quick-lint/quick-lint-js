@@ -38,21 +38,43 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
   return !(x == y);
 }
 
+locator::locator(const char *input) noexcept
+    : input_(input),
+      last_position_source_(input),
+      last_position_last_line_terminator_(nullptr),
+      last_position_number_of_line_terminators_(0) {}
+
 source_range locator::range(source_code_span span) const {
   return source_range(this->position(span.begin()), this->position(span.end()));
 }
 
 source_position locator::position(const char *source) const noexcept {
-  source_position::offset_type offset =
-      narrow_cast<source_position::offset_type>(source - this->input_);
-  int number_of_line_terminators = 0;
-  const char *last_line_terminator = nullptr;
-  for (const char *c = this->input_; c != source; ++c) {
+  const char *last_line_terminator;
+  int number_of_line_terminators;
+  const char *start;
+  if (source >= this->last_position_source_) {
+    last_line_terminator = this->last_position_last_line_terminator_;
+    number_of_line_terminators =
+        this->last_position_number_of_line_terminators_;
+    start = this->last_position_source_;
+  } else {
+    last_line_terminator = nullptr;
+    number_of_line_terminators = 0;
+    start = this->input_;
+  }
+
+  for (const char *c = start; c != source; ++c) {
     if (*c == '\n') {
       number_of_line_terminators += 1;
       last_line_terminator = c;
     }
   }
+  this->last_position_source_ = source;
+  this->last_position_last_line_terminator_ = last_line_terminator;
+  this->last_position_number_of_line_terminators_ = number_of_line_terminators;
+
+  source_position::offset_type offset =
+      narrow_cast<source_position::offset_type>(source - this->input_);
   int column_number;
   if (last_line_terminator) {
     column_number = narrow_cast<int>(source - last_line_terminator);

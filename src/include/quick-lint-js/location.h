@@ -85,13 +85,17 @@ bool operator!=(source_code_span, std::string_view) noexcept;
 
 class locator {
  public:
-  explicit locator(const char* input) noexcept : input_(input) {}
+  explicit locator(const char* input) noexcept;
 
   source_range range(source_code_span) const;
   source_position position(const char*) const noexcept;
 
  private:
   const char* input_;
+
+  mutable const char* last_position_source_;
+  mutable const char* last_position_last_line_terminator_;
+  mutable int last_position_number_of_line_terminators_;
 };
 }  // namespace quick_lint_js
 
