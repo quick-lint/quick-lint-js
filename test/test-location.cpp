@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <vector>
 
 namespace quick_lint_js {
 namespace {
@@ -45,6 +48,29 @@ TEST(test_location, ranges_on_second_line) {
   EXPECT_EQ(x_range.end_offset(), 16);
   EXPECT_EQ(x_range.end().line_number, 2);
   EXPECT_EQ(x_range.end().column_number, 6);
+}
+
+TEST(test_location, position_backwards) {
+  const char code[] = "ab\nc\n\nd\nefg\nh";
+
+  std::vector<source_position> expected_positions;
+  {
+    locator l(code);
+    for (int i = 0; i < narrow_cast<int>(std::strlen(code)); ++i) {
+      expected_positions.push_back(l.position(&code[i]));
+    }
+  }
+
+  std::vector<source_position> actual_positions;
+  {
+    locator l(code);
+    for (int i = narrow_cast<int>(std::strlen(code)) - 1; i >= 0; --i) {
+      actual_positions.push_back(l.position(&code[i]));
+    }
+  }
+  std::reverse(actual_positions.begin(), actual_positions.end());
+
+  EXPECT_EQ(actual_positions, expected_positions);
 }
 }  // namespace
 }  // namespace quick_lint_js

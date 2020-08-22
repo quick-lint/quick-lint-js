@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_LOCATION_H
 
 #include <cstddef>
+#include <iosfwd>
 #include <quick-lint-js/narrow-cast.h>
 #include <string_view>
 
@@ -28,7 +29,19 @@ struct source_position {
   int line_number;
   int column_number;
   offset_type offset;
+
+  bool operator==(const source_position& other) const noexcept {
+    return this->line_number == other.line_number &&
+           this->column_number == other.column_number &&
+           this->offset == other.offset;
+  }
+
+  bool operator!=(const source_position& other) const noexcept {
+    return !(*this == other);
+  }
 };
+
+std::ostream& operator<<(std::ostream&, const source_position&);
 
 class source_range {
  public:

@@ -15,10 +15,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
+#include <ostream>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {
+std::ostream &operator<<(std::ostream &out, const source_position &p) {
+  out << "source_position{" << p.line_number << ',' << p.column_number << ','
+      << p.offset << '}';
+  return out;
+}
+
 source_position source_range::begin() const noexcept { return this->begin_; }
 
 source_position source_range::end() const noexcept { return this->end_; }
