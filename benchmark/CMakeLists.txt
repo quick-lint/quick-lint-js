@@ -18,6 +18,18 @@ cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSTarget)
 
 quick_lint_js_add_executable(
+  quick-lint-js-benchmark-location
+  benchmark-location.cpp
+)
+target_link_libraries(
+  quick-lint-js-benchmark-location
+  PRIVATE
+  benchmark::benchmark
+  benchmark::benchmark_main
+  quick-lint-js-lib
+)
+
+quick_lint_js_add_executable(
   quick-lint-js-benchmark-parse
   benchmark-parse.cpp
 )
