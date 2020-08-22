@@ -38,11 +38,7 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
   return !(x == y);
 }
 
-locator::locator(const char *input) noexcept
-    : input_(input),
-      last_position_source_(input),
-      last_position_last_line_terminator_(nullptr),
-      last_position_number_of_line_terminators_(0) {}
+locator::locator(const char *input) noexcept : input_(input) {}
 
 source_range locator::range(source_code_span span) const {
   source_position begin = this->position(span.begin());
@@ -51,38 +47,32 @@ source_range locator::range(source_code_span span) const {
 }
 
 source_position locator::position(const char *source) const noexcept {
-  const char *last_line_terminator;
-  int number_of_line_terminators;
-  const char *start;
-  if (source >= this->last_position_source_) {
-    last_line_terminator = this->last_position_last_line_terminator_;
-    number_of_line_terminators =
-        this->last_position_number_of_line_terminators_;
-    start = this->last_position_source_;
-  } else {
-    last_line_terminator = nullptr;
-    number_of_line_terminators = 0;
-    start = this->input_;
+  if (this->offset_of_lines_.empty()) {
+    this->cache_offsets_of_lines();
   }
-
-  for (const char *c = start; c != source; ++c) {
-    if (*c == '\n') {
-      number_of_line_terminators += 1;
-      last_line_terminator = c;
-    }
-  }
-  this->last_position_source_ = source;
-  this->last_position_last_line_terminator_ = last_line_terminator;
-  this->last_position_number_of_line_terminators_ = number_of_line_terminators;
+  assert(!this->offset_of_lines_.empty());
 
   source_position::offset_type offset =
       narrow_cast<source_position::offset_type>(source - this->input_);
-  int column_number;
-  if (last_line_terminator) {
-    column_number = narrow_cast<int>(source - last_line_terminator);
-  } else {
-    column_number = narrow_cast<int>(offset + 1);
+  auto offset_of_line_it = std::lower_bound(
+      this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
+
+  int line_number =
+      narrow_cast<int>(offset_of_line_it - this->offset_of_lines_.begin());
+  const char *beginning_of_line = &this->input_[*(offset_of_line_it - 1)];
+  int column_number = narrow_cast<int>(source - beginning_of_line) + 1;
+  return source_position{line_number, column_number, offset};
+}
+
+void locator::cache_offsets_of_lines() const {
+  this->offset_of_lines_.push_back(0);
+  for (const char *c = this->input_; *c != '\0'; ++c) {
+    if (*c == '\n') {
+      const char *beginning_of_line = c + 1;
+      this->offset_of_lines_.push_back(
+          narrow_cast<source_position::offset_type>(beginning_of_line -
+                                                    this->input_));
+    }
   }
-  return source_position{1 + number_of_line_terminators, column_number, offset};
 }
 }  // namespace quick_lint_js

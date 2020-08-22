@@ -21,6 +21,7 @@
 #include <iosfwd>
 #include <quick-lint-js/narrow-cast.h>
 #include <string_view>
+#include <vector>
 
 namespace quick_lint_js {
 struct source_position {
@@ -91,11 +92,10 @@ class locator {
   source_position position(const char*) const noexcept;
 
  private:
-  const char* input_;
+  void cache_offsets_of_lines() const;
 
-  mutable const char* last_position_source_;
-  mutable const char* last_position_last_line_terminator_;
-  mutable int last_position_number_of_line_terminators_;
+  const char* input_;
+  mutable std::vector<source_position::offset_type> offset_of_lines_;
 };
 }  // namespace quick_lint_js
 
