@@ -95,6 +95,7 @@ class locator {
   void cache_offsets_of_lines() const;
 
   const char* input_;
+  mutable std::size_t input_length_;
   mutable std::vector<source_position::offset_type> offset_of_lines_;
 };
 }  // namespace quick_lint_js

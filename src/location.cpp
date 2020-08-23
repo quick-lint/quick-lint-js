@@ -54,8 +54,32 @@ source_position locator::position(const char *source) const noexcept {
 
   source_position::offset_type offset =
       narrow_cast<source_position::offset_type>(source - this->input_);
-  auto offset_of_line_it = std::lower_bound(
-      this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
+
+  decltype(this->offset_of_lines_)::iterator offset_of_line_it;
+  int hint_index = (source - this->input_) *
+                   (this->offset_of_lines_.size() - 1) /
+                   (this->input_length_ + 1);
+  assert(hint_index < narrow_cast<int>(this->offset_of_lines_.size()));
+  int hint_left_index = std::max(hint_index - 5, 1);
+  int hint_right_index = std::min(
+      hint_index + 5, narrow_cast<int>(this->offset_of_lines_.size() - 1));
+  auto hint_right_it = this->offset_of_lines_.begin() + hint_right_index;
+#if 1
+  offset_of_line_it = std::find_if(
+      this->offset_of_lines_.begin() + hint_left_index, hint_right_it,
+      [&](source_position::offset_type line_begin_offset) {
+        return !(line_begin_offset < offset);
+      });
+#else
+  offset_of_line_it = std::lower_bound(hint_left + 1, hint_right, offset);
+#endif
+  if (offset_of_line_it == hint_right_it) {
+    // printf("_");
+    offset_of_line_it = std::lower_bound(this->offset_of_lines_.begin() + 1,
+                                         this->offset_of_lines_.end(), offset);
+  } else {
+    // printf("#");
+  }
 
   int line_number =
       narrow_cast<int>(offset_of_line_it - this->offset_of_lines_.begin());
@@ -66,7 +90,8 @@ source_position locator::position(const char *source) const noexcept {
 
 void locator::cache_offsets_of_lines() const {
   this->offset_of_lines_.push_back(0);
-  for (const char *c = this->input_; *c != '\0'; ++c) {
+  const char *c;
+  for (c = this->input_; *c != '\0'; ++c) {
     if (*c == '\n') {
       const char *beginning_of_line = c + 1;
       this->offset_of_lines_.push_back(
@@ -74,5 +99,6 @@ void locator::cache_offsets_of_lines() const {
                                                     this->input_));
     }
   }
+  this->input_length_ = c - this->input_;
 }
 }  // namespace quick_lint_js
