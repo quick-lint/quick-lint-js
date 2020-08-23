@@ -55,6 +55,11 @@ source_position locator::position(const char *source) const noexcept {
   source_position::offset_type offset =
       narrow_cast<source_position::offset_type>(source - this->input_);
 
+  // @@@ idea: check if on same line as previous call. useful for range. maybe
+  // do this within range itself.
+
+  // @@@ scrap this stuff. doesn't seem to help across the board. harms our
+  // realistic benchmark.
   decltype(this->offset_of_lines_)::iterator offset_of_line_it;
   int hint_index = (source - this->input_) *
                    (this->offset_of_lines_.size() - 1) / this->input_length_2_;
