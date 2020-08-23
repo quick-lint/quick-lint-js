@@ -57,8 +57,7 @@ source_position locator::position(const char *source) const noexcept {
 
   decltype(this->offset_of_lines_)::iterator offset_of_line_it;
   int hint_index = (source - this->input_) *
-                   (this->offset_of_lines_.size() - 1) /
-                   (this->input_length_ + 1);
+                   (this->offset_of_lines_.size() - 1) / this->input_length_2_;
   assert(hint_index < narrow_cast<int>(this->offset_of_lines_.size()));
   int hint_left_index = std::max(hint_index - 5, 1);
   int hint_right_index = std::min(
@@ -100,5 +99,6 @@ void locator::cache_offsets_of_lines() const {
     }
   }
   this->input_length_ = c - this->input_;
+  this->input_length_2_ = constant_divider(this->input_length_ + 1);
 }
 }  // namespace quick_lint_js

@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <quick-lint-js/constant-divider.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <string_view>
 #include <vector>
@@ -96,6 +97,7 @@ class locator {
 
   const char* input_;
   mutable std::size_t input_length_;
+  mutable constant_divider input_length_2_{1};  // @@@ rename
   mutable std::vector<source_position::offset_type> offset_of_lines_;
 };
 }  // namespace quick_lint_js
