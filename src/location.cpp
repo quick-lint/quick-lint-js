@@ -55,15 +55,18 @@ source_position locator::position(const char *source) const noexcept {
 }
 
 void locator::cache_offsets_of_lines() const {
-  this->offset_of_lines_.push_back(0);
+  this->offset_of_lines_.resize(100'000); // @@@
+  source_position::offset_type *out = this->offset_of_lines_.data();
+  *out = 0;
+  ++out;
+
   for (const char *c = this->input_; *c != '\0'; ++c) {
-    if (*c == '\n') {
-      const char *beginning_of_line = c + 1;
-      this->offset_of_lines_.push_back(
-          narrow_cast<source_position::offset_type>(beginning_of_line -
-                                                    this->input_));
-    }
+    const char *beginning_of_line = c + 1;
+    *out = narrow_cast<source_position::offset_type>(beginning_of_line - this->input_);
+    out = (*c == '\n') ? out + 1 : out;
   }
+
+  this->offset_of_lines_.resize(out - this->offset_of_lines_.data());
 }
 
 source_position::line_number_type locator::find_line_at_offset(
