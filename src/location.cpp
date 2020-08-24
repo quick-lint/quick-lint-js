@@ -42,9 +42,32 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
 locator::locator(const char *input) noexcept : input_(input) {}
 
 source_range locator::range(source_code_span span) const {
-  source_position begin = this->position(span.begin());
-  source_position end = this->position(span.end());
-  return source_range(begin, end);
+  auto offset_is_on_line = [this](
+                               source_position::offset_type offset,
+                               source_position::line_number_type line_number) {
+    source_position::offset_type offset_of_line =
+        this->offset_of_lines_[line_number - 1];
+    source_position::offset_type offset_of_next_line =
+        this->offset_of_lines_[line_number - 1 + 1];
+    return offset >= offset_of_line && offset < offset_of_next_line;
+  };
+
+  source_position::offset_type begin_offset = this->offset(span.begin());
+  source_position::offset_type end_offset = this->offset(span.end());
+
+  source_position::line_number_type begin_line_number =
+      this->find_line_at_offset(begin_offset);
+  // Optimization: Avoid calling find_line_at_offset (which is expensive) again
+  // if span.end() is on the same line as span.begin().
+  source_position::line_number_type end_line_number;
+  if (offset_is_on_line(end_offset, begin_line_number)) {
+    end_line_number = begin_line_number;
+  } else {
+    end_line_number = this->find_line_at_offset(end_offset);
+  }
+
+  return source_range(this->position(begin_line_number, begin_offset),
+                      this->position(end_line_number, end_offset));
 }
 
 source_position locator::position(const char *source) const noexcept {
@@ -72,7 +95,7 @@ source_position::line_number_type locator::find_line_at_offset(
     this->cache_offsets_of_lines();
   }
   assert(!this->offset_of_lines_.empty());
-  auto offset_of_following_line_it = std::lower_bound(
+  auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
   return narrow_cast<source_position::line_number_type>(
              (offset_of_following_line_it - 1) -
