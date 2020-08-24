@@ -215,7 +215,8 @@ expression_ptr parser::parse_expression(precedence prec) {
       this->lexer_.skip();
 
       expression_ptr ast = this->parse_arrow_function_body(
-          function_attributes::async, async_begin, std::move(parameters));
+          function_attributes::async, async_begin,
+          this->expressions_.make_array(std::move(parameters)));
       return this->parse_expression_remainder(ast, prec);
     }
 
@@ -242,7 +243,7 @@ expression_ptr parser::parse_expression(precedence prec) {
             this->parse_expression(precedence{.commas = false}));
       }
       expression_ptr ast = this->make_expression<expression::array>(
-          std::move(children),
+          this->expressions_.make_array(std::move(children)),
           source_code_span(left_square_begin, right_square_end));
       return this->parse_expression_remainder(ast, prec);
     }
@@ -271,7 +272,7 @@ expression_ptr parser::parse_expression(precedence prec) {
         children.emplace_back(target);
       }
       return this->make_expression<expression::_new>(
-          std::move(children),
+          this->expressions_.make_array(std::move(children)),
           source_code_span(operator_span.begin(), target->span().end()));
     }
     case token_type::end_of_file:
@@ -317,7 +318,7 @@ expression_ptr parser::parse_expression_remainder(expression_ptr ast,
     } else {
       assert(children.size() >= 2);
       return this->make_expression<expression::binary_operator>(
-          std::move(children));
+          this->expressions_.make_array(std::move(children)));
     }
   };
 
@@ -369,7 +370,8 @@ next:
       source_code_span right_paren_span = this->peek().span();
       this->lexer_.skip();
       children.back() = this->make_expression<expression::call>(
-          std::move(call_children), right_paren_span);
+          this->expressions_.make_array(std::move(call_children)),
+          right_paren_span);
       goto next;
     }
 
@@ -483,7 +485,8 @@ next:
       expression_ptr lhs = children.back();
       children.back() = this->parse_arrow_function_body(
           function_attributes::normal, /*parameter_list_begin=*/nullptr,
-          arrow_function_parameters_from_lhs(lhs));
+          this->expressions_.make_array(
+              arrow_function_parameters_from_lhs(lhs)));
       goto next;
     }
 
@@ -668,7 +671,8 @@ expression_ptr parser::parse_object_literal() {
     expect_comma_or_end = true;
   }
   return this->make_expression<expression::object>(
-      std::move(entries), source_code_span(left_curly_begin, right_curly_end));
+      this->expressions_.make_array(std::move(entries)),
+      source_code_span(left_curly_begin, right_curly_end));
 }
 
 expression_ptr parser::parse_template() {
@@ -686,7 +690,7 @@ expression_ptr parser::parse_template() {
             const char *template_end = this->peek().end;
             this->lexer_.skip();
             return this->make_expression<expression::_template>(
-                std::move(children),
+                this->expressions_.make_array(std::move(children)),
                 source_code_span(template_begin, template_end));
           }
 

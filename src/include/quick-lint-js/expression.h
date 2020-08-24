@@ -58,6 +58,35 @@ class expression_ptr {
   expression *ptr_;
 };
 
+template <class T>
+class expression_array_ptr {
+ public:
+  explicit expression_array_ptr() noexcept : data_(nullptr), size_(0) {}
+
+  explicit expression_array_ptr(const T *data, int size) noexcept
+      : data_(data), size_(size) {}
+
+  T operator[](int index) const noexcept {
+    assert(index >= 0);
+    assert(index < this->size());
+    return this->data_[index];
+  }
+
+  T front() const noexcept { return (*this)[0]; }
+
+  T back() const noexcept { return (*this)[this->size() - 1]; }
+
+  const T *data() const noexcept { return this->data_; }
+
+  int size() const noexcept { return this->size_; }
+
+  bool empty() const noexcept { return this->size() == 0; }
+
+ private:
+  const T *data_;
+  int size_;
+};
+
 enum class expression_kind {
   _invalid,
   _new,
@@ -226,75 +255,63 @@ class expression::_new final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_new;
 
-  explicit _new(std::vector<expression_ptr> &&children,
+  explicit _new(expression_array_ptr<expression_ptr> children,
                 source_code_span span) noexcept
-      : expression(kind), span_(span), children_(std::move(children)) {}
+      : expression(kind), span_(span), children_(children) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return this->children_.size(); }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    return this->children_[index];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
 
  private:
   source_code_span span_;
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> children_;
 };
 
 class expression::_template final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_template;
 
-  explicit _template(std::vector<expression_ptr> &&children,
+  explicit _template(expression_array_ptr<expression_ptr> children,
                      source_code_span span) noexcept
-      : expression(kind), span_(span), children_(std::move(children)) {}
+      : expression(kind), span_(span), children_(children) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return this->children_.size(); }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    return this->children_[index];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
 
  private:
   source_code_span span_;
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> children_;
 };
 
 class expression::array final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::array;
 
-  explicit array(std::vector<expression_ptr> &&children,
+  explicit array(expression_array_ptr<expression_ptr> children,
                  source_code_span span) noexcept
-      : expression(kind), span_(span), children_(std::move(children)) {}
+      : expression(kind), span_(span), children_(children) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return this->children_.size(); }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    return this->children_[index];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
 
  private:
   source_code_span span_;
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> children_;
 };
 
 class expression::arrow_function_with_expression final : public expression {
@@ -308,38 +325,41 @@ class expression::arrow_function_with_expression final : public expression {
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
-        children_{body} {}
+        body_(body) {}
 
   explicit arrow_function_with_expression(
-      function_attributes attributes, std::vector<expression_ptr> &&parameters,
-      expression_ptr body, const char *parameter_list_begin) noexcept
+      function_attributes attributes,
+      expression_array_ptr<expression_ptr> parameters, expression_ptr body,
+      const char *parameter_list_begin) noexcept
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
-        children_(std::move(parameters)) {
+        parameters_(parameters),
+        body_(body) {
     if (!this->parameter_list_begin_) {
-      assert(!this->children_.empty());
+      assert(!this->parameters_.empty());
     }
-    this->children_.emplace_back(body);
   }
 
   int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
+    return this->parameters_.size() + 1;
   }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    if (index == this->parameters_.size()) {
+      return this->body_;
+    } else {
+      return this->parameters_[index];
+    }
   }
 
   source_code_span span() const noexcept override {
     if (this->parameter_list_begin_) {
       return source_code_span(this->parameter_list_begin_,
-                              this->children_.back()->span().end());
+                              this->body_->span().end());
     } else {
-      return source_code_span(this->children_.front()->span().begin(),
-                              this->children_.back()->span().end());
+      return source_code_span(this->parameters_.front()->span().begin(),
+                              this->body_->span().end());
     }
   }
 
@@ -350,7 +370,8 @@ class expression::arrow_function_with_expression final : public expression {
  private:
   const char *parameter_list_begin_;
   function_attributes function_attributes_;
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> parameters_;
+  expression_ptr body_;
 };
 
 class expression::arrow_function_with_statements final : public expression {
@@ -371,7 +392,8 @@ class expression::arrow_function_with_statements final : public expression {
   }
 
   explicit arrow_function_with_statements(
-      function_attributes attributes, std::vector<expression_ptr> &&parameters,
+      function_attributes attributes,
+      expression_array_ptr<expression_ptr> parameters,
       std::unique_ptr<buffering_visitor> &&child_visits,
       const char *parameter_list_begin, const char *span_end) noexcept
       : expression(kind),
@@ -379,20 +401,16 @@ class expression::arrow_function_with_statements final : public expression {
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
         child_visits_(std::move(child_visits)),
-        children_(std::move(parameters)) {
+        children_(parameters) {
     if (!this->parameter_list_begin_) {
       assert(!this->children_.empty());
     }
   }
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return this->children_.size(); }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    return this->children_[index];
   }
 
   source_code_span span() const noexcept override {
@@ -418,7 +436,7 @@ class expression::arrow_function_with_statements final : public expression {
   const char *parameter_list_begin_;
   const char *span_end_;
   std::unique_ptr<buffering_visitor> child_visits_;
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> children_;
 };
 
 class expression::assignment final : public expression {
@@ -463,17 +481,14 @@ class expression::binary_operator final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
-  explicit binary_operator(std::vector<expression_ptr> &&children) noexcept
-      : expression(kind), children_(std::move(children)) {}
+  explicit binary_operator(
+      expression_array_ptr<expression_ptr> children) noexcept
+      : expression(kind), children_(children) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return this->children_.size(); }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    return this->children_[index];
   }
 
   source_code_span span() const noexcept override {
@@ -482,27 +497,23 @@ class expression::binary_operator final : public expression {
   }
 
  private:
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> children_;
 };
 
 class expression::call final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::call;
 
-  explicit call(std::vector<expression_ptr> &&children,
+  explicit call(expression_array_ptr<expression_ptr> children,
                 source_code_span span) noexcept
       : expression(kind),
         call_right_paren_end_(span.end()),
-        children_(std::move(children)) {}
+        children_(children) {}
 
-  int child_count() const noexcept override {
-    return narrow_cast<int>(this->children_.size());
-  }
+  int child_count() const noexcept override { return this->children_.size(); }
 
   expression_ptr child(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+    return this->children_[index];
   }
 
   source_code_span span() const noexcept override {
@@ -512,7 +523,7 @@ class expression::call final : public expression {
 
  private:
   const char *call_right_paren_end_;
-  std::vector<expression_ptr> children_;
+  expression_array_ptr<expression_ptr> children_;
 };
 
 class expression::conditional final : public expression {
@@ -694,25 +705,23 @@ class expression::object final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::object;
 
-  explicit object(std::vector<object_property_value_pair> &&entries,
+  explicit object(expression_array_ptr<object_property_value_pair> entries,
                   source_code_span span) noexcept
-      : expression(kind), span_(span), entries_(std::move(entries)) {}
+      : expression(kind), span_(span), entries_(entries) {}
 
   int object_entry_count() const noexcept override {
-    return narrow_cast<int>(this->entries_.size());
+    return this->entries_.size();
   }
 
   object_property_value_pair object_entry(int index) const noexcept override {
-    assert(index >= 0);
-    assert(index < this->object_entry_count());
-    return this->entries_[narrow_cast<unsigned>(index)];
+    return this->entries_[index];
   }
 
   source_code_span span() const noexcept override { return this->span_; }
 
  private:
   source_code_span span_;
-  std::vector<expression::object_property_value_pair> entries_;
+  expression_array_ptr<expression::object_property_value_pair> entries_;
 };
 
 class expression::rw_unary_prefix final
@@ -816,8 +825,29 @@ class expression_arena {
     return expression_ptr(this->expressions_.back().get());
   }
 
+  expression_array_ptr<expression_ptr> make_array(
+      std::vector<expression_ptr> &&expressions) {
+    this->expression_ptr_arrays_.emplace_back(std::move(expressions));
+    std::vector<expression_ptr> &stored_expressions =
+        this->expression_ptr_arrays_.back();
+    return expression_array_ptr<expression_ptr>(
+        stored_expressions.data(), narrow_cast<int>(stored_expressions.size()));
+  }
+
+  expression_array_ptr<expression::object_property_value_pair> make_array(
+      std::vector<expression::object_property_value_pair> &&pairs) {
+    this->object_pair_arrays_.emplace_back(std::move(pairs));
+    std::vector<expression::object_property_value_pair> &stored_pairs =
+        this->object_pair_arrays_.back();
+    return expression_array_ptr<expression::object_property_value_pair>(
+        stored_pairs.data(), narrow_cast<int>(stored_pairs.size()));
+  }
+
  private:
   std::deque<std::unique_ptr<expression>> expressions_;
+  std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
+  std::deque<std::vector<expression::object_property_value_pair>>
+      object_pair_arrays_;
 };
 }  // namespace quick_lint_js
 
