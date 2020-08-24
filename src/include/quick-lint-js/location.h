@@ -25,9 +25,10 @@
 
 namespace quick_lint_js {
 struct source_position {
+  using line_number_type = int;
   using offset_type = std::size_t;
 
-  int line_number;
+  line_number_type line_number;
   int column_number;
   offset_type offset;
 
@@ -94,14 +95,13 @@ class locator {
  private:
   void cache_offsets_of_lines() const;
 
-  std::vector<source_position::offset_type>::iterator find_line_at_offset(
+  source_position::line_number_type find_line_at_offset(
       source_position::offset_type offset) const;
 
   source_position::offset_type offset(const char*) const noexcept;
 
-  source_position position(
-      std::vector<source_position::offset_type>::iterator offset_of_line_it,
-      source_position::offset_type offset) const noexcept;
+  source_position position(source_position::line_number_type line_number,
+                           source_position::offset_type offset) const noexcept;
 
   const char* input_;
   mutable std::vector<source_position::offset_type> offset_of_lines_;

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
+#include <cstddef>
 #include <ostream>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -48,9 +49,9 @@ source_range locator::range(source_code_span span) const {
 
 source_position locator::position(const char *source) const noexcept {
   source_position::offset_type offset = this->offset(source);
-  std::vector<source_position::offset_type>::iterator offset_of_line_it =
+  source_position::line_number_type line_number =
       this->find_line_at_offset(offset);
-  return this->position(offset_of_line_it, offset);
+  return this->position(line_number, offset);
 }
 
 void locator::cache_offsets_of_lines() const {
@@ -65,15 +66,18 @@ void locator::cache_offsets_of_lines() const {
   }
 }
 
-std::vector<source_position::offset_type>::iterator
-locator::find_line_at_offset(source_position::offset_type offset) const {
+source_position::line_number_type locator::find_line_at_offset(
+    source_position::offset_type offset) const {
   if (this->offset_of_lines_.empty()) {
     this->cache_offsets_of_lines();
   }
   assert(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::lower_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
-  return offset_of_following_line_it - 1;
+  return narrow_cast<source_position::line_number_type>(
+             (offset_of_following_line_it - 1) -
+             this->offset_of_lines_.begin()) +
+         1;
 }
 
 source_position::offset_type locator::offset(const char *source) const
@@ -81,15 +85,11 @@ source_position::offset_type locator::offset(const char *source) const
   return narrow_cast<source_position::offset_type>(source - this->input_);
 }
 
-source_position locator::position(
-    std::vector<source_position::offset_type>::iterator offset_of_line_it,
-    source_position::offset_type offset) const noexcept {
-  int line_number =
-      narrow_cast<int>(offset_of_line_it - this->offset_of_lines_.begin()) + 1;
-  const char *beginning_of_line = &this->input_[*offset_of_line_it];
+source_position locator::position(source_position::line_number_type line_number,
+                                  source_position::offset_type offset) const
+    noexcept {
   source_position::offset_type beginning_of_line_offset =
-      narrow_cast<source_position::offset_type>(beginning_of_line -
-                                                this->input_);
+      this->offset_of_lines_[narrow_cast<std::size_t>(line_number - 1)];
   int column_number = narrow_cast<int>(offset - beginning_of_line_offset) + 1;
   return source_position{line_number, column_number, offset};
 }
