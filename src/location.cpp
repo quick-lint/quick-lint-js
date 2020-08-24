@@ -47,21 +47,10 @@ source_range locator::range(source_code_span span) const {
 }
 
 source_position locator::position(const char *source) const noexcept {
-  if (this->offset_of_lines_.empty()) {
-    this->cache_offsets_of_lines();
-  }
-  assert(!this->offset_of_lines_.empty());
-
-  source_position::offset_type offset =
-      narrow_cast<source_position::offset_type>(source - this->input_);
-  auto offset_of_line_it = std::lower_bound(
-      this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
-
-  int line_number =
-      narrow_cast<int>(offset_of_line_it - this->offset_of_lines_.begin());
-  const char *beginning_of_line = &this->input_[*(offset_of_line_it - 1)];
-  int column_number = narrow_cast<int>(source - beginning_of_line) + 1;
-  return source_position{line_number, column_number, offset};
+  source_position::offset_type offset = this->offset(source);
+  std::vector<source_position::offset_type>::iterator offset_of_line_it =
+      this->find_line_at_offset(offset);
+  return this->position(offset_of_line_it, offset);
 }
 
 void locator::cache_offsets_of_lines() const {
@@ -74,5 +63,34 @@ void locator::cache_offsets_of_lines() const {
                                                     this->input_));
     }
   }
+}
+
+std::vector<source_position::offset_type>::iterator
+locator::find_line_at_offset(source_position::offset_type offset) const {
+  if (this->offset_of_lines_.empty()) {
+    this->cache_offsets_of_lines();
+  }
+  assert(!this->offset_of_lines_.empty());
+  auto offset_of_following_line_it = std::lower_bound(
+      this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
+  return offset_of_following_line_it - 1;
+}
+
+source_position::offset_type locator::offset(const char *source) const
+    noexcept {
+  return narrow_cast<source_position::offset_type>(source - this->input_);
+}
+
+source_position locator::position(
+    std::vector<source_position::offset_type>::iterator offset_of_line_it,
+    source_position::offset_type offset) const noexcept {
+  int line_number =
+      narrow_cast<int>(offset_of_line_it - this->offset_of_lines_.begin()) + 1;
+  const char *beginning_of_line = &this->input_[*offset_of_line_it];
+  source_position::offset_type beginning_of_line_offset =
+      narrow_cast<source_position::offset_type>(beginning_of_line -
+                                                this->input_);
+  int column_number = narrow_cast<int>(offset - beginning_of_line_offset) + 1;
+  return source_position{line_number, column_number, offset};
 }
 }  // namespace quick_lint_js
