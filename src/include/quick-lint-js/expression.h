@@ -103,6 +103,42 @@ struct object_property_value_pair {
   expression_ptr value;
 };
 
+class expression_arena {
+ public:
+  template <class>
+  class array_ptr;
+
+  using buffering_visitor_ptr = buffering_visitor *;
+
+  template <class T>
+  static inline constexpr bool is_allocatable =
+      std::is_trivially_destructible_v<std::remove_reference_t<T>>;
+
+  template <class Expression, class... Args>
+  expression_ptr make_expression(Args &&... args);
+
+  array_ptr<expression_ptr> make_array(
+      std::vector<expression_ptr> &&expressions);
+
+  array_ptr<object_property_value_pair> make_array(
+      std::vector<object_property_value_pair> &&pairs);
+
+  buffering_visitor_ptr make_buffering_visitor(
+      std::unique_ptr<buffering_visitor> &&visitor) {
+    this->buffering_visitors_.emplace_back(std::move(visitor));
+    buffering_visitor_ptr result = this->buffering_visitors_.back().get();
+    // TODO(strager): Make a non-owning buffering_visitor class which is
+    // trivially destructible.
+    return result;
+  }
+
+ private:
+  std::deque<std::shared_ptr<expression>> expressions_;
+  std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
+  std::deque<std::vector<object_property_value_pair>> object_pair_arrays_;
+  std::deque<std::unique_ptr<buffering_visitor>> buffering_visitors_;
+};
+
 class expression {
  public:
   class expression_with_prefix_operator_base;
@@ -188,49 +224,6 @@ class expression {
   expression_kind kind_;
 };
 
-class expression_arena {
- public:
-  template <class>
-  class array_ptr;
-
-  using buffering_visitor_ptr = buffering_visitor *;
-
-  template <class T>
-  static inline constexpr bool is_allocatable =
-      std::is_trivially_destructible_v<std::remove_reference_t<T>>;
-
-  template <class Expression, class... Args>
-  expression_ptr make_expression(Args &&... args) {
-    std::shared_ptr<Expression> ast =
-        std::make_shared<Expression>(std::forward<Args>(args)...);
-    this->expressions_.emplace_back(std::move(ast));
-    expression_ptr result(this->expressions_.back().get());
-    static_assert(is_allocatable<Expression>);
-    return result;
-  }
-
-  array_ptr<expression_ptr> make_array(
-      std::vector<expression_ptr> &&expressions);
-
-  array_ptr<object_property_value_pair> make_array(
-      std::vector<object_property_value_pair> &&pairs);
-
-  buffering_visitor_ptr make_buffering_visitor(
-      std::unique_ptr<buffering_visitor> &&visitor) {
-    this->buffering_visitors_.emplace_back(std::move(visitor));
-    buffering_visitor_ptr result = this->buffering_visitors_.back().get();
-    // TODO(strager): Make a non-owning buffering_visitor class which is
-    // trivially destructible.
-    return result;
-  }
-
- private:
-  std::deque<std::shared_ptr<expression>> expressions_;
-  std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
-  std::deque<std::vector<object_property_value_pair>> object_pair_arrays_;
-  std::deque<std::unique_ptr<buffering_visitor>> buffering_visitors_;
-};
-
 template <class T>
 class expression_arena::array_ptr {
  public:
@@ -259,6 +252,16 @@ class expression_arena::array_ptr {
   const T *data_;
   int size_;
 };
+
+template <class Expression, class... Args>
+expression_ptr expression_arena::make_expression(Args &&... args) {
+  std::shared_ptr<Expression> ast =
+      std::make_shared<Expression>(std::forward<Args>(args)...);
+  this->expressions_.emplace_back(std::move(ast));
+  expression_ptr result(this->expressions_.back().get());
+  static_assert(is_allocatable<Expression>);
+  return result;
+}
 
 inline expression_arena::array_ptr<expression_ptr> expression_arena::make_array(
     std::vector<expression_ptr> &&expressions) {
