@@ -39,7 +39,13 @@ class test_parser {
  public:
   explicit test_parser(const char *input) : parser_(input, &errors_) {}
 
-  expression_ptr parse_expression() { return this->parser_.parse_expression(); }
+  ~test_parser() { this->clean_up_expressions(); }
+
+  expression_ptr parse_expression() {
+    expression_ptr ast = this->parser_.parse_expression();
+    this->expressions_needing_cleanup_.push_back(ast);
+    return ast;
+  }
 
   const std::vector<error_collector::error> &errors() const noexcept {
     return this->errors_.errors;
@@ -57,8 +63,77 @@ class test_parser {
   quick_lint_js::lexer &lexer() noexcept { return this->parser_.lexer(); }
 
  private:
+  void clean_up_expressions() {
+    for (expression_ptr ast : this->expressions_needing_cleanup_) {
+      this->clean_up_expression(ast);
+    }
+  }
+
+  void clean_up_expression(expression_ptr ast) {
+    auto visit_children = [&] {
+      buffering_visitor v;
+      // Deallocate the buffering_visitor stashed within 'ast'.
+      ast->visit_children(v, this->parser_.expression_arena());
+    };
+    auto children = [&] {
+      for (int i = 0; i < ast->child_count(); ++i) {
+        this->clean_up_expression(ast->child(i));
+      }
+    };
+    switch (ast->kind()) {
+      case expression_kind::_invalid:
+      case expression_kind::import:
+      case expression_kind::literal:
+      case expression_kind::super:
+      case expression_kind::variable:
+        break;
+      case expression_kind::_new:
+      case expression_kind::_template:
+      case expression_kind::array:
+      case expression_kind::arrow_function_with_expression:
+      case expression_kind::assignment:
+      case expression_kind::binary_operator:
+      case expression_kind::call:
+      case expression_kind::compound_assignment:
+      case expression_kind::index:
+        children();
+        break;
+      case expression_kind::arrow_function_with_statements:
+        children();
+        visit_children();
+        break;
+      case expression_kind::await:
+      case expression_kind::dot:
+      case expression_kind::rw_unary_prefix:
+      case expression_kind::rw_unary_suffix:
+      case expression_kind::spread:
+      case expression_kind::unary_operator:
+        this->clean_up_expression(ast->child_0());
+        break;
+      case expression_kind::conditional:
+        this->clean_up_expression(ast->child_0());
+        this->clean_up_expression(ast->child_1());
+        this->clean_up_expression(ast->child_2());
+        break;
+      case expression_kind::function:
+      case expression_kind::named_function:
+        visit_children();
+        break;
+      case expression_kind::object:
+        for (int i = 0; i < ast->object_entry_count(); ++i) {
+          auto entry = ast->object_entry(i);
+          if (entry.property.has_value()) {
+            this->clean_up_expression(*entry.property);
+          }
+          this->clean_up_expression(entry.value);
+        }
+        break;
+    }
+  }
+
   error_collector errors_;
   quick_lint_js::parser parser_;
+  std::vector<expression_ptr> expressions_needing_cleanup_;
 };
 
 class test_parse_expression : public ::testing::Test {

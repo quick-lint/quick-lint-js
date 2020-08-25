@@ -125,18 +125,19 @@ class expression_arena {
 
   buffering_visitor_ptr make_buffering_visitor(
       std::unique_ptr<buffering_visitor> &&visitor) {
-    this->buffering_visitors_.emplace_back(std::move(visitor));
-    buffering_visitor_ptr result = this->buffering_visitors_.back().get();
-    // TODO(strager): Make a non-owning buffering_visitor class which is
-    // trivially destructible.
-    return result;
+    // See matching delete in delete_buffering_visitor.
+    return visitor.release();
+  }
+
+  void delete_buffering_visitor(buffering_visitor_ptr visitor) {
+    // See matching allocation in make_buffering_visitor.
+    delete visitor;
   }
 
  private:
   std::deque<std::shared_ptr<expression>> expressions_;
   std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
   std::deque<std::vector<object_property_value_pair>> object_pair_arrays_;
-  std::deque<std::unique_ptr<buffering_visitor>> buffering_visitors_;
 };
 
 class expression {
@@ -188,12 +189,13 @@ class expression {
 
   // Can be called at most once.
   template <class Visitor>
-  void visit_children(Visitor &v) {
+  void visit_children(Visitor &v, expression_arena &arena) {
     buffering_visitor *child_visits = this->take_child_visits();
     assert(
         child_visits &&
         "visit_children can be called at most once, but it was called twice");
     child_visits->move_into(v);
+    arena.delete_buffering_visitor(child_visits);
   }
 
   virtual int object_entry_count() const noexcept {

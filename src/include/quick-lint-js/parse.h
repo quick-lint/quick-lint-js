@@ -50,6 +50,11 @@ class parser {
   quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
   quick_lint_js::locator &locator() noexcept { return this->locator_; }
 
+  // For testing only.
+  quick_lint_js::expression_arena &expression_arena() noexcept {
+    return this->expressions_;
+  }
+
   template <class Visitor>
   void parse_and_visit_module(Visitor &v) {
     while (this->peek().type != token_type::end_of_file) {
@@ -212,7 +217,7 @@ class parser {
       case expression_kind::arrow_function_with_statements:
         v.visit_enter_function_scope();
         visit_parameters(ast->child_count());
-        ast->visit_children(v);
+        ast->visit_children(v, this->expressions_);
         v.visit_exit_function_scope();
         break;
       case expression_kind::assignment: {
@@ -271,12 +276,12 @@ class parser {
         break;
       case expression_kind::function:
         v.visit_enter_function_scope();
-        ast->visit_children(v);
+        ast->visit_children(v, this->expressions_);
         v.visit_exit_function_scope();
         break;
       case expression_kind::named_function:
         v.visit_enter_named_function_scope(ast->variable_identifier());
-        ast->visit_children(v);
+        ast->visit_children(v, this->expressions_);
         v.visit_exit_function_scope();
         break;
     }
@@ -956,7 +961,7 @@ class parser {
   quick_lint_js::lexer lexer_;
   quick_lint_js::locator locator_;
   error_reporter *error_reporter_;
-  expression_arena expressions_;
+  quick_lint_js::expression_arena expressions_;
 };
 }  // namespace quick_lint_js
 
