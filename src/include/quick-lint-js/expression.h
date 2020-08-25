@@ -26,6 +26,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -35,6 +36,10 @@
     assert(false && "function not implemented for this expression kind"); \
     QLJS_UNREACHABLE();                                                   \
   } while (false)
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wnon-virtual-dtor")
+QLJS_WARNING_IGNORE_GCC("-Wnon-virtual-dtor")
 
 namespace quick_lint_js {
 class expression;
@@ -127,8 +132,6 @@ class expression {
     expression_ptr value;
   };
 
-  virtual ~expression() = default;
-
   expression_kind kind() const noexcept { return this->kind_; }
 
   virtual identifier variable_identifier() const noexcept {
@@ -192,12 +195,18 @@ class expression_arena {
 
   using buffering_visitor_ptr = buffering_visitor *;
 
+  template <class T>
+  static inline constexpr bool is_allocatable =
+      std::is_trivially_destructible_v<std::remove_reference_t<T>>;
+
   template <class Expression, class... Args>
   expression_ptr make_expression(Args &&... args) {
-    std::unique_ptr<Expression> ast =
-        std::make_unique<Expression>(std::forward<Args>(args)...);
+    std::shared_ptr<Expression> ast =
+        std::make_shared<Expression>(std::forward<Args>(args)...);
     this->expressions_.emplace_back(std::move(ast));
-    return expression_ptr(this->expressions_.back().get());
+    expression_ptr result(this->expressions_.back().get());
+    static_assert(is_allocatable<Expression>);
+    return result;
   }
 
   array_ptr<expression_ptr> make_array(
@@ -209,11 +218,14 @@ class expression_arena {
   buffering_visitor_ptr make_buffering_visitor(
       std::unique_ptr<buffering_visitor> &&visitor) {
     this->buffering_visitors_.emplace_back(std::move(visitor));
-    return this->buffering_visitors_.back().get();
+    buffering_visitor_ptr result = this->buffering_visitors_.back().get();
+    // TODO(strager): Make a non-owning buffering_visitor class which is
+    // trivially destructible.
+    return result;
   }
 
  private:
-  std::deque<std::unique_ptr<expression>> expressions_;
+  std::deque<std::shared_ptr<expression>> expressions_;
   std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
   std::deque<std::vector<expression::object_property_value_pair>>
       object_pair_arrays_;
@@ -254,8 +266,10 @@ inline expression_arena::array_ptr<expression_ptr> expression_arena::make_array(
   this->expression_ptr_arrays_.emplace_back(std::move(expressions));
   std::vector<expression_ptr> &stored_expressions =
       this->expression_ptr_arrays_.back();
-  return array_ptr<expression_ptr>(stored_expressions.data(),
+  array_ptr<expression_ptr> result(stored_expressions.data(),
                                    narrow_cast<int>(stored_expressions.size()));
+  static_assert(is_allocatable<decltype(result[0])>);
+  return result;
 }
 
 inline expression_arena::array_ptr<expression::object_property_value_pair>
@@ -264,8 +278,10 @@ expression_arena::make_array(
   this->object_pair_arrays_.emplace_back(std::move(pairs));
   std::vector<expression::object_property_value_pair> &stored_pairs =
       this->object_pair_arrays_.back();
-  return array_ptr<expression::object_property_value_pair>(
+  array_ptr<expression::object_property_value_pair> result(
       stored_pairs.data(), narrow_cast<int>(stored_pairs.size()));
+  static_assert(is_allocatable<decltype(result[0])>);
+  return result;
 }
 
 class expression::expression_with_prefix_operator_base : public expression {
@@ -305,6 +321,7 @@ class expression::_invalid final : public expression {
     QLJS_UNREACHABLE();
   }
 };
+static_assert(expression_arena::is_allocatable<expression::_invalid>);
 
 class expression::_new final : public expression {
  public:
@@ -326,6 +343,7 @@ class expression::_new final : public expression {
   source_code_span span_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::_new>);
 
 class expression::_template final : public expression {
  public:
@@ -347,6 +365,7 @@ class expression::_template final : public expression {
   source_code_span span_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::_template>);
 
 class expression::array final : public expression {
  public:
@@ -368,6 +387,7 @@ class expression::array final : public expression {
   source_code_span span_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::array>);
 
 class expression::arrow_function_with_expression final : public expression {
  public:
@@ -428,6 +448,8 @@ class expression::arrow_function_with_expression final : public expression {
   expression_arena::array_ptr<expression_ptr> parameters_;
   expression_ptr body_;
 };
+static_assert(expression_arena::is_allocatable<
+              expression::arrow_function_with_expression>);
 
 class expression::arrow_function_with_statements final : public expression {
  public:
@@ -494,6 +516,8 @@ class expression::arrow_function_with_statements final : public expression {
   expression_arena::buffering_visitor_ptr child_visits_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
+static_assert(expression_arena::is_allocatable<
+              expression::arrow_function_with_statements>);
 
 class expression::assignment final : public expression {
  public:
@@ -522,6 +546,7 @@ class expression::assignment final : public expression {
  private:
   std::array<expression_ptr, 2> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::assignment>);
 
 class expression::await final
     : public expression::expression_with_prefix_operator_base {
@@ -532,6 +557,7 @@ class expression::await final
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
+static_assert(expression_arena::is_allocatable<expression::await>);
 
 class expression::binary_operator final : public expression {
  public:
@@ -555,6 +581,7 @@ class expression::binary_operator final : public expression {
  private:
   expression_arena::array_ptr<expression_ptr> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::binary_operator>);
 
 class expression::call final : public expression {
  public:
@@ -581,6 +608,7 @@ class expression::call final : public expression {
   const char *call_right_paren_end_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::call>);
 
 class expression::conditional final : public expression {
  public:
@@ -608,6 +636,7 @@ class expression::conditional final : public expression {
  private:
   std::array<expression_ptr, 3> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::conditional>);
 
 class expression::dot final : public expression {
  public:
@@ -636,6 +665,7 @@ class expression::dot final : public expression {
   identifier variable_identifier_;
   expression_ptr child_;
 };
+static_assert(expression_arena::is_allocatable<expression::dot>);
 
 class expression::function final : public expression {
  public:
@@ -666,6 +696,7 @@ class expression::function final : public expression {
   expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
+static_assert(expression_arena::is_allocatable<expression::function>);
 
 class expression::import final : public expression {
  public:
@@ -679,6 +710,7 @@ class expression::import final : public expression {
  private:
   source_code_span span_;
 };
+static_assert(expression_arena::is_allocatable<expression::import>);
 
 class expression::index final : public expression {
  public:
@@ -709,6 +741,7 @@ class expression::index final : public expression {
   const char *index_subscript_end_;
   std::array<expression_ptr, 2> children_;
 };
+static_assert(expression_arena::is_allocatable<expression::index>);
 
 class expression::literal final : public expression {
  public:
@@ -722,6 +755,7 @@ class expression::literal final : public expression {
  private:
   source_code_span span_;
 };
+static_assert(expression_arena::is_allocatable<expression::literal>);
 
 class expression::named_function final : public expression {
  public:
@@ -758,6 +792,7 @@ class expression::named_function final : public expression {
   identifier variable_identifier_;
   source_code_span span_;
 };
+static_assert(expression_arena::is_allocatable<expression::named_function>);
 
 class expression::object final : public expression {
  public:
@@ -782,6 +817,7 @@ class expression::object final : public expression {
   source_code_span span_;
   expression_arena::array_ptr<expression::object_property_value_pair> entries_;
 };
+static_assert(expression_arena::is_allocatable<expression::object>);
 
 class expression::rw_unary_prefix final
     : public expression::expression_with_prefix_operator_base {
@@ -793,6 +829,7 @@ class expression::rw_unary_prefix final
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
+static_assert(expression_arena::is_allocatable<expression::rw_unary_prefix>);
 
 class expression::rw_unary_suffix final : public expression {
  public:
@@ -820,6 +857,7 @@ class expression::rw_unary_suffix final : public expression {
   const char *unary_operator_end_;
   expression_ptr child_;
 };
+static_assert(expression_arena::is_allocatable<expression::rw_unary_suffix>);
 
 class expression::spread final
     : public expression::expression_with_prefix_operator_base {
@@ -830,6 +868,7 @@ class expression::spread final
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
+static_assert(expression_arena::is_allocatable<expression::spread>);
 
 class expression::super final : public expression {
  public:
@@ -843,6 +882,7 @@ class expression::super final : public expression {
  private:
   source_code_span span_;
 };
+static_assert(expression_arena::is_allocatable<expression::super>);
 
 class expression::unary_operator final
     : public expression::expression_with_prefix_operator_base {
@@ -854,6 +894,7 @@ class expression::unary_operator final
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
+static_assert(expression_arena::is_allocatable<expression::unary_operator>);
 
 class expression::variable final : public expression {
  public:
@@ -873,7 +914,10 @@ class expression::variable final : public expression {
  private:
   identifier variable_identifier_;
 };
+static_assert(expression_arena::is_allocatable<expression::variable>);
 }  // namespace quick_lint_js
+
+QLJS_WARNING_POP
 
 #undef QLJS_UNEXPECTED_EXPRESSION_KIND
 
