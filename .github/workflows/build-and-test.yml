@@ -24,9 +24,10 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: ubuntu-latest, name: "Clang 9", CC: clang-9, CXX: clang++-9, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-latest, name: "Clang 9 Release", CC: clang-9, CXX: clang++-9, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{1}"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 libc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 Release libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 Release", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{0}"}
