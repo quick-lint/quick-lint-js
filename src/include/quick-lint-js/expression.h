@@ -58,35 +58,6 @@ class expression_ptr {
   expression *ptr_;
 };
 
-template <class T>
-class expression_array_ptr {
- public:
-  explicit expression_array_ptr() noexcept : data_(nullptr), size_(0) {}
-
-  explicit expression_array_ptr(const T *data, int size) noexcept
-      : data_(data), size_(size) {}
-
-  T operator[](int index) const noexcept {
-    assert(index >= 0);
-    assert(index < this->size());
-    return this->data_[index];
-  }
-
-  T front() const noexcept { return (*this)[0]; }
-
-  T back() const noexcept { return (*this)[this->size() - 1]; }
-
-  const T *data() const noexcept { return this->data_; }
-
-  int size() const noexcept { return this->size_; }
-
-  bool empty() const noexcept { return this->size() == 0; }
-
- private:
-  const T *data_;
-  int size_;
-};
-
 enum class expression_kind {
   _invalid,
   _new,
@@ -213,6 +184,80 @@ class expression {
   expression_kind kind_;
 };
 
+class expression_arena {
+ public:
+  template <class>
+  class array_ptr;
+
+  template <class Expression, class... Args>
+  expression_ptr make_expression(Args &&... args) {
+    std::unique_ptr<Expression> ast =
+        std::make_unique<Expression>(std::forward<Args>(args)...);
+    this->expressions_.emplace_back(std::move(ast));
+    return expression_ptr(this->expressions_.back().get());
+  }
+
+  array_ptr<expression_ptr> make_array(
+      std::vector<expression_ptr> &&expressions);
+
+  array_ptr<expression::object_property_value_pair> make_array(
+      std::vector<expression::object_property_value_pair> &&pairs);
+
+ private:
+  std::deque<std::unique_ptr<expression>> expressions_;
+  std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
+  std::deque<std::vector<expression::object_property_value_pair>>
+      object_pair_arrays_;
+};
+
+template <class T>
+class expression_arena::array_ptr {
+ public:
+  explicit array_ptr() noexcept : data_(nullptr), size_(0) {}
+
+  explicit array_ptr(const T *data, int size) noexcept
+      : data_(data), size_(size) {}
+
+  T operator[](int index) const noexcept {
+    assert(index >= 0);
+    assert(index < this->size());
+    return this->data_[index];
+  }
+
+  T front() const noexcept { return (*this)[0]; }
+
+  T back() const noexcept { return (*this)[this->size() - 1]; }
+
+  const T *data() const noexcept { return this->data_; }
+
+  int size() const noexcept { return this->size_; }
+
+  bool empty() const noexcept { return this->size() == 0; }
+
+ private:
+  const T *data_;
+  int size_;
+};
+
+inline expression_arena::array_ptr<expression_ptr> expression_arena::make_array(
+    std::vector<expression_ptr> &&expressions) {
+  this->expression_ptr_arrays_.emplace_back(std::move(expressions));
+  std::vector<expression_ptr> &stored_expressions =
+      this->expression_ptr_arrays_.back();
+  return array_ptr<expression_ptr>(stored_expressions.data(),
+                                   narrow_cast<int>(stored_expressions.size()));
+}
+
+inline expression_arena::array_ptr<expression::object_property_value_pair>
+expression_arena::make_array(
+    std::vector<expression::object_property_value_pair> &&pairs) {
+  this->object_pair_arrays_.emplace_back(std::move(pairs));
+  std::vector<expression::object_property_value_pair> &stored_pairs =
+      this->object_pair_arrays_.back();
+  return array_ptr<expression::object_property_value_pair>(
+      stored_pairs.data(), narrow_cast<int>(stored_pairs.size()));
+}
+
 class expression::expression_with_prefix_operator_base : public expression {
  public:
   explicit expression_with_prefix_operator_base(
@@ -255,7 +300,7 @@ class expression::_new final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_new;
 
-  explicit _new(expression_array_ptr<expression_ptr> children,
+  explicit _new(expression_arena::array_ptr<expression_ptr> children,
                 source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
@@ -269,14 +314,14 @@ class expression::_new final : public expression {
 
  private:
   source_code_span span_;
-  expression_array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression_ptr> children_;
 };
 
 class expression::_template final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_template;
 
-  explicit _template(expression_array_ptr<expression_ptr> children,
+  explicit _template(expression_arena::array_ptr<expression_ptr> children,
                      source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
@@ -290,14 +335,14 @@ class expression::_template final : public expression {
 
  private:
   source_code_span span_;
-  expression_array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression_ptr> children_;
 };
 
 class expression::array final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::array;
 
-  explicit array(expression_array_ptr<expression_ptr> children,
+  explicit array(expression_arena::array_ptr<expression_ptr> children,
                  source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
@@ -311,7 +356,7 @@ class expression::array final : public expression {
 
  private:
   source_code_span span_;
-  expression_array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression_ptr> children_;
 };
 
 class expression::arrow_function_with_expression final : public expression {
@@ -329,8 +374,8 @@ class expression::arrow_function_with_expression final : public expression {
 
   explicit arrow_function_with_expression(
       function_attributes attributes,
-      expression_array_ptr<expression_ptr> parameters, expression_ptr body,
-      const char *parameter_list_begin) noexcept
+      expression_arena::array_ptr<expression_ptr> parameters,
+      expression_ptr body, const char *parameter_list_begin) noexcept
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
@@ -370,7 +415,7 @@ class expression::arrow_function_with_expression final : public expression {
  private:
   const char *parameter_list_begin_;
   function_attributes function_attributes_;
-  expression_array_ptr<expression_ptr> parameters_;
+  expression_arena::array_ptr<expression_ptr> parameters_;
   expression_ptr body_;
 };
 
@@ -393,7 +438,7 @@ class expression::arrow_function_with_statements final : public expression {
 
   explicit arrow_function_with_statements(
       function_attributes attributes,
-      expression_array_ptr<expression_ptr> parameters,
+      expression_arena::array_ptr<expression_ptr> parameters,
       std::unique_ptr<buffering_visitor> &&child_visits,
       const char *parameter_list_begin, const char *span_end) noexcept
       : expression(kind),
@@ -436,7 +481,7 @@ class expression::arrow_function_with_statements final : public expression {
   const char *parameter_list_begin_;
   const char *span_end_;
   std::unique_ptr<buffering_visitor> child_visits_;
-  expression_array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression_ptr> children_;
 };
 
 class expression::assignment final : public expression {
@@ -482,7 +527,7 @@ class expression::binary_operator final : public expression {
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
   explicit binary_operator(
-      expression_array_ptr<expression_ptr> children) noexcept
+      expression_arena::array_ptr<expression_ptr> children) noexcept
       : expression(kind), children_(children) {}
 
   int child_count() const noexcept override { return this->children_.size(); }
@@ -497,14 +542,14 @@ class expression::binary_operator final : public expression {
   }
 
  private:
-  expression_array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression_ptr> children_;
 };
 
 class expression::call final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::call;
 
-  explicit call(expression_array_ptr<expression_ptr> children,
+  explicit call(expression_arena::array_ptr<expression_ptr> children,
                 source_code_span span) noexcept
       : expression(kind),
         call_right_paren_end_(span.end()),
@@ -523,7 +568,7 @@ class expression::call final : public expression {
 
  private:
   const char *call_right_paren_end_;
-  expression_array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression_ptr> children_;
 };
 
 class expression::conditional final : public expression {
@@ -705,8 +750,9 @@ class expression::object final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::object;
 
-  explicit object(expression_array_ptr<object_property_value_pair> entries,
-                  source_code_span span) noexcept
+  explicit object(
+      expression_arena::array_ptr<object_property_value_pair> entries,
+      source_code_span span) noexcept
       : expression(kind), span_(span), entries_(entries) {}
 
   int object_entry_count() const noexcept override {
@@ -721,7 +767,7 @@ class expression::object final : public expression {
 
  private:
   source_code_span span_;
-  expression_array_ptr<expression::object_property_value_pair> entries_;
+  expression_arena::array_ptr<expression::object_property_value_pair> entries_;
 };
 
 class expression::rw_unary_prefix final
@@ -813,41 +859,6 @@ class expression::variable final : public expression {
 
  private:
   identifier variable_identifier_;
-};
-
-class expression_arena {
- public:
-  template <class Expression, class... Args>
-  expression_ptr make_expression(Args &&... args) {
-    std::unique_ptr<Expression> ast =
-        std::make_unique<Expression>(std::forward<Args>(args)...);
-    this->expressions_.emplace_back(std::move(ast));
-    return expression_ptr(this->expressions_.back().get());
-  }
-
-  expression_array_ptr<expression_ptr> make_array(
-      std::vector<expression_ptr> &&expressions) {
-    this->expression_ptr_arrays_.emplace_back(std::move(expressions));
-    std::vector<expression_ptr> &stored_expressions =
-        this->expression_ptr_arrays_.back();
-    return expression_array_ptr<expression_ptr>(
-        stored_expressions.data(), narrow_cast<int>(stored_expressions.size()));
-  }
-
-  expression_array_ptr<expression::object_property_value_pair> make_array(
-      std::vector<expression::object_property_value_pair> &&pairs) {
-    this->object_pair_arrays_.emplace_back(std::move(pairs));
-    std::vector<expression::object_property_value_pair> &stored_pairs =
-        this->object_pair_arrays_.back();
-    return expression_array_ptr<expression::object_property_value_pair>(
-        stored_pairs.data(), narrow_cast<int>(stored_pairs.size()));
-  }
-
- private:
-  std::deque<std::unique_ptr<expression>> expressions_;
-  std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
-  std::deque<std::vector<expression::object_property_value_pair>>
-      object_pair_arrays_;
 };
 }  // namespace quick_lint_js
 
