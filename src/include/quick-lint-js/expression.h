@@ -150,7 +150,7 @@ class expression {
   // Can be called at most once.
   template <class Visitor>
   void visit_children(Visitor &v) {
-    std::unique_ptr<buffering_visitor> child_visits = this->take_child_visits();
+    buffering_visitor *child_visits = this->take_child_visits();
     assert(
         child_visits &&
         "visit_children can be called at most once, but it was called twice");
@@ -176,7 +176,8 @@ class expression {
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
 
-  virtual std::unique_ptr<buffering_visitor> take_child_visits() noexcept {
+  // Returns expression_arena::buffering_visitor_ptr.
+  virtual buffering_visitor *take_child_visits() noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
@@ -188,6 +189,8 @@ class expression_arena {
  public:
   template <class>
   class array_ptr;
+
+  using buffering_visitor_ptr = buffering_visitor *;
 
   template <class Expression, class... Args>
   expression_ptr make_expression(Args &&... args) {
@@ -203,11 +206,18 @@ class expression_arena {
   array_ptr<expression::object_property_value_pair> make_array(
       std::vector<expression::object_property_value_pair> &&pairs);
 
+  buffering_visitor_ptr make_buffering_visitor(
+      std::unique_ptr<buffering_visitor> &&visitor) {
+    this->buffering_visitors_.emplace_back(std::move(visitor));
+    return this->buffering_visitors_.back().get();
+  }
+
  private:
   std::deque<std::unique_ptr<expression>> expressions_;
   std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
   std::deque<std::vector<expression::object_property_value_pair>>
       object_pair_arrays_;
+  std::deque<std::unique_ptr<buffering_visitor>> buffering_visitors_;
 };
 
 template <class T>
@@ -426,26 +436,26 @@ class expression::arrow_function_with_statements final : public expression {
 
   explicit arrow_function_with_statements(
       function_attributes attributes,
-      std::unique_ptr<buffering_visitor> &&child_visits,
+      expression_arena::buffering_visitor_ptr child_visits,
       const char *parameter_list_begin, const char *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
-        child_visits_(std::move(child_visits)) {
+        child_visits_(child_visits) {
     assert(this->parameter_list_begin_);
   }
 
   explicit arrow_function_with_statements(
       function_attributes attributes,
       expression_arena::array_ptr<expression_ptr> parameters,
-      std::unique_ptr<buffering_visitor> &&child_visits,
+      expression_arena::buffering_visitor_ptr child_visits,
       const char *parameter_list_begin, const char *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
-        child_visits_(std::move(child_visits)),
+        child_visits_(child_visits),
         children_(parameters) {
     if (!this->parameter_list_begin_) {
       assert(!this->children_.empty());
@@ -472,15 +482,16 @@ class expression::arrow_function_with_statements final : public expression {
   }
 
  protected:
-  std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
-    return std::move(this->child_visits_);
+  expression_arena::buffering_visitor_ptr
+  take_child_visits() noexcept override {
+    return std::exchange(this->child_visits_, nullptr);
   }
 
  private:
   function_attributes function_attributes_;
   const char *parameter_list_begin_;
   const char *span_end_;
-  std::unique_ptr<buffering_visitor> child_visits_;
+  expression_arena::buffering_visitor_ptr child_visits_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
 
@@ -631,11 +642,11 @@ class expression::function final : public expression {
   static constexpr expression_kind kind = expression_kind::function;
 
   explicit function(function_attributes attributes,
-                    std::unique_ptr<buffering_visitor> &&child_visits,
+                    expression_arena::buffering_visitor_ptr child_visits,
                     source_code_span span) noexcept
       : expression(kind),
         function_attributes_(attributes),
-        child_visits_(std::move(child_visits)),
+        child_visits_(child_visits),
         span_(span) {}
 
   source_code_span span() const noexcept override { return this->span_; }
@@ -645,13 +656,14 @@ class expression::function final : public expression {
   }
 
  protected:
-  std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
-    return std::move(this->child_visits_);
+  expression_arena::buffering_visitor_ptr
+  take_child_visits() noexcept override {
+    return std::exchange(this->child_visits_, nullptr);
   }
 
  private:
   function_attributes function_attributes_;
-  std::unique_ptr<buffering_visitor> child_visits_;
+  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 
@@ -716,11 +728,11 @@ class expression::named_function final : public expression {
   static constexpr expression_kind kind = expression_kind::named_function;
 
   explicit named_function(function_attributes attributes, identifier name,
-                          std::unique_ptr<buffering_visitor> &&child_visits,
+                          expression_arena::buffering_visitor_ptr child_visits,
                           source_code_span span) noexcept
       : expression(kind),
         function_attributes_(attributes),
-        child_visits_(std::move(child_visits)),
+        child_visits_(child_visits),
         variable_identifier_(name),
         span_(span) {}
 
@@ -735,13 +747,14 @@ class expression::named_function final : public expression {
   }
 
  protected:
-  std::unique_ptr<buffering_visitor> take_child_visits() noexcept override {
-    return std::move(this->child_visits_);
+  expression_arena::buffering_visitor_ptr
+  take_child_visits() noexcept override {
+    return std::exchange(this->child_visits_, nullptr);
   }
 
  private:
   function_attributes function_attributes_;
-  std::unique_ptr<buffering_visitor> child_visits_;
+  expression_arena::buffering_visitor_ptr child_visits_;
   identifier variable_identifier_;
   source_code_span span_;
 };

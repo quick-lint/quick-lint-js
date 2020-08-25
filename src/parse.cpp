@@ -525,7 +525,8 @@ expression_ptr parser::parse_arrow_function_body(
     this->parse_and_visit_statement_block_no_scope(*v);
     const char *span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
-        attributes, std::forward<Args>(args)..., std::move(v),
+        attributes, std::forward<Args>(args)...,
+        this->expressions_.make_buffering_visitor(std::move(v)),
         parameter_list_begin, span_end);
   } else {
     expression_ptr body = this->parse_expression(precedence{.commas = false});
@@ -549,13 +550,14 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   std::unique_ptr<buffering_visitor> v = std::make_unique<buffering_visitor>();
   this->parse_and_visit_function_parameters_and_body_no_scope(*v);
   const char *span_end = this->lexer_.end_of_previous_token();
+  expression_arena::buffering_visitor_ptr v_ptr =
+      this->expressions_.make_buffering_visitor(std::move(v));
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
-                   attributes, *function_name, std::move(v),
+                   attributes, *function_name, v_ptr,
                    source_code_span(span_begin, span_end))
              : this->make_expression<expression::function>(
-                   attributes, std::move(v),
-                   source_code_span(span_begin, span_end));
+                   attributes, v_ptr, source_code_span(span_begin, span_end));
 }
 
 expression_ptr parser::parse_object_literal() {
@@ -636,7 +638,8 @@ expression_ptr parser::parse_object_literal() {
             this->parse_and_visit_function_parameters_and_body_no_scope(*v);
             const char *span_end = this->lexer_.end_of_previous_token();
             expression_ptr func = this->make_expression<expression::function>(
-                function_attributes::normal, std::move(v),
+                function_attributes::normal,
+                this->expressions_.make_buffering_visitor(std::move(v)),
                 source_code_span(key_span.begin(), span_end));
             entries.emplace_back(key, func);
             break;
