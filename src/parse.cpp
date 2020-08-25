@@ -566,7 +566,7 @@ expression_ptr parser::parse_object_literal() {
   const char *right_curly_end;
   this->lexer_.skip();
 
-  std::vector<expression::object_property_value_pair> entries;
+  std::vector<object_property_value_pair> entries;
   auto parse_value_expression = [&]() {
     return this->parse_expression(precedence{.commas = false});
   };

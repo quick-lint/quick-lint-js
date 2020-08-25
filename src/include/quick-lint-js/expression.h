@@ -91,6 +91,18 @@ enum class expression_kind {
   variable,
 };
 
+struct object_property_value_pair {
+  explicit object_property_value_pair(expression_ptr property,
+                                      expression_ptr value) noexcept
+      : property(property), value(value) {}
+
+  explicit object_property_value_pair(expression_ptr value) noexcept
+      : property(std::nullopt), value(value) {}
+
+  std::optional<expression_ptr> property;
+  expression_ptr value;
+};
+
 class expression {
  public:
   class expression_with_prefix_operator_base;
@@ -119,18 +131,6 @@ class expression {
   class super;
   class unary_operator;
   class variable;
-
-  struct object_property_value_pair {
-    explicit object_property_value_pair(expression_ptr property,
-                                        expression_ptr value) noexcept
-        : property(property), value(value) {}
-
-    explicit object_property_value_pair(expression_ptr value) noexcept
-        : property(std::nullopt), value(value) {}
-
-    std::optional<expression_ptr> property;
-    expression_ptr value;
-  };
 
   expression_kind kind() const noexcept { return this->kind_; }
 
@@ -212,8 +212,8 @@ class expression_arena {
   array_ptr<expression_ptr> make_array(
       std::vector<expression_ptr> &&expressions);
 
-  array_ptr<expression::object_property_value_pair> make_array(
-      std::vector<expression::object_property_value_pair> &&pairs);
+  array_ptr<object_property_value_pair> make_array(
+      std::vector<object_property_value_pair> &&pairs);
 
   buffering_visitor_ptr make_buffering_visitor(
       std::unique_ptr<buffering_visitor> &&visitor) {
@@ -227,8 +227,7 @@ class expression_arena {
  private:
   std::deque<std::shared_ptr<expression>> expressions_;
   std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
-  std::deque<std::vector<expression::object_property_value_pair>>
-      object_pair_arrays_;
+  std::deque<std::vector<object_property_value_pair>> object_pair_arrays_;
   std::deque<std::unique_ptr<buffering_visitor>> buffering_visitors_;
 };
 
@@ -272,13 +271,12 @@ inline expression_arena::array_ptr<expression_ptr> expression_arena::make_array(
   return result;
 }
 
-inline expression_arena::array_ptr<expression::object_property_value_pair>
-expression_arena::make_array(
-    std::vector<expression::object_property_value_pair> &&pairs) {
+inline expression_arena::array_ptr<object_property_value_pair>
+expression_arena::make_array(std::vector<object_property_value_pair> &&pairs) {
   this->object_pair_arrays_.emplace_back(std::move(pairs));
-  std::vector<expression::object_property_value_pair> &stored_pairs =
+  std::vector<object_property_value_pair> &stored_pairs =
       this->object_pair_arrays_.back();
-  array_ptr<expression::object_property_value_pair> result(
+  array_ptr<object_property_value_pair> result(
       stored_pairs.data(), narrow_cast<int>(stored_pairs.size()));
   static_assert(is_allocatable<decltype(result[0])>);
   return result;
@@ -815,7 +813,7 @@ class expression::object final : public expression {
 
  private:
   source_code_span span_;
-  expression_arena::array_ptr<expression::object_property_value_pair> entries_;
+  expression_arena::array_ptr<object_property_value_pair> entries_;
 };
 static_assert(expression_arena::is_allocatable<expression::object>);
 
