@@ -1,3 +1,4 @@
+include(CheckCXXCompilerFlag)
 include(CheckCXXSourceCompiles)
 
 function (quick_lint_js_check_designated_initializers OUT)
@@ -70,4 +71,39 @@ function (quick_lint_js_set_cxx_standard)
 
   set(CMAKE_CXX_STANDARD "${CMAKE_CXX_STANDARD}" PARENT_SCOPE)
   set(CMAKE_CXX_STANDARD_REQUIRED "${CMAKE_CXX_STANDARD_REQUIRED}" PARENT_SCOPE)
+endfunction ()
+
+function (quick_lint_js_add_warning_options_if_supported)
+  cmake_parse_arguments("" "" "" "INTERFACE;PRIVATE;PUBLIC" ${ARGN})
+  set(TARGETS "${_UNPARSED_ARGUMENTS}")
+
+  foreach (STYLE INTERFACE PRIVATE PUBLIC)
+    quick_lint_js_get_supported_warning_options(
+      "${_${STYLE}}"
+      WARNING_OPTIONS_TO_ADD
+    )
+    if (WARNING_OPTIONS_TO_ADD)
+      target_compile_options("${TARGETS}" "${STYLE}" "${WARNING_OPTIONS_TO_ADD}")
+    endif ()
+  endforeach ()
+endfunction ()
+
+function (quick_lint_js_get_supported_warning_options WARNING_OPTIONS OUT_SUPPORTED_WARNING_OPTIONS)
+  set(SUPPORTED_WARNING_OPTIONS)
+  foreach (WARNING_OPTION IN LISTS WARNING_OPTIONS)
+    quick_lint_js_warning_option_var_name("${WARNING_OPTION}" WARNING_OPTION_VAR_NAME)
+    check_cxx_compiler_flag("${WARNING_OPTION}" "${WARNING_OPTION_VAR_NAME}")
+    if ("${${WARNING_OPTION_VAR_NAME}}")
+      list(APPEND SUPPORTED_WARNING_OPTIONS "${WARNING_OPTION}")
+    endif ()
+  endforeach ()
+  set("${OUT_SUPPORTED_WARNING_OPTIONS}" "${SUPPORTED_WARNING_OPTIONS}" PARENT_SCOPE)
+endfunction ()
+
+function (quick_lint_js_warning_option_var_name WARNING_OPTION OUT_VAR_NAME)
+  set(VAR_NAME "${WARNING_OPTION}")
+  string(TOUPPER "${VAR_NAME}" VAR_NAME)
+  string(REGEX REPLACE "[-/]" _ VAR_NAME "${VAR_NAME}")
+  set(VAR_NAME "QUICK_LINT_JS_HAVE_WARNING_OPTION_${VAR_NAME}")
+  set("${OUT_VAR_NAME}" "${VAR_NAME}" PARENT_SCOPE)
 endfunction ()
