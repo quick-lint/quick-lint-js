@@ -39,10 +39,6 @@
     QLJS_UNREACHABLE();                                                   \
   } while (false)
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_CLANG("-Wnon-virtual-dtor")
-QLJS_WARNING_IGNORE_GCC("-Wnon-virtual-dtor")
-
 namespace quick_lint_js {
 class expression;
 
@@ -186,26 +182,21 @@ class expression {
 
   expression_kind kind() const noexcept { return this->kind_; }
 
-  virtual identifier variable_identifier() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  identifier variable_identifier() const noexcept;
 
-  virtual int child_count() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  int child_count() const noexcept;
 
   expression_ptr child_0() const noexcept { return this->child(0); }
   expression_ptr child_1() const noexcept { return this->child(1); }
   expression_ptr child_2() const noexcept { return this->child(2); }
 
-  virtual expression_ptr child(int) const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  expression_ptr child(int) const noexcept;
 
   // Can be called at most once.
   template <class Visitor>
   void visit_children(Visitor &v, expression_arena &arena) {
-    buffering_visitor *child_visits = this->take_child_visits();
+    buffering_visitor *child_visits = this->with_derived(
+        [](auto &self) { return self.take_child_visits_impl(); });
     assert(
         child_visits &&
         "visit_children can be called at most once, but it was called twice");
@@ -213,31 +204,55 @@ class expression {
     arena.delete_buffering_visitor(child_visits);
   }
 
-  virtual int object_entry_count() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  int object_entry_count() const noexcept;
 
-  virtual object_property_value_pair object_entry(int) const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  object_property_value_pair object_entry(int) const noexcept;
 
-  virtual source_code_span span() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  source_code_span span() const noexcept;
 
-  virtual function_attributes attributes() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
+  function_attributes attributes() const noexcept;
 
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
 
+  identifier variable_identifier_impl() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  int child_count_impl() const noexcept { QLJS_UNEXPECTED_EXPRESSION_KIND(); }
+
+  expression_ptr child_impl(int) const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  int object_entry_count_impl() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  object_property_value_pair object_entry_impl(int) const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  source_code_span span_impl() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  function_attributes attributes_impl() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
   // Returns expression_arena::buffering_visitor_ptr.
-  virtual buffering_visitor *take_child_visits() noexcept {
+  buffering_visitor *take_child_visits_impl() noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
  private:
+  template <class Func>
+  auto with_derived(Func &&func);
+
+  template <class Func>
+  auto with_derived(Func &&func) const;
+
   expression_kind kind_;
 };
 
@@ -297,14 +312,14 @@ class expression::expression_with_prefix_operator_base : public expression {
         unary_operator_begin_(operator_span.begin()),
         child_(child) {}
 
-  int child_count() const noexcept override { return 1; }
+  int child_count_impl() const noexcept { return 1; }
 
-  expression_ptr child([[maybe_unused]] int index) const noexcept override {
+  expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
     assert(index == 0);
     return this->child_;
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->unary_operator_begin_,
                             this->child_->span().end());
   }
@@ -320,7 +335,7 @@ class expression::_invalid final : public expression {
 
   explicit _invalid() noexcept : expression(kind) {}
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     assert(false && "Not yet implemented");
     QLJS_UNREACHABLE();
   }
@@ -335,13 +350,13 @@ class expression::_new final : public expression {
                 source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
-  int child_count() const noexcept override { return this->children_.size(); }
+  int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -357,13 +372,13 @@ class expression::_template final : public expression {
                      source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
-  int child_count() const noexcept override { return this->children_.size(); }
+  int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -379,13 +394,13 @@ class expression::array final : public expression {
                  source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
-  int child_count() const noexcept override { return this->children_.size(); }
+  int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -420,11 +435,9 @@ class expression::arrow_function_with_expression final : public expression {
     }
   }
 
-  int child_count() const noexcept override {
-    return this->parameters_.size() + 1;
-  }
+  int child_count_impl() const noexcept { return this->parameters_.size() + 1; }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     if (index == this->parameters_.size()) {
       return this->body_;
     } else {
@@ -432,7 +445,7 @@ class expression::arrow_function_with_expression final : public expression {
     }
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     if (this->parameter_list_begin_) {
       return source_code_span(this->parameter_list_begin_,
                               this->body_->span().end());
@@ -442,7 +455,7 @@ class expression::arrow_function_with_expression final : public expression {
     }
   }
 
-  function_attributes attributes() const noexcept override {
+  function_attributes attributes_impl() const noexcept {
     return this->function_attributes_;
   }
 
@@ -488,13 +501,13 @@ class expression::arrow_function_with_statements final : public expression {
     }
   }
 
-  int child_count() const noexcept override { return this->children_.size(); }
+  int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     if (this->parameter_list_begin_) {
       return source_code_span(this->parameter_list_begin_, this->span_end_);
     } else {
@@ -503,13 +516,11 @@ class expression::arrow_function_with_statements final : public expression {
     }
   }
 
-  function_attributes attributes() const noexcept override {
+  function_attributes attributes_impl() const noexcept {
     return this->function_attributes_;
   }
 
- protected:
-  expression_arena::buffering_visitor_ptr
-  take_child_visits() noexcept override {
+  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
     return std::exchange(this->child_visits_, nullptr);
   }
 
@@ -532,17 +543,17 @@ class expression::assignment final : public expression {
            kind == expression_kind::compound_assignment);
   }
 
-  int child_count() const noexcept override {
+  int child_count_impl() const noexcept {
     return narrow_cast<int>(this->children_.size());
   }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
                             this->children_.back()->span().end());
   }
@@ -571,13 +582,13 @@ class expression::binary_operator final : public expression {
       expression_arena::array_ptr<expression_ptr> children) noexcept
       : expression(kind), children_(children) {}
 
-  int child_count() const noexcept override { return this->children_.size(); }
+  int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
                             this->children_.back()->span().end());
   }
@@ -597,13 +608,13 @@ class expression::call final : public expression {
         call_right_paren_end_(span.end()),
         children_(children) {}
 
-  int child_count() const noexcept override { return this->children_.size(); }
+  int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
                             this->call_right_paren_end_);
   }
@@ -622,17 +633,17 @@ class expression::conditional final : public expression {
                        expression_ptr false_branch) noexcept
       : expression(kind), children_{condition, true_branch, false_branch} {}
 
-  int child_count() const noexcept override {
+  int child_count_impl() const noexcept {
     return narrow_cast<int>(this->children_.size());
   }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
                             this->children_.back()->span().end());
   }
@@ -649,18 +660,18 @@ class expression::dot final : public expression {
   explicit dot(expression_ptr lhs, identifier rhs) noexcept
       : expression(kind), variable_identifier_(rhs), child_(lhs) {}
 
-  int child_count() const noexcept override { return 1; }
+  int child_count_impl() const noexcept { return 1; }
 
-  expression_ptr child([[maybe_unused]] int index) const noexcept override {
+  expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
     assert(index == 0);
     return this->child_;
   }
 
-  identifier variable_identifier() const noexcept override {
+  identifier variable_identifier_impl() const noexcept {
     return this->variable_identifier_;
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->child_0()->span().begin(),
                             this->variable_identifier_.span().end());
   }
@@ -683,15 +694,13 @@ class expression::function final : public expression {
         child_visits_(child_visits),
         span_(span) {}
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
-  function_attributes attributes() const noexcept override {
+  function_attributes attributes_impl() const noexcept {
     return this->function_attributes_;
   }
 
- protected:
-  expression_arena::buffering_visitor_ptr
-  take_child_visits() noexcept override {
+  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
     return std::exchange(this->child_visits_, nullptr);
   }
 
@@ -709,7 +718,7 @@ class expression::import final : public expression {
   explicit import(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -726,17 +735,17 @@ class expression::index final : public expression {
         index_subscript_end_(subscript_end),
         children_{container, subscript} {}
 
-  int child_count() const noexcept override {
+  int child_count_impl() const noexcept {
     return narrow_cast<int>(this->children_.size());
   }
 
-  expression_ptr child(int index) const noexcept override {
+  expression_ptr child_impl(int index) const noexcept {
     assert(index >= 0);
     assert(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->child_0()->span().begin(),
                             this->index_subscript_end_);
   }
@@ -754,7 +763,7 @@ class expression::literal final : public expression {
   explicit literal(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -774,19 +783,17 @@ class expression::named_function final : public expression {
         variable_identifier_(name),
         span_(span) {}
 
-  identifier variable_identifier() const noexcept override {
+  identifier variable_identifier_impl() const noexcept {
     return this->variable_identifier_;
   }
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
-  function_attributes attributes() const noexcept override {
+  function_attributes attributes_impl() const noexcept {
     return this->function_attributes_;
   }
 
- protected:
-  expression_arena::buffering_visitor_ptr
-  take_child_visits() noexcept override {
+  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
     return std::exchange(this->child_visits_, nullptr);
   }
 
@@ -807,15 +814,13 @@ class expression::object final : public expression {
       source_code_span span) noexcept
       : expression(kind), span_(span), entries_(entries) {}
 
-  int object_entry_count() const noexcept override {
-    return this->entries_.size();
-  }
+  int object_entry_count_impl() const noexcept { return this->entries_.size(); }
 
-  object_property_value_pair object_entry(int index) const noexcept override {
+  object_property_value_pair object_entry_impl(int index) const noexcept {
     return this->entries_[index];
   }
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -845,14 +850,14 @@ class expression::rw_unary_suffix final : public expression {
         unary_operator_end_(operator_span.end()),
         child_(child) {}
 
-  int child_count() const noexcept override { return 1; }
+  int child_count_impl() const noexcept { return 1; }
 
-  expression_ptr child([[maybe_unused]] int index) const noexcept override {
+  expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
     assert(index == 0);
     return this->child_;
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return source_code_span(this->child_->span().begin(),
                             this->unary_operator_end_);
   }
@@ -881,7 +886,7 @@ class expression::super final : public expression {
   explicit super(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span() const noexcept override { return this->span_; }
+  source_code_span span_impl() const noexcept { return this->span_; }
 
  private:
   source_code_span span_;
@@ -907,11 +912,11 @@ class expression::variable final : public expression {
   explicit variable(identifier variable_identifier) noexcept
       : expression(kind), variable_identifier_(variable_identifier) {}
 
-  identifier variable_identifier() const noexcept override {
+  identifier variable_identifier_impl() const noexcept {
     return this->variable_identifier_;
   }
 
-  source_code_span span() const noexcept override {
+  source_code_span span_impl() const noexcept {
     return this->variable_identifier_.span();
   }
 
@@ -919,9 +924,88 @@ class expression::variable final : public expression {
   identifier variable_identifier_;
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
-}  // namespace quick_lint_js
 
-QLJS_WARNING_POP
+template <class Func>
+inline auto expression::with_derived(Func &&func) {
+  using compound_assignment = assignment;
+
+#define QLJS_EXPRESSION_CASE(kind) \
+  case expression_kind::kind:      \
+    return func(static_cast<kind &>(*this));
+
+  switch (this->kind()) {
+    QLJS_EXPRESSION_CASE(_invalid)
+    QLJS_EXPRESSION_CASE(_new)
+    QLJS_EXPRESSION_CASE(_template)
+    QLJS_EXPRESSION_CASE(array)
+    QLJS_EXPRESSION_CASE(arrow_function_with_expression)
+    QLJS_EXPRESSION_CASE(arrow_function_with_statements)
+    QLJS_EXPRESSION_CASE(assignment)
+    QLJS_EXPRESSION_CASE(await)
+    QLJS_EXPRESSION_CASE(binary_operator)
+    QLJS_EXPRESSION_CASE(call)
+    QLJS_EXPRESSION_CASE(compound_assignment)
+    QLJS_EXPRESSION_CASE(conditional)
+    QLJS_EXPRESSION_CASE(dot)
+    QLJS_EXPRESSION_CASE(function)
+    QLJS_EXPRESSION_CASE(import)
+    QLJS_EXPRESSION_CASE(index)
+    QLJS_EXPRESSION_CASE(literal)
+    QLJS_EXPRESSION_CASE(named_function)
+    QLJS_EXPRESSION_CASE(object)
+    QLJS_EXPRESSION_CASE(rw_unary_prefix)
+    QLJS_EXPRESSION_CASE(rw_unary_suffix)
+    QLJS_EXPRESSION_CASE(spread)
+    QLJS_EXPRESSION_CASE(super)
+    QLJS_EXPRESSION_CASE(unary_operator)
+    QLJS_EXPRESSION_CASE(variable)
+  }
+  QLJS_UNREACHABLE();
+
+#undef QLJS_EXPRESSION_CASE
+}
+
+template <class Func>
+inline auto expression::with_derived(Func &&func) const {
+  return const_cast<expression *>(this)->with_derived(
+      [&func](const auto &self) { return func(self); });
+}
+
+inline identifier expression::variable_identifier() const noexcept {
+  return this->with_derived(
+      [](const auto &self) { return self.variable_identifier_impl(); });
+}
+
+inline int expression::child_count() const noexcept {
+  return this->with_derived(
+      [](const auto &self) { return self.child_count_impl(); });
+}
+
+inline expression_ptr expression::child(int index) const noexcept {
+  return this->with_derived(
+      [&](const auto &self) { return self.child_impl(index); });
+}
+
+inline int expression::object_entry_count() const noexcept {
+  return this->with_derived(
+      [](const auto &self) { return self.object_entry_count_impl(); });
+}
+
+inline object_property_value_pair expression::object_entry(int index) const
+    noexcept {
+  return this->with_derived(
+      [&](const auto &self) { return self.object_entry_impl(index); });
+}
+
+inline source_code_span expression::span() const noexcept {
+  return this->with_derived([](const auto &self) { return self.span_impl(); });
+}
+
+inline function_attributes expression::attributes() const noexcept {
+  return this->with_derived(
+      [](const auto &self) { return self.attributes_impl(); });
+}
+}  // namespace quick_lint_js
 
 #undef QLJS_UNEXPECTED_EXPRESSION_KIND
 
