@@ -140,18 +140,14 @@ retry:
       }
       break;
 
-    QLJS_CASE_IDENTIFIER_START : {
-      this->input_ += 1;
-      while (this->is_identifier_character(this->input_[0])) {
-        this->input_ += 1;
-      }
+    QLJS_CASE_IDENTIFIER_START:
+      this->parse_identifier();
       this->last_token_.end = this->input_;
       this->last_token_.type = this->identifier_token_type(
           std::string_view(this->last_token_.begin,
                            narrow_cast<std::size_t>(this->last_token_.end -
                                                     this->last_token_.begin)));
       break;
-    }
 
     case '(':
     case ')':
@@ -558,6 +554,21 @@ void lexer::parse_number() {
     while (this->is_digit(this->input_[0])) {
       this->input_ += 1;
     }
+  }
+}
+
+void lexer::parse_identifier() {
+  switch (this->input_[0]) {
+  QLJS_CASE_IDENTIFIER_START:
+    break;
+    default:
+      assert(false);
+      break;
+  }
+
+  this->input_ += 1;
+  while (this->is_identifier_character(this->input_[0])) {
+    this->input_ += 1;
   }
 }
 

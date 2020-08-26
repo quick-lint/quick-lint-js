@@ -249,6 +249,8 @@ class lexer {
   void parse_hexadecimal_number();
   void parse_number();
 
+  void parse_identifier();
+
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment();
