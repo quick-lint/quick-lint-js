@@ -182,7 +182,8 @@ class parser {
   void visit_expression(expression_ptr ast, Visitor &v,
                         variable_context context) {
     auto visit_children = [&] {
-      for (int i = 0; i < ast->child_count(); ++i) {
+      int child_count = ast->child_count();
+      for (int i = 0; i < child_count; ++i) {
         this->visit_expression(ast->child(i), v, context);
       }
     };
