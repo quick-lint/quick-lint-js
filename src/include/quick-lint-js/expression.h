@@ -119,11 +119,8 @@ class expression_arena {
   template <class Expression, class... Args>
   expression_ptr make_expression(Args &&... args);
 
-  array_ptr<expression_ptr> make_array(
-      std::vector<expression_ptr> &&expressions);
-
-  array_ptr<object_property_value_pair> make_array(
-      std::vector<object_property_value_pair> &&pairs);
+  template <class T>
+  array_ptr<T> make_array(std::vector<T> &&);
 
   buffering_visitor_ptr make_buffering_visitor(
       std::unique_ptr<buffering_visitor> &&visitor) {
@@ -146,8 +143,15 @@ class expression_arena {
     return result;
   }
 
-  std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
-  std::deque<std::vector<object_property_value_pair>> object_pair_arrays_;
+  template <class T>
+  T *allocate_array_move(T *begin, T *end) {
+    static_assert(is_allocatable<T>);
+    boost::container::pmr::polymorphic_allocator<T> allocator(&this->memory_);
+    T *result = allocator.allocate(narrow_cast<std::size_t>(end - begin));
+    std::uninitialized_move(begin, end, result);
+    return result;
+  }
+
   boost::container::pmr::monotonic_buffer_resource memory_;
 };
 
@@ -274,26 +278,14 @@ expression_ptr expression_arena::make_expression(Args &&... args) {
   return result;
 }
 
-inline expression_arena::array_ptr<expression_ptr> expression_arena::make_array(
-    std::vector<expression_ptr> &&expressions) {
-  this->expression_ptr_arrays_.emplace_back(std::move(expressions));
-  std::vector<expression_ptr> &stored_expressions =
-      this->expression_ptr_arrays_.back();
-  array_ptr<expression_ptr> result(stored_expressions.data(),
-                                   narrow_cast<int>(stored_expressions.size()));
-  static_assert(is_allocatable<decltype(result[0])>);
-  return result;
-}
-
-inline expression_arena::array_ptr<object_property_value_pair>
-expression_arena::make_array(std::vector<object_property_value_pair> &&pairs) {
-  this->object_pair_arrays_.emplace_back(std::move(pairs));
-  std::vector<object_property_value_pair> &stored_pairs =
-      this->object_pair_arrays_.back();
-  array_ptr<object_property_value_pair> result(
-      stored_pairs.data(), narrow_cast<int>(stored_pairs.size()));
-  static_assert(is_allocatable<decltype(result[0])>);
-  return result;
+template <class T>
+inline expression_arena::array_ptr<T> expression_arena::make_array(
+    std::vector<T> &&elements) {
+  T *result_begin = this->allocate_array_move(
+      elements.data(), elements.data() + elements.size());
+  int size = narrow_cast<int>(elements.size());
+  elements.clear();
+  return array_ptr<T>(result_begin, size);
 }
 
 class expression::expression_with_prefix_operator_base : public expression {
