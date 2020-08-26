@@ -18,6 +18,8 @@
 #define QUICK_LINT_JS_EXPRESSION_H
 
 #include <array>
+#include <boost/container/pmr/monotonic_buffer_resource.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <deque>
 #include <memory>
 #include <optional>
@@ -135,9 +137,18 @@ class expression_arena {
   }
 
  private:
-  std::deque<std::shared_ptr<expression>> expressions_;
+  template <class T, class... Args>
+  T *allocate(Args &&... args) {
+    static_assert(is_allocatable<T>);
+    boost::container::pmr::polymorphic_allocator<T> allocator(&this->memory_);
+    T *result = allocator.allocate(1);
+    result = new (result) T(std::forward<Args>(args)...);
+    return result;
+  }
+
   std::deque<std::vector<expression_ptr>> expression_ptr_arrays_;
   std::deque<std::vector<object_property_value_pair>> object_pair_arrays_;
+  boost::container::pmr::monotonic_buffer_resource memory_;
 };
 
 class expression {
@@ -257,10 +268,8 @@ class expression_arena::array_ptr {
 
 template <class Expression, class... Args>
 expression_ptr expression_arena::make_expression(Args &&... args) {
-  std::shared_ptr<Expression> ast =
-      std::make_shared<Expression>(std::forward<Args>(args)...);
-  this->expressions_.emplace_back(std::move(ast));
-  expression_ptr result(this->expressions_.back().get());
+  expression_ptr result(
+      this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
   return result;
 }

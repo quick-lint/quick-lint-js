@@ -38,7 +38,13 @@ quick_lint_js_add_library(
   vim-qflist-json-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
-target_link_libraries(quick-lint-js-lib PRIVATE gnulib-getopt)
+target_link_libraries(
+  quick-lint-js-lib
+  PUBLIC
+  boost_container
+  PRIVATE
+  gnulib-getopt
+)
 
 # HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
