@@ -25,6 +25,7 @@
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/unreachable.h>
@@ -46,7 +47,7 @@ class any_error_reporter {
     QLJS_UNREACHABLE();
   }
 
-  void set_source(const char *input, const file_to_lint &file) {
+  void set_source(padded_string_view input, const file_to_lint &file) {
     std::visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
@@ -86,7 +87,7 @@ class any_error_reporter {
   reporter_variant reporter_;
 };
 
-void process_file(const std::string &input, error_reporter *,
+void process_file(padded_string_view input, error_reporter *,
                   bool print_parser_visits);
 }  // namespace
 }  // namespace quick_lint_js
@@ -107,9 +108,9 @@ int main(int argc, char **argv) {
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    std::string source = quick_lint_js::read_file(file.path);
-    reporter.set_source(source.c_str(), file);
-    quick_lint_js::process_file(source, reporter.get(), o.print_parser_visits);
+    quick_lint_js::padded_string source(quick_lint_js::read_file(file.path));
+    reporter.set_source(&source, file);
+    quick_lint_js::process_file(&source, reporter.get(), o.print_parser_visits);
   }
   reporter.finish();
 
@@ -240,9 +241,9 @@ class multi_visitor {
   Visitor2 *visitor_2_;
 };
 
-void process_file(const std::string &input, error_reporter *error_reporter,
+void process_file(padded_string_view input, error_reporter *error_reporter,
                   bool print_parser_visits) {
-  parser p(input.c_str(), error_reporter);
+  parser p(input, error_reporter);
   linter l(error_reporter);
   if (print_parser_visits) {
     debug_visitor logger;

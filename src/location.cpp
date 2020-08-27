@@ -19,6 +19,7 @@
 #include <ostream>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out, const source_position &p) {
@@ -39,7 +40,7 @@ bool operator!=(source_code_span x, std::string_view y) noexcept {
   return !(x == y);
 }
 
-locator::locator(const char *input) noexcept : input_(input) {}
+locator::locator(padded_string_view input) noexcept : input_(input.c_str()) {}
 
 source_range locator::range(source_code_span span) const {
   source_position begin = this->position(span.begin());

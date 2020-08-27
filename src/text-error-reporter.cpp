@@ -15,13 +15,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <ostream>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
 
 namespace quick_lint_js {
 text_error_reporter::text_error_reporter(std::ostream &output)
     : output_(output) {}
 
-void text_error_reporter::set_source(const char *input, const char *file_path) {
+void text_error_reporter::set_source(padded_string_view input,
+                                     const char *file_path) {
   this->locator_.emplace(input);
   this->file_path_ = file_path;
 }

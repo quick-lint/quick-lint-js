@@ -23,13 +23,14 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
 class text_error_reporter final : public error_reporter {
  public:
   explicit text_error_reporter(std::ostream &output);
 
-  void set_source(const char *input, const char *file_name);
+  void set_source(padded_string_view input, const char *file_name);
 
   void report_error_assignment_to_const_global_variable(
       identifier assignment) override;

@@ -20,6 +20,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
 #include <string>
@@ -31,17 +32,19 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-spy_visitor parse_and_visit_statement(const char *code) {
+spy_visitor parse_and_visit_statement(const char *raw_code) {
+  padded_string code(raw_code);
   spy_visitor v;
-  parser p(code, &v);
+  parser p(&code, &v);
   p.parse_and_visit_statement(v);
   EXPECT_THAT(v.errors, IsEmpty());
   return v;
 }
 
-spy_visitor parse_and_visit_expression(const char *code) {
+spy_visitor parse_and_visit_expression(const char *raw_code) {
+  padded_string code(raw_code);
   spy_visitor v;
-  parser p(code, &v);
+  parser p(&code, &v);
   p.parse_and_visit_expression(v);
   EXPECT_THAT(v.errors, IsEmpty());
   return v;
@@ -81,7 +84,8 @@ TEST(test_parse, parse_simple_let) {
 
   {
     spy_visitor v;
-    parser p("let first; let second", &v);
+    padded_string code("let first; let second");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, "first");
@@ -102,7 +106,8 @@ TEST(test_parse, export_let) {
 
 TEST(test_parse, parse_simple_var) {
   spy_visitor v;
-  parser p("var x", &v);
+  padded_string code("var x");
+  parser p(&code, &v);
   p.parse_and_visit_statement(v);
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, "x");
@@ -112,7 +117,8 @@ TEST(test_parse, parse_simple_var) {
 
 TEST(test_parse, parse_simple_const) {
   spy_visitor v;
-  parser p("const x", &v);
+  padded_string code("const x");
+  parser p(&code, &v);
   p.parse_and_visit_statement(v);
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, "x");
@@ -229,7 +235,8 @@ TEST(test_parse,
   using namespace std::literals::string_view_literals;
 
   spy_visitor v;
-  parser p("let x = x", &v);
+  padded_string code("let x = x");
+  parser p(&code, &v);
   p.parse_and_visit_statement(v);
 
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
@@ -245,7 +252,8 @@ TEST(test_parse,
 TEST(test_parse, parse_invalid_let) {
   {
     spy_visitor v;
-    parser p("let", &v);
+    padded_string code("let");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     ASSERT_EQ(v.errors.size(), 1);
@@ -257,7 +265,8 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
-    parser p("let a,", &v);
+    padded_string code("let a,");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
     ASSERT_EQ(v.errors.size(), 1);
@@ -269,7 +278,8 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
-    parser p("let x, 42", &v);
+    padded_string code("let x, 42");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
     ASSERT_EQ(v.errors.size(), 1);
@@ -281,7 +291,8 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
-    parser p("let if", &v);
+    padded_string code("let if");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
     ASSERT_EQ(v.errors.size(), 1);
@@ -293,7 +304,8 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
-    parser p("let 42", &v);
+    padded_string code("let 42");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_EQ(v.errors.size(), 1);
@@ -321,7 +333,8 @@ TEST(test_parse, parse_and_visit_import) {
 
   {
     spy_visitor v;
-    parser p("import fs from 'fs'; import net from 'net';", &v);
+    padded_string code("import fs from 'fs'; import net from 'net';");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_declarations.size(), 2);
@@ -353,7 +366,8 @@ TEST(test_parse, return_statement) {
 
   {
     spy_visitor v;
-    parser p("return a\nreturn b", &v);
+    padded_string code("return a\nreturn b");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -366,7 +380,8 @@ TEST(test_parse, return_statement) {
 
   {
     spy_visitor v;
-    parser p("return a; return b;", &v);
+    padded_string code("return a; return b;");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -379,7 +394,8 @@ TEST(test_parse, return_statement) {
 
   {
     spy_visitor v;
-    parser p("if (true) return; x;", &v);
+    padded_string code("if (true) return; x;");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -429,7 +445,8 @@ TEST(test_parse, parse_math_expression) {
 TEST(test_parse, parse_invalid_math_expression) {
   {
     spy_visitor v;
-    parser p("2 +", &v);
+    padded_string code("2 +");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -440,7 +457,8 @@ TEST(test_parse, parse_invalid_math_expression) {
 
   {
     spy_visitor v;
-    parser p("^ 2", &v);
+    padded_string code("^ 2");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -451,7 +469,8 @@ TEST(test_parse, parse_invalid_math_expression) {
 
   {
     spy_visitor v;
-    parser p("2 * * 2", &v);
+    padded_string code("2 * * 2");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -462,7 +481,8 @@ TEST(test_parse, parse_invalid_math_expression) {
 
   {
     spy_visitor v;
-    parser p("2 & & & 2", &v);
+    padded_string code("2 & & & 2");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 2);
 
@@ -479,7 +499,8 @@ TEST(test_parse, parse_invalid_math_expression) {
 
   {
     spy_visitor v;
-    parser p("(2 *)", &v);
+    padded_string code("(2 *)");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -489,7 +510,8 @@ TEST(test_parse, parse_invalid_math_expression) {
   }
   {
     spy_visitor v;
-    parser p("2 * (3 + 4", &v);
+    padded_string code("2 * (3 + 4");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -500,7 +522,8 @@ TEST(test_parse, parse_invalid_math_expression) {
 
   {
     spy_visitor v;
-    parser p("2 * (3 + (4", &v);
+    padded_string code("2 * (3 + (4");
+    parser p(&code, &v);
     p.parse_and_visit_expression(v);
     ASSERT_EQ(v.errors.size(), 2);
 
@@ -519,7 +542,8 @@ TEST(test_parse, parse_invalid_math_expression) {
 TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
   {
     spy_visitor v;
-    parser p("ten ten", &v);
+    padded_string code("ten ten");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
@@ -779,7 +803,8 @@ TEST(test_parse, expression_statement) {
 TEST(test_parse, asi_plusplus_minusminus) {
   {
     spy_visitor v;
-    parser p("x\n++\ny;", &v);
+    padded_string code("x\n++\ny;");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -799,7 +824,9 @@ TEST(test_parse, asi_plusplus_minusminus) {
 TEST(test_parse, asi_for_statement_at_right_curly) {
   {
     spy_visitor v;
-    parser p("function f() { console.log(\"hello\") } function g() { }", &v);
+    padded_string code(
+        "function f() { console.log(\"hello\") } function g() { }");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -815,7 +842,8 @@ TEST(test_parse, asi_for_statement_at_right_curly) {
 TEST(test_parse, asi_for_statement_at_newline) {
   {
     spy_visitor v;
-    parser p("console.log('hello')\nconsole.log('world')\n", &v);
+    padded_string code("console.log('hello')\nconsole.log('world')\n");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -827,7 +855,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
   {
     // This code should emit an error, but also use ASI for error recovery.
     spy_visitor v;
-    parser p("console.log('hello') console.log('world');", &v);
+    padded_string code("console.log('hello') console.log('world');");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_uses,
@@ -846,10 +875,10 @@ TEST(test_parse, asi_for_statement_at_newline) {
   }
 
   for (std::string variable_kind : {"const", "let", "var"}) {
-    std::string code = variable_kind + " a = 1\n" + variable_kind + " b = 2\n";
+    padded_string code(variable_kind + " a = 1\n" + variable_kind + " b = 2\n");
     SCOPED_TRACE(code);
     spy_visitor v;
-    parser p(code.c_str(), &v);
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, IsEmpty());
@@ -927,7 +956,8 @@ TEST(test_parse, parse_templates_in_expressions) {
 TEST(test_parse, DISABLED_parse_invalid_function_calls) {
   {
     spy_visitor v;
-    parser p("(x)f", &v);
+    padded_string code("(x)f");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
 
     ASSERT_EQ(v.errors.size(), 1);
@@ -945,7 +975,8 @@ TEST(test_parse, DISABLED_parse_invalid_function_calls) {
 TEST(test_parse, parse_function_call_as_statement) {
   {
     spy_visitor v;
-    parser p("f(x); g(y);", &v);
+    padded_string code("f(x); g(y);");
+    parser p(&code, &v);
 
     p.parse_and_visit_statement(v);
     ASSERT_EQ(v.variable_uses.size(), 2);
@@ -1217,7 +1248,8 @@ TEST(test_parse, arrow_function_expression_with_statements) {
 
 TEST(test_parse, parse_empty_module) {
   spy_visitor v;
-  parser p("", &v);
+  padded_string code("");
+  parser p(&code, &v);
   p.parse_and_visit_module(v);
   EXPECT_THAT(v.errors, IsEmpty());
   EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
@@ -1331,7 +1363,8 @@ TEST(test_parse, parse_class_statement) {
 
   {
     spy_visitor v;
-    parser p("class A {} class B {}", &v);
+    padded_string code("class A {} class B {}");
+    parser p(&code, &v);
     p.parse_and_visit_statement(v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_declarations,

@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 #include <string_view>
 
 #define QLJS_CASE_KEYWORD                          \
@@ -214,8 +215,9 @@ struct token {
 
 class lexer {
  public:
-  explicit lexer(const char* input, error_reporter* error_reporter) noexcept
-      : input_(input), error_reporter_(error_reporter) {
+  explicit lexer(padded_string_view input,
+                 error_reporter* error_reporter) noexcept
+      : input_(input.c_str()), error_reporter_(error_reporter) {
     this->last_token_.begin = nullptr;
     this->last_last_token_end_ = nullptr;
     this->parse_current_token();

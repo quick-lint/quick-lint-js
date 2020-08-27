@@ -28,11 +28,12 @@ quick_lint_js_add_library(
   quick-lint-js-lib
   file.cpp
   integer.cpp
-  lex.cpp
   lex-keyword.cpp
+  lex.cpp
   lint.cpp
   location.cpp
   options.cpp
+  padded-string.cpp
   parse.cpp
   text-error-reporter.cpp
   vim-qflist-json-error-reporter.cpp

@@ -18,18 +18,20 @@
 #include <cstring>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
 namespace {
-void benchmark_lex(::benchmark::State &state, const char *source) {
+void benchmark_lex(::benchmark::State &state, const char *raw_source) {
+  padded_string source(raw_source);
   for (auto _ : state) {
-    lexer l(source, &null_error_reporter::instance);
+    lexer l(&source, &null_error_reporter::instance);
     while (l.peek().type != token_type::end_of_file) {
       l.skip();
     }
     ::benchmark::DoNotOptimize(l.peek().type);
   }
-  double bytes_per_iteration = static_cast<double>(std::strlen(source) + 1);
+  double bytes_per_iteration = static_cast<double>(source.size() + 1);
   double iteration_count = static_cast<double>(state.iterations());
   state.counters["bytes"] = ::benchmark::Counter(
       bytes_per_iteration * iteration_count, ::benchmark::Counter::kIsRate);

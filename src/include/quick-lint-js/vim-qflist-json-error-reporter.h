@@ -22,6 +22,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -29,11 +30,12 @@ class vim_qflist_json_error_reporter final : public error_reporter {
  public:
   explicit vim_qflist_json_error_reporter(std::ostream &output);
 
-  void set_source(const char *input, const char *file_name, int vim_bufnr);
-  void set_source(const char *input, const char *file_name,
+  void set_source(padded_string_view input, const char *file_name,
+                  int vim_bufnr);
+  void set_source(padded_string_view input, const char *file_name,
                   std::optional<int> vim_bufnr);
-  void set_source(const char *input, const char *file_name);
-  void set_source(const char *input, int vim_bufnr);
+  void set_source(padded_string_view input, const char *file_name);
+  void set_source(padded_string_view input, int vim_bufnr);
 
   void finish();
 

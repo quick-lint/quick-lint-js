@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 #include <string_view>
 #include <vector>
 
@@ -87,7 +88,7 @@ bool operator!=(source_code_span, std::string_view) noexcept;
 
 class locator {
  public:
-  explicit locator(const char* input) noexcept;
+  explicit locator(padded_string_view input) noexcept;
 
   source_range range(source_code_span) const;
   source_position position(const char*) const noexcept;

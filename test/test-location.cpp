@@ -23,8 +23,8 @@
 namespace quick_lint_js {
 namespace {
 TEST(test_location, ranges_on_first_line) {
-  const char code[] = "let x = 2;";
-  locator l(code);
+  padded_string code("let x = 2;");
+  locator l(&code);
   source_range x_range = l.range(source_code_span(&code[4], &code[5]));
 
   EXPECT_EQ(x_range.begin_offset(), 4);
@@ -37,8 +37,8 @@ TEST(test_location, ranges_on_first_line) {
 }
 
 TEST(test_location, ranges_on_second_line) {
-  const char code[] = "let x = 2;\nlet y = 3;";
-  locator l(code);
+  padded_string code("let x = 2;\nlet y = 3;");
+  locator l(&code);
   source_range x_range = l.range(source_code_span(&code[15], &code[16]));
 
   EXPECT_EQ(x_range.begin_offset(), 15);
@@ -51,20 +51,20 @@ TEST(test_location, ranges_on_second_line) {
 }
 
 TEST(test_location, position_backwards) {
-  const char code[] = "ab\nc\n\nd\nefg\nh";
+  padded_string code("ab\nc\n\nd\nefg\nh");
 
   std::vector<source_position> expected_positions;
   {
-    locator l(code);
-    for (int i = 0; i < narrow_cast<int>(std::strlen(code)); ++i) {
+    locator l(&code);
+    for (int i = 0; i < narrow_cast<int>(code.size()); ++i) {
       expected_positions.push_back(l.position(&code[i]));
     }
   }
 
   std::vector<source_position> actual_positions;
   {
-    locator l(code);
-    for (int i = narrow_cast<int>(std::strlen(code)) - 1; i >= 0; --i) {
+    locator l(&code);
+    for (int i = narrow_cast<int>(code.size()) - 1; i >= 0; --i) {
       actual_positions.push_back(l.position(&code[i]));
     }
   }

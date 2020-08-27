@@ -21,6 +21,7 @@
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -40,14 +41,14 @@ TEST(test_lex, lex_block_comments) {
 
   {
     error_collector v;
-    const char* input = "hello /* unterminated comment ";
-    lexer l(input, &v);
+    padded_string input("hello /* unterminated comment ");
+    lexer l(&input, &v);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
     EXPECT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_block_comment);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 6);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 8);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 6);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 8);
   }
 }
 
@@ -84,22 +85,22 @@ TEST(test_lex, lex_strings) {
 
   {
     error_collector v;
-    const char* input = R"("unterminated)";
-    lexer l(input, &v);
+    padded_string input(R"("unterminated)");
+    lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     ASSERT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 13);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
   }
 
   {
     error_collector v;
-    const char* input = "'unterminated\nhello";
-    lexer l(input, &v);
+    padded_string input("'unterminated\nhello");
+    lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -107,22 +108,22 @@ TEST(test_lex, lex_strings) {
 
     ASSERT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 13);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
   }
 
   {
     error_collector v;
-    const char* input = "'unterminated\\";
-    lexer l(input, &v);
+    padded_string input("'unterminated\\");
+    lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     ASSERT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 14);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 14);
   }
 
   // TODO(strager): Lex line continuations in string literals. For example:
@@ -158,7 +159,8 @@ world`)",
                {token_type::complete_template});
 
   {
-    lexer l("`hello${42}`", &null_error_reporter::instance);
+    padded_string code("`hello${42}`");
+    lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), "`hello${");
     const char* template_begin = l.peek().begin;
@@ -174,7 +176,8 @@ world`)",
   }
 
   {
-    lexer l("`${42}world`", &null_error_reporter::instance);
+    padded_string code("`${42}world`");
+    lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), "`${");
     const char* template_begin = l.peek().begin;
@@ -190,7 +193,8 @@ world`)",
   }
 
   {
-    lexer l("`${left}${right}`", &null_error_reporter::instance);
+    padded_string code("`${left}${right}`");
+    lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char* template_begin = l.peek().begin;
     l.skip();
@@ -216,22 +220,22 @@ world`)",
 
   {
     error_collector v;
-    const char* input = "`unterminated";
-    lexer l(input, &v);
+    padded_string input("`unterminated");
+    lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::complete_template);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     ASSERT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 13);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
   }
 
   {
     error_collector v;
-    const char* input = "`${un}terminated";
-    lexer l(input, &v);
+    padded_string input("`${un}terminated");
+    lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char* template_begin = l.peek().begin;
     l.skip();
@@ -245,22 +249,22 @@ world`)",
 
     ASSERT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 16);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 16);
   }
 
   {
     error_collector v;
-    const char* input = "`unterminated\\";
-    lexer l(input, &v);
+    padded_string input("`unterminated\\");
+    lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::complete_template);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     ASSERT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 14);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 14);
   }
 
   // TODO(strager): Report invalid escape sequences, like with plain string
@@ -268,33 +272,35 @@ world`)",
 }
 
 TEST(test_lex, lex_regular_expression_literals) {
-  for (const char* code : {"/ /", R"(/hello\/world/)", "/re/g"}) {
+  for (const char* raw_code : {"/ /", R"(/hello\/world/)", "/re/g"}) {
+    padded_string code(raw_code);
     SCOPED_TRACE(code);
-    lexer l(code, &null_error_reporter::instance);
+    lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_EQ(l.peek().begin, &code[0]);
-    EXPECT_EQ(l.peek().end, &code[std::strlen(code)]);
+    EXPECT_EQ(l.peek().end, &code[code.size()]);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
-  for (const char* code : {"/end_of_file", R"(/eof\)"}) {
+  for (const char* raw_code : {"/end_of_file", R"(/eof\)"}) {
+    padded_string code(raw_code);
     SCOPED_TRACE(code);
     error_collector v;
-    lexer l(code, &v);
+    lexer l(&code, &v);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_EQ(l.peek().begin, &code[0]);
-    EXPECT_EQ(l.peek().end, &code[std::strlen(code)]);
+    EXPECT_EQ(l.peek().end, &code[code.size()]);
 
     EXPECT_EQ(v.errors.size(), 1);
     EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_regexp_literal);
-    EXPECT_EQ(locator(code).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(code).range(v.errors[0].where).end_offset(),
-              std::strlen(code));
+    EXPECT_EQ(locator(&code).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&code).range(v.errors[0].where).end_offset(),
+              code.size());
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -311,16 +317,16 @@ TEST(test_lex, lex_regular_expression_literals) {
 
 TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
-    const char code[] = "\n/ /";
-    lexer l(code, &null_error_reporter::instance);
+    padded_string code("\n/ /");
+    lexer l(&code, &null_error_reporter::instance);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_TRUE(l.peek().has_leading_newline);
   }
 
   {
-    const char code[] = "/ /";
-    lexer l(code, &null_error_reporter::instance);
+    padded_string code("/ /");
+    lexer l(&code, &null_error_reporter::instance);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_FALSE(l.peek().has_leading_newline);
@@ -501,7 +507,8 @@ TEST(test_lex, lex_whitespace) {
 }
 
 TEST(test_lex, lex_token_notes_leading_newline) {
-  lexer l("a b\nc d", &null_error_reporter::instance);
+  padded_string code("a b\nc d");
+  lexer l(&code, &null_error_reporter::instance);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a
   l.skip();
   EXPECT_FALSE(l.peek().has_leading_newline);  // b
@@ -512,22 +519,24 @@ TEST(test_lex, lex_token_notes_leading_newline) {
 }
 
 TEST(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
-  lexer l("a /*\n*/ b", &null_error_reporter::instance);
+  padded_string code("a /*\n*/ b");
+  lexer l(&code, &null_error_reporter::instance);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a
   l.skip();
   EXPECT_TRUE(l.peek().has_leading_newline);  // b
 }
 
 TEST(test_lex, lex_token_notes_leading_newline_after_comment) {
-  lexer l("a /* comment */\nb", &null_error_reporter::instance);
+  padded_string code("a /* comment */\nb");
+  lexer l(&code, &null_error_reporter::instance);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a
   l.skip();
   EXPECT_TRUE(l.peek().has_leading_newline);  // b
 }
 
 TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
-  const char code[] = "hello\nworld";
-  lexer l(code, &null_error_reporter::instance);
+  padded_string code("hello\nworld");
+  lexer l(&code, &null_error_reporter::instance);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
   EXPECT_EQ(l.peek().identifier_name().string_view(), "hello");
@@ -554,8 +563,8 @@ TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
 }
 
 TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
-  const char code[] = "{ x }";
-  lexer l(code, &null_error_reporter::instance);
+  padded_string code("{ x }");
+  lexer l(&code, &null_error_reporter::instance);
 
   EXPECT_EQ(l.peek().type, token_type::left_curly);
   EXPECT_FALSE(l.peek().has_leading_newline);
@@ -584,7 +593,8 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
 }
 
 void check_single_token(const char* input, token_type expected_token_type) {
-  lexer l(input, &null_error_reporter::instance);
+  padded_string code(input);
+  lexer l(&code, &null_error_reporter::instance);
   EXPECT_EQ(l.peek().type, expected_token_type);
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -592,7 +602,8 @@ void check_single_token(const char* input, token_type expected_token_type) {
 
 void check_single_token(const char* input,
                         std::string_view expected_identifier_name) {
-  lexer l(input, &null_error_reporter::instance);
+  padded_string code(input);
+  lexer l(&code, &null_error_reporter::instance);
   EXPECT_EQ(l.peek().type, token_type::identifier);
   EXPECT_EQ(l.peek().identifier_name().string_view(), expected_identifier_name);
   l.skip();
@@ -601,7 +612,8 @@ void check_single_token(const char* input,
 
 void check_tokens(const char* input,
                   std::initializer_list<token_type> expected_token_types) {
-  lexer l(input, &null_error_reporter::instance);
+  padded_string code(input);
+  lexer l(&code, &null_error_reporter::instance);
   for (token_type expected_token_type : expected_token_types) {
     EXPECT_EQ(l.peek().type, expected_token_type);
     l.skip();

@@ -21,6 +21,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 
 using ::testing::IsEmpty;
@@ -152,19 +153,19 @@ TEST(test_lint, let_or_const_variable_use_before_declaration) {
 }
 
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
-  const char *input = "let x = y, y = x;";
+  padded_string input("let x = y, y = x;");
   error_collector v;
   linter l(&v);
-  parser p(input, &v);
+  parser p(&input, &v);
   p.parse_and_visit_statement(l);
   l.visit_end_of_module();
 
   ASSERT_EQ(v.errors.size(), 1);
   EXPECT_EQ(v.errors[0].kind,
             error_collector::error_variable_used_before_declaration);
-  EXPECT_EQ(locator(input).range(v.errors[0].where).begin_offset(), 8);
-  EXPECT_EQ(locator(input).range(v.errors[0].where).end_offset(), 9);
-  EXPECT_EQ(locator(input).range(v.errors[0].other_where).begin_offset(), 11);
+  EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 8);
+  EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 9);
+  EXPECT_EQ(locator(&input).range(v.errors[0].other_where).begin_offset(), 11);
 }
 
 TEST(test_lint, let_variable_use_before_declaration_within_function) {

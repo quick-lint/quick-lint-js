@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <string>
 
@@ -65,10 +66,10 @@ void benchmark_parse(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  std::string source = quick_lint_js::read_file("jquery-3.5.1.js");
+  padded_string source(quick_lint_js::read_file("jquery-3.5.1.js"));
 
   for (auto _ : state) {
-    parser p(source.c_str(), &null_error_reporter::instance);
+    parser p(&source, &null_error_reporter::instance);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }

@@ -18,6 +18,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
 
@@ -28,14 +29,14 @@ vim_qflist_json_error_reporter::vim_qflist_json_error_reporter(
   this->output_ << "{\"qflist\": [";
 }
 
-void vim_qflist_json_error_reporter::set_source(const char *input,
+void vim_qflist_json_error_reporter::set_source(padded_string_view input,
                                                 const char *file_name,
                                                 int vim_bufnr) {
   this->set_source(input, /*file_name=*/file_name,
                    /*vim_bufnr=*/std::optional<int>(vim_bufnr));
 }
 
-void vim_qflist_json_error_reporter::set_source(const char *input,
+void vim_qflist_json_error_reporter::set_source(padded_string_view input,
                                                 const char *file_name,
                                                 std::optional<int> vim_bufnr) {
   this->locator_.emplace(input);
@@ -43,12 +44,12 @@ void vim_qflist_json_error_reporter::set_source(const char *input,
   this->bufnr_ = vim_bufnr.has_value() ? std::to_string(*vim_bufnr) : "";
 }
 
-void vim_qflist_json_error_reporter::set_source(const char *input,
+void vim_qflist_json_error_reporter::set_source(padded_string_view input,
                                                 const char *file_name) {
   this->set_source(input, /*file_name=*/file_name, /*vim_bufnr=*/std::nullopt);
 }
 
-void vim_qflist_json_error_reporter::set_source(const char *input,
+void vim_qflist_json_error_reporter::set_source(padded_string_view input,
                                                 int vim_bufnr) {
   this->locator_.emplace(input);
   this->file_name_.clear();

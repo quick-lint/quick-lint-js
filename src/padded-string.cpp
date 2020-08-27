@@ -1,0 +1,53 @@
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include <ostream>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
+#include <string>
+#include <utility>
+
+namespace quick_lint_js {
+padded_string::padded_string(std::string&& string) : data_(std::move(string)) {
+  this->data_.reserve(this->data_.size() +
+                      narrow_cast<unsigned>(this->null_bytes_to_add));
+  this->data_.append(narrow_cast<unsigned>(this->null_bytes_to_add), '\0');
+}
+
+padded_string::padded_string(const char* string)
+    : padded_string(std::string(string)) {}
+
+bool operator==(std::string_view x, const padded_string& y) noexcept {
+  return y == x;
+}
+
+bool operator!=(std::string_view x, const padded_string& y) noexcept {
+  return !(x == y);
+}
+
+bool operator==(const padded_string& x, std::string_view y) noexcept {
+  return std::string_view(x.c_str(), narrow_cast<std::size_t>(x.size())) == y;
+}
+
+bool operator!=(const padded_string& x, std::string_view y) noexcept {
+  return !(x == y);
+}
+
+std::ostream& operator<<(std::ostream& out, const padded_string& x) {
+  out << x.data_;
+  return out;
+}
+}  // namespace quick_lint_js

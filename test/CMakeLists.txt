@@ -30,6 +30,7 @@ quick_lint_js_add_executable(
   test-location.cpp
   test-narrow-cast.cpp
   test-options.cpp
+  test-padded-string.cpp
   test-parse-expression.cpp
   test-parse.cpp
   test-text-error-reporter.cpp

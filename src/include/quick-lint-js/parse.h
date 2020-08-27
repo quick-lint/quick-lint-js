@@ -25,6 +25,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 #include <vector>
 
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
@@ -42,7 +43,7 @@
 namespace quick_lint_js {
 class parser {
  public:
-  explicit parser(const char *input, error_reporter *error_reporter)
+  explicit parser(padded_string_view input, error_reporter *error_reporter)
       : lexer_(input, error_reporter),
         locator_(input),
         error_reporter_(error_reporter) {}

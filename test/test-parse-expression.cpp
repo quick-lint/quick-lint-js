@@ -21,6 +21,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/unreachable.h>
 #include <string>
@@ -37,7 +38,8 @@ std::string summarize(std::optional<expression_ptr>);
 
 class test_parser {
  public:
-  explicit test_parser(const char *input) : parser_(input, &errors_) {}
+  explicit test_parser(const char *input)
+      : code_(input), parser_(&this->code_, &this->errors_) {}
 
   ~test_parser() { this->clean_up_expressions(); }
 
@@ -131,6 +133,7 @@ class test_parser {
     }
   }
 
+  padded_string code_;
   error_collector errors_;
   quick_lint_js::parser parser_;
   std::vector<expression_ptr> expressions_needing_cleanup_;
