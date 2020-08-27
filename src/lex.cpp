@@ -15,12 +15,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <iterator>
 #include <ostream>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/simd.h>
 #include <quick-lint-js/warning.h>
 #include <string_view>
 #include <type_traits>
@@ -558,18 +561,57 @@ void lexer::parse_number() {
 }
 
 void lexer::parse_identifier() {
-  switch (this->input_[0]) {
+  const char* input = this->input_;
+  switch (*input) {
   QLJS_CASE_IDENTIFIER_START:
     break;
     default:
       assert(false);
       break;
   }
+  input += 1;
 
-  this->input_ += 1;
-  while (this->is_identifier_character(this->input_[0])) {
-    this->input_ += 1;
-  }
+#if QLJS_HAVE_X86_SSE2
+  using bool_vector = bool_vector_16_sse2;
+  using char_vector = char_vector_16_sse2;
+#else
+  using bool_vector = bool_vector_1;
+  using char_vector = char_vector_1;
+#endif
+
+  auto is_identifier_characters = [](char_vector chars) -> bool_vector {
+    constexpr std::uint8_t upper_to_lower_mask = 'a' - 'A';
+    static_assert(('A' | upper_to_lower_mask) == 'a');
+
+    char_vector lower_cased_characters =
+        chars | char_vector::repeated(upper_to_lower_mask);
+    bool_vector is_alpha =
+        (lower_cased_characters > char_vector::repeated('a' - 1)) &
+        (lower_cased_characters < char_vector::repeated('z' + 1));
+    bool_vector is_digit = (chars > char_vector::repeated('0' - 1)) &
+                           (chars < char_vector::repeated('9' + 1));
+    return is_alpha | is_digit |  //
+           (chars == char_vector::repeated('$')) |
+           (chars == char_vector::repeated('_'));
+  };
+
+  bool is_all_identifier_characters;
+  do {
+    char_vector chars = char_vector::load(input);
+    bool_vector identifier_chars = is_identifier_characters(chars);
+    int identifier_character_count = identifier_chars.find_first_false();
+
+    for (int i = 0; i < identifier_character_count; ++i) {
+      assert(this->is_identifier_character(this->input_[i]));
+    }
+    input += identifier_character_count;
+
+    is_all_identifier_characters =
+        identifier_character_count == identifier_chars.size;
+  } while (is_all_identifier_characters);
+
+  this->input_ = input;
+  assert(!this->is_identifier_character(this->input_[0]));
 }
 
 QLJS_WARNING_PUSH
