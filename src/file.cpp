@@ -26,21 +26,45 @@
 
 namespace quick_lint_js {
 namespace {
-std::string read_file_buffered(FILE *file, std::size_t buffer_size) {
-  std::string contents;
+void read_file_buffered(FILE *file, std::size_t buffer_size, std::string *out) {
   while (!std::feof(file)) {
-    std::size_t size_before = contents.size();
-    contents.resize(size_before + buffer_size);
+    std::size_t size_before = out->size();
+    out->resize(size_before + buffer_size);
     std::size_t read_size =
-        std::fread(&contents.data()[size_before], 1, buffer_size, file);
-    contents.resize(size_before + read_size);
+        std::fread(&out->data()[size_before], 1, buffer_size, file);
+    out->resize(size_before + read_size);
   }
-  return contents;
+}
+
+std::string read_file_buffered(FILE *file, std::size_t buffer_size) {
+  std::string result;
+  read_file_buffered(file, buffer_size, &result);
+  return result;
+}
+
+std::string read_file_with_expected_size(FILE *file, std::size_t file_size,
+                                         std::size_t buffer_size) {
+  std::string result;
+  result.resize(file_size);
+  std::size_t read_size = std::fread(result.data(), 1, file_size, file);
+  result.resize(read_size);
+  int c = std::fgetc(file);
+  if (c == EOF) {
+    // We read the entire file.
+    return result;
+  } else {
+    // We did not read the entire file. There is more data to read.
+    [[maybe_unused]] int rc = std::ungetc(c, file);
+    assert(rc == c);
+
+    read_file_buffered(file, buffer_size, &result);
+    return result;
+  }
 }
 
 std::string read_file(const char *path, FILE *file) {
+  std::size_t buffer_size = 1024;  // TODO(strager): Compute using stat.
   if (std::fseek(file, 0, SEEK_END) == -1) {
-    std::size_t buffer_size = 1024;  // TODO(strager): Compute using stat.
     return read_file_buffered(file, buffer_size);
   } else {
     long file_size = std::ftell(file);
@@ -57,7 +81,9 @@ std::string read_file(const char *path, FILE *file) {
       exit(1);
     }
 
-    return read_file_buffered(file, narrow_cast<std::size_t>(file_size));
+    return read_file_with_expected_size(
+        file, /*file_size=*/narrow_cast<std::size_t>(file_size),
+        /*buffer_size=*/buffer_size);
   }
 }
 }  // namespace
