@@ -21,6 +21,7 @@
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 
 #define QLJS_PARSER_UNIMPLEMENTED() \
@@ -50,7 +51,7 @@
 
 namespace quick_lint_js {
 namespace {
-std::vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
+vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
 }  // namespace
 
 expression_ptr parser::parse_expression(precedence prec) {
@@ -187,7 +188,8 @@ expression_ptr parser::parse_expression(precedence prec) {
       const char *async_begin = this->peek().begin;
       this->lexer_.skip();
 
-      std::vector<expression_ptr> parameters;
+      vector<expression_ptr> parameters(
+          "parse_expression async arrow function parameters");
       switch (this->peek().type) {
         case token_type::left_paren:
           this->lexer_.skip();
@@ -241,7 +243,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       const char *right_square_end;
       this->lexer_.skip();
 
-      std::vector<expression_ptr> children;
+      vector<expression_ptr> children("parse_expression array children");
       for (;;) {
         if (this->peek().type == token_type::right_square) {
           right_square_end = this->peek().end;
@@ -279,7 +281,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr target = this->parse_expression(prec);
-      std::vector<expression_ptr> children;
+      vector<expression_ptr> children("parse_expression new children");
       if (target->kind() == expression_kind::call) {
         for (int i = 0; i < target->child_count(); ++i) {
           children.emplace_back(target->child(i));
@@ -327,7 +329,8 @@ expression_ptr parser::parse_expression_remainder(expression_ptr ast,
     assert(prec.binary_operators);
   }
 
-  std::vector<expression_ptr> children{ast};
+  vector<expression_ptr> children("parse_expression_remainder children", &ast,
+                                  &ast + 1);
   auto build_expression = [&]() {
     if (children.size() == 1) {
       return children.front();
@@ -372,7 +375,9 @@ next:
 
     // Function call: f(x, y, z)
     case token_type::left_paren: {
-      std::vector<expression_ptr> call_children{children.back()};
+      vector<expression_ptr> call_children(
+          "parse_expression_remainder call children", &children.back(),
+          &children.back() + 1);
       this->lexer_.skip();
       while (this->peek().type != token_type::right_paren) {
         call_children.emplace_back(
@@ -582,7 +587,7 @@ expression_ptr parser::parse_object_literal() {
   const char *right_curly_end;
   this->lexer_.skip();
 
-  std::vector<object_property_value_pair> entries;
+  vector<object_property_value_pair> entries("parse_object_literal entries");
   auto parse_value_expression = [&]() {
     return this->parse_expression(precedence{.commas = false});
   };
@@ -696,7 +701,7 @@ expression_ptr parser::parse_object_literal() {
 
 expression_ptr parser::parse_template() {
   const char *template_begin = this->peek().begin;
-  std::vector<expression_ptr> children;
+  vector<expression_ptr> children("parse_template children");
   for (;;) {
     assert(this->peek().type == token_type::incomplete_template);
     this->lexer_.skip();
@@ -766,9 +771,8 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
 }
 
 namespace {
-std::vector<expression_ptr> arrow_function_parameters_from_lhs(
-    expression_ptr lhs) {
-  std::vector<expression_ptr> parameters;
+vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
+  vector<expression_ptr> parameters("arrow_function_parameters_from_lhs");
   switch (lhs->kind()) {
     case expression_kind::binary_operator:
       // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',

@@ -28,6 +28,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
 #include <utility>
@@ -117,6 +118,9 @@ class expression_arena {
 
   template <class T>
   array_ptr<T> make_array(std::vector<T> &&);
+
+  template <class T>
+  array_ptr<T> make_array(vector<T> &&);
 
   buffering_visitor_ptr make_buffering_visitor(
       std::unique_ptr<buffering_visitor> &&visitor) {
@@ -296,6 +300,16 @@ expression_ptr expression_arena::make_expression(Args &&... args) {
 template <class T>
 inline expression_arena::array_ptr<T> expression_arena::make_array(
     std::vector<T> &&elements) {
+  T *result_begin = this->allocate_array_move(
+      elements.data(), elements.data() + elements.size());
+  int size = narrow_cast<int>(elements.size());
+  elements.clear();
+  return array_ptr<T>(result_begin, size);
+}
+
+template <class T>
+inline expression_arena::array_ptr<T> expression_arena::make_array(
+    vector<T> &&elements) {
   T *result_begin = this->allocate_array_move(
       elements.data(), elements.data() + elements.size());
   int size = narrow_cast<int>(elements.size());
