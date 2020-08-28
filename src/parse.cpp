@@ -738,6 +738,8 @@ void parser::consume_semicolon() {
 void parser::crash_on_unimplemented_token(const char *qljs_file_name,
                                           int qljs_line,
                                           const char *qljs_function_name) {
+  // TODO(strager): Forward to the error_reporter instead, removing the need for
+  // parser::locator_.
   source_position token_position = this->locator().position(this->peek().begin);
   std::cerr << qljs_file_name << ":" << qljs_line
             << ": fatal: token not implemented in " << qljs_function_name
