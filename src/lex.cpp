@@ -630,10 +630,10 @@ next:
     input += 1;
     goto next;
   } else if (static_cast<unsigned char>(c) >= 0xc2) {
-    [[unlikely]] switch (c) {
-      case static_cast<char>(0xe1):
-        if (input[1] == static_cast<char>(0x9a) &&
-            input[2] == static_cast<char>(0x80)) {
+    [[unlikely]] switch (static_cast<unsigned char>(c)) {
+      case 0xe1:
+        if (static_cast<unsigned char>(input[1]) == 0x9a &&
+            static_cast<unsigned char>(input[2]) == 0x80) {
           // U+1680 Ogham Space Mark
           input += 3;
           goto next;
@@ -641,30 +641,29 @@ next:
           goto done;
         }
 
-      case static_cast<char>(0xe2):
-        if (input[1] == static_cast<char>(0x80)) {
-          switch (input[2]) {
-            case static_cast<char>(0x80):  // U+2000 En Quad
-            case static_cast<char>(0x81):  // U+2001 Em Quad
-            case static_cast<char>(0x82):  // U+2002 En Space
-            case static_cast<char>(0x83):  // U+2003 Em Space
-            case static_cast<char>(0x84):  // U+2004 Three-Per-Em Space
-            case static_cast<char>(0x85):  // U+2005 Four-Per-Em Space
-            case static_cast<char>(0x86):  // U+2006 Six-Per-Em Space
-            case static_cast<char>(0x87):  // U+2007 Figure Space
-            case static_cast<char>(0x88):  // U+2008 Punctuation Space
-            case static_cast<char>(0x89):  // U+2009 Thin Space
-            case static_cast<char>(0x8a):  // U+200A Hair Space
-            case static_cast<char>(
-                0xaf):  // U+202F Narrow No-Break Space (NNBSP)
+      case 0xe2:
+        if (static_cast<unsigned char>(input[1]) == 0x80) {
+          switch (static_cast<unsigned char>(input[2])) {
+            case 0x80:  // U+2000 En Quad
+            case 0x81:  // U+2001 Em Quad
+            case 0x82:  // U+2002 En Space
+            case 0x83:  // U+2003 Em Space
+            case 0x84:  // U+2004 Three-Per-Em Space
+            case 0x85:  // U+2005 Four-Per-Em Space
+            case 0x86:  // U+2006 Six-Per-Em Space
+            case 0x87:  // U+2007 Figure Space
+            case 0x88:  // U+2008 Punctuation Space
+            case 0x89:  // U+2009 Thin Space
+            case 0x8a:  // U+200A Hair Space
+            case 0xaf:  // U+202F Narrow No-Break Space (NNBSP)
               input += 3;
               goto next;
 
             default:
               goto done;
           }
-        } else if (input[1] == static_cast<char>(0x81)) {
-          if (input[2] == static_cast<char>(0x9f)) {
+        } else if (static_cast<unsigned char>(input[1]) == 0x81) {
+          if (static_cast<unsigned char>(input[2]) == 0x9f) {
             // U+205F Medium Mathematical Space (MMSP)
             input += 3;
             goto next;
@@ -675,9 +674,9 @@ next:
           goto done;
         }
 
-      case static_cast<char>(0xe3):
-        if (input[1] == static_cast<char>(0x80) &&
-            input[2] == static_cast<char>(0x80)) {
+      case 0xe3:
+        if (static_cast<unsigned char>(input[1]) == 0x80 &&
+            static_cast<unsigned char>(input[2]) == 0x80) {
           // U+3000 Ideographic Space
           input += 3;
           goto next;
@@ -685,9 +684,9 @@ next:
           goto done;
         }
 
-      case static_cast<char>(0xef):
-        if (input[1] == static_cast<char>(0xbb) &&
-            input[2] == static_cast<char>(0xbf)) {
+      case 0xef:
+        if (static_cast<unsigned char>(input[1]) == 0xbb &&
+            static_cast<unsigned char>(input[2]) == 0xbf) {
           // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
           input += 3;
           goto next;
@@ -695,8 +694,8 @@ next:
           goto done;
         }
 
-      case static_cast<char>(0xc2):
-        if (input[1] == static_cast<char>(0xa0)) {
+      case 0xc2:
+        if (static_cast<unsigned char>(input[1]) == 0xa0) {
           // U+00A0 No-Break Space (NBSP)
           input += 2;
           goto next;
