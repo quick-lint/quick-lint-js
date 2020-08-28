@@ -629,7 +629,7 @@ next:
     this->last_token_.has_leading_newline = true;
     input += 1;
     goto next;
-  } else if (c >= static_cast<char>(0xc2)) {
+  } else if (static_cast<unsigned char>(c) >= 0xc2) {
     [[unlikely]] switch (c) {
       case static_cast<char>(0xe1):
         if (input[1] == static_cast<char>(0x9a) &&
