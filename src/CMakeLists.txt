@@ -18,6 +18,12 @@ cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSCompiler)
 include(QuickLintJSTarget)
 
+option(
+  QUICK_LINT_JS_FEATURE_VECTOR_PROFILING
+  "Enable the QLJS_DUMP_VECTORS option at run-time"
+  FALSE
+)
+
 quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
@@ -36,6 +42,7 @@ quick_lint_js_add_library(
   padded-string.cpp
   parse.cpp
   text-error-reporter.cpp
+  vector.cpp
   vim-qflist-json-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
@@ -46,6 +53,20 @@ target_link_libraries(
   PRIVATE
   gnulib-getopt
 )
+
+if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_FEATURE_VECTOR_PROFILING=1
+  )
+else ()
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_FEATURE_VECTOR_PROFILING=0
+  )
+endif ()
 
 # HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are

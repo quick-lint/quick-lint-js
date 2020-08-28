@@ -30,6 +30,7 @@ jobs:
           - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 Release", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{0}"}
+          - {runs_on: ubuntu-latest, name: "GCC 8 dev", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-DQUICK_LINT_JS_FEATURE_VECTOR_PROFILING=ON"}
           - {runs_on: windows-latest, name: "MSVC", CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: ""}
           - {runs_on: windows-latest, name: "MSVC Release", CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: ""}
     runs-on: ${{ matrix.toolchain.runs_on }}
@@ -40,6 +41,7 @@ jobs:
       CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
       CMAKE_CXX_FLAGS: ${{ matrix.toolchain.CFLAGS }}
       CMAKE_EXE_LINKER_FLAGS: ${{ matrix.toolchain.CFLAGS }}
+      CMAKE_EXTRA_FLAGS: ${{ matrix.toolchain.CMAKE_FLAGS }}
       CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.toolchain.CFLAGS }}
 
       # Format of WARNINGS:
@@ -57,7 +59,7 @@ jobs:
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=YES ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_CXX_COMPILER_OPTIONS="${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}" -S . -B .
+          cmake -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=YES ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_CXX_COMPILER_OPTIONS="${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}" ${CMAKE_EXTRA_FLAGS} -S . -B .
         shell: bash
       - name: build
         run: cmake --build . --config Debug

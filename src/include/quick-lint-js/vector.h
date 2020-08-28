@@ -17,23 +17,122 @@
 #ifndef QUICK_LINT_JS_VECTOR_H
 #define QUICK_LINT_JS_VECTOR_H
 
+#include <cstddef>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <quick-lint-js/feature.h>
+#include <string>
 #include <utility>
 #include <vector>
 
 namespace quick_lint_js {
+class vector_instrumentation {
+ public:
+  enum class event {
+    append,
+    assign,
+    clear,
+    create,
+    destroy,
+  };
+
+  struct entry {
+    std::uintptr_t object_id;
+    const char *owner;
+    vector_instrumentation::event event;
+    std::size_t size;
+    std::size_t capacity;
+
+    friend std::ostream &operator<<(std::ostream &, const entry &);
+  };
+
+  static vector_instrumentation instance;
+
+  void clear();
+  std::vector<entry> entries() const;
+
+  std::map<std::string, std::map<std::size_t, int>>
+  max_size_histogram_by_owner() const;
+
+  static void dump_max_size_histogram(
+      const std::map<std::string, std::map<std::size_t, int>> &,
+      std::ostream &);
+  static void dump_max_size_histogram(
+      const std::map<std::string, std::map<std::size_t, int>> &, std::ostream &,
+      int maximum_line_length);
+
+  void add_entry(std::uintptr_t object_id, const char *owner,
+                 vector_instrumentation::event event, std::size_t size,
+                 std::size_t capacity);
+
+  static void register_dump_on_exit_if_requested();
+
+ private:
+  std::vector<entry> entries_;
+};
+
 template <class T>
 class vector {
  public:
-  explicit vector(const char *debug_owner [[maybe_unused]]) noexcept {}
+  explicit vector(const char *debug_owner [[maybe_unused]]) noexcept
+#if QLJS_FEATURE_VECTOR_PROFILING
+      : debug_owner_(debug_owner)
+#endif
+  {
+    this->add_instrumentation_entry(vector_instrumentation::event::create);
+  }
 
   explicit vector(const char *debug_owner [[maybe_unused]], const T *begin,
                   const T *end)
-      : data_(begin, end) {}
+      : data_(begin, end)
+#if QLJS_FEATURE_VECTOR_PROFILING
+        ,
+        debug_owner_(debug_owner)
+#endif
+  {
+    this->add_instrumentation_entry(vector_instrumentation::event::create);
+  }
+
+  vector(const vector &) = delete;
+  vector &operator=(const vector &) = delete;
+
+#if QLJS_FEATURE_VECTOR_PROFILING
+  vector(vector &&other) : vector(other.debug_owner_, std::move(other)) {}
+#else
+  vector(vector &&other) = default;
+#endif
+
+  vector(const char *debug_owner [[maybe_unused]], vector &&other)
+      : data_(std::move(other.data_))
+#if QLJS_FEATURE_VECTOR_PROFILING
+        ,
+        debug_owner_(debug_owner)
+#endif
+  {
+    this->add_instrumentation_entry(vector_instrumentation::event::create);
+    other.add_instrumentation_entry(vector_instrumentation::event::clear);
+  }
+
+  vector &operator=(vector &&other) {
+    this->data_ = std::move(other.data_);
+    this->add_instrumentation_entry(vector_instrumentation::event::assign);
+    other.add_instrumentation_entry(vector_instrumentation::event::clear);
+    return *this;
+  }
+
+  ~vector() {
+    this->add_instrumentation_entry(vector_instrumentation::event::destroy);
+  }
 
   [[gnu::always_inline]] T *data() noexcept { return this->data_.data(); }
 
   [[gnu::always_inline]] std::size_t size() const noexcept {
     return this->data_.size();
+  }
+
+  [[gnu::always_inline]] std::size_t capacity() const noexcept {
+    return this->data_.capacity();
   }
 
   [[gnu::always_inline]] bool empty() const noexcept {
@@ -47,12 +146,34 @@ class vector {
   template <class... Args>
   [[gnu::always_inline]] void emplace_back(Args &&... args) {
     this->data_.emplace_back(std::forward<Args>(args)...);
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
   }
 
-  [[gnu::always_inline]] void clear() { this->data_.clear(); }
+  [[gnu::always_inline]] void clear() {
+    this->data_.clear();
+    this->add_instrumentation_entry(vector_instrumentation::event::clear);
+  }
 
  private:
+#if QLJS_FEATURE_VECTOR_PROFILING
+  [[gnu::always_inline]] void add_instrumentation_entry(
+      vector_instrumentation::event event) {
+    vector_instrumentation::instance.add_entry(
+        /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
+        /*owner=*/this->debug_owner_,
+        /*event=*/event,
+        /*size=*/this->size(),
+        /*capacity=*/this->capacity());
+  }
+#else
+  [[gnu::always_inline]] void add_instrumentation_entry(
+      vector_instrumentation::event) {}
+#endif
+
   std::vector<T> data_;
+#if QLJS_FEATURE_VECTOR_PROFILING
+  const char *debug_owner_;
+#endif
 };
 }  // namespace quick_lint_js
 
