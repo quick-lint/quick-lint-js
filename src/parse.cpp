@@ -329,8 +329,8 @@ expression_ptr parser::parse_expression_remainder(expression_ptr ast,
     assert(prec.binary_operators);
   }
 
-  vector<expression_ptr> children("parse_expression_remainder children", &ast,
-                                  &ast + 1);
+  vector<expression_ptr, /*InSituCapacity=*/2> children(
+      "parse_expression_remainder children", &ast, &ast + 1);
   auto build_expression = [&]() {
     if (children.size() == 1) {
       return children.front();

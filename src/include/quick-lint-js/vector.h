@@ -74,7 +74,7 @@ class vector_instrumentation {
   std::vector<entry> entries_;
 };
 
-template <class T>
+template <class T, std::size_t InSituCapacity = 0>
 class vector {
  public:
   explicit vector(const char *debug_owner [[maybe_unused]]) noexcept
@@ -175,7 +175,7 @@ class vector {
       vector_instrumentation::event) {}
 #endif
 
-  boost::container::small_vector<T, 0> data_;
+  boost::container::small_vector<T, InSituCapacity> data_;
 #if QLJS_FEATURE_VECTOR_PROFILING
   const char *debug_owner_;
 #endif
