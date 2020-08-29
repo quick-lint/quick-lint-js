@@ -375,7 +375,7 @@ next:
 
     // Function call: f(x, y, z)
     case token_type::left_paren: {
-      vector<expression_ptr> call_children(
+      vector<expression_ptr, 4> call_children(
           "parse_expression_remainder call children", &children.back(),
           &children.back() + 1);
       this->lexer_.skip();
