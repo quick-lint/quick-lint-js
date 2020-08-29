@@ -9,30 +9,10 @@ function (quick_lint_js_check_designated_initializers OUT)
 endfunction ()
 
 function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
-  set(STD_FILESYSTEM_SOURCE "#include <filesystem>\nint main() { return ::std::filesystem::temp_directory_path().is_absolute(); }")
-  set(STD_EXPERIMENTAL_FILESYSTEM_SOURCE "#include <experimental/filesystem>\nint main() { return ::std::experimental::filesystem::temp_directory_path().is_absolute(); }")
-
-  check_cxx_source_compiles(
-    "${STD_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_FILESYSTEM
+  quick_lint_js_check_cxx_filesystem(
+    REQUIRED_LIBRARIES stdc++fs
+    OUT_VAR_SUFFIX _WITH_STDCXXFS
   )
-  check_cxx_source_compiles(
-    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM
-  )
-
-  set(OLD_CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
-  list(APPEND CMAKE_REQUIRED_LIBRARIES stdc++fs)
-  check_cxx_source_compiles(
-    "${STD_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS
-  )
-  check_cxx_source_compiles(
-    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_STDCXXFS
-  )
-  set(CMAKE_REQUIRED_LIBRARIES "${OLD_CMAKE_REQUIRED_LIBRARIES}")
-
   if (
     QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_STDCXXFS
     OR QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_STDCXXFS
@@ -44,6 +24,8 @@ function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
     target_link_libraries("${TARGET}" "${VISIBILITY}" stdc++fs)
     return ()
   endif ()
+
+  quick_lint_js_check_cxx_filesystem(OUT_VAR_SUFFIX "")
   if (
     QUICK_LINT_JS_HAVE_STD_FILESYSTEM
     OR QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM
@@ -51,17 +33,10 @@ function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
     return ()
   endif ()
 
-  set(OLD_CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
-  list(APPEND CMAKE_REQUIRED_LIBRARIES c++fs)
-  check_cxx_source_compiles(
-    "${STD_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_CXXFS
+  quick_lint_js_check_cxx_filesystem(
+    REQUIRED_LIBRARIES c++fs
+    OUT_VAR_SUFFIX _WITH_CXXFS
   )
-  check_cxx_source_compiles(
-    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_CXXFS
-  )
-  set(CMAKE_REQUIRED_LIBRARIES "${OLD_CMAKE_REQUIRED_LIBRARIES}")
   if (
       QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_CXXFS
       OR QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_CXXFS
@@ -70,17 +45,10 @@ function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
     return ()
   endif ()
 
-  set(OLD_CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
-  list(APPEND CMAKE_REQUIRED_LIBRARIES c++experimental)
-  check_cxx_source_compiles(
-    "${STD_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_CXXEXPERIMENTAL
+  quick_lint_js_check_cxx_filesystem(
+    REQUIRED_LIBRARIES c++experimental
+    OUT_VAR_SUFFIX _WITH_CXXEXPERIMENTAL
   )
-  check_cxx_source_compiles(
-    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
-    QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_CXXEXPERIMENTAL
-  )
-  set(CMAKE_REQUIRED_LIBRARIES "${OLD_CMAKE_REQUIRED_LIBRARIES}")
   if (
       QUICK_LINT_JS_HAVE_STD_FILESYSTEM_WITH_CXXEXPERIMENTAL
       OR QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM_WITH_CXXEXPERIMENTAL
@@ -90,6 +58,23 @@ function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
   endif ()
 
   message(FATAL_ERROR "C++ compiler does not support C++17 std::filesystem")
+endfunction ()
+
+function (quick_lint_js_check_cxx_filesystem)
+  cmake_parse_arguments("" "" "OUT_VAR_SUFFIX" "REQUIRED_LIBRARIES" ${ARGN})
+
+  set(STD_FILESYSTEM_SOURCE "#include <filesystem>\nint main() { return ::std::filesystem::temp_directory_path().is_absolute(); }")
+  set(STD_EXPERIMENTAL_FILESYSTEM_SOURCE "#include <experimental/filesystem>\nint main() { return ::std::experimental::filesystem::temp_directory_path().is_absolute(); }")
+
+  list(APPEND CMAKE_REQUIRED_LIBRARIES ${_REQUIRED_LIBRARIES})
+  check_cxx_source_compiles(
+    "${STD_FILESYSTEM_SOURCE}"
+    "QUICK_LINT_JS_HAVE_STD_FILESYSTEM${_OUT_VAR_SUFFIX}"
+  )
+  check_cxx_source_compiles(
+    "${STD_EXPERIMENTAL_FILESYSTEM_SOURCE}"
+    "QUICK_LINT_JS_HAVE_STD_EXPERIMENTAL_FILESYSTEM${_OUT_VAR_SUFFIX}"
+  )
 endfunction ()
 
 function (quick_lint_js_set_cxx_standard)
