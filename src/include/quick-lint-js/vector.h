@@ -17,11 +17,13 @@
 #ifndef QUICK_LINT_JS_VECTOR_H
 #define QUICK_LINT_JS_VECTOR_H
 
+#include <boost/container/small_vector.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
 #include <map>
 #include <quick-lint-js/feature.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -83,6 +85,8 @@ class vector {
     this->add_instrumentation_entry(vector_instrumentation::event::create);
   }
 
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
   explicit vector(const char *debug_owner [[maybe_unused]], const T *begin,
                   const T *end)
       : data_(begin, end)
@@ -93,6 +97,7 @@ class vector {
   {
     this->add_instrumentation_entry(vector_instrumentation::event::create);
   }
+  QLJS_WARNING_POP
 
   vector(const vector &) = delete;
   vector &operator=(const vector &) = delete;
@@ -170,7 +175,7 @@ class vector {
       vector_instrumentation::event) {}
 #endif
 
-  std::vector<T> data_;
+  boost::container::small_vector<T, 0> data_;
 #if QLJS_FEATURE_VECTOR_PROFILING
   const char *debug_owner_;
 #endif
