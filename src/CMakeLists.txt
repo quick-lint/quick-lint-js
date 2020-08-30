@@ -41,6 +41,7 @@ quick_lint_js_add_library(
   options.cpp
   padded-string.cpp
   parse.cpp
+  simd.cpp
   text-error-reporter.cpp
   vector.cpp
   vim-qflist-json-error-reporter.cpp

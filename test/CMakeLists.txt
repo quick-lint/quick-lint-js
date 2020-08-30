@@ -33,6 +33,7 @@ quick_lint_js_add_executable(
   test-padded-string.cpp
   test-parse-expression.cpp
   test-parse.cpp
+  test-simd.cpp
   test-text-error-reporter.cpp
   test-vector.cpp
   test-vim-qflist-json-error-reporter.cpp
