@@ -590,11 +590,20 @@ void lexer::parse_identifier() {
     bool_vector is_alpha =
         (lower_cased_characters > char_vector::repeated('a' - 1)) &
         (lower_cased_characters < char_vector::repeated('z' + 1));
+#if QLJS_HAVE_X86_SSSE3
+    char_filter_vector_16_ssse3 digit_or_underscore_filter =
+        char_filter_vector_16_ssse3::make<'0', '1', '2', '3', '4', '5', '6',
+                                          '7', '8', '9', '_'>();
+    bool_vector is_digit_or_underscore =
+        digit_or_underscore_filter.filter(chars);
+#else
     bool_vector is_digit = (chars > char_vector::repeated('0' - 1)) &
                            (chars < char_vector::repeated('9' + 1));
-    return is_alpha | is_digit |  //
-           (chars == char_vector::repeated('$')) |
-           (chars == char_vector::repeated('_'));
+    bool_vector is_digit_or_underscore =
+        is_digit | (chars == char_vector::repeated('_'));
+#endif
+    return is_alpha | is_digit_or_underscore |
+           (chars == char_vector::repeated('$'));
   };
 
   bool is_all_identifier_characters;

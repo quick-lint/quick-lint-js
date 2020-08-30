@@ -89,4 +89,11 @@
 #define QLJS_HAVE_X86_SSE2 0
 #endif
 
+// TODO(strager): Check for SSSE3 in MSVC.
+#if defined(__SSSE3__)
+#define QLJS_HAVE_X86_SSSE3 1
+#else
+#define QLJS_HAVE_X86_SSSE3 0
+#endif
+
 #endif
