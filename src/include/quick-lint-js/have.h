@@ -82,11 +82,13 @@
 #define QLJS_HAVE_CHARCONV_HEADER 0
 #endif
 
+#if !defined(QLJS_HAVE_X86_SSE2)
 #if defined(_M_AMD64) || defined(_M_X64) || \
     (defined(_M_IX86_FP) && _M_IX86_FP == 2) || defined(__SSE2__)
 #define QLJS_HAVE_X86_SSE2 1
 #else
 #define QLJS_HAVE_X86_SSE2 0
+#endif
 #endif
 
 #endif
