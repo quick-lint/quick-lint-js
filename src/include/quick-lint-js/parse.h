@@ -26,7 +26,6 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
-#include <vector>
 
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
