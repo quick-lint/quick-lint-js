@@ -549,15 +549,17 @@ void lexer::parse_hexadecimal_number() {
 
 void lexer::parse_number() {
   assert(this->is_digit(this->input_[0]) || this->input_[0] == '.');
-  while (this->is_digit(this->input_[0])) {
-    this->input_ += 1;
+  const char* input = this->input_;
+  while (this->is_digit(*input)) {
+    input += 1;
   }
-  if (this->input_[0] == '.') {
-    this->input_ += 1;
-    while (this->is_digit(this->input_[0])) {
-      this->input_ += 1;
+  if (*input == '.') {
+    input += 1;
+    while (this->is_digit(*input)) {
+      input += 1;
     }
   }
+  this->input_ = input;
 }
 
 void lexer::parse_identifier() {
