@@ -19,13 +19,13 @@
 #include <cstring>
 #include <iterator>
 #include <ostream>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/simd.h>
 #include <quick-lint-js/warning.h>
-#include <string_view>
 #include <type_traits>
 
 #define QLJS_CASE_IDENTIFIER_START \
@@ -147,9 +147,9 @@ retry:
       this->parse_identifier();
       this->last_token_.end = this->input_;
       this->last_token_.type = this->identifier_token_type(
-          std::string_view(this->last_token_.begin,
-                           narrow_cast<std::size_t>(this->last_token_.end -
-                                                    this->last_token_.begin)));
+          string8_view(this->last_token_.begin,
+                       narrow_cast<std::size_t>(this->last_token_.end -
+                                                this->last_token_.begin)));
       break;
 
     case '(':
@@ -365,9 +365,9 @@ retry:
 
     case '"':
     case '\'': {
-      char opening_quote = this->input_[0];
+      char8 opening_quote = this->input_[0];
 
-      const char* c = &this->input_[1];
+      const char8* c = &this->input_[1];
       for (;;) {
         switch (*c) {
           case '\0':
@@ -426,7 +426,7 @@ retry:
   this->last_token_.end = this->input_;
 }
 
-void lexer::skip_in_template(const char* template_begin) {
+void lexer::skip_in_template(const char8* template_begin) {
   this->last_token_.begin = this->input_;
   parsed_template_body body = this->parse_template_body(
       this->input_, template_begin, this->error_reporter_);
@@ -436,9 +436,9 @@ void lexer::skip_in_template(const char* template_begin) {
 }
 
 lexer::parsed_template_body lexer::parse_template_body(
-    const char* input, const char* template_begin,
+    const char8* input, const char8* template_begin,
     error_reporter* error_reporter) {
-  const char* c = input;
+  const char8* c = input;
   for (;;) {
     switch (*c) {
       case '\0':
@@ -485,7 +485,7 @@ void lexer::reparse_as_regexp() {
   assert(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
 
-  const char* c = &this->input_[1];
+  const char8* c = &this->input_[1];
 next:
   switch (*c) {
     case '\0':
@@ -531,7 +531,7 @@ void lexer::insert_semicolon() {
   this->last_token_.end = this->input_;
 }
 
-const char* lexer::end_of_previous_token() const noexcept {
+const char8* lexer::end_of_previous_token() const noexcept {
   [[maybe_unused]] bool semicolon_was_inserted =
       this->last_token_.type == token_type::semicolon &&
       this->last_token_.begin == this->last_token_.end;
@@ -549,7 +549,7 @@ void lexer::parse_hexadecimal_number() {
 
 void lexer::parse_number() {
   assert(this->is_digit(this->input_[0]) || this->input_[0] == '.');
-  const char* input = this->input_;
+  const char8* input = this->input_;
   while (this->is_digit(*input)) {
     input += 1;
   }
@@ -563,7 +563,7 @@ void lexer::parse_number() {
 }
 
 void lexer::parse_identifier() {
-  const char* input = this->input_;
+  const char8* input = this->input_;
   switch (*input) {
   QLJS_CASE_IDENTIFIER_START:
     break;
@@ -620,10 +620,10 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
 QLJS_WARNING_IGNORE_GCC("-Wattributes")
 void lexer::skip_whitespace() {
-  const char* input = this->input_;
+  const char8* input = this->input_;
 
 next:
-  char c = input[0];
+  char8 c = input[0];
   if (c == ' ' || c == '\t' || c == '\f') {
     input += 1;
     goto next;
@@ -720,15 +720,15 @@ QLJS_WARNING_POP
 void lexer::skip_block_comment() {
   assert(this->input_[0] == '/' && this->input_[1] == '*');
 
-  const char* comment_end = std::strstr(this->input_ + 2, "*/");
+  const char8* comment_end = strstr(this->input_ + 2, u8"*/");
   if (comment_end == nullptr) {
     this->error_reporter_->report_error_unclosed_block_comment(
         source_code_span(&this->input_[0], &this->input_[2]));
-    this->input_ += std::strlen(this->input_);
+    this->input_ += strlen(this->input_);
     return;
   }
 
-  const char* newline = std::find(this->input_ + 2, comment_end, '\n');
+  const char8* newline = std::find(this->input_ + 2, comment_end, '\n');
   if (newline != comment_end) {
     this->last_token_.has_leading_newline = true;
   }
@@ -739,16 +739,16 @@ void lexer::skip_block_comment() {
 
 void lexer::skip_line_comment() {
   assert(this->input_[0] == '/' && this->input_[1] == '/');
-  const char* comment_end = std::strchr(this->input_ + 2, '\n');
+  const char8* comment_end = strchr(this->input_ + 2, u'\n');
   if (comment_end == nullptr) {
-    this->input_ += std::strlen(this->input_);
+    this->input_ += strlen(this->input_);
   } else {
     this->input_ = comment_end + 1;
     this->skip_whitespace();
   }
 }
 
-bool lexer::is_digit(char c) {
+bool lexer::is_digit(char8 c) {
   switch (c) {
   QLJS_CASE_DECIMAL_DIGIT:
     return true;
@@ -757,7 +757,7 @@ bool lexer::is_digit(char c) {
   }
 }
 
-bool lexer::is_hex_digit(char c) {
+bool lexer::is_hex_digit(char8 c) {
   switch (c) {
   QLJS_CASE_DECIMAL_DIGIT:
   case 'a':
@@ -778,7 +778,7 @@ bool lexer::is_hex_digit(char c) {
   }
 }
 
-bool lexer::is_identifier_character(char c) {
+bool lexer::is_identifier_character(char8 c) {
   switch (c) {
   QLJS_CASE_IDENTIFIER_START:
   QLJS_CASE_DECIMAL_DIGIT:

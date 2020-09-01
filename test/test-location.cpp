@@ -16,6 +16,7 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <vector>
@@ -23,7 +24,7 @@
 namespace quick_lint_js {
 namespace {
 TEST(test_location, ranges_on_first_line) {
-  padded_string code("let x = 2;");
+  padded_string code(u8"let x = 2;");
   locator l(&code);
   source_range x_range = l.range(source_code_span(&code[4], &code[5]));
 
@@ -37,7 +38,7 @@ TEST(test_location, ranges_on_first_line) {
 }
 
 TEST(test_location, ranges_on_second_line) {
-  padded_string code("let x = 2;\nlet y = 3;");
+  padded_string code(u8"let x = 2;\nlet y = 3;");
   locator l(&code);
   source_range x_range = l.range(source_code_span(&code[15], &code[16]));
 
@@ -51,7 +52,7 @@ TEST(test_location, ranges_on_second_line) {
 }
 
 TEST(test_location, position_backwards) {
-  padded_string code("ab\nc\n\nd\nefg\nh");
+  padded_string code(u8"ab\nc\n\nd\nefg\nh");
 
   std::vector<source_position> expected_positions;
   {

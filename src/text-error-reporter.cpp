@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <ostream>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
 
@@ -130,15 +131,15 @@ void text_error_reporter::report_error_unmatched_parenthesis(
 void text_error_reporter::report_error_use_of_undeclared_variable(
     identifier name) {
   log_location(name);
-  this->output_ << "error: use of undeclared variable: " << name.string_view()
-                << '\n';
+  this->output_ << "error: use of undeclared variable: "
+                << out_string8(name.string_view()) << '\n';
 }
 
 void text_error_reporter::report_error_variable_used_before_declaration(
     identifier use, identifier declaration) {
   log_location(use);
   this->output_ << "error: variable used before declaration: "
-                << use.string_view() << '\n';
+                << out_string8(use.string_view()) << '\n';
   log_location(declaration);
   this->output_ << "note: variable declared here\n";
 }

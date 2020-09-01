@@ -15,27 +15,28 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 #include <string_view>
 
 namespace quick_lint_js {
 TEST(test_padded_string, empty_string_has_following_null_bytes) {
-  std::string s = "";
+  string8 s = u8"";
   padded_string padded(std::move(s));
-  const char *data = padded.c_str();
+  const char8 *data = padded.c_str();
   for (int i = 0; i < padded.padding_size; ++i) {
-    EXPECT_EQ(data[i], '\0') << "i=" << i;
+    EXPECT_EQ(data[i], u8'\0') << "i=" << i;
   }
 }
 
 TEST(test_padded_string, size_excludes_padding_bytes) {
-  std::string s = "hello";
+  string8 s = u8"hello";
   padded_string padded(std::move(s));
   EXPECT_EQ(padded.size(), 5);
 }
 
 TEST(test_padded_string, comparing_with_string_view_excludes_padding_bytes) {
-  EXPECT_TRUE(padded_string(std::string("hello")) == std::string_view("hello"));
+  EXPECT_TRUE(padded_string(string8(u8"hello")) == string8_view(u8"hello"));
 }
 }  // namespace quick_lint_js

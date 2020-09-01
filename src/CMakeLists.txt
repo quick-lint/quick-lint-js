@@ -32,6 +32,7 @@ target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
 
 quick_lint_js_add_library(
   quick-lint-js-lib
+  char8.cpp
   file.cpp
   integer.cpp
   lex-keyword.cpp

@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/buffering-visitor.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/expression.h>
 #include <quick-lint-js/language.h>
@@ -935,11 +936,11 @@ class parser {
   // * (none)
   template <class... Args>
   expression_ptr parse_arrow_function_body(function_attributes,
-                                           const char *parameter_list_begin,
+                                           const char8 *parameter_list_begin,
                                            Args &&... args);
 
   expression_ptr parse_function_expression(function_attributes,
-                                           const char *span_begin);
+                                           const char8 *span_begin);
 
   expression_ptr parse_object_literal();
 

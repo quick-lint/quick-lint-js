@@ -19,6 +19,7 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/buffering-visitor.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/vector.h>
@@ -185,7 +186,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     }
 
     case token_type::kw_async: {
-      const char *async_begin = this->peek().begin;
+      const char8 *async_begin = this->peek().begin;
       this->lexer_.skip();
 
       vector<expression_ptr> parameters(
@@ -239,8 +240,8 @@ expression_ptr parser::parse_expression(precedence prec) {
     }
 
     case token_type::left_square: {
-      const char *left_square_begin = this->peek().begin;
-      const char *right_square_end;
+      const char8 *left_square_begin = this->peek().begin;
+      const char8 *right_square_end;
       this->lexer_.skip();
 
       vector<expression_ptr> children("parse_expression array children");
@@ -538,12 +539,12 @@ next:
 
 template <class... Args>
 expression_ptr parser::parse_arrow_function_body(
-    function_attributes attributes, const char *parameter_list_begin,
+    function_attributes attributes, const char8 *parameter_list_begin,
     Args &&... args) {
   if (this->peek().type == token_type::left_curly) {
     buffering_visitor *v = this->expressions_.make_buffering_visitor();
     this->parse_and_visit_statement_block_no_scope(*v);
-    const char *span_end = this->lexer_.end_of_previous_token();
+    const char8 *span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
         attributes, std::forward<Args>(args)..., v, parameter_list_begin,
         span_end);
@@ -555,7 +556,7 @@ expression_ptr parser::parse_arrow_function_body(
 }
 
 expression_ptr parser::parse_function_expression(function_attributes attributes,
-                                                 const char *span_begin) {
+                                                 const char8 *span_begin) {
   assert(this->peek().type == token_type::kw_function);
   this->lexer_.skip();
   QLJS_WARNING_PUSH
@@ -568,7 +569,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   }
   buffering_visitor *v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_function_parameters_and_body_no_scope(*v);
-  const char *span_end = this->lexer_.end_of_previous_token();
+  const char8 *span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
                    attributes, *function_name, v,
@@ -579,8 +580,8 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
 
 expression_ptr parser::parse_object_literal() {
   assert(this->peek().type == token_type::left_curly);
-  const char *left_curly_begin = this->peek().begin;
-  const char *right_curly_end;
+  const char8 *left_curly_begin = this->peek().begin;
+  const char8 *right_curly_end;
   this->lexer_.skip();
 
   vector<object_property_value_pair> entries("parse_object_literal entries");
@@ -600,7 +601,7 @@ expression_ptr parser::parse_object_literal() {
       continue;
     }
     if (expect_comma_or_end) {
-      const char *comma_location = this->lexer_.end_of_previous_token();
+      const char8 *comma_location = this->lexer_.end_of_previous_token();
       this->error_reporter_
           ->report_error_missing_comma_between_object_literal_entries(
               source_code_span(comma_location, comma_location));
@@ -652,7 +653,7 @@ expression_ptr parser::parse_object_literal() {
           case token_type::left_paren: {
             buffering_visitor *v = this->expressions_.make_buffering_visitor();
             this->parse_and_visit_function_parameters_and_body_no_scope(*v);
-            const char *span_end = this->lexer_.end_of_previous_token();
+            const char8 *span_end = this->lexer_.end_of_previous_token();
             expression_ptr func = this->make_expression<expression::function>(
                 function_attributes::normal, v,
                 source_code_span(key_span.begin(), span_end));
@@ -694,7 +695,7 @@ expression_ptr parser::parse_object_literal() {
 }
 
 expression_ptr parser::parse_template() {
-  const char *template_begin = this->peek().begin;
+  const char8 *template_begin = this->peek().begin;
   vector<expression_ptr> children("parse_template children");
   for (;;) {
     assert(this->peek().type == token_type::incomplete_template);
@@ -705,7 +706,7 @@ expression_ptr parser::parse_template() {
         this->lexer_.skip_in_template(template_begin);
         switch (this->peek().type) {
           case token_type::complete_template: {
-            const char *template_end = this->peek().end;
+            const char8 *template_end = this->peek().end;
             this->lexer_.skip();
             return this->make_expression<expression::_template>(
                 this->expressions_.make_array(std::move(children)),

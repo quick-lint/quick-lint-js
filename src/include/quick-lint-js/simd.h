@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_SIMD_H
 
 #include <quick-lint-js/bit.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
@@ -70,7 +71,7 @@ class char_vector_16_sse2 {
   [[gnu::always_inline]] explicit char_vector_16_sse2(__m128i data) noexcept
       : data_(data) {}
 
-  [[gnu::always_inline]] static char_vector_16_sse2 load(const char* data) {
+  [[gnu::always_inline]] static char_vector_16_sse2 load(const char8* data) {
     __m128i vector;
     std::memcpy(&vector, data, sizeof(vector));
     return char_vector_16_sse2(vector);

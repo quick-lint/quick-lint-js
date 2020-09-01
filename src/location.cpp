@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <ostream>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
@@ -32,11 +33,11 @@ source_position source_range::begin() const noexcept { return this->begin_; }
 
 source_position source_range::end() const noexcept { return this->end_; }
 
-bool operator==(source_code_span x, std::string_view y) noexcept {
+bool operator==(source_code_span x, string8_view y) noexcept {
   return x.string_view() == y;
 }
 
-bool operator!=(source_code_span x, std::string_view y) noexcept {
+bool operator!=(source_code_span x, string8_view y) noexcept {
   return !(x == y);
 }
 
@@ -48,7 +49,7 @@ source_range locator::range(source_code_span span) const {
   return source_range(begin, end);
 }
 
-source_position locator::position(const char *source) const noexcept {
+source_position locator::position(const char8 *source) const noexcept {
   source_position::offset_type offset = this->offset(source);
   source_position::line_number_type line_number =
       this->find_line_at_offset(offset);
@@ -57,9 +58,9 @@ source_position locator::position(const char *source) const noexcept {
 
 void locator::cache_offsets_of_lines() const {
   this->offset_of_lines_.push_back(0);
-  for (const char *c = this->input_; *c != '\0'; ++c) {
+  for (const char8 *c = this->input_; *c != '\0'; ++c) {
     if (*c == '\n') {
-      const char *beginning_of_line = c + 1;
+      const char8 *beginning_of_line = c + 1;
       this->offset_of_lines_.push_back(
           narrow_cast<source_position::offset_type>(beginning_of_line -
                                                     this->input_));
@@ -81,7 +82,7 @@ source_position::line_number_type locator::find_line_at_offset(
          1;
 }
 
-source_position::offset_type locator::offset(const char *source) const
+source_position::offset_type locator::offset(const char8 *source) const
     noexcept {
   return narrow_cast<source_position::offset_type>(source - this->input_);
 }

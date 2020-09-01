@@ -19,9 +19,9 @@
 
 #include <cassert>
 #include <iosfwd>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <string>
-#include <string_view>
 
 namespace quick_lint_js {
 // Like std::string, but guaranteed to have several null bytes at the end.
@@ -31,16 +31,16 @@ class padded_string {
  public:
   static constexpr int padding_size = 16;
 
-  explicit padded_string(std::string &&);
-  explicit padded_string(const char *);
+  explicit padded_string(string8 &&);
+  explicit padded_string(const char8 *);
 
-  const char *c_str() const noexcept { return this->data_.c_str(); }
+  const char8 *c_str() const noexcept { return this->data_.c_str(); }
 
   int size() const noexcept {
     return narrow_cast<int>(this->data_.size()) - this->null_bytes_to_add;
   }
 
-  const char &operator[](int index) const noexcept {
+  const char8 &operator[](int index) const noexcept {
     assert(index >= 0);
     assert(index <= this->size());
     return this->data_[narrow_cast<unsigned>(index)];
@@ -48,15 +48,15 @@ class padded_string {
 
   friend std::ostream &operator<<(std::ostream &, const padded_string &);
 
-  friend bool operator==(std::string_view, const padded_string &) noexcept;
-  friend bool operator!=(std::string_view, const padded_string &) noexcept;
-  friend bool operator==(const padded_string &, std::string_view) noexcept;
-  friend bool operator!=(const padded_string &, std::string_view) noexcept;
+  friend bool operator==(string8_view, const padded_string &) noexcept;
+  friend bool operator!=(string8_view, const padded_string &) noexcept;
+  friend bool operator==(const padded_string &, string8_view) noexcept;
+  friend bool operator!=(const padded_string &, string8_view) noexcept;
 
  private:
   static constexpr int null_bytes_to_add = padding_size - 1;
 
-  std::string data_;
+  string8 data_;
 };
 
 class padded_string_view {
@@ -64,10 +64,10 @@ class padded_string_view {
   /*implicit*/ padded_string_view(const padded_string *string)
       : data_(string->c_str()) {}
 
-  const char *c_str() const noexcept { return this->data_; }
+  const char8 *c_str() const noexcept { return this->data_; }
 
  private:
-  const char *data_;
+  const char8 *data_;
 };
 }  // namespace quick_lint_js
 

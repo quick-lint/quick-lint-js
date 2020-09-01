@@ -8,6 +8,13 @@ function (quick_lint_js_check_designated_initializers OUT)
   )
 endfunction ()
 
+function (quick_lint_js_enable_char8_t_if_supported)
+  check_cxx_compiler_flag(-fchar8_t QUICK_LINT_JS_HAVE_FCHAR8_T)
+  if (QUICK_LINT_JS_HAVE_FCHAR8_T)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fchar8_t>)
+  endif ()
+endfunction ()
+
 function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
   quick_lint_js_check_cxx_filesystem(
     REQUIRED_LIBRARIES stdc++fs

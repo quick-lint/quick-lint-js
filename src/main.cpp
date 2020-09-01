@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
@@ -147,19 +148,22 @@ class debug_visitor {
   void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
 
   void visit_property_declaration(identifier name) {
-    std::cerr << "property declaration: " << name.string_view() << '\n';
+    std::cerr << "property declaration: " << out_string8(name.string_view())
+              << '\n';
   }
 
   void visit_variable_assignment(identifier name) {
-    std::cerr << "variable assignment: " << name.string_view() << '\n';
+    std::cerr << "variable assignment: " << out_string8(name.string_view())
+              << '\n';
   }
 
   void visit_variable_declaration(identifier name, variable_kind) {
-    std::cerr << "variable declaration: " << name.string_view() << '\n';
+    std::cerr << "variable declaration: " << out_string8(name.string_view())
+              << '\n';
   }
 
   void visit_variable_use(identifier name) {
-    std::cerr << "variable use: " << name.string_view() << '\n';
+    std::cerr << "variable use: " << out_string8(name.string_view()) << '\n';
   }
 };
 

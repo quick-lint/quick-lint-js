@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <optional>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/lint.h>
 
 namespace quick_lint_js {
@@ -23,68 +24,68 @@ linter::linter(error_reporter *error_reporter)
   this->scopes_.emplace_back();
   scope &global_scope = this->scopes_.back();
 
-  const char *writable_global_variables[] = {
+  const char8 *writable_global_variables[] = {
       // ECMA-262 18.1 Value Properties of the Global Object
-      "globalThis",
+      u8"globalThis",
 
       // ECMA-262 18.2 Function Properties of the Global Object
-      "decodeURI",
-      "decodeURIComponent",
-      "encodeURI",
-      "encodeURIComponent",
-      "eval",
-      "isFinite",
-      "isNaN",
-      "parseFloat",
-      "parseInt",
+      u8"decodeURI",
+      u8"decodeURIComponent",
+      u8"encodeURI",
+      u8"encodeURIComponent",
+      u8"eval",
+      u8"isFinite",
+      u8"isNaN",
+      u8"parseFloat",
+      u8"parseInt",
 
       // ECMA-262 18.3 Constructor Properties of the Global Object
-      "Array",
-      "ArrayBuffer",
-      "BigInt",
-      "BigInt64Array",
-      "BigUint64Array",
-      "Boolean",
-      "DataView",
-      "Date",
-      "Error",
-      "EvalError",
-      "Float32Array",
-      "Float64Array",
-      "Function",
-      "Int16Array",
-      "Int32Array",
-      "Int8Array",
-      "Map",
-      "Number",
-      "Object",
-      "Promise",
-      "Proxy",
-      "RangeError",
-      "ReferenceError",
-      "RegExp",
-      "Set",
-      "SharedArrayBuffer",
-      "String",
-      "Symbol",
-      "SyntaxError",
-      "TypeError",
-      "URIError",
-      "Uint16Array",
-      "Uint32Array",
-      "Uint8Array",
-      "Uint8ClampedArray",
-      "WeakMap",
-      "WeakSet",
+      u8"Array",
+      u8"ArrayBuffer",
+      u8"BigInt",
+      u8"BigInt64Array",
+      u8"BigUint64Array",
+      u8"Boolean",
+      u8"DataView",
+      u8"Date",
+      u8"Error",
+      u8"EvalError",
+      u8"Float32Array",
+      u8"Float64Array",
+      u8"Function",
+      u8"Int16Array",
+      u8"Int32Array",
+      u8"Int8Array",
+      u8"Map",
+      u8"Number",
+      u8"Object",
+      u8"Promise",
+      u8"Proxy",
+      u8"RangeError",
+      u8"ReferenceError",
+      u8"RegExp",
+      u8"Set",
+      u8"SharedArrayBuffer",
+      u8"String",
+      u8"Symbol",
+      u8"SyntaxError",
+      u8"TypeError",
+      u8"URIError",
+      u8"Uint16Array",
+      u8"Uint32Array",
+      u8"Uint8Array",
+      u8"Uint8ClampedArray",
+      u8"WeakMap",
+      u8"WeakSet",
 
       // ECMA-262 18.4 Other Properties of the Global Object
-      "Atomics",
-      "JSON",
-      "Math",
-      "Reflect",
+      u8"Atomics",
+      u8"JSON",
+      u8"Math",
+      u8"Reflect",
   };
 
-  for (const char *global_variable : writable_global_variables) {
+  for (const char8 *global_variable : writable_global_variables) {
     global_scope.declared_variables.emplace_back(declared_variable{
         .name = global_variable,
         .kind = variable_kind::_function,
@@ -92,13 +93,13 @@ linter::linter(error_reporter *error_reporter)
     });
   }
 
-  const char *non_writable_global_variables[] = {
+  const char8 *non_writable_global_variables[] = {
       // ECMA-262 18.1 Value Properties of the Global Object
-      "Infinity",
-      "NaN",
-      "undefined",
+      u8"Infinity",
+      u8"NaN",
+      u8"undefined",
   };
-  for (const char *global_variable : non_writable_global_variables) {
+  for (const char8 *global_variable : non_writable_global_variables) {
     global_scope.declared_variables.emplace_back(declared_variable{
         .name = global_variable,
         .kind = variable_kind::_const,

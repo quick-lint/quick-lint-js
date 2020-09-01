@@ -16,6 +16,7 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <sstream>
@@ -44,12 +45,12 @@ class test_text_error_reporter : public ::testing::Test {
 TEST_F(test_text_error_reporter, change_source) {
   text_error_reporter reporter = this->make_reporter();
 
-  padded_string input_1("aaaaaaaa");
+  padded_string input_1(u8"aaaaaaaa");
   reporter.set_source(&input_1, /*file_name=*/"hello.js");
   reporter.report_error_assignment_to_const_global_variable(
       identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1])));
 
-  padded_string input_2("bbbbbbbb");
+  padded_string input_2(u8"bbbbbbbb");
   reporter.set_source(&input_2, /*file_name=*/"world.js");
   reporter.report_error_assignment_to_const_global_variable(
       identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1])));
@@ -60,9 +61,9 @@ TEST_F(test_text_error_reporter, change_source) {
 }
 
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
-  padded_string input("to Infinity and beyond");
+  padded_string input(u8"to Infinity and beyond");
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
-  ASSERT_EQ(infinity_span.string_view(), "Infinity");
+  ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
 
   this->make_reporter(&input).report_error_assignment_to_const_global_variable(
       identifier(infinity_span));
@@ -71,11 +72,11 @@ TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
 }
 
 TEST_F(test_text_error_reporter, assignment_to_const_variable) {
-  padded_string input("const x=0;x=1;");
+  padded_string input(u8"const x=0;x=1;");
   source_code_span x_declaration_span(&input[7 - 1], &input[7 + 1 - 1]);
-  ASSERT_EQ(x_declaration_span.string_view(), "x");
+  ASSERT_EQ(x_declaration_span.string_view(), u8"x");
   source_code_span x_assignment_span(&input[11 - 1], &input[11 + 1 - 1]);
-  ASSERT_EQ(x_assignment_span.string_view(), "x");
+  ASSERT_EQ(x_assignment_span.string_view(), u8"x");
 
   this->make_reporter(&input).report_error_assignment_to_const_variable(
       identifier(x_declaration_span), identifier(x_assignment_span),
@@ -86,9 +87,9 @@ TEST_F(test_text_error_reporter, assignment_to_const_variable) {
 }
 
 TEST_F(test_text_error_reporter, assignment_to_undeclared_variable) {
-  padded_string input("uhoh=true;");
+  padded_string input(u8"uhoh=true;");
   source_code_span uhoh_span(&input[1 - 1], &input[4 + 1 - 1]);
-  ASSERT_EQ(uhoh_span.string_view(), "uhoh");
+  ASSERT_EQ(uhoh_span.string_view(), u8"uhoh");
 
   this->make_reporter(&input).report_error_assignment_to_undeclared_variable(
       identifier(uhoh_span));
@@ -97,9 +98,9 @@ TEST_F(test_text_error_reporter, assignment_to_undeclared_variable) {
 }
 
 TEST_F(test_text_error_reporter, invalid_binding_in_let_statement) {
-  padded_string input("let 2 = 3;");
+  padded_string input(u8"let 2 = 3;");
   source_code_span two_span(&input[5 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(two_span.string_view(), "2");
+  ASSERT_EQ(two_span.string_view(), u8"2");
 
   this->make_reporter(&input).report_error_invalid_binding_in_let_statement(
       two_span);
@@ -108,9 +109,9 @@ TEST_F(test_text_error_reporter, invalid_binding_in_let_statement) {
 }
 
 TEST_F(test_text_error_reporter, invalid_expression_left_of_assignment) {
-  padded_string input("2 = 3;");
+  padded_string input(u8"2 = 3;");
   source_code_span two_span(&input[1 - 1], &input[1 + 1 - 1]);
-  ASSERT_EQ(two_span.string_view(), "2");
+  ASSERT_EQ(two_span.string_view(), u8"2");
 
   this->make_reporter(&input)
       .report_error_invalid_expression_left_of_assignment(two_span);
@@ -119,18 +120,18 @@ TEST_F(test_text_error_reporter, invalid_expression_left_of_assignment) {
 }
 
 TEST_F(test_text_error_reporter, let_with_no_bindings) {
-  padded_string input("let;");
+  padded_string input(u8"let;");
   source_code_span let_span(&input[1 - 1], &input[3 + 1 - 1]);
-  ASSERT_EQ(let_span.string_view(), "let");
+  ASSERT_EQ(let_span.string_view(), u8"let");
 
   this->make_reporter(&input).report_error_let_with_no_bindings(let_span);
   EXPECT_EQ(this->get_output(), "FILE:1:1: error: let with no bindings\n");
 }
 
 TEST_F(test_text_error_reporter, missing_comma_between_object_literal_entries) {
-  padded_string input("{k v}");
+  padded_string input(u8"{k v}");
   source_code_span plus_span(&input[3 - 1], &input[3 - 1]);
-  ASSERT_EQ(plus_span.string_view(), "")
+  ASSERT_EQ(plus_span.string_view(), u8"")
       << "span should be empty because the inserted comma does not exist "
          "in the source code";
 
@@ -141,9 +142,9 @@ TEST_F(test_text_error_reporter, missing_comma_between_object_literal_entries) {
 }
 
 TEST_F(test_text_error_reporter, missing_operand_for_operator) {
-  padded_string input("2 + ");
+  padded_string input(u8"2 + ");
   source_code_span plus_span(&input[3 - 1], &input[3 + 1 - 1]);
-  ASSERT_EQ(plus_span.string_view(), "+");
+  ASSERT_EQ(plus_span.string_view(), u8"+");
 
   this->make_reporter(&input).report_error_missing_operand_for_operator(
       plus_span);
@@ -152,9 +153,9 @@ TEST_F(test_text_error_reporter, missing_operand_for_operator) {
 }
 
 TEST_F(test_text_error_reporter, missing_semicolon_after_expression) {
-  padded_string input("a() b()");
+  padded_string input(u8"a() b()");
   source_code_span inserted_semicolon_span(&input[4 - 1], &input[4 - 1]);
-  ASSERT_EQ(inserted_semicolon_span.string_view(), "")
+  ASSERT_EQ(inserted_semicolon_span.string_view(), u8"")
       << "span should be empty because the inserted semicolon does not exist "
          "in the source code";
 
@@ -165,9 +166,9 @@ TEST_F(test_text_error_reporter, missing_semicolon_after_expression) {
 }
 
 TEST_F(test_text_error_reporter, stray_comma_in_let_statement) {
-  padded_string input("let x , , y");
+  padded_string input(u8"let x , , y");
   source_code_span comma_span(&input[9 - 1], &input[9 + 1 - 1]);
-  ASSERT_EQ(comma_span.string_view(), ",");
+  ASSERT_EQ(comma_span.string_view(), u8",");
 
   this->make_reporter(&input).report_error_stray_comma_in_let_statement(
       comma_span);
@@ -176,7 +177,7 @@ TEST_F(test_text_error_reporter, stray_comma_in_let_statement) {
 }
 
 TEST_F(test_text_error_reporter, unclosed_block_comment) {
-  padded_string input("/* hello");
+  padded_string input(u8"/* hello");
   source_code_span comment_span(&input[1 - 1], &input[8 + 1 - 1]);
   ASSERT_EQ(comment_span.string_view(), input);
 
@@ -185,7 +186,7 @@ TEST_F(test_text_error_reporter, unclosed_block_comment) {
 }
 
 TEST_F(test_text_error_reporter, unclosed_regexp_literal) {
-  padded_string input("/hello");
+  padded_string input(u8"/hello");
   source_code_span regexp_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(regexp_span.string_view(), input);
 
@@ -194,7 +195,7 @@ TEST_F(test_text_error_reporter, unclosed_regexp_literal) {
 }
 
 TEST_F(test_text_error_reporter, unclosed_string_literal) {
-  padded_string input("'hello");
+  padded_string input(u8"'hello");
   source_code_span string_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(string_span.string_view(), input);
 
@@ -203,7 +204,7 @@ TEST_F(test_text_error_reporter, unclosed_string_literal) {
 }
 
 TEST_F(test_text_error_reporter, unclosed_template) {
-  padded_string input("`hello");
+  padded_string input(u8"`hello");
   source_code_span string_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(string_span.string_view(), input);
 
@@ -212,27 +213,27 @@ TEST_F(test_text_error_reporter, unclosed_template) {
 }
 
 TEST_F(test_text_error_reporter, unexpected_identifier) {
-  padded_string input("let x y");
+  padded_string input(u8"let x y");
   source_code_span y_span(&input[7 - 1], &input[7 + 1 - 1]);
-  ASSERT_EQ(y_span.string_view(), "y");
+  ASSERT_EQ(y_span.string_view(), u8"y");
 
   this->make_reporter(&input).report_error_unexpected_identifier(y_span);
   EXPECT_EQ(this->get_output(), "FILE:1:7: error: unexpected identifier\n");
 }
 
 TEST_F(test_text_error_reporter, unmatched_parenthesis) {
-  padded_string input("x)");
+  padded_string input(u8"x)");
   source_code_span paren_span(&input[2 - 1], &input[2 + 1 - 1]);
-  ASSERT_EQ(paren_span.string_view(), ")");
+  ASSERT_EQ(paren_span.string_view(), u8")");
 
   this->make_reporter(&input).report_error_unmatched_parenthesis(paren_span);
   EXPECT_EQ(this->get_output(), "FILE:1:2: error: unmatched parenthesis\n");
 }
 
 TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
-  padded_string input("myvar;");
+  padded_string input(u8"myvar;");
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(myvar_span.string_view(), "myvar");
+  ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
   this->make_reporter(&input).report_error_use_of_undeclared_variable(
       identifier(myvar_span));
@@ -241,11 +242,11 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
 }
 
 TEST_F(test_text_error_reporter, variable_used_before_declaration) {
-  padded_string input("myvar; let myvar;");
+  padded_string input(u8"myvar; let myvar;");
   source_code_span use_span(&input[1 - 1], &input[5 + 1 - 1]);
-  ASSERT_EQ(use_span.string_view(), "myvar");
+  ASSERT_EQ(use_span.string_view(), u8"myvar");
   source_code_span declaration_span(&input[12 - 1], &input[16 + 1 - 1]);
-  ASSERT_EQ(declaration_span.string_view(), "myvar");
+  ASSERT_EQ(declaration_span.string_view(), u8"myvar");
 
   this->make_reporter(&input).report_error_variable_used_before_declaration(
       identifier(use_span), identifier(declaration_span));

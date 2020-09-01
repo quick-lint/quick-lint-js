@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/buffering-visitor.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/spy-visitor.h>
@@ -26,19 +27,19 @@ using ::testing::ElementsAre;
 namespace quick_lint_js {
 namespace {
 template <std::size_t N>
-source_code_span span_of(const char (&code)[N]) {
+source_code_span span_of(const char8 (&code)[N]) {
   return source_code_span(&code[0], &code[N]);
 }
 
 template <std::size_t N>
-identifier identifier_of(const char (&name)[N]) {
+identifier identifier_of(const char8 (&name)[N]) {
   return identifier(span_of(name));
 }
 
 TEST(test_buffering_visitor, buffers_all_visits) {
-  const char function_name[] = "function";
-  const char property_name[] = "property";
-  const char variable_name[] = "variable";
+  const char8 function_name[] = u8"function";
+  const char8 property_name[] = u8"property";
+  const char8 variable_name[] = u8"variable";
 
   buffering_visitor v;
   v.visit_end_of_module();

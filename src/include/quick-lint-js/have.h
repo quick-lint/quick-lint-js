@@ -17,6 +17,20 @@
 #ifndef QUICK_LINT_JS_HAVE_H
 #define QUICK_LINT_JS_HAVE_H
 
+#if defined(QLJS_HAVE_VERSION_HEADER) && QLJS_HAVE_VERSION_HEADER
+#elif defined(__has_include)
+#if __has_include(<version>)
+#define QLJS_HAVE_VERSION_HEADER 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_VERSION_HEADER)
+#define QLJS_HAVE_VERSION_HEADER 0
+#endif
+
+#if QLJS_HAVE_VERSION_HEADER
+#include <version>
+#endif
+
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
 #elif defined(__has_include)
 #if __has_include(<unistd.h>)
@@ -88,6 +102,14 @@
 #define QLJS_HAVE_X86_SSE2 1
 #else
 #define QLJS_HAVE_X86_SSE2 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_CHAR8_T)
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201803L
+#define QLJS_HAVE_CHAR8_T 1
+#else
+#define QLJS_HAVE_CHAR8_T 0
 #endif
 #endif
 

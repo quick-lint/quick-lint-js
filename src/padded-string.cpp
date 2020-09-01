@@ -15,39 +15,40 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <ostream>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 #include <utility>
 
 namespace quick_lint_js {
-padded_string::padded_string(std::string&& string) : data_(std::move(string)) {
+padded_string::padded_string(string8&& string) : data_(std::move(string)) {
   this->data_.reserve(this->data_.size() +
                       narrow_cast<unsigned>(this->null_bytes_to_add));
   this->data_.append(narrow_cast<unsigned>(this->null_bytes_to_add), '\0');
 }
 
-padded_string::padded_string(const char* string)
-    : padded_string(std::string(string)) {}
+padded_string::padded_string(const char8* string)
+    : padded_string(string8(string)) {}
 
-bool operator==(std::string_view x, const padded_string& y) noexcept {
+bool operator==(string8_view x, const padded_string& y) noexcept {
   return y == x;
 }
 
-bool operator!=(std::string_view x, const padded_string& y) noexcept {
+bool operator!=(string8_view x, const padded_string& y) noexcept {
   return !(x == y);
 }
 
-bool operator==(const padded_string& x, std::string_view y) noexcept {
-  return std::string_view(x.c_str(), narrow_cast<std::size_t>(x.size())) == y;
+bool operator==(const padded_string& x, string8_view y) noexcept {
+  return string8_view(x.c_str(), narrow_cast<std::size_t>(x.size())) == y;
 }
 
-bool operator!=(const padded_string& x, std::string_view y) noexcept {
+bool operator!=(const padded_string& x, string8_view y) noexcept {
   return !(x == y);
 }
 
 std::ostream& operator<<(std::ostream& out, const padded_string& x) {
-  out << x.data_;
+  out << out_string8(x.data_);
   return out;
 }
 }  // namespace quick_lint_js

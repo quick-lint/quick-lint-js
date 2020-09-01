@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <optional>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -69,7 +70,7 @@ class linter {
     scope &current_scope = this->scopes_.back();
 
     current_scope.declared_variables.emplace_back(
-        declared_variable{std::string(name.string_view()), kind, name});
+        declared_variable{string8(name.string_view()), kind, name});
 
     auto erase_if = [](auto &variables, auto predicate) {
       variables.erase(
@@ -177,7 +178,7 @@ class linter {
 
  private:
   struct declared_variable {
-    std::string name;
+    string8 name;
     variable_kind kind;
     std::optional<identifier> declaration;
   };

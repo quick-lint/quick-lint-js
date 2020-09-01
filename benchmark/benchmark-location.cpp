@@ -16,6 +16,7 @@
 
 #include <benchmark/benchmark.h>
 #include <memory>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
@@ -41,13 +42,13 @@ struct source_code_with_spans {
 source_code_with_spans make_realisticish_code(int line_count, int span_count);
 std::vector<int> random_line_lengths(std::mt19937_64 &, int line_count);
 padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const std::string &newline);
+                               const string8 &newline);
 template <class T>
 void partial_shuffle(std::vector<T> &, std::mt19937_64 &, int rounds);
 
 void benchmark_location_scale_of_long_line(::benchmark::State &state) {
   int line_length = 10'000;
-  padded_string line(std::string(narrow_cast<std::size_t>(line_length), 'x'));
+  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'x'));
   for (auto _ : state) {
     locator l(&line);
     for (int i = 0; i < line_length; ++i) {
@@ -60,7 +61,7 @@ BENCHMARK(benchmark_location_scale_of_long_line);
 
 void benchmark_location_scale_of_empty_lines(::benchmark::State &state) {
   int line_length = 10'000;
-  padded_string line(std::string(narrow_cast<std::size_t>(line_length), '\n'));
+  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
   for (auto _ : state) {
     locator l(&line);
     for (int i = 0; i < line_length; ++i) {
@@ -74,7 +75,7 @@ BENCHMARK(benchmark_location_scale_of_empty_lines);
 void benchmark_range_scale_of_empty_lines(::benchmark::State &state) {
   int line_length = 10'000;
   int span_length = 5;
-  padded_string line(std::string(narrow_cast<std::size_t>(line_length), '\n'));
+  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
   for (auto _ : state) {
     locator l(&line);
     for (int i = 0; i < line_length - span_length; i += span_length) {
@@ -105,7 +106,7 @@ BENCHMARK(benchmark_location_realisticish)->Arg(1)->Arg(50);
 source_code_with_spans make_realisticish_code(int line_count, int span_count) {
   std::mt19937_64 rng;
 
-  std::string newline = "\n";
+  string8 newline = u8"\n";
   std::vector<int> line_lengths = random_line_lengths(rng, line_count);
   std::unique_ptr<padded_string> source =
       std::make_unique<padded_string>(make_source_code(line_lengths, newline));
@@ -116,7 +117,7 @@ source_code_with_spans make_realisticish_code(int line_count, int span_count) {
     int span_length = std::min(span_length_distribution(rng), line_length);
     int span_begin_line_offset =
         std::uniform_int_distribution(0, line_length - span_length)(rng);
-    const char *span_begin =
+    const char8 *span_begin =
         &(*source)[line_begin_offset + span_begin_line_offset];
     return source_code_span(span_begin, span_begin + span_length);
   };
@@ -168,10 +169,10 @@ std::vector<int> random_line_lengths(std::mt19937_64 &rng, int line_count) {
 }
 
 padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const std::string &newline) {
-  std::string source;
+                               const string8 &newline) {
+  string8 source;
   for (int line_length : line_lengths) {
-    source += std::string(narrow_cast<std::size_t>(line_length), 'x');
+    source += string8(narrow_cast<std::size_t>(line_length), u8'x');
     source += newline;
   }
   return padded_string(std::move(source));

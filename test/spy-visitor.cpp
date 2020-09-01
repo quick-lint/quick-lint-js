@@ -15,12 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <ostream>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/spy-visitor.h>
 
 namespace quick_lint_js {
 void PrintTo(const spy_visitor::visited_variable_assignment &x,
              std::ostream *out) {
-  *out << x.name;
+  *out << out_string8(x.name);
 }
 
 void PrintTo(const spy_visitor::visited_variable_declaration &x,
@@ -40,10 +41,10 @@ void PrintTo(const spy_visitor::visited_variable_declaration &x,
     QLJS_CASE(_var)
   }
 #undef QLJS_CASE
-  *out << ' ' << x.name;
+  *out << ' ' << out_string8(x.name);
 }
 
 void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {
-  *out << x.name;
+  *out << out_string8(x.name);
 }
 }  // namespace quick_lint_js

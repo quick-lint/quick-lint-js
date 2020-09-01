@@ -16,13 +16,14 @@
 
 #include <benchmark/benchmark.h>
 #include <cstring>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
 namespace {
-void benchmark_lex(::benchmark::State &state, const char *raw_source) {
+void benchmark_lex(::benchmark::State &state, const char8 *raw_source) {
   padded_string source(raw_source);
   for (auto _ : state) {
     lexer l(&source, &null_error_reporter::instance);
@@ -39,22 +40,24 @@ void benchmark_lex(::benchmark::State &state, const char *raw_source) {
       bytes_per_iteration * iteration_count,
       ::benchmark::Counter::kIsRate | ::benchmark::Counter::kInvert);
 }
-BENCHMARK_CAPTURE(benchmark_lex, empty, "");
-BENCHMARK_CAPTURE(benchmark_lex, tiny_number, "0");
-BENCHMARK_CAPTURE(benchmark_lex, small_number, "123");
-BENCHMARK_CAPTURE(benchmark_lex, tiny_identifier, "x");
+BENCHMARK_CAPTURE(benchmark_lex, empty, u8"");
+BENCHMARK_CAPTURE(benchmark_lex, tiny_number, u8"0");
+BENCHMARK_CAPTURE(benchmark_lex, small_number, u8"123");
+BENCHMARK_CAPTURE(benchmark_lex, tiny_identifier, u8"x");
 BENCHMARK_CAPTURE(benchmark_lex, tiny_identifiers_with_spaces,
-                  "x x x x x x x x");
-BENCHMARK_CAPTURE(benchmark_lex, tiny_identifiers_with_dots, "x.x.x.x.x.x.x.x");
-BENCHMARK_CAPTURE(benchmark_lex, 20_spaces, "                    ");
-BENCHMARK_CAPTURE(benchmark_lex, small_identifier, "pos");
-BENCHMARK_CAPTURE(benchmark_lex, normal_identifier, "position");
-BENCHMARK_CAPTURE(benchmark_lex, mixed_case_identifier, "XMLHttpRequest");
+                  u8"x x x x x x x x");
+BENCHMARK_CAPTURE(benchmark_lex, tiny_identifiers_with_dots,
+                  u8"x.x.x.x.x.x.x.x");
+BENCHMARK_CAPTURE(benchmark_lex, 20_spaces, u8"                    ");
+BENCHMARK_CAPTURE(benchmark_lex, small_identifier, u8"pos");
+BENCHMARK_CAPTURE(benchmark_lex, normal_identifier, u8"position");
+BENCHMARK_CAPTURE(benchmark_lex, mixed_case_identifier, u8"XMLHttpRequest");
 BENCHMARK_CAPTURE(benchmark_lex, long_identifier_1,
-                  "reenterHydrationStateFromDehydratedSuspenseInstance");
+                  u8"reenterHydrationStateFromDehydratedSuspenseInstance");
 BENCHMARK_CAPTURE(benchmark_lex, long_identifier_2,
-                  "didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate");
-BENCHMARK_CAPTURE(benchmark_lex, jquery_snippet, R"(/*!
+                  u8"didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate");
+BENCHMARK_CAPTURE(benchmark_lex, jquery_snippet,
+                  u8R"(/*!
  * Copyright JS Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license

@@ -24,6 +24,7 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/buffering-visitor.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -338,7 +339,7 @@ class expression::expression_with_prefix_operator_base : public expression {
   }
 
  private:
-  const char *unary_operator_begin_;
+  const char8 *unary_operator_begin_;
   expression_ptr child_;
 };
 
@@ -428,7 +429,7 @@ class expression::arrow_function_with_expression final : public expression {
 
   explicit arrow_function_with_expression(
       function_attributes attributes, expression_ptr body,
-      const char *parameter_list_begin) noexcept
+      const char8 *parameter_list_begin) noexcept
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
@@ -437,7 +438,7 @@ class expression::arrow_function_with_expression final : public expression {
   explicit arrow_function_with_expression(
       function_attributes attributes,
       expression_arena::array_ptr<expression_ptr> parameters,
-      expression_ptr body, const char *parameter_list_begin) noexcept
+      expression_ptr body, const char8 *parameter_list_begin) noexcept
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
@@ -473,7 +474,7 @@ class expression::arrow_function_with_expression final : public expression {
   }
 
  private:
-  const char *parameter_list_begin_;
+  const char8 *parameter_list_begin_;
   function_attributes function_attributes_;
   expression_arena::array_ptr<expression_ptr> parameters_;
   expression_ptr body_;
@@ -489,7 +490,7 @@ class expression::arrow_function_with_statements final : public expression {
   explicit arrow_function_with_statements(
       function_attributes attributes,
       expression_arena::buffering_visitor_ptr child_visits,
-      const char *parameter_list_begin, const char *span_end) noexcept
+      const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
@@ -502,7 +503,7 @@ class expression::arrow_function_with_statements final : public expression {
       function_attributes attributes,
       expression_arena::array_ptr<expression_ptr> parameters,
       expression_arena::buffering_visitor_ptr child_visits,
-      const char *parameter_list_begin, const char *span_end) noexcept
+      const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
@@ -539,8 +540,8 @@ class expression::arrow_function_with_statements final : public expression {
 
  private:
   function_attributes function_attributes_;
-  const char *parameter_list_begin_;
-  const char *span_end_;
+  const char8 *parameter_list_begin_;
+  const char8 *span_end_;
   expression_arena::buffering_visitor_ptr child_visits_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
@@ -633,7 +634,7 @@ class expression::call final : public expression {
   }
 
  private:
-  const char *call_right_paren_end_;
+  const char8 *call_right_paren_end_;
   expression_arena::array_ptr<expression_ptr> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::call>);
@@ -743,7 +744,7 @@ class expression::index final : public expression {
   static constexpr expression_kind kind = expression_kind::index;
 
   explicit index(expression_ptr container, expression_ptr subscript,
-                 const char *subscript_end) noexcept
+                 const char8 *subscript_end) noexcept
       : expression(kind),
         index_subscript_end_(subscript_end),
         children_{container, subscript} {}
@@ -764,7 +765,7 @@ class expression::index final : public expression {
   }
 
  private:
-  const char *index_subscript_end_;
+  const char8 *index_subscript_end_;
   std::array<expression_ptr, 2> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::index>);
@@ -876,7 +877,7 @@ class expression::rw_unary_suffix final : public expression {
   }
 
  private:
-  const char *unary_operator_end_;
+  const char8 *unary_operator_end_;
   expression_ptr child_;
 };
 static_assert(expression_arena::is_allocatable<expression::rw_unary_suffix>);

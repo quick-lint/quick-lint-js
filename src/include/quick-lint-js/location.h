@@ -19,9 +19,9 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
-#include <string_view>
 #include <vector>
 
 namespace quick_lint_js {
@@ -66,32 +66,32 @@ class source_range {
 
 class source_code_span {
  public:
-  explicit source_code_span(const char* begin, const char* end) noexcept
+  explicit source_code_span(const char8* begin, const char8* end) noexcept
       : begin_(begin), end_(end) {}
 
-  const char* begin() const noexcept { return this->begin_; }
+  const char8* begin() const noexcept { return this->begin_; }
 
-  const char* end() const noexcept { return this->end_; }
+  const char8* end() const noexcept { return this->end_; }
 
-  std::string_view string_view() const noexcept {
-    return std::string_view(
-        this->begin(), narrow_cast<std::size_t>(this->end() - this->begin()));
+  string8_view string_view() const noexcept {
+    return string8_view(this->begin(),
+                        narrow_cast<std::size_t>(this->end() - this->begin()));
   }
 
  private:
-  const char* begin_;
-  const char* end_;
+  const char8* begin_;
+  const char8* end_;
 };
 
-bool operator==(source_code_span, std::string_view) noexcept;
-bool operator!=(source_code_span, std::string_view) noexcept;
+bool operator==(source_code_span, string8_view) noexcept;
+bool operator!=(source_code_span, string8_view) noexcept;
 
 class locator {
  public:
   explicit locator(padded_string_view input) noexcept;
 
   source_range range(source_code_span) const;
-  source_position position(const char*) const noexcept;
+  source_position position(const char8*) const noexcept;
 
  private:
   void cache_offsets_of_lines() const;
@@ -99,12 +99,12 @@ class locator {
   source_position::line_number_type find_line_at_offset(
       source_position::offset_type offset) const;
 
-  source_position::offset_type offset(const char*) const noexcept;
+  source_position::offset_type offset(const char8*) const noexcept;
 
   source_position position(source_position::line_number_type line_number,
                            source_position::offset_type offset) const noexcept;
 
-  const char* input_;
+  const char8* input_;
   mutable std::vector<source_position::offset_type> offset_of_lines_;
 };
 }  // namespace quick_lint_js

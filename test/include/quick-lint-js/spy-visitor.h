@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_SPY_VISITOR_H
 
 #include <iosfwd>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -55,12 +56,12 @@ struct spy_visitor : public error_collector {
 
   void visit_enter_named_function_scope(identifier name) {
     this->enter_named_function_scopes.emplace_back(
-        visited_enter_named_function_scope{std::string(name.string_view())});
+        visited_enter_named_function_scope{string8(name.string_view())});
     this->visits.emplace_back("visit_enter_named_function_scope");
   }
 
   struct visited_enter_named_function_scope {
-    std::string name;
+    string8 name;
 
     bool operator==(const visited_enter_named_function_scope &other) const {
       return this->name == other.name;
@@ -90,12 +91,12 @@ struct spy_visitor : public error_collector {
 
   void visit_property_declaration(identifier name) {
     this->property_declarations.emplace_back(
-        visited_property_declaration{std::string(name.string_view())});
+        visited_property_declaration{string8(name.string_view())});
     this->visits.emplace_back("visit_property_declaration");
   }
 
   struct visited_property_declaration {
-    std::string name;
+    string8 name;
 
     bool operator==(const visited_property_declaration &other) const {
       return this->name == other.name;
@@ -109,12 +110,12 @@ struct spy_visitor : public error_collector {
 
   void visit_variable_assignment(identifier name) {
     this->variable_assignments.emplace_back(
-        visited_variable_assignment{std::string(name.string_view())});
+        visited_variable_assignment{string8(name.string_view())});
     this->visits.emplace_back("visit_variable_assignment");
   }
 
   struct visited_variable_assignment {
-    std::string name;
+    string8 name;
 
     bool operator==(const visited_variable_assignment &other) const {
       return this->name == other.name;
@@ -128,12 +129,12 @@ struct spy_visitor : public error_collector {
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->variable_declarations.emplace_back(
-        visited_variable_declaration{std::string(name.string_view()), kind});
+        visited_variable_declaration{string8(name.string_view()), kind});
     this->visits.emplace_back("visit_variable_declaration");
   }
 
   struct visited_variable_declaration {
-    std::string name;
+    string8 name;
     variable_kind kind;
 
     bool operator==(const visited_variable_declaration &other) const {
@@ -148,12 +149,12 @@ struct spy_visitor : public error_collector {
 
   void visit_variable_use(identifier name) {
     this->variable_uses.emplace_back(
-        visited_variable_use{std::string(name.string_view())});
+        visited_variable_use{string8(name.string_view())});
     this->visits.emplace_back("visit_variable_use");
   }
 
   struct visited_variable_use {
-    std::string name;
+    string8 name;
 
     bool operator==(const visited_variable_use &other) const {
       return this->name == other.name;

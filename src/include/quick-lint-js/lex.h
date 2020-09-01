@@ -20,9 +20,9 @@
 #include <cassert>
 #include <cstddef>
 #include <iosfwd>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
-#include <string_view>
 
 #define QLJS_CASE_KEYWORD                          \
   case ::quick_lint_js::token_type::kw_as:         \
@@ -193,7 +193,7 @@ class identifier {
 
   source_code_span span() const noexcept { return this->span_; }
 
-  std::string_view string_view() const noexcept {
+  string8_view string_view() const noexcept {
     return this->span_.string_view();
   }
 
@@ -207,8 +207,8 @@ struct token {
 
   token_type type;
 
-  const char* begin;
-  const char* end;
+  const char8* begin;
+  const char8* end;
 
   bool has_leading_newline;
 };
@@ -228,7 +228,7 @@ class lexer {
   const token& peek() const noexcept { return this->last_token_; }
 
   void skip() { this->parse_current_token(); }
-  void skip_in_template(const char* template_begin);
+  void skip_in_template(const char8* template_begin);
 
   void reparse_as_regexp();
 
@@ -236,16 +236,16 @@ class lexer {
 
   // Do not call this after calling insert_semicolon, unless skip has been
   // called after.
-  const char* end_of_previous_token() const noexcept;
+  const char8* end_of_previous_token() const noexcept;
 
  private:
   struct parsed_template_body {
     token_type type;
-    const char* end;
+    const char8* end;
   };
 
-  static parsed_template_body parse_template_body(const char* input,
-                                                  const char* template_begin,
+  static parsed_template_body parse_template_body(const char8* input,
+                                                  const char8* template_begin,
                                                   error_reporter*);
 
   void parse_hexadecimal_number();
@@ -257,15 +257,15 @@ class lexer {
   void skip_block_comment();
   void skip_line_comment();
 
-  static bool is_digit(char);
-  static bool is_hex_digit(char);
-  static bool is_identifier_character(char);
+  static bool is_digit(char8);
+  static bool is_hex_digit(char8);
+  static bool is_identifier_character(char8);
 
-  static token_type identifier_token_type(std::string_view) noexcept;
+  static token_type identifier_token_type(string8_view) noexcept;
 
   token last_token_;
-  const char* last_last_token_end_;
-  const char* input_;
+  const char8* last_last_token_end_;
+  const char8* input_;
   error_reporter* error_reporter_;
 };
 }  // namespace quick_lint_js

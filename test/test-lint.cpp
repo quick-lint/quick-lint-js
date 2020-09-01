@@ -17,6 +17,7 @@
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -28,88 +29,90 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-source_code_span span_of(const char *code) {
-  return source_code_span(&code[0], &code[std::strlen(code)]);
+source_code_span span_of(const char8 *code) {
+  return source_code_span(&code[0], &code[strlen(code)]);
 }
 
-identifier identifier_of(const char *name) { return identifier(span_of(name)); }
+identifier identifier_of(const char8 *name) {
+  return identifier(span_of(name));
+}
 
-constexpr const char *writable_global_variables[] = {
+constexpr const char8 *writable_global_variables[] = {
     // ECMA-262 18.1 Value Properties of the Global Object
-    "globalThis",
+    u8"globalThis",
 
     // ECMA-262 18.2 Function Properties of the Global Object
-    "decodeURI",
-    "decodeURIComponent",
-    "encodeURI",
-    "encodeURIComponent",
-    "eval",
-    "isFinite",
-    "isNaN",
-    "parseFloat",
-    "parseInt",
+    u8"decodeURI",
+    u8"decodeURIComponent",
+    u8"encodeURI",
+    u8"encodeURIComponent",
+    u8"eval",
+    u8"isFinite",
+    u8"isNaN",
+    u8"parseFloat",
+    u8"parseInt",
 
     // ECMA-262 18.3 Constructor Properties of the Global Object
-    "Array",
-    "ArrayBuffer",
-    "BigInt",
-    "BigInt64Array",
-    "BigUint64Array",
-    "Boolean",
-    "DataView",
-    "Date",
-    "Error",
-    "EvalError",
-    "Float32Array",
-    "Float64Array",
-    "Function",
-    "Int16Array",
-    "Int32Array",
-    "Int8Array",
-    "Map",
-    "Number",
-    "Object",
-    "Promise",
-    "Proxy",
-    "RangeError",
-    "ReferenceError",
-    "RegExp",
-    "Set",
-    "SharedArrayBuffer",
-    "String",
-    "Symbol",
-    "SyntaxError",
-    "TypeError",
-    "URIError",
-    "Uint16Array",
-    "Uint32Array",
-    "Uint8Array",
-    "Uint8ClampedArray",
-    "WeakMap",
-    "WeakSet",
+    u8"Array",
+    u8"ArrayBuffer",
+    u8"BigInt",
+    u8"BigInt64Array",
+    u8"BigUint64Array",
+    u8"Boolean",
+    u8"DataView",
+    u8"Date",
+    u8"Error",
+    u8"EvalError",
+    u8"Float32Array",
+    u8"Float64Array",
+    u8"Function",
+    u8"Int16Array",
+    u8"Int32Array",
+    u8"Int8Array",
+    u8"Map",
+    u8"Number",
+    u8"Object",
+    u8"Promise",
+    u8"Proxy",
+    u8"RangeError",
+    u8"ReferenceError",
+    u8"RegExp",
+    u8"Set",
+    u8"SharedArrayBuffer",
+    u8"String",
+    u8"Symbol",
+    u8"SyntaxError",
+    u8"TypeError",
+    u8"URIError",
+    u8"Uint16Array",
+    u8"Uint32Array",
+    u8"Uint8Array",
+    u8"Uint8ClampedArray",
+    u8"WeakMap",
+    u8"WeakSet",
 
     // ECMA-262 18.4 Other Properties of the Global Object
-    "Atomics",
-    "JSON",
-    "Math",
-    "Reflect",
+    u8"Atomics",
+    u8"JSON",
+    u8"Math",
+    u8"Reflect",
 };
 
-constexpr const char *non_writable_global_variables[] = {
+constexpr const char8 *non_writable_global_variables[] = {
     // ECMA-262 18.1 Value Properties of the Global Object
-    "Infinity",
-    "NaN",
-    "undefined",
+    u8"Infinity",
+    u8"NaN",
+    u8"undefined",
 };
 
 TEST(test_lint, global_variables_are_usable) {
   error_collector v;
   linter l(&v);
-  for (const char *global_variable : writable_global_variables) {
+  for (const char8 *global_variable : writable_global_variables) {
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_variable_use(identifier_of(global_variable));
   }
-  for (const char *global_variable : non_writable_global_variables) {
+  for (const char8 *global_variable : non_writable_global_variables) {
     l.visit_variable_use(identifier_of(global_variable));
   }
   l.visit_end_of_module();
@@ -118,8 +121,8 @@ TEST(test_lint, global_variables_are_usable) {
 }
 
 TEST(test_lint, immutable_global_variables_are_not_assignable) {
-  for (const char *global_variable : non_writable_global_variables) {
-    SCOPED_TRACE(global_variable);
+  for (const char8 *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
 
     error_collector v;
     linter l(&v);
@@ -135,8 +138,8 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
 
 TEST(test_lint, let_or_const_variable_use_before_declaration) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_let}) {
-    const char declaration[] = "x";
-    const char use[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -153,7 +156,7 @@ TEST(test_lint, let_or_const_variable_use_before_declaration) {
 }
 
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
-  padded_string input("let x = y, y = x;");
+  padded_string input(u8"let x = y, y = x;");
   error_collector v;
   linter l(&v);
   parser p(&input, &v);
@@ -169,8 +172,8 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
 }
 
 TEST(test_lint, let_variable_use_before_declaration_within_function) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -188,8 +191,8 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
 }
 
 TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -207,8 +210,8 @@ TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
 }
 
 TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -228,8 +231,8 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
 
 TEST(test_lint, var_or_function_variable_use_before_declaration) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
-    const char declaration[] = "x";
-    const char use[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -243,8 +246,8 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
 
 TEST(test_lint, var_or_function_variable_use_before_declaration_in_for_scope) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
-    const char declaration[] = "x";
-    const char use[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -262,8 +265,8 @@ TEST(
     test_lint,
     var_or_function_variable_use_before_declaration_in_different_block_scopes) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
-    const char declaration[] = "x";
-    const char use[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -282,8 +285,8 @@ TEST(
 TEST(test_lint, variable_use_after_declaration) {
   for (variable_kind kind :
        {variable_kind::_const, variable_kind::_let, variable_kind::_var}) {
-    const char declaration[] = "x";
-    const char use[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -295,7 +298,7 @@ TEST(test_lint, variable_use_after_declaration) {
 }
 
 TEST(test_lint, variable_use_with_no_declaration) {
-  const char use[] = "x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -309,7 +312,7 @@ TEST(test_lint, variable_use_with_no_declaration) {
 }
 
 TEST(test_lint, variable_use_in_function_with_no_declaration) {
-  const char use[] = "x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -325,8 +328,8 @@ TEST(test_lint, variable_use_in_function_with_no_declaration) {
 }
 
 TEST(test_lint, variable_use_with_declaration_in_different_function) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -345,8 +348,8 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
 }
 
 TEST(test_lint, use_global_variable_within_functions) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -363,8 +366,8 @@ TEST(test_lint, use_global_variable_within_functions) {
 }
 
 TEST(test_lint, function_uses_variable_declared_in_outer_function) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -388,8 +391,8 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
 }
 
 TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
-  const char declaration[] = "x";
-  const char use[] = "x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -407,8 +410,8 @@ TEST(test_lint, assign_to_mutable_variable) {
        {variable_kind::_let, variable_kind::_var, variable_kind::_class,
         variable_kind::_function, variable_kind::_catch,
         variable_kind::_parameter}) {
-    const char declaration[] = "x";
-    const char assignment[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 assignment[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -423,9 +426,9 @@ TEST(test_lint, assign_to_mutable_variable) {
 }
 
 TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
-  const char immutable_declaration[] = "x";
-  const char mutable_declaration[] = "x";
-  const char assignment[] = "x";
+  const char8 immutable_declaration[] = u8"x";
+  const char8 mutable_declaration[] = u8"x";
+  const char8 assignment[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -443,8 +446,8 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
 
 TEST(test_lint, assign_to_immutable_variable) {
   for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
-    const char declaration[] = "x";
-    const char assignment[] = "x";
+    const char8 declaration[] = u8"x";
+    const char8 assignment[] = u8"x";
 
     error_collector v;
     linter l(&v);
@@ -464,7 +467,7 @@ TEST(test_lint, assign_to_immutable_variable) {
 }
 
 TEST(test_lint, assign_to_undeclared_variable) {
-  const char assignment[] = "x";
+  const char8 assignment[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -478,8 +481,8 @@ TEST(test_lint, assign_to_undeclared_variable) {
 }
 
 TEST(test_lint, assign_to_variable_before_declaration) {
-  const char assignment[] = "x";
-  const char declaration[] = "x";
+  const char8 assignment[] = u8"x";
+  const char8 declaration[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -494,8 +497,8 @@ TEST(test_lint, assign_to_variable_before_declaration) {
 }
 
 TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
-  const char assignment[] = "x";
-  const char declaration[] = "x";
+  const char8 assignment[] = u8"x";
+  const char8 declaration[] = u8"x";
 
   error_collector v;
   linter l(&v);
@@ -511,8 +514,8 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
        {variable_kind::_function, variable_kind::_let}) {
     SCOPED_TRACE(::testing::PrintToString(var_kind));
 
-    const char declaration[] = "f";
-    const char use[] = "f";
+    const char8 declaration[] = u8"f";
+    const char8 use[] = u8"f";
 
     error_collector v;
     linter l(&v);
@@ -533,8 +536,8 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
        {variable_kind::_function, variable_kind::_let}) {
     SCOPED_TRACE(::testing::PrintToString(var_kind));
 
-    const char declaration[] = "f";
-    const char use[] = "f";
+    const char8 declaration[] = u8"f";
+    const char8 use[] = u8"f";
 
     error_collector v;
     linter l(&v);
@@ -553,9 +556,9 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
 }
 
 TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
-  const char declaration[] = "element";
-  const char use_before[] = "element";
-  const char use_after[] = "element";
+  const char8 declaration[] = u8"element";
+  const char8 use_before[] = u8"element";
+  const char8 use_after[] = u8"element";
 
   error_collector v;
   linter l(&v);
@@ -577,8 +580,8 @@ TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
 
 TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
   {
-    const char declaration[] = "v";
-    const char use[] = "v";
+    const char8 declaration[] = u8"v";
+    const char8 use[] = u8"v";
 
     error_collector v;
     linter l(&v);
@@ -593,8 +596,8 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
   }
 
   {
-    const char declaration[] = "v";
-    const char use[] = "v";
+    const char8 declaration[] = u8"v";
+    const char8 use[] = u8"v";
 
     error_collector v;
     linter l(&v);
@@ -609,8 +612,8 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
   }
 
   {
-    const char declaration[] = "v";
-    const char use[] = "v";
+    const char8 declaration[] = u8"v";
+    const char8 use[] = u8"v";
 
     error_collector v;
     linter l(&v);
@@ -630,7 +633,7 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
 }
 
 TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
-  const char use[] = "v";
+  const char8 use[] = u8"v";
 
   error_collector v;
   linter l(&v);
@@ -649,8 +652,8 @@ TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
 
 TEST(test_lint,
      use_variable_in_function_scope_in_for_scope_before_declaration) {
-  const char declaration[] = "v";
-  const char use[] = "v";
+  const char8 declaration[] = u8"v";
+  const char8 use[] = u8"v";
 
   error_collector v;
   linter l(&v);
@@ -667,9 +670,9 @@ TEST(test_lint,
 
 TEST(test_lint,
      use_variable_before_declaration_but_variable_is_declared_in_outer_scope) {
-  const char outer_declaration[] = "v";
-  const char inner_declaration[] = "v";
-  const char use[] = "v";
+  const char8 outer_declaration[] = u8"v";
+  const char8 inner_declaration[] = u8"v";
+  const char8 use[] = u8"v";
 
   error_collector v;
   linter l(&v);
@@ -692,9 +695,9 @@ TEST(test_lint,
 TEST(
     test_lint,
     assign_to_variable_before_declaration_but_variable_is_declared_in_outer_scope) {
-  const char outer_declaration[] = "v";
-  const char inner_declaration[] = "v";
-  const char assignment[] = "v";
+  const char8 outer_declaration[] = u8"v";
+  const char8 inner_declaration[] = u8"v";
+  const char8 assignment[] = u8"v";
 
   error_collector v;
   linter l(&v);

@@ -47,11 +47,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/warning.h>
 #include <stddef.h>
 #include <string.h>
-#include <string_view>
 
 QLJS_WARNING_IGNORE_CLANG("-Wold-style-cast")
 QLJS_WARNING_IGNORE_CLANG("-Wshorten-64-to-32")
@@ -339,13 +339,16 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
 
 }  // namespace
 
-token_type lexer::identifier_token_type(std::string_view identifier) noexcept {
-  const keyword_entry *entry =
-      lexer_keyword::look_up(identifier.data(), identifier.size());
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+token_type lexer::identifier_token_type(string8_view identifier) noexcept {
+  const keyword_entry *entry = lexer_keyword::look_up(
+      reinterpret_cast<const char *>(identifier.data()), identifier.size());
   if (entry) {
     return entry->type;
   } else {
     return token_type::identifier;
   }
 }
+QLJS_WARNING_POP
 }  // namespace quick_lint_js

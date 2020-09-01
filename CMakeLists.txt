@@ -22,6 +22,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(QuickLintJSCompiler)
 
 quick_lint_js_set_cxx_standard()
+quick_lint_js_enable_char8_t_if_supported()
 
 add_subdirectory(vendor)
 
