@@ -90,7 +90,7 @@ class bool_vector_16_sse2 {
 
   friend std::ostream& operator<<(std::ostream&, bool_vector_16_sse2);
 
- private:
+ //private:
   [[gnu::always_inline]] std::uint32_t mask() const noexcept {
     return narrow_cast<std::uint32_t>(_mm_movemask_epi8(this->data_));
   }
@@ -147,7 +147,9 @@ class char_vector_16_sse2 {
     return bool_vector_16_sse2(_mm_cmpgt_epi8(x.data_, y.data_));
   }
 
- private:
+  friend std::ostream& operator<<(std::ostream&, char_vector_16_sse2);
+
+ //private:
   __m128i data_;
 
 #if QLJS_HAVE_X86_SSSE3

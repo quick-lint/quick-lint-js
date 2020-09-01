@@ -28,6 +28,9 @@
 #include <string_view>
 #include <type_traits>
 
+// @@@
+#include <iostream>
+
 #define QLJS_CASE_IDENTIFIER_START \
   case '$':                        \
   case '_':                        \
@@ -560,6 +563,32 @@ void lexer::parse_number() {
   }
 }
 
+constexpr bool lexer::is_identifier_character(char c) {
+  switch (c) {
+  QLJS_CASE_IDENTIFIER_START:
+  QLJS_CASE_DECIMAL_DIGIT:
+    return true;
+    default:
+      return false;
+  }
+}
+
+// @@@ move
+template<class Func>
+constexpr std::array<std::uint8_t, 16> generate_table(
+    Func &&f) noexcept {
+  std::array<std::uint8_t, 16> table = {};
+  for (int bit = 0; bit < 128; ++bit) {
+    if (f(bit)) {
+      int lonib = bit & 0xf;
+      int hinib = (bit >> 4) & 0xf;
+      assert((hinib >> 3) == 0);
+      table[lonib] |= (1 << (hinib & 0x7));
+    }
+  }
+  return table;
+}
+
 void lexer::parse_identifier() {
   const char* input = this->input_;
   switch (*input) {
@@ -580,6 +609,56 @@ void lexer::parse_identifier() {
 #endif
 
   auto is_identifier_characters = [](char_vector chars) -> bool_vector {
+    // @@@ credit: http://0x80.pl/articles/simd-byte-lookup.html
+    constexpr std::array<std::uint8_t, 16> is_identifier_bitset = generate_table(
+        [](int c) {
+          return is_identifier_character(c);
+        });
+    char_vector_16_sse2 bitset
+      = char_vector_16_sse2::make(is_identifier_bitset);
+
+    __m128i chars_lo = chars.data_;
+    __m128i chars_hi = _mm_and_si128(
+        _mm_srli_epi16(chars.data_, 4), _mm_set1_epi8(0x0f));
+
+    char_vector_16_sse2 shift_to_mask = char_vector_16_sse2::make({
+        1 << 0,
+        1 << 1,
+        1 << 2,
+        1 << 3,
+        1 << 4,
+        1 << 5,
+        1 << 6,
+        1 << 7,
+        1 << 0,
+        1 << 1,
+        1 << 2,
+        1 << 3,
+        1 << 4,
+        1 << 5,
+        1 << 6,
+        1 << 7,
+      });
+    // @@@ rename these when I'm sober
+    __m128i hi_bit_in_bitset = _mm_shuffle_epi8(
+        shift_to_mask.data_, chars_hi);
+    __m128i lo_something = _mm_shuffle_epi8(
+        bitset.data_,
+        chars_lo);
+
+    bool_vector_16_sse2 result(
+        _mm_cmpeq_epi8(
+          _mm_and_si128(lo_something, hi_bit_in_bitset),
+          hi_bit_in_bitset));
+
+    // Detect non-ASCII characters (high bit set), returning false for them.
+    bool_vector_16_sse2 result_2(
+        _mm_andnot_si128(
+          chars.data_,
+          result.data_));
+    return result_2;
+
+#if 0
     constexpr std::uint8_t upper_to_lower_mask = 'a' - 'A';
     static_assert(('A' | upper_to_lower_mask) == 'a');
 
@@ -602,6 +681,7 @@ void lexer::parse_identifier() {
 #endif
     return is_alpha | is_digit_or_underscore |
            (chars == char_vector::repeated('$'));
+#endif
   };
 
   bool is_all_identifier_characters;
@@ -779,16 +859,6 @@ bool lexer::is_hex_digit(char c) {
   case 'D':
   case 'E':
   case 'F':
-    return true;
-    default:
-      return false;
-  }
-}
-
-bool lexer::is_identifier_character(char c) {
-  switch (c) {
-  QLJS_CASE_IDENTIFIER_START:
-  QLJS_CASE_DECIMAL_DIGIT:
     return true;
     default:
       return false;

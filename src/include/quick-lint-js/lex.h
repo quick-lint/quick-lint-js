@@ -259,7 +259,7 @@ class lexer {
 
   static bool is_digit(char);
   static bool is_hex_digit(char);
-  static bool is_identifier_character(char);
+  static constexpr bool is_identifier_character(char);
 
   static token_type identifier_token_type(std::string_view) noexcept;
 

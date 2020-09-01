@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iomanip>
 #include <ostream>
 #include <quick-lint-js/simd.h>
 
@@ -37,6 +38,24 @@ std::ostream& operator<<(std::ostream& out, bool_vector_16_sse2 x) {
     } else {
       out << '?';
     }
+    need_comma = true;
+  }
+  out << '}';
+
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, char_vector_16_sse2 x) {
+  std::uint8_t bytes[sizeof(x.data_)];
+  std::memcpy(&bytes, &x.data_, sizeof(bytes));
+
+  bool need_comma = false;
+  out << '{';
+  for (std::uint8_t byte : bytes) {
+    if (need_comma) {
+      out << ',';
+    }
+    out << std::setw(2) << std::setfill('0') << std::setbase(16) << static_cast<int>(byte);
     need_comma = true;
   }
   out << '}';
