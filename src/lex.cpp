@@ -28,6 +28,8 @@
 #include <string_view>
 #include <type_traits>
 
+#include <iostream> // @@@o
+
 #define QLJS_CASE_IDENTIFIER_START \
   case '$':                        \
   case '_':                        \
@@ -590,7 +592,7 @@ void lexer::parse_identifier() {
     bool_vector is_alpha =
         (lower_cased_characters > char_vector::repeated('a' - 1)) &
         (lower_cased_characters < char_vector::repeated('z' + 1));
-#if QLJS_HAVE_X86_SSSE3
+#if 0 //@@@ QLJS_HAVE_X86_SSSE3
     char_filter_vector_16_ssse3 digit_or_underscore_filter =
         char_filter_vector_16_ssse3::make<'0', '1', '2', '3', '4', '5', '6',
                                           '7', '8', '9', '_'>();
@@ -630,6 +632,21 @@ QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
 QLJS_WARNING_IGNORE_GCC("-Wattributes")
 void lexer::skip_whitespace() {
   const char* input = this->input_;
+
+  // @@@ check sse
+  char_vector_16_sse2 chars = char_vector_16_sse2::load(input);
+  char_filter_vector_16_ssse3 whitespace_filter =
+    char_filter_vector_16_ssse3::make<' ', '\t', '\f', '\n'>();
+
+  bool_vector_16_sse2 is_whitespace =
+    whitespace_filter.filter(chars);
+  int whitespace_count = is_whitespace.find_first_false();
+  input += whitespace_count;
+
+  //@@@inline
+  std::uint32_t is_newline_mask = (chars == char_vector_16_sse2::repeated('\n')).mask();
+  this->last_token_.has_leading_newline |= 
+    is_newline_mask & ((1 << whitespace_count) - 1);
 
 next:
   char c = input[0];

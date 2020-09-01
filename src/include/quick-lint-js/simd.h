@@ -78,6 +78,10 @@ class bool_vector_16_sse2 {
     return this->mask() == 0xffff;
   }
 
+  [[gnu::always_inline]] bool is_any_true() const noexcept {
+    return this->mask() != 0x0000;
+  }
+
   [[gnu::always_inline]] int find_first_false() const noexcept {
     std::uint32_t mask = this->mask();
     if (~mask == 0) {
@@ -90,7 +94,7 @@ class bool_vector_16_sse2 {
 
   friend std::ostream& operator<<(std::ostream&, bool_vector_16_sse2);
 
- private:
+ //private:
   [[gnu::always_inline]] std::uint32_t mask() const noexcept {
     return narrow_cast<std::uint32_t>(_mm_movemask_epi8(this->data_));
   }
