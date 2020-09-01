@@ -122,14 +122,13 @@ class expression_arena {
   template <class T, std::size_t InSituCapacity>
   array_ptr<T> make_array(vector<T, InSituCapacity> &&);
 
-  buffering_visitor_ptr make_buffering_visitor(
-      std::unique_ptr<buffering_visitor> &&visitor) {
-    // See matching delete in delete_buffering_visitor.
-    return visitor.release();
+  buffering_visitor_ptr make_buffering_visitor() {
+    // See matching 'delete' in delete_buffering_visitor.
+    return new buffering_visitor();
   }
 
   void delete_buffering_visitor(buffering_visitor_ptr visitor) {
-    // See matching allocation in make_buffering_visitor.
+    // See matching 'new' in make_buffering_visitor.
     delete visitor;
   }
 
