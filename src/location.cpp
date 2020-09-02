@@ -57,13 +57,35 @@ source_position locator::position(const char8 *source) const noexcept {
 }
 
 void locator::cache_offsets_of_lines() const {
+  auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
+    this->offset_of_lines_.push_back(narrow_cast<source_position::offset_type>(
+        beginning_of_line - this->input_));
+  };
   this->offset_of_lines_.push_back(0);
-  for (const char8 *c = this->input_; *c != '\0'; ++c) {
-    if (*c == '\n') {
-      const char8 *beginning_of_line = c + 1;
-      this->offset_of_lines_.push_back(
-          narrow_cast<source_position::offset_type>(beginning_of_line -
-                                                    this->input_));
+  for (const char8 *c = this->input_; *c != '\0';) {
+    if (*c == '\n' || *c == '\r') {
+      if (c[0] == '\r' && c[1] == '\n') {
+        c += 2;
+        add_beginning_of_line(c);
+      } else {
+        c += 1;
+        add_beginning_of_line(c);
+      }
+    } else if (static_cast<unsigned char>(c[0]) == 0xe2 &&
+               static_cast<unsigned char>(c[1]) == 0x80) {
+      switch (static_cast<unsigned char>(c[2])) {
+        case 0xa8:  // U+2028 Line Separator
+        case 0xa9:  // U+2029 Paragraph Separator
+          c += 3;
+          add_beginning_of_line(c);
+          break;
+
+        default:
+          c += 1;
+          break;
+      }
+    } else {
+      c += 1;
     }
   }
 }

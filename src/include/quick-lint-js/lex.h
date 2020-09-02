@@ -261,6 +261,8 @@ class lexer {
   static bool is_hex_digit(char8);
   static bool is_identifier_character(char8);
 
+  static int newline_character_size(const char8*);
+
   static token_type identifier_token_type(string8_view) noexcept;
 
   token last_token_;

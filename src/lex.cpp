@@ -373,13 +373,24 @@ retry:
 
       const char8* c = &this->input_[1];
       for (;;) {
-        switch (*c) {
+        switch (static_cast<unsigned char>(*c)) {
           case '\0':
-            // TODO(strager): Support other kinds of line terminators.
-          case '\n':
             this->error_reporter_->report_error_unclosed_string_literal(
                 source_code_span(&this->input_[0], c));
             goto done;
+
+          case '\n':
+          case '\r':
+          case 0xe2: {
+            int newline_size = this->newline_character_size(c);
+            if (newline_size > 0) {
+              this->error_reporter_->report_error_unclosed_string_literal(
+                  source_code_span(&this->input_[0], c));
+              goto done;
+            }
+            ++c;
+            break;
+          }
 
           case '\\':
             ++c;
@@ -651,7 +662,7 @@ next:
   if (c == ' ' || c == '\t' || c == '\f') {
     input += 1;
     goto next;
-  } else if (c == '\n') {
+  } else if (c == '\n' || c == '\r') {
     this->last_token_.has_leading_newline = true;
     input += 1;
     goto next;
@@ -682,6 +693,13 @@ next:
             case 0x89:  // U+2009 Thin Space
             case 0x8a:  // U+200A Hair Space
             case 0xaf:  // U+202F Narrow No-Break Space (NNBSP)
+              input += 3;
+              goto next;
+
+            case 0xa8:  // U+2028 Line Separator
+            case 0xa9:  // U+2029 Paragraph Separator
+              assert(this->newline_character_size(input) == 3);
+              this->last_token_.has_leading_newline = true;
               input += 3;
               goto next;
 
@@ -752,8 +770,15 @@ void lexer::skip_block_comment() {
     return;
   }
 
-  const char8* newline = std::find(this->input_ + 2, comment_end, '\n');
-  if (newline != comment_end) {
+  bool comment_contains_newline = false;
+  for (const char8* c = this->input_ + 2; c != comment_end; ++c) {
+    int newline_size = this->newline_character_size(c);
+    if (newline_size > 0) {
+      comment_contains_newline = true;
+      break;
+    }
+  }
+  if (comment_contains_newline) {
     this->last_token_.has_leading_newline = true;
   }
 
@@ -763,12 +788,17 @@ void lexer::skip_block_comment() {
 
 void lexer::skip_line_comment() {
   assert(this->input_[0] == '/' && this->input_[1] == '/');
-  const char8* comment_end = strchr(this->input_ + 2, u'\n');
-  if (comment_end == nullptr) {
-    this->input_ += strlen(this->input_);
-  } else {
-    this->input_ = comment_end + 1;
-    this->skip_whitespace();
+  for (const char8* c = this->input_ + 2;; ++c) {
+    int newline_size = this->newline_character_size(c);
+    if (newline_size > 0) {
+      this->input_ = c + newline_size;
+      this->skip_whitespace();
+      break;
+    }
+    if (*c == u8'\0') {
+      this->input_ = c;
+      break;
+    }
   }
 }
 
@@ -810,6 +840,21 @@ bool lexer::is_identifier_character(char8 c) {
     default:
       return false;
   }
+}
+
+int lexer::newline_character_size(const char8* input) {
+  if (input[0] == u8'\n' || input[0] == u8'\r') {
+    return 1;
+  }
+  if (static_cast<unsigned char>(input[0]) == 0xe2 &&
+      static_cast<unsigned char>(input[1]) == 0x80) {
+    switch (static_cast<unsigned char>(input[2])) {
+      case 0xa8:  // U+2028 Line Separator
+      case 0xa9:  // U+2029 Paragraph Separator
+        return 3;
+    }
+  }
+  return 0;
 }
 
 namespace {

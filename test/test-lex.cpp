@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <array>
 #include <cstring>
 #include <gtest/gtest.h>
 #include <initializer_list>
@@ -30,8 +31,18 @@ namespace {
 void check_single_token(const char8* input, token_type expected_token_type);
 void check_single_token(const char8* input,
                         string8_view expected_identifier_name);
+void check_single_token(const string8& input,
+                        string8_view expected_identifier_name);
 void check_tokens(const char8* input,
                   std::initializer_list<token_type> expected_token_types);
+
+std::array<const char8*, 5> line_terminators = {
+    u8"\n",      //
+    u8"\r",      //
+    u8"\r\n",    //
+    u8"\u2028",  // 0xe2 0x80 0xa8 Line Separator
+    u8"\u2029",  // 0xe2 0x80 0xa9 Paragraph Separator
+};
 
 TEST(test_lex, lex_block_comments) {
   check_single_token(u8"/* */ hello", u8"hello");
@@ -55,7 +66,9 @@ TEST(test_lex, lex_block_comments) {
 
 TEST(test_lex, lex_line_comments) {
   check_single_token(u8"// hello", token_type::end_of_file);
-  check_single_token(u8"// hello\nworld", u8"world");
+  for (string8 line_terminator : line_terminators) {
+    check_single_token(u8"// hello" + line_terminator + u8"world", u8"world");
+  }
   check_single_token(u8"// hello\n// world", token_type::end_of_file);
   check_tokens(u8"hello//*/\n \n \nworld",
                {token_type::identifier, token_type::identifier});
@@ -101,9 +114,9 @@ TEST(test_lex, lex_strings) {
     EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
   }
 
-  {
+  for (string8 line_terminator : line_terminators) {
     error_collector v;
-    padded_string input(u8"'unterminated\nhello");
+    padded_string input(u8"'unterminated" + line_terminator + u8"hello");
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
@@ -482,8 +495,12 @@ TEST(test_lex, lex_symbols_separated_by_whitespace) {
 
 TEST(test_lex, lex_whitespace) {
   for (const char8* whitespace : {
-           u8" ",       //
            u8"\n",      //
+           u8"\r",      //
+           u8"\r\n",    //
+           u8"\u2028",  // 0xe2 0x80 0xa8 Line Separator
+           u8"\u2029",  // 0xe2 0x80 0xa9 Paragraph Separator
+           u8" ",       //
            u8"\t",      //
            u8"\f",      //
            u8"\u00a0",  // 0xc2 0xa0      No-Break Space (NBSP)
@@ -513,23 +530,27 @@ TEST(test_lex, lex_whitespace) {
 }
 
 TEST(test_lex, lex_token_notes_leading_newline) {
-  padded_string code(u8"a b\nc d");
-  lexer l(&code, &null_error_reporter::instance);
-  EXPECT_FALSE(l.peek().has_leading_newline);  // a
-  l.skip();
-  EXPECT_FALSE(l.peek().has_leading_newline);  // b
-  l.skip();
-  EXPECT_TRUE(l.peek().has_leading_newline);  // c
-  l.skip();
-  EXPECT_FALSE(l.peek().has_leading_newline);  // d
+  for (string8 line_terminator : line_terminators) {
+    padded_string code(u8"a b" + line_terminator + u8"c d");
+    lexer l(&code, &null_error_reporter::instance);
+    EXPECT_FALSE(l.peek().has_leading_newline);  // a
+    l.skip();
+    EXPECT_FALSE(l.peek().has_leading_newline);  // b
+    l.skip();
+    EXPECT_TRUE(l.peek().has_leading_newline);  // c
+    l.skip();
+    EXPECT_FALSE(l.peek().has_leading_newline);  // d
+  }
 }
 
 TEST(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
-  padded_string code(u8"a /*\n*/ b");
-  lexer l(&code, &null_error_reporter::instance);
-  EXPECT_FALSE(l.peek().has_leading_newline);  // a
-  l.skip();
-  EXPECT_TRUE(l.peek().has_leading_newline);  // b
+  for (string8 line_terminator : line_terminators) {
+    padded_string code(u8"a /*" + line_terminator + u8"*/ b");
+    lexer l(&code, &null_error_reporter::instance);
+    EXPECT_FALSE(l.peek().has_leading_newline);  // a
+    l.skip();
+    EXPECT_TRUE(l.peek().has_leading_newline);  // b
+  }
 }
 
 TEST(test_lex, lex_token_notes_leading_newline_after_comment) {
@@ -614,6 +635,11 @@ void check_single_token(const char8* input,
   EXPECT_EQ(l.peek().identifier_name().string_view(), expected_identifier_name);
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
+}
+
+void check_single_token(const string8& input,
+                        string8_view expected_identifier_name) {
+  return check_single_token(input.c_str(), expected_identifier_name);
 }
 
 void check_tokens(const char8* input,
