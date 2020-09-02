@@ -21,6 +21,8 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/simd.h>
+#include <xmmintrin.h>
 
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out, const source_position &p) {
@@ -58,13 +60,21 @@ source_position locator::position(const char8 *source) const noexcept {
 
 void locator::cache_offsets_of_lines() const {
   this->offset_of_lines_.push_back(0);
-  for (const char8 *c = this->input_; *c != '\0'; ++c) {
-    if (*c == '\n') {
-      const char8 *beginning_of_line = c + 1;
-      this->offset_of_lines_.push_back(
-          narrow_cast<source_position::offset_type>(beginning_of_line -
-                                                    this->input_));
+  for (const char8 *c = this->input_; *c != '\0';) {
+    // TODO(strager): Force alignment of padded_string, then use aligned loads.
+    int newline_mask = _mm_movemask_epi8(
+        _mm_cmpeq_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i *>(c)),
+                       _mm_set1_epi8('\n')));
+#pragma GCC unroll 16
+    for (int i = 0; i < 16; ++i) {
+      if (newline_mask & (1 << i)) {
+        const char8 *beginning_of_line = &c[i + 1];
+        this->offset_of_lines_.push_back(
+            narrow_cast<source_position::offset_type>(beginning_of_line -
+                                                      this->input_));
+      }
     }
+    c += 16;
   }
 }
 
