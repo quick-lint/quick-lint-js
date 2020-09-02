@@ -581,7 +581,7 @@ void lexer::parse_identifier() {
   using char_vector = char_vector_1;
 #endif
 
-  auto is_identifier_characters = [](char_vector chars) -> bool_vector {
+  auto count_identifier_characters = [](char_vector chars) -> int {
     constexpr std::uint8_t upper_to_lower_mask = 'a' - 'A';
     static_assert(('A' | upper_to_lower_mask) == 'a');
 
@@ -592,24 +592,23 @@ void lexer::parse_identifier() {
         (lower_cased_characters < char_vector::repeated('z' + 1));
     bool_vector is_digit = (chars > char_vector::repeated('0' - 1)) &
                            (chars < char_vector::repeated('9' + 1));
-    return is_alpha | is_digit |  //
-           (chars == char_vector::repeated('$')) |
-           (chars == char_vector::repeated('_'));
+    bool_vector is_identifier = is_alpha | is_digit |  //
+                                (chars == char_vector::repeated('$')) |
+                                (chars == char_vector::repeated('_'));
+    return is_identifier.find_first_false();
   };
 
   bool is_all_identifier_characters;
   do {
     char_vector chars = char_vector::load(input);
-    bool_vector identifier_chars = is_identifier_characters(chars);
-    int identifier_character_count = identifier_chars.find_first_false();
+    int identifier_character_count = count_identifier_characters(chars);
 
     for (int i = 0; i < identifier_character_count; ++i) {
       assert(this->is_identifier_character(this->input_[i]));
     }
     input += identifier_character_count;
 
-    is_all_identifier_characters =
-        identifier_character_count == identifier_chars.size;
+    is_all_identifier_characters = identifier_character_count == chars.size;
   } while (is_all_identifier_characters);
 
   this->input_ = input;
