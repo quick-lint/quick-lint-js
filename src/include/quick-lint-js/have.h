@@ -105,6 +105,15 @@
 #endif
 #endif
 
+// TODO(strager): Check for SSE4.2 support in MSVC.
+#if !defined(QLJS_HAVE_X86_SSE4_2)
+#if defined(__SSE4_2__)
+#define QLJS_HAVE_X86_SSE4_2 1
+#else
+#define QLJS_HAVE_X86_SSE4_2 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_CHAR8_T)
 #if defined(__cpp_char8_t) && __cpp_char8_t >= 201803L
 #define QLJS_HAVE_CHAR8_T 1

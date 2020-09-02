@@ -28,6 +28,10 @@
 #include <quick-lint-js/warning.h>
 #include <type_traits>
 
+#if QLJS_HAVE_X86_SSE4_2
+#include <nmmintrin.h>
+#endif
+
 #define QLJS_CASE_IDENTIFIER_START \
   case '$':                        \
   case '_':                        \
@@ -574,14 +578,34 @@ void lexer::parse_identifier() {
   input += 1;
 
 #if QLJS_HAVE_X86_SSE2
-  using bool_vector = bool_vector_16_sse2;
   using char_vector = char_vector_16_sse2;
 #else
-  using bool_vector = bool_vector_1;
   using char_vector = char_vector_1;
 #endif
 
   auto count_identifier_characters = [](char_vector chars) -> int {
+#if QLJS_HAVE_X86_SSE4_2
+    __m128i ranges =
+        _mm_setr_epi8('$', '$',  //
+                      '_', '_',  //
+                      '0', '9',  //
+                      'a', 'z',  //
+                      'A', 'Z',  //
+                      // For unused table entries, duplicate a previous entry.
+                      // (If we zero-filled, we would match null bytes!)
+                      '$', '$',  //
+                      '$', '$',  //
+                      '$', '$');
+    return _mm_cmpistri(ranges, chars.m128i(),
+                        _SIDD_CMP_RANGES | _SIDD_LEAST_SIGNIFICANT |
+                            _SIDD_NEGATIVE_POLARITY | _SIDD_UBYTE_OPS);
+#else
+#if QLJS_HAVE_X86_SSE2
+    using bool_vector = bool_vector_16_sse2;
+#else
+    using bool_vector = bool_vector_1;
+#endif
+
     constexpr std::uint8_t upper_to_lower_mask = 'a' - 'A';
     static_assert(('A' | upper_to_lower_mask) == 'a');
 
@@ -596,6 +620,7 @@ void lexer::parse_identifier() {
                                 (chars == char_vector::repeated('$')) |
                                 (chars == char_vector::repeated('_'));
     return is_identifier.find_first_false();
+#endif
   };
 
   bool is_all_identifier_characters;

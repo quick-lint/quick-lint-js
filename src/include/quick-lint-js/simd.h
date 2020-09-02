@@ -101,6 +101,8 @@ class char_vector_16_sse2 {
     return bool_vector_16_sse2(_mm_cmpgt_epi8(x.data_, y.data_));
   }
 
+  [[gnu::always_inline]] __m128i m128i() const noexcept { return this->data_; }
+
  private:
   __m128i data_;
 };
