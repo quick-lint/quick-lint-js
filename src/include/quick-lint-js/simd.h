@@ -56,11 +56,11 @@ class bool_vector_16_sse2 {
     return countr_one(mask);
   }
 
- private:
   [[gnu::always_inline]] std::uint32_t mask() const noexcept {
     return narrow_cast<std::uint32_t>(_mm_movemask_epi8(this->data_));
   }
 
+ private:
   __m128i data_;
 };
 
@@ -129,6 +129,10 @@ class bool_vector_1 {
     return this->data_ ? 1 : 0;
   }
 
+  [[gnu::always_inline]] std::uint32_t mask() const noexcept {
+    return this->data_ ? 1 : 0;
+  }
+
  private:
   bool data_;
 };
@@ -140,8 +144,8 @@ class char_vector_1 {
   [[gnu::always_inline]] explicit char_vector_1(char data) noexcept
       : data_(data) {}
 
-  [[gnu::always_inline]] static char_vector_1 load(const char* data) {
-    return char_vector_1(data[0]);
+  [[gnu::always_inline]] static char_vector_1 load(const char8* data) {
+    return char_vector_1(static_cast<char>(data[0]));
   }
 
   [[gnu::always_inline]] static char_vector_1 repeated(std::uint8_t c) {

@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iterator>
 #include <ostream>
+#include <quick-lint-js/bit.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/have.h>
@@ -761,29 +762,86 @@ QLJS_WARNING_POP
 
 void lexer::skip_block_comment() {
   assert(this->input_[0] == '/' && this->input_[1] == '*');
+  const char8* c = this->input_ + 2;
 
-  const char8* comment_end = strstr(this->input_ + 2, u8"*/");
-  if (comment_end == nullptr) {
-    this->error_reporter_->report_error_unclosed_block_comment(
-        source_code_span(&this->input_[0], &this->input_[2]));
-    this->input_ += strlen(this->input_);
-    return;
-  }
+#if QLJS_HAVE_X86_SSE2
+  using bool_vector = bool_vector_16_sse2;
+  using char_vector = char_vector_16_sse2;
+#else
+  using bool_vector = bool_vector_1;
+  using char_vector = char_vector_1;
+#endif
 
-  bool comment_contains_newline = false;
-  for (const char8* c = this->input_ + 2; c != comment_end; ++c) {
-    int newline_size = this->newline_character_size(c);
-    if (newline_size > 0) {
-      comment_contains_newline = true;
-      break;
+  auto is_comment_end = [](const char8* string) -> bool {
+    return string[0] == '*' && string[1] == '/';
+  };
+
+  for (;;) {
+    char_vector chars = char_vector::load(c);
+    bool_vector matches = (chars == char_vector::repeated(u8'*')) |
+                          (chars == char_vector::repeated(u8'\0')) |
+                          (chars == char_vector::repeated(u8'\n')) |
+                          (chars == char_vector::repeated(u8'\r')) |
+                          (chars == char_vector::repeated(0xe2));
+    std::uint32_t mask = matches.mask();
+    if (mask != 0) {
+      for (int i = countr_zero(mask); i < chars.size; ++i) {
+        if (mask & (1U << i)) {
+          if (is_comment_end(&c[i])) {
+            c += i;
+            goto found_comment_end;
+          }
+          int newline_size = this->newline_character_size(&c[i]);
+          if (newline_size > 0) {
+            c += i + newline_size;
+            goto found_newline_in_comment;
+          }
+          if (c[i] == '\0') {
+            c += i;
+            goto found_end_of_file;
+          }
+        }
+      }
     }
+    c += chars.size;
   }
-  if (comment_contains_newline) {
-    this->last_token_.has_leading_newline = true;
-  }
+  QLJS_UNREACHABLE();
 
-  this->input_ = comment_end + 2;
+found_newline_in_comment:
+  this->last_token_.has_leading_newline = true;
+  for (;;) {
+    char_vector chars = char_vector::load(c);
+    bool_vector matches = (chars == char_vector::repeated(u8'\0')) |
+                          (chars == char_vector::repeated(u8'*'));
+    std::uint32_t mask = matches.mask();
+    if (mask != 0) {
+      for (int i = countr_zero(mask); i < chars.size; ++i) {
+        if (mask & (1U << i)) {
+          if (is_comment_end(&c[i])) {
+            c += i;
+            goto found_comment_end;
+          }
+          if (c[i] == '\0') {
+            c += i;
+            goto found_end_of_file;
+          }
+        }
+      }
+    }
+    c += chars.size;
+  }
+  QLJS_UNREACHABLE();
+
+found_comment_end:
+  this->input_ = c + 2;
   this->skip_whitespace();
+  return;
+
+  QLJS_UNREACHABLE();
+found_end_of_file:
+  this->error_reporter_->report_error_unclosed_block_comment(
+      source_code_span(&this->input_[0], &this->input_[2]));
+  this->input_ += strlen(this->input_);
 }
 
 void lexer::skip_line_comment() {

@@ -30,7 +30,7 @@ inline int countr_zero(std::uint32_t x) noexcept {
 #else
   std::uint32_t i;
   for (i = 0; i < 32; ++i) {
-    if ((x & (std::uint32_t(1) << i)) == 1) {
+    if ((x & (std::uint32_t(1) << i)) != 0) {
       break;
     }
   }
