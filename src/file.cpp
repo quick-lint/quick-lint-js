@@ -27,28 +27,31 @@
 
 namespace quick_lint_js {
 namespace {
-void read_file_buffered(FILE *file, std::size_t buffer_size,
-                        padded_string *out) {
+void read_file_buffered(FILE *file, int buffer_size, padded_string *out) {
   while (!std::feof(file)) {
     int size_before = out->size();
-    out->resize(size_before + narrow_cast<int>(buffer_size));
+    out->resize(size_before + buffer_size);
     std::size_t read_size =
-        std::fread(&out->data()[size_before], 1, buffer_size, file);
+        std::fread(&out->data()[size_before], 1,
+                   narrow_cast<std::size_t>(buffer_size), file);
+    // TODO(strager): Check for read errors.
     out->resize(size_before + narrow_cast<int>(read_size));
   }
 }
 
-padded_string read_file_buffered(FILE *file, std::size_t buffer_size) {
+padded_string read_file_buffered(FILE *file, int buffer_size) {
   padded_string result;
   read_file_buffered(file, buffer_size, &result);
   return result;
 }
 
-padded_string read_file_with_expected_size(FILE *file, std::size_t file_size,
-                                           std::size_t buffer_size) {
+padded_string read_file_with_expected_size(FILE *file, int file_size,
+                                           int buffer_size) {
   padded_string result;
-  result.resize(narrow_cast<int>(file_size));
-  std::size_t read_size = std::fread(result.data(), 1, file_size, file);
+  result.resize(file_size);
+  std::size_t read_size =
+      std::fread(result.data(), 1, narrow_cast<std::size_t>(file_size), file);
+  // TODO(strager): Check for read errors.
   result.resize(narrow_cast<int>(read_size));
   int c = std::fgetc(file);
   if (c == EOF) {
@@ -65,7 +68,7 @@ padded_string read_file_with_expected_size(FILE *file, std::size_t file_size,
 }
 
 padded_string read_file(const char *path, FILE *file) {
-  std::size_t buffer_size = 1024;  // TODO(strager): Compute using stat.
+  int buffer_size = 1024;  // TODO(strager): Compute using stat.
   if (std::fseek(file, 0, SEEK_END) == -1) {
     return read_file_buffered(file, buffer_size);
   } else {
@@ -75,7 +78,7 @@ padded_string read_file(const char *path, FILE *file) {
                 << std::strerror(errno) << '\n';
       exit(1);
     }
-    // TODO(strager): Fail if file_size exceeds std::size_t.
+    // TODO(strager): Fail if file_size exceeds int.
 
     if (std::fseek(file, 0, SEEK_SET) == -1) {
       std::cerr << "error: failed to seek to beginning of " << path << ": "
@@ -84,7 +87,7 @@ padded_string read_file(const char *path, FILE *file) {
     }
 
     return read_file_with_expected_size(
-        file, /*file_size=*/narrow_cast<std::size_t>(file_size),
+        file, /*file_size=*/narrow_cast<int>(file_size),
         /*buffer_size=*/buffer_size);
   }
 }
