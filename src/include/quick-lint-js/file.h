@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/padded-string.h>
 #include <string>
 
 namespace quick_lint_js {
-// TODO(strager): Return a padded_string instead of an string8.
-string8 read_file(const char *path);
+padded_string read_file(const char *path);
 }  // namespace quick_lint_js

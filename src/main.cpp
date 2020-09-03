@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    quick_lint_js::padded_string source(quick_lint_js::read_file(file.path));
+    quick_lint_js::padded_string source = quick_lint_js::read_file(file.path);
     reporter.set_source(&source, file);
     quick_lint_js::process_file(&source, reporter.get(), o.print_parser_visits);
   }

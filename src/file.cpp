@@ -27,28 +27,29 @@
 
 namespace quick_lint_js {
 namespace {
-void read_file_buffered(FILE *file, std::size_t buffer_size, string8 *out) {
+void read_file_buffered(FILE *file, std::size_t buffer_size,
+                        padded_string *out) {
   while (!std::feof(file)) {
-    std::size_t size_before = out->size();
-    out->resize(size_before + buffer_size);
+    int size_before = out->size();
+    out->resize(size_before + narrow_cast<int>(buffer_size));
     std::size_t read_size =
         std::fread(&out->data()[size_before], 1, buffer_size, file);
-    out->resize(size_before + read_size);
+    out->resize(size_before + narrow_cast<int>(read_size));
   }
 }
 
-string8 read_file_buffered(FILE *file, std::size_t buffer_size) {
-  string8 result;
+padded_string read_file_buffered(FILE *file, std::size_t buffer_size) {
+  padded_string result;
   read_file_buffered(file, buffer_size, &result);
   return result;
 }
 
-string8 read_file_with_expected_size(FILE *file, std::size_t file_size,
-                                     std::size_t buffer_size) {
-  string8 result;
-  result.resize(file_size);
+padded_string read_file_with_expected_size(FILE *file, std::size_t file_size,
+                                           std::size_t buffer_size) {
+  padded_string result;
+  result.resize(narrow_cast<int>(file_size));
   std::size_t read_size = std::fread(result.data(), 1, file_size, file);
-  result.resize(read_size);
+  result.resize(narrow_cast<int>(read_size));
   int c = std::fgetc(file);
   if (c == EOF) {
     // We read the entire file.
@@ -63,7 +64,7 @@ string8 read_file_with_expected_size(FILE *file, std::size_t file_size,
   }
 }
 
-string8 read_file(const char *path, FILE *file) {
+padded_string read_file(const char *path, FILE *file) {
   std::size_t buffer_size = 1024;  // TODO(strager): Compute using stat.
   if (std::fseek(file, 0, SEEK_END) == -1) {
     return read_file_buffered(file, buffer_size);
@@ -89,7 +90,7 @@ string8 read_file(const char *path, FILE *file) {
 }
 }  // namespace
 
-string8 read_file(const char *path) {
+padded_string read_file(const char *path) {
   FILE *file = std::fopen(path, "rb");
   if (!file) {
     std::cerr << "error: failed to open " << path << ": "
@@ -97,7 +98,7 @@ string8 read_file(const char *path) {
     exit(1);
   }
 
-  string8 contents = read_file(path, file);
+  padded_string contents = read_file(path, file);
 
   if (std::fclose(file) == -1) {
     std::cerr << "error: failed to close " << path << ": "

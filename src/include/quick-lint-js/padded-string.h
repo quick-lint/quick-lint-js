@@ -31,10 +31,13 @@ class padded_string {
  public:
   static constexpr int padding_size = 16;
 
+  explicit padded_string();
   explicit padded_string(string8 &&);
   explicit padded_string(const char8 *);
 
   const char8 *c_str() const noexcept { return this->data_.c_str(); }
+
+  char8 *data() noexcept { return this->data_.data(); }
 
   int size() const noexcept {
     return narrow_cast<int>(this->data_.size()) - this->null_bytes_to_add;
@@ -45,6 +48,8 @@ class padded_string {
     assert(index <= this->size());
     return this->data_[narrow_cast<unsigned>(index)];
   }
+
+  void resize(int new_size);
 
   friend std::ostream &operator<<(std::ostream &, const padded_string &);
 

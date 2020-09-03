@@ -22,6 +22,9 @@
 #include <utility>
 
 namespace quick_lint_js {
+padded_string::padded_string()
+    : data_(narrow_cast<unsigned>(this->null_bytes_to_add), u8'\0') {}
+
 padded_string::padded_string(string8&& string) : data_(std::move(string)) {
   this->data_.reserve(this->data_.size() +
                       narrow_cast<unsigned>(this->null_bytes_to_add));
@@ -30,6 +33,13 @@ padded_string::padded_string(string8&& string) : data_(std::move(string)) {
 
 padded_string::padded_string(const char8* string)
     : padded_string(string8(string)) {}
+
+void padded_string::resize(int new_size) {
+  this->data_.resize(
+      narrow_cast<std::size_t>(new_size + this->null_bytes_to_add));
+  std::fill(this->data_.end() - this->null_bytes_to_add, this->data_.end(),
+            u8'\0');
+}
 
 bool operator==(string8_view x, const padded_string& y) noexcept {
   return y == x;

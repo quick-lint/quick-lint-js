@@ -17,17 +17,27 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
 
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+
 namespace quick_lint_js {
+namespace {
+void expect_null_terminated(const padded_string &);
+}
+
+TEST(test_padded_string, default_constructed_string_has_following_null_bytes) {
+  padded_string padded;
+  EXPECT_EQ(padded.size(), 0);
+  expect_null_terminated(padded);
+}
+
 TEST(test_padded_string, empty_string_has_following_null_bytes) {
   string8 s = u8"";
   padded_string padded(std::move(s));
-  const char8 *data = padded.c_str();
-  for (int i = 0; i < padded.padding_size; ++i) {
-    EXPECT_EQ(data[i], u8'\0') << "i=" << i;
-  }
+  expect_null_terminated(padded);
 }
 
 TEST(test_padded_string, size_excludes_padding_bytes) {
@@ -36,7 +46,37 @@ TEST(test_padded_string, size_excludes_padding_bytes) {
   EXPECT_EQ(padded.size(), 5);
 }
 
+TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
+  padded_string s(u8"hello");
+
+  s.resize(10);
+
+  EXPECT_EQ(s.size(), 10);
+  EXPECT_STREQ(reinterpret_cast<const char *>(s.c_str()), "hello");
+  expect_null_terminated(s);
+}
+
+TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
+  padded_string s(u8"helloworld");
+
+  s.resize(5);
+
+  EXPECT_EQ(s.size(), 5);
+  EXPECT_STREQ(reinterpret_cast<const char *>(s.c_str()), "hello");
+  expect_null_terminated(s);
+}
+
 TEST(test_padded_string, comparing_with_string_view_excludes_padding_bytes) {
   EXPECT_TRUE(padded_string(string8(u8"hello")) == string8_view(u8"hello"));
 }
+
+namespace {
+void expect_null_terminated(const padded_string &s) {
+  const char8 *data = s.c_str();
+  for (int i = 0; i < s.padding_size; ++i) {
+    int index = s.size() + i;
+    EXPECT_EQ(data[index], u8'\0') << "index=" << index;
+  }
+}
+}  // namespace
 }  // namespace quick_lint_js

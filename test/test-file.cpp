@@ -58,8 +58,8 @@ TEST_F(test_file, read_regular_file) {
       this->make_temporary_directory() / "temp.js";
   write_file(temp_file_path, "hello\nworld!\n");
 
-  string8 file_content = read_file(temp_file_path.string().c_str());
-  EXPECT_EQ(file_content, u8"hello\nworld!\n");
+  padded_string file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_EQ(file_content, string8_view(u8"hello\nworld!\n"));
 }
 
 #if QLJS_HAVE_MKFIFO
@@ -71,8 +71,8 @@ TEST_F(test_file, read_fifo) {
   std::thread writer_thread(
       [&]() { write_file(temp_file_path, "hello from fifo"); });
 
-  string8 file_content = read_file(temp_file_path.string().c_str());
-  EXPECT_EQ(file_content, u8"hello from fifo");
+  padded_string file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_EQ(file_content, string8_view(u8"hello from fifo"));
 
   writer_thread.join();
 }
