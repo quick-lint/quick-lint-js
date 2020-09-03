@@ -240,7 +240,7 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_end_of_module();
 
-    ASSERT_TRUE(v.errors.empty());
+    ASSERT_THAT(v.errors, IsEmpty());
   }
 }
 
@@ -293,7 +293,7 @@ TEST(test_lint, variable_use_after_declaration) {
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_variable_use(identifier_of(use));
     l.visit_end_of_module();
-    EXPECT_TRUE(v.errors.empty());
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
@@ -362,7 +362,7 @@ TEST(test_lint, use_global_variable_within_functions) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_TRUE(v.errors.empty());
+  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, function_uses_variable_declared_in_outer_function) {
@@ -387,7 +387,7 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_TRUE(v.errors.empty());
+  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
@@ -402,7 +402,7 @@ TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_end_of_module();
 
-  EXPECT_TRUE(v.errors.empty());
+  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, assign_to_mutable_variable) {
@@ -421,7 +421,7 @@ TEST(test_lint, assign_to_mutable_variable) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_TRUE(v.errors.empty());
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
