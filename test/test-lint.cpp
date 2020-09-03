@@ -108,10 +108,13 @@ constexpr const char8 *non_writable_global_variables[] = {
 TEST(test_lint, global_variables_are_usable) {
   error_collector v;
   linter l(&v);
+  // Array = null;
+  // Array;
   for (const char8 *global_variable : writable_global_variables) {
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_variable_use(identifier_of(global_variable));
   }
+  // NaN;
   for (const char8 *global_variable : non_writable_global_variables) {
     l.visit_variable_use(identifier_of(global_variable));
   }
@@ -124,6 +127,7 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
   for (const char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
+    // NaN = null;  // ERROR
     error_collector v;
     linter l(&v);
     l.visit_variable_assignment(identifier_of(global_variable));
@@ -141,6 +145,8 @@ TEST(test_lint, let_or_const_variable_use_before_declaration) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
 
+    // x;      // ERROR
+    // let x;
     error_collector v;
     linter l(&v);
     l.visit_variable_use(identifier_of(use));
@@ -175,6 +181,10 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // (() => {
+  //   x;      // ERROR
+  //   let x;
+  // });
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
@@ -194,6 +204,11 @@ TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // for (let _ of []) {
+  //   x;
+  //   let x;             // ERROR
+  // }
+  // TODO(strager): Code above doesn't match visits below.
   error_collector v;
   linter l(&v);
   l.visit_enter_for_scope();
@@ -213,6 +228,11 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // (() => {
+  //   x;      // ERROR
+  //   let x;
+  // });
+  // let x;
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
@@ -234,6 +254,8 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
 
+    // x;
+    // var x;  // x is hoisted
     error_collector v;
     linter l(&v);
     l.visit_variable_use(identifier_of(use));
@@ -249,6 +271,11 @@ TEST(test_lint, var_or_function_variable_use_before_declaration_in_for_scope) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
 
+    // for (let _ of []) {
+    //   x;
+    //   var x;             // x is hoisted
+    // }
+    // TODO(strager): Code above doesn't match visits below.
     error_collector v;
     linter l(&v);
     l.visit_enter_for_scope();
@@ -268,6 +295,12 @@ TEST(
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
 
+    // (() => {
+    //   {
+    //     x;
+    //   }
+    //   var x;  // x is hoisted
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -288,6 +321,8 @@ TEST(test_lint, variable_use_after_declaration) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
 
+    // let x;
+    // x;
     error_collector v;
     linter l(&v);
     l.visit_variable_declaration(identifier_of(declaration), kind);
@@ -300,6 +335,7 @@ TEST(test_lint, variable_use_after_declaration) {
 TEST(test_lint, variable_use_with_no_declaration) {
   const char8 use[] = u8"x";
 
+  // x;  // ERROR
   error_collector v;
   linter l(&v);
   l.visit_variable_use(identifier_of(use));
@@ -314,6 +350,9 @@ TEST(test_lint, variable_use_with_no_declaration) {
 TEST(test_lint, variable_use_in_function_with_no_declaration) {
   const char8 use[] = u8"x";
 
+  // (() => {
+  //   x;      // ERROR
+  // });
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
@@ -331,6 +370,12 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // (() => {
+  //   let x;
+  // });
+  // (() => {
+  //   x;      // ERROR
+  // });
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
@@ -351,6 +396,13 @@ TEST(test_lint, use_global_variable_within_functions) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // let x;
+  // (() => {
+  //   x;
+  // });
+  // (() => {
+  //   x;
+  // });
   error_collector v;
   linter l(&v);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
@@ -369,6 +421,15 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // (() => {
+  //   (() => {
+  //      x;
+  //   });
+  //   let x;
+  //   (() => {
+  //      x;
+  //   });
+  // });
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
@@ -394,6 +455,10 @@ TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
 
+  // (() => {
+  //   x;
+  // });
+  // let x;
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
@@ -413,6 +478,10 @@ TEST(test_lint, assign_to_mutable_variable) {
     const char8 declaration[] = u8"x";
     const char8 assignment[] = u8"x";
 
+    // (() => {
+    //   let x;  // x is mutable
+    //   x = 42;
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -430,6 +499,11 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   const char8 mutable_declaration[] = u8"x";
   const char8 assignment[] = u8"x";
 
+  // import x from ""; // x is immutable
+  // (() => {
+  //   let x;          // x is mutable
+  //   x = 42;
+  // });
   error_collector v;
   linter l(&v);
   l.visit_variable_declaration(identifier_of(immutable_declaration),
@@ -449,6 +523,10 @@ TEST(test_lint, assign_to_immutable_variable) {
     const char8 declaration[] = u8"x";
     const char8 assignment[] = u8"x";
 
+    // (() => {
+    //   const x;  // x is immutable
+    //   x = 42;   // ERROR
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -469,6 +547,7 @@ TEST(test_lint, assign_to_immutable_variable) {
 TEST(test_lint, assign_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
 
+  // x = null;  // ERROR
   error_collector v;
   linter l(&v);
   l.visit_variable_assignment(identifier_of(assignment));
@@ -484,6 +563,8 @@ TEST(test_lint, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
+  // x = null;
+  // let x;     // ERROR
   error_collector v;
   linter l(&v);
   l.visit_variable_assignment(identifier_of(assignment));
@@ -500,6 +581,8 @@ TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
 
+  // x = null;
+  // var x;     // x is hoisted.
   error_collector v;
   linter l(&v);
   l.visit_variable_assignment(identifier_of(assignment));
@@ -517,6 +600,12 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
     const char8 declaration[] = u8"f";
     const char8 use[] = u8"f";
 
+    // (() => {
+    //   (() => {
+    //     f;
+    //   });
+    //   let f;
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -539,6 +628,14 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
     const char8 declaration[] = u8"f";
     const char8 use[] = u8"f";
 
+    // (() => {
+    //   (() => {
+    //     (() => {
+    //       f;
+    //     });
+    //   });
+    //   let f;
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -560,6 +657,9 @@ TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
   const char8 use_before[] = u8"element";
   const char8 use_after[] = u8"element";
 
+  // element;                  // ERROR
+  // for (let element of []);
+  // element;                  // ERROR
   error_collector v;
   linter l(&v);
   l.visit_variable_use(identifier_of(use_before));
@@ -583,6 +683,9 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     const char8 declaration[] = u8"v";
     const char8 use[] = u8"v";
 
+    // let v;
+    // for (let _ of [])
+    //   v;
     error_collector v;
     linter l(&v);
     l.visit_variable_declaration(identifier_of(declaration),
@@ -599,6 +702,9 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     const char8 declaration[] = u8"v";
     const char8 use[] = u8"v";
 
+    // for (let _ of [])
+    //   v;
+    // var v;             // v is hoisted
     error_collector v;
     linter l(&v);
     l.visit_enter_for_scope();
@@ -615,6 +721,9 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     const char8 declaration[] = u8"v";
     const char8 use[] = u8"v";
 
+    // for (let _ of [])
+    //   v;               // ERROR
+    // let v;
     error_collector v;
     linter l(&v);
     l.visit_enter_for_scope();
@@ -635,6 +744,10 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
 TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
   const char8 use[] = u8"v";
 
+  // for (let _ of [])
+  //   (() => {
+  //     v;             // ERROR
+  //   });
   error_collector v;
   linter l(&v);
   l.visit_enter_for_scope();
@@ -655,6 +768,11 @@ TEST(test_lint,
   const char8 declaration[] = u8"v";
   const char8 use[] = u8"v";
 
+  // for (let _ of [])
+  //   (() => {
+  //     v;
+  //   });
+  // let v;
   error_collector v;
   linter l(&v);
   l.visit_enter_for_scope();
@@ -674,6 +792,12 @@ TEST(test_lint,
   const char8 inner_declaration[] = u8"v";
   const char8 use[] = u8"v";
 
+  // let v;
+  // for (let _ of []) {
+  //   v;                 // ERROR
+  //   let v;
+  // }
+  // TODO(strager): Code above doesn't match visits below.
   error_collector v;
   linter l(&v);
   l.visit_variable_declaration(identifier_of(outer_declaration),
@@ -699,6 +823,12 @@ TEST(
   const char8 inner_declaration[] = u8"v";
   const char8 assignment[] = u8"v";
 
+  // let v;
+  // for (let _ of []) {
+  //   v = null;          // ERROR
+  //   let v;
+  // }
+  // TODO(strager): Code above doesn't match visits below.
   error_collector v;
   linter l(&v);
   l.visit_variable_declaration(identifier_of(outer_declaration),
