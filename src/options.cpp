@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <getopt.h>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/options.h>
 #include <string_view>
@@ -92,7 +92,7 @@ options parse_options(int argc, char **argv) {
       }
 
       case no_option:
-        assert(::optind == argc);
+        QLJS_ASSERT(::optind == argc);
         goto done_parsing_options;
 
       case unknown_option:
@@ -104,11 +104,11 @@ options parse_options(int argc, char **argv) {
         break;
 
       case flag_option:
-        assert(false);
+        QLJS_ASSERT(false);
         break;
 
       default:
-        assert(false);
+        QLJS_ASSERT(false);
         break;
     }
   }

@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
@@ -201,7 +202,7 @@ expression_ptr parser::parse_expression(precedence prec) {
             // Arrow function: async (parameters, go, here) =>
             // expression-or-block
             expression_ptr parenthesized_parameters = this->parse_expression();
-            assert(parameters.empty());
+            QLJS_ASSERT(parameters.empty());
             parameters =
                 arrow_function_parameters_from_lhs(parenthesized_parameters);
           }
@@ -327,7 +328,7 @@ expression_ptr parser::parse_expression(precedence prec) {
 expression_ptr parser::parse_expression_remainder(expression_ptr ast,
                                                   precedence prec) {
   if (prec.commas) {
-    assert(prec.binary_operators);
+    QLJS_ASSERT(prec.binary_operators);
   }
 
   vector<expression_ptr, /*InSituCapacity=*/2> children(
@@ -336,7 +337,7 @@ expression_ptr parser::parse_expression_remainder(expression_ptr ast,
     if (children.size() == 1) {
       return children.front();
     } else {
-      assert(children.size() >= 2);
+      QLJS_ASSERT(children.size() >= 2);
       return this->make_expression<expression::binary_operator>(
           this->expressions_.make_array(std::move(children)));
     }
@@ -388,7 +389,7 @@ next:
         }
         this->lexer_.skip();
       }
-      assert(this->peek().type == token_type::right_paren);
+      QLJS_ASSERT(this->peek().type == token_type::right_paren);
       source_code_span right_paren_span = this->peek().span();
       this->lexer_.skip();
       children.back() = this->make_expression<expression::call>(
@@ -502,7 +503,7 @@ next:
     case token_type::equal_greater: {
       this->lexer_.skip();
       if (children.size() != 1) {
-        assert(false && "Not yet implemented");
+        QLJS_ASSERT(false && "Not yet implemented");
       }
       expression_ptr lhs = children.back();
       children.back() = this->parse_arrow_function_body(
@@ -557,7 +558,7 @@ expression_ptr parser::parse_arrow_function_body(
 
 expression_ptr parser::parse_function_expression(function_attributes attributes,
                                                  const char8 *span_begin) {
-  assert(this->peek().type == token_type::kw_function);
+  QLJS_ASSERT(this->peek().type == token_type::kw_function);
   this->lexer_.skip();
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
@@ -579,7 +580,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
 }
 
 expression_ptr parser::parse_object_literal() {
-  assert(this->peek().type == token_type::left_curly);
+  QLJS_ASSERT(this->peek().type == token_type::left_curly);
   const char8 *left_curly_begin = this->peek().begin;
   const char8 *right_curly_end;
   this->lexer_.skip();
@@ -613,7 +614,7 @@ expression_ptr parser::parse_object_literal() {
       case token_type::comma:
       case token_type::end_of_file:
       case token_type::right_curly:
-        assert(false);
+        QLJS_ASSERT(false);
         break;
 
       QLJS_CASE_KEYWORD:
@@ -698,7 +699,7 @@ expression_ptr parser::parse_template() {
   const char8 *template_begin = this->peek().begin;
   vector<expression_ptr> children("parse_template children");
   for (;;) {
-    assert(this->peek().type == token_type::incomplete_template);
+    QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
     this->lexer_.skip();
     children.emplace_back(this->parse_expression());
     switch (this->peek().type) {
@@ -782,7 +783,7 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
       parameters.emplace_back(lhs);
       break;
     default:
-      assert(false && "Not yet implemented");
+      QLJS_ASSERT(false && "Not yet implemented");
       break;
   }
   return parameters;

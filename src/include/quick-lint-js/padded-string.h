@@ -17,8 +17,8 @@
 #ifndef QUICK_LINT_JS_PADDED_STRING_H
 #define QUICK_LINT_JS_PADDED_STRING_H
 
-#include <cassert>
 #include <iosfwd>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <string>
@@ -44,8 +44,8 @@ class padded_string {
   }
 
   const char8 &operator[](int index) const noexcept {
-    assert(index >= 0);
-    assert(index <= this->size());
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index <= this->size());
     return this->data_[narrow_cast<unsigned>(index)];
   }
 

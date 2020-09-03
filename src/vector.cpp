@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -25,6 +24,7 @@
 #include <limits>
 #include <map>
 #include <ostream>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/vector.h>
 #include <string>
 
@@ -94,7 +94,7 @@ void vector_instrumentation::dump_max_size_histogram(
     std::ostream &out, int maximum_line_length) {
   bool need_blank_line = false;
   for (auto &[group_name, object_size_histogram] : histogram) {
-    assert(!object_size_histogram.empty());
+    QLJS_ASSERT(!object_size_histogram.empty());
 
     if (need_blank_line) {
       out << '\n';

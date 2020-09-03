@@ -21,6 +21,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
@@ -97,7 +98,7 @@ filesystem::path make_temporary_directory() {
     std::vector<wchar_t> temp_directory_name;
     temp_directory_name.resize(MAX_PATH + 1);
     UINT unique = attempt + 1;
-    assert(unique != 0);
+    QLJS_ASSERT(unique != 0);
     if (::GetTempFileNameW(/*lpPathName=*/system_temp_dir_path.c_str(),
                            /*lpPrefixString=*/L"QLJS", /*uUnique=*/attempt + 1,
                            /*lpTempFileName=*/temp_directory_name.data()) ==

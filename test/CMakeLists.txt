@@ -22,6 +22,7 @@ quick_lint_js_add_executable(
   quick-lint-js-test
   error-collector.cpp
   spy-visitor.cpp
+  test-assert.cpp
   test-buffering-visitor.cpp
   test-file.cpp
   test-integer.cpp

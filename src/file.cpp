@@ -20,6 +20,7 @@
 #include <cstring>
 #include <ios>
 #include <iostream>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -59,8 +60,8 @@ padded_string read_file_with_expected_size(FILE *file, int file_size,
     return result;
   } else {
     // We did not read the entire file. There is more data to read.
-    [[maybe_unused]] int rc = std::ungetc(c, file);
-    assert(rc == c);
+    int rc = std::ungetc(c, file);
+    QLJS_ASSERT(rc == c);
 
     read_file_buffered(file, buffer_size, &result);
     return result;

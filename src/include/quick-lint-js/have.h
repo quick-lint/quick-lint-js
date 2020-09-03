@@ -122,4 +122,23 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_DEBUGBREAK)
+#if defined(_WIN32) && defined(__has_include)
+#if __has_include(<intrin.h>)
+#define QLJS_HAVE_DEBUGBREAK 1
+#endif
+#endif
+#endif
+#if !defined(QLJS_HAVE_DEBUGBREAK)
+#define QLJS_HAVE_DEBUGBREAK 0
+#endif
+
+#if !defined(QLJS_HAVE_BUILTIN_TRAP)
+#if defined(__GNUC__) || defined(__clang__)
+#define QLJS_HAVE_BUILTIN_TRAP 1
+#else
+#define QLJS_HAVE_BUILTIN_TRAP 0
+#endif
+#endif
+
 #endif

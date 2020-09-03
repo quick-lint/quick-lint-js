@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iterator>
 #include <ostream>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/bit.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
@@ -108,7 +109,7 @@ identifier token::identifier_name() const noexcept {
   case token_type::identifier:
     break;
     default:
-      assert(false);
+      QLJS_ASSERT(false);
       break;
   }
   return identifier(this->span());
@@ -436,7 +437,7 @@ retry:
     }
 
     default:
-      assert(false);
+      QLJS_ASSERT(false);
       break;
   }
   this->last_token_.end = this->input_;
@@ -495,10 +496,10 @@ lexer::parsed_template_body lexer::parse_template_body(
 }
 
 void lexer::reparse_as_regexp() {
-  assert(this->last_token_.type == token_type::slash);
+  QLJS_ASSERT(this->last_token_.type == token_type::slash);
 
   this->input_ = this->last_token_.begin;
-  assert(this->input_[0] == '/');
+  QLJS_ASSERT(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
 
   const char8* c = &this->input_[1];
@@ -548,23 +549,23 @@ void lexer::insert_semicolon() {
 }
 
 const char8* lexer::end_of_previous_token() const noexcept {
-  [[maybe_unused]] bool semicolon_was_inserted =
+  bool semicolon_was_inserted =
       this->last_token_.type == token_type::semicolon &&
       this->last_token_.begin == this->last_token_.end;
-  assert(!semicolon_was_inserted);
+  QLJS_ASSERT(!semicolon_was_inserted);
 
   return this->last_last_token_end_;
 }
 
 void lexer::parse_hexadecimal_number() {
-  assert(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
+  QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
   while (this->is_hex_digit(this->input_[0])) {
     this->input_ += 1;
   }
 }
 
 void lexer::parse_number() {
-  assert(this->is_digit(this->input_[0]) || this->input_[0] == '.');
+  QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
   while (this->is_digit(*input)) {
     input += 1;
@@ -584,7 +585,7 @@ void lexer::parse_identifier() {
   QLJS_CASE_IDENTIFIER_START:
     break;
     default:
-      assert(false);
+      QLJS_ASSERT(false);
       break;
   }
   input += 1;
@@ -641,7 +642,7 @@ void lexer::parse_identifier() {
     int identifier_character_count = count_identifier_characters(chars);
 
     for (int i = 0; i < identifier_character_count; ++i) {
-      assert(this->is_identifier_character(this->input_[i]));
+      QLJS_ASSERT(this->is_identifier_character(this->input_[i]));
     }
     input += identifier_character_count;
 
@@ -649,7 +650,7 @@ void lexer::parse_identifier() {
   } while (is_all_identifier_characters);
 
   this->input_ = input;
-  assert(!this->is_identifier_character(this->input_[0]));
+  QLJS_ASSERT(!this->is_identifier_character(this->input_[0]));
 }
 
 QLJS_WARNING_PUSH
@@ -699,7 +700,7 @@ next:
 
             case 0xa8:  // U+2028 Line Separator
             case 0xa9:  // U+2029 Paragraph Separator
-              assert(this->newline_character_size(input) == 3);
+              QLJS_ASSERT(this->newline_character_size(input) == 3);
               this->last_token_.has_leading_newline = true;
               input += 3;
               goto next;
@@ -761,7 +762,7 @@ done:
 QLJS_WARNING_POP
 
 void lexer::skip_block_comment() {
-  assert(this->input_[0] == '/' && this->input_[1] == '*');
+  QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
   const char8* c = this->input_ + 2;
 
 #if QLJS_HAVE_X86_SSE2
@@ -845,7 +846,7 @@ found_end_of_file:
 }
 
 void lexer::skip_line_comment() {
-  assert(this->input_[0] == '/' && this->input_[1] == '/');
+  QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '/');
   for (const char8* c = this->input_ + 2;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {

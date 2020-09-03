@@ -23,6 +23,7 @@
 #include <deque>
 #include <memory>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
@@ -35,10 +36,10 @@
 #include <utility>
 #include <vector>
 
-#define QLJS_UNEXPECTED_EXPRESSION_KIND()                                 \
-  do {                                                                    \
-    assert(false && "function not implemented for this expression kind"); \
-    QLJS_UNREACHABLE();                                                   \
+#define QLJS_UNEXPECTED_EXPRESSION_KIND()                                      \
+  do {                                                                         \
+    QLJS_ASSERT(false && "function not implemented for this expression kind"); \
+    QLJS_UNREACHABLE();                                                        \
   } while (false)
 
 namespace quick_lint_js {
@@ -201,7 +202,7 @@ class expression {
   void visit_children(Visitor &v, expression_arena &arena) {
     buffering_visitor *child_visits = this->with_derived(
         [](auto &self) { return self.take_child_visits_impl(); });
-    assert(
+    QLJS_ASSERT(
         child_visits &&
         "visit_children can be called at most once, but it was called twice");
     child_visits->move_into(v);
@@ -269,8 +270,8 @@ class expression_arena::array_ptr {
       : data_(data), size_(size) {}
 
   T operator[](int index) const noexcept {
-    assert(index >= 0);
-    assert(index < this->size());
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index < this->size());
     return this->data_[index];
   }
 
@@ -329,7 +330,7 @@ class expression::expression_with_prefix_operator_base : public expression {
   int child_count_impl() const noexcept { return 1; }
 
   expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
-    assert(index == 0);
+    QLJS_ASSERT(index == 0);
     return this->child_;
   }
 
@@ -350,7 +351,7 @@ class expression::_invalid final : public expression {
   explicit _invalid() noexcept : expression(kind) {}
 
   source_code_span span_impl() const noexcept {
-    assert(false && "Not yet implemented");
+    QLJS_ASSERT(false && "Not yet implemented");
     QLJS_UNREACHABLE();
   }
 };
@@ -445,7 +446,7 @@ class expression::arrow_function_with_expression final : public expression {
         parameters_(parameters),
         body_(body) {
     if (!this->parameter_list_begin_) {
-      assert(!this->parameters_.empty());
+      QLJS_ASSERT(!this->parameters_.empty());
     }
   }
 
@@ -496,7 +497,7 @@ class expression::arrow_function_with_statements final : public expression {
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
         child_visits_(child_visits) {
-    assert(this->parameter_list_begin_);
+    QLJS_ASSERT(this->parameter_list_begin_);
   }
 
   explicit arrow_function_with_statements(
@@ -511,7 +512,7 @@ class expression::arrow_function_with_statements final : public expression {
         child_visits_(child_visits),
         children_(parameters) {
     if (!this->parameter_list_begin_) {
-      assert(!this->children_.empty());
+      QLJS_ASSERT(!this->children_.empty());
     }
   }
 
@@ -553,8 +554,8 @@ class expression::assignment final : public expression {
   explicit assignment(expression_kind kind, expression_ptr lhs,
                       expression_ptr rhs) noexcept
       : expression(kind), children_{lhs, rhs} {
-    assert(kind == expression_kind::assignment ||
-           kind == expression_kind::compound_assignment);
+    QLJS_ASSERT(kind == expression_kind::assignment ||
+                kind == expression_kind::compound_assignment);
   }
 
   int child_count_impl() const noexcept {
@@ -562,8 +563,8 @@ class expression::assignment final : public expression {
   }
 
   expression_ptr child_impl(int index) const noexcept {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
@@ -652,8 +653,8 @@ class expression::conditional final : public expression {
   }
 
   expression_ptr child_impl(int index) const noexcept {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
@@ -677,7 +678,7 @@ class expression::dot final : public expression {
   int child_count_impl() const noexcept { return 1; }
 
   expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
-    assert(index == 0);
+    QLJS_ASSERT(index == 0);
     return this->child_;
   }
 
@@ -754,8 +755,8 @@ class expression::index final : public expression {
   }
 
   expression_ptr child_impl(int index) const noexcept {
-    assert(index >= 0);
-    assert(index < static_cast<int>(this->children_.size()));
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
@@ -867,7 +868,7 @@ class expression::rw_unary_suffix final : public expression {
   int child_count_impl() const noexcept { return 1; }
 
   expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
-    assert(index == 0);
+    QLJS_ASSERT(index == 0);
     return this->child_;
   }
 

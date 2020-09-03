@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
@@ -363,7 +364,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_statement_block_no_scope(Visitor &v) {
-    assert(this->peek().type == token_type::left_curly);
+    QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->lexer_.skip();
     for (;;) {
       this->parse_and_visit_statement(v);
@@ -379,7 +380,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_function_declaration(Visitor &v) {
-    assert(this->peek().type == token_type::kw_function);
+    QLJS_ASSERT(this->peek().type == token_type::kw_function);
     this->lexer_.skip();
 
     if (this->peek().type != token_type::identifier) {
@@ -443,7 +444,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_class(Visitor &v) {
-    assert(this->peek().type == token_type::kw_class);
+    QLJS_ASSERT(this->peek().type == token_type::kw_class);
     this->lexer_.skip();
 
     identifier class_name = this->peek().identifier_name();
@@ -538,7 +539,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_switch(Visitor &v) {
-    assert(this->peek().type == token_type::kw_switch);
+    QLJS_ASSERT(this->peek().type == token_type::kw_switch);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -582,7 +583,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_try(Visitor &v) {
-    assert(this->peek().type == token_type::kw_try);
+    QLJS_ASSERT(this->peek().type == token_type::kw_try);
     this->lexer_.skip();
 
     v.visit_enter_block_scope();
@@ -618,7 +619,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_do_while(Visitor &v) {
-    assert(this->peek().type == token_type::kw_do);
+    QLJS_ASSERT(this->peek().type == token_type::kw_do);
     this->lexer_.skip();
 
     this->parse_and_visit_statement(v);
@@ -637,7 +638,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_for(Visitor &v) {
-    assert(this->peek().type == token_type::kw_for);
+    QLJS_ASSERT(this->peek().type == token_type::kw_for);
     this->lexer_.skip();
 
     if (this->peek().type == token_type::kw_await) {
@@ -734,7 +735,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_while(Visitor &v) {
-    assert(this->peek().type == token_type::kw_while);
+    QLJS_ASSERT(this->peek().type == token_type::kw_while);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -750,7 +751,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_if(Visitor &v) {
-    assert(this->peek().type == token_type::kw_if);
+    QLJS_ASSERT(this->peek().type == token_type::kw_if);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
@@ -771,7 +772,7 @@ class parser {
 
   template <class Visitor>
   void parse_and_visit_import(Visitor &v) {
-    assert(this->peek().type == token_type::kw_import);
+    QLJS_ASSERT(this->peek().type == token_type::kw_import);
     this->lexer_.skip();
 
     switch (this->peek().type) {
@@ -827,7 +828,7 @@ class parser {
         declaration_kind = variable_kind::_var;
         break;
       default:
-        assert(false);
+        QLJS_ASSERT(false);
         declaration_kind = variable_kind::_let;
         break;
     }
@@ -865,7 +866,7 @@ class parser {
           if (first_binding) {
             this->error_reporter_->report_error_let_with_no_bindings(let_span);
           } else {
-            assert(comma_span.has_value());
+            QLJS_ASSERT(comma_span.has_value());
             this->error_reporter_->report_error_stray_comma_in_let_statement(
                 *comma_span);
           }
@@ -910,7 +911,7 @@ class parser {
         this->visit_binding_element(ast->child_0(), v, declaration_kind);
         break;
       default:
-        assert(false && "Not yet implemented");
+        QLJS_ASSERT(false && "Not yet implemented");
         break;
     }
   }

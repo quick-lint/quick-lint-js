@@ -18,8 +18,8 @@
 #define QUICK_LINT_JS_LINT_H
 
 #include <algorithm>
-#include <cassert>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
@@ -51,14 +51,14 @@ class linter {
   void visit_exit_class_scope() {}
 
   void visit_exit_for_scope() {
-    assert(!this->scopes_.empty());
+    QLJS_ASSERT(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
         /*allow_variable_use_before_declaration=*/false);
     this->scopes_.pop_back();
   }
 
   void visit_exit_function_scope() {
-    assert(!this->scopes_.empty());
+    QLJS_ASSERT(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
         /*allow_variable_use_before_declaration=*/true);
     this->scopes_.pop_back();
@@ -108,7 +108,7 @@ class linter {
   }
 
   void visit_variable_assignment(identifier name) {
-    assert(!this->scopes_.empty());
+    QLJS_ASSERT(!this->scopes_.empty());
     scope &current_scope = this->scopes_.back();
     const declared_variable *var = current_scope.find_declared_variable(name);
     if (var) {
@@ -138,7 +138,7 @@ class linter {
   }
 
   void visit_variable_use(identifier name) {
-    assert(!this->scopes_.empty());
+    QLJS_ASSERT(!this->scopes_.empty());
     scope &current_scope = this->scopes_.back();
     bool variable_is_declared =
         current_scope.find_declared_variable(name) != nullptr;
@@ -226,12 +226,12 @@ class linter {
 
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration) {
-    assert(this->scopes_.size() >= 2);
+    QLJS_ASSERT(this->scopes_.size() >= 2);
     scope &current_scope = this->scopes_[this->scopes_.size() - 1];
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
     for (const used_variable &used_var : current_scope.variables_used) {
-      assert(!current_scope.find_declared_variable(used_var.name));
+      QLJS_ASSERT(!current_scope.find_declared_variable(used_var.name));
       const declared_variable *var =
           this->find_declared_variable(used_var.name);
       if (!var) {
@@ -243,7 +243,7 @@ class linter {
     }
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      assert(!this->find_declared_variable(used_var.name));
+      QLJS_ASSERT(!this->find_declared_variable(used_var.name));
       parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
     }
   }

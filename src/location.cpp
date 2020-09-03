@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <ostream>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -95,7 +96,7 @@ source_position::line_number_type locator::find_line_at_offset(
   if (this->offset_of_lines_.empty()) {
     this->cache_offsets_of_lines();
   }
-  assert(!this->offset_of_lines_.empty());
+  QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::lower_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
   return narrow_cast<source_position::line_number_type>(
