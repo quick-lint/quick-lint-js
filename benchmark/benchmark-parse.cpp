@@ -21,7 +21,10 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/warning.h>
 #include <string>
+
+QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 namespace {

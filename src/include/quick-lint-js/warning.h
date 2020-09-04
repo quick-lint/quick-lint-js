@@ -23,6 +23,9 @@
 #elif defined(__GNUC__)
 #define QLJS_WARNING_PUSH _Pragma("GCC diagnostic push")
 #define QLJS_WARNING_POP _Pragma("GCC diagnostic pop")
+#elif defined(_MSC_VER)
+#define QLJS_WARNING_PUSH __pragma(warning(push))
+#define QLJS_WARNING_POP __pragma(warning(pop))
 #else
 #define QLJS_WARNING_PUSH /* empty */
 #define QLJS_WARNING_POP  /* empty */
@@ -40,6 +43,13 @@
   _Pragma(QLJS_WARNING_PRAGMA_STRING(GCC diagnostic ignored, warning_name))
 #else
 #define QLJS_WARNING_IGNORE_GCC(warning_name)
+#endif
+
+#if defined(_MSC_VER)
+#define QLJS_WARNING_IGNORE_MSVC(warning_number) \
+  __pragma(warning(disable : warning_number))
+#else
+#define QLJS_WARNING_IGNORE_MSVC(warning_number)
 #endif
 
 #define QLJS_WARNING_PRAGMA_STRING(x, y) QLJS_WARNING_PRAGMA_STRING_(x y)

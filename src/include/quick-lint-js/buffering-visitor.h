@@ -19,8 +19,12 @@
 
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/warning.h>
 #include <utility>
 #include <vector>
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
 
 namespace quick_lint_js {
 class buffering_visitor {
@@ -178,5 +182,7 @@ class buffering_visitor {
   std::vector<visit> visits_;
 };
 }
+
+QLJS_WARNING_POP
 
 #endif

@@ -58,12 +58,12 @@ TEST(test_integer_from_chars, common_integers) {
 }
 
 TEST(test_integer_from_chars, minimum_integer) {
-  static_assert(std::numeric_limits<int>::min() == -2147483648);
+  static_assert(std::numeric_limits<int>::min() == -2147483648LL);
   int number;
   const char *input = "-2147483648";
   from_chars_result result =
       from_chars(input, input + std::strlen(input), number);
-  EXPECT_EQ(number, -2147483648);
+  EXPECT_EQ(number, -2147483648LL);
   EXPECT_EQ(result.ptr, input + std::strlen(input));
   EXPECT_EQ(result.ec, std::errc{0});
 }

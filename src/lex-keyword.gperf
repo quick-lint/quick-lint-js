@@ -38,6 +38,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wzero-as-null-pointer-constant")
 QLJS_WARNING_IGNORE_GCC("-Wconversion")
 QLJS_WARNING_IGNORE_GCC("-Wold-style-cast")
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+QLJS_WARNING_IGNORE_MSVC(4267)  // Conversion from 'size_t' to 'unsigned int'.
 
 namespace quick_lint_js {
 namespace {

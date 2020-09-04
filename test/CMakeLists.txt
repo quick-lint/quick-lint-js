@@ -66,3 +66,12 @@ add_test(
   NAME quick-lint-js-test
   COMMAND quick-lint-js-test
 )
+
+# Disable MSVC warnings in googletest's headers.
+# TODO(strager): Use MSVC's /external switches instead.
+quick_lint_js_add_warning_options_if_supported(
+  quick-lint-js-test
+  PRIVATE
+  /wd26495 # Always initialize a member variable
+  /wd26812 # Prefer 'enum class' over 'enum'
+)

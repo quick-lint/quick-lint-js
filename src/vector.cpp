@@ -26,7 +26,10 @@
 #include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/vector.h>
+#include <quick-lint-js/warning.h>
 #include <string>
+
+QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out,

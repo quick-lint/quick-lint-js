@@ -116,3 +116,10 @@ function (build_unistd_h)
   endif ()
 endfunction ()
 build_unistd_h()
+
+quick_lint_js_add_warning_options_if_supported(
+  gnulib-getopt
+  PRIVATE
+  /wd28182 # Dereferencing NULL pointer
+  /wd4996 # 'getenv': This function or variable may be unsafe.
+)

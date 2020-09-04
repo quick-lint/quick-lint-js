@@ -23,6 +23,7 @@
 #include <iosfwd>
 #include <map>
 #include <quick-lint-js/feature.h>
+#include <quick-lint-js/force-inline.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <utility>
@@ -130,38 +131,36 @@ class vector {
     this->add_instrumentation_entry(vector_instrumentation::event::destroy);
   }
 
-  [[gnu::always_inline]] T *data() noexcept { return this->data_.data(); }
+  QLJS_FORCE_INLINE T *data() noexcept { return this->data_.data(); }
 
-  [[gnu::always_inline]] std::size_t size() const noexcept {
+  QLJS_FORCE_INLINE std::size_t size() const noexcept {
     return this->data_.size();
   }
 
-  [[gnu::always_inline]] std::size_t capacity() const noexcept {
+  QLJS_FORCE_INLINE std::size_t capacity() const noexcept {
     return this->data_.capacity();
   }
 
-  [[gnu::always_inline]] bool empty() const noexcept {
-    return this->data_.empty();
-  }
+  QLJS_FORCE_INLINE bool empty() const noexcept { return this->data_.empty(); }
 
-  [[gnu::always_inline]] T &front() noexcept { return this->data_.front(); }
+  QLJS_FORCE_INLINE T &front() noexcept { return this->data_.front(); }
 
-  [[gnu::always_inline]] T &back() noexcept { return this->data_.back(); }
+  QLJS_FORCE_INLINE T &back() noexcept { return this->data_.back(); }
 
   template <class... Args>
-  [[gnu::always_inline]] void emplace_back(Args &&... args) {
+  QLJS_FORCE_INLINE void emplace_back(Args &&... args) {
     this->data_.emplace_back(std::forward<Args>(args)...);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
   }
 
-  [[gnu::always_inline]] void clear() {
+  QLJS_FORCE_INLINE void clear() {
     this->data_.clear();
     this->add_instrumentation_entry(vector_instrumentation::event::clear);
   }
 
  private:
 #if QLJS_FEATURE_VECTOR_PROFILING
-  [[gnu::always_inline]] void add_instrumentation_entry(
+  QLJS_FORCE_INLINE void add_instrumentation_entry(
       vector_instrumentation::event event) {
     vector_instrumentation::instance.add_entry(
         /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
@@ -171,7 +170,7 @@ class vector {
         /*capacity=*/this->capacity());
   }
 #else
-  [[gnu::always_inline]] void add_instrumentation_entry(
+  QLJS_FORCE_INLINE void add_instrumentation_entry(
       vector_instrumentation::event) {}
 #endif
 

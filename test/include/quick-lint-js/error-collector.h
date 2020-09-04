@@ -22,8 +22,13 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/warning.h>
 #include <type_traits>
 #include <vector>
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
+QLJS_WARNING_IGNORE_MSVC(26812)  // Prefer 'enum class' over 'enum'.
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
@@ -185,5 +190,7 @@ struct error_collector : public error_reporter {
 
 void PrintTo(const error_collector::error &, std::ostream *);
 }
+
+QLJS_WARNING_POP
 
 #endif

@@ -794,7 +794,7 @@ void lexer::skip_block_comment() {
           }
           int newline_size = this->newline_character_size(&c[i]);
           if (newline_size > 0) {
-            c += i + newline_size;
+            c += narrow_cast<std::ptrdiff_t>(i) + newline_size;
             goto found_newline_in_comment;
           }
           if (c[i] == '\0') {

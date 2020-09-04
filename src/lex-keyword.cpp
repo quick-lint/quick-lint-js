@@ -59,10 +59,11 @@ QLJS_WARNING_IGNORE_CLANG("-Wzero-as-null-pointer-constant")
 QLJS_WARNING_IGNORE_GCC("-Wconversion")
 QLJS_WARNING_IGNORE_GCC("-Wold-style-cast")
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+QLJS_WARNING_IGNORE_MSVC(4267)  // Conversion from 'size_t' to 'unsigned int'.
 
 namespace quick_lint_js {
 namespace {
-// #line 45 "src/lex-keyword.gperf"
+// #line 46 "src/lex-keyword.gperf"
 struct keyword_entry {
   int string_offset;
   token_type type;
@@ -168,155 +169,155 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 88 "src/lex-keyword.gperf"
+      // #line 89 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str3,
        token_type::kw_try},
-      // #line 87 "src/lex-keyword.gperf"
+      // #line 88 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str4,
        token_type::kw_true},
-      // #line 58 "src/lex-keyword.gperf"
+      // #line 59 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str5,
        token_type::kw_const},
-      // #line 81 "src/lex-keyword.gperf"
+      // #line 82 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str6,
        token_type::kw_return},
-      // #line 63 "src/lex-keyword.gperf"
+      // #line 64 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str7,
        token_type::kw_do},
-      // #line 59 "src/lex-keyword.gperf"
+      // #line 60 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str8,
        token_type::kw_continue},
-      // #line 55 "src/lex-keyword.gperf"
+      // #line 56 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str9,
        token_type::kw_case},
-      // #line 56 "src/lex-keyword.gperf"
+      // #line 57 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str10,
        token_type::kw_catch},
-      // #line 62 "src/lex-keyword.gperf"
+      // #line 63 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str11,
        token_type::kw_delete},
-      // #line 61 "src/lex-keyword.gperf"
+      // #line 62 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str12,
        token_type::kw_default},
-      // #line 60 "src/lex-keyword.gperf"
+      // #line 61 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str13,
        token_type::kw_debugger},
       {-1, static_cast<token_type>(0)},
-      // #line 53 "src/lex-keyword.gperf"
+      // #line 54 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str15,
        token_type::kw_await},
       {-1, static_cast<token_type>(0)},
-      // #line 80 "src/lex-keyword.gperf"
+      // #line 81 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str17,
        token_type::kw_of},
-      // #line 69 "src/lex-keyword.gperf"
+      // #line 70 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str18,
        token_type::kw_for},
-      // #line 70 "src/lex-keyword.gperf"
+      // #line 71 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str19,
        token_type::kw_from},
-      // #line 54 "src/lex-keyword.gperf"
+      // #line 55 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str20,
        token_type::kw_break},
-      // #line 65 "src/lex-keyword.gperf"
+      // #line 66 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str21,
        token_type::kw_export},
-      // #line 66 "src/lex-keyword.gperf"
+      // #line 67 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str22,
        token_type::kw_extends},
-      // #line 72 "src/lex-keyword.gperf"
+      // #line 73 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str23,
        token_type::kw_get},
-      // #line 93 "src/lex-keyword.gperf"
+      // #line 94 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str24,
        token_type::kw_with},
-      // #line 67 "src/lex-keyword.gperf"
+      // #line 68 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str25,
        token_type::kw_false},
-      // #line 82 "src/lex-keyword.gperf"
+      // #line 83 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str26,
        token_type::kw_static},
-      // #line 51 "src/lex-keyword.gperf"
+      // #line 52 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str27,
        token_type::kw_as},
-      // #line 78 "src/lex-keyword.gperf"
+      // #line 79 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str28,
        token_type::kw_new},
       {-1, static_cast<token_type>(0)},
-      // #line 52 "src/lex-keyword.gperf"
+      // #line 53 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str30,
        token_type::kw_async},
-      // #line 84 "src/lex-keyword.gperf"
+      // #line 85 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str31,
        token_type::kw_switch},
-      // #line 73 "src/lex-keyword.gperf"
+      // #line 74 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str32,
        token_type::kw_if},
-      // #line 71 "src/lex-keyword.gperf"
+      // #line 72 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str33,
        token_type::kw_function},
-      // #line 91 "src/lex-keyword.gperf"
+      // #line 92 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str34,
        token_type::kw_void},
-      // #line 83 "src/lex-keyword.gperf"
+      // #line 84 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str35,
        token_type::kw_super},
-      // #line 74 "src/lex-keyword.gperf"
+      // #line 75 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str36,
        token_type::kw_import},
-      // #line 68 "src/lex-keyword.gperf"
+      // #line 69 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str37,
        token_type::kw_finally},
-      // #line 90 "src/lex-keyword.gperf"
+      // #line 91 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str38,
        token_type::kw_var},
-      // #line 79 "src/lex-keyword.gperf"
+      // #line 80 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str39,
        token_type::kw_null},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 75 "src/lex-keyword.gperf"
+      // #line 76 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str42,
        token_type::kw_in},
-      // #line 77 "src/lex-keyword.gperf"
+      // #line 78 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str43,
        token_type::kw_let},
-      // #line 64 "src/lex-keyword.gperf"
+      // #line 65 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str44,
        token_type::kw_else},
-      // #line 57 "src/lex-keyword.gperf"
+      // #line 58 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str45,
        token_type::kw_class},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 76 "src/lex-keyword.gperf"
+      // #line 77 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str50,
        token_type::kw_instanceof},
-      // #line 89 "src/lex-keyword.gperf"
+      // #line 90 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str51,
        token_type::kw_typeof},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 85 "src/lex-keyword.gperf"
+      // #line 86 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str54,
        token_type::kw_this},
-      // #line 86 "src/lex-keyword.gperf"
+      // #line 87 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str55,
        token_type::kw_throw},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 92 "src/lex-keyword.gperf"
+      // #line 93 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str60,
        token_type::kw_while},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 94 "src/lex-keyword.gperf"
+      // #line 95 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str65,
        token_type::kw_yield}};
 
@@ -335,7 +336,7 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
   }
   return 0;
 }
-// #line 95 "src/lex-keyword.gperf"
+// #line 96 "src/lex-keyword.gperf"
 
 }
 
