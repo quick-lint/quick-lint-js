@@ -45,12 +45,9 @@ namespace quick_lint_js {
 class parser {
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
-      : lexer_(input, error_reporter),
-        locator_(input),
-        error_reporter_(error_reporter) {}
+      : lexer_(input, error_reporter), error_reporter_(error_reporter) {}
 
   quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
-  quick_lint_js::locator &locator() noexcept { return this->locator_; }
 
   // For testing only.
   quick_lint_js::expression_arena &expression_arena() noexcept {
@@ -962,7 +959,6 @@ class parser {
   }
 
   quick_lint_js::lexer lexer_;
-  quick_lint_js::locator locator_;  // TODO(strager): Delete.
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
 };

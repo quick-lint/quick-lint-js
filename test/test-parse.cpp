@@ -262,8 +262,8 @@ TEST(test_parse, parse_invalid_let) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_let_with_no_bindings);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 0);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 3);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 0);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 3);
   }
 
   {
@@ -275,8 +275,8 @@ TEST(test_parse, parse_invalid_let) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_stray_comma_in_let_statement);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 5);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 6);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 5);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 6);
   }
 
   {
@@ -288,8 +288,8 @@ TEST(test_parse, parse_invalid_let) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_invalid_binding_in_let_statement);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 7);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 9);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 7);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 9);
   }
 
   {
@@ -301,8 +301,8 @@ TEST(test_parse, parse_invalid_let) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_invalid_binding_in_let_statement);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 6);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 6);
   }
 
   {
@@ -314,8 +314,8 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_invalid_binding_in_let_statement);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 6);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 6);
   }
 }
 
@@ -454,8 +454,8 @@ TEST(test_parse, parse_invalid_math_expression) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 2);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 3);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 2);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 3);
   }
 
   {
@@ -466,8 +466,8 @@ TEST(test_parse, parse_invalid_math_expression) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 0);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 1);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 0);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 1);
   }
 
   {
@@ -478,8 +478,8 @@ TEST(test_parse, parse_invalid_math_expression) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 2);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 3);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 2);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 3);
   }
 
   {
@@ -491,13 +491,13 @@ TEST(test_parse, parse_invalid_math_expression) {
 
     auto *error = &v.errors[0];
     EXPECT_EQ(error->kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 2);
-    EXPECT_EQ(p.locator().range(error->where).end_offset(), 3);
+    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 2);
+    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 3);
 
     error = &v.errors[1];
     EXPECT_EQ(error->kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 4);
-    EXPECT_EQ(p.locator().range(error->where).end_offset(), 5);
+    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 5);
   }
 
   {
@@ -508,8 +508,8 @@ TEST(test_parse, parse_invalid_math_expression) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 3);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 3);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 4);
   }
   {
     spy_visitor v;
@@ -519,8 +519,8 @@ TEST(test_parse, parse_invalid_math_expression) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_unmatched_parenthesis);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 5);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 5);
   }
 
   {
@@ -532,13 +532,13 @@ TEST(test_parse, parse_invalid_math_expression) {
 
     auto *error = &v.errors[0];
     EXPECT_EQ(error->kind, spy_visitor::error_unmatched_parenthesis);
-    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 9);
-    EXPECT_EQ(p.locator().range(error->where).end_offset(), 10);
+    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 9);
+    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 10);
 
     error = &v.errors[1];
     EXPECT_EQ(error->kind, spy_visitor::error_unmatched_parenthesis);
-    EXPECT_EQ(p.locator().range(error->where).begin_offset(), 4);
-    EXPECT_EQ(p.locator().range(error->where).end_offset(), 5);
+    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 5);
   }
 }
 
@@ -551,8 +551,8 @@ TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_unexpected_identifier);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 4);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 7);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 7);
   }
 }
 
@@ -872,9 +872,9 @@ TEST(test_parse, asi_for_statement_at_newline) {
               spy_visitor::error_missing_semicolon_after_expression);
     int end_of_first_expression =
         narrow_cast<int>(strlen(u8"console.log('hello')"));
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(),
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(),
               end_of_first_expression);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(),
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(),
               end_of_first_expression);
   }
 
@@ -968,8 +968,8 @@ TEST(test_parse, DISABLED_parse_invalid_function_calls) {
     ASSERT_EQ(v.errors.size(), 1);
     auto &error = v.errors[0];
     EXPECT_EQ(error.kind, spy_visitor::error_unexpected_identifier);
-    EXPECT_EQ(p.locator().range(error.where).begin_offset(), 3);
-    EXPECT_EQ(p.locator().range(error.where).end_offset(), 4);
+    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 3);
+    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 4);
 
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, u8"x");

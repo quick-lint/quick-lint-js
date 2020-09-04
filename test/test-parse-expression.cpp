@@ -42,7 +42,9 @@ std::string string8_to_string(string8_view);
 class test_parser {
  public:
   explicit test_parser(const char8 *input)
-      : code_(input), parser_(&this->code_, &this->errors_) {}
+      : code_(input),
+        locator_(&this->code_),
+        parser_(&this->code_, &this->errors_) {}
 
   ~test_parser() { this->clean_up_expressions(); }
 
@@ -57,12 +59,12 @@ class test_parser {
   }
 
   source_range error_range(int error_index) {
-    return this->parser_.locator().range(
+    return this->locator_.range(
         this->errors().at(narrow_cast<std::size_t>(error_index)).where);
   }
 
   source_range range(expression_ptr ast) {
-    return this->parser_.locator().range(ast->span());
+    return this->locator_.range(ast->span());
   }
 
   quick_lint_js::lexer &lexer() noexcept { return this->parser_.lexer(); }
@@ -137,6 +139,7 @@ class test_parser {
   }
 
   padded_string code_;
+  locator locator_;
   error_collector errors_;
   quick_lint_js::parser parser_;
   std::vector<expression_ptr> expressions_needing_cleanup_;
