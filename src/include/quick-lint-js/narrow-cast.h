@@ -45,6 +45,6 @@ Out narrow_cast(In x) noexcept {
   QLJS_ASSERT(can_narrow_cast<Out>(x));
   return static_cast<Out>(x);
 }
-}  // namespace quick_lint_js
+}
 
 #endif

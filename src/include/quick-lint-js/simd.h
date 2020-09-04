@@ -175,6 +175,6 @@ class char_vector_1 {
  private:
   char data_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

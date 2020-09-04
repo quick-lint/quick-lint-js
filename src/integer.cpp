@@ -34,7 +34,7 @@ from_chars_result from_chars(const char *begin, const char *end, int &value) {
 #else
 namespace {
 bool is_decimal_digit(char c) noexcept { return '0' <= c && c <= '9'; }
-}  // namespace
+}
 
 from_chars_result from_chars(const char *begin, const char *end, int &value) {
   std::string buffer(begin, end);
@@ -54,4 +54,4 @@ from_chars_result from_chars(const char *begin, const char *end, int &value) {
   return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
 }
 #endif
-}  // namespace quick_lint_js
+}

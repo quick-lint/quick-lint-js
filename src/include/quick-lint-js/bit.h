@@ -52,6 +52,6 @@ inline int countr_one(std::uint32_t x) noexcept {
   return i;
 #endif
 }
-}  // namespace quick_lint_js
+}
 
 #endif

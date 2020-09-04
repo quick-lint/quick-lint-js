@@ -62,7 +62,7 @@ const char8 *strstr(const char8 *haystack, const char8 *needle) {
   return std::strstr(haystack, needle);
 }
 #endif
-}  // namespace quick_lint_js
+}
 
 namespace testing::internal {
 #if QLJS_HAVE_CHAR8_T
@@ -72,4 +72,4 @@ void PrintTo(const char8_t *s, std::ostream *out) {
   *out << reinterpret_cast<const char *>(s);
 }
 #endif
-}  // namespace testing::internal
+}

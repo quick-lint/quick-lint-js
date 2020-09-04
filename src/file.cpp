@@ -92,7 +92,7 @@ padded_string read_file(const char *path, FILE *file) {
         /*buffer_size=*/buffer_size);
   }
 }
-}  // namespace
+}
 
 padded_string read_file(const char *path) {
   FILE *file = std::fopen(path, "rb");
@@ -112,4 +112,4 @@ padded_string read_file(const char *path) {
 
   return contents;
 }
-}  // namespace quick_lint_js
+}

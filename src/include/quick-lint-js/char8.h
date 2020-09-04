@@ -56,13 +56,13 @@ inline string8_view out_string8(string8_view sv) noexcept { return sv; }
 std::size_t strlen(const char8 *);
 const char8 *strchr(const char8 *haystack, char8 needle);
 const char8 *strstr(const char8 *haystack, const char8 *needle);
-}  // namespace quick_lint_js
+}
 
 namespace testing::internal {
 #if QLJS_HAVE_CHAR8_T
 void PrintTo(char8_t, std::ostream *);
 void PrintTo(const char8_t *, std::ostream *);
 #endif
-}  // namespace testing::internal
+}
 
 #endif

@@ -1028,10 +1028,10 @@ const char* to_string(token_type type) {
   }
   return "???";
 }
-}  // namespace
+}
 
 std::ostream& operator<<(std::ostream& out, token_type type) {
   out << to_string(type);
   return out;
 }
-}  // namespace quick_lint_js
+}

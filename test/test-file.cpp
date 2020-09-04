@@ -132,5 +132,5 @@ void write_file(filesystem::path path, const std::string &content) {
     std::abort();
   }
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

@@ -28,7 +28,7 @@
 // HACK(strager): Improve formatting of googletest diagnostics.
 namespace std {
 inline void PrintTo(const std::string_view &s, std::ostream *out) { *out << s; }
-}  // namespace std
+}
 
 namespace quick_lint_js {
 struct spy_visitor : public error_collector {
@@ -170,6 +170,6 @@ struct spy_visitor : public error_collector {
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_use &, std::ostream *);
-}  // namespace quick_lint_js
+}
 
 #endif

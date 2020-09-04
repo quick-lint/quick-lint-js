@@ -61,4 +61,4 @@ std::ostream& operator<<(std::ostream& out, const padded_string& x) {
   out << out_string8(x.data_);
   return out;
 }
-}  // namespace quick_lint_js
+}

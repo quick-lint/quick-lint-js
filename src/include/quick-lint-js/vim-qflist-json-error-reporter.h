@@ -87,6 +87,6 @@ class vim_qflist_json_error_reporter final : public error_reporter {
   std::string file_name_;
   bool need_comma_ = false;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

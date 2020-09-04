@@ -174,4 +174,4 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
     });
   }
 }
-}  // namespace quick_lint_js
+}

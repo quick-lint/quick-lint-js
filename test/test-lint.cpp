@@ -1247,5 +1247,5 @@ TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
     EXPECT_EQ(v.errors[0].other_where.begin(), catch_declaration);
   }
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

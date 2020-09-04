@@ -291,5 +291,5 @@ TEST(test_narrow_cast, signed_to_unsigned_narrow_cast_fails_if_out_of_range) {
     EXPECT_FALSE(can_narrow_cast<ulong>(llong{llong_limits::max()}));
   }
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

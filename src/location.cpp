@@ -118,4 +118,4 @@ source_position locator::position(source_position::line_number_type line_number,
   int column_number = narrow_cast<int>(offset - beginning_of_line_offset) + 1;
   return source_position{line_number, column_number, offset};
 }
-}  // namespace quick_lint_js
+}

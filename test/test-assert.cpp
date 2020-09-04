@@ -37,5 +37,5 @@ TEST(test_assert, passing_assert_executes_side_effects) {
   QLJS_ALWAYS_ASSERT((executed = true));
   EXPECT_TRUE(executed);
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

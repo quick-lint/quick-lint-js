@@ -76,6 +76,6 @@ class text_error_reporter final : public error_reporter {
   std::optional<locator> locator_;
   const char *file_path_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

@@ -129,5 +129,5 @@ TEST(test_options, invalid_option) {
   EXPECT_EQ(o.error_unrecognized_options[0], "--option-does-not-exist"sv);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

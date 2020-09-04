@@ -104,6 +104,6 @@ class null_error_reporter : public error_reporter {
 };
 inline null_error_reporter null_error_reporter::instance;
 
-}  // namespace quick_lint_js
+}
 
 #endif

@@ -19,4 +19,4 @@
 
 namespace quick_lint_js {
 padded_string read_file(const char *path);
-}  // namespace quick_lint_js
+}

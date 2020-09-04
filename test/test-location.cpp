@@ -96,5 +96,5 @@ TEST(test_location, position_backwards) {
 
   EXPECT_EQ(actual_positions, expected_positions);
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

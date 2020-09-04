@@ -652,5 +652,5 @@ void check_tokens(const char8* input,
   }
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

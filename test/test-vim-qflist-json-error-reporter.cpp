@@ -553,5 +553,5 @@ TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "variable used before declaration");
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

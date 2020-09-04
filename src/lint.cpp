@@ -107,4 +107,4 @@ linter::linter(error_reporter *error_reporter)
     });
   }
 }
-}  // namespace quick_lint_js
+}

@@ -76,5 +76,5 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           "visit_variable_declaration",        //
                           "visit_variable_use"));
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

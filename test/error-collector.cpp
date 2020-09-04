@@ -46,4 +46,4 @@ void PrintTo(const error_collector::error &x, std::ostream *out) {
   }
 #undef QLJS_CASE
 }
-}  // namespace quick_lint_js
+}

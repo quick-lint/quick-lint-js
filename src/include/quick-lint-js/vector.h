@@ -180,6 +180,6 @@ class vector {
   const char *debug_owner_;
 #endif
 };
-}  // namespace quick_lint_js
+}
 
 #endif

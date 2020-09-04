@@ -91,8 +91,8 @@ class any_error_reporter {
 
 void process_file(padded_string_view input, error_reporter *,
                   bool print_parser_visits);
-}  // namespace
-}  // namespace quick_lint_js
+}
+}
 
 int main(int argc, char **argv) {
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
@@ -260,5 +260,5 @@ void process_file(padded_string_view input, error_reporter *error_reporter,
     p.parse_and_visit_module(l);
   }
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

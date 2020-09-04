@@ -527,5 +527,5 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
                                                   /*maximum_line_length=*/20);
   EXPECT_THAT(stream.str(), HasSubstr("\n100  (ALL)  ********\n"));
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

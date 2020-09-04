@@ -74,6 +74,6 @@ class padded_string_view {
  private:
   const char8 *data_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

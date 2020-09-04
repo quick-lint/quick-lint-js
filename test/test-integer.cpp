@@ -196,5 +196,5 @@ TEST(test_integer_from_chars, minus_sign_without_digits_is_unrecognized) {
   EXPECT_EQ(result.ec, std::errc::invalid_argument);
   EXPECT_EQ(number, 42) << "number should be unmodified";
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

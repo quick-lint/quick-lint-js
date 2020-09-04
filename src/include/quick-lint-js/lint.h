@@ -300,6 +300,6 @@ class linter {
   std::vector<scope> scopes_;
   error_reporter *error_reporter_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

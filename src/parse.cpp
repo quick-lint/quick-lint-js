@@ -54,7 +54,7 @@
 namespace quick_lint_js {
 namespace {
 vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
-}  // namespace
+}
 
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
@@ -788,5 +788,5 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
   }
   return parameters;
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

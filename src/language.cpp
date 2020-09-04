@@ -36,4 +36,4 @@ std::ostream& operator<<(std::ostream& out, variable_kind kind) {
   out << "???";
   return out;
 }
-}  // namespace quick_lint_js
+}

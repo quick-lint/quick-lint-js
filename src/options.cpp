@@ -116,4 +116,4 @@ done_parsing_options:
 
   return o;
 }
-}  // namespace quick_lint_js
+}

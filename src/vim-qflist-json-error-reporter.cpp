@@ -216,4 +216,4 @@ void vim_qflist_json_error_reporter::write_escaped_string(
   }
   this->output_ << string;
 }
-}  // namespace quick_lint_js
+}

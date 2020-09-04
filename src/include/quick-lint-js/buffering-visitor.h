@@ -177,6 +177,6 @@ class buffering_visitor {
 
   std::vector<visit> visits_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

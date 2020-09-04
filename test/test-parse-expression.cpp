@@ -1407,5 +1407,5 @@ std::string string8_to_string(string8_view sv) {
       std::string_view(reinterpret_cast<const char *>(sv.data()), sv.size()));
 }
 QLJS_WARNING_POP
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

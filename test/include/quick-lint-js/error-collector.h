@@ -184,6 +184,6 @@ struct error_collector : public error_reporter {
 };
 
 void PrintTo(const error_collector::error &, std::ostream *);
-}  // namespace quick_lint_js
+}
 
 #endif

@@ -268,5 +268,5 @@ TEST_F(test_text_error_reporter, variable_used_before_declaration) {
             "FILE:1:1: error: variable used before declaration: myvar\n"
             "FILE:1:12: note: variable declared here\n");
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

@@ -41,6 +41,6 @@ struct options {
 };
 
 options parse_options(int argc, char **argv);
-}  // namespace quick_lint_js
+}
 
 #endif

@@ -337,7 +337,7 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
 }
 // #line 95 "src/lex-keyword.gperf"
 
-}  // namespace
+}
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
@@ -351,4 +351,4 @@ token_type lexer::identifier_token_type(string8_view identifier) noexcept {
   }
 }
 QLJS_WARNING_POP
-}  // namespace quick_lint_js
+}

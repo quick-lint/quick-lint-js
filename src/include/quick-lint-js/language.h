@@ -37,6 +37,6 @@ enum class function_attributes {
   async,
   normal,
 };
-}  // namespace quick_lint_js
+}
 
 #endif

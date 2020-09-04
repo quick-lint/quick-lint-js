@@ -1020,7 +1020,7 @@ inline function_attributes expression::attributes() const noexcept {
   return this->with_derived(
       [](const auto &self) { return self.attributes_impl(); });
 }
-}  // namespace quick_lint_js
+}
 
 #undef QLJS_UNEXPECTED_EXPRESSION_KIND
 

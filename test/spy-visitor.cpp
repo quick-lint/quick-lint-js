@@ -47,4 +47,4 @@ void PrintTo(const spy_visitor::visited_variable_declaration &x,
 void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {
   *out << out_string8(x.name);
 }
-}  // namespace quick_lint_js
+}

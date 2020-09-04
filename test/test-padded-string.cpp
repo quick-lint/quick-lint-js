@@ -78,5 +78,5 @@ void expect_null_terminated(const padded_string &s) {
     EXPECT_EQ(data[index], u8'\0') << "index=" << index;
   }
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

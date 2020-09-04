@@ -966,7 +966,7 @@ class parser {
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
 };
-}  // namespace quick_lint_js
+}
 
 #undef QLJS_PARSER_UNIMPLEMENTED
 

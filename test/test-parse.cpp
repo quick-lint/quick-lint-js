@@ -1751,5 +1751,5 @@ TEST(test_parse, continue_statement) {
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
-}  // namespace
-}  // namespace quick_lint_js
+}
+}

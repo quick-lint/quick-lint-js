@@ -270,6 +270,6 @@ class lexer {
   const char8* input_;
   error_reporter* error_reporter_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

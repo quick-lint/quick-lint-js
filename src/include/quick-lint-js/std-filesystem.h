@@ -36,7 +36,7 @@ using namespace std::experimental::filesystem;
 #else
 #error "Unsupported platform"
 #endif
-}  // namespace filesystem
-}  // namespace quick_lint_js
+}
+}
 
 #endif

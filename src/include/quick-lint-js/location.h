@@ -107,6 +107,6 @@ class locator {
   const char8* input_;
   mutable std::vector<source_position::offset_type> offset_of_lines_;
 };
-}  // namespace quick_lint_js
+}
 
 #endif

@@ -24,4 +24,4 @@ void report_assertion_failure(const char *qljs_file_name, int qljs_line,
   std::fprintf(stderr, "%s:%d: internal check failed in %s: %s\n",
                qljs_file_name, qljs_line, qljs_function_name, message);
 }
-}  // namespace quick_lint_js
+}

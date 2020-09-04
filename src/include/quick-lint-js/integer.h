@@ -23,4 +23,4 @@ struct from_chars_result {
 };
 
 from_chars_result from_chars(const char *begin, const char *end, int &value);
-}  // namespace quick_lint_js
+}
