@@ -358,6 +358,28 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(qflist[0]["text"], "missing semicolon after expression");
 }
 
+TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
+  padded_string input(u8"let myvar; let myvar;");
+  source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
+  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
+  source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
+  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
+
+  vim_qflist_json_error_reporter reporter =
+      this->make_reporter(&input, /*vim_bufnr=*/0);
+  reporter.report_error_redeclaration_of_variable(
+      identifier(redeclaration_span), identifier(original_declaration_span));
+  reporter.finish();
+
+  ::Json::Value qflist = this->parse_json()["qflist"];
+  ASSERT_EQ(qflist.size(), 1);
+  EXPECT_EQ(qflist[0]["col"], 16);
+  EXPECT_EQ(qflist[0]["end_col"], 20);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
+  EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["text"], "redeclaration of variable");
+}
+
 TEST_F(test_vim_qflist_json_error_reporter, stray_comma_in_let_statement) {
   padded_string input(u8"let x , , y");
   source_code_span comma_span(&input[9 - 1], &input[9 + 1 - 1]);

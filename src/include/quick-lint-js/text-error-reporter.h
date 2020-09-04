@@ -50,6 +50,8 @@ class text_error_reporter final : public error_reporter {
       source_code_span where) override;
   void report_error_missing_semicolon_after_expression(
       source_code_span where) override;
+  void report_error_redeclaration_of_variable(
+      identifier redeclaration, identifier original_declaration) override;
   void report_error_stray_comma_in_let_statement(
       source_code_span where) override;
   void report_error_unclosed_block_comment(

@@ -845,5 +845,407 @@ TEST(
             error_collector::error_assignment_to_undeclared_variable);
   EXPECT_EQ(v.errors[0].where.begin(), assignment);
 }
+
+TEST(test_lint, shadowing_variable_in_parent_block_scope_is_okay) {
+  const char8 outer_declaration[] = u8"x";
+  const char8 inner_declaration[] = u8"x";
+
+  // let x;
+  // {
+  //   let x;
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(outer_declaration),
+                               variable_kind::_let);
+  l.visit_enter_block_scope();
+  l.visit_variable_declaration(identifier_of(inner_declaration),
+                               variable_kind::_let);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, declaring_variable_twice_is_an_error) {
+  const char8 declaration[] = u8"x";
+  const char8 second_declaration[] = u8"x";
+  const char8 third_declaration[] = u8"x";
+
+  // let x;
+  // let x;  // ERROR
+  // let x;  // ERROR
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_declaration(identifier_of(second_declaration),
+                               variable_kind::_let);
+  l.visit_variable_declaration(identifier_of(third_declaration),
+                               variable_kind::_let);
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 2);
+  EXPECT_EQ(v.errors[0].kind, error_collector::error_redeclaration_of_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), second_declaration);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+  EXPECT_EQ(v.errors[1].kind, error_collector::error_redeclaration_of_variable);
+  EXPECT_EQ(v.errors[1].where.begin(), third_declaration);
+  EXPECT_EQ(v.errors[1].other_where.begin(), declaration);
+}
+
+TEST(test_lint, declaring_variable_twice_with_var_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 second_declaration[] = u8"x";
+
+  // var x;
+  // var x;
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var);
+  l.visit_variable_declaration(identifier_of(second_declaration),
+                               variable_kind::_var);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, declaring_parameter_twice_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 second_declaration[] = u8"x";
+
+  // ((x, x) => {});
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_parameter);
+  l.visit_variable_declaration(identifier_of(second_declaration),
+                               variable_kind::_parameter);
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, declaring_function_twice_is_okay) {
+  const char8 declaration[] = u8"f";
+  const char8 second_declaration[] = u8"f";
+
+  // function f() {}
+  // function f() {}
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_function);
+  l.visit_enter_function_scope();
+  l.visit_exit_function_scope();
+  l.visit_variable_declaration(identifier_of(second_declaration),
+                               variable_kind::_function);
+  l.visit_enter_function_scope();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 second_declaration[] = u8"x";
+
+  {
+    // var x;
+    // function x() {}
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_var);
+    l.visit_variable_declaration(identifier_of(second_declaration),
+                                 variable_kind::_function);
+    l.visit_enter_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // function x() {}
+    // var x;
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_function);
+    l.visit_enter_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_variable_declaration(identifier_of(second_declaration),
+                                 variable_kind::_var);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // function x() {}
+    // {
+    //   var x;
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_function);
+    l.visit_enter_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(second_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 second_declaration[] = u8"x";
+
+  {
+    // ((x) => {
+    //   var x;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_parameter);
+    l.visit_variable_declaration(identifier_of(second_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // ((x) => {
+    //   function x() {}
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_parameter);
+    l.visit_variable_declaration(identifier_of(second_declaration),
+                                 variable_kind::_function);
+    l.visit_enter_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(
+    test_lint,
+    mixing_let_or_const_or_class_with_other_variable_kind_in_same_scope_is_an_error) {
+  const char8 declaration[] = u8"x";
+  const char8 second_declaration[] = u8"x";
+
+  for (variable_kind declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_function,
+        variable_kind::_let, variable_kind::_var}) {
+    for (variable_kind second_declaration_kind :
+         {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {
+      // var x;
+      // let x; // ERROR
+      error_collector v;
+      linter l(&v);
+      l.visit_variable_declaration(identifier_of(declaration),
+                                   declaration_kind);
+      l.visit_variable_declaration(identifier_of(second_declaration),
+                                   second_declaration_kind);
+      l.visit_end_of_module();
+
+      ASSERT_EQ(v.errors.size(), 1);
+      EXPECT_EQ(v.errors[0].kind,
+                error_collector::error_redeclaration_of_variable);
+      EXPECT_EQ(v.errors[0].where.begin(), second_declaration);
+      EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+    }
+  }
+
+  for (variable_kind declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {
+    for (variable_kind second_declaration_kind :
+         {variable_kind::_class, variable_kind::_const,
+          variable_kind::_function, variable_kind::_let, variable_kind::_var}) {
+      // let x;
+      // var x; // ERROR
+      error_collector v;
+      linter l(&v);
+      l.visit_variable_declaration(identifier_of(declaration),
+                                   declaration_kind);
+      l.visit_variable_declaration(identifier_of(second_declaration),
+                                   second_declaration_kind);
+      l.visit_end_of_module();
+
+      ASSERT_EQ(v.errors.size(), 1);
+      EXPECT_EQ(v.errors[0].kind,
+                error_collector::error_redeclaration_of_variable);
+      EXPECT_EQ(v.errors[0].where.begin(), second_declaration);
+      EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+    }
+  }
+}
+
+TEST(test_lint, import_conflicts_with_any_variable_declaration) {
+  const char8 import_declaration[] = u8"x";
+  const char8 other_declaration[] = u8"x";
+
+  for (variable_kind other_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_function,
+        variable_kind::_import, variable_kind::_let, variable_kind::_var}) {
+    // import x from "";
+    // let x;             // ERROR
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(import_declaration),
+                                 variable_kind::_import);
+    l.visit_variable_declaration(identifier_of(other_declaration),
+                                 other_declaration_kind);
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_redeclaration_of_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), other_declaration);
+    EXPECT_EQ(v.errors[0].other_where.begin(), import_declaration);
+  }
+
+  for (variable_kind other_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_function,
+        variable_kind::_import, variable_kind::_let, variable_kind::_var}) {
+    // let x;
+    // import x from ""; // ERROR
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(other_declaration),
+                                 other_declaration_kind);
+    l.visit_variable_declaration(identifier_of(import_declaration),
+                                 variable_kind::_import);
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_redeclaration_of_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), import_declaration);
+    EXPECT_EQ(v.errors[0].other_where.begin(), other_declaration);
+  }
+}
+
+TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
+  const char8 parameter_declaration[] = u8"x";
+  const char8 local_declaration[] = u8"x";
+
+  for (variable_kind local_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {
+    // ((x) => {
+    //   let x; // ERROR
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_variable_declaration(identifier_of(local_declaration),
+                                 local_declaration_kind);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_redeclaration_of_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), local_declaration);
+    EXPECT_EQ(v.errors[0].other_where.begin(), parameter_declaration);
+  }
+}
+
+TEST(test_lint, let_variable_in_inner_scope_as_parameter_shadows) {
+  const char8 parameter_declaration[] = u8"x";
+  const char8 local_declaration[] = u8"x";
+
+  for (variable_kind local_declaration_kind :
+       {variable_kind::_const, variable_kind::_let}) {
+    // ((x) => {
+    //   {
+    //     let x;
+    //   }
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(local_declaration),
+                                 local_declaration_kind);
+    l.visit_exit_block_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, catch_variable_does_not_conflict_with_var_variable) {
+  const char8 catch_declaration[] = u8"e";
+  const char8 var_declaration[] = u8"e";
+
+  // try {
+  // } catch (e) {
+  //   var e;
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_block_scope();
+  l.visit_variable_declaration(identifier_of(catch_declaration),
+                               variable_kind::_catch);
+  l.visit_variable_declaration(identifier_of(var_declaration),
+                               variable_kind::_var);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
+  const char8 catch_declaration[] = u8"e";
+  const char8 local_declaration[] = u8"e";
+
+  for (variable_kind local_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_function,
+        variable_kind::_let}) {
+    // try {
+    // } catch (e) {
+    //   let e;       // ERROR
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(catch_declaration),
+                                 variable_kind::_catch);
+    l.visit_variable_declaration(identifier_of(local_declaration),
+                                 local_declaration_kind);
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_redeclaration_of_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), local_declaration);
+    EXPECT_EQ(v.errors[0].other_where.begin(), catch_declaration);
+  }
+}
 }  // namespace
 }  // namespace quick_lint_js

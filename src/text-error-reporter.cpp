@@ -86,6 +86,15 @@ void text_error_reporter::report_error_missing_semicolon_after_expression(
   this->output_ << "error: missing semicolon after expression\n";
 }
 
+void text_error_reporter::report_error_redeclaration_of_variable(
+    identifier redeclaration, identifier original_declaration) {
+  log_location(redeclaration);
+  this->output_ << "error: redeclaration of variable: "
+                << out_string8(redeclaration.string_view()) << '\n';
+  log_location(original_declaration);
+  this->output_ << "note: variable already declared here\n";
+}
+
 void text_error_reporter::report_error_stray_comma_in_let_statement(
     source_code_span where) {
   log_location(where);

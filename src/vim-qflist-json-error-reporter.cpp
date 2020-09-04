@@ -114,6 +114,12 @@ void vim_qflist_json_error_reporter::
   this->output_ << ", \"text\": \"missing semicolon after expression\"}";
 }
 
+void vim_qflist_json_error_reporter::report_error_redeclaration_of_variable(
+    identifier redeclaration, identifier) {
+  this->write_qflist_entry_header(redeclaration);
+  this->output_ << ", \"text\": \"redeclaration of variable\"}";
+}
+
 void vim_qflist_json_error_reporter::report_error_stray_comma_in_let_statement(
     source_code_span where) {
   this->write_qflist_entry_header(where);

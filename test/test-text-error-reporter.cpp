@@ -165,6 +165,20 @@ TEST_F(test_text_error_reporter, missing_semicolon_after_expression) {
             "FILE:1:4: error: missing semicolon after expression\n");
 }
 
+TEST_F(test_text_error_reporter, redeclaration_of_variable) {
+  padded_string input(u8"let myvar; let myvar;");
+  source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
+  ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
+  source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
+  ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
+
+  this->make_reporter(&input).report_error_redeclaration_of_variable(
+      identifier(redeclaration_span), identifier(original_declaration_span));
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:16: error: redeclaration of variable: myvar\n"
+            "FILE:1:5: note: variable already declared here\n");
+}
+
 TEST_F(test_text_error_reporter, stray_comma_in_let_statement) {
   padded_string input(u8"let x , , y");
   source_code_span comma_span(&input[9 - 1], &input[9 + 1 - 1]);
