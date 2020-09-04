@@ -755,14 +755,12 @@ void parser::consume_semicolon() {
 void parser::crash_on_unimplemented_token(const char *qljs_file_name,
                                           int qljs_line,
                                           const char *qljs_function_name) {
-  // TODO(strager): Forward to the error_reporter instead, removing the need for
-  // parser::locator_.
-  source_position token_position = this->locator().position(this->peek().begin);
-  std::cerr << qljs_file_name << ":" << qljs_line
-            << ": fatal: token not implemented in " << qljs_function_name
-            << ": " << this->peek().type << " on line "
-            << token_position.line_number << " column "
-            << token_position.column_number << '\n';
+  this->error_reporter_->report_fatal_error_unimplemented_token(
+      /*qljs_file_name=*/qljs_file_name,
+      /*qljs_line=*/qljs_line,
+      /*qljs_function_name=*/qljs_function_name,
+      /*type=*/this->peek().type,
+      /*token_begin=*/this->peek().begin);
   std::abort();
 }
 

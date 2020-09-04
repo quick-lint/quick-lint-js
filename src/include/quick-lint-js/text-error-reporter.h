@@ -68,6 +68,10 @@ class text_error_reporter final : public error_reporter {
   void report_error_variable_used_before_declaration(
       identifier use, identifier declaration) override;
 
+  void report_fatal_error_unimplemented_token(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      token_type, const char8 *token_begin) override;
+
  private:
   void log_location(identifier) const;
   void log_location(source_code_span) const;

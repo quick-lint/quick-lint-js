@@ -16,6 +16,7 @@
 
 #include <ostream>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
 
@@ -151,6 +152,19 @@ void text_error_reporter::report_error_variable_used_before_declaration(
                 << out_string8(use.string_view()) << '\n';
   log_location(declaration);
   this->output_ << "note: variable declared here\n";
+}
+
+void text_error_reporter::report_fatal_error_unimplemented_token(
+    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+    token_type type, const char8 *token_begin) {
+  error_reporter::write_fatal_error_unimplemented_token(
+      /*qljs_file_name=*/qljs_file_name,
+      /*qljs_line=*/qljs_line,
+      /*qljs_function_name=*/qljs_function_name,
+      /*type=*/type,
+      /*token_begin=*/token_begin,
+      /*locator=*/get(this->locator_),
+      /*out=*/this->output_);
 }
 
 void text_error_reporter::log_location(identifier i) const {

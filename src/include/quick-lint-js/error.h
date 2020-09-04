@@ -17,6 +17,8 @@
 #ifndef QUICK_LINT_JS_ERROR_H
 #define QUICK_LINT_JS_ERROR_H
 
+#include <iosfwd>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -69,6 +71,14 @@ class error_reporter {
   virtual void report_error_use_of_undeclared_variable(identifier name) = 0;
   virtual void report_error_variable_used_before_declaration(
       identifier use, identifier declaration) = 0;
+
+  virtual void report_fatal_error_unimplemented_token(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      token_type, const char8 *token_begin) = 0;
+
+  static void write_fatal_error_unimplemented_token(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      token_type, const char8 *token_begin, const locator *, std::ostream &);
 };
 
 class null_error_reporter : public error_reporter {
@@ -101,6 +111,10 @@ class null_error_reporter : public error_reporter {
   void report_error_use_of_undeclared_variable(identifier) override {}
   void report_error_variable_used_before_declaration(identifier,
                                                      identifier) override {}
+
+  void report_fatal_error_unimplemented_token(const char *, int, const char *,
+                                              token_type,
+                                              const char8 *) override {}
 };
 inline null_error_reporter null_error_reporter::instance;
 

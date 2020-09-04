@@ -75,6 +75,10 @@ class vim_qflist_json_error_reporter final : public error_reporter {
   void report_error_variable_used_before_declaration(identifier use,
                                                      identifier) override;
 
+  void report_fatal_error_unimplemented_token(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      token_type, const char8 *token_begin) override;
+
  private:
   void write_qflist_entry_header(identifier name);
   void write_qflist_entry_header(source_code_span span);

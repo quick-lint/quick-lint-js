@@ -962,7 +962,7 @@ class parser {
   }
 
   quick_lint_js::lexer lexer_;
-  quick_lint_js::locator locator_;
+  quick_lint_js::locator locator_;  // TODO(strager): Delete.
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
 };

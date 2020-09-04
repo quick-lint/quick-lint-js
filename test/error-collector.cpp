@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <ostream>
+#include <iostream>
 #include <quick-lint-js/error-collector.h>
 
 namespace quick_lint_js {
+void error_collector::report_fatal_error_unimplemented_token(
+    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+    token_type type, const char8 *token_begin) {
+  error_reporter::write_fatal_error_unimplemented_token(
+      /*qljs_file_name=*/qljs_file_name,
+      /*qljs_line=*/qljs_line,
+      /*qljs_function_name=*/qljs_function_name,
+      /*type=*/type,
+      /*token_begin=*/token_begin,
+      /*locator=*/nullptr,
+      /*out=*/std::cerr);
+}
+
 void PrintTo(const error_collector::error &x, std::ostream *out) {
 #define QLJS_CASE(k)       \
   case error_collector::k: \

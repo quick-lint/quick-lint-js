@@ -18,6 +18,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
@@ -172,6 +173,19 @@ void vim_qflist_json_error_reporter::
     report_error_variable_used_before_declaration(identifier use, identifier) {
   this->write_qflist_entry_header(use);
   this->output_ << ", \"text\": \"variable used before declaration\"}";
+}
+
+void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
+    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+    token_type type, const char8 *token_begin) {
+  error_reporter::write_fatal_error_unimplemented_token(
+      /*qljs_file_name=*/qljs_file_name,
+      /*qljs_line=*/qljs_line,
+      /*qljs_function_name=*/qljs_function_name,
+      /*type=*/type,
+      /*token_begin=*/token_begin,
+      /*locator=*/get(this->locator_),
+      /*out=*/this->output_);
 }
 
 void vim_qflist_json_error_reporter::write_qflist_entry_header(
