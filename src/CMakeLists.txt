@@ -36,6 +36,7 @@ quick_lint_js_add_library(
   char8.cpp
   file.cpp
   integer.cpp
+  language.cpp
   lex-keyword.cpp
   lex.cpp
   lint.cpp

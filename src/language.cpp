@@ -14,29 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_LANGUAGE_H
-#define QUICK_LINT_JS_LANGUAGE_H
-
-#include <iosfwd>
+#include <ostream>
+#include <quick-lint-js/language.h>
 
 namespace quick_lint_js {
-enum class variable_kind {
-  _catch,
-  _class,
-  _const,
-  _function,
-  _import,
-  _let,
-  _parameter,
-  _var,
-};
-
-std::ostream& operator<<(std::ostream&, variable_kind);
-
-enum class function_attributes {
-  async,
-  normal,
-};
+std::ostream& operator<<(std::ostream& out, variable_kind kind) {
+#define QLJS_CASE(k)     \
+  case variable_kind::k: \
+    out << #k;           \
+    return out;
+  switch (kind) {
+    QLJS_CASE(_catch)
+    QLJS_CASE(_class)
+    QLJS_CASE(_const)
+    QLJS_CASE(_function)
+    QLJS_CASE(_import)
+    QLJS_CASE(_let)
+    QLJS_CASE(_parameter)
+    QLJS_CASE(_var)
+  }
+  out << "???";
+  return out;
+}
 }  // namespace quick_lint_js
-
-#endif
