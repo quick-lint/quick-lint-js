@@ -567,16 +567,26 @@ void lexer::parse_hexadecimal_number() {
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
-  while (this->is_digit(*input)) {
-    input += 1;
-  }
+  input = this->parse_decimal_digits(input);
   if (*input == '.') {
     input += 1;
-    while (this->is_digit(*input)) {
+    input = this->parse_decimal_digits(input);
+  }
+  if (*input == 'e') {
+    input += 1;
+    if (*input == '-' || *input == '+') {
       input += 1;
     }
+    input = this->parse_decimal_digits(input);
   }
   this->input_ = input;
+}
+
+const char8* lexer::parse_decimal_digits(const char8* input) noexcept {
+  while (is_digit(*input)) {
+    input += 1;
+  }
+  return input;
 }
 
 void lexer::parse_identifier() {

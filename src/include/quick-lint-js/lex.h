@@ -250,6 +250,7 @@ class lexer {
 
   void parse_hexadecimal_number();
   void parse_number();
+  static const char8* parse_decimal_digits(const char8*) noexcept;
 
   void parse_identifier();
 
