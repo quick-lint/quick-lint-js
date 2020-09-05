@@ -226,6 +226,17 @@ TEST_F(test_text_error_reporter, unclosed_template) {
   EXPECT_EQ(this->get_output(), "FILE:1:1: error: unclosed template\n");
 }
 
+TEST_F(test_text_error_reporter, unexpected_characters_in_number) {
+  padded_string input(u8"123loveme");
+  source_code_span garbage_span(&input[4 - 1], &input[9 + 1 - 1]);
+  ASSERT_EQ(garbage_span.string_view(), u8"loveme");
+
+  this->make_reporter(&input).report_error_unexpected_characters_in_number(
+      garbage_span);
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:4: error: unexpected characters in number literal\n");
+}
+
 TEST_F(test_text_error_reporter, unexpected_identifier) {
   padded_string input(u8"let x y");
   source_code_span y_span(&input[7 - 1], &input[7 + 1 - 1]);

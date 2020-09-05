@@ -567,17 +567,38 @@ void lexer::parse_hexadecimal_number() {
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
+
+  auto consume_garbage = [this, &input]() {
+    const char8* garbage_begin = input;
+    const char8* garbage_end = this->parse_identifier(garbage_begin);
+    this->error_reporter_->report_error_unexpected_characters_in_number(
+        source_code_span(garbage_begin, garbage_end));
+    input = garbage_end;
+  };
+
   input = this->parse_decimal_digits(input);
   if (*input == '.') {
     input += 1;
     input = this->parse_decimal_digits(input);
   }
   if (*input == 'e') {
+    const char8* e = input;
     input += 1;
     if (*input == '-' || *input == '+') {
       input += 1;
     }
-    input = this->parse_decimal_digits(input);
+    if (this->is_digit(*input)) {
+      input = this->parse_decimal_digits(input);
+    } else {
+      input = e;
+      consume_garbage();
+    }
+  }
+
+  switch (*input) {
+  QLJS_CASE_IDENTIFIER_START:
+    consume_garbage();
+    break;
   }
   this->input_ = input;
 }
@@ -590,7 +611,10 @@ const char8* lexer::parse_decimal_digits(const char8* input) noexcept {
 }
 
 void lexer::parse_identifier() {
-  const char8* input = this->input_;
+  this->input_ = this->parse_identifier(this->input_);
+}
+
+const char8* lexer::parse_identifier(const char8* input) {
   switch (*input) {
   QLJS_CASE_IDENTIFIER_START:
     break;
@@ -652,15 +676,15 @@ void lexer::parse_identifier() {
     int identifier_character_count = count_identifier_characters(chars);
 
     for (int i = 0; i < identifier_character_count; ++i) {
-      QLJS_ASSERT(this->is_identifier_character(this->input_[i]));
+      QLJS_ASSERT(is_identifier_character(input[i]));
     }
     input += identifier_character_count;
 
     is_all_identifier_characters = identifier_character_count == chars.size;
   } while (is_all_identifier_characters);
 
-  this->input_ = input;
-  QLJS_ASSERT(!this->is_identifier_character(this->input_[0]));
+  QLJS_ASSERT(!is_identifier_character(input[0]));
+  return input;
 }
 
 QLJS_WARNING_PUSH

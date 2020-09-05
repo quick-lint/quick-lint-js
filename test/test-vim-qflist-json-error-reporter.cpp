@@ -475,6 +475,25 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_template) {
   EXPECT_EQ(qflist[0]["text"], "unclosed template");
 }
 
+TEST_F(test_vim_qflist_json_error_reporter, unexpected_characters_in_number) {
+  padded_string input(u8"123loveme");
+  source_code_span garbage_span(&input[4 - 1], &input[9 + 1 - 1]);
+  ASSERT_EQ(garbage_span.string_view(), u8"loveme");
+
+  vim_qflist_json_error_reporter reporter =
+      this->make_reporter(&input, /*vim_bufnr=*/0);
+  reporter.report_error_unexpected_characters_in_number(garbage_span);
+  reporter.finish();
+
+  ::Json::Value qflist = this->parse_json()["qflist"];
+  ASSERT_EQ(qflist.size(), 1);
+  EXPECT_EQ(qflist[0]["col"], 4);
+  EXPECT_EQ(qflist[0]["end_col"], 9);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
+  EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["text"], "unexpected characters in number literal");
+}
+
 TEST_F(test_vim_qflist_json_error_reporter, unexpected_identifier) {
   padded_string input(u8"let x y");
   source_code_span y_span(&input[7 - 1], &input[7 + 1 - 1]);

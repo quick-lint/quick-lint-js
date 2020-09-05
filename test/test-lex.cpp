@@ -100,6 +100,59 @@ TEST(test_lex, lex_hex_numbers) {
   check_single_token(u8"0X123456789ABCDEF", token_type::number);
 }
 
+TEST(test_lex, lex_number_with_trailing_garbage) {
+  {
+    error_collector v;
+    padded_string input(u8"123abcd");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_characters_in_number);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 7);
+  }
+
+  {
+    error_collector v;
+    padded_string input(u8"123e f");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_characters_in_number);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+  }
+
+  {
+    error_collector v;
+    padded_string input(u8"123e-f");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::minus);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_characters_in_number);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+  }
+}
+
 TEST(test_lex, lex_strings) {
   check_single_token(u8R"('hello')", token_type::string);
   check_single_token(u8R"("hello")", token_type::string);

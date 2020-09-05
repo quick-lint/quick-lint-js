@@ -126,6 +126,12 @@ void text_error_reporter::report_error_unclosed_template(
   this->output_ << "error: unclosed template\n";
 }
 
+void text_error_reporter::report_error_unexpected_characters_in_number(
+    source_code_span characters) {
+  this->log_location(characters);
+  this->output_ << "error: unexpected characters in number literal\n";
+}
+
 void text_error_reporter::report_error_unexpected_identifier(
     source_code_span where) {
   log_location(where);

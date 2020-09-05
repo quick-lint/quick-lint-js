@@ -151,6 +151,12 @@ void vim_qflist_json_error_reporter::report_error_unclosed_template(
   this->output_ << ", \"text\": \"unclosed template\"}";
 }
 
+void vim_qflist_json_error_reporter::
+    report_error_unexpected_characters_in_number(source_code_span characters) {
+  this->write_qflist_entry_header(characters);
+  this->output_ << ", \"text\": \"unexpected characters in number literal\"}";
+}
+
 void vim_qflist_json_error_reporter::report_error_unexpected_identifier(
     source_code_span where) {
   this->write_qflist_entry_header(where);

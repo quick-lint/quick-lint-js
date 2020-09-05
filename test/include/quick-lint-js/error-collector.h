@@ -121,6 +121,12 @@ struct error_collector : public error_reporter {
         error{error_unclosed_template, incomplete_template});
   }
 
+  void report_error_unexpected_characters_in_number(
+      source_code_span characters) override {
+    this->errors.emplace_back(error_unexpected_characters_in_number,
+                              characters);
+  }
+
   void report_error_unexpected_identifier(source_code_span where) override {
     this->errors.emplace_back(error{error_unexpected_identifier, where});
   }
@@ -160,6 +166,7 @@ struct error_collector : public error_reporter {
     error_unclosed_regexp_literal,
     error_unclosed_string_literal,
     error_unclosed_template,
+    error_unexpected_characters_in_number,
     error_unexpected_identifier,
     error_unmatched_parenthesis,
     error_use_of_undeclared_variable,

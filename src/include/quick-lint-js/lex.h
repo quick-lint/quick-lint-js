@@ -253,6 +253,7 @@ class lexer {
   static const char8* parse_decimal_digits(const char8*) noexcept;
 
   void parse_identifier();
+  static const char8* parse_identifier(const char8*);
 
   void skip_whitespace();
   void skip_block_comment();
