@@ -117,7 +117,6 @@ class null_error_reporter : public error_reporter {
                                               const char8 *) override {}
 };
 inline null_error_reporter null_error_reporter::instance;
-
 }
 
 #endif
