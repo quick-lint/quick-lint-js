@@ -324,8 +324,6 @@ TEST(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
-  // TODO(strager): Parse trailing flags.
-
   // TODO(strager): Parse '/' inside character classes.
 
   // TODO(strager): Report invalid escape sequences.
