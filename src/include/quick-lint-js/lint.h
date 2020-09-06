@@ -76,11 +76,13 @@ class linter {
   void visit_variable_declaration(identifier name, variable_kind kind) {
     scope &current_scope = this->scopes_.back();
 
-    this->report_error_if_variable_declaration_conflicts_in_scope(current_scope,
-                                                                  name, kind);
+    this->report_error_if_variable_declaration_conflicts_in_scope(
+        current_scope, name, kind,
+        declared_variable_scope::declared_in_current_scope);
 
     current_scope.declared_variables.emplace_back(
-        declared_variable{string8(name.string_view()), kind, name});
+        declared_variable{string8(name.string_view()), kind, name,
+                          declared_variable_scope::declared_in_current_scope});
 
     auto erase_if = [](auto &variables, auto predicate) {
       variables.erase(
@@ -187,10 +189,16 @@ class linter {
   }
 
  private:
+  enum class declared_variable_scope {
+    declared_in_current_scope,
+    declared_in_descendant_scope,
+  };
+
   struct declared_variable {
     string8 name;
     variable_kind kind;
     std::optional<identifier> declaration;
+    declared_variable_scope declaration_scope;
   };
 
   enum class used_variable_kind {
@@ -266,16 +274,21 @@ class linter {
     for (const declared_variable &var : current_scope.declared_variables) {
       if (var.kind == variable_kind::_function ||
           var.kind == variable_kind::_var) {
-        QLJS_ASSERT(var.declaration.has_value());
+        declared_variable parent_var = var;
+        parent_var.declaration_scope =
+            declared_variable_scope::declared_in_descendant_scope;
+        QLJS_ASSERT(parent_var.declaration.has_value());
         this->report_error_if_variable_declaration_conflicts_in_scope(
-            parent_scope, *var.declaration, var.kind);
-        parent_scope.declared_variables.emplace_back(var);
+            parent_scope, *parent_var.declaration, parent_var.kind,
+            parent_var.declaration_scope);
+        parent_scope.declared_variables.emplace_back(parent_var);
       }
     }
   }
 
   void report_error_if_variable_declaration_conflicts_in_scope(
-      const scope &scope, identifier name, variable_kind kind) const {
+      const scope &scope, identifier name, variable_kind kind,
+      declared_variable_scope declaration_scope) const {
     const declared_variable *already_declared_variable =
         scope.find_declared_variable(name);
     if (already_declared_variable) {
@@ -312,7 +325,13 @@ class linter {
           (other_kind == vk::_catch && kind == vk::_var) ||
           (other_kind == vk::_function && kind == vk::_var) ||
           (other_kind == vk::_parameter && kind == vk::_var) ||
-          (other_kind == vk::_var && kind == vk::_var);
+          (other_kind == vk::_var && kind == vk::_var) ||
+          (other_kind == vk::_function &&
+           already_declared_variable->declaration_scope ==
+               declared_variable_scope::declared_in_descendant_scope) ||
+          (kind == vk::_function &&
+           declaration_scope ==
+               declared_variable_scope::declared_in_descendant_scope);
       if (!redeclaration_ok) {
         assert(already_declared_variable->declaration.has_value());
         this->error_reporter_->report_error_redeclaration_of_variable(

@@ -90,6 +90,7 @@ linter::linter(error_reporter *error_reporter)
         .name = global_variable,
         .kind = variable_kind::_function,
         .declaration = std::nullopt,
+        .declaration_scope = declared_variable_scope::declared_in_current_scope,
     });
   }
 
@@ -104,6 +105,7 @@ linter::linter(error_reporter *error_reporter)
         .name = global_variable,
         .kind = variable_kind::_const,
         .declaration = std::nullopt,
+        .declaration_scope = declared_variable_scope::declared_in_current_scope,
     });
   }
 }

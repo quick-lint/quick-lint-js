@@ -1222,6 +1222,52 @@ TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
   }
 }
 
+TEST(test_lint,
+     strict_variables_do_not_conflict_with_functions_in_block_scope) {
+  const char8 function_declaration[] = u8"x";
+  const char8 other_declaration[] = u8"x";
+
+  for (variable_kind other_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_import,
+        variable_kind::_let}) {
+    // {
+    //   function x() {}
+    // }
+    // let x;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(function_declaration),
+                                 variable_kind::_function);
+    l.visit_exit_block_scope();
+    l.visit_variable_declaration(identifier_of(other_declaration),
+                                 other_declaration_kind);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  for (variable_kind other_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_import,
+        variable_kind::_let}) {
+    // let x;
+    // {
+    //   function x() {}
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(other_declaration),
+                                 other_declaration_kind);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(function_declaration),
+                                 variable_kind::_function);
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint, import_conflicts_with_any_variable_declaration) {
   const char8 import_declaration[] = u8"x";
   const char8 other_declaration[] = u8"x";
