@@ -76,49 +76,8 @@ class linter {
   void visit_variable_declaration(identifier name, variable_kind kind) {
     scope &current_scope = this->scopes_.back();
 
-    const declared_variable *already_declared_variable =
-        current_scope.find_declared_variable(name);
-    if (already_declared_variable) {
-      using vk = variable_kind;
-      vk other_kind = already_declared_variable->kind;
-
-      switch (other_kind) {
-        case vk::_catch:
-          QLJS_ASSERT(kind != vk::_catch);
-          QLJS_ASSERT(kind != vk::_import);
-          QLJS_ASSERT(kind != vk::_parameter);
-          break;
-        case vk::_class:
-        case vk::_const:
-        case vk::_function:
-        case vk::_let:
-        case vk::_var:
-          QLJS_ASSERT(kind != vk::_catch);
-          QLJS_ASSERT(kind != vk::_parameter);
-          break;
-        case vk::_parameter:
-          QLJS_ASSERT(kind != vk::_catch);
-          QLJS_ASSERT(kind != vk::_import);
-          break;
-        case vk::_import:
-          break;
-      }
-
-      bool redeclaration_ok =
-          (other_kind == vk::_function && kind == vk::_function) ||
-          (other_kind == vk::_parameter && kind == vk::_function) ||
-          (other_kind == vk::_var && kind == vk::_function) ||
-          (other_kind == vk::_parameter && kind == vk::_parameter) ||
-          (other_kind == vk::_catch && kind == vk::_var) ||
-          (other_kind == vk::_function && kind == vk::_var) ||
-          (other_kind == vk::_parameter && kind == vk::_var) ||
-          (other_kind == vk::_var && kind == vk::_var);
-      if (!redeclaration_ok) {
-        assert(already_declared_variable->declaration.has_value());
-        this->error_reporter_->report_error_redeclaration_of_variable(
-            name, *already_declared_variable->declaration);
-      }
-    }
+    this->report_error_if_variable_declaration_conflicts_in_scope(current_scope,
+                                                                  name, kind);
 
     current_scope.declared_variables.emplace_back(
         declared_variable{string8(name.string_view()), kind, name});
@@ -307,7 +266,57 @@ class linter {
     for (const declared_variable &var : current_scope.declared_variables) {
       if (var.kind == variable_kind::_function ||
           var.kind == variable_kind::_var) {
+        QLJS_ASSERT(var.declaration.has_value());
+        this->report_error_if_variable_declaration_conflicts_in_scope(
+            parent_scope, *var.declaration, var.kind);
         parent_scope.declared_variables.emplace_back(var);
+      }
+    }
+  }
+
+  void report_error_if_variable_declaration_conflicts_in_scope(
+      const scope &scope, identifier name, variable_kind kind) const {
+    const declared_variable *already_declared_variable =
+        scope.find_declared_variable(name);
+    if (already_declared_variable) {
+      using vk = variable_kind;
+      vk other_kind = already_declared_variable->kind;
+
+      switch (other_kind) {
+        case vk::_catch:
+          QLJS_ASSERT(kind != vk::_catch);
+          QLJS_ASSERT(kind != vk::_import);
+          QLJS_ASSERT(kind != vk::_parameter);
+          break;
+        case vk::_class:
+        case vk::_const:
+        case vk::_function:
+        case vk::_let:
+        case vk::_var:
+          QLJS_ASSERT(kind != vk::_catch);
+          QLJS_ASSERT(kind != vk::_parameter);
+          break;
+        case vk::_parameter:
+          QLJS_ASSERT(kind != vk::_catch);
+          QLJS_ASSERT(kind != vk::_import);
+          break;
+        case vk::_import:
+          break;
+      }
+
+      bool redeclaration_ok =
+          (other_kind == vk::_function && kind == vk::_function) ||
+          (other_kind == vk::_parameter && kind == vk::_function) ||
+          (other_kind == vk::_var && kind == vk::_function) ||
+          (other_kind == vk::_parameter && kind == vk::_parameter) ||
+          (other_kind == vk::_catch && kind == vk::_var) ||
+          (other_kind == vk::_function && kind == vk::_var) ||
+          (other_kind == vk::_parameter && kind == vk::_var) ||
+          (other_kind == vk::_var && kind == vk::_var);
+      if (!redeclaration_ok) {
+        assert(already_declared_variable->declaration.has_value());
+        this->error_reporter_->report_error_redeclaration_of_variable(
+            name, *already_declared_variable->declaration);
       }
     }
   }

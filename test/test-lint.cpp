@@ -1169,6 +1169,59 @@ TEST(
   }
 }
 
+TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
+  const char8 var_declaration[] = u8"x";
+  const char8 other_declaration[] = u8"x";
+
+  for (variable_kind other_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_import,
+        variable_kind::_let}) {
+    // {
+    //   var x;
+    // }
+    // let x;    // ERROR
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(var_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_block_scope();
+    l.visit_variable_declaration(identifier_of(other_declaration),
+                                 other_declaration_kind);
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_redeclaration_of_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), other_declaration);
+    EXPECT_EQ(v.errors[0].other_where.begin(), var_declaration);
+  }
+
+  for (variable_kind other_declaration_kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_import,
+        variable_kind::_let}) {
+    // let x;
+    // {
+    //   var x;  // ERROR
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(other_declaration),
+                                 other_declaration_kind);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(var_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_redeclaration_of_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), var_declaration);
+    EXPECT_EQ(v.errors[0].other_where.begin(), other_declaration);
+  }
+}
+
 TEST(test_lint, import_conflicts_with_any_variable_declaration) {
   const char8 import_declaration[] = u8"x";
   const char8 other_declaration[] = u8"x";
