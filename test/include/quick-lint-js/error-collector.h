@@ -163,6 +163,9 @@ struct error_collector : public error_reporter {
                                     use.span(), declaration.span()));
   }
 
+  void report_fatal_error_unimplemented_character(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      const char8 *character) override;
   void report_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin) override;

@@ -83,6 +83,9 @@ class vim_qflist_json_error_reporter final : public error_reporter {
   void report_error_variable_used_before_declaration(identifier use,
                                                      identifier) override;
 
+  void report_fatal_error_unimplemented_character(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      const char8 *character) override;
   void report_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin) override;

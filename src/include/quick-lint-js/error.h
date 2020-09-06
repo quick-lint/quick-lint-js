@@ -80,10 +80,16 @@ class error_reporter {
   virtual void report_error_variable_used_before_declaration(
       identifier use, identifier declaration) = 0;
 
+  virtual void report_fatal_error_unimplemented_character(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      const char8 *character) = 0;
   virtual void report_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin) = 0;
 
+  static void write_fatal_error_unimplemented_character(
+      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+      const char8 *character, const locator *, std::ostream &);
   static void write_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin, const locator *, std::ostream &);
@@ -128,6 +134,9 @@ class null_error_reporter : public error_reporter {
   void report_error_variable_used_before_declaration(identifier,
                                                      identifier) override {}
 
+  void report_fatal_error_unimplemented_character(const char *, int,
+                                                  const char *,
+                                                  const char8 *) override {}
   void report_fatal_error_unimplemented_token(const char *, int, const char *,
                                               token_type,
                                               const char8 *) override {}

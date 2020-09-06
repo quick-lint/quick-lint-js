@@ -20,6 +20,20 @@
 #include <quick-lint-js/location.h>
 
 namespace quick_lint_js {
+void error_reporter::write_fatal_error_unimplemented_character(
+    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+    const char8 *character, const locator *locator, std::ostream &out) {
+  out << qljs_file_name << ":" << qljs_line
+      << ": fatal: character not implemented in " << qljs_function_name << ": "
+      << static_cast<char>(*character);
+  if (locator) {
+    source_position token_position = locator->position(character);
+    out << " on line " << token_position.line_number << " column "
+        << token_position.column_number;
+  }
+  out << '\n';
+}
+
 void error_reporter::write_fatal_error_unimplemented_token(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
     token_type type, const char8 *token_begin, const locator *locator,

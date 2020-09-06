@@ -200,6 +200,18 @@ void vim_qflist_json_error_reporter::
   this->output_ << ", \"text\": \"variable used before declaration\"}";
 }
 
+void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_character(
+    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
+    const char8 *character) {
+  error_reporter::write_fatal_error_unimplemented_character(
+      /*qljs_file_name=*/qljs_file_name,
+      /*qljs_line=*/qljs_line,
+      /*qljs_function_name=*/qljs_function_name,
+      /*character=*/character,
+      /*locator=*/get(this->locator_),
+      /*out=*/this->output_);
+}
+
 void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
     token_type type, const char8 *token_begin) {

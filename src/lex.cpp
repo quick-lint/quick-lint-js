@@ -437,7 +437,12 @@ retry:
     }
 
     default:
-      QLJS_ASSERT(false);
+      this->error_reporter_->report_fatal_error_unimplemented_character(
+          /*qljs_file_name=*/__FILE__,
+          /*qljs_line=*/__LINE__,
+          /*qljs_function_name=*/__func__,
+          /*character=*/this->input_);
+      std::abort();
       break;
   }
   this->last_token_.end = this->input_;
