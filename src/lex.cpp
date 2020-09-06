@@ -581,7 +581,7 @@ void lexer::parse_number() {
     input += 1;
     input = this->parse_decimal_digits(input);
   }
-  if (*input == 'e') {
+  if (*input == 'e' || *input == 'E') {
     const char8* e = input;
     input += 1;
     if (*input == '-' || *input == '+') {
