@@ -114,10 +114,7 @@ int main(int argc, char **argv) {
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
     quick_lint_js::read_file_result source =
         quick_lint_js::read_file(file.path);
-    if (!source.ok()) {
-      std::cerr << "error: " << source.error << '\n';
-      return 1;
-    }
+    source.exit_if_not_ok();
     reporter.set_source(&source.content, file);
     quick_lint_js::process_file(&source.content, reporter.get(),
                                 o.print_parser_visits);

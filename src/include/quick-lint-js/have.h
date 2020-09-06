@@ -31,6 +31,30 @@
 #include <version>
 #endif
 
+#if defined(QLJS_HAVE_FCNTL_H) && QLJS_HAVE_FCNTL_H
+#elif defined(__has_include)
+#if __has_include(<fcntl.h>)
+#define QLJS_HAVE_FCNTL_H 1
+#endif
+#elif defined(__unix__)
+#define QLJS_HAVE_FCNTL_H 1
+#endif
+#if !defined(QLJS_HAVE_FCNTL_H)
+#define QLJS_HAVE_FCNTL_H 0
+#endif
+
+#if defined(QLJS_HAVE_SYS_STAT_H) && QLJS_HAVE_SYS_STAT_H
+#elif defined(__has_include)
+#if __has_include(<sys/stat.h>)
+#define QLJS_HAVE_SYS_STAT_H 1
+#endif
+#elif defined(__unix__)
+#define QLJS_HAVE_SYS_STAT_H 1
+#endif
+#if !defined(QLJS_HAVE_SYS_STAT_H)
+#define QLJS_HAVE_SYS_STAT_H 0
+#endif
+
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
 #elif defined(__has_include)
 #if __has_include(<unistd.h>)
@@ -41,6 +65,14 @@
 #endif
 #if !defined(QLJS_HAVE_UNISTD_H)
 #define QLJS_HAVE_UNISTD_H 0
+#endif
+
+#if !defined(QLJS_HAVE_WINDOWS_H)
+#if defined(_WIN32)
+#define QLJS_HAVE_WINDOWS_H 1
+#else
+#define QLJS_HAVE_WINDOWS_H 0
+#endif
 #endif
 
 #if defined(QLJS_HAVE_FILESYSTEM_HEADER) && QLJS_HAVE_FILESYSTEM_HEADER

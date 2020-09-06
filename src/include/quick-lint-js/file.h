@@ -23,8 +23,9 @@ struct read_file_result {
   std::string error;
 
   bool ok() const noexcept { return this->error.empty(); }
+  void exit_if_not_ok() const;
 
-  static read_file_result failure_from_errno(const std::string &error);
+  static read_file_result failure(const std::string &error);
 };
 
 read_file_result read_file(const char *path);

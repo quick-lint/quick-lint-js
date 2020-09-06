@@ -69,10 +69,11 @@ void benchmark_parse(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  padded_string source(quick_lint_js::read_file("jquery-3.5.1.js"));
+  read_file_result source(quick_lint_js::read_file("jquery-3.5.1.js"));
+  source.exit_if_not_ok();
 
   for (auto _ : state) {
-    parser p(&source, &null_error_reporter::instance);
+    parser p(&source.content, &null_error_reporter::instance);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }

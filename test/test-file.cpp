@@ -79,6 +79,19 @@ TEST_F(test_file, read_non_existing_file) {
               AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
 }
 
+TEST_F(test_file, read_directory) {
+  filesystem::path temp_file_path = this->make_temporary_directory();
+
+  read_file_result file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_FALSE(file_content.ok());
+  EXPECT_THAT(
+      file_content.error,
+      testing::AnyOf(
+          HasSubstr("Is a directory"),
+          HasSubstr("Access is denied")  // TODO(strager): Improve this message.
+          ));
+}
+
 #if QLJS_HAVE_MKFIFO
 TEST_F(test_file, read_fifo) {
   filesystem::path temp_file_path =
