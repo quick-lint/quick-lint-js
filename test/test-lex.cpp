@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cstring>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
@@ -25,6 +26,8 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 #include <string_view>
+
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
@@ -651,7 +654,8 @@ TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
 
 TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   padded_string code(u8"{ x }");
-  lexer l(&code, &null_error_reporter::instance);
+  error_collector errors;
+  lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::left_curly);
   EXPECT_FALSE(l.peek().has_leading_newline);
@@ -677,24 +681,34 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  EXPECT_THAT(errors.errors, IsEmpty());
 }
 
 void check_single_token(const char8* input, token_type expected_token_type) {
   padded_string code(input);
-  lexer l(&code, &null_error_reporter::instance);
+  error_collector errors;
+  lexer l(&code, &errors);
+
   EXPECT_EQ(l.peek().type, expected_token_type);
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  EXPECT_THAT(errors.errors, IsEmpty());
 }
 
 void check_single_token(const char8* input,
                         string8_view expected_identifier_name) {
   padded_string code(input);
-  lexer l(&code, &null_error_reporter::instance);
+  error_collector errors;
+  lexer l(&code, &errors);
+
   EXPECT_EQ(l.peek().type, token_type::identifier);
   EXPECT_EQ(l.peek().identifier_name().string_view(), expected_identifier_name);
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  EXPECT_THAT(errors.errors, IsEmpty());
 }
 
 void check_single_token(const string8& input,
@@ -705,12 +719,16 @@ void check_single_token(const string8& input,
 void check_tokens(const char8* input,
                   std::initializer_list<token_type> expected_token_types) {
   padded_string code(input);
-  lexer l(&code, &null_error_reporter::instance);
+  error_collector errors;
+  lexer l(&code, &errors);
+
   for (token_type expected_token_type : expected_token_types) {
     EXPECT_EQ(l.peek().type, expected_token_type);
     l.skip();
   }
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  EXPECT_THAT(errors.errors, IsEmpty());
 }
 }
 }
