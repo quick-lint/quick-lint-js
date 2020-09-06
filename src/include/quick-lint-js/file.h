@@ -18,5 +18,14 @@
 #include <string>
 
 namespace quick_lint_js {
-padded_string read_file(const char *path);
+struct read_file_result {
+  padded_string content;
+  std::string error;
+
+  bool ok() const noexcept { return this->error.empty(); }
+
+  static read_file_result failure_from_errno(const std::string &error);
+};
+
+read_file_result read_file(const char *path);
 }

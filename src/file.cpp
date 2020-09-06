@@ -18,8 +18,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <ios>
-#include <iostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
@@ -30,33 +28,40 @@
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
+read_file_result read_file_result::failure_from_errno(
+    const std::string &error) {
+  read_file_result result;
+  result.error = error + ": " + std::strerror(errno);
+  return result;
+}
+
 namespace {
-void read_file_buffered(FILE *file, int buffer_size, padded_string *out) {
+void read_file_buffered(FILE *file, int buffer_size, read_file_result *out) {
   while (!std::feof(file)) {
-    int size_before = out->size();
-    out->resize(size_before + buffer_size);
+    int size_before = out->content.size();
+    out->content.resize(size_before + buffer_size);
     std::size_t read_size =
-        std::fread(&out->data()[size_before], 1,
+        std::fread(&out->content.data()[size_before], 1,
                    narrow_cast<std::size_t>(buffer_size), file);
     // TODO(strager): Check for read errors.
-    out->resize(size_before + narrow_cast<int>(read_size));
+    out->content.resize(size_before + narrow_cast<int>(read_size));
   }
 }
 
-padded_string read_file_buffered(FILE *file, int buffer_size) {
-  padded_string result;
+read_file_result read_file_buffered(FILE *file, int buffer_size) {
+  read_file_result result;
   read_file_buffered(file, buffer_size, &result);
   return result;
 }
 
-padded_string read_file_with_expected_size(FILE *file, int file_size,
-                                           int buffer_size) {
-  padded_string result;
-  result.resize(file_size);
-  std::size_t read_size =
-      std::fread(result.data(), 1, narrow_cast<std::size_t>(file_size), file);
+read_file_result read_file_with_expected_size(FILE *file, int file_size,
+                                              int buffer_size) {
+  read_file_result result;
+  result.content.resize(file_size);
+  std::size_t read_size = std::fread(result.content.data(), 1,
+                                     narrow_cast<std::size_t>(file_size), file);
   // TODO(strager): Check for read errors.
-  result.resize(narrow_cast<int>(read_size));
+  result.content.resize(narrow_cast<int>(read_size));
   int c = std::fgetc(file);
   if (c == EOF) {
     // We read the entire file.
@@ -71,23 +76,21 @@ padded_string read_file_with_expected_size(FILE *file, int file_size,
   }
 }
 
-padded_string read_file(const char *path, FILE *file) {
+read_file_result read_file(const char *path, FILE *file) {
   int buffer_size = 1024;  // TODO(strager): Compute using stat.
   if (std::fseek(file, 0, SEEK_END) == -1) {
     return read_file_buffered(file, buffer_size);
   } else {
     long file_size = std::ftell(file);
     if (file_size == -1) {
-      std::cerr << "error: failed to get size of " << path << ": "
-                << std::strerror(errno) << '\n';
-      exit(1);
+      return read_file_result::failure_from_errno(
+          std::string("failed to get size of ") + path);
     }
     // TODO(strager): Fail if file_size exceeds int.
 
     if (std::fseek(file, 0, SEEK_SET) == -1) {
-      std::cerr << "error: failed to seek to beginning of " << path << ": "
-                << std::strerror(errno) << '\n';
-      exit(1);
+      return read_file_result::failure_from_errno(
+          std::string("failed to seek to beginning of ") + path);
     }
 
     return read_file_with_expected_size(
@@ -97,22 +100,20 @@ padded_string read_file(const char *path, FILE *file) {
 }
 }
 
-padded_string read_file(const char *path) {
+read_file_result read_file(const char *path) {
   FILE *file = std::fopen(path, "rb");
   if (!file) {
-    std::cerr << "error: failed to open " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
+    return read_file_result::failure_from_errno(std::string("failed to open ") +
+                                                path);
   }
 
-  padded_string contents = read_file(path, file);
+  read_file_result result = read_file(path, file);
 
   if (std::fclose(file) == -1) {
-    std::cerr << "error: failed to close " << path << ": "
-              << std::strerror(errno) << '\n';
-    exit(1);
+    return read_file_result::failure_from_errno(
+        std::string("failed to close ") + path);
   }
 
-  return contents;
+  return result;
 }
 }

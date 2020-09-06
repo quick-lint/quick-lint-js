@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <quick-lint-js/assert.h>
@@ -41,6 +42,9 @@
 #include <sys/types.h>
 #endif
 
+using ::testing::AnyOf;
+using ::testing::HasSubstr;
+
 namespace quick_lint_js {
 namespace {
 filesystem::path make_temporary_directory();
@@ -59,8 +63,20 @@ TEST_F(test_file, read_regular_file) {
       this->make_temporary_directory() / "temp.js";
   write_file(temp_file_path, "hello\nworld!\n");
 
-  padded_string file_content = read_file(temp_file_path.string().c_str());
-  EXPECT_EQ(file_content, string8_view(u8"hello\nworld!\n"));
+  read_file_result file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8"hello\nworld!\n"));
+}
+
+TEST_F(test_file, read_non_existing_file) {
+  filesystem::path temp_file_path =
+      this->make_temporary_directory() / "does-not-exist.js";
+
+  read_file_result file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_FALSE(file_content.ok());
+  EXPECT_THAT(file_content.error, HasSubstr("does-not-exist.js"));
+  EXPECT_THAT(file_content.error,
+              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
 }
 
 #if QLJS_HAVE_MKFIFO
@@ -72,8 +88,9 @@ TEST_F(test_file, read_fifo) {
   std::thread writer_thread(
       [&]() { write_file(temp_file_path, "hello from fifo"); });
 
-  padded_string file_content = read_file(temp_file_path.string().c_str());
-  EXPECT_EQ(file_content, string8_view(u8"hello from fifo"));
+  read_file_result file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
 
   writer_thread.join();
 }
