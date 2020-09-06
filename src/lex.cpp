@@ -566,7 +566,8 @@ void lexer::parse_hexadecimal_number() {
 
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
-  const char8* input = this->input_;
+  const char8* number_begin = this->input_;
+  const char8* input = number_begin;
 
   auto consume_garbage = [this, &input]() {
     const char8* garbage_begin = input;
@@ -577,11 +578,14 @@ void lexer::parse_number() {
   };
 
   input = this->parse_decimal_digits(input);
-  if (*input == '.') {
+  bool has_decimal_point = *input == '.';
+  if (has_decimal_point) {
     input += 1;
     input = this->parse_decimal_digits(input);
+    has_decimal_point = true;
   }
-  if (*input == 'e' || *input == 'E') {
+  bool has_exponent = *input == 'e' || *input == 'E';
+  if (has_exponent) {
     const char8* e = input;
     input += 1;
     if (*input == '-' || *input == '+') {
@@ -592,6 +596,22 @@ void lexer::parse_number() {
     } else {
       input = e;
       consume_garbage();
+    }
+  }
+  if (*input == 'n') {
+    input += 1;
+    if (has_decimal_point) {
+      this->error_reporter_
+          ->report_error_big_int_literal_contains_decimal_point(
+              source_code_span(number_begin, input));
+    }
+    if (has_exponent) {
+      this->error_reporter_->report_error_big_int_literal_contains_exponent(
+          source_code_span(number_begin, input));
+    }
+    if (number_begin[0] == u8'0' && this->is_digit(number_begin[1])) {
+      this->error_reporter_->report_error_big_int_literal_contains_leading_zero(
+          source_code_span(number_begin, input));
     }
   }
 

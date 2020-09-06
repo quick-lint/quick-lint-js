@@ -78,6 +78,25 @@ void vim_qflist_json_error_reporter::
 }
 
 void vim_qflist_json_error_reporter::
+    report_error_big_int_literal_contains_decimal_point(
+        source_code_span where) {
+  this->write_qflist_entry_header(where);
+  this->output_ << ", \"text\": \"BigInt literal contains decimal point\"}";
+}
+
+void vim_qflist_json_error_reporter::
+    report_error_big_int_literal_contains_exponent(source_code_span where) {
+  this->write_qflist_entry_header(where);
+  this->output_ << ", \"text\": \"BigInt literal contains exponent\"}";
+}
+
+void vim_qflist_json_error_reporter::
+    report_error_big_int_literal_contains_leading_zero(source_code_span where) {
+  this->write_qflist_entry_header(where);
+  this->output_ << ", \"text\": \"BigInt literal has a leading 0 digit\"}";
+}
+
+void vim_qflist_json_error_reporter::
     report_error_invalid_binding_in_let_statement(source_code_span where) {
   this->write_qflist_entry_header(where);
   this->output_ << ", \"text\": \"invalid binding in let statement\"}";

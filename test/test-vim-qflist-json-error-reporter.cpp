@@ -64,6 +64,65 @@ class test_vim_qflist_json_error_reporter : public ::testing::Test {
   std::stringstream stream_;
 };
 
+TEST_F(test_vim_qflist_json_error_reporter,
+       big_int_literal_contains_decimal_point) {
+  padded_string input(u8"12.34n");
+  source_code_span number_span(&input[1 - 1], &input[6 + 1 - 1]);
+  ASSERT_EQ(number_span.string_view(), u8"12.34n");
+
+  vim_qflist_json_error_reporter reporter =
+      this->make_reporter(&input, /*vim_bufnr=*/0);
+  reporter.report_error_big_int_literal_contains_decimal_point(number_span);
+  reporter.finish();
+
+  ::Json::Value qflist = this->parse_json()["qflist"];
+  ASSERT_EQ(qflist.size(), 1);
+  EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 6);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
+  EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["text"], "BigInt literal contains decimal point");
+}
+
+TEST_F(test_vim_qflist_json_error_reporter,
+       big_int_literal_contains_leading_zero) {
+  padded_string input(u8"080085n");
+  source_code_span number_span(&input[1 - 1], &input[7 + 1 - 1]);
+  ASSERT_EQ(number_span.string_view(), u8"080085n");
+
+  vim_qflist_json_error_reporter reporter =
+      this->make_reporter(&input, /*vim_bufnr=*/0);
+  reporter.report_error_big_int_literal_contains_leading_zero(number_span);
+  reporter.finish();
+
+  ::Json::Value qflist = this->parse_json()["qflist"];
+  ASSERT_EQ(qflist.size(), 1);
+  EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 7);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
+  EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["text"], "BigInt literal has a leading 0 digit");
+}
+
+TEST_F(test_vim_qflist_json_error_reporter, big_int_literal_contains_exponent) {
+  padded_string input(u8"9e9n");
+  source_code_span number_span(&input[1 - 1], &input[4 + 1 - 1]);
+  ASSERT_EQ(number_span.string_view(), u8"9e9n");
+
+  vim_qflist_json_error_reporter reporter =
+      this->make_reporter(&input, /*vim_bufnr=*/0);
+  reporter.report_error_big_int_literal_contains_exponent(number_span);
+  reporter.finish();
+
+  ::Json::Value qflist = this->parse_json()["qflist"];
+  ASSERT_EQ(qflist.size(), 1);
+  EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 4);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
+  EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["text"], "BigInt literal contains exponent");
+}
+
 TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
   padded_string input(u8"abc");
   source_code_span a_span(&input[0], &input[1]);

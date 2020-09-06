@@ -28,6 +28,10 @@
 #include <string_view>
 
 using ::testing::IsEmpty;
+using ::testing::UnorderedElementsAre;
+
+#define FIELD(_class, _member, ...) \
+  (::testing::Field(#_member, &_class::_member, __VA_ARGS__))
 
 namespace quick_lint_js {
 namespace {
@@ -92,6 +96,9 @@ TEST(test_lex, lex_numbers) {
   check_single_token(u8"1e+3", token_type::number);
   check_single_token(u8"1E+3", token_type::number);
 
+  check_single_token(u8"0n", token_type::number);
+  check_single_token(u8"123456789n", token_type::number);
+
   check_tokens(u8"123. 456", {token_type::number, token_type::number});
 
   check_tokens(u8"1.2.3", {token_type::number, token_type::number});
@@ -154,6 +161,109 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
               error_collector::error_unexpected_characters_in_number);
     EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
     EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+  }
+}
+
+TEST(test_lex, lex_invalid_big_int_number) {
+  {
+    error_collector v;
+    padded_string input(u8"12.34n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_big_int_literal_contains_decimal_point);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 6);
+  }
+
+  {
+    error_collector v;
+    padded_string input(u8"0123n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_big_int_literal_contains_leading_zero);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 5);
+  }
+
+  {
+    error_collector v;
+    padded_string input(u8"1e3n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_big_int_literal_contains_exponent);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+  }
+
+  // Only complain about the decimal point, not the leading 0 digit.
+  {
+    error_collector v;
+    padded_string input(u8"0.1n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_big_int_literal_contains_decimal_point);
+  }
+
+  // Complain about both the decimal point and the leading 0 digit.
+  {
+    error_collector v;
+    padded_string input(u8"01.2n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            FIELD(
+                error_collector::error, kind,
+                error_collector::error_big_int_literal_contains_decimal_point),
+            FIELD(
+                error_collector::error, kind,
+                error_collector::error_big_int_literal_contains_leading_zero)));
+  }
+
+  // Complain about everything. What a disaster.
+  {
+    error_collector v;
+    padded_string input(u8"01.2e+3n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            FIELD(
+                error_collector::error, kind,
+                error_collector::error_big_int_literal_contains_decimal_point),
+            FIELD(error_collector::error, kind,
+                  error_collector::error_big_int_literal_contains_exponent),
+            FIELD(
+                error_collector::error, kind,
+                error_collector::error_big_int_literal_contains_leading_zero)));
   }
 }
 

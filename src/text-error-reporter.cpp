@@ -50,6 +50,24 @@ void text_error_reporter::report_error_assignment_to_undeclared_variable(
   this->output_ << "error: assignment to undeclared variable\n";
 }
 
+void text_error_reporter::report_error_big_int_literal_contains_decimal_point(
+    source_code_span where) {
+  this->log_location(where);
+  this->output_ << "error: BigInt literal contains decimal point\n";
+}
+
+void text_error_reporter::report_error_big_int_literal_contains_exponent(
+    source_code_span where) {
+  this->log_location(where);
+  this->output_ << "error: BigInt literal contains exponent\n";
+}
+
+void text_error_reporter::report_error_big_int_literal_contains_leading_zero(
+    source_code_span where) {
+  this->log_location(where);
+  this->output_ << "error: BigInt literal has a leading 0 digit\n";
+}
+
 void text_error_reporter::report_error_invalid_binding_in_let_statement(
     source_code_span where) {
   log_location(where);
