@@ -50,6 +50,7 @@ class linter {
     assert(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
         /*allow_variable_use_before_declaration=*/false);
+    this->propagate_variable_declarations_to_parent_scope();
     this->scopes_.pop_back();
   }
 
@@ -59,6 +60,7 @@ class linter {
     QLJS_ASSERT(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
         /*allow_variable_use_before_declaration=*/false);
+    this->propagate_variable_declarations_to_parent_scope();
     this->scopes_.pop_back();
   }
 
@@ -294,6 +296,19 @@ class linter {
          current_scope.variables_used_in_descendant_scope) {
       QLJS_ASSERT(!this->find_declared_variable(used_var.name));
       parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
+    }
+  }
+
+  void propagate_variable_declarations_to_parent_scope() {
+    QLJS_ASSERT(this->scopes_.size() >= 2);
+    scope &current_scope = this->scopes_[this->scopes_.size() - 1];
+    scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
+
+    for (const declared_variable &var : current_scope.declared_variables) {
+      if (var.kind == variable_kind::_function ||
+          var.kind == variable_kind::_var) {
+        parent_scope.declared_variables.emplace_back(var);
+      }
     }
   }
 

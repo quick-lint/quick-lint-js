@@ -266,7 +266,8 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
   }
 }
 
-TEST(test_lint, var_or_function_variable_use_before_declaration_in_for_scope) {
+TEST(test_lint,
+     var_or_function_variable_use_before_declaration_all_in_for_scope) {
   for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
@@ -285,6 +286,75 @@ TEST(test_lint, var_or_function_variable_use_before_declaration_in_for_scope) {
     l.visit_end_of_module();
 
     ASSERT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, var_or_function_variable_use_after_declaration_in_block_scope) {
+  for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
+
+    // {
+    //   var x;  // x has function scope
+    // }
+    // x;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_exit_block_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(
+    test_lint,
+    var_or_function_variable_cannot_be_used_after_declaration_in_inner_function_scope) {
+  for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
+
+    // (() => {
+    //   var x;
+    // });
+    // x;        // ERROR
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_use_of_undeclared_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), use);
+  }
+}
+
+TEST(test_lint,
+     var_or_function_variable_use_before_declaration_in_block_scope) {
+  for (variable_kind kind : {variable_kind::_function, variable_kind::_var}) {
+    const char8 declaration[] = u8"x";
+    const char8 use[] = u8"x";
+
+    // x;
+    // {
+    //   var x;  // x is hoisted
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_use(identifier_of(use));
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
