@@ -91,7 +91,8 @@ class linter {
     };
     erase_if(current_scope.variables_used, [&](const used_variable &used_var) {
       if (name.string_view() == used_var.name.string_view()) {
-        if (kind == variable_kind::_const || kind == variable_kind::_let) {
+        if (kind == variable_kind::_class || kind == variable_kind::_const ||
+            kind == variable_kind::_let) {
           switch (used_var.kind) {
             case used_variable_kind::assignment:
               // TODO(strager): Should we also report an error when assigning to

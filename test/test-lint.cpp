@@ -140,8 +140,9 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
   }
 }
 
-TEST(test_lint, let_or_const_variable_use_before_declaration) {
-  for (variable_kind kind : {variable_kind::_const, variable_kind::_let}) {
+TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
+  for (variable_kind kind :
+       {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {
     const char8 declaration[] = u8"x";
     const char8 use[] = u8"x";
 
