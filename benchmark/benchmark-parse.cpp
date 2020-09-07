@@ -40,6 +40,8 @@ class null_visitor {
 
   void visit_enter_function_scope() {}
 
+  void visit_enter_function_scope_body() {}
+
   void visit_enter_named_function_scope(identifier) {}
 
   void visit_exit_block_scope() {}

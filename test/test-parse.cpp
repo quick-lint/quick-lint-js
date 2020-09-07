@@ -742,10 +742,11 @@ TEST(test_parse, object_literal) {
 
   {
     spy_visitor v = parse_and_visit_expression(u8"{func(a, b) { body; }}");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
-                                      "visit_variable_declaration",  // a
-                                      "visit_variable_declaration",  // b
-                                      "visit_variable_use",          // body
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",  // body
                                       "visit_exit_function_scope"));
   }
 }
@@ -1063,9 +1064,10 @@ TEST(test_parse, parse_function_statement) {
     EXPECT_EQ(v.variable_declarations[1].name, u8"theta");
     EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // sin
                                       "visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  //
+                                      "visit_variable_declaration",  // theta
+                                      "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
   }
 
@@ -1078,10 +1080,11 @@ TEST(test_parse, parse_function_statement) {
     EXPECT_EQ(v.variable_declarations[1].name, u8"base");
     EXPECT_EQ(v.variable_declarations[2].name, u8"exponent");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // pow
                                       "visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  //
-                                      "visit_variable_declaration",  //
+                                      "visit_variable_declaration",  // base
+                                      "visit_variable_declaration",  // exponent
+                                      "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
   }
 
@@ -1096,11 +1099,12 @@ TEST(test_parse, parse_function_statement) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, u8"x");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // x
-                                      "visit_variable_use",          // x
-                                      "visit_variable_declaration",  // y
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_variable_use",               // x
+                                      "visit_variable_declaration",       // y
+                                      "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
   }
 
@@ -1113,9 +1117,10 @@ TEST(test_parse, parse_function_statement) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, u8"x");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_function_scope",  //
-                                      "visit_variable_use",          // x
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
                                       "visit_exit_function_scope"));
   }
 
@@ -1151,37 +1156,41 @@ TEST(test_parse, parse_async_function) {
 TEST(test_parse, parse_function_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(function() {});");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(function(x, y) {});");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_enter_function_scope",  //
-                            "visit_variable_declaration",  //
-                            "visit_variable_declaration",  //
+                ElementsAre("visit_enter_function_scope",       //
+                            "visit_variable_declaration",       // x
+                            "visit_variable_declaration",       // y
+                            "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(function() {let x = y;});");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_enter_function_scope",  //
-                            "visit_variable_use",          //
-                            "visit_variable_declaration",  //
+                ElementsAre("visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  //
+                            "visit_variable_use",               // y
+                            "visit_variable_declaration",       // x
                             "visit_exit_function_scope"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(a, function(b) {c;}(d));");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",          //
-                            "visit_enter_function_scope",  //
-                            "visit_variable_declaration",  //
-                            "visit_variable_use",          //
-                            "visit_exit_function_scope",   //
-                            "visit_variable_use"));
+                ElementsAre("visit_variable_use",               // a
+                            "visit_enter_function_scope",       //
+                            "visit_variable_declaration",       // b
+                            "visit_enter_function_scope_body",  //
+                            "visit_variable_use",               // c
+                            "visit_exit_function_scope",        //
+                            "visit_variable_use"));             // d
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"b", variable_kind::_parameter}));
@@ -1195,8 +1204,9 @@ TEST(test_parse, parse_function_expression) {
     spy_visitor v =
         parse_and_visit_statement(u8"(function recur() { recur(); })();");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_enter_named_function_scope",  //
-                            "visit_variable_use",                //
+                ElementsAre("visit_enter_named_function_scope",  // recur
+                            "visit_enter_function_scope_body",   //
+                            "visit_variable_use",                // recur
                             "visit_exit_function_scope"));
     EXPECT_THAT(v.enter_named_function_scopes,
                 ElementsAre(spy_visitor::visited_enter_named_function_scope{
@@ -1207,8 +1217,9 @@ TEST(test_parse, parse_function_expression) {
 TEST(test_parse, arrow_function_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(() => x);");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_use",          //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
@@ -1216,9 +1227,10 @@ TEST(test_parse, arrow_function_expression) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(x => y);");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // x
-                                      "visit_variable_use",          // y
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -1231,8 +1243,9 @@ TEST(test_parse, arrow_function_expression) {
 TEST(test_parse, arrow_function_expression_with_statements) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(() => { x; });");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_use",          //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
@@ -1240,9 +1253,10 @@ TEST(test_parse, arrow_function_expression_with_statements) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(x => { y; });");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // x
-                                      "visit_variable_use",          // y
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -1317,13 +1331,15 @@ TEST(test_parse, parse_class_statement) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, u8"eatMuffins");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
-                                      "visit_enter_class_scope",     //
-                                      "visit_property_declaration",  //
-                                      "visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  //
-                                      "visit_exit_function_scope",   //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // Monster
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       // eatMuffins
+                            "visit_enter_function_scope",       //
+                            "visit_variable_declaration",       // muffinCount
+                            "visit_enter_function_scope_body",  //
+                            "visit_exit_function_scope",        //
+                            "visit_exit_class_scope"));
   }
 
   {
@@ -1332,11 +1348,12 @@ TEST(test_parse, parse_class_statement) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, u8"m");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
-                                      "visit_enter_class_scope",     //
-                                      "visit_property_declaration",  //
-                                      "visit_enter_function_scope",  //
-                                      "visit_exit_function_scope",   //
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // C
+                                      "visit_enter_class_scope",          //
+                                      "visit_property_declaration",       // m
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
                                       "visit_exit_class_scope"));
   }
 

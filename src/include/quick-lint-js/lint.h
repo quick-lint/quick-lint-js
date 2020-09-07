@@ -41,6 +41,11 @@ class linter {
 
   void visit_enter_function_scope() { this->scopes_.emplace_back(); }
 
+  void visit_enter_function_scope_body() {
+    this->propagate_variable_uses_to_parent_scope(
+        /*allow_variable_use_before_declaration=*/true);
+  }
+
   void visit_enter_named_function_scope(identifier) {
     // TODO(strager): Declare the given identifier.
     this->scopes_.emplace_back();
@@ -260,11 +265,14 @@ class linter {
             .emplace_back(used_var);
       }
     }
+    current_scope.variables_used.clear();
+
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
       QLJS_ASSERT(!this->find_declared_variable(used_var.name));
       parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
     }
+    current_scope.variables_used_in_descendant_scope.clear();
   }
 
   void propagate_variable_declarations_to_parent_scope() {

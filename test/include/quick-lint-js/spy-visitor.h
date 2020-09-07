@@ -54,6 +54,10 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_enter_function_scope");
   }
 
+  void visit_enter_function_scope_body() {
+    this->visits.emplace_back("visit_enter_function_scope_body");
+  }
+
   void visit_enter_named_function_scope(identifier name) {
     this->enter_named_function_scopes.emplace_back(
         visited_enter_named_function_scope{string8(name.string_view())});

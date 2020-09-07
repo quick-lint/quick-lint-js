@@ -209,6 +209,7 @@ class parser {
         v.visit_enter_function_scope();
         int body_child_index = ast->child_count() - 1;
         visit_parameters(body_child_index);
+        v.visit_enter_function_scope_body();
         this->visit_expression(ast->child(body_child_index), v,
                                variable_context::rhs);
         v.visit_exit_function_scope();
@@ -217,6 +218,7 @@ class parser {
       case expression_kind::arrow_function_with_statements:
         v.visit_enter_function_scope();
         visit_parameters(ast->child_count());
+        v.visit_enter_function_scope_body();
         ast->visit_children(v, this->expressions_);
         v.visit_exit_function_scope();
         break;
@@ -435,6 +437,8 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED();
     }
     this->lexer_.skip();
+
+    v.visit_enter_function_scope_body();
 
     this->parse_and_visit_statement_block_no_scope(v);
   }

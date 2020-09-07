@@ -205,6 +205,7 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_exit_function_scope();
@@ -253,6 +254,7 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_exit_function_scope();
@@ -341,6 +343,7 @@ TEST(
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_exit_function_scope();
     l.visit_variable_use(identifier_of(use));
@@ -391,6 +394,7 @@ TEST(
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_block_scope();
@@ -443,6 +447,7 @@ TEST(test_lint, variable_use_in_function_with_no_declaration) {
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_end_of_module();
@@ -466,9 +471,11 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_exit_function_scope();
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_end_of_module();
@@ -494,9 +501,11 @@ TEST(test_lint, use_global_variable_within_functions) {
   linter l(&v);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_end_of_module();
@@ -520,8 +529,10 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   {
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     { l.visit_variable_use(identifier_of(use)); }
     l.visit_exit_function_scope();
 
@@ -529,6 +540,7 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
                                  variable_kind::_let);
 
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     { l.visit_variable_use(identifier_of(use)); }
     l.visit_exit_function_scope();
   }
@@ -549,6 +561,7 @@ TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   error_collector v;
   linter l(&v);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
@@ -572,6 +585,7 @@ TEST(test_lint, assign_to_mutable_variable) {
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_variable_assignment(identifier_of(assignment));
     l.visit_exit_function_scope();
@@ -596,6 +610,7 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   l.visit_variable_declaration(identifier_of(immutable_declaration),
                                variable_kind::_import);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(mutable_declaration),
                                variable_kind::_let);
   l.visit_variable_assignment(identifier_of(assignment));
@@ -617,6 +632,7 @@ TEST(test_lint, assign_to_immutable_variable) {
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_variable_assignment(identifier_of(assignment));
     l.visit_exit_function_scope();
@@ -696,7 +712,9 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_function_scope();
     l.visit_variable_declaration(identifier_of(declaration), var_kind);
@@ -726,8 +744,11 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_function_scope();
     l.visit_exit_function_scope();
@@ -839,6 +860,7 @@ TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
   linter l(&v);
   l.visit_enter_for_scope();
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_exit_for_scope();
@@ -864,6 +886,7 @@ TEST(test_lint,
   linter l(&v);
   l.visit_enter_for_scope();
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_variable_use(identifier_of(use));
   l.visit_exit_function_scope();
   l.visit_exit_for_scope();
@@ -1008,6 +1031,7 @@ TEST(test_lint, declaring_parameter_twice_is_okay) {
                                variable_kind::_parameter);
   l.visit_variable_declaration(identifier_of(second_declaration),
                                variable_kind::_parameter);
+  l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -1025,10 +1049,12 @@ TEST(test_lint, declaring_function_twice_is_okay) {
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_function);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
   l.visit_variable_declaration(identifier_of(second_declaration),
                                variable_kind::_function);
   l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -1049,6 +1075,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
     l.visit_variable_declaration(identifier_of(second_declaration),
                                  variable_kind::_function);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -1063,6 +1090,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_function);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
     l.visit_variable_declaration(identifier_of(second_declaration),
                                  variable_kind::_var);
@@ -1081,6 +1109,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_function);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(second_declaration),
@@ -1105,6 +1134,7 @@ TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(second_declaration),
                                  variable_kind::_var);
     l.visit_exit_function_scope();
@@ -1122,9 +1152,11 @@ TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(second_declaration),
                                  variable_kind::_function);
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_exit_function_scope();
     l.visit_exit_function_scope();
     l.visit_end_of_module();
@@ -1344,6 +1376,7 @@ TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
                                  variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(local_declaration),
                                  local_declaration_kind);
     l.visit_exit_function_scope();
@@ -1373,6 +1406,7 @@ TEST(test_lint, let_variable_in_inner_scope_as_parameter_shadows) {
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
                                  variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(local_declaration),
                                  local_declaration_kind);
@@ -1431,6 +1465,111 @@ TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
               error_collector::error_redeclaration_of_variable);
     EXPECT_EQ(v.errors[0].where.begin(), local_declaration);
     EXPECT_EQ(v.errors[0].other_where.begin(), catch_declaration);
+  }
+}
+
+TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
+  const char8 parameter_declaration[] = u8"p";
+  const char8 parameter_default_value[] = u8"l";
+  const char8 local_declaration[] = u8"l";
+
+  {
+    // ((p = l) => {  // ERROR
+    //   var l;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_use(identifier_of(parameter_default_value));
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(local_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_use_of_undeclared_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), parameter_default_value);
+  }
+
+  {
+    // ((p = (() => l)) => {  // ERROR
+    //   var l;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+
+    // (() => l)
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(parameter_default_value));
+    l.visit_exit_function_scope();
+
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(local_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_use_of_undeclared_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), parameter_default_value);
+  }
+}
+
+TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
+  const char8 parameter_declaration[] = u8"p";
+  const char8 parameter_default_value[] = u8"x";
+
+  {
+    // ((p = x) => {  // ERROR
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_variable_use(identifier_of(parameter_default_value));
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_use_of_undeclared_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), parameter_default_value);
+  }
+
+  {
+    // ((p = (() => x)) => {  // ERROR
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+
+    // (() => x)
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(parameter_default_value));
+    l.visit_exit_function_scope();
+
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_use_of_undeclared_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), parameter_default_value);
   }
 }
 }

@@ -48,6 +48,9 @@ class buffering_visitor {
         case visit_kind::enter_function_scope:
           target.visit_enter_function_scope();
           break;
+        case visit_kind::enter_function_scope_body:
+          target.visit_enter_function_scope_body();
+          break;
         case visit_kind::enter_named_function_scope:
           target.visit_enter_named_function_scope(v.name);
           break;
@@ -99,6 +102,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::enter_function_scope);
   }
 
+  void visit_enter_function_scope_body() {
+    this->visits_.emplace_back(visit_kind::enter_function_scope_body);
+  }
+
   void visit_enter_named_function_scope(identifier name) {
     this->visits_.emplace_back(visit_kind::enter_named_function_scope, name);
   }
@@ -142,6 +149,7 @@ class buffering_visitor {
     enter_class_scope,
     enter_for_scope,
     enter_function_scope,
+    enter_function_scope_body,
     enter_named_function_scope,
     exit_block_scope,
     exit_class_scope,
