@@ -26,22 +26,7 @@ void PrintTo(const spy_visitor::visited_variable_assignment &x,
 
 void PrintTo(const spy_visitor::visited_variable_declaration &x,
              std::ostream *out) {
-#define QLJS_CASE(k)     \
-  case variable_kind::k: \
-    *out << #k;          \
-    break;
-  switch (x.kind) {
-    QLJS_CASE(_catch)
-    QLJS_CASE(_class)
-    QLJS_CASE(_const)
-    QLJS_CASE(_function)
-    QLJS_CASE(_import)
-    QLJS_CASE(_let)
-    QLJS_CASE(_parameter)
-    QLJS_CASE(_var)
-  }
-#undef QLJS_CASE
-  *out << ' ' << out_string8(x.name);
+  *out << x.kind << ' ' << out_string8(x.name);
 }
 
 void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {

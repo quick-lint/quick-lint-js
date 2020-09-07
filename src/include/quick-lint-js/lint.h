@@ -43,7 +43,8 @@ class linter {
 
   void visit_enter_function_scope_body() {
     this->propagate_variable_uses_to_parent_scope(
-        /*allow_variable_use_before_declaration=*/true);
+        /*allow_variable_use_before_declaration=*/true,
+        /*consume_arguments=*/true);
   }
 
   void visit_enter_named_function_scope(identifier) {
@@ -54,7 +55,8 @@ class linter {
   void visit_exit_block_scope() {
     assert(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
-        /*allow_variable_use_before_declaration=*/false);
+        /*allow_variable_use_before_declaration=*/false,
+        /*consume_arguments=*/false);
     this->propagate_variable_declarations_to_parent_scope();
     this->scopes_.pop_back();
   }
@@ -64,7 +66,8 @@ class linter {
   void visit_exit_for_scope() {
     QLJS_ASSERT(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
-        /*allow_variable_use_before_declaration=*/false);
+        /*allow_variable_use_before_declaration=*/false,
+        /*consume_arguments=*/false);
     this->propagate_variable_declarations_to_parent_scope();
     this->scopes_.pop_back();
   }
@@ -72,7 +75,8 @@ class linter {
   void visit_exit_function_scope() {
     QLJS_ASSERT(!this->scopes_.empty());
     this->propagate_variable_uses_to_parent_scope(
-        /*allow_variable_use_before_declaration=*/true);
+        /*allow_variable_use_before_declaration=*/true,
+        /*consume_arguments=*/true);
     this->scopes_.pop_back();
   }
 
@@ -249,7 +253,7 @@ class linter {
   }
 
   void propagate_variable_uses_to_parent_scope(
-      bool allow_variable_use_before_declaration) {
+      bool allow_variable_use_before_declaration, bool consume_arguments) {
     QLJS_ASSERT(this->scopes_.size() >= 2);
     scope &current_scope = this->scopes_[this->scopes_.size() - 1];
     scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
@@ -259,10 +263,13 @@ class linter {
       const declared_variable *var =
           this->find_declared_variable(used_var.name);
       if (!var) {
-        (allow_variable_use_before_declaration
-             ? parent_scope.variables_used_in_descendant_scope
-             : parent_scope.variables_used)
-            .emplace_back(used_var);
+        if (!(consume_arguments &&
+              used_var.name.string_view() == u8"arguments")) {
+          (allow_variable_use_before_declaration
+               ? parent_scope.variables_used_in_descendant_scope
+               : parent_scope.variables_used)
+              .emplace_back(used_var);
+        }
       }
     }
     current_scope.variables_used.clear();
@@ -342,7 +349,7 @@ class linter {
            declaration_scope ==
                declared_variable_scope::declared_in_descendant_scope);
       if (!redeclaration_ok) {
-        assert(already_declared_variable->declaration.has_value());
+        QLJS_ASSERT(already_declared_variable->declaration.has_value());
         this->error_reporter_->report_error_redeclaration_of_variable(
             name, *already_declared_variable->declaration);
       }
