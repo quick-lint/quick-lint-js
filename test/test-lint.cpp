@@ -162,6 +162,22 @@ TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
   }
 }
 
+TEST(test_lint, import_use_before_declaration_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
+
+  // x;
+  // import x from "";
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_import);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;");
   error_collector v;
