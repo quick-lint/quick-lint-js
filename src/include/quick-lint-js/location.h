@@ -21,10 +21,11 @@
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 #include <vector>
 
 namespace quick_lint_js {
+class padded_string_view;
+
 struct source_position {
   using line_number_type = int;
   using offset_type = std::size_t;

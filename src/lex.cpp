@@ -26,6 +26,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/simd.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
@@ -117,6 +118,15 @@ identifier token::identifier_name() const noexcept {
 
 source_code_span token::span() const noexcept {
   return source_code_span(this->begin, this->end);
+}
+
+lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
+    : input_(input.c_str()),
+      error_reporter_(error_reporter),
+      original_input_(this->input_) {
+  this->last_token_.begin = nullptr;
+  this->last_last_token_end_ = nullptr;
+  this->parse_current_token();
 }
 
 void lexer::parse_current_token() {

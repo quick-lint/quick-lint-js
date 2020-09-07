@@ -27,6 +27,7 @@ quick_lint_js_add_executable(
   test-file.cpp
   test-integer.cpp
   test-lex.cpp
+  test-lint-parse.cpp
   test-lint.cpp
   test-location.cpp
   test-narrow-cast.cpp

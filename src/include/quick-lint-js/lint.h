@@ -24,7 +24,6 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
-#include <quick-lint-js/parse.h>
 #include <string>
 #include <vector>
 
