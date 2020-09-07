@@ -217,7 +217,9 @@ class lexer {
  public:
   explicit lexer(padded_string_view input,
                  error_reporter* error_reporter) noexcept
-      : input_(input.c_str()), error_reporter_(error_reporter) {
+      : input_(input.c_str()),
+        error_reporter_(error_reporter),
+        original_input_(this->input_) {
     this->last_token_.begin = nullptr;
     this->last_last_token_end_ = nullptr;
     this->parse_current_token();
@@ -271,6 +273,7 @@ class lexer {
   const char8* last_last_token_end_;
   const char8* input_;
   error_reporter* error_reporter_;
+  const char8* original_input_;
 };
 }
 

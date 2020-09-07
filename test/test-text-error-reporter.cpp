@@ -270,6 +270,15 @@ TEST_F(test_text_error_reporter, unexpected_characters_in_number) {
             "FILE:1:4: error: unexpected characters in number literal\n");
 }
 
+TEST_F(test_text_error_reporter, unexpected_hash_character) {
+  padded_string input(u8"#");
+  source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
+  ASSERT_EQ(hash_span.string_view(), u8"#");
+
+  this->make_reporter(&input).report_error_unexpected_hash_character(hash_span);
+  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#'\n");
+}
+
 TEST_F(test_text_error_reporter, unexpected_identifier) {
   padded_string input(u8"let x y");
   source_code_span y_span(&input[7 - 1], &input[7 + 1 - 1]);

@@ -176,6 +176,12 @@ void vim_qflist_json_error_reporter::
   this->output_ << ", \"text\": \"unexpected characters in number literal\"}";
 }
 
+void vim_qflist_json_error_reporter::report_error_unexpected_hash_character(
+    source_code_span where) {
+  this->write_qflist_entry_header(where);
+  this->output_ << ", \"text\": \"unexpected '#'\"}";
+}
+
 void vim_qflist_json_error_reporter::report_error_unexpected_identifier(
     source_code_span where) {
   this->write_qflist_entry_header(where);

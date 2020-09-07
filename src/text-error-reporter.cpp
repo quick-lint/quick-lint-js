@@ -150,6 +150,12 @@ void text_error_reporter::report_error_unexpected_characters_in_number(
   this->output_ << "error: unexpected characters in number literal\n";
 }
 
+void text_error_reporter::report_error_unexpected_hash_character(
+    source_code_span where) {
+  this->log_location(where);
+  this->output_ << "error: unexpected '#'\n";
+}
+
 void text_error_reporter::report_error_unexpected_identifier(
     source_code_span where) {
   log_location(where);

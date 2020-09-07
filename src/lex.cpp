@@ -436,6 +436,19 @@ retry:
       break;
     }
 
+    case '#':
+      if (this->input_[1] == '!' && this->input_ == this->original_input_) {
+        this->skip_line_comment();
+        goto retry;
+      } else {
+        this->error_reporter_->report_error_unexpected_hash_character(
+            source_code_span(&this->input_[0], &this->input_[1]));
+        this->input_ += 1;
+        this->skip_whitespace();
+        goto retry;
+      }
+      break;
+
     default:
       this->error_reporter_->report_fatal_error_unimplemented_character(
           /*qljs_file_name=*/__FILE__,
@@ -905,7 +918,8 @@ found_end_of_file:
 }
 
 void lexer::skip_line_comment() {
-  QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '/');
+  QLJS_ASSERT((this->input_[0] == '/' && this->input_[1] == '/') ||
+              (this->input_[0] == '#' && this->input_[1] == '!'));
   for (const char8* c = this->input_ + 2;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {

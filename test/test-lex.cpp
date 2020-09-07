@@ -702,6 +702,55 @@ TEST(test_lex, lex_whitespace) {
   }
 }
 
+TEST(test_lex, lex_shebang) {
+  check_single_token(u8"#!/usr/bin/env node\nhello", token_type::identifier);
+  check_single_token(u8"#!ignored\n123", token_type::number);
+}
+
+TEST(test_lex, lex_not_shebang) {
+  // Whitespace must not appear between '#' and '!'.
+  {
+    error_collector v;
+    padded_string input(u8"# !notashebang");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_hash_character);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 1);
+  }
+
+  // '#!' must be on the first line.
+  {
+    error_collector v;
+    padded_string input(u8"\n#!notashebang\n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_hash_character);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 1);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 2);
+  }
+
+  // Whitespace must not appear before '#!'.
+  {
+    error_collector v;
+    padded_string input(u8"  #!notashebang\n");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_hash_character);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 2);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 3);
+  }
+}
+
 TEST(test_lex, lex_token_notes_leading_newline) {
   for (string8 line_terminator : line_terminators) {
     padded_string code(u8"a b" + line_terminator + u8"c d");
