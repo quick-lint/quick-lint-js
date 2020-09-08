@@ -53,6 +53,24 @@ TEST(test_options, default_options_with_files) {
   EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
+TEST(test_options, hyphen_hyphen_treats_remaining_arguments_as_files) {
+  {
+    options o = parse_options({"--", "foo.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
+  }
+
+  {
+    options o =
+        parse_options({"--", "--debug-parser-visits", "foo.js", "-bar"});
+    EXPECT_FALSE(o.print_parser_visits);
+    ASSERT_EQ(o.files_to_lint.size(), 3);
+    EXPECT_EQ(o.files_to_lint[0].path, "--debug-parser-visits"sv);
+    EXPECT_EQ(o.files_to_lint[1].path, "foo.js"sv);
+    EXPECT_EQ(o.files_to_lint[2].path, "-bar"sv);
+  }
+}
+
 TEST(test_options, debug_parser_visits) {
   options o = parse_options({"--debug-parser-visits", "foo.js"});
   EXPECT_TRUE(o.print_parser_visits);
@@ -128,6 +146,13 @@ TEST(test_options, vim_file_bufnr) {
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
     EXPECT_EQ(o.files_to_lint[1].vim_bufnr, 2);
+  }
+
+  {
+    options o = parse_options({"--vim-file-bufnr=1", "--", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, std::nullopt);
   }
 }
 

@@ -26,7 +26,7 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-options parse_options(int argc, char **argv) {
+options parse_options(int argc, char** argv) {
   options o;
 
   enum option_value {
@@ -50,6 +50,11 @@ options parse_options(int argc, char **argv) {
   static const char getopt_short_options[] = "-";
 
   std::optional<int> next_vim_file_bufnr;
+  auto add_file_to_lint = [&](const char* path) -> void {
+    file_to_lint file{.path = path, .vim_bufnr = next_vim_file_bufnr};
+    o.files_to_lint.emplace_back(file);
+    next_vim_file_bufnr = std::nullopt;
+  };
 
   ::optind = 1;
   for (;;) {
@@ -83,16 +88,14 @@ options parse_options(int argc, char **argv) {
         break;
       }
 
-      case non_option: {
-        file_to_lint file{.path = argv[::optind - 1],
-                          .vim_bufnr = next_vim_file_bufnr};
-        o.files_to_lint.emplace_back(file);
-        next_vim_file_bufnr = std::nullopt;
+      case non_option:
+        add_file_to_lint(argv[::optind - 1]);
         break;
-      }
 
       case no_option:
-        QLJS_ASSERT(::optind == argc);
+        for (int i = ::optind; i < argc; ++i) {
+          add_file_to_lint(argv[i]);
+        }
         goto done_parsing_options;
 
       case unknown_option:
