@@ -60,6 +60,18 @@ TEST(test_options, debug_parser_visits) {
   EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
+TEST(test_options, debug_parser_visits_shorthand) {
+  {
+    options o = parse_options({"--debug-p", "foo.js"});
+    EXPECT_TRUE(o.print_parser_visits);
+  }
+
+  {
+    options o = parse_options({"--debug-parser-vis", "foo.js"});
+    EXPECT_TRUE(o.print_parser_visits);
+  }
+}
+
 TEST(test_options, output_format) {
   {
     options o = parse_options({"--output-format=gnu-like"});
@@ -72,12 +84,19 @@ TEST(test_options, output_format) {
     EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
     EXPECT_EQ(o.output_format, output_format::vim_qflist_json);
   }
+}
 
+TEST(test_options, invalid_output_format) {
   {
     options o = parse_options({"--output-format=unknown-garbage"});
     EXPECT_THAT(o.error_unrecognized_options, ElementsAre("unknown-garbage"sv));
     EXPECT_EQ(o.output_format, output_format::gnu_like)
         << "output_format should remain the default";
+  }
+
+  {
+    options o = parse_options({"--output-format"});
+    EXPECT_THAT(o.error_unrecognized_options, ElementsAre("--output-format"sv));
   }
 }
 
@@ -113,9 +132,17 @@ TEST(test_options, vim_file_bufnr) {
 }
 
 TEST(test_options, invalid_vim_file_bufnr) {
-  options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
-  ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-  EXPECT_EQ(o.error_unrecognized_options[0], "garbage"sv);
+  {
+    options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
+    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+    EXPECT_EQ(o.error_unrecognized_options[0], "garbage"sv);
+  }
+
+  {
+    options o = parse_options({"--vim-file-bufnr"});
+    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+    EXPECT_EQ(o.error_unrecognized_options[0], "--vim-file-bufnr"sv);
+  }
 }
 
 // TODO(strager): Report warning for trailing (ununsed) --vim-file-bufnr.
@@ -124,10 +151,26 @@ TEST(test_options, invalid_vim_file_bufnr) {
 // --output-format.
 
 TEST(test_options, invalid_option) {
-  options o = parse_options({"--option-does-not-exist", "foo.js"});
-  ASSERT_EQ(o.error_unrecognized_options.size(), 1);
-  EXPECT_EQ(o.error_unrecognized_options[0], "--option-does-not-exist"sv);
-  EXPECT_THAT(o.files_to_lint, IsEmpty());
+  {
+    options o = parse_options({"--option-does-not-exist", "foo.js"});
+    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+    EXPECT_EQ(o.error_unrecognized_options[0], "--option-does-not-exist"sv);
+    EXPECT_THAT(o.files_to_lint, IsEmpty());
+  }
+
+  {
+    options o = parse_options({"--debug-parse-vixxx", "foo.js"});
+    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+    EXPECT_EQ(o.error_unrecognized_options[0], "--debug-parse-vixxx"sv);
+    EXPECT_THAT(o.files_to_lint, IsEmpty());
+  }
+
+  {
+    options o = parse_options({"--debug-parse-visits-xxx", "foo.js"});
+    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+    EXPECT_EQ(o.error_unrecognized_options[0], "--debug-parse-visits-xxx"sv);
+    EXPECT_THAT(o.files_to_lint, IsEmpty());
+  }
 }
 }
 }
