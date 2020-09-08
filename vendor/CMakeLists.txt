@@ -18,6 +18,5 @@ cmake_minimum_required(VERSION 3.10)
 
 include(benchmark.cmake)
 include(boost.cmake)
-include(gnulib.cmake)
 include(googletest.cmake)
 include(jsoncpp.cmake)

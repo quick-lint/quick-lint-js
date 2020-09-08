@@ -38,33 +38,6 @@ Release URL: https://www.boost.org/users/history/version_1_74_0.html
 Release date: August 14th, 2020
 Version: 1.74.0
 
-## gnulib
-
-The gnulib directory contains Gnulib, the GNU portability library.
-
-The following Gnulib modules have been imported:
-
-* getopt-gnu (and transitive dependencies)
-
-Run the following commands to import:
-
-    $ gnulib-tool --lgpl --import getopt-gnu
-
-For details on importing or upgrading Gnulib, see Gnulib's documentation:
-https://www.gnu.org/software/gnulib/manual/html_node/Invoking-gnulib_002dtool.html
-
-Copyright: Copyright (C) 2002-2020 Free Software Foundation, Inc.
-Download URL: git://git.savannah.gnu.org/gnulib.git
-Download date: July 28, 2020
-Git commit: 5e50baa16ef90204d9048a9e2f23c5a538955121
-License file: N/A
-License type: FSFULLR, GPL-3.0-or-later, LGPL-2.0-or-later, LGPL-2.1-or-later
-Location: gnulib
-Project URL: https://www.gnu.org/software/gnulib/
-Release URL: N/A
-Release date: N/A
-Version: N/A
-
 ## googletest
 
 The googletest directory contains Google Test, a testing framework for C++
