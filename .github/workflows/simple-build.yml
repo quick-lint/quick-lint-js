@@ -1,0 +1,40 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: simple build
+on: [push]
+
+jobs:
+  build:
+    name: ${{ matrix.toolchain.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - {runs_on: macos-10.15, name: "macOS Clang", CXX: clang++, CXXFLAGS: "-std=gnu++17 -O2"}
+          - {runs_on: ubuntu-latest, name: "Linux Clang 9 libc++", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libc++ -O2"}
+          - {runs_on: ubuntu-latest, name: "Linux Clang 9 libstdc++", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libstdc++ -O2"}
+          - {runs_on: ubuntu-latest, name: "Linux GCC 8", CXX: g++-8, CXXFLAGS: "-std=gnu++17 -O2"}
+    runs-on: ${{ matrix.toolchain.runs_on }}
+    env:
+      CXX: ${{ matrix.toolchain.CXX }}
+      CXXFLAGS: ${{ matrix.toolchain.CXXFLAGS }}
+
+    steps:
+      - name: check out
+        uses: actions/checkout@v1
+      - name: build
+        run: '"${CXX}" ${CXXFLAGS} -o quick-lint-js -I src/include -I vendor/boost src/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c'
