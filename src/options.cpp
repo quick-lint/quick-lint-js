@@ -54,8 +54,9 @@ class arg_parser {
     if (this->option_->arg_key != option_name) {
       return nullptr;
     }
+    const char* arg_value = this->option_->arg_value;
     this->advance(this->option_->arg_has_equal ? 1 : 2);
-    return this->option_->arg_value;
+    return arg_value;
   }
 
   bool match_flag_option(std::string_view full_option_name,

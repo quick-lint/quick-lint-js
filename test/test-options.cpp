@@ -127,6 +127,15 @@ TEST(test_options, vim_file_bufnr) {
   }
 
   {
+    options o = parse_options({"--output-format", "vim-qflist-json",
+                               "--vim-file-bufnr", "3", "file.js"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].path, "file.js"sv);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 3);
+  }
+
+  {
     options o = parse_options({"--vim-file-bufnr", "3", "one.js", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 3);
