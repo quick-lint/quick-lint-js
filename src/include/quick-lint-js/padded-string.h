@@ -51,6 +51,9 @@ class padded_string {
 
   void resize(int new_size);
 
+  char8 *begin() noexcept { return this->data(); }
+  char8 *end() noexcept { return this->data() + this->size(); }
+
   friend std::ostream &operator<<(std::ostream &, const padded_string &);
 
   friend bool operator==(string8_view, const padded_string &) noexcept;
