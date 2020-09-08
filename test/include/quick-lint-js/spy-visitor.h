@@ -157,6 +157,12 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_variable_use");
   }
 
+  void visit_variable_typeof_use(identifier name) {
+    this->variable_uses.emplace_back(
+        visited_variable_use{string8(name.string_view())});
+    this->visits.emplace_back("visit_variable_typeof_use");
+  }
+
   struct visited_variable_use {
     string8 name;
 

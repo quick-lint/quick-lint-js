@@ -131,16 +131,19 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::minus:
     case token_type::plus:
     case token_type::tilde: {
+      token_type type = this->peek().type;
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr child = this->parse_expression(
           precedence{.binary_operators = true,
                      .math_or_logical_or_assignment = false,
                      .commas = false});
-      return this->parse_expression_remainder(
-          this->make_expression<expression::unary_operator>(child,
-                                                            operator_span),
-          prec);
+      expression_ptr ast =
+          type == token_type::kw_typeof
+              ? this->make_expression<expression::_typeof>(child, operator_span)
+              : this->make_expression<expression::unary_operator>(
+                    child, operator_span);
+      return this->parse_expression_remainder(ast, prec);
     }
 
     case token_type::minus_minus:

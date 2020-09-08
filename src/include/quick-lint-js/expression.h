@@ -68,6 +68,7 @@ enum class expression_kind {
   _invalid,
   _new,
   _template,
+  _typeof,
   array,
   arrow_function_with_expression,
   arrow_function_with_statements,
@@ -163,6 +164,7 @@ class expression {
   class _invalid;
   class _new;
   class _template;
+  class _typeof;
   class array;
   class arrow_function_with_expression;
   class arrow_function_with_statements;
@@ -400,6 +402,18 @@ class expression::_template final : public expression {
   expression_arena::array_ptr<expression_ptr> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::_template>);
+
+class expression::_typeof final
+    : public expression::expression_with_prefix_operator_base {
+ public:
+  static constexpr expression_kind kind = expression_kind::_typeof;
+
+  explicit _typeof(expression_ptr child,
+                   source_code_span operator_span) noexcept
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
+};
+static_assert(expression_arena::is_allocatable<expression::_typeof>);
 
 class expression::array final : public expression {
  public:
@@ -952,6 +966,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(_invalid)
     QLJS_EXPRESSION_CASE(_new)
     QLJS_EXPRESSION_CASE(_template)
+    QLJS_EXPRESSION_CASE(_typeof)
     QLJS_EXPRESSION_CASE(array)
     QLJS_EXPRESSION_CASE(arrow_function_with_expression)
     QLJS_EXPRESSION_CASE(arrow_function_with_statements)

@@ -1922,5 +1922,124 @@ TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
 }
 
 // TODO(strager): 'arguments' should not be declared in arrow functions.
+
+TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
+  const char8 use[] = u8"v";
+
+  // typeof v;
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_typeof_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint_typeof, typeof_declares_variable_automagically) {
+  const char8 typeof_use[] = u8"v";
+  const char8 other_use[] = u8"v";
+
+  // typeof v;
+  // v;
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_typeof_use(identifier_of(typeof_use));
+  l.visit_variable_use(identifier_of(other_use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint_typeof,
+     typeof_declares_variable_automagically_in_parent_function) {
+  const char8 use_before[] = u8"v";
+  const char8 typeof_use[] = u8"v";
+  const char8 use_after[] = u8"v";
+
+  // v;
+  // (() => {
+  //   typeof v;
+  // });
+  // v;
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use_before));
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_typeof_use(identifier_of(typeof_use));
+  l.visit_exit_function_scope();
+  l.visit_variable_use(identifier_of(use_after));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint_typeof, typeof_refers_to_already_declared_variable) {
+  const char8 declaration[] = u8"v";
+  const char8 use[] = u8"v";
+
+  // let v;
+  // typeof v;
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_typeof_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint_typeof, typeof_variable_declared_later_is_an_error) {
+  const char8 declaration[] = u8"v";
+  const char8 use[] = u8"v";
+
+  // typeof v;  // ERROR
+  // let v;
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_typeof_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+}
+
+TEST(
+    test_lint_typeof,
+    typeof_already_declared_variable_does_not_declare_variable_in_parent_function) {
+  const char8 use_before[] = u8"v";
+  const char8 declaration[] = u8"v";
+  const char8 typeof_use[] = u8"v";
+  const char8 use_after[] = u8"v";
+
+  // v;           // ERROR
+  // (() => {
+  //   let v;
+  //   typeof v;
+  // });
+  // v;           // ERROR
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use_before));
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_typeof_use(identifier_of(typeof_use));
+  l.visit_exit_function_scope();
+  l.visit_variable_use(identifier_of(use_after));
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 2);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), use_before);
+  EXPECT_EQ(v.errors[1].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[1].where.begin(), use_after);
+}
 }
 }

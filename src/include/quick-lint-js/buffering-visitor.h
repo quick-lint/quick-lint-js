@@ -75,6 +75,9 @@ class buffering_visitor {
         case visit_kind::variable_use:
           target.visit_variable_use(v.name);
           break;
+        case visit_kind::variable_typeof_use:
+          target.visit_variable_typeof_use(v.name);
+          break;
         case visit_kind::variable_declaration:
           target.visit_variable_declaration(v.name, v.var_kind);
           break;
@@ -142,6 +145,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::variable_use, name);
   }
 
+  void visit_variable_typeof_use(identifier name) {
+    this->visits_.emplace_back(visit_kind::variable_typeof_use, name);
+  }
+
  private:
   enum class visit_kind {
     end_of_module,
@@ -158,6 +165,7 @@ class buffering_visitor {
     property_declaration,
     variable_assignment,
     variable_use,
+    variable_typeof_use,
     variable_declaration,
   };
 

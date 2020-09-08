@@ -199,6 +199,7 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
             this->error_reporter_
                 ->report_error_assignment_to_undeclared_variable(used_var.name);
             break;
+          case used_variable_kind::_typeof:
           case used_variable_kind::use:
             this->error_reporter_
                 ->report_error_variable_used_before_declaration(used_var.name,
@@ -248,20 +249,51 @@ void linter::visit_variable_assignment(identifier name) {
   }
 }
 
+void linter::visit_variable_typeof_use(identifier name) {
+  this->visit_variable_use(name, used_variable_kind::_typeof);
+}
+
 void linter::visit_variable_use(identifier name) {
+  this->visit_variable_use(name, used_variable_kind::use);
+}
+
+void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->scopes_.back();
   bool variable_is_declared =
       current_scope.find_declared_variable(name) != nullptr;
   if (!variable_is_declared) {
-    current_scope.variables_used.emplace_back(name, used_variable_kind::use);
+    current_scope.variables_used.emplace_back(name, use_kind);
   }
 }
 
 void linter::visit_end_of_module() {
+  std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : this->scopes_.back().variables_used) {
-    const declared_variable *var = this->find_declared_variable(used_var.name);
-    if (!var) {
+    if (used_var.kind == used_variable_kind::_typeof) {
+      typeof_variables.emplace_back(used_var.name);
+    }
+  }
+  for (const used_variable &used_var :
+       this->scopes_.back().variables_used_in_descendant_scope) {
+    if (used_var.kind == used_variable_kind::_typeof) {
+      typeof_variables.emplace_back(used_var.name);
+    }
+  }
+  auto is_variable_declared_by_typeof = [&](const used_variable &var) -> bool {
+    return std::find_if(typeof_variables.begin(), typeof_variables.end(),
+                        [&](const identifier &typeof_variable) {
+                          return typeof_variable.string_view() ==
+                                 var.name.string_view();
+                        }) != typeof_variables.end();
+  };
+  auto is_variable_declared = [&](const used_variable &var) -> bool {
+    return this->find_declared_variable(var.name) ||
+           is_variable_declared_by_typeof(var);
+  };
+
+  for (const used_variable &used_var : this->scopes_.back().variables_used) {
+    if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
         case used_variable_kind::assignment:
           this->error_reporter_->report_error_assignment_to_undeclared_variable(
@@ -271,13 +303,16 @@ void linter::visit_end_of_module() {
           this->error_reporter_->report_error_use_of_undeclared_variable(
               used_var.name);
           break;
+        case used_variable_kind::_typeof:
+          // 'typeof foo' is often used to detect if the variable 'foo' is
+          // declared. Do not report that the variable is undeclared.
+          break;
       }
     }
   }
   for (const used_variable &used_var :
        this->scopes_.back().variables_used_in_descendant_scope) {
-    const declared_variable *var = this->find_declared_variable(used_var.name);
-    if (!var) {
+    if (!is_variable_declared(used_var)) {
       // TODO(strager): Should we check used_var.kind?
       this->error_reporter_->report_error_use_of_undeclared_variable(
           used_var.name);

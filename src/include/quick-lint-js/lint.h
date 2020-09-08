@@ -42,6 +42,7 @@ class linter {
   void visit_property_declaration(identifier);
   void visit_variable_declaration(identifier name, variable_kind kind);
   void visit_variable_assignment(identifier name);
+  void visit_variable_typeof_use(identifier name);
   void visit_variable_use(identifier name);
   void visit_end_of_module();
 
@@ -59,6 +60,7 @@ class linter {
   };
 
   enum class used_variable_kind {
+    _typeof,
     assignment,
     use,
   };
@@ -80,6 +82,8 @@ class linter {
     const declared_variable *find_declared_variable(identifier name) const
         noexcept;
   };
+
+  void visit_variable_use(identifier name, used_variable_kind);
 
   const declared_variable *find_declared_variable(identifier name) const
       noexcept;

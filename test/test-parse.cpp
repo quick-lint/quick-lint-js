@@ -686,6 +686,31 @@ TEST(test_parse, parse_plusplus_minusminus) {
   }
 }
 
+TEST(test_parse, parse_typeof_with_just_variable) {
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof x");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof(x)");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
+
+TEST(test_parse, parse_typeof_with_non_variable) {
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof x.prop");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
+
 TEST(test_parse, parse_array_subscript) {
   {
     spy_visitor v = parse_and_visit_expression(u8"array[index]");

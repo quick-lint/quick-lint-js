@@ -57,6 +57,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(identifier_of(variable_name),
                                variable_kind::_var);
+  v.visit_variable_typeof_use(identifier_of(variable_name));
   v.visit_variable_use(identifier_of(variable_name));
 
   spy_visitor spy;
@@ -76,6 +77,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           "visit_property_declaration",        //
                           "visit_variable_assignment",         //
                           "visit_variable_declaration",        //
+                          "visit_variable_typeof_use",         //
                           "visit_variable_use"));
 }
 }

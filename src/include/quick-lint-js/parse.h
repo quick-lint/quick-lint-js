@@ -234,6 +234,15 @@ class parser {
         this->visit_compound_assignment_expression(lhs, rhs, v);
         break;
       }
+      case expression_kind::_typeof: {
+        expression_ptr child = ast->child_0();
+        if (child->kind() == expression_kind::variable) {
+          v.visit_variable_typeof_use(child->variable_identifier());
+        } else {
+          this->visit_expression(child, v, context);
+        }
+        break;
+      }
       case expression_kind::await:
       case expression_kind::spread:
       case expression_kind::unary_operator:

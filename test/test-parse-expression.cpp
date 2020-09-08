@@ -109,6 +109,7 @@ class test_parser {
         children();
         visit_children();
         break;
+      case expression_kind::_typeof:
       case expression_kind::await:
       case expression_kind::dot:
       case expression_kind::rw_unary_prefix:
@@ -407,17 +408,17 @@ TEST_F(test_parse_expression, parse_keyword_binary_operators) {
 TEST_F(test_parse_expression, parse_typeof_unary_operator) {
   {
     expression_ptr ast = this->parse_expression(u8"typeof o");
-    EXPECT_EQ(summarize(ast), "unary(var o)");
+    EXPECT_EQ(summarize(ast), "typeof(var o)");
   }
 
   {
     expression_ptr ast = this->parse_expression(u8"typeof o === 'number'");
-    EXPECT_EQ(summarize(ast), "binary(unary(var o), literal)");
+    EXPECT_EQ(summarize(ast), "binary(typeof(var o), literal)");
   }
 
   {
     expression_ptr ast = this->parse_expression(u8"typeof o.p");
-    EXPECT_EQ(summarize(ast), "unary(dot(var o, p))");
+    EXPECT_EQ(summarize(ast), "typeof(dot(var o, p))");
   }
 }
 
@@ -1276,7 +1277,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
         this->parse_expression(u8"o && typeof o === 'object' ? o[k] : null");
     if (false) {  // TODO(strager): Check AST.
       EXPECT_EQ(summarize(ast),
-                "cond(binary(var o, binary(unary(var o), literal)), "
+                "cond(binary(var o, binary(typeof(var o), literal)), "
                 "index(var o, var k), literal)");
     }
   }
@@ -1321,6 +1322,8 @@ std::string summarize(const expression &expression) {
       return "new(" + children() + ")";
     case expression_kind::_template:
       return "template(" + children() + ")";
+    case expression_kind::_typeof:
+      return "typeof(" + summarize(expression.child_0()) + ")";
     case expression_kind::array:
       return "array(" + children() + ")";
     case expression_kind::arrow_function_with_expression:
