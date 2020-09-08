@@ -468,6 +468,100 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
   EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
+TEST(test_lint, name_of_named_function_expression_is_usable_within_function) {
+  const char8 declaration[] = u8"f";
+  const char8 use[] = u8"f";
+
+  // (function f() {
+  //   f;
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_named_function_scope(identifier_of(declaration));
+  l.visit_enter_function_scope_body();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint,
+     name_of_named_function_expression_is_usable_within_inner_function) {
+  const char8 declaration[] = u8"f";
+  const char8 use[] = u8"f";
+
+  // (function f() {
+  //   (function() {
+  //     f;
+  //   });
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_named_function_scope(identifier_of(declaration));
+  l.visit_enter_function_scope_body();
+
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(
+    test_lint,
+    name_of_named_function_expression_is_usable_within_default_parameter_values) {
+  const char8 declaration[] = u8"f";
+  const char8 parameter_declaration[] = u8"x";
+  const char8 use[] = u8"f";
+
+  // (function f(x = f) {
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_named_function_scope(identifier_of(declaration));
+  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(parameter_declaration),
+                               variable_kind::_parameter);
+  l.visit_enter_function_scope_body();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint,
+     name_of_named_function_expression_is_not_usable_outside_function) {
+  const char8 declaration[] = u8"f";
+  const char8 use_before[] = u8"f";
+  const char8 use_after[] = u8"f";
+
+  // f;               // ERROR
+  // (function f() {
+  // });
+  // f;               // ERROR
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use_before));
+  l.visit_enter_named_function_scope(identifier_of(declaration));
+  l.visit_enter_function_scope_body();
+  l.visit_exit_function_scope();
+  l.visit_variable_use(identifier_of(use_after));
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 2);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), use_before);
+  EXPECT_EQ(v.errors[1].kind,
+            error_collector::error_use_of_undeclared_variable);
+  EXPECT_EQ(v.errors[1].where.begin(), use_after);
+}
+
 TEST(test_lint, use_global_variable_within_functions) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
@@ -1552,6 +1646,73 @@ TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
     EXPECT_EQ(v.errors[0].kind,
               error_collector::error_use_of_undeclared_variable);
     EXPECT_EQ(v.errors[0].where.begin(), parameter_default_value);
+  }
+}
+
+TEST(test_lint, parameter_shadows_named_function_name) {
+  const char8 function_declaration[] = u8"f";
+  const char8 parameter_declaration[] = u8"f";
+  const char8 parameter_use[] = u8"f";
+
+  // (function f(f) {
+  //   f;
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_named_function_scope(identifier_of(function_declaration));
+  l.visit_variable_declaration(identifier_of(parameter_declaration),
+                               variable_kind::_parameter);
+  l.visit_enter_function_scope_body();
+  l.visit_variable_use(identifier_of(parameter_use));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, let_shadows_named_function_name) {
+  const char8 function_declaration[] = u8"f";
+  const char8 var_declaration[] = u8"f";
+  const char8 var_use[] = u8"f";
+
+  {
+    // (function f() {
+    //   let f;
+    //   f;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_named_function_scope(identifier_of(function_declaration));
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(var_declaration),
+                                 variable_kind::_let);
+    l.visit_variable_use(identifier_of(var_use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (function f() {
+    //   f;             // ERROR
+    //   let f;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_named_function_scope(identifier_of(function_declaration));
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(var_use));
+    l.visit_variable_declaration(identifier_of(var_declaration),
+                                 variable_kind::_let);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_variable_used_before_declaration);
+    EXPECT_EQ(v.errors[0].where.begin(), var_use);
+    EXPECT_EQ(v.errors[0].other_where.begin(), var_declaration);
   }
 }
 

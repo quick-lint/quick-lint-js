@@ -22,6 +22,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
+#include <quick-lint-js/optional.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -130,9 +131,15 @@ void linter::visit_enter_function_scope_body() {
       /*consume_arguments=*/true);
 }
 
-void linter::visit_enter_named_function_scope(identifier) {
-  // TODO(strager): Declare the given identifier.
+void linter::visit_enter_named_function_scope(identifier function_name) {
   this->scopes_.emplace_back();
+  scope &current_scope = this->scopes_.back();
+  current_scope.function_expression_declaration = declared_variable{
+      .name = string8(function_name.string_view()),
+      .kind = variable_kind::_function,
+      .declaration = function_name,
+      .declaration_scope = declared_variable_scope::declared_in_current_scope,
+  };
 }
 
 void linter::visit_exit_block_scope() {
@@ -296,12 +303,19 @@ void linter::propagate_variable_uses_to_parent_scope(
   scope &current_scope = this->scopes_[this->scopes_.size() - 1];
   scope &parent_scope = this->scopes_[this->scopes_.size() - 2];
 
+  auto is_current_scope_function_name = [&](const used_variable &var) {
+    return current_scope.function_expression_declaration.has_value() &&
+           current_scope.function_expression_declaration->name ==
+               var.name.string_view();
+  };
+
   for (const used_variable &used_var : current_scope.variables_used) {
     QLJS_ASSERT(!current_scope.find_declared_variable(used_var.name));
     const declared_variable *var = this->find_declared_variable(used_var.name);
     if (!var) {
       if (!(consume_arguments &&
-            used_var.name.string_view() == u8"arguments")) {
+            used_var.name.string_view() == u8"arguments") &&
+          !is_current_scope_function_name(used_var)) {
         (allow_variable_use_before_declaration
              ? parent_scope.variables_used_in_descendant_scope
              : parent_scope.variables_used)
@@ -314,7 +328,11 @@ void linter::propagate_variable_uses_to_parent_scope(
   for (const used_variable &used_var :
        current_scope.variables_used_in_descendant_scope) {
     QLJS_ASSERT(!this->find_declared_variable(used_var.name));
-    parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
+    if (is_current_scope_function_name(used_var)) {
+      // Treat variable as used.
+    } else {
+      parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
+    }
   }
   current_scope.variables_used_in_descendant_scope.clear();
 }
@@ -371,6 +389,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
     }
 
     bool redeclaration_ok =
+        (other_kind == vk::_function && kind == vk::_parameter) ||
         (other_kind == vk::_function && kind == vk::_function) ||
         (other_kind == vk::_parameter && kind == vk::_function) ||
         (other_kind == vk::_var && kind == vk::_function) ||
