@@ -50,13 +50,7 @@ quick_lint_js_add_library(
   vim-qflist-json-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
-target_link_libraries(
-  quick-lint-js-lib
-  PUBLIC
-  boost_container
-  PRIVATE
-  gnulib-getopt
-)
+target_link_libraries(quick-lint-js-lib PUBLIC boost_container)
 
 if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
   target_compile_definitions(
