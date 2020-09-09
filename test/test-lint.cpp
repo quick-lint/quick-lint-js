@@ -138,6 +138,95 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
   }
 }
 
+TEST(test_lint, nodejs_global_variables_are_usable) {
+  static constexpr const char8 *nodejs_global_variables[] = {
+      u8"Array",
+      u8"ArrayBuffer",
+      u8"Atomics",
+      u8"BigInt",
+      u8"BigInt64Array",
+      u8"BigUint64Array",
+      u8"Boolean",
+      u8"Buffer",
+      u8"DataView",
+      u8"Date",
+      u8"Error",
+      u8"EvalError",
+      u8"Float32Array",
+      u8"Float64Array",
+      u8"Function",
+      u8"GLOBAL",
+      u8"Infinity",
+      u8"Int16Array",
+      u8"Int32Array",
+      u8"Int8Array",
+      u8"Intl",
+      u8"JSON",
+      u8"Map",
+      u8"Math",
+      u8"NaN",
+      u8"Number",
+      u8"Object",
+      u8"Promise",
+      u8"Proxy",
+      u8"RangeError",
+      u8"ReferenceError",
+      u8"Reflect",
+      u8"RegExp",
+      u8"Set",
+      u8"SharedArrayBuffer",
+      u8"String",
+      u8"Symbol",
+      u8"SyntaxError",
+      u8"TextDecoder",
+      u8"TextEncoder",
+      u8"TypeError",
+      u8"URIError",
+      u8"URL",
+      u8"URLSearchParams",
+      u8"Uint16Array",
+      u8"Uint32Array",
+      u8"Uint8Array",
+      u8"Uint8ClampedArray",
+      u8"WeakMap",
+      u8"WeakSet",
+      u8"WebAssembly",
+      u8"clearImmediate",
+      u8"clearInterval",
+      u8"clearTimeout",
+      u8"console",
+      u8"decodeURI",
+      u8"decodeURIComponent",
+      u8"encodeURI",
+      u8"encodeURIComponent",
+      u8"escape",
+      u8"eval",
+      u8"global",
+      u8"globalThis",
+      u8"isFinite",
+      u8"isNaN",
+      u8"parseFloat",
+      u8"parseInt",
+      u8"process",
+      u8"queueMicrotask",
+      u8"root",
+      u8"setImmediate",
+      u8"setInterval",
+      u8"setTimeout",
+      u8"undefined",
+      u8"unescape",
+  };
+
+  error_collector v;
+  linter l(&v);
+  for (const char8 *global_variable : nodejs_global_variables) {
+    l.visit_variable_use(identifier_of(global_variable));
+  }
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
   for (variable_kind kind :
        {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {

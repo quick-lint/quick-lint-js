@@ -90,6 +90,29 @@ linter::linter(error_reporter *error_reporter)
       u8"JSON",
       u8"Math",
       u8"Reflect",
+
+      // Node.js
+      u8"Buffer",
+      u8"GLOBAL",
+      u8"Intl",
+      u8"TextDecoder",
+      u8"TextEncoder",
+      u8"URL",
+      u8"URLSearchParams",
+      u8"WebAssembly",
+      u8"clearImmediate",
+      u8"clearInterval",
+      u8"clearTimeout",
+      u8"console",
+      u8"escape",
+      u8"global",
+      u8"process",
+      u8"queueMicrotask",
+      u8"root",
+      u8"setImmediate",
+      u8"setInterval",
+      u8"setTimeout",
+      u8"unescape",
   };
 
   for (const char8 *global_variable : writable_global_variables) {
