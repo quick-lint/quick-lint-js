@@ -23,7 +23,11 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 
+#define FIELD(_class, _member, ...) \
+  (::testing::Field(#_member, &_class::_member, __VA_ARGS__))
+
 using ::testing::IsEmpty;
+using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
@@ -849,10 +853,10 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
 }
 
 TEST(test_lint, assign_to_immutable_variable) {
-  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
-    const char8 declaration[] = u8"x";
-    const char8 assignment[] = u8"x";
+  const char8 declaration[] = u8"x";
+  const char8 assignment[] = u8"x";
 
+  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
     // (() => {
     //   const x;  // x is immutable
     //   x = 42;   // ERROR
@@ -873,6 +877,212 @@ TEST(test_lint, assign_to_immutable_variable) {
     EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
     EXPECT_EQ(v.errors[0].var_kind, kind);
   }
+
+  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
+    // const x;   // x is immutable
+    // {
+    //   x = 42;  // ERROR
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_enter_block_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_assignment_to_const_variable);
+    EXPECT_EQ(v.errors[0].where.begin(), assignment);
+    EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+    EXPECT_EQ(v.errors[0].var_kind, kind);
+  }
+}
+
+TEST(test_lint, assign_to_immutable_variable_before_declaration) {
+  const char8 assignment[] = u8"x";
+  const char8 declaration[] = u8"x";
+
+  // x = 42;   // ERROR
+  // const x;  // x is immutable
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_const);
+  l.visit_end_of_module();
+
+  // TODO(strager): Should we combine these two errors into one?
+  ASSERT_THAT(
+      v.errors,
+      UnorderedElementsAre(
+          FIELD(error_collector::error, kind,
+                error_collector::error_assignment_before_variable_declaration),
+          FIELD(error_collector::error, kind,
+                error_collector::error_assignment_to_const_variable)));
+  for (const error_collector::error &error : v.errors) {
+    EXPECT_EQ(error.where.begin(), assignment);
+    EXPECT_EQ(error.other_where.begin(), declaration);
+  }
+}
+
+TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
+  const char8 outer_declaration[] = u8"x";
+  const char8 assignment[] = u8"x";
+  const char8 inner_declaration[] = u8"x";
+
+  // let x;      // x is shadowed.
+  // {
+  //   x = 42;   // ERROR
+  //   const x;  // x is immutable
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(outer_declaration),
+                               variable_kind::_let);
+  l.visit_enter_block_scope();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_declaration(identifier_of(inner_declaration),
+                               variable_kind::_const);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  // TODO(strager): Should we combine these two errors into one?
+  ASSERT_THAT(
+      v.errors,
+      UnorderedElementsAre(
+          FIELD(error_collector::error, kind,
+                error_collector::error_assignment_before_variable_declaration),
+          FIELD(error_collector::error, kind,
+                error_collector::error_assignment_to_const_variable)));
+  for (const error_collector::error &error : v.errors) {
+    EXPECT_EQ(error.where.begin(), assignment);
+    EXPECT_EQ(error.other_where.begin(), inner_declaration);
+  }
+}
+
+TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
+  const char8 assignment[] = u8"x";
+  const char8 declaration[] = u8"x";
+
+  // const x;   // x is immutable
+  // (() => {
+  //   x = 42;  // ERROR
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_const);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_assignment_to_const_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), assignment);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+  EXPECT_EQ(v.errors[0].var_kind, variable_kind::_const);
+}
+
+TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
+  const char8 assignment[] = u8"x";
+  const char8 declaration[] = u8"x";
+
+  // (() => {
+  //   x = 42;  // ERROR
+  // });
+  // const x;   // x is immutable
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_exit_function_scope();
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_const);
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_assignment_to_const_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), assignment);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+  EXPECT_EQ(v.errors[0].var_kind, variable_kind::_const);
+}
+
+TEST(test_lint,
+     assignment_to_shadowed_const_variable_before_declaration_in_parent_scope) {
+  const char8 assignment[] = u8"x";
+  const char8 outer_declaration[] = u8"x";
+  const char8 inner_declaration[] = u8"x";
+
+  // let x;
+  // {
+  //   {
+  //     x = 42;  // ERROR
+  //   }
+  //   const x;   // x is immutable
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(outer_declaration),
+                               variable_kind::_let);
+  l.visit_enter_block_scope();
+  l.visit_enter_block_scope();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_exit_block_scope();
+  l.visit_variable_declaration(identifier_of(inner_declaration),
+                               variable_kind::_const);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  // TODO(strager): Should we combine these two errors into one?
+  ASSERT_THAT(
+      v.errors,
+      UnorderedElementsAre(
+          FIELD(error_collector::error, kind,
+                error_collector::error_assignment_before_variable_declaration),
+          FIELD(error_collector::error, kind,
+                error_collector::error_assignment_to_const_variable)));
+  for (const error_collector::error &error : v.errors) {
+    EXPECT_EQ(error.where.begin(), assignment);
+    EXPECT_EQ(error.other_where.begin(), inner_declaration);
+  }
+}
+
+TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
+  const char8 declaration[] = u8"x";
+  const char8 assignment[] = u8"x";
+
+  // const x;
+  // (() => {
+  //   (() => {
+  //     x = 42;  // ERROR
+  //   });
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_const);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_exit_function_scope();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_assignment_to_const_variable);
+  EXPECT_EQ(v.errors[0].where.begin(), assignment);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
+  EXPECT_EQ(v.errors[0].var_kind, variable_kind::_const);
 }
 
 TEST(test_lint, assign_to_undeclared_variable) {

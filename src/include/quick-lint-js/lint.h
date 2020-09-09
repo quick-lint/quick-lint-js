@@ -93,6 +93,8 @@ class linter {
 
   void propagate_variable_declarations_to_parent_scope();
 
+  void report_error_if_assignment_is_illegal(
+      const declared_variable *var, const identifier &assignment) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;

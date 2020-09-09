@@ -205,6 +205,7 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
   current_scope.declared_variables.emplace_back(
       declared_variable{string8(name.string_view()), kind, name,
                         declared_variable_scope::declared_in_current_scope});
+  const declared_variable *declared = &current_scope.declared_variables.back();
 
   auto erase_if = [](auto &variables, auto predicate) {
     variables.erase(
@@ -217,8 +218,8 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
           kind == variable_kind::_let) {
         switch (used_var.kind) {
           case used_variable_kind::assignment:
-            // TODO(strager): Should we also report an error when assigning to
-            // a const variable?
+            this->report_error_if_assignment_is_illegal(declared,
+                                                        used_var.name);
             this->error_reporter_
                 ->report_error_assignment_before_variable_declaration(
                     used_var.name, name);
@@ -238,7 +239,15 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
   });
   erase_if(current_scope.variables_used_in_descendant_scope,
            [&](const used_variable &used_var) {
-             // TODO(strager): Should we check used_var.kind?
+             switch (used_var.kind) {
+               case used_variable_kind::assignment:
+                 this->report_error_if_assignment_is_illegal(declared,
+                                                             used_var.name);
+                 break;
+               case used_variable_kind::_typeof:
+               case used_variable_kind::use:
+                 break;
+             }
              return name.string_view() == used_var.name.string_view();
            });
 }
@@ -248,25 +257,7 @@ void linter::visit_variable_assignment(identifier name) {
   scope &current_scope = this->scopes_.back();
   const declared_variable *var = current_scope.find_declared_variable(name);
   if (var) {
-    switch (var->kind) {
-      case variable_kind::_const:
-      case variable_kind::_import:
-        if (var->declaration.has_value()) {
-          this->error_reporter_->report_error_assignment_to_const_variable(
-              *var->declaration, name, var->kind);
-        } else {
-          this->error_reporter_
-              ->report_error_assignment_to_const_global_variable(name);
-        }
-        break;
-      case variable_kind::_catch:
-      case variable_kind::_class:
-      case variable_kind::_function:
-      case variable_kind::_let:
-      case variable_kind::_parameter:
-      case variable_kind::_var:
-        break;
-    }
+    this->report_error_if_assignment_is_illegal(var, name);
   } else {
     current_scope.variables_used.emplace_back(name,
                                               used_variable_kind::assignment);
@@ -374,6 +365,9 @@ void linter::propagate_variable_uses_to_parent_scope(
         parent_scope.find_declared_variable(used_var.name);
     if (var) {
       // This variable was declared in the parent scope. Don't propagate.
+      if (used_var.kind == used_variable_kind::assignment) {
+        this->report_error_if_assignment_is_illegal(var, used_var.name);
+      }
     } else if (consume_arguments &&
                used_var.name.string_view() == u8"arguments") {
       // Treat this variable as declared in the current scope.
@@ -394,6 +388,9 @@ void linter::propagate_variable_uses_to_parent_scope(
         parent_scope.find_declared_variable(used_var.name);
     if (var) {
       // This variable was declared in the parent scope. Don't propagate.
+      if (used_var.kind == used_variable_kind::assignment) {
+        this->report_error_if_assignment_is_illegal(var, used_var.name);
+      }
     } else if (is_current_scope_function_name(used_var)) {
       // Treat this variable as declared in the current scope.
     } else {
@@ -420,6 +417,29 @@ void linter::propagate_variable_declarations_to_parent_scope() {
           parent_var.declaration_scope);
       parent_scope.declared_variables.emplace_back(parent_var);
     }
+  }
+}
+
+void linter::report_error_if_assignment_is_illegal(
+    const linter::declared_variable *var, const identifier &assignment) const {
+  switch (var->kind) {
+    case variable_kind::_const:
+    case variable_kind::_import:
+      if (var->declaration.has_value()) {
+        this->error_reporter_->report_error_assignment_to_const_variable(
+            *var->declaration, assignment, var->kind);
+      } else {
+        this->error_reporter_->report_error_assignment_to_const_global_variable(
+            assignment);
+      }
+      break;
+    case variable_kind::_catch:
+    case variable_kind::_class:
+    case variable_kind::_function:
+    case variable_kind::_let:
+    case variable_kind::_parameter:
+    case variable_kind::_var:
+      break;
   }
 }
 
