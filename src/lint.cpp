@@ -28,8 +28,9 @@
 namespace quick_lint_js {
 linter::linter(error_reporter *error_reporter)
     : error_reporter_(error_reporter) {
-  this->scopes_.emplace_back();
-  scope &global_scope = this->scopes_.back();
+  this->scopes_.emplace_back();  // Global scope.
+  this->scopes_.emplace_back();  // Module scope.
+  scope &global_scope = this->scopes_.front();
 
   const char8 *writable_global_variables[] = {
       // ECMA-262 18.1 Value Properties of the Global Object
@@ -293,6 +294,11 @@ void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
 }
 
 void linter::visit_end_of_module() {
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+  this->scopes_.pop_back();
+
   std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : this->scopes_.back().variables_used) {
     if (used_var.kind == used_variable_kind::_typeof) {
