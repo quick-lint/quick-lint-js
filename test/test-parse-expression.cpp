@@ -414,6 +414,11 @@ TEST_F(test_parse_expression, parse_typeof_unary_operator) {
     expression_ptr ast = this->parse_expression(u8"typeof o === 'number'");
     EXPECT_EQ(summarize(ast), "binary(unary(var o), literal)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"typeof o.p");
+    EXPECT_EQ(summarize(ast), "unary(dot(var o, p))");
+  }
 }
 
 TEST_F(test_parse_expression, delete_unary_operator) {
@@ -424,9 +429,7 @@ TEST_F(test_parse_expression, delete_unary_operator) {
 
   {
     expression_ptr ast = this->parse_expression(u8"delete variable.property");
-    if (false) {  // TODO(strager): Check AST.
-      EXPECT_EQ(summarize(ast), "unary(dot(var variable, property))");
-    }
+    EXPECT_EQ(summarize(ast), "unary(dot(var variable, property))");
   }
 }
 
@@ -723,6 +726,7 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
            u8"42=y",
            u8"(x=y)=z",
        }) {
+    SCOPED_TRACE(out_string8(code));
     test_parser p(code);
     p.parse_expression();
 
@@ -1258,9 +1262,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
 
   {
     expression_ptr ast = this->parse_expression(u8"!/hello/.test(string)");
-    if (false) {  // TODO(strager): Check AST.
-      EXPECT_EQ(summarize(ast), "unary(call(dot(literal, test), var string))");
-    }
+    EXPECT_EQ(summarize(ast), "unary(call(dot(literal, test), var string))");
   }
 
   {
@@ -1281,11 +1283,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
 
   {
     expression_ptr ast = this->parse_expression(u8"!!o && k in o");
-    if (false) {  // TODO(strager): Check AST.
-      EXPECT_EQ(summarize(ast),
-                "binary(unary(unary(var o)), "
-                "binary(var k, var o))");
-    }
+    EXPECT_EQ(summarize(ast), "binary(unary(unary(var o)), var k, var o)");
   }
 
   {

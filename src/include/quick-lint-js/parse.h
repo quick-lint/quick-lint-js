@@ -919,6 +919,7 @@ class parser {
 
   struct precedence {
     bool binary_operators = true;
+    bool math_or_logical_or_assignment = true;
     bool commas = true;
     bool in_operator = true;
   };

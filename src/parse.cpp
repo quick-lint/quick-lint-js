@@ -134,7 +134,9 @@ expression_ptr parser::parse_expression(precedence prec) {
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       expression_ptr child = this->parse_expression(
-          precedence{.binary_operators = false, .commas = false});
+          precedence{.binary_operators = true,
+                     .math_or_logical_or_assignment = false,
+                     .commas = false});
       return this->parse_expression_remainder(
           this->make_expression<expression::unary_operator>(child,
                                                             operator_span),
@@ -364,6 +366,9 @@ next:
     case token_type::minus:
     case token_type::plus:
     case token_type::slash: {
+      if (!prec.math_or_logical_or_assignment) {
+        break;
+      }
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
       children.emplace_back(this->parse_expression(
@@ -411,6 +416,9 @@ next:
     case token_type::slash_equal:
     case token_type::star_equal:
     case token_type::star_star_equal: {
+      if (!prec.math_or_logical_or_assignment) {
+        break;
+      }
       bool is_plain_assignment = this->peek().type == token_type::equal;
       this->lexer_.skip();
       expression_ptr lhs = build_expression();
