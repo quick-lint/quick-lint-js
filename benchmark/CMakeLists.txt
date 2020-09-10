@@ -30,6 +30,18 @@ target_link_libraries(
 )
 
 quick_lint_js_add_executable(
+  quick-lint-js-benchmark-lint
+  benchmark-lint.cpp
+)
+target_link_libraries(
+  quick-lint-js-benchmark-lint
+  PRIVATE
+  benchmark::benchmark
+  benchmark::benchmark_main
+  quick-lint-js-lib
+)
+
+quick_lint_js_add_executable(
   quick-lint-js-benchmark-location
   benchmark-location.cpp
 )
