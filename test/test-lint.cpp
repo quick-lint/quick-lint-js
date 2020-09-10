@@ -752,8 +752,9 @@ TEST(test_lint, assign_to_variable_before_declaration) {
 
   ASSERT_EQ(v.errors.size(), 1);
   EXPECT_EQ(v.errors[0].kind,
-            error_collector::error_assignment_to_undeclared_variable);
+            error_collector::error_assignment_before_variable_declaration);
   EXPECT_EQ(v.errors[0].where.begin(), assignment);
+  EXPECT_EQ(v.errors[0].other_where.begin(), declaration);
 }
 
 TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
@@ -1028,8 +1029,9 @@ TEST(
 
   ASSERT_EQ(v.errors.size(), 1);
   EXPECT_EQ(v.errors[0].kind,
-            error_collector::error_assignment_to_undeclared_variable);
+            error_collector::error_assignment_before_variable_declaration);
   EXPECT_EQ(v.errors[0].where.begin(), assignment);
+  EXPECT_EQ(v.errors[0].other_where.begin(), inner_declaration);
 }
 
 TEST(test_lint, shadowing_variable_in_parent_block_scope_is_okay) {

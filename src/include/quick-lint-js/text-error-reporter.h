@@ -32,6 +32,8 @@ class text_error_reporter final : public error_reporter {
 
   void set_source(padded_string_view input, const char *file_name);
 
+  void report_error_assignment_before_variable_declaration(
+      identifier assignment, identifier declaration) override;
   void report_error_assignment_to_const_global_variable(
       identifier assignment) override;
   void report_error_assignment_to_const_variable(

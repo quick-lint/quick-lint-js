@@ -36,6 +36,8 @@ class error_reporter {
 
   virtual ~error_reporter() = default;
 
+  virtual void report_error_assignment_before_variable_declaration(
+      identifier assignment, identifier declaration) = 0;
   virtual void report_error_assignment_to_const_global_variable(
       identifier assignment) = 0;
   virtual void report_error_assignment_to_const_variable(
@@ -101,6 +103,8 @@ class null_error_reporter : public error_reporter {
  public:
   static null_error_reporter instance;
 
+  void report_error_assignment_before_variable_declaration(
+      identifier, identifier) override {}
   void report_error_assignment_to_const_global_variable(identifier) override {}
   void report_error_assignment_to_const_variable(identifier, identifier,
                                                  variable_kind) override {}

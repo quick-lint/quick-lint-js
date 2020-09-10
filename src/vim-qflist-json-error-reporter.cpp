@@ -60,6 +60,13 @@ void vim_qflist_json_error_reporter::set_source(padded_string_view input,
 void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 
 void vim_qflist_json_error_reporter::
+    report_error_assignment_before_variable_declaration(identifier assignment,
+                                                        identifier) {
+  this->write_qflist_entry_header(assignment);
+  this->output_ << ", \"text\": \"variable assigned before its declaration\"}";
+}
+
+void vim_qflist_json_error_reporter::
     report_error_assignment_to_const_global_variable(identifier assignment) {
   this->write_qflist_entry_header(assignment);
   this->output_ << ", \"text\": \"assignment to const global variable\"}";

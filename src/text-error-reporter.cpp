@@ -30,6 +30,14 @@ void text_error_reporter::set_source(padded_string_view input,
   this->file_path_ = file_path;
 }
 
+void text_error_reporter::report_error_assignment_before_variable_declaration(
+    identifier assignment, identifier declaration) {
+  this->log_location(assignment);
+  this->output_ << "error: variable assigned before its declaration\n";
+  this->log_location(declaration);
+  this->output_ << "note: variable declared here\n";
+}
+
 void text_error_reporter::report_error_assignment_to_const_global_variable(
     identifier assignment) {
   log_location(assignment);

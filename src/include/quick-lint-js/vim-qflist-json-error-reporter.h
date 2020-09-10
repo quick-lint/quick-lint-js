@@ -39,6 +39,8 @@ class vim_qflist_json_error_reporter final : public error_reporter {
 
   void finish();
 
+  void report_error_assignment_before_variable_declaration(
+      identifier assignment, identifier declaration) override;
   void report_error_assignment_to_const_global_variable(
       identifier assignment) override;
   void report_error_assignment_to_const_variable(identifier,

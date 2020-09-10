@@ -49,6 +49,7 @@ void PrintTo(const error_collector::error &x, std::ostream *out) {
     *out << #k;            \
     break;
   switch (x.kind) {
+    QLJS_CASE(error_assignment_before_variable_declaration)
     QLJS_CASE(error_assignment_to_const_global_variable)
     QLJS_CASE(error_assignment_to_const_variable)
     QLJS_CASE(error_assignment_to_undeclared_variable)

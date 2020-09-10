@@ -197,7 +197,8 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
             // TODO(strager): Should we also report an error when assigning to
             // a const variable?
             this->error_reporter_
-                ->report_error_assignment_to_undeclared_variable(used_var.name);
+                ->report_error_assignment_before_variable_declaration(
+                    used_var.name, name);
             break;
           case used_variable_kind::_typeof:
           case used_variable_kind::use:

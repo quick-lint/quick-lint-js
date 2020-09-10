@@ -60,6 +60,21 @@ TEST_F(test_text_error_reporter, change_source) {
             "world.js:1:5: error: assignment to const global variable\n");
 }
 
+TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
+  padded_string input(u8"x=0;let x;");
+  source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
+  ASSERT_EQ(assignment_span.string_view(), u8"x");
+  source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
+  ASSERT_EQ(declaration_span.string_view(), u8"x");
+
+  this->make_reporter(&input)
+      .report_error_assignment_before_variable_declaration(
+          identifier(assignment_span), identifier(declaration_span));
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:1: error: variable assigned before its declaration\n"
+            "FILE:1:9: note: variable declared here\n");
+}
+
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   padded_string input(u8"to Infinity and beyond");
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);

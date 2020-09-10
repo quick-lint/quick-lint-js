@@ -104,6 +104,29 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(qflist[0]["text"], "BigInt literal has a leading 0 digit");
 }
 
+TEST_F(test_vim_qflist_json_error_reporter,
+       assignment_before_variable_declaration) {
+  padded_string input(u8"x=0;let x;");
+  source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
+  ASSERT_EQ(assignment_span.string_view(), u8"x");
+  source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
+  ASSERT_EQ(declaration_span.string_view(), u8"x");
+
+  vim_qflist_json_error_reporter reporter =
+      this->make_reporter(&input, /*vim_bufnr=*/0);
+  reporter.report_error_assignment_before_variable_declaration(
+      identifier(assignment_span), identifier(declaration_span));
+  reporter.finish();
+
+  ::Json::Value qflist = this->parse_json()["qflist"];
+  ASSERT_EQ(qflist.size(), 1);
+  EXPECT_EQ(qflist[0]["col"], 1);
+  EXPECT_EQ(qflist[0]["end_col"], 1);
+  EXPECT_EQ(qflist[0]["end_lnum"], 1);
+  EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["text"], "variable assigned before its declaration");
+}
+
 TEST_F(test_vim_qflist_json_error_reporter, big_int_literal_contains_exponent) {
   padded_string input(u8"9e9n");
   source_code_span number_span(&input[1 - 1], &input[4 + 1 - 1]);

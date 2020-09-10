@@ -32,6 +32,12 @@ QLJS_WARNING_IGNORE_MSVC(26812)  // Prefer 'enum class' over 'enum'.
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
+  void report_error_assignment_before_variable_declaration(
+      identifier assignment, identifier declaration) override {
+    this->errors.emplace_back(error_assignment_before_variable_declaration,
+                              assignment.span(), declaration.span());
+  }
+
   void report_error_assignment_to_const_global_variable(
       identifier assignment) override {
     this->errors.emplace_back(error_assignment_to_const_global_variable,
@@ -175,6 +181,7 @@ struct error_collector : public error_reporter {
       token_type, const char8 *token_begin) override;
 
   enum error_kind {
+    error_assignment_before_variable_declaration,
     error_assignment_to_const_global_variable,
     error_assignment_to_const_variable,
     error_assignment_to_undeclared_variable,
