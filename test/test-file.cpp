@@ -130,7 +130,7 @@ filesystem::path make_temporary_directory() {
     UINT unique = attempt + 1;
     QLJS_ASSERT(unique != 0);
     if (::GetTempFileNameW(/*lpPathName=*/system_temp_dir_path.c_str(),
-                           /*lpPrefixString=*/L"QLJS", /*uUnique=*/attempt + 1,
+                           /*lpPrefixString=*/L"QLJS", /*uUnique=*/unique,
                            /*lpTempFileName=*/temp_directory_name.data()) ==
         0) {
       continue;
