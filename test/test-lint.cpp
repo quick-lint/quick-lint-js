@@ -557,6 +557,69 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
   EXPECT_EQ(v.errors[0].where.begin(), use);
 }
 
+TEST(test_lint,
+     use_of_shadowed_let_variable_before_declaration_in_parent_scope) {
+  const char8 outer_declaration[] = u8"x";
+  const char8 use[] = u8"x";
+  const char8 inner_declaration[] = u8"x";
+
+  // let x;
+  // {
+  //   {
+  //     x;    // ERROR
+  //   }
+  //   let x;
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_declaration(identifier_of(outer_declaration),
+                               variable_kind::_let);
+  l.visit_enter_block_scope();
+  l.visit_enter_block_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_block_scope();
+  l.visit_variable_declaration(identifier_of(inner_declaration),
+                               variable_kind::_let);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  ASSERT_EQ(v.errors.size(), 1);
+  EXPECT_EQ(v.errors[0].kind,
+            error_collector::error_variable_used_before_declaration);
+  EXPECT_EQ(v.errors[0].where.begin(), use);
+  EXPECT_EQ(v.errors[0].other_where.begin(), inner_declaration);
+}
+
+TEST(test_lint, use_of_variable_declared_in_grandparent_scope) {
+  const char8 use[] = u8"x";
+  const char8 declaration[] = u8"x";
+
+  // (() => {
+  //   let x;
+  //   (() => {
+  //     (() => {
+  //       x;
+  //     });
+  //   });
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_function_scope();
+  l.visit_exit_function_scope();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, name_of_named_function_expression_is_usable_within_function) {
   const char8 declaration[] = u8"f";
   const char8 use[] = u8"f";

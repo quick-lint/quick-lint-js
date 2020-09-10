@@ -370,25 +370,32 @@ void linter::propagate_variable_uses_to_parent_scope(
 
   for (const used_variable &used_var : current_scope.variables_used) {
     QLJS_ASSERT(!current_scope.find_declared_variable(used_var.name));
-    const declared_variable *var = this->find_declared_variable(used_var.name);
-    if (!var) {
-      if (!(consume_arguments &&
-            used_var.name.string_view() == u8"arguments") &&
-          !is_current_scope_function_name(used_var)) {
-        (allow_variable_use_before_declaration
-             ? parent_scope.variables_used_in_descendant_scope
-             : parent_scope.variables_used)
-            .emplace_back(used_var);
-      }
+    const declared_variable *var =
+        parent_scope.find_declared_variable(used_var.name);
+    if (var) {
+      // This variable was declared in the parent scope. Don't propagate.
+    } else if (consume_arguments &&
+               used_var.name.string_view() == u8"arguments") {
+      // Treat this variable as declared in the current scope.
+    } else if (is_current_scope_function_name(used_var)) {
+      // Treat this variable as declared in the current scope.
+    } else {
+      (allow_variable_use_before_declaration
+           ? parent_scope.variables_used_in_descendant_scope
+           : parent_scope.variables_used)
+          .emplace_back(used_var);
     }
   }
   current_scope.variables_used.clear();
 
   for (const used_variable &used_var :
        current_scope.variables_used_in_descendant_scope) {
-    QLJS_ASSERT(!this->find_declared_variable(used_var.name));
-    if (is_current_scope_function_name(used_var)) {
-      // Treat variable as used.
+    const declared_variable *var =
+        parent_scope.find_declared_variable(used_var.name);
+    if (var) {
+      // This variable was declared in the parent scope. Don't propagate.
+    } else if (is_current_scope_function_name(used_var)) {
+      // Treat this variable as declared in the current scope.
     } else {
       parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
     }
