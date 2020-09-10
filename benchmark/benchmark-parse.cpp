@@ -73,7 +73,7 @@ void benchmark_parse(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  read_file_result source(quick_lint_js::read_file("jquery-3.5.1.js"));
+  read_file_result source(quick_lint_js::read_file(source_path));
   source.exit_if_not_ok();
 
   for (auto _ : state) {
