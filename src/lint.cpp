@@ -196,23 +196,33 @@ void linter::visit_exit_function_scope() {
 void linter::visit_property_declaration(identifier) {}
 
 void linter::visit_variable_declaration(identifier name, variable_kind kind) {
-  scope &current_scope = this->scopes_.back();
+  this->declare_variable(
+      /*scope=*/this->scopes_.back(),
+      /*name=*/name,
+      /*kind=*/kind,
+      /*variable_scope=*/declared_variable_scope::declared_in_current_scope);
+}
+
+void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
+                              declared_variable_scope declared_scope) {
+  if (declared_scope == declared_variable_scope::declared_in_descendant_scope) {
+    QLJS_ASSERT(kind == variable_kind::_function ||
+                kind == variable_kind::_var);
+  }
 
   this->report_error_if_variable_declaration_conflicts_in_scope(
-      current_scope, name, kind,
-      declared_variable_scope::declared_in_current_scope);
+      scope, name, kind, declared_scope);
 
-  current_scope.declared_variables.emplace_back(
-      declared_variable{string8(name.string_view()), kind, name,
-                        declared_variable_scope::declared_in_current_scope});
-  const declared_variable *declared = &current_scope.declared_variables.back();
+  scope.declared_variables.emplace_back(declared_variable{
+      string8(name.string_view()), kind, name, declared_scope});
+  const declared_variable *declared = &scope.declared_variables.back();
 
   auto erase_if = [](auto &variables, auto predicate) {
     variables.erase(
         std::remove_if(variables.begin(), variables.end(), predicate),
         variables.end());
   };
-  erase_if(current_scope.variables_used, [&](const used_variable &used_var) {
+  erase_if(scope.variables_used, [&](const used_variable &used_var) {
     if (name.string_view() == used_var.name.string_view()) {
       if (kind == variable_kind::_class || kind == variable_kind::_const ||
           kind == variable_kind::_let) {
@@ -237,7 +247,7 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
       return false;
     }
   });
-  erase_if(current_scope.variables_used_in_descendant_scope,
+  erase_if(scope.variables_used_in_descendant_scope,
            [&](const used_variable &used_var) {
              switch (used_var.kind) {
                case used_variable_kind::assignment:
@@ -408,14 +418,13 @@ void linter::propagate_variable_declarations_to_parent_scope() {
   for (const declared_variable &var : current_scope.declared_variables) {
     if (var.kind == variable_kind::_function ||
         var.kind == variable_kind::_var) {
-      declared_variable parent_var = var;
-      parent_var.declaration_scope =
-          declared_variable_scope::declared_in_descendant_scope;
-      QLJS_ASSERT(parent_var.declaration.has_value());
-      this->report_error_if_variable_declaration_conflicts_in_scope(
-          parent_scope, *parent_var.declaration, parent_var.kind,
-          parent_var.declaration_scope);
-      parent_scope.declared_variables.emplace_back(parent_var);
+      QLJS_ASSERT(var.declaration.has_value());
+      this->declare_variable(
+          /*scope=*/parent_scope,
+          /*name=*/*var.declaration,
+          /*kind=*/var.kind,
+          /*variable_scope=*/
+          declared_variable_scope::declared_in_descendant_scope);
     }
   }
 }

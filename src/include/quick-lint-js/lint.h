@@ -83,6 +83,8 @@ class linter {
         noexcept;
   };
 
+  void declare_variable(scope &, identifier name, variable_kind kind,
+                        declared_variable_scope variable_scope);
   void visit_variable_use(identifier name, used_variable_kind);
 
   const declared_variable *find_declared_variable(identifier name) const
