@@ -79,6 +79,11 @@ class linter {
     std::vector<used_variable> variables_used_in_descendant_scope;
     std::optional<declared_variable> function_expression_declaration;
 
+    const declared_variable *add_variable_declaration(identifier name,
+                                                      variable_kind,
+                                                      declared_variable_scope);
+    void add_predefined_variable_declaration(const char8 *name, variable_kind);
+
     const declared_variable *find_declared_variable(identifier name) const
         noexcept;
   };

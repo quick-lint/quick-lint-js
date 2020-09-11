@@ -118,12 +118,8 @@ linter::linter(error_reporter *error_reporter)
   };
 
   for (const char8 *global_variable : writable_global_variables) {
-    global_scope.declared_variables.emplace_back(declared_variable{
-        .name = global_variable,
-        .kind = variable_kind::_function,
-        .declaration = std::nullopt,
-        .declaration_scope = declared_variable_scope::declared_in_current_scope,
-    });
+    global_scope.add_predefined_variable_declaration(global_variable,
+                                                     variable_kind::_function);
   }
 
   const char8 *non_writable_global_variables[] = {
@@ -133,12 +129,8 @@ linter::linter(error_reporter *error_reporter)
       u8"undefined",
   };
   for (const char8 *global_variable : non_writable_global_variables) {
-    global_scope.declared_variables.emplace_back(declared_variable{
-        .name = global_variable,
-        .kind = variable_kind::_const,
-        .declaration = std::nullopt,
-        .declaration_scope = declared_variable_scope::declared_in_current_scope,
-    });
+    global_scope.add_predefined_variable_declaration(global_variable,
+                                                     variable_kind::_const);
   }
 
   const char8 *writable_module_variables[] = {
@@ -147,12 +139,8 @@ linter::linter(error_reporter *error_reporter)
   };
 
   for (const char8 *module_variable : writable_module_variables) {
-    module_scope.declared_variables.emplace_back(declared_variable{
-        .name = module_variable,
-        .kind = variable_kind::_function,
-        .declaration = std::nullopt,
-        .declaration_scope = declared_variable_scope::declared_in_current_scope,
-    });
+    module_scope.add_predefined_variable_declaration(module_variable,
+                                                     variable_kind::_function);
   }
 }
 
@@ -229,9 +217,8 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
   this->report_error_if_variable_declaration_conflicts_in_scope(
       scope, name, kind, declared_scope);
 
-  scope.declared_variables.emplace_back(declared_variable{
-      string8(name.string_view()), kind, name, declared_scope});
-  const declared_variable *declared = &scope.declared_variables.back();
+  const declared_variable *declared =
+      scope.add_variable_declaration(name, kind, declared_scope);
 
   auto erase_if = [](auto &variables, auto predicate) {
     variables.erase(
@@ -521,6 +508,24 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
       }
     }
   }
+}
+
+const linter::declared_variable *linter::scope::add_variable_declaration(
+    identifier name, variable_kind kind,
+    declared_variable_scope declared_scope) {
+  this->declared_variables.emplace_back(declared_variable{
+      string8(name.string_view()), kind, name, declared_scope});
+  return &this->declared_variables.back();
+}
+
+void linter::scope::add_predefined_variable_declaration(const char8 *name,
+                                                        variable_kind kind) {
+  this->declared_variables.emplace_back(declared_variable{
+      .name = name,
+      .kind = kind,
+      .declaration = std::nullopt,
+      .declaration_scope = declared_variable_scope::declared_in_current_scope,
+  });
 }
 
 const linter::declared_variable *linter::scope::find_declared_variable(
