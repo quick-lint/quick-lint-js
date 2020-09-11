@@ -314,14 +314,17 @@ void linter::visit_end_of_module() {
       /*consume_arguments=*/false);
   this->scopes_.pop_back();
 
+  QLJS_ASSERT(this->scopes_.size() == 1);
+  scope &global_scope = this->scopes_.back();
+
   std::vector<identifier> typeof_variables;
-  for (const used_variable &used_var : this->scopes_.back().variables_used) {
+  for (const used_variable &used_var : global_scope.variables_used) {
     if (used_var.kind == used_variable_kind::_typeof) {
       typeof_variables.emplace_back(used_var.name);
     }
   }
   for (const used_variable &used_var :
-       this->scopes_.back().variables_used_in_descendant_scope) {
+       global_scope.variables_used_in_descendant_scope) {
     if (used_var.kind == used_variable_kind::_typeof) {
       typeof_variables.emplace_back(used_var.name);
     }
@@ -338,7 +341,7 @@ void linter::visit_end_of_module() {
            is_variable_declared_by_typeof(var);
   };
 
-  for (const used_variable &used_var : this->scopes_.back().variables_used) {
+  for (const used_variable &used_var : global_scope.variables_used) {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
         case used_variable_kind::assignment:
@@ -357,7 +360,7 @@ void linter::visit_end_of_module() {
     }
   }
   for (const used_variable &used_var :
-       this->scopes_.back().variables_used_in_descendant_scope) {
+       global_scope.variables_used_in_descendant_scope) {
     if (!is_variable_declared(used_var)) {
       // TODO(strager): Should we check used_var.kind?
       this->error_reporter_->report_error_use_of_undeclared_variable(
