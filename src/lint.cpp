@@ -337,7 +337,7 @@ void linter::visit_end_of_module() {
                         }) != typeof_variables.end();
   };
   auto is_variable_declared = [&](const used_variable &var) -> bool {
-    return this->find_declared_variable(var.name) ||
+    return global_scope.find_declared_variable(var.name) ||
            is_variable_declared_by_typeof(var);
   };
 
@@ -367,18 +367,6 @@ void linter::visit_end_of_module() {
           used_var.name);
     }
   }
-}
-
-const linter::declared_variable *linter::find_declared_variable(
-    identifier name) const noexcept {
-  for (auto scope_it = this->scopes_.rbegin(); scope_it != this->scopes_.rend();
-       ++scope_it) {
-    const declared_variable *var = scope_it->find_declared_variable(name);
-    if (var) {
-      return var;
-    }
-  }
-  return nullptr;
 }
 
 void linter::propagate_variable_uses_to_parent_scope(

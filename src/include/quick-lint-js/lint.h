@@ -87,9 +87,6 @@ class linter {
                         declared_variable_scope variable_scope);
   void visit_variable_use(identifier name, used_variable_kind);
 
-  const declared_variable *find_declared_variable(identifier name) const
-      noexcept;
-
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments);
 
