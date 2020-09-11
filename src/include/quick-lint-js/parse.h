@@ -67,7 +67,18 @@ class parser {
     switch (this->peek().type) {
       case token_type::kw_export:
         this->lexer_.skip();
-        this->parse_and_visit_declaration(v);
+        if (this->peek().type == token_type::kw_default) {
+          this->lexer_.skip();
+          if (this->peek().type == token_type::kw_async ||
+              this->peek().type == token_type::kw_class ||
+              this->peek().type == token_type::kw_function) {
+            this->parse_and_visit_declaration(v);
+          } else {
+            this->parse_and_visit_expression(v);
+          }
+        } else {
+          this->parse_and_visit_declaration(v);
+        }
         break;
 
       case token_type::semicolon:

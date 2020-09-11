@@ -105,6 +105,46 @@ TEST(test_parse, export_let) {
   }
 }
 
+TEST(test_parse, export_default) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export default x;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export default function f() {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export default async function f() {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export default (function f() {})");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+                                      "visit_enter_function_scope_body",   //
+                                      "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export default class C {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     //
+                                      "visit_exit_class_scope"));
+  }
+}
+
 TEST(test_parse, parse_simple_var) {
   spy_visitor v;
   padded_string code(u8"var x");
