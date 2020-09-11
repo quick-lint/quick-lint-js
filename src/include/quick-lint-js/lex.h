@@ -242,6 +242,7 @@ class lexer {
                                                   const char8* template_begin,
                                                   error_reporter*);
 
+  void parse_binary_number();
   void parse_hexadecimal_number();
   void parse_number();
   static const char8* parse_decimal_digits(const char8*) noexcept;
@@ -253,6 +254,7 @@ class lexer {
   void skip_block_comment();
   void skip_line_comment();
 
+  static bool is_binary_digit(char8);
   static bool is_digit(char8);
   static bool is_hex_digit(char8);
   static bool is_identifier_character(char8);

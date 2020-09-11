@@ -105,6 +105,13 @@ TEST(test_lex, lex_numbers) {
   check_tokens(u8".2.3", {token_type::number, token_type::number});
 }
 
+TEST(test_lex, lex_binary_numbers) {
+  check_single_token(u8"0b0", token_type::number);
+  check_single_token(u8"0b1", token_type::number);
+  check_single_token(u8"0b010101010101010", token_type::number);
+  check_single_token(u8"0B010101010101010", token_type::number);
+}
+
 TEST(test_lex, lex_hex_numbers) {
   check_single_token(u8"0x0", token_type::number);
   check_single_token(u8"0x123456789abcdef", token_type::number);
@@ -161,6 +168,36 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
               error_collector::error_unexpected_characters_in_number);
     EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
     EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+  }
+
+  {
+    error_collector v;
+    padded_string input(u8"0b01234");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_characters_in_number);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 4);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 7);
+  }
+
+  {
+    error_collector v;
+    padded_string input(u8"0b0h0lla");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    ASSERT_EQ(v.errors.size(), 1);
+    EXPECT_EQ(v.errors[0].kind,
+              error_collector::error_unexpected_characters_in_number);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
+    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 8);
   }
 }
 

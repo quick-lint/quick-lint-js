@@ -150,6 +150,11 @@ retry:
             this->input_ += 2;
             this->parse_hexadecimal_number();
             break;
+          case 'b':
+          case 'B':
+            this->input_ += 2;
+            this->parse_binary_number();
+            break;
           default:
             this->parse_number();
             break;
@@ -615,6 +620,36 @@ void lexer::parse_hexadecimal_number() {
   }
 }
 
+void lexer::parse_binary_number() {
+  QLJS_ASSERT(this->is_binary_digit(this->input_[0]));
+  const char8* input = this->input_;
+
+  while (this->is_binary_digit(*input)) {
+    input += 1;
+  }
+
+  const char8* garbage_begin = input;
+  for (;;) {
+    switch (*input) {
+    QLJS_CASE_DECIMAL_DIGIT:
+    QLJS_CASE_IDENTIFIER_START:
+      input += 1;
+      break;
+      default:
+        goto done_parsing_garbage;
+    }
+  }
+done_parsing_garbage:
+  const char8* garbage_end = input;
+  if (garbage_end != garbage_begin) {
+    this->error_reporter_->report_error_unexpected_characters_in_number(
+        source_code_span(garbage_begin, garbage_end));
+    input = garbage_end;
+  }
+
+  this->input_ = input;
+}
+
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* number_begin = this->input_;
@@ -966,6 +1001,8 @@ void lexer::skip_line_comment() {
     }
   }
 }
+
+bool lexer::is_binary_digit(char8 c) { return c == u8'0' || c == u8'1'; }
 
 bool lexer::is_digit(char8 c) {
   switch (c) {
