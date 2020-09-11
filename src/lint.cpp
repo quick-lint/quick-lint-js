@@ -28,9 +28,10 @@
 namespace quick_lint_js {
 linter::linter(error_reporter *error_reporter)
     : error_reporter_(error_reporter) {
-  this->scopes_.emplace_back();  // Global scope.
-  this->scopes_.emplace_back();  // Module scope.
-  scope &global_scope = this->scopes_.front();
+  this->scopes_.emplace_back();
+  this->scopes_.emplace_back();
+  scope &global_scope = this->scopes_[0];
+  scope &module_scope = this->scopes_[1];
 
   const char8 *writable_global_variables[] = {
       // ECMA-262 18.1 Value Properties of the Global Object
@@ -135,6 +136,20 @@ linter::linter(error_reporter *error_reporter)
     global_scope.declared_variables.emplace_back(declared_variable{
         .name = global_variable,
         .kind = variable_kind::_const,
+        .declaration = std::nullopt,
+        .declaration_scope = declared_variable_scope::declared_in_current_scope,
+    });
+  }
+
+  const char8 *writable_module_variables[] = {
+      // Node.js
+      u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
+  };
+
+  for (const char8 *module_variable : writable_module_variables) {
+    module_scope.declared_variables.emplace_back(declared_variable{
+        .name = module_variable,
+        .kind = variable_kind::_function,
         .declaration = std::nullopt,
         .declaration_scope = declared_variable_scope::declared_in_current_scope,
     });
@@ -506,9 +521,13 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
          declaration_scope ==
              declared_variable_scope::declared_in_descendant_scope);
     if (!redeclaration_ok) {
-      QLJS_ASSERT(already_declared_variable->declaration.has_value());
-      this->error_reporter_->report_error_redeclaration_of_variable(
-          name, *already_declared_variable->declaration);
+      if (already_declared_variable->declaration.has_value()) {
+        this->error_reporter_->report_error_redeclaration_of_variable(
+            name, *already_declared_variable->declaration);
+      } else {
+        this->error_reporter_->report_error_redeclaration_of_global_variable(
+            name);
+      }
     }
   }
 }

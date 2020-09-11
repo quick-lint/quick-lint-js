@@ -62,6 +62,7 @@ void PrintTo(const error_collector::error &x, std::ostream *out) {
     QLJS_CASE(error_missing_comma_between_object_literal_entries)
     QLJS_CASE(error_missing_operand_for_operator)
     QLJS_CASE(error_missing_semicolon_after_expression)
+    QLJS_CASE(error_redeclaration_of_global_variable)
     QLJS_CASE(error_redeclaration_of_variable)
     QLJS_CASE(error_stray_comma_in_let_statement)
     QLJS_CASE(error_unclosed_block_comment)

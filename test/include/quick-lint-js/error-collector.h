@@ -108,6 +108,12 @@ struct error_collector : public error_reporter {
         error{error_missing_semicolon_after_expression, where});
   }
 
+  void report_error_redeclaration_of_global_variable(
+      identifier redeclaration) override {
+    this->errors.emplace_back(error_redeclaration_of_global_variable,
+                              redeclaration.span());
+  }
+
   void report_error_redeclaration_of_variable(
       identifier redeclaration, identifier original_declaration) override {
     this->errors.emplace_back(error(error_redeclaration_of_variable,
@@ -194,6 +200,7 @@ struct error_collector : public error_reporter {
     error_missing_comma_between_object_literal_entries,
     error_missing_operand_for_operator,
     error_missing_semicolon_after_expression,
+    error_redeclaration_of_global_variable,
     error_redeclaration_of_variable,
     error_stray_comma_in_let_statement,
     error_unclosed_block_comment,

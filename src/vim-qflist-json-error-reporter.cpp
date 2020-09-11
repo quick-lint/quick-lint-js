@@ -141,6 +141,12 @@ void vim_qflist_json_error_reporter::
   this->output_ << ", \"text\": \"missing semicolon after expression\"}";
 }
 
+void vim_qflist_json_error_reporter::
+    report_error_redeclaration_of_global_variable(identifier redeclaration) {
+  this->write_qflist_entry_header(redeclaration);
+  this->output_ << ", \"text\": \"redeclaration of global variable\"}";
+}
+
 void vim_qflist_json_error_reporter::report_error_redeclaration_of_variable(
     identifier redeclaration, identifier) {
   this->write_qflist_entry_header(redeclaration);

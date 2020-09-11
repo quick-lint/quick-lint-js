@@ -213,6 +213,17 @@ TEST_F(test_text_error_reporter, missing_semicolon_after_expression) {
             "FILE:1:4: error: missing semicolon after expression\n");
 }
 
+TEST_F(test_text_error_reporter, redeclaration_of_global_variable) {
+  padded_string input(u8"let require");
+  source_code_span declaration_span(&input[5 - 1], &input[11 + 1 - 1]);
+  ASSERT_EQ(declaration_span.string_view(), u8"require");
+
+  this->make_reporter(&input).report_error_redeclaration_of_global_variable(
+      identifier(declaration_span));
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:5: error: redeclaration of global variable\n");
+}
+
 TEST_F(test_text_error_reporter, redeclaration_of_variable) {
   padded_string input(u8"let myvar; let myvar;");
   source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);

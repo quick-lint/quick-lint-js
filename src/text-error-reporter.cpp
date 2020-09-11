@@ -113,6 +113,12 @@ void text_error_reporter::report_error_missing_semicolon_after_expression(
   this->output_ << "error: missing semicolon after expression\n";
 }
 
+void text_error_reporter::report_error_redeclaration_of_global_variable(
+    identifier redeclaration) {
+  this->log_location(redeclaration);
+  this->output_ << "error: redeclaration of global variable\n";
+}
+
 void text_error_reporter::report_error_redeclaration_of_variable(
     identifier redeclaration, identifier original_declaration) {
   log_location(redeclaration);

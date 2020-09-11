@@ -62,6 +62,8 @@ class error_reporter {
       source_code_span where) = 0;
   virtual void report_error_missing_semicolon_after_expression(
       source_code_span where) = 0;
+  virtual void report_error_redeclaration_of_global_variable(
+      identifier redeclaration) = 0;
   virtual void report_error_redeclaration_of_variable(
       identifier redeclaration, identifier original_declaration) = 0;
   virtual void report_error_stray_comma_in_let_statement(
@@ -125,6 +127,7 @@ class null_error_reporter : public error_reporter {
   void report_error_missing_operand_for_operator(source_code_span) override {}
   void report_error_missing_semicolon_after_expression(
       source_code_span) override {}
+  void report_error_redeclaration_of_global_variable(identifier) override {}
   void report_error_redeclaration_of_variable(identifier, identifier) override {
   }
   void report_error_stray_comma_in_let_statement(source_code_span) override {}
