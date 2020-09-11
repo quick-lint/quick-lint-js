@@ -551,6 +551,29 @@ next:
       }
       break;
 
+    case '[':
+      ++c;
+      for (;;) {
+        switch (*c) {
+          case u8']':
+          case u8'\0':
+            goto next;
+
+          case u8'\\':
+            if (c[1] == u8']') {
+              c += 2;
+            } else {
+              c += 1;
+            }
+            break;
+
+          default:
+            ++c;
+            break;
+        }
+      }
+      QLJS_UNREACHABLE();
+
     case '/':
       ++c;
       while (this->is_identifier_character(*c)) {

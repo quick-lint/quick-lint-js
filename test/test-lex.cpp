@@ -465,7 +465,7 @@ world`)",
 }
 
 TEST(test_lex, lex_regular_expression_literals) {
-  for (const char8* raw_code : {u8"/ /", u8R"(/hello\/world/)", u8"/re/g"}) {
+  auto check_regexp = [](const char8* raw_code) {
     padded_string code(raw_code);
     SCOPED_TRACE(code);
     lexer l(&code, &null_error_reporter::instance);
@@ -476,7 +476,13 @@ TEST(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().end, &code[code.size()]);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
-  }
+  };
+
+  check_regexp(u8"/ /");
+  check_regexp(u8R"(/hello\/world/)");
+  check_regexp(u8"/re/g");
+  check_regexp(u8R"(/[/]/)");
+  check_regexp(u8R"(/[\]/]/)");
 
   for (const char8* raw_code : {u8"/end_of_file", u8R"(/eof\)"}) {
     padded_string code(raw_code);
@@ -498,8 +504,6 @@ TEST(test_lex, lex_regular_expression_literals) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
-
-  // TODO(strager): Parse '/' inside character classes.
 
   // TODO(strager): Report invalid escape sequences.
 
