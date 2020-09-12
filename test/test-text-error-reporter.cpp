@@ -17,6 +17,7 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <sstream>
@@ -346,6 +347,75 @@ TEST_F(test_text_error_reporter, variable_used_before_declaration) {
   EXPECT_EQ(this->get_output(),
             "FILE:1:1: error: variable used before declaration: myvar\n"
             "FILE:1:12: note: variable declared here\n");
+}
+
+TEST(test_text_error_formatter, single_span_simple_message) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::ostringstream stream;
+  text_error_formatter(stream, "FILE", locator)
+      .error(u8"something happened", source_code_span(&code[0], &code[5]))
+      .end();
+
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: something happened\n");
+}
+
+TEST(test_text_error_formatter, message_with_note) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::ostringstream stream;
+  text_error_formatter(stream, "FILE", locator)
+      .error(u8"something happened", source_code_span(&code[0], &code[5]))
+      .note(u8"see here", source_code_span(&code[6], &code[11]))
+      .end();
+
+  EXPECT_EQ(stream.str(),
+            "FILE:1:1: error: something happened\nFILE:1:7: note: see here\n");
+}
+
+TEST(test_text_error_formatter, message_with_zero_placeholder) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::ostringstream stream;
+  text_error_formatter(stream, "FILE", locator)
+      .error(u8"this {0} looks fishy", source_code_span(&code[0], &code[5]))
+      .end();
+
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: this hello looks fishy\n");
+}
+
+TEST(test_text_error_formatter, message_with_extra_identifier_placeholder) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::ostringstream stream;
+  text_error_formatter(stream, "FILE", locator)
+      .error(u8"this {1} looks fishy", source_code_span(&code[0], &code[5]),
+             identifier(source_code_span(&code[6], &code[11])))
+      .end();
+
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: this world looks fishy\n");
+}
+
+TEST(test_text_error_formatter, message_with_multiple_span_placeholders) {
+  padded_string code(u8"let me = be(free);");
+  quick_lint_js::locator locator(&code);
+  source_code_span let_span(&code[0], &code[3]);
+  ASSERT_EQ(let_span.string_view(), u8"let");
+  source_code_span me_span(&code[4], &code[6]);
+  ASSERT_EQ(me_span.string_view(), u8"me");
+  source_code_span be_span(&code[9], &code[11]);
+  ASSERT_EQ(be_span.string_view(), u8"be");
+
+  std::ostringstream stream;
+  text_error_formatter(stream, "FILE", locator)
+      .error(u8"free {1} and {0} {1} {2}", let_span, me_span, be_span)
+      .end();
+
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: free me and let me be\n");
 }
 }
 }
