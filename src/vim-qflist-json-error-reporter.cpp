@@ -303,6 +303,53 @@ vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
       file_name_(file_name),
       bufnr_(bufnr) {}
 
+void vim_qflist_json_error_formatter::write_before_message(
+    severity sev, const source_code_span &origin) {
+  if (sev == severity::note) {
+    // Don't write notes. Only write the main message.
+    return;
+  }
+
+  source_range r = this->locator_.range(origin);
+  auto end_column_number = origin.begin() == origin.end()
+                               ? r.begin().column_number
+                               : (r.end().column_number - 1);
+  this->output_ << "{\"col\": " << r.begin().column_number
+                << ", \"lnum\": " << r.begin().line_number
+                << ", \"end_col\": " << end_column_number
+                << ", \"end_lnum\": " << r.end().line_number
+                << ", \"vcol\": 0, \"text\": \"";
+}
+
+void vim_qflist_json_error_formatter::write_message_part(severity sev,
+                                                         string8_view message) {
+  if (sev == severity::note) {
+    // Don't write notes. Only write the main message.
+    return;
+  }
+
+  write_escaped_string(this->output_, message);
+}
+
+void vim_qflist_json_error_formatter::write_after_message(
+    severity sev, const source_code_span &) {
+  if (sev == severity::note) {
+    // Don't write notes. Only write the main message.
+    return;
+  }
+
+  this->output_ << '\"';
+  if (!this->bufnr_.empty()) {
+    this->output_ << ", \"bufnr\": " << this->bufnr_;
+  }
+  if (!this->file_name_.empty()) {
+    this->output_ << ", \"filename\": \"";
+    write_escaped_string(this->output_, this->file_name_);
+    this->output_ << '"';
+  }
+  this->output_ << '}';
+}
+
 void vim_qflist_json_error_formatter::add(
     severity sev, const char8 *message,
     std::initializer_list<source_code_span> parameters) {
@@ -311,27 +358,14 @@ void vim_qflist_json_error_formatter::add(
   QLJS_ASSERT(message);
   QLJS_ASSERT(!std::empty(parameters));
 
-  if (sev == severity::note) {
-    // Don't write notes. Only write the main message.
-    return;
-  }
-
   const source_code_span &origin_span = *parameters.begin();
-  source_range r = this->locator_.range(origin_span);
-  auto end_column_number = origin_span.begin() == origin_span.end()
-                               ? r.begin().column_number
-                               : (r.end().column_number - 1);
-  this->output_ << "{\"col\": " << r.begin().column_number
-                << ", \"lnum\": " << r.begin().line_number
-                << ", \"end_col\": " << end_column_number
-                << ", \"end_lnum\": " << r.end().line_number
-                << ", \"vcol\": 0, \"text\": \"";
+  this->write_before_message(sev, origin_span);
 
   string8_view remaining_message(message);
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
-    write_escaped_string(this->output_,
-                         remaining_message.substr(0, left_curly_index));
+    this->write_message_part(sev,
+                             remaining_message.substr(0, left_curly_index));
 
     string8_pos right_curly_index =
         remaining_message.find(u8'}', left_curly_index + 1);
@@ -351,22 +385,12 @@ void vim_qflist_json_error_formatter::add(
       QLJS_UNREACHABLE();
     }
 
-    write_escaped_string(this->output_,
-                         (parameters.begin() + index)->string_view());
+    this->write_message_part(sev, (parameters.begin() + index)->string_view());
     remaining_message = remaining_message.substr(right_curly_index + 1);
   }
-  write_escaped_string(this->output_, remaining_message);
+  this->write_message_part(sev, remaining_message);
 
-  this->output_ << '\"';
-  if (!this->bufnr_.empty()) {
-    this->output_ << ", \"bufnr\": " << this->bufnr_;
-  }
-  if (!this->file_name_.empty()) {
-    this->output_ << ", \"filename\": \"";
-    write_escaped_string(this->output_, this->file_name_);
-    this->output_ << '"';
-  }
-  this->output_ << '}';
+  this->write_after_message(sev, origin_span);
 }
 
 void vim_qflist_json_error_formatter::end() {}

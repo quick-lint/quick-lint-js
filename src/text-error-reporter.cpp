@@ -221,6 +221,31 @@ text_error_formatter::text_error_formatter(std::ostream &output,
                                            quick_lint_js::locator &locator)
     : output_(output), file_path_(file_path), locator_(locator) {}
 
+void text_error_formatter::write_before_message(
+    severity sev, const source_code_span &origin) {
+  source_range r = this->locator_.range(origin);
+  source_position p = r.begin();
+  this->output_ << this->file_path_ << ":" << p.line_number << ":"
+                << p.column_number << ": ";
+  switch (sev) {
+    case severity::error:
+      this->output_ << "error: ";
+      break;
+    case severity::note:
+      this->output_ << "note: ";
+      break;
+  }
+}
+
+void text_error_formatter::write_message_part(severity, string8_view message) {
+  this->output_ << out_string8(message);
+}
+
+void text_error_formatter::write_after_message(severity,
+                                               const source_code_span &) {
+  this->output_ << '\n';
+}
+
 void text_error_formatter::add(
     severity sev, const char8 *message,
     std::initializer_list<source_code_span> parameters) {
@@ -230,24 +255,13 @@ void text_error_formatter::add(
   QLJS_ASSERT(!std::empty(parameters));
 
   const source_code_span &origin_span = *parameters.begin();
-  source_range r = this->locator_.range(origin_span);
-  source_position p = r.begin();
-  this->output_ << this->file_path_ << ":" << p.line_number << ":"
-                << p.column_number << ": ";
-
-  switch (sev) {
-    case severity::error:
-      this->output_ << "error: ";
-      break;
-    case severity::note:
-      this->output_ << "note: ";
-      break;
-  }
+  this->write_before_message(sev, origin_span);
 
   string8_view remaining_message(message);
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
-    this->output_ << out_string8(remaining_message.substr(0, left_curly_index));
+    this->write_message_part(sev,
+                             remaining_message.substr(0, left_curly_index));
 
     string8_pos right_curly_index =
         remaining_message.find(u8'}', left_curly_index + 1);
@@ -267,12 +281,12 @@ void text_error_formatter::add(
       QLJS_UNREACHABLE();
     }
 
-    this->output_ << out_string8((parameters.begin() + index)->string_view());
+    this->write_message_part(sev, (parameters.begin() + index)->string_view());
     remaining_message = remaining_message.substr(right_curly_index + 1);
   }
-  this->output_ << out_string8(remaining_message);
+  this->write_message_part(sev, remaining_message);
 
-  this->output_ << '\n';
+  this->write_after_message(sev, origin_span);
 }
 
 void text_error_formatter::end() {}

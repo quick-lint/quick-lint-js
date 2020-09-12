@@ -145,6 +145,10 @@ class text_error_formatter {
 
   static source_code_span to_span(identifier ident) { return ident.span(); }
 
+  void write_before_message(severity, const source_code_span &origin);
+  void write_message_part(severity, string8_view);
+  void write_after_message(severity, const source_code_span &origin);
+
   std::ostream &output_;
   const char *file_path_;
   locator &locator_;
