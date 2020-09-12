@@ -64,6 +64,18 @@ TEST(test_location, ranges_on_second_line) {
   }
 }
 
+TEST(test_location, first_character_on_line_has_column_1) {
+  for (string8 line_terminator : line_terminators) {
+    padded_string code(u8"function f() {}" + line_terminator + u8"g();");
+    const char8* g = strchr(code.c_str(), u8'g');
+    locator l(&code);
+    source_position g_position = l.position(g);
+
+    EXPECT_EQ(g_position.line_number, 2);
+    EXPECT_EQ(g_position.column_number, 1);
+  }
+}
+
 TEST(test_location, lf_cr_is_two_line_terminators) {
   padded_string code(u8"let x = 2;\n\rlet y = 3;");
   const char8* y = strchr(code.c_str(), u8'y');

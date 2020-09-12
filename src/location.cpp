@@ -97,7 +97,7 @@ source_position::line_number_type locator::find_line_at_offset(
     this->cache_offsets_of_lines();
   }
   QLJS_ASSERT(!this->offset_of_lines_.empty());
-  auto offset_of_following_line_it = std::lower_bound(
+  auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
   return narrow_cast<source_position::line_number_type>(
              (offset_of_following_line_it - 1) -
