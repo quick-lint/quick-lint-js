@@ -25,6 +25,18 @@
 
 namespace quick_lint_js {
 namespace {
+::Json::Value parse_json(std::stringstream &stream) {
+  SCOPED_TRACE(stream.str());
+  stream.seekg(0);
+  ::Json::Value root;
+  ::Json::CharReaderBuilder builder;
+  builder.strictMode(&builder.settings_);
+  ::Json::String errors;
+  bool ok = ::Json::parseFromStream(builder, stream, &root, &errors);
+  EXPECT_TRUE(ok) << errors;
+  return root;
+}
+
 class test_vim_qflist_json_error_reporter : public ::testing::Test {
  protected:
   vim_qflist_json_error_reporter make_reporter() {
@@ -46,17 +58,7 @@ class test_vim_qflist_json_error_reporter : public ::testing::Test {
   }
 
   ::Json::Value parse_json() {
-    SCOPED_TRACE(this->stream_.str());
-
-    this->stream_.seekg(0);
-
-    ::Json::Value root;
-    ::Json::CharReaderBuilder builder;
-    builder.strictMode(&builder.settings_);
-    ::Json::String errors;
-    bool ok = ::Json::parseFromStream(builder, this->stream_, &root, &errors);
-    EXPECT_TRUE(ok) << errors;
-
+    ::Json::Value root = quick_lint_js::parse_json(this->stream_);
     this->stream_ = std::stringstream();
     return root;
   }
@@ -692,6 +694,94 @@ TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
   EXPECT_EQ(qflist[0]["text"], "variable used before declaration");
+}
+
+TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::stringstream stream;
+  vim_qflist_json_error_formatter(stream, locator, "FILE",
+                                  /*bufnr=*/std::string_view())
+      .error(u8"something happened", source_code_span(&code[0], &code[5]))
+      .end();
+
+  ::Json::Value object = parse_json(stream);
+  EXPECT_EQ(object["col"], 1);
+  EXPECT_EQ(object["end_col"], 5);
+  EXPECT_EQ(object["end_lnum"], 1);
+  EXPECT_EQ(object["lnum"], 1);
+  EXPECT_EQ(object["text"], "something happened");
+}
+
+TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::stringstream stream;
+  vim_qflist_json_error_formatter(stream, locator, "FILE",
+                                  /*bufnr=*/std::string_view())
+      .error(u8"something happened", source_code_span(&code[0], &code[5]))
+      .note(u8"see here", source_code_span(&code[6], &code[11]))
+      .end();
+
+  ::Json::Value object = parse_json(stream);
+  EXPECT_EQ(object["col"], 1);
+  EXPECT_EQ(object["end_col"], 5);
+  EXPECT_EQ(object["end_lnum"], 1);
+  EXPECT_EQ(object["lnum"], 1);
+  EXPECT_EQ(object["text"], "something happened");
+}
+
+TEST(test_vim_qflist_json_error_formatter, message_with_zero_placeholder) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::stringstream stream;
+  vim_qflist_json_error_formatter(stream, locator, "FILE",
+                                  /*bufnr=*/std::string_view())
+      .error(u8"this {0} looks fishy", source_code_span(&code[0], &code[5]))
+      .end();
+
+  ::Json::Value object = parse_json(stream);
+  EXPECT_EQ(object["text"], "this hello looks fishy");
+}
+
+TEST(test_vim_qflist_json_error_formatter,
+     message_with_extra_identifier_placeholder) {
+  padded_string code(u8"hello world");
+  quick_lint_js::locator locator(&code);
+
+  std::stringstream stream;
+  vim_qflist_json_error_formatter(stream, locator, "FILE",
+                                  /*bufnr=*/std::string_view())
+      .error(u8"this {1} looks fishy", source_code_span(&code[0], &code[5]),
+             identifier(source_code_span(&code[6], &code[11])))
+      .end();
+
+  ::Json::Value object = parse_json(stream);
+  EXPECT_EQ(object["text"], "this world looks fishy");
+}
+
+TEST(test_vim_qflist_json_error_formatter,
+     message_with_multiple_span_placeholders) {
+  padded_string code(u8"let me = be(free);");
+  quick_lint_js::locator locator(&code);
+  source_code_span let_span(&code[0], &code[3]);
+  ASSERT_EQ(let_span.string_view(), u8"let");
+  source_code_span me_span(&code[4], &code[6]);
+  ASSERT_EQ(me_span.string_view(), u8"me");
+  source_code_span be_span(&code[9], &code[11]);
+  ASSERT_EQ(be_span.string_view(), u8"be");
+
+  std::stringstream stream;
+  vim_qflist_json_error_formatter(stream, locator, "FILE",
+                                  /*bufnr=*/std::string_view())
+      .error(u8"free {1} and {0} {1} {2}", let_span, me_span, be_span)
+      .end();
+
+  ::Json::Value object = parse_json(stream);
+  EXPECT_EQ(object["text"], "free me and let me be");
 }
 }
 }

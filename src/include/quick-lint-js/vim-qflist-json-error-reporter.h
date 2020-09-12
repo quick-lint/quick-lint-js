@@ -17,6 +17,7 @@
 #ifndef QUICK_LINT_JS_VIM_QFLIST_JSON_ERROR_REPORTER_H
 #define QUICK_LINT_JS_VIM_QFLIST_JSON_ERROR_REPORTER_H
 
+#include <initializer_list>
 #include <iosfwd>
 #include <optional>
 #include <quick-lint-js/error.h>
@@ -24,8 +25,11 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
+#include <utility>
 
 namespace quick_lint_js {
+class vim_qflist_json_error_formatter;
+
 class vim_qflist_json_error_reporter final : public error_reporter {
  public:
   explicit vim_qflist_json_error_reporter(std::ostream &output);
@@ -96,16 +100,68 @@ class vim_qflist_json_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  void write_qflist_entry_header(identifier name);
-  void write_qflist_entry_header(source_code_span span);
-
-  void write_escaped_string(std::string_view);
+  void begin_error();
+  vim_qflist_json_error_formatter format();
 
   std::ostream &output_;
   std::optional<locator> locator_;
   std::string bufnr_;
   std::string file_name_;
   bool need_comma_ = false;
+};
+
+class vim_qflist_json_error_formatter {
+ private:
+  enum class severity;
+
+ public:
+  explicit vim_qflist_json_error_formatter(std::ostream &output,
+                                           quick_lint_js::locator &locator,
+                                           std::string_view file_name,
+                                           std::string_view bufnr);
+
+  template <class... Args>
+  vim_qflist_json_error_formatter &error(const char8 *message,
+                                         Args... parameters) {
+    this->add(severity::error, message, std::forward<Args>(parameters)...);
+    return *this;
+  }
+
+  template <class... Args>
+  vim_qflist_json_error_formatter &note(const char8 *message,
+                                        Args &&... parameters) {
+    this->add(severity::note, message, std::forward<Args>(parameters)...);
+    return *this;
+  }
+
+  void end();
+
+ private:
+  enum class severity {
+    error,
+    note,
+  };
+
+  template <class... Args>
+  void add(severity sev, const char8 *message, Args &&... parameters) {
+    static_assert(sizeof...(Args) > 0,
+                  "at least origin span must be specified");
+    this->add(sev, message, {this->to_span(std::forward<Args>(parameters))...});
+  }
+
+  void add(severity, const char8 *message,
+           std::initializer_list<source_code_span> parameters);
+
+  static const source_code_span &to_span(const source_code_span &span) {
+    return span;
+  }
+
+  static source_code_span to_span(identifier ident) { return ident.span(); }
+
+  std::ostream &output_;
+  quick_lint_js::locator &locator_;
+  std::string_view file_name_;
+  std::string_view bufnr_;
 };
 }
 
