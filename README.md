@@ -20,7 +20,7 @@ quick-lint-js finds bugs in JavaScript programs.
 ## Values
 
 * **Performance**. You use quick-lint-js in text editors and IDEs to show bugs
-  as they written. quick-lint-js must be *fast* to make feedback *responsive*.
+  as they are written. quick-lint-js must be *fast* to make feedback *responsive*.
   * **Small design**. The less infrastructure and developer conveniences used
     within quick-lint-js, the less time quick-lint-js wastes due to this bloat.
   * **Few features**. Features add run-time costs. With fewer features,
