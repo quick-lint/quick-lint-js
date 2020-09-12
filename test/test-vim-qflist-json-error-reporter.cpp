@@ -481,7 +481,7 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
   EXPECT_EQ(qflist[0]["end_col"], 20);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["text"], "redeclaration of variable");
+  EXPECT_EQ(qflist[0]["text"], "redeclaration of variable: myvar");
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, stray_comma_in_let_statement) {
@@ -671,7 +671,7 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
   EXPECT_EQ(qflist[0]["end_col"], 5);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["text"], "use of undeclared variable");
+  EXPECT_EQ(qflist[0]["text"], "use of undeclared variable: myvar");
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
@@ -693,7 +693,7 @@ TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
   EXPECT_EQ(qflist[0]["end_col"], 5);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["text"], "variable used before declaration");
+  EXPECT_EQ(qflist[0]["text"], "variable used before declaration: myvar");
 }
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {

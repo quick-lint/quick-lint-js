@@ -35,54 +35,10 @@ class text_error_reporter final : public error_reporter {
 
   void set_source(padded_string_view input, const char *file_name);
 
-  void report_error_assignment_before_variable_declaration(
-      identifier assignment, identifier declaration) override;
-  void report_error_assignment_to_const_global_variable(
-      identifier assignment) override;
-  void report_error_assignment_to_const_variable(
-      identifier declaration, identifier assignment,
-      variable_kind var_kind) override;
-  void report_error_assignment_to_undeclared_variable(
-      identifier assignment) override;
-  void report_error_big_int_literal_contains_decimal_point(
-      source_code_span where) override;
-  void report_error_big_int_literal_contains_exponent(
-      source_code_span where) override;
-  void report_error_big_int_literal_contains_leading_zero(
-      source_code_span where) override;
-  void report_error_invalid_binding_in_let_statement(
-      source_code_span where) override;
-  void report_error_invalid_expression_left_of_assignment(
-      source_code_span where) override;
-  void report_error_let_with_no_bindings(source_code_span where) override;
-  void report_error_missing_comma_between_object_literal_entries(
-      source_code_span where) override;
-  void report_error_missing_operand_for_operator(
-      source_code_span where) override;
-  void report_error_missing_semicolon_after_expression(
-      source_code_span where) override;
-  void report_error_redeclaration_of_global_variable(
-      identifier redeclaration) override;
-  void report_error_redeclaration_of_variable(
-      identifier redeclaration, identifier original_declaration) override;
-  void report_error_stray_comma_in_let_statement(
-      source_code_span where) override;
-  void report_error_unclosed_block_comment(
-      source_code_span comment_open) override;
-  void report_error_unclosed_regexp_literal(
-      source_code_span regexp_literal) override;
-  void report_error_unclosed_string_literal(
-      source_code_span string_literal) override;
-  void report_error_unclosed_template(
-      source_code_span incomplete_template) override;
-  void report_error_unexpected_characters_in_number(
-      source_code_span characters) override;
-  void report_error_unexpected_hash_character(source_code_span where) override;
-  void report_error_unexpected_identifier(source_code_span where) override;
-  void report_error_unmatched_parenthesis(source_code_span where) override;
-  void report_error_use_of_undeclared_variable(identifier name) override;
-  void report_error_variable_used_before_declaration(
-      identifier use, identifier declaration) override;
+#define QLJS_ERROR_TYPE(name, parameters, format) \
+  void report_##name parameters override;
+  QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
 
   void report_fatal_error_unimplemented_character(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,

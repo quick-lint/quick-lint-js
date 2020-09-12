@@ -27,7 +27,118 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
 #include <utility>
+
+#define QLJS_X_ERROR_TYPES                                                     \
+  QLJS_ERROR_TYPE(                                                             \
+      error_assignment_before_variable_declaration,                            \
+      (identifier assignment, identifier declaration),                         \
+      .error(u8"variable assigned before its declaration", assignment)         \
+          .note(u8"variable declared here", declaration))                      \
+                                                                               \
+  QLJS_ERROR_TYPE(error_assignment_to_const_global_variable,                   \
+                  (identifier assignment),                                     \
+                  .error(u8"assignment to const global variable", assignment)) \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_assignment_to_const_variable,                                      \
+      (identifier declaration, identifier assignment, variable_kind var_kind), \
+      .error(u8"assignment to const variable", assignment)                     \
+          .note(u8"const variable declared here", declaration))                \
+                                                                               \
+  QLJS_ERROR_TYPE(error_assignment_to_undeclared_variable,                     \
+                  (identifier assignment),                                     \
+                  .error(u8"assignment to undeclared variable", assignment))   \
+                                                                               \
+  QLJS_ERROR_TYPE(error_big_int_literal_contains_decimal_point,                \
+                  (source_code_span where),                                    \
+                  .error(u8"BigInt literal contains decimal point", where))    \
+                                                                               \
+  QLJS_ERROR_TYPE(error_big_int_literal_contains_exponent,                     \
+                  (source_code_span where),                                    \
+                  .error(u8"BigInt literal contains exponent", where))         \
+                                                                               \
+  QLJS_ERROR_TYPE(error_big_int_literal_contains_leading_zero,                 \
+                  (source_code_span where),                                    \
+                  .error(u8"BigInt literal has a leading 0 digit", where))     \
+                                                                               \
+  QLJS_ERROR_TYPE(error_invalid_binding_in_let_statement,                      \
+                  (source_code_span where),                                    \
+                  .error(u8"invalid binding in let statement", where))         \
+                                                                               \
+  QLJS_ERROR_TYPE(error_invalid_expression_left_of_assignment,                 \
+                  (source_code_span where),                                    \
+                  .error(u8"invalid expression left of assignment", where))    \
+                                                                               \
+  QLJS_ERROR_TYPE(error_let_with_no_bindings, (source_code_span where),        \
+                  .error(u8"let with no bindings", where))                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_comma_between_object_literal_entries,                      \
+      (source_code_span where),                                                \
+      .error(u8"missing comma between object literal entries", where))         \
+                                                                               \
+  QLJS_ERROR_TYPE(error_missing_operand_for_operator,                          \
+                  (source_code_span where),                                    \
+                  .error(u8"missing operand for operator", where))             \
+                                                                               \
+  QLJS_ERROR_TYPE(error_missing_semicolon_after_expression,                    \
+                  (source_code_span where),                                    \
+                  .error(u8"missing semicolon after expression", where))       \
+                                                                               \
+  QLJS_ERROR_TYPE(error_redeclaration_of_global_variable,                      \
+                  (identifier redeclaration),                                  \
+                  .error(u8"redeclaration of global variable", redeclaration)) \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_redeclaration_of_variable,                                         \
+      (identifier redeclaration, identifier original_declaration),             \
+      .error(u8"redeclaration of variable: {0}", redeclaration)                \
+          .note(u8"variable already declared here", original_declaration))     \
+                                                                               \
+  QLJS_ERROR_TYPE(error_stray_comma_in_let_statement,                          \
+                  (source_code_span where),                                    \
+                  .error(u8"stray comma in let statement", where))             \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unclosed_block_comment,                                \
+                  (source_code_span comment_open),                             \
+                  .error(u8"unclosed block comment", comment_open))            \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unclosed_regexp_literal,                               \
+                  (source_code_span regexp_literal),                           \
+                  .error(u8"unclosed regexp literal", regexp_literal))         \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unclosed_string_literal,                               \
+                  (source_code_span string_literal),                           \
+                  .error(u8"unclosed string literal", string_literal))         \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unclosed_template,                                     \
+                  (source_code_span incomplete_template),                      \
+                  .error(u8"unclosed template", incomplete_template))          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_characters_in_number, (source_code_span characters),    \
+      .error(u8"unexpected characters in number literal", characters))         \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unexpected_hash_character, (source_code_span where),   \
+                  .error(u8"unexpected '#'", where))                           \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unexpected_identifier, (source_code_span where),       \
+                  .error(u8"unexpected identifier", where))                    \
+                                                                               \
+  QLJS_ERROR_TYPE(error_unmatched_parenthesis, (source_code_span where),       \
+                  .error(u8"unmatched parenthesis", where))                    \
+                                                                               \
+  QLJS_ERROR_TYPE(error_use_of_undeclared_variable, (identifier name),         \
+                  .error(u8"use of undeclared variable: {0}", name))           \
+                                                                               \
+  QLJS_ERROR_TYPE(error_variable_used_before_declaration,                      \
+                  (identifier use, identifier declaration),                    \
+                  .error(u8"variable used before declaration: {0}", use)       \
+                      .note(u8"variable declared here", declaration))          \
+                                                                               \
+  /* END */
 
 namespace quick_lint_js {
 class error_reporter {
@@ -42,55 +153,10 @@ class error_reporter {
 
   virtual ~error_reporter() = default;
 
-  virtual void report_error_assignment_before_variable_declaration(
-      identifier assignment, identifier declaration) = 0;
-  virtual void report_error_assignment_to_const_global_variable(
-      identifier assignment) = 0;
-  virtual void report_error_assignment_to_const_variable(
-      identifier declaration, identifier assignment,
-      variable_kind var_kind) = 0;
-  virtual void report_error_assignment_to_undeclared_variable(
-      identifier assignment) = 0;
-  virtual void report_error_big_int_literal_contains_decimal_point(
-      source_code_span where) = 0;
-  virtual void report_error_big_int_literal_contains_exponent(
-      source_code_span where) = 0;
-  virtual void report_error_big_int_literal_contains_leading_zero(
-      source_code_span where) = 0;
-  virtual void report_error_invalid_binding_in_let_statement(
-      source_code_span where) = 0;
-  virtual void report_error_invalid_expression_left_of_assignment(
-      source_code_span where) = 0;
-  virtual void report_error_let_with_no_bindings(source_code_span where) = 0;
-  virtual void report_error_missing_comma_between_object_literal_entries(
-      source_code_span where) = 0;
-  virtual void report_error_missing_operand_for_operator(
-      source_code_span where) = 0;
-  virtual void report_error_missing_semicolon_after_expression(
-      source_code_span where) = 0;
-  virtual void report_error_redeclaration_of_global_variable(
-      identifier redeclaration) = 0;
-  virtual void report_error_redeclaration_of_variable(
-      identifier redeclaration, identifier original_declaration) = 0;
-  virtual void report_error_stray_comma_in_let_statement(
-      source_code_span where) = 0;
-  virtual void report_error_unclosed_block_comment(
-      source_code_span comment_open) = 0;
-  virtual void report_error_unclosed_regexp_literal(
-      source_code_span regexp_literal) = 0;
-  virtual void report_error_unclosed_string_literal(
-      source_code_span string_literal) = 0;
-  virtual void report_error_unclosed_template(
-      source_code_span incomplete_template) = 0;
-  virtual void report_error_unexpected_characters_in_number(
-      source_code_span characters) = 0;
-  virtual void report_error_unexpected_hash_character(
-      source_code_span where) = 0;
-  virtual void report_error_unexpected_identifier(source_code_span where) = 0;
-  virtual void report_error_unmatched_parenthesis(source_code_span where) = 0;
-  virtual void report_error_use_of_undeclared_variable(identifier name) = 0;
-  virtual void report_error_variable_used_before_declaration(
-      identifier use, identifier declaration) = 0;
+#define QLJS_ERROR_TYPE(name, parameters, format) \
+  virtual void report_##name parameters = 0;
+  QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
 
   virtual void report_fatal_error_unimplemented_character(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
@@ -111,44 +177,14 @@ class null_error_reporter : public error_reporter {
  public:
   static null_error_reporter instance;
 
-  void report_error_assignment_before_variable_declaration(
-      identifier, identifier) override {}
-  void report_error_assignment_to_const_global_variable(identifier) override {}
-  void report_error_assignment_to_const_variable(identifier, identifier,
-                                                 variable_kind) override {}
-  void report_error_assignment_to_undeclared_variable(identifier) override {}
-  void report_error_big_int_literal_contains_decimal_point(
-      source_code_span) override {}
-  void report_error_big_int_literal_contains_exponent(
-      source_code_span) override {}
-  void report_error_big_int_literal_contains_leading_zero(
-      source_code_span) override {}
-  void report_error_invalid_binding_in_let_statement(
-      source_code_span) override {}
-  void report_error_invalid_expression_left_of_assignment(
-      source_code_span) override {}
-  void report_error_let_with_no_bindings(source_code_span) override {}
-  void report_error_missing_comma_between_object_literal_entries(
-      source_code_span) override {}
-  void report_error_missing_operand_for_operator(source_code_span) override {}
-  void report_error_missing_semicolon_after_expression(
-      source_code_span) override {}
-  void report_error_redeclaration_of_global_variable(identifier) override {}
-  void report_error_redeclaration_of_variable(identifier, identifier) override {
-  }
-  void report_error_stray_comma_in_let_statement(source_code_span) override {}
-  void report_error_unclosed_block_comment(source_code_span) override {}
-  void report_error_unclosed_regexp_literal(source_code_span) override {}
-  void report_error_unclosed_string_literal(source_code_span) override {}
-  void report_error_unclosed_template(source_code_span) override {}
-  void report_error_unexpected_characters_in_number(source_code_span) override {
-  }
-  void report_error_unexpected_hash_character(source_code_span) override {}
-  void report_error_unexpected_identifier(source_code_span) override {}
-  void report_error_unmatched_parenthesis(source_code_span) override {}
-  void report_error_use_of_undeclared_variable(identifier) override {}
-  void report_error_variable_used_before_declaration(identifier,
-                                                     identifier) override {}
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_CLANG("-Wunused-parameter")
+  QLJS_WARNING_IGNORE_GCC("-Wunused-parameter")
+#define QLJS_ERROR_TYPE(name, parameters, format) \
+  void report_##name parameters override {}
+  QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+  QLJS_WARNING_POP
 
   void report_fatal_error_unimplemented_character(const char *, int,
                                                   const char *,
