@@ -159,8 +159,7 @@ void linter::visit_enter_function_scope_body() {
 }
 
 void linter::visit_enter_named_function_scope(identifier function_name) {
-  this->scopes_.emplace_back();
-  scope &current_scope = this->scopes_.back();
+  scope &current_scope = this->scopes_.emplace_back();
   current_scope.function_expression_declaration = declared_variable{
       .name = string8(function_name.string_view()),
       .kind = variable_kind::_function,

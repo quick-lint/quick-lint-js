@@ -149,8 +149,7 @@ class test_parser {
 class test_parse_expression : public ::testing::Test {
  protected:
   expression_ptr parse_expression(const char8 *input) {
-    this->parsers_.emplace_back(input);
-    test_parser &p = this->parsers_.back();
+    test_parser &p = this->parsers_.emplace_back(input);
 
     expression_ptr ast = p.parse_expression();
     EXPECT_THAT(p.errors(), IsEmpty());

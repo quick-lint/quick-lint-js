@@ -148,9 +148,10 @@ class vector {
   QLJS_FORCE_INLINE T &back() noexcept { return this->data_.back(); }
 
   template <class... Args>
-  QLJS_FORCE_INLINE void emplace_back(Args &&... args) {
-    this->data_.emplace_back(std::forward<Args>(args)...);
+  QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
+    T &result = this->data_.emplace_back(std::forward<Args>(args)...);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return result;
   }
 
   QLJS_FORCE_INLINE void clear() {

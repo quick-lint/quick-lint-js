@@ -356,9 +356,9 @@ next:
       }
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
-      children.emplace_back(
+      expression_ptr rhs = children.emplace_back(
           this->parse_expression(precedence{.commas = false}));
-      if (children.back()->kind() == expression_kind::_invalid) {
+      if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report_error_missing_operand_for_operator(
             operator_span);
       }
@@ -374,9 +374,9 @@ next:
       }
       source_code_span operator_span = this->peek().span();
       this->lexer_.skip();
-      children.emplace_back(this->parse_expression(
+      expression_ptr rhs = children.emplace_back(this->parse_expression(
           precedence{.binary_operators = false, .commas = false}));
-      if (children.back()->kind() == expression_kind::_invalid) {
+      if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report_error_missing_operand_for_operator(
             operator_span);
       }
