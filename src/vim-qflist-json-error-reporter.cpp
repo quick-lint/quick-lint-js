@@ -349,49 +349,4 @@ void vim_qflist_json_error_formatter::write_after_message(
   }
   this->output_ << '}';
 }
-
-void vim_qflist_json_error_formatter::add(
-    severity sev, const char8 *message,
-    std::initializer_list<source_code_span> parameters) {
-  static constexpr auto npos = string8_view::npos;
-  using string8_pos = string8_view::size_type;
-  QLJS_ASSERT(message);
-  QLJS_ASSERT(!std::empty(parameters));
-
-  const source_code_span &origin_span = *parameters.begin();
-  this->write_before_message(sev, origin_span);
-
-  string8_view remaining_message(message);
-  string8_pos left_curly_index;
-  while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
-    this->write_message_part(sev,
-                             remaining_message.substr(0, left_curly_index));
-
-    string8_pos right_curly_index =
-        remaining_message.find(u8'}', left_curly_index + 1);
-    QLJS_ASSERT(right_curly_index != npos &&
-                "invalid message format: missing }");
-    string8_view curly_content = remaining_message.substr(
-        left_curly_index + 1, right_curly_index - (left_curly_index + 1));
-    std::size_t index;
-    if (curly_content == u8"0") {
-      index = 0;
-    } else if (curly_content == u8"1") {
-      index = 1;
-    } else if (curly_content == u8"2") {
-      index = 2;
-    } else {
-      QLJS_ASSERT(false && "invalid message format: unrecognized placeholder");
-      QLJS_UNREACHABLE();
-    }
-
-    this->write_message_part(sev, (parameters.begin() + index)->string_view());
-    remaining_message = remaining_message.substr(right_curly_index + 1);
-  }
-  this->write_message_part(sev, remaining_message);
-
-  this->write_after_message(sev, origin_span);
-}
-
-void vim_qflist_json_error_formatter::end() {}
 }
