@@ -98,6 +98,7 @@ TEST(test_lex, lex_numbers) {
 
   check_single_token(u8"0n", token_type::number);
   check_single_token(u8"123456789n", token_type::number);
+  check_single_token(u8"1_234_567", token_type::number);
 
   check_tokens(u8"123. 456", {token_type::number, token_type::number});
 
