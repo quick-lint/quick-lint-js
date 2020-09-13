@@ -27,6 +27,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/unreachable.h>
@@ -179,7 +180,7 @@ class debug_visitor {
   }
 };
 
-template <class Visitor1, class Visitor2>
+template <QLJS_PARSE_VISITOR Visitor1, QLJS_PARSE_VISITOR Visitor2>
 class multi_visitor {
  public:
   explicit multi_visitor(Visitor1 *visitor_1, Visitor2 *visitor_2) noexcept

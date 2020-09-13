@@ -173,4 +173,12 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_CXX_CONCEPTS)
+#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
+#define QLJS_HAVE_CXX_CONCEPTS 1
+#else
+#define QLJS_HAVE_CXX_CONCEPTS 0
+#endif
+#endif
+
 #endif

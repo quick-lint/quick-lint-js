@@ -29,6 +29,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
@@ -200,7 +201,7 @@ class expression {
   expression_ptr child(int) const noexcept;
 
   // Can be called at most once.
-  template <class Visitor>
+  template <QLJS_PARSE_VISITOR Visitor>
   void visit_children(Visitor &v, expression_arena &arena) {
     buffering_visitor *child_visits = this->with_derived(
         [](auto &self) { return self.take_child_visits_impl(); });

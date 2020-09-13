@@ -19,6 +19,7 @@
 
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
 #include <vector>
@@ -29,7 +30,7 @@ QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
 namespace quick_lint_js {
 class buffering_visitor {
  public:
-  template <class Visitor>
+  template <QLJS_PARSE_VISITOR Visitor>
   void move_into(Visitor &target) {
     for (auto &v : this->visits_) {
       switch (v.kind) {
