@@ -1820,6 +1820,13 @@ TEST(test_parse, while_statement) {
   }
 }
 
+TEST(test_parse, debugger_statement) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"debugger;");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
+
 TEST(test_parse, break_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"break;");

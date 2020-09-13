@@ -152,6 +152,7 @@ class parser {
         this->parse_and_visit_if(v);
         break;
 
+      case token_type::kw_debugger:
       case token_type::kw_break:
       case token_type::kw_continue:
         this->lexer_.skip();
