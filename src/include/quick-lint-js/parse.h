@@ -158,6 +158,11 @@ class parser {
         this->consume_semicolon();
         break;
 
+      case token_type::kw_debugger:
+        this->lexer_.skip();
+        this->consume_semicolon();
+        break;
+
       case token_type::left_curly:
         v.visit_enter_block_scope();
         this->parse_and_visit_statement_block_no_scope(v);

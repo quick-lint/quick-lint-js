@@ -1833,5 +1833,19 @@ TEST(test_parse, continue_statement) {
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
+
+TEST(test_parse, debugger_statement) {
+  {
+    spy_visitor v;
+    padded_string code(u8"debugger; x;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
 }
 }
