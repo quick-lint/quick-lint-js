@@ -180,6 +180,8 @@ options parse_options(int argc, char** argv) {
       } else {
         next_vim_file_bufnr = bufnr;
       }
+    } else if (parser.match_flag_option("--help"sv, "--h"sv)) {
+      o.help = true;
     } else {
       const char* unrecognized = parser.match_anything();
       o.error_unrecognized_options.emplace_back(unrecognized);
