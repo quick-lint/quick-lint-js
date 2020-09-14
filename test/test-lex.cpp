@@ -95,10 +95,14 @@ TEST(test_lex, lex_numbers) {
   check_single_token(u8"1e-3", token_type::number);
   check_single_token(u8"1e+3", token_type::number);
   check_single_token(u8"1E+3", token_type::number);
+  check_single_token(u8"3e1_2_23", token_type::number);
+  check_single_token(u8"1E1_3_23", token_type::number);
 
   check_single_token(u8"0n", token_type::number);
   check_single_token(u8"123456789n", token_type::number);
   check_single_token(u8"1_234_567", token_type::number);
+  check_single_token(u8"1.234_567_234", token_type::number);
+
 
   check_tokens(u8"123. 456", {token_type::number, token_type::number});
 

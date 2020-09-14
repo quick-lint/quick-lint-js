@@ -651,7 +651,7 @@ done_parsing_garbage:
 }
 
 void lexer::parse_number() {
-  QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.' || this->input_[0] == '_');
+  QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* number_begin = this->input_;
   const char8* input = number_begin;
 
@@ -662,13 +662,9 @@ void lexer::parse_number() {
         source_code_span(garbage_begin, garbage_end));
     input = garbage_end;
   };
+
   input = this->parse_underscore(input);
-  bool has_underscore = *input == '_';
-  if (has_underscore) {
-    input += 1;
-    input = this->parse_underscore(input);
-    has_underscore = true;
-  }
+ 
   input = this->parse_decimal_digits(input);
   bool has_decimal_point = *input == '.';
   if (has_decimal_point) {
@@ -715,14 +711,18 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-// TODO: Handle edge cases: 1__234_567 and 1_234_567_ should throw an error.
 const char8* lexer::parse_underscore(const char8* input) noexcept {
   while (is_digit(*input)) {
     input += 1;
-    bool has_underscore = *input == '_';
-    if (has_underscore) {
-      input += 1;
+    if (*input == '_') {
+        input += 1;
+        if (*input == '_') {
+          //TODO error_reporter: SyntaxError: Only one underscore is allowed in numeric separator
+        }
+      }
     }
+  if (*input == '_') {
+    //TODO error_reporter: SyntaxError: Numeric separators are not allowed at the end of numeric literals
   }
   return input;
 }
@@ -730,6 +730,10 @@ const char8* lexer::parse_underscore(const char8* input) noexcept {
 const char8* lexer::parse_decimal_digits(const char8* input) noexcept {
   while (is_digit(*input)) {
     input += 1;
+    if (*input == '_') {
+      input += 1;
+      input = this->parse_underscore(input);
+    }
   }
   return input;
 }

@@ -245,8 +245,8 @@ class lexer {
   void parse_binary_number();
   void parse_hexadecimal_number();
   void parse_number();
-  static const char8* parse_underscore(const char8*) noexcept;
-  static const char8* parse_decimal_digits(const char8*) noexcept;
+  const char8* parse_underscore(const char8*) noexcept;
+  const char8* parse_decimal_digits(const char8*) noexcept;
 
   void parse_identifier();
   static const char8* parse_identifier(const char8*);
