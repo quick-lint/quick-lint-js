@@ -27,15 +27,12 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/std-filesystem.h>
+#include <random>
 #include <stdlib.h>
 #include <string>
 #include <thread>
 #include <type_traits>
 #include <vector>
-
-#if defined(_WIN32)
-#include <Windows.h>
-#endif
 
 #if QLJS_HAVE_MKFIFO
 #include <sys/stat.h>
@@ -120,22 +117,23 @@ filesystem::path make_temporary_directory() {
   }
   return temp_directory_name;
 }
-#elif defined(_WIN32)
+#else
 filesystem::path make_temporary_directory() {
-  static_assert(std::is_same_v<filesystem::path::value_type, wchar_t>);
+  std::string_view characters = "abcdefghijklmnopqrstuvwxyz";
+  std::uniform_int_distribution<std::size_t> character_index_distribution(
+      0, characters.size() - 1);
+
   filesystem::path system_temp_dir_path = filesystem::temp_directory_path();
+  std::random_device system_rng;
+  std::mt19937 rng(/*seed=*/system_rng());
+
   for (int attempt = 0; attempt < 100; ++attempt) {
-    std::vector<wchar_t> temp_directory_name;
-    temp_directory_name.resize(MAX_PATH + 1);
-    UINT unique = attempt + 1;
-    QLJS_ASSERT(unique != 0);
-    if (::GetTempFileNameW(/*lpPathName=*/system_temp_dir_path.c_str(),
-                           /*lpPrefixString=*/L"QLJS", /*uUnique=*/unique,
-                           /*lpTempFileName=*/temp_directory_name.data()) ==
-        0) {
-      continue;
+    std::string file_name = "quick-lint-js.";
+    for (int i = 0; i < 10; ++i) {
+      file_name += characters[character_index_distribution(rng)];
     }
-    filesystem::path temp_directory_path = temp_directory_name.data();
+
+    filesystem::path temp_directory_path = system_temp_dir_path / file_name;
     std::error_code error;
     if (!filesystem::create_directory(temp_directory_path, error)) {
       continue;
@@ -145,8 +143,6 @@ filesystem::path make_temporary_directory() {
   std::cerr << "failed to create temporary directory\n";
   std::abort();
 }
-#else
-#error "Unknown platform"
 #endif
 
 void write_file(filesystem::path path, const std::string &content) {
