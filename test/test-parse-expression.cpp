@@ -19,6 +19,7 @@
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -30,7 +31,10 @@
 #include <string_view>
 #include <vector>
 
+using ::testing::_;
+using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
@@ -43,7 +47,7 @@ class test_parser {
  public:
   explicit test_parser(const char8 *input)
       : code_(input),
-        locator_(&this->code_),
+        locator(&this->code_),
         parser_(&this->code_, &this->errors_) {}
 
   ~test_parser() { this->clean_up_expressions(); }
@@ -58,13 +62,8 @@ class test_parser {
     return this->errors_.errors;
   }
 
-  source_range error_range(int error_index) {
-    return this->locator_.range(
-        this->errors().at(narrow_cast<std::size_t>(error_index)).where);
-  }
-
   source_range range(expression_ptr ast) {
-    return this->locator_.range(ast->span());
+    return this->locator.range(ast->span());
   }
 
   quick_lint_js::lexer &lexer() noexcept { return this->parser_.lexer(); }
@@ -140,7 +139,11 @@ class test_parser {
   }
 
   padded_string code_;
-  locator locator_;
+
+ public:
+  quick_lint_js::locator locator;
+
+ private:
   error_collector errors_;
   quick_lint_js::parser parser_;
   std::vector<expression_ptr> expressions_needing_cleanup_;
@@ -294,86 +297,71 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     test_parser p(u8"2+");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, ?)");
-    ASSERT_EQ(p.errors().size(), 1);
-    EXPECT_EQ(p.errors()[0].kind,
-              error_collector::error_missing_operand_for_operator);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 1);
-    EXPECT_EQ(p.error_range(0).end_offset(), 2);
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_operand_for_operator, where,
+                                offsets_matcher(p.locator, 1, 2))));
   }
 
   {
     test_parser p(u8"^2");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(?, literal)");
-    ASSERT_EQ(p.errors().size(), 1);
-    EXPECT_EQ(p.errors()[0].kind,
-              error_collector::error_missing_operand_for_operator);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 0);
-    EXPECT_EQ(p.error_range(0).end_offset(), 1);
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_operand_for_operator, where,
+                                offsets_matcher(p.locator, 0, 1))));
   }
 
   {
     test_parser p(u8"2 * * 2");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, ?, literal)");
-    ASSERT_EQ(p.errors().size(), 1);
-    EXPECT_EQ(p.errors()[0].kind,
-              error_collector::error_missing_operand_for_operator);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 2);
-    EXPECT_EQ(p.error_range(0).end_offset(), 3);
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_operand_for_operator, where,
+                                offsets_matcher(p.locator, 2, 3))));
   }
 
   {
     test_parser p(u8"2 & & & 2");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, ?, ?, literal)");
-    ASSERT_EQ(p.errors().size(), 2);
 
-    EXPECT_EQ(p.errors()[0].kind,
-              error_collector::error_missing_operand_for_operator);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 2);
-    EXPECT_EQ(p.error_range(0).end_offset(), 3);
-
-    EXPECT_EQ(p.errors()[1].kind,
-              error_collector::error_missing_operand_for_operator);
-    EXPECT_EQ(p.error_range(1).begin_offset(), 4);
-    EXPECT_EQ(p.error_range(1).end_offset(), 5);
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                                     offsets_matcher(p.locator, 2, 3)),
+                    ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                                     offsets_matcher(p.locator, 4, 5))));
   }
 
   {
     test_parser p(u8"(2*)");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, ?)");
-    ASSERT_EQ(p.errors().size(), 1);
-    EXPECT_EQ(p.errors()[0].kind,
-              error_collector::error_missing_operand_for_operator);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 2);
-    EXPECT_EQ(p.error_range(0).end_offset(), 3);
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_operand_for_operator, where,
+                                offsets_matcher(p.locator, 2, 3))));
   }
 
   {
     test_parser p(u8"2 * (3 + 4");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, binary(literal, literal))");
-    ASSERT_EQ(p.errors().size(), 1);
-    EXPECT_EQ(p.errors()[0].kind, error_collector::error_unmatched_parenthesis);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 4);
-    EXPECT_EQ(p.error_range(0).end_offset(), 5);
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_unmatched_parenthesis, where,
+                                offsets_matcher(p.locator, 4, 5))));
   }
 
   {
     test_parser p(u8"2 * (3 + (4");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, binary(literal, literal))");
-    ASSERT_EQ(p.errors().size(), 2);
 
-    EXPECT_EQ(p.errors()[0].kind, error_collector::error_unmatched_parenthesis);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 9);
-    EXPECT_EQ(p.error_range(0).end_offset(), 10);
-
-    EXPECT_EQ(p.errors()[1].kind, error_collector::error_unmatched_parenthesis);
-    EXPECT_EQ(p.error_range(1).begin_offset(), 4);
-    EXPECT_EQ(p.error_range(1).end_offset(), 5);
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                     offsets_matcher(p.locator, 9, 10)),
+                    ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                     offsets_matcher(p.locator, 4, 5))));
   }
 }
 
@@ -712,12 +700,9 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(binary(var x, var y), var z)");
 
-    ASSERT_EQ(p.errors().size(), 1);
-    auto &error = p.errors()[0];
-    EXPECT_EQ(error.kind,
-              error_collector::error_invalid_expression_left_of_assignment);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 0);
-    EXPECT_EQ(p.error_range(0).end_offset(), 3);
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_invalid_expression_left_of_assignment,
+                                where, offsets_matcher(p.locator, 0, 3))));
   }
 
   for (const char8 *code : {
@@ -730,10 +715,10 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
     test_parser p(code);
     p.parse_expression();
 
-    ASSERT_EQ(p.errors().size(), 1);
-    auto &error = p.errors()[0];
-    EXPECT_EQ(error.kind,
-              error_collector::error_invalid_expression_left_of_assignment);
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(
+            VariantWith<error_invalid_expression_left_of_assignment>(_)));
   }
 }
 
@@ -977,12 +962,10 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{p1: v1 p2}");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, var v1, literal, var p2)");
-    ASSERT_EQ(p.errors().size(), 1);
-    EXPECT_EQ(
-        p.errors()[0].kind,
-        error_collector::error_missing_comma_between_object_literal_entries);
-    EXPECT_EQ(p.error_range(0).begin_offset(), 7);
-    EXPECT_EQ(p.error_range(0).end_offset(), 7);
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_comma_between_object_literal_entries, where,
+                    offsets_matcher(p.locator, 7, 7))));
   }
 }
 

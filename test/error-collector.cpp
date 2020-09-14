@@ -43,39 +43,26 @@ void error_collector::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-void PrintTo(const error_collector::error &x, std::ostream *out) {
-#define QLJS_CASE(k)       \
-  case error_collector::k: \
-    *out << #k;            \
-    break;
-  switch (x.kind) {
-    QLJS_CASE(error_assignment_before_variable_declaration)
-    QLJS_CASE(error_assignment_to_const_global_variable)
-    QLJS_CASE(error_assignment_to_const_variable)
-    QLJS_CASE(error_assignment_to_undeclared_variable)
-    QLJS_CASE(error_big_int_literal_contains_decimal_point)
-    QLJS_CASE(error_big_int_literal_contains_exponent)
-    QLJS_CASE(error_big_int_literal_contains_leading_zero)
-    QLJS_CASE(error_invalid_binding_in_let_statement)
-    QLJS_CASE(error_invalid_expression_left_of_assignment)
-    QLJS_CASE(error_let_with_no_bindings)
-    QLJS_CASE(error_missing_comma_between_object_literal_entries)
-    QLJS_CASE(error_missing_operand_for_operator)
-    QLJS_CASE(error_missing_semicolon_after_expression)
-    QLJS_CASE(error_redeclaration_of_global_variable)
-    QLJS_CASE(error_redeclaration_of_variable)
-    QLJS_CASE(error_stray_comma_in_let_statement)
-    QLJS_CASE(error_unclosed_block_comment)
-    QLJS_CASE(error_unclosed_regexp_literal)
-    QLJS_CASE(error_unclosed_string_literal)
-    QLJS_CASE(error_unclosed_template)
-    QLJS_CASE(error_unexpected_characters_in_number)
-    QLJS_CASE(error_unexpected_hash_character)
-    QLJS_CASE(error_unexpected_identifier)
-    QLJS_CASE(error_unmatched_parenthesis)
-    QLJS_CASE(error_use_of_undeclared_variable)
-    QLJS_CASE(error_variable_used_before_declaration)
-  }
-#undef QLJS_CASE
+void PrintTo(const error_collector::error &e, std::ostream *out) {
+  using namespace quick_lint_js;
+
+  struct type_name_getter {
+    const char *operator()(const std::monostate &) const noexcept {
+      return "(monostate)";
+    }
+
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  const char *operator()(const name &) const noexcept { return #name; }
+    QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+  };
+
+  *out << std::visit(type_name_getter(),
+                     static_cast<const error_collector::error_variant &>(e));
 }
+
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  void PrintTo(const name &, std::ostream *out) { *out << #name; }
+QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
 }

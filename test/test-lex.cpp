@@ -22,16 +22,18 @@
 #include <iostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <string_view>
 
+using ::testing::_;
+using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
-
-#define FIELD(_class, _member, ...) \
-  (::testing::Field(#_member, &_class::_member, __VA_ARGS__))
+using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
@@ -64,10 +66,10 @@ TEST(test_lex, lex_block_comments) {
     lexer l(&input, &v);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
-    EXPECT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_block_comment);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 6);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 8);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_block_comment, comment_open,
+                              offsets_matcher(&input, 6, 8))));
   }
 }
 
@@ -127,11 +129,9 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_characters_in_number);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 7);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_characters_in_number, characters,
+                              offsets_matcher(&input, 3, 7))));
   }
 
   {
@@ -144,11 +144,9 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_characters_in_number);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_characters_in_number, characters,
+                              offsets_matcher(&input, 3, 4))));
   }
 
   {
@@ -163,11 +161,9 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_characters_in_number);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_characters_in_number, characters,
+                              offsets_matcher(&input, 3, 4))));
   }
 
   {
@@ -178,11 +174,9 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_characters_in_number);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 4);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 7);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_characters_in_number, characters,
+                              offsets_matcher(&input, 4, 7))));
   }
 
   {
@@ -193,11 +187,9 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_characters_in_number);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 3);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 8);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_characters_in_number, characters,
+                              offsets_matcher(&input, 3, 8))));
   }
 }
 
@@ -210,11 +202,9 @@ TEST(test_lex, lex_invalid_big_int_number) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_big_int_literal_contains_decimal_point);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 6);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_big_int_literal_contains_decimal_point,
+                              where, offsets_matcher(&input, 0, 6))));
   }
 
   {
@@ -225,11 +215,9 @@ TEST(test_lex, lex_invalid_big_int_number) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_big_int_literal_contains_leading_zero);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 5);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_big_int_literal_contains_leading_zero,
+                              where, offsets_matcher(&input, 0, 5))));
   }
 
   {
@@ -240,11 +228,9 @@ TEST(test_lex, lex_invalid_big_int_number) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_big_int_literal_contains_exponent);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 4);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_big_int_literal_contains_exponent, where,
+                              offsets_matcher(&input, 0, 4))));
   }
 
   // Only complain about the decimal point, not the leading 0 digit.
@@ -256,9 +242,10 @@ TEST(test_lex, lex_invalid_big_int_number) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_big_int_literal_contains_decimal_point);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_big_int_literal_contains_decimal_point>(_)));
   }
 
   // Complain about both the decimal point and the leading 0 digit.
@@ -273,12 +260,8 @@ TEST(test_lex, lex_invalid_big_int_number) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            FIELD(
-                error_collector::error, kind,
-                error_collector::error_big_int_literal_contains_decimal_point),
-            FIELD(
-                error_collector::error, kind,
-                error_collector::error_big_int_literal_contains_leading_zero)));
+            VariantWith<error_big_int_literal_contains_decimal_point>(_),
+            VariantWith<error_big_int_literal_contains_leading_zero>(_)));
   }
 
   // Complain about everything. What a disaster.
@@ -293,14 +276,9 @@ TEST(test_lex, lex_invalid_big_int_number) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            FIELD(
-                error_collector::error, kind,
-                error_collector::error_big_int_literal_contains_decimal_point),
-            FIELD(error_collector::error, kind,
-                  error_collector::error_big_int_literal_contains_exponent),
-            FIELD(
-                error_collector::error, kind,
-                error_collector::error_big_int_literal_contains_leading_zero)));
+            VariantWith<error_big_int_literal_contains_decimal_point>(_),
+            VariantWith<error_big_int_literal_contains_exponent>(_),
+            VariantWith<error_big_int_literal_contains_leading_zero>(_)));
   }
 }
 
@@ -320,10 +298,9 @@ TEST(test_lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_string_literal, string_literal,
+                              offsets_matcher(&input, 0, 13))));
   }
 
   for (string8 line_terminator : line_terminators) {
@@ -335,10 +312,9 @@ TEST(test_lex, lex_strings) {
     EXPECT_EQ(l.peek().type, token_type::identifier);
     EXPECT_EQ(l.peek().identifier_name().string_view(), u8"hello");
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_string_literal, string_literal,
+                              offsets_matcher(&input, 0, 13))));
   }
 
   {
@@ -349,10 +325,9 @@ TEST(test_lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_string_literal);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 14);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_string_literal, string_literal,
+                              offsets_matcher(&input, 0, 14))));
   }
 
   // TODO(strager): Lex line continuations in string literals. For example:
@@ -456,10 +431,9 @@ world`)",
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 13);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_template, incomplete_template,
+                              offsets_matcher(&input, 0, 13))));
   }
 
   {
@@ -477,10 +451,9 @@ world`)",
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 16);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_template, incomplete_template,
+                              offsets_matcher(&input, 0, 16))));
   }
 
   {
@@ -491,10 +464,9 @@ world`)",
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_template);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 14);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_template, incomplete_template,
+                              offsets_matcher(&input, 0, 14))));
   }
 
   // TODO(strager): Report invalid escape sequences, like with plain string
@@ -532,11 +504,12 @@ TEST(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, &code[code.size()]);
 
-    EXPECT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind, error_collector::error_unclosed_regexp_literal);
-    EXPECT_EQ(locator(&code).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&code).range(v.errors[0].where).end_offset(),
-              code.size());
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unclosed_regexp_literal, regexp_literal,
+                    offsets_matcher(&code, 0,
+                                    narrow_cast<source_position::offset_type>(
+                                        code.size())))));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -756,11 +729,9 @@ TEST(test_lex, lex_not_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_hash_character);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 0);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 1);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_hash_character, where,
+                              offsets_matcher(&input, 0, 1))));
   }
 
   // '#!' must be on the first line.
@@ -770,11 +741,9 @@ TEST(test_lex, lex_not_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_hash_character);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 1);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 2);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_hash_character, where,
+                              offsets_matcher(&input, 1, 2))));
   }
 
   // Whitespace must not appear before '#!'.
@@ -784,11 +753,9 @@ TEST(test_lex, lex_not_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
-    ASSERT_EQ(v.errors.size(), 1);
-    EXPECT_EQ(v.errors[0].kind,
-              error_collector::error_unexpected_hash_character);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).begin_offset(), 2);
-    EXPECT_EQ(locator(&input).range(v.errors[0].where).end_offset(), 3);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_hash_character, where,
+                              offsets_matcher(&input, 2, 3))));
   }
 }
 

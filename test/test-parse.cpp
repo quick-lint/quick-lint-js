@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
@@ -28,8 +29,10 @@
 #include <string_view>
 #include <vector>
 
+using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
@@ -299,11 +302,9 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_declarations, IsEmpty());
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_let_with_no_bindings);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 0);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 3);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_let_with_no_bindings, where,
+                                             offsets_matcher(&code, 0, 3))));
   }
 
   {
@@ -312,11 +313,9 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_stray_comma_in_let_statement);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 5);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 6);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_stray_comma_in_let_statement, where,
+                              offsets_matcher(&code, 5, 6))));
   }
 
   {
@@ -325,11 +324,9 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_invalid_binding_in_let_statement);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 7);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 9);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_binding_in_let_statement, where,
+                              offsets_matcher(&code, 7, 9))));
   }
 
   {
@@ -338,11 +335,9 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_invalid_binding_in_let_statement);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 6);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_binding_in_let_statement, where,
+                              offsets_matcher(&code, 4, 6))));
   }
 
   {
@@ -351,11 +346,9 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_invalid_binding_in_let_statement);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 6);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_binding_in_let_statement, where,
+                              offsets_matcher(&code, 4, 6))));
   }
 }
 
@@ -491,11 +484,9 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 +");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 2);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 3);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 2, 3))));
   }
 
   {
@@ -503,11 +494,9 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"^ 2");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 0);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 1);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 0, 1))));
   }
 
   {
@@ -515,11 +504,9 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 * * 2");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 2);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 3);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 2, 3))));
   }
 
   {
@@ -527,17 +514,12 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 & & & 2");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 2);
-
-    auto *error = &v.errors[0];
-    EXPECT_EQ(error->kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 2);
-    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 3);
-
-    error = &v.errors[1];
-    EXPECT_EQ(error->kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 4);
-    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 5);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                                     offsets_matcher(&code, 2, 3)),
+                    ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                                     offsets_matcher(&code, 4, 5))));
   }
 
   {
@@ -545,22 +527,18 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"(2 *)");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_missing_operand_for_operator);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 3);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 4);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 3, 4))));
   }
   {
     spy_visitor v;
     padded_string code(u8"2 * (3 + 4");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_unmatched_parenthesis);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 5);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 4, 5))));
   }
 
   {
@@ -568,17 +546,11 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 * (3 + (4");
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    ASSERT_EQ(v.errors.size(), 2);
-
-    auto *error = &v.errors[0];
-    EXPECT_EQ(error->kind, spy_visitor::error_unmatched_parenthesis);
-    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 9);
-    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 10);
-
-    error = &v.errors[1];
-    EXPECT_EQ(error->kind, spy_visitor::error_unmatched_parenthesis);
-    EXPECT_EQ(locator(&code).range(error->where).begin_offset(), 4);
-    EXPECT_EQ(locator(&code).range(error->where).end_offset(), 5);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 9, 10)),
+                            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 4, 5))));
   }
 }
 
@@ -588,11 +560,9 @@ TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
     padded_string code(u8"ten ten");
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_unexpected_identifier);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 4);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 7);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unexpected_identifier, where,
+                                             offsets_matcher(&code, 4, 7))));
   }
 }
 
@@ -931,17 +901,12 @@ TEST(test_parse, asi_for_statement_at_newline) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"},
                             spy_visitor::visited_variable_use{u8"console"}));
-
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind,
-              spy_visitor::error_missing_semicolon_after_expression);
-    int end_of_first_expression =
-        narrow_cast<int>(strlen(u8"console.log('hello')"));
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(),
-              end_of_first_expression);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(),
-              end_of_first_expression);
+    source_position::offset_type end_of_first_expression =
+        strlen(u8"console.log('hello')");
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_semicolon_after_expression, where,
+                              offsets_matcher(&code, end_of_first_expression,
+                                              end_of_first_expression))));
   }
 
   for (string8 variable_kind : {u8"const", u8"let", u8"var"}) {
@@ -1031,11 +996,9 @@ TEST(test_parse, DISABLED_parse_invalid_function_calls) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
 
-    ASSERT_EQ(v.errors.size(), 1);
-    auto &error = v.errors[0];
-    EXPECT_EQ(error.kind, spy_visitor::error_unexpected_identifier);
-    EXPECT_EQ(locator(&code).range(error.where).begin_offset(), 3);
-    EXPECT_EQ(locator(&code).range(error.where).end_offset(), 4);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unexpected_identifier, where,
+                                             offsets_matcher(&code, 3, 4))));
 
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, u8"x");

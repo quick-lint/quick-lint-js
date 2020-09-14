@@ -21,6 +21,7 @@ include(QuickLintJSTarget)
 quick_lint_js_add_executable(
   quick-lint-js-test
   error-collector.cpp
+  error-matcher.cpp
   spy-visitor.cpp
   test-assert.cpp
   test-buffering-visitor.cpp
