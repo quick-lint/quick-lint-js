@@ -74,7 +74,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_big_int_literal_contains_decimal_point(number_span);
+  reporter.report(error_big_int_literal_contains_decimal_point{number_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -94,7 +94,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_big_int_literal_contains_leading_zero(number_span);
+  reporter.report(error_big_int_literal_contains_leading_zero{number_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -116,8 +116,9 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_assignment_before_variable_declaration(
-      identifier(assignment_span), identifier(declaration_span));
+  reporter.report(error_assignment_before_variable_declaration{
+      .assignment = identifier(assignment_span),
+      .declaration = identifier(declaration_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -136,7 +137,7 @@ TEST_F(test_vim_qflist_json_error_reporter, big_int_literal_contains_exponent) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_big_int_literal_contains_exponent(number_span);
+  reporter.report(error_big_int_literal_contains_exponent{number_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -156,9 +157,12 @@ TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report_error_assignment_to_const_global_variable(identifier(a_span));
-  reporter.report_error_assignment_to_const_global_variable(identifier(b_span));
-  reporter.report_error_assignment_to_const_global_variable(identifier(c_span));
+  reporter.report(
+      error_assignment_to_const_global_variable{identifier(a_span)});
+  reporter.report(
+      error_assignment_to_const_global_variable{identifier(b_span)});
+  reporter.report(
+      error_assignment_to_const_global_variable{identifier(c_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -172,7 +176,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report_error_assignment_to_const_global_variable(identifier(span));
+  reporter.report(error_assignment_to_const_global_variable{identifier(span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -192,7 +196,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
     vim_qflist_json_error_reporter reporter =
         this->make_reporter(&input, /*file_name=*/file_name);
-    reporter.report_error_assignment_to_const_global_variable(identifier(span));
+    reporter.report(
+        error_assignment_to_const_global_variable{identifier(span)});
     reporter.finish();
 
     ::Json::Value qflist = this->parse_json()["qflist"];
@@ -209,7 +214,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter = this->make_reporter();
   reporter.set_source(&input, /*file_name=*/"hello.js", /*vim_bufnr=*/1337);
-  reporter.report_error_assignment_to_const_global_variable(identifier(span));
+  reporter.report(error_assignment_to_const_global_variable{identifier(span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -223,18 +228,18 @@ TEST_F(test_vim_qflist_json_error_reporter, change_source) {
 
   padded_string input_1(u8"aaaaaaaa");
   reporter.set_source(&input_1, /*file_name=*/"hello.js", /*vim_bufnr=*/1);
-  reporter.report_error_assignment_to_const_global_variable(
-      identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1])));
+  reporter.report(error_assignment_to_const_global_variable{
+      identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1]))});
 
   padded_string input_2(u8"bbbbbbbb");
   reporter.set_source(&input_2, /*file_name=*/"world.js");
-  reporter.report_error_assignment_to_const_global_variable(
-      identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1])));
+  reporter.report(error_assignment_to_const_global_variable{
+      identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
 
   padded_string input_3(u8"cccccccc");
   reporter.set_source(&input_3, /*vim_bufnr=*/2);
-  reporter.report_error_assignment_to_const_global_variable(
-      identifier(source_code_span(&input_3[6 - 1], &input_3[6 - 1])));
+  reporter.report(error_assignment_to_const_global_variable{
+      identifier(source_code_span(&input_3[6 - 1], &input_3[6 - 1]))});
 
   reporter.finish();
 
@@ -262,8 +267,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
-  reporter.report_error_assignment_to_const_global_variable(
-      identifier(infinity_span));
+  reporter.report(
+      error_assignment_to_const_global_variable{identifier(infinity_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -285,9 +290,9 @@ TEST_F(test_vim_qflist_json_error_reporter, assignment_to_const_variable) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/69);
-  reporter.report_error_assignment_to_const_variable(
+  reporter.report(error_assignment_to_const_variable{
       identifier(x_declaration_span), identifier(x_assignment_span),
-      variable_kind::_const);
+      variable_kind::_const});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -307,8 +312,8 @@ TEST_F(test_vim_qflist_json_error_reporter, assignment_to_undeclared_variable) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_assignment_to_undeclared_variable(
-      identifier(uhoh_span));
+  reporter.report(
+      error_assignment_to_undeclared_variable{identifier(uhoh_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -327,7 +332,7 @@ TEST_F(test_vim_qflist_json_error_reporter, invalid_binding_in_let_statement) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_invalid_binding_in_let_statement(two_span);
+  reporter.report(error_invalid_binding_in_let_statement{two_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -347,7 +352,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_invalid_expression_left_of_assignment(two_span);
+  reporter.report(error_invalid_expression_left_of_assignment{two_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -366,7 +371,7 @@ TEST_F(test_vim_qflist_json_error_reporter, let_with_no_bindings) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_let_with_no_bindings(let_span);
+  reporter.report(error_let_with_no_bindings{let_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -388,7 +393,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_missing_comma_between_object_literal_entries(plus_span);
+  reporter.report(
+      error_missing_comma_between_object_literal_entries{plus_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -407,7 +413,7 @@ TEST_F(test_vim_qflist_json_error_reporter, missing_operand_for_operator) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_missing_operand_for_operator(plus_span);
+  reporter.report(error_missing_operand_for_operator{plus_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -429,8 +435,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_missing_semicolon_after_expression(
-      inserted_semicolon_span);
+  reporter.report(
+      error_missing_semicolon_after_expression{inserted_semicolon_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -449,8 +455,8 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_global_variable) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_redeclaration_of_global_variable(
-      identifier(declaration_span));
+  reporter.report(
+      error_redeclaration_of_global_variable{identifier(declaration_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -471,8 +477,8 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_redeclaration_of_variable(
-      identifier(redeclaration_span), identifier(original_declaration_span));
+  reporter.report(error_redeclaration_of_variable{
+      identifier(redeclaration_span), identifier(original_declaration_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -491,7 +497,7 @@ TEST_F(test_vim_qflist_json_error_reporter, stray_comma_in_let_statement) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_stray_comma_in_let_statement(comma_span);
+  reporter.report(error_stray_comma_in_let_statement{comma_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -510,7 +516,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_block_comment) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unclosed_block_comment(comment_span);
+  reporter.report(error_unclosed_block_comment{.comment_open = comment_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -529,7 +535,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_regexp_literal) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unclosed_regexp_literal(regexp_span);
+  reporter.report(error_unclosed_regexp_literal{regexp_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -548,7 +554,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_string_literal) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unclosed_string_literal(string_span);
+  reporter.report(error_unclosed_string_literal{string_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -567,7 +573,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_template) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unclosed_template(string_span);
+  reporter.report(error_unclosed_template{string_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -586,7 +592,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_characters_in_number) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unexpected_characters_in_number(garbage_span);
+  reporter.report(error_unexpected_characters_in_number{garbage_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -605,7 +611,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unexpected_hash_character(hash_span);
+  reporter.report(error_unexpected_hash_character{hash_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -624,7 +630,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_identifier) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unexpected_identifier(y_span);
+  reporter.report(error_unexpected_identifier{y_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -643,7 +649,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unmatched_parenthesis) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_unmatched_parenthesis(paren_span);
+  reporter.report(error_unmatched_parenthesis{paren_span});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -662,7 +668,7 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_use_of_undeclared_variable(identifier(myvar_span));
+  reporter.report(error_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];
@@ -683,8 +689,8 @@ TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
 
   vim_qflist_json_error_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report_error_variable_used_before_declaration(
-      identifier(use_span), identifier(declaration_span));
+  reporter.report(error_variable_used_before_declaration{
+      identifier(use_span), identifier(declaration_span)});
   reporter.finish();
 
   ::Json::Value qflist = this->parse_json()["qflist"];

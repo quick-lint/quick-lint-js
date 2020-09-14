@@ -86,17 +86,13 @@ void vim_qflist_json_error_reporter::set_source(padded_string_view input,
 
 void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_CLANG("-Wunused-parameter")
-QLJS_WARNING_IGNORE_GCC("-Wunused-parameter")
-#define QLJS_ERROR_TYPE(name, parameters, format_call)            \
-  void vim_qflist_json_error_reporter::report_##name parameters { \
-    this->begin_error();                                          \
-    this->format() format_call.end();                             \
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  void vim_qflist_json_error_reporter::report(name e) { \
+    this->begin_error();                                \
+    format_error(e, this->format());                    \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-QLJS_WARNING_POP
 
 void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_character(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,

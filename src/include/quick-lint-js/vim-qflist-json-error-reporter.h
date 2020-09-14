@@ -41,8 +41,7 @@ class vim_qflist_json_error_reporter final : public error_reporter {
 
   void finish();
 
-#define QLJS_ERROR_TYPE(name, parameters, format) \
-  void report_##name parameters override;
+#define QLJS_ERROR_TYPE(name, struct_body, format) void report(name) override;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 

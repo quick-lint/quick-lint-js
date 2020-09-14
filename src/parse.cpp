@@ -181,8 +181,8 @@ expression_ptr parser::parse_expression(precedence prec) {
           this->lexer_.skip();
           break;
         default:
-          this->error_reporter_->report_error_unmatched_parenthesis(
-              left_paren_span);
+          this->error_reporter_->report(
+              error_unmatched_parenthesis{left_paren_span});
           break;
       }
       if (!prec.binary_operators) {
@@ -320,8 +320,8 @@ expression_ptr parser::parse_expression(precedence prec) {
       if (!prec.binary_operators) {
         return ast;
       }
-      this->error_reporter_->report_error_missing_operand_for_operator(
-          this->peek().span());
+      this->error_reporter_->report(
+          error_missing_operand_for_operator{this->peek().span()});
       return this->parse_expression_remainder(ast, prec);
     }
     default:
@@ -359,8 +359,8 @@ next:
       expression_ptr rhs = children.emplace_back(
           this->parse_expression(precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report_error_missing_operand_for_operator(
-            operator_span);
+        this->error_reporter_->report(
+            error_missing_operand_for_operator{operator_span});
       }
       goto next;
     }
@@ -377,8 +377,8 @@ next:
       expression_ptr rhs = children.emplace_back(this->parse_expression(
           precedence{.binary_operators = false, .commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report_error_missing_operand_for_operator(
-            operator_span);
+        this->error_reporter_->report(
+            error_missing_operand_for_operator{operator_span});
       }
       goto next;
     }
@@ -427,8 +427,8 @@ next:
       expression_ptr lhs = build_expression();
       switch (lhs->kind()) {
         default:
-          this->error_reporter_
-              ->report_error_invalid_expression_left_of_assignment(lhs->span());
+          this->error_reporter_->report(
+              error_invalid_expression_left_of_assignment{lhs->span()});
           break;
         case expression_kind::array:
         case expression_kind::dot:
@@ -614,9 +614,9 @@ expression_ptr parser::parse_object_literal() {
     }
     if (expect_comma_or_end) {
       const char8 *comma_location = this->lexer_.end_of_previous_token();
-      this->error_reporter_
-          ->report_error_missing_comma_between_object_literal_entries(
-              source_code_span(comma_location, comma_location));
+      this->error_reporter_->report(
+          error_missing_comma_between_object_literal_entries{
+              source_code_span(comma_location, comma_location)});
     }
     if (this->peek().type == token_type::end_of_file) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -755,8 +755,8 @@ void parser::consume_semicolon() {
         // Automatically insert a semicolon, then consume it.
       } else {
         this->lexer_.insert_semicolon();
-        this->error_reporter_->report_error_missing_semicolon_after_expression(
-            this->peek().span());
+        this->error_reporter_->report(
+            error_missing_semicolon_after_expression{this->peek().span()});
         this->lexer_.skip();
       }
       break;

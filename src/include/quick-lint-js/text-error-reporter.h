@@ -35,8 +35,7 @@ class text_error_reporter final : public error_reporter {
 
   void set_source(padded_string_view input, const char *file_name);
 
-#define QLJS_ERROR_TYPE(name, parameters, format) \
-  void report_##name parameters override;
+#define QLJS_ERROR_TYPE(name, struct_body, format) void report(name) override;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 

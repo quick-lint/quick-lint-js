@@ -232,15 +232,14 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           case used_variable_kind::assignment:
             this->report_error_if_assignment_is_illegal(declared,
                                                         used_var.name);
-            this->error_reporter_
-                ->report_error_assignment_before_variable_declaration(
-                    used_var.name, name);
+            this->error_reporter_->report(
+                error_assignment_before_variable_declaration{
+                    .assignment = used_var.name, .declaration = name});
             break;
           case used_variable_kind::_typeof:
           case used_variable_kind::use:
-            this->error_reporter_
-                ->report_error_variable_used_before_declaration(used_var.name,
-                                                                name);
+            this->error_reporter_->report(
+                error_variable_used_before_declaration{used_var.name, name});
             break;
         }
       }
@@ -331,12 +330,12 @@ void linter::visit_end_of_module() {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
         case used_variable_kind::assignment:
-          this->error_reporter_->report_error_assignment_to_undeclared_variable(
-              used_var.name);
+          this->error_reporter_->report(
+              error_assignment_to_undeclared_variable{used_var.name});
           break;
         case used_variable_kind::use:
-          this->error_reporter_->report_error_use_of_undeclared_variable(
-              used_var.name);
+          this->error_reporter_->report(
+              error_use_of_undeclared_variable{used_var.name});
           break;
         case used_variable_kind::_typeof:
           // 'typeof foo' is often used to detect if the variable 'foo' is
@@ -349,8 +348,8 @@ void linter::visit_end_of_module() {
        global_scope.variables_used_in_descendant_scope) {
     if (!is_variable_declared(used_var)) {
       // TODO(strager): Should we check used_var.kind?
-      this->error_reporter_->report_error_use_of_undeclared_variable(
-          used_var.name);
+      this->error_reporter_->report(
+          error_use_of_undeclared_variable{used_var.name});
     }
   }
 }
@@ -433,11 +432,11 @@ void linter::report_error_if_assignment_is_illegal(
     case variable_kind::_const:
     case variable_kind::_import:
       if (var->declaration.has_value()) {
-        this->error_reporter_->report_error_assignment_to_const_variable(
-            *var->declaration, assignment, var->kind);
+        this->error_reporter_->report(error_assignment_to_const_variable{
+            *var->declaration, assignment, var->kind});
       } else {
-        this->error_reporter_->report_error_assignment_to_const_global_variable(
-            assignment);
+        this->error_reporter_->report(
+            error_assignment_to_const_global_variable{assignment});
       }
       break;
     case variable_kind::_catch:
@@ -499,11 +498,11 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
              declared_variable_scope::declared_in_descendant_scope);
     if (!redeclaration_ok) {
       if (already_declared_variable->declaration.has_value()) {
-        this->error_reporter_->report_error_redeclaration_of_variable(
-            name, *already_declared_variable->declaration);
+        this->error_reporter_->report(error_redeclaration_of_variable{
+            name, *already_declared_variable->declaration});
       } else {
-        this->error_reporter_->report_error_redeclaration_of_global_variable(
-            name);
+        this->error_reporter_->report(
+            error_redeclaration_of_global_variable{name});
       }
     }
   }

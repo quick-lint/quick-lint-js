@@ -392,8 +392,8 @@ retry:
       for (;;) {
         switch (static_cast<unsigned char>(*c)) {
           case '\0':
-            this->error_reporter_->report_error_unclosed_string_literal(
-                source_code_span(&this->input_[0], c));
+            this->error_reporter_->report(error_unclosed_string_literal{
+                source_code_span(&this->input_[0], c)});
             goto done;
 
           case '\n':
@@ -401,8 +401,8 @@ retry:
           case 0xe2: {
             int newline_size = this->newline_character_size(c);
             if (newline_size > 0) {
-              this->error_reporter_->report_error_unclosed_string_literal(
-                  source_code_span(&this->input_[0], c));
+              this->error_reporter_->report(error_unclosed_string_literal{
+                  source_code_span(&this->input_[0], c)});
               goto done;
             }
             ++c;
@@ -413,8 +413,8 @@ retry:
             ++c;
             switch (*c) {
               case '\0':
-                this->error_reporter_->report_error_unclosed_string_literal(
-                    source_code_span(&this->input_[0], c));
+                this->error_reporter_->report(error_unclosed_string_literal{
+                    source_code_span(&this->input_[0], c)});
                 goto done;
               default:
                 ++c;
@@ -456,8 +456,8 @@ retry:
         this->skip_line_comment();
         goto retry;
       } else {
-        this->error_reporter_->report_error_unexpected_hash_character(
-            source_code_span(&this->input_[0], &this->input_[1]));
+        this->error_reporter_->report(error_unexpected_hash_character{
+            source_code_span(&this->input_[0], &this->input_[1])});
         this->input_ += 1;
         this->skip_whitespace();
         goto retry;
@@ -492,8 +492,8 @@ lexer::parsed_template_body lexer::parse_template_body(
   for (;;) {
     switch (*c) {
       case '\0':
-        error_reporter->report_error_unclosed_template(
-            source_code_span(template_begin, c));
+        error_reporter->report(
+            error_unclosed_template{source_code_span(template_begin, c)});
         return parsed_template_body{token_type::complete_template, c};
 
       case '`':
@@ -504,8 +504,8 @@ lexer::parsed_template_body lexer::parse_template_body(
         ++c;
         switch (*c) {
           case '\0':
-            error_reporter->report_error_unclosed_template(
-                source_code_span(template_begin, c));
+            error_reporter->report(
+                error_unclosed_template{source_code_span(template_begin, c)});
             return parsed_template_body{token_type::complete_template, c};
           default:
             ++c;
@@ -539,16 +539,16 @@ void lexer::reparse_as_regexp() {
 next:
   switch (*c) {
     case '\0':
-      this->error_reporter_->report_error_unclosed_regexp_literal(
-          source_code_span(this->last_token_.begin, c));
+      this->error_reporter_->report(error_unclosed_regexp_literal{
+          source_code_span(this->last_token_.begin, c)});
       break;
 
     case '\\':
       ++c;
       switch (*c) {
         case '\0':
-          this->error_reporter_->report_error_unclosed_regexp_literal(
-              source_code_span(this->last_token_.begin, c));
+          this->error_reporter_->report(error_unclosed_regexp_literal{
+              source_code_span(this->last_token_.begin, c)});
           break;
         default:
           ++c;
@@ -642,8 +642,8 @@ void lexer::parse_binary_number() {
 done_parsing_garbage:
   const char8* garbage_end = input;
   if (garbage_end != garbage_begin) {
-    this->error_reporter_->report_error_unexpected_characters_in_number(
-        source_code_span(garbage_begin, garbage_end));
+    this->error_reporter_->report(error_unexpected_characters_in_number{
+        source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
   }
 
@@ -658,8 +658,8 @@ void lexer::parse_number() {
   auto consume_garbage = [this, &input]() {
     const char8* garbage_begin = input;
     const char8* garbage_end = this->parse_identifier(garbage_begin);
-    this->error_reporter_->report_error_unexpected_characters_in_number(
-        source_code_span(garbage_begin, garbage_end));
+    this->error_reporter_->report(error_unexpected_characters_in_number{
+        source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
   };
 
@@ -687,17 +687,17 @@ void lexer::parse_number() {
   if (*input == 'n') {
     input += 1;
     if (has_decimal_point) {
-      this->error_reporter_
-          ->report_error_big_int_literal_contains_decimal_point(
-              source_code_span(number_begin, input));
+      this->error_reporter_->report(
+          error_big_int_literal_contains_decimal_point{
+              source_code_span(number_begin, input)});
     }
     if (has_exponent) {
-      this->error_reporter_->report_error_big_int_literal_contains_exponent(
-          source_code_span(number_begin, input));
+      this->error_reporter_->report(error_big_int_literal_contains_exponent{
+          source_code_span(number_begin, input)});
     }
     if (number_begin[0] == u8'0' && this->is_digit(number_begin[1])) {
-      this->error_reporter_->report_error_big_int_literal_contains_leading_zero(
-          source_code_span(number_begin, input));
+      this->error_reporter_->report(error_big_int_literal_contains_leading_zero{
+          source_code_span(number_begin, input)});
     }
   }
 
@@ -980,8 +980,8 @@ found_comment_end:
 
   QLJS_UNREACHABLE();
 found_end_of_file:
-  this->error_reporter_->report_error_unclosed_block_comment(
-      source_code_span(&this->input_[0], &this->input_[2]));
+  this->error_reporter_->report(error_unclosed_block_comment{
+      .comment_open = source_code_span(&this->input_[0], &this->input_[2])});
   this->input_ += strlen(this->input_);
 }
 

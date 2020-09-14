@@ -32,151 +32,131 @@ QLJS_WARNING_IGNORE_MSVC(26812)  // Prefer 'enum class' over 'enum'.
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
-  void report_error_assignment_before_variable_declaration(
-      identifier assignment, identifier declaration) override {
+  void report(error_assignment_before_variable_declaration e) override {
     this->errors.emplace_back(error_assignment_before_variable_declaration,
-                              assignment.span(), declaration.span());
+                              e.assignment.span(), e.declaration.span());
   }
 
-  void report_error_assignment_to_const_global_variable(
-      identifier assignment) override {
+  void report(error_assignment_to_const_global_variable e) override {
     this->errors.emplace_back(error_assignment_to_const_global_variable,
-                              assignment.span());
+                              e.assignment.span());
   }
 
-  void report_error_assignment_to_const_variable(
-      identifier declaration, identifier assignment,
-      variable_kind var_kind) override {
+  void report(error_assignment_to_const_variable e) override {
     this->errors.emplace_back(error{error_assignment_to_const_variable,
-                                    assignment.span(), declaration.span(),
-                                    var_kind});
+                                    e.assignment.span(), e.declaration.span(),
+                                    e.var_kind});
   }
 
-  void report_error_assignment_to_undeclared_variable(
-      identifier assignment) override {
+  void report(error_assignment_to_undeclared_variable e) override {
     this->errors.emplace_back(error_assignment_to_undeclared_variable,
-                              assignment.span());
+                              e.assignment.span());
   }
 
-  void report_error_big_int_literal_contains_decimal_point(
-      source_code_span where) override {
+  void report(error_big_int_literal_contains_decimal_point e) override {
     this->errors.emplace_back(error_big_int_literal_contains_decimal_point,
-                              where);
+                              e.where);
   }
 
-  void report_error_big_int_literal_contains_exponent(
-      source_code_span where) override {
-    this->errors.emplace_back(error_big_int_literal_contains_exponent, where);
+  void report(error_big_int_literal_contains_exponent e) override {
+    this->errors.emplace_back(error_big_int_literal_contains_exponent, e.where);
   }
 
-  void report_error_big_int_literal_contains_leading_zero(
-      source_code_span where) override {
+  void report(error_big_int_literal_contains_leading_zero e) override {
     this->errors.emplace_back(error_big_int_literal_contains_leading_zero,
-                              where);
+                              e.where);
   }
 
-  void report_error_invalid_binding_in_let_statement(
-      source_code_span where) override {
+  void report(error_invalid_binding_in_let_statement e) override {
     this->errors.emplace_back(
-        error{error_invalid_binding_in_let_statement, where});
+        error{error_invalid_binding_in_let_statement, e.where});
   }
 
-  void report_error_invalid_expression_left_of_assignment(
-      source_code_span where) override {
+  void report(error_invalid_expression_left_of_assignment e) override {
     this->errors.emplace_back(
-        error{error_invalid_expression_left_of_assignment, where});
+        error{error_invalid_expression_left_of_assignment, e.where});
   }
 
-  void report_error_let_with_no_bindings(source_code_span where) override {
-    this->errors.emplace_back(error{error_let_with_no_bindings, where});
+  void report(error_let_with_no_bindings e) override {
+    this->errors.emplace_back(error{error_let_with_no_bindings, e.where});
   }
 
-  void report_error_missing_comma_between_object_literal_entries(
-      source_code_span where) override {
+  void report(error_missing_comma_between_object_literal_entries e) override {
     this->errors.emplace_back(
-        error(error_missing_comma_between_object_literal_entries, where));
+        error(error_missing_comma_between_object_literal_entries, e.where));
   }
 
-  void report_error_missing_operand_for_operator(
-      source_code_span where) override {
-    this->errors.emplace_back(error{error_missing_operand_for_operator, where});
-  }
-
-  void report_error_missing_semicolon_after_expression(
-      source_code_span where) override {
+  void report(error_missing_operand_for_operator e) override {
     this->errors.emplace_back(
-        error{error_missing_semicolon_after_expression, where});
+        error{error_missing_operand_for_operator, e.where});
   }
 
-  void report_error_redeclaration_of_global_variable(
-      identifier redeclaration) override {
+  void report(error_missing_semicolon_after_expression e) override {
+    this->errors.emplace_back(
+        error{error_missing_semicolon_after_expression, e.where});
+  }
+
+  void report(error_redeclaration_of_global_variable e) override {
     this->errors.emplace_back(error_redeclaration_of_global_variable,
-                              redeclaration.span());
+                              e.redeclaration.span());
   }
 
-  void report_error_redeclaration_of_variable(
-      identifier redeclaration, identifier original_declaration) override {
+  void report(error_redeclaration_of_variable e) override {
     this->errors.emplace_back(error(error_redeclaration_of_variable,
-                                    redeclaration.span(),
-                                    original_declaration.span()));
+                                    e.redeclaration.span(),
+                                    e.original_declaration.span()));
   }
 
-  void report_error_stray_comma_in_let_statement(
-      source_code_span where) override {
-    this->errors.emplace_back(error{error_stray_comma_in_let_statement, where});
-  }
-
-  void report_error_unclosed_block_comment(
-      source_code_span comment_open) override {
+  void report(error_stray_comma_in_let_statement e) override {
     this->errors.emplace_back(
-        error{error_unclosed_block_comment, comment_open});
+        error{error_stray_comma_in_let_statement, e.where});
   }
 
-  void report_error_unclosed_regexp_literal(
-      source_code_span regexp_literal) override {
+  void report(error_unclosed_block_comment e) override {
     this->errors.emplace_back(
-        error{error_unclosed_regexp_literal, regexp_literal});
+        error{error_unclosed_block_comment, e.comment_open});
   }
 
-  void report_error_unclosed_string_literal(
-      source_code_span string_literal) override {
+  void report(error_unclosed_regexp_literal e) override {
     this->errors.emplace_back(
-        error{error_unclosed_string_literal, string_literal});
+        error{error_unclosed_regexp_literal, e.regexp_literal});
   }
 
-  void report_error_unclosed_template(
-      source_code_span incomplete_template) override {
+  void report(error_unclosed_string_literal e) override {
     this->errors.emplace_back(
-        error{error_unclosed_template, incomplete_template});
+        error{error_unclosed_string_literal, e.string_literal});
   }
 
-  void report_error_unexpected_characters_in_number(
-      source_code_span characters) override {
+  void report(error_unclosed_template e) override {
+    this->errors.emplace_back(
+        error{error_unclosed_template, e.incomplete_template});
+  }
+
+  void report(error_unexpected_characters_in_number e) override {
     this->errors.emplace_back(error_unexpected_characters_in_number,
-                              characters);
+                              e.characters);
   }
 
-  void report_error_unexpected_hash_character(source_code_span where) override {
-    this->errors.emplace_back(error_unexpected_hash_character, where);
+  void report(error_unexpected_hash_character e) override {
+    this->errors.emplace_back(error_unexpected_hash_character, e.where);
   }
 
-  void report_error_unexpected_identifier(source_code_span where) override {
-    this->errors.emplace_back(error{error_unexpected_identifier, where});
+  void report(error_unexpected_identifier e) override {
+    this->errors.emplace_back(error{error_unexpected_identifier, e.where});
   }
 
-  void report_error_unmatched_parenthesis(source_code_span where) override {
-    this->errors.emplace_back(error{error_unmatched_parenthesis, where});
+  void report(error_unmatched_parenthesis e) override {
+    this->errors.emplace_back(error{error_unmatched_parenthesis, e.where});
   }
 
-  void report_error_use_of_undeclared_variable(identifier name) override {
+  void report(error_use_of_undeclared_variable e) override {
     this->errors.emplace_back(
-        error{error_use_of_undeclared_variable, name.span()});
+        error{error_use_of_undeclared_variable, e.name.span()});
   }
 
-  void report_error_variable_used_before_declaration(
-      identifier use, identifier declaration) override {
+  void report(error_variable_used_before_declaration e) override {
     this->errors.emplace_back(error(error_variable_used_before_declaration,
-                                    use.span(), declaration.span()));
+                                    e.use.span(), e.declaration.span()));
   }
 
   void report_fatal_error_unimplemented_character(

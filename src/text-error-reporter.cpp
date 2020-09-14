@@ -31,16 +31,10 @@ void text_error_reporter::set_source(padded_string_view input,
   this->file_path_ = file_path;
 }
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_CLANG("-Wunused-parameter")
-QLJS_WARNING_IGNORE_GCC("-Wunused-parameter")
-#define QLJS_ERROR_TYPE(name, parameters, format_call) \
-  void text_error_reporter::report_##name parameters { \
-    this->format() format_call.end();                  \
-  }
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  void text_error_reporter::report(name e) { format_error(e, this->format()); }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-QLJS_WARNING_POP
 
 void text_error_reporter::report_fatal_error_unimplemented_character(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,

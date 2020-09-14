@@ -885,16 +885,16 @@ class parser {
           break;
         case token_type::kw_if:
         case token_type::number:
-          this->error_reporter_->report_error_invalid_binding_in_let_statement(
-              this->peek().span());
+          this->error_reporter_->report(
+              error_invalid_binding_in_let_statement{this->peek().span()});
           break;
         default:
           if (first_binding) {
-            this->error_reporter_->report_error_let_with_no_bindings(let_span);
+            this->error_reporter_->report(error_let_with_no_bindings{let_span});
           } else {
             QLJS_ASSERT(comma_span.has_value());
-            this->error_reporter_->report_error_stray_comma_in_let_statement(
-                *comma_span);
+            this->error_reporter_->report(
+                error_stray_comma_in_let_statement{*comma_span});
           }
           break;
       }
