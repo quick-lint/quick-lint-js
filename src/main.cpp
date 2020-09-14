@@ -17,6 +17,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
@@ -92,6 +93,8 @@ class any_error_reporter {
 
 void process_file(padded_string_view input, error_reporter *,
                   bool print_parser_visits);
+
+void print_help_message();
 }
 }
 
@@ -99,6 +102,10 @@ int main(int argc, char **argv) {
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
 
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
+  if (o.help) {
+    quick_lint_js::print_help_message();
+    return 0;
+  }
   if (!o.error_unrecognized_options.empty()) {
     for (const auto &option : o.error_unrecognized_options) {
       std::cerr << "error: unrecognized option: " << option << '\n';
@@ -282,6 +289,21 @@ void process_file(padded_string_view input, error_reporter *error_reporter,
   } else {
     p.parse_and_visit_module(l);
   }
+}
+
+void print_help_message() {
+  int max_width = 36;
+
+  auto print_option = [&](const char *abbr, const char *message) {
+    std::cout << std::setw(max_width) << std::left << abbr << message << '\n';
+  };
+
+  std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
+            << "OPTIONS\n";
+  print_option("--output-format=[FORMAT]", "Format to print feedback where FORMAT is one of:");
+  print_option("", "gnu-like (default if omitted), vim-qflist-json");
+  print_option("--vim-file-bufnr=[NUMBER]", "Select a vim buffer for outputting feedback");
+  print_option("--h, --help", "Print help message");
 }
 }
 }
