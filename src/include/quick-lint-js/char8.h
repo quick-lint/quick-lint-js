@@ -60,8 +60,12 @@ const char8 *strstr(const char8 *haystack, const char8 *needle);
 
 namespace testing::internal {
 #if QLJS_HAVE_CHAR8_T
-void PrintTo(char8_t, std::ostream *);
-void PrintTo(const char8_t *, std::ostream *);
+template <class T>
+void PrintTo(const T &, std::ostream *);
+template <>
+void PrintTo(const char8_t &, std::ostream *);
+template <>
+void PrintTo(const char8_t *const &, std::ostream *);
 #endif
 }
 
