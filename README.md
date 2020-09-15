@@ -6,16 +6,13 @@ quick-lint-js finds bugs in JavaScript programs.
 
 ### Without CMake (macOS and Linux only)
 
-    $ c++ -o src/quick-lint-js -std=gnu++17 -I src/include -I vendor/boost src/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c
+    $ c++ -o quick-lint-js -std=gnu++17 -I src/include -I vendor/boost src/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c
+    $ ./quick-lint-js path/to/my-file.js
 
 ### With CMake
 
-    $ cmake .
-    $ cmake --build .
-
-## Running
-
-    $ src/quick-lint-js path/to/my-file.js
+See [build instructions](docs/BUILDING.md) for how to build quick-lint-js for
+development.
 
 ## Values
 
