@@ -22,6 +22,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
@@ -50,8 +51,18 @@ void write_file(filesystem::path, const std::string &content);
 class test_file : public ::testing::Test {
  public:
   filesystem::path make_temporary_directory() {
-    // TODO(strager): Delete the directory when the test finishes.
-    return quick_lint_js::make_temporary_directory();
+    temp_directory_path = quick_lint_js::make_temporary_directory();
+    return temp_directory_path.value();
+  }
+
+ private:
+  std::optional<filesystem::path> temp_directory_path;
+
+ protected:
+  void TearDown() override {
+    if (temp_directory_path.has_value()) {
+      filesystem::remove_all(temp_directory_path.value());
+    }
   }
 };
 
