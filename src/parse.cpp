@@ -49,7 +49,7 @@
   case token_type::pipe:                    \
   case token_type::pipe_pipe:               \
   case token_type::star:                    \
-  case token_type::star_star                
+  case token_type::star_star
 
 namespace quick_lint_js {
 namespace {
