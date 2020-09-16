@@ -615,9 +615,13 @@ const char8* lexer::end_of_previous_token() const noexcept {
 
 void lexer::parse_hexadecimal_number() {
   QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
-  while (this->is_hex_digit(this->input_[0])) {
-    this->input_ += 1;
+  const char8* input = this->input_;
+
+  while (this->is_hex_digit(*input)) {
+    input += 1;
   }
+
+  this->input_ = check_garbage_in_number_literal(input);
 }
 
 void lexer::parse_binary_number() {
@@ -628,13 +632,17 @@ void lexer::parse_binary_number() {
     input += 1;
   }
 
+  this->input_ = check_garbage_in_number_literal(input);
+}
+
+const char8* lexer::check_garbage_in_number_literal(const char8* input) {
   const char8* garbage_begin = input;
   for (;;) {
     switch (*input) {
-    QLJS_CASE_DECIMAL_DIGIT:
-    QLJS_CASE_IDENTIFIER_START:
-      input += 1;
-      break;
+      QLJS_CASE_DECIMAL_DIGIT:
+      QLJS_CASE_IDENTIFIER_START:
+        input += 1;
+        break;
       default:
         goto done_parsing_garbage;
     }
@@ -647,7 +655,7 @@ done_parsing_garbage:
     input = garbage_end;
   }
 
-  this->input_ = input;
+  return input;
 }
 
 void lexer::parse_number() {

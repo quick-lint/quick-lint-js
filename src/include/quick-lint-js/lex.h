@@ -244,6 +244,7 @@ class lexer {
 
   void parse_binary_number();
   void parse_hexadecimal_number();
+  const char8* check_garbage_in_number_literal(const char8* input);
   void parse_number();
   static const char8* parse_decimal_digits(const char8*) noexcept;
 

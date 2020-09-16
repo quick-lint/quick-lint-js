@@ -191,6 +191,20 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
                               error_unexpected_characters_in_number, characters,
                               offsets_matcher(&input, 3, 8))));
   }
+
+
+  {
+    error_collector v;
+    padded_string input(u8"0xabjjw");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+        error_unexpected_characters_in_number, characters,
+        offsets_matcher(&input, 4, 7))));
+  }
 }
 
 TEST(test_lex, lex_invalid_big_int_number) {
