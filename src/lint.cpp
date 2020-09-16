@@ -161,7 +161,7 @@ void linter::visit_enter_function_scope_body() {
 void linter::visit_enter_named_function_scope(identifier function_name) {
   scope &current_scope = this->scopes_.emplace_back();
   current_scope.function_expression_declaration = declared_variable{
-      .name = string8(function_name.string_view()),
+      .name = function_name.string_view(),
       .kind = variable_kind::_function,
       .declaration = function_name,
       .declaration_scope = declared_variable_scope::declared_in_current_scope,
@@ -512,7 +512,11 @@ const linter::declared_variable *linter::scope::add_variable_declaration(
     identifier name, variable_kind kind,
     declared_variable_scope declared_scope) {
   this->declared_variables.emplace_back(declared_variable{
-      string8(name.string_view()), kind, name, declared_scope});
+      .name = name.string_view(),
+      .kind = kind,
+      .declaration = name,
+      .declaration_scope = declared_scope,
+  });
   return &this->declared_variables.back();
 }
 

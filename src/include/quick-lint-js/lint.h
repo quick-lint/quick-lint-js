@@ -53,7 +53,7 @@ class linter {
   };
 
   struct declared_variable {
-    string8 name;
+    string8_view name;
     variable_kind kind;
     std::optional<identifier> declaration;
     declared_variable_scope declaration_scope;
