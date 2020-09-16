@@ -663,11 +663,11 @@ void lexer::parse_number() {
     input = garbage_end;
   };
 
-  input = this->parse_decimal_digits(input);
+  input = this->parse_decimal_digits_and_underscores(input);
   bool has_decimal_point = *input == '.';
   if (has_decimal_point) {
     input += 1;
-    input = this->parse_decimal_digits(input);
+    input = this->parse_decimal_digits_and_underscores(input);
     has_decimal_point = true;
   }
   bool has_exponent = *input == 'e' || *input == 'E';
@@ -678,7 +678,7 @@ void lexer::parse_number() {
       input += 1;
     }
     if (this->is_digit(*input)) {
-      input = this->parse_decimal_digits(input);
+      input = this->parse_decimal_digits_and_underscores(input);
     } else {
       input = e;
       consume_garbage();
@@ -709,9 +709,23 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-const char8* lexer::parse_decimal_digits(const char8* input) noexcept {
-  while (is_digit(*input)) {
+const char8* lexer::parse_decimal_digits_and_underscores(
+    const char8* input) noexcept {
+  bool has_trailing_underscore = false;
+  while (is_digit(*input)) { 
+    has_trailing_underscore = false;
     input += 1;
+    if (*input == '_') {
+      has_trailing_underscore = true;
+      input += 1;
+      if (*input == '_') {
+        has_trailing_underscore = false;
+        // TODO error_reporter: SyntaxError: Only one underscore is allowed innumeric separator
+      }
+    }
+  }
+  if (has_trailing_underscore == true) {
+    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at the end of numeric literals
   }
   return input;
 }
