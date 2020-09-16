@@ -58,6 +58,16 @@
       .error(u8"assignment to undeclared variable", assignment))               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_underscores_not_allowed_at_end_of_numeric_literals,                \
+      { source_code_span where; },                                             \
+      .error(u8"underscores not allowed at end of numeric literals", where))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_only_one_underscore_is_allowed_as_numeric_separator,               \
+      { source_code_span where; },                                             \
+      .error(u8"only one underscore is allowed as numeric separator", where))  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point,                            \
       { source_code_span where; },                                             \
       .error(u8"BigInt literal contains decimal point", where))                \

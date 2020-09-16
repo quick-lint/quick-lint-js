@@ -663,11 +663,11 @@ void lexer::parse_number() {
     input = garbage_end;
   };
 
-  input = this->parse_decimal_digits(input);
+  input = this->parse_decimal_digits_and_underscores(input, number_begin);
   bool has_decimal_point = *input == '.';
   if (has_decimal_point) {
     input += 1;
-    input = this->parse_decimal_digits(input);
+    input = this->parse_decimal_digits_and_underscores(input, number_begin);
     has_decimal_point = true;
   }
   bool has_exponent = *input == 'e' || *input == 'E';
@@ -678,7 +678,7 @@ void lexer::parse_number() {
       input += 1;
     }
     if (this->is_digit(*input)) {
-      input = this->parse_decimal_digits(input);
+      input = this->parse_decimal_digits_and_underscores(input, number_begin);
     } else {
       input = e;
       consume_garbage();
@@ -709,9 +709,27 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-const char8* lexer::parse_decimal_digits(const char8* input) noexcept {
+const char8* lexer::parse_decimal_digits_and_underscores(const char8* input, 
+    const char8* number_begin) noexcept {
+  bool has_trailing_underscore = false;
   while (is_digit(*input)) {
+    has_trailing_underscore = false;
     input += 1;
+    if (*input == '_') {
+      has_trailing_underscore = true;
+      input += 1;
+      if (*input == '_') {
+        has_trailing_underscore = false;
+        this->error_reporter_->report(
+            error_only_one_underscore_is_allowed_as_numeric_separator{
+            source_code_span(number_begin, input)});
+      }
+    }
+  }
+  if (has_trailing_underscore == true) {
+    this->error_reporter_->report(
+        error_underscores_not_allowed_at_end_of_numeric_literals{
+        source_code_span(number_begin, input)});
   }
   return input;
 }

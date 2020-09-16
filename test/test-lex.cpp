@@ -97,14 +97,19 @@ TEST(test_lex, lex_numbers) {
   check_single_token(u8"1e-3", token_type::number);
   check_single_token(u8"1e+3", token_type::number);
   check_single_token(u8"1E+3", token_type::number);
+  check_single_token(u8"1E1_3_2", token_type::number);
 
   check_single_token(u8"0n", token_type::number);
   check_single_token(u8"123456789n", token_type::number);
+
+  check_single_token(u8"123_123_123", token_type::number);
+  check_single_token(u8"123.123_123", token_type::number);
 
   check_tokens(u8"123. 456", {token_type::number, token_type::number});
 
   check_tokens(u8"1.2.3", {token_type::number, token_type::number});
   check_tokens(u8".2.3", {token_type::number, token_type::number});
+
 }
 
 TEST(test_lex, lex_binary_numbers) {
