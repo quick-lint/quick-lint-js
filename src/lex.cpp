@@ -720,16 +720,12 @@ const char8* lexer::parse_decimal_digits_and_underscores(const char8* input,
       input += 1;
       if (*input == '_') {
         has_trailing_underscore = false;
-        this->error_reporter_->report(
-            error_only_one_underscore_is_allowed_as_numeric_separator{
-            source_code_span(number_begin, input)});
+        // TODO error_reporter: SyntaxError: Only one underscore is allowed in numeric separator
       }
     }
   }
   if (has_trailing_underscore == true) {
-    this->error_reporter_->report(
-        error_underscores_not_allowed_at_end_of_numeric_literals{
-        source_code_span(number_begin, input)});
+    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at the end of numeric literals
   }
   return input;
 }
