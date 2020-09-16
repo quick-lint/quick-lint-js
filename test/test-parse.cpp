@@ -1783,6 +1783,22 @@ TEST(test_parse, while_statement) {
   }
 }
 
+TEST(test_parse, with_statement) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"with (cond) body;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // cond
+                                      "visit_variable_use"));  // body
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"with (cond) { body; }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // body
+                                      "visit_exit_block_scope"));
+  }
+}
+
 TEST(test_parse, break_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"break;");

@@ -149,6 +149,10 @@ class parser {
         this->parse_and_visit_while(v);
         break;
 
+      case token_type::kw_with:
+        this->parse_and_visit_with(v);
+        break;
+
       case token_type::kw_if:
         this->parse_and_visit_if(v);
         break;
@@ -763,6 +767,22 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_while(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_while);
+    this->lexer_.skip();
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_expression(v);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->lexer_.skip();
+
+    this->parse_and_visit_statement(v);
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_with(Visitor &v) {
+    QLJS_ASSERT(this->peek().type == token_type::kw_with);
     this->lexer_.skip();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
