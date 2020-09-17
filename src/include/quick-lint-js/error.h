@@ -72,6 +72,14 @@
       .error(u8"BigInt literal has a leading 0 digit", where))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_expression_before_newline, { source_code_span where; },   \
+      .error(u8"expected expression before newline", where))                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_expression_before_semicolon, { source_code_span where; }, \
+      .error(u8"expected expression before semicolon", where))                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, { source_code_span where; },     \
       .error(u8"invalid binding in let statement", where))                     \
                                                                                \

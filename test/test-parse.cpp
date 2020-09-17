@@ -448,6 +448,26 @@ TEST(test_parse, throw_statement) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Error"}));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"throw;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_expected_expression_before_semicolon, where,
+            offsets_matcher(&code, 5, 6))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"throw\nnew Error();");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_expected_expression_before_newline, where,
+            offsets_matcher(&code, 5, 5))));
+  }
 }
 
 TEST(test_parse, parse_math_expression) {
