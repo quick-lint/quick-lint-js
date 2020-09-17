@@ -54,9 +54,15 @@ class linter {
 
   struct declared_variable {
     string8_view name;
+    bool is_global_variable;
     variable_kind kind;
-    std::optional<identifier> declaration;
     declared_variable_scope declaration_scope;
+
+    identifier declaration() const noexcept {
+      QLJS_ASSERT(!this->is_global_variable);
+      return identifier(
+          source_code_span(name.data(), name.data() + name.size()));
+    }
   };
 
   enum class used_variable_kind {
