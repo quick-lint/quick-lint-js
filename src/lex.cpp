@@ -639,10 +639,10 @@ const char8* lexer::check_garbage_in_number_literal(const char8* input) {
   const char8* garbage_begin = input;
   for (;;) {
     switch (*input) {
-      QLJS_CASE_DECIMAL_DIGIT:
-      QLJS_CASE_IDENTIFIER_START:
-        input += 1;
-        break;
+    QLJS_CASE_DECIMAL_DIGIT:
+    QLJS_CASE_IDENTIFIER_START:
+      input += 1;
+      break;
       default:
         goto done_parsing_garbage;
     }
@@ -720,7 +720,7 @@ void lexer::parse_number() {
 const char8* lexer::parse_decimal_digits_and_underscores(
     const char8* input) noexcept {
   bool has_trailing_underscore = false;
-  while (is_digit(*input)) { 
+  while (is_digit(*input)) {
     has_trailing_underscore = false;
     input += 1;
     if (*input == '_') {
@@ -728,12 +728,14 @@ const char8* lexer::parse_decimal_digits_and_underscores(
       input += 1;
       if (*input == '_') {
         has_trailing_underscore = false;
-        // TODO error_reporter: SyntaxError: Only one underscore is allowed innumeric separator
+        // TODO error_reporter: SyntaxError: Only one underscore is allowed
+        // innumeric separator
       }
     }
   }
   if (has_trailing_underscore == true) {
-    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at the end of numeric literals
+    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at
+    // the end of numeric literals
   }
   return input;
 }
