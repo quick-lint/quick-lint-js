@@ -124,10 +124,27 @@ class parser {
         break;
 
       case token_type::kw_return:
+        this->lexer_.skip();
+        if (this->peek().type == token_type::semicolon) {
+          this->lexer_.skip();
+          break;
+        }
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon();
+        break;
+
       case token_type::kw_throw:
         this->lexer_.skip();
         if (this->peek().type == token_type::semicolon) {
-          // TODO(strager): Require expression for throw statements.
+          this->error_reporter_->report(
+              error_expected_expression_before_semicolon{this->peek().span()});
+          this->lexer_.skip();
+          break;
+        }
+        if (this->peek().has_leading_newline) {
+          this->lexer_.insert_semicolon();
+          this->error_reporter_->report(
+              error_expected_expression_before_newline{this->peek().span()});
           this->lexer_.skip();
           break;
         }
