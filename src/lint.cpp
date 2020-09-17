@@ -532,8 +532,9 @@ void linter::scope::add_predefined_variable_declaration(const char8 *name,
 
 const linter::declared_variable *linter::scope::find_declared_variable(
     identifier name) const noexcept {
+  string8_view name_view = name.string_view();
   for (const declared_variable &var : this->declared_variables) {
-    if (var.name == name.string_view()) {
+    if (var.name == name_view) {
       return &var;
     }
   }
