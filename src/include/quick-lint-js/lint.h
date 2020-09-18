@@ -94,6 +94,26 @@ class linter {
         noexcept;
   };
 
+  class scopes {
+   public:
+    explicit scopes();
+
+    scope &global_scope() noexcept;
+    scope &module_scope() noexcept;
+
+    scope &current_scope() noexcept;
+    scope &parent_scope() noexcept;
+
+    scope &push();
+    void pop();
+
+    bool empty() const noexcept;
+    int size() const noexcept;
+
+   private:
+    std::vector<scope> scopes_;
+  };
+
   void declare_variable(scope &, identifier name, variable_kind kind,
                         declared_variable_scope variable_scope);
   void visit_variable_use(identifier name, used_variable_kind);
@@ -109,7 +129,10 @@ class linter {
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;
 
-  std::vector<scope> scopes_;
+  scope &current_scope() noexcept { return this->scopes_.current_scope(); }
+  scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
+
+  scopes scopes_;
   error_reporter *error_reporter_;
 };
 }
