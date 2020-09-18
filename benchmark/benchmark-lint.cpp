@@ -54,5 +54,26 @@ void benchmark_lint(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_lint);
+
+void benchmark_parse_and_lint(benchmark::State &state) {
+  const char *source_path_env_var = "QLJS_LINT_BENCHMARK_SOURCE_FILE";
+  const char *source_path = std::getenv(source_path_env_var);
+  if (!source_path || *source_path == '\0') {
+    std::fprintf(stderr,
+                 "fatal: The %s environment variable was not set.\n"
+                 "       Set it to the path of a JavaScript source file.\n",
+                 source_path_env_var);
+    std::exit(1);
+  }
+  read_file_result source(quick_lint_js::read_file(source_path));
+  source.exit_if_not_ok();
+
+  for (auto _ : state) {
+    parser p(&source.content, &null_error_reporter::instance);
+    linter l(&null_error_reporter::instance);
+    p.parse_and_visit_module(l);
+  }
+}
+BENCHMARK(benchmark_parse_and_lint);
 }  // namespace
 }  // namespace quick_lint_js
