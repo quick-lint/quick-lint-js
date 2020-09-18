@@ -537,6 +537,13 @@ const linter::declared_variable *linter::scope::find_declared_variable(
   return nullptr;
 }
 
+void linter::scope::clear() {
+  this->declared_variables.clear();
+  this->variables_used.clear();
+  this->variables_used_in_descendant_scope.clear();
+  this->function_expression_declaration.reset();
+}
+
 linter::scopes::scopes() {
   this->push();  // global_scope
   this->push();  // module_scope
@@ -552,7 +559,7 @@ linter::scope &linter::scopes::module_scope() noexcept {
 
 linter::scope &linter::scopes::current_scope() noexcept {
   QLJS_ASSERT(!this->empty());
-  return this->scopes_.back();
+  return this->scopes_[narrow_cast<std::size_t>(this->size()) - 1];
 }
 
 linter::scope &linter::scopes::parent_scope() noexcept {
@@ -560,16 +567,25 @@ linter::scope &linter::scopes::parent_scope() noexcept {
   return this->scopes_[narrow_cast<std::size_t>(this->size()) - 2];
 }
 
-linter::scope &linter::scopes::push() { return this->scopes_.emplace_back(); }
+linter::scope &linter::scopes::push() {
+  bool full = this->scope_count_ == narrow_cast<int>(this->scopes_.size());
+  scope *s;
+  if (full) {
+    s = &this->scopes_.emplace_back();
+  } else {
+    s = &this->scopes_[narrow_cast<std::size_t>(this->scope_count_)];
+    s->clear();
+  }
+  this->scope_count_ += 1;
+  return *s;
+}
 
 void linter::scopes::pop() {
   QLJS_ASSERT(!this->empty());
-  this->scopes_.pop_back();
+  this->scope_count_ -= 1;
 }
 
-bool linter::scopes::empty() const noexcept { return this->scopes_.empty(); }
+bool linter::scopes::empty() const noexcept { return this->scope_count_ == 0; }
 
-int linter::scopes::size() const noexcept {
-  return narrow_cast<int>(this->scopes_.size());
-}
+int linter::scopes::size() const noexcept { return this->scope_count_; }
 }

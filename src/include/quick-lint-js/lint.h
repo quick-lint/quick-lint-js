@@ -92,6 +92,8 @@ class linter {
 
     const declared_variable *find_declared_variable(identifier name) const
         noexcept;
+
+    void clear();
   };
 
   class scopes {
@@ -111,6 +113,7 @@ class linter {
     int size() const noexcept;
 
    private:
+    int scope_count_ = 0;
     std::vector<scope> scopes_;
   };
 
