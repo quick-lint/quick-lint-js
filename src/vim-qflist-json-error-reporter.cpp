@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <iostream>
 #include <ostream>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
@@ -103,7 +104,7 @@ void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_character(
       /*qljs_function_name=*/qljs_function_name,
       /*character=*/character,
       /*locator=*/get(this->locator_),
-      /*out=*/this->output_);
+      /*out=*/std::cerr);
 }
 
 void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
@@ -116,7 +117,7 @@ void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
       /*type=*/type,
       /*token_begin=*/token_begin,
       /*locator=*/get(this->locator_),
-      /*out=*/this->output_);
+      /*out=*/std::cerr);
 }
 
 void vim_qflist_json_error_reporter::begin_error() {
