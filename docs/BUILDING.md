@@ -8,7 +8,7 @@ Recommended process:
 
 1. Run CMake to create a build directory containing project files.
 2. Run your build tool to compile quick-lint-js and its tests.
-3. Run quick-lint-js' tests directly or using CTest.
+3. Run quick-lint-js' tests directly.
 
 The exact commands you need to run differs depending on your preferred
 development environment and build tool:
@@ -47,11 +47,6 @@ If you only want to build quick-lint-js' tests:
 
 Run the following command to run quick-lint-js' test suite:
 
-    $ ninja -C build test
-
-If you want to run the test executable manually (e.g. to run it with `gdb` or
-`valgrind`):
-
     $ ./build/test/quick-lint-js-test
 
 If you want to run the quick-lint-js program:
@@ -87,11 +82,6 @@ If you only want to build quick-lint-js' tests:
 #### 3. Run
 
 Run the following command to run quick-lint-js' test suite:
-
-    $ make -C build test
-
-If you want to run the test executable manually (e.g. to run it with `gdb` or
-`valgrind`):
 
     $ ./build/test/quick-lint-js-test
 
