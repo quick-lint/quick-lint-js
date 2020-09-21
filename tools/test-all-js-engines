@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# test-all-js-engines runs the file or text (with `-e`) through three popular JS engines
+
+node_path=$(which node)
+if [[ -x "$node_path" ]] ; then
+  printf "#### node (V8) (e.g. Chrome):\n"
+  node "$@"
+fi
+
+jsc_path=$(which jsc)
+if [[ -x "$jsc_path" ]] ; then
+  printf "\n\n#### jsc (JSCore) (e.g. Safari):\n"
+  jsc "$@"
+fi
+
+js_path=$(which js)
+if [[ -x "$js_path" ]] ; then
+  printf "\n\n#### js (SpiderMonkey) (e.g. Firefox):\n"
+  js "$@"
+fi
+
