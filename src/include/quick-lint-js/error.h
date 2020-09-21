@@ -72,6 +72,11 @@
       .error(u8"BigInt literal has a leading 0 digit", where))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_number_literal_contains_consecutive_underscores,                   \
+      { source_code_span where; },                                             \
+      .error(u8"Number literal contains consecutive underscores", where))      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, { source_code_span where; },     \
       .error(u8"invalid binding in let statement", where))                     \
                                                                                \
