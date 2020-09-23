@@ -72,11 +72,6 @@
       .error(u8"BigInt literal has a leading 0 digit", where))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_number_literal_contains_consecutive_underscores,                   \
-      { source_code_span where; },                                             \
-      .error(u8"Number literal contains consecutive underscores", where))      \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, { source_code_span where; },     \
       .error(u8"invalid binding in let statement", where))                     \
                                                                                \
@@ -101,6 +96,11 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_semicolon_after_expression, { source_code_span where; },   \
       .error(u8"missing semicolon after expression", where))                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_number_literal_contains_consecutive_underscores,                   \
+      { source_code_span underscores; },                                       \
+      .error(u8"number literal contains consecutive underscores", underscores))\
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_redeclaration_of_global_variable, { identifier redeclaration; },   \
