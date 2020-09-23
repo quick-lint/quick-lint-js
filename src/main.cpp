@@ -300,9 +300,11 @@ void print_help_message() {
 
   std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
             << "OPTIONS\n";
-  print_option("--output-format=[FORMAT]", "Format to print feedback where FORMAT is one of:");
+  print_option("--output-format=[FORMAT]",
+               "Format to print feedback where FORMAT is one of:");
   print_option("", "gnu-like (default if omitted), vim-qflist-json");
-  print_option("--vim-file-bufnr=[NUMBER]", "Select a vim buffer for outputting feedback");
+  print_option("--vim-file-bufnr=[NUMBER]",
+               "Select a vim buffer for outputting feedback");
   print_option("--h, --help", "Print help message");
 }
 }
