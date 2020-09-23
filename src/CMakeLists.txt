@@ -82,3 +82,18 @@ if (
     COMPILE_OPTIONS -fno-builtin
   )
 endif ()
+
+if (EMSCRIPTEN)
+  quick_lint_js_add_executable(
+    quick-lint-js-wasm-demo
+    wasm-demo.cpp
+  )
+  target_link_libraries(
+    quick-lint-js-wasm-demo
+    PRIVATE
+    quick-lint-js-lib
+    "-sEXPORTED_FUNCTIONS='[\"_quick_lint_js_parse_and_lint_for_wasm_demo\"]'"
+    "-sEXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'"
+    "-sMODULARIZE"
+  )
+endif ()

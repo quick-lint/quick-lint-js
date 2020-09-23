@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "fmt": "prettier --write '*.mjs'",
+    "test": "node --experimental-modules test.mjs"
+  },
+  "devDependencies": {
+    "prettier": "2.1.2"
+  }
+}
