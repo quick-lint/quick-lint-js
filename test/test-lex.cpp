@@ -299,6 +299,56 @@ TEST(test_lex, lex_invalid_big_int_number) {
   }
 }
 
+TEST(test_lex, lex_number_with_double_underscore) {
+  {
+    error_collector v;
+    padded_string input(u8"123__000");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_number_literal_contains_consecutive_underscores, underscores,
+                              offsets_matcher(&input, 3, 5))));
+  }
+}
+
+TEST(test_lex, lex_number_with_many_underscores) {
+  {
+    error_collector v;
+    padded_string input(u8"123_____000");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_number_literal_contains_consecutive_underscores, underscores,
+                              offsets_matcher(&input, 3, 8))));
+  }
+}
+
+TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
+  {
+    error_collector v;
+    padded_string input(u8"123__45___6");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    EXPECT_EQ(*l.peek().begin, '1');
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(
+          ERROR_TYPE_FIELD(
+            error_number_literal_contains_consecutive_underscores, underscores,
+            offsets_matcher(&input, 3, 5)),
+          ERROR_TYPE_FIELD(
+            error_number_literal_contains_consecutive_underscores, underscores,
+            offsets_matcher(&input, 7, 10))));
+  }
+}
+
 TEST(test_lex, lex_strings) {
   check_single_token(u8R"('hello')", token_type::string);
   check_single_token(u8R"("hello")", token_type::string);

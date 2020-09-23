@@ -724,12 +724,18 @@ const char8* lexer::parse_decimal_digits_and_underscores(
     has_trailing_underscore = false;
     input += 1;
     if (*input == '_') {
+      const char8* garbage_begin = input;
       has_trailing_underscore = true;
       input += 1;
       if (*input == '_') {
         has_trailing_underscore = false;
-        // TODO error_reporter: SyntaxError: Only one underscore is allowed
-        // innumeric separator
+
+        while (*input == '_') {
+          input += 1;
+        }
+
+        this->error_reporter_->report(error_number_literal_contains_consecutive_underscores{
+            source_code_span(garbage_begin, input)});
       }
     }
   }
