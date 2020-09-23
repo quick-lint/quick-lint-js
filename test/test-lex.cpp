@@ -309,7 +309,7 @@ TEST(test_lex, lex_number_with_double_underscore) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_number_literal_contains_consecutive_underscores, where,
+                              error_number_literal_contains_consecutive_underscores, underscores,
                               offsets_matcher(&input, 3, 5))));
   }
 }
@@ -324,7 +324,7 @@ TEST(test_lex, lex_number_with_many_underscores) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_number_literal_contains_consecutive_underscores, where,
+                              error_number_literal_contains_consecutive_underscores, underscores,
                               offsets_matcher(&input, 3, 8))));
   }
 }
@@ -341,10 +341,10 @@ TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
 
     EXPECT_THAT(v.errors, ElementsAre(
           ERROR_TYPE_FIELD(
-            error_number_literal_contains_consecutive_underscores, where,
+            error_number_literal_contains_consecutive_underscores, underscores,
             offsets_matcher(&input, 3, 5)),
           ERROR_TYPE_FIELD(
-            error_number_literal_contains_consecutive_underscores, where,
+            error_number_literal_contains_consecutive_underscores, underscores,
             offsets_matcher(&input, 7, 10))));
   }
 }
