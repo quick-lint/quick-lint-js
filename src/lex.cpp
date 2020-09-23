@@ -674,7 +674,6 @@ void lexer::parse_number() {
   if (has_decimal_point) {
     input += 1;
     input = this->parse_digits_and_underscores(input, is_digit);
-    has_decimal_point = true;
   }
   bool has_exponent = *input == 'e' || *input == 'E';
   if (has_exponent) {
