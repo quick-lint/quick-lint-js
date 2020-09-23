@@ -1,9 +1,10 @@
 {
   "scripts": {
-    "fmt": "prettier --write '*.mjs'",
+    "fmt": "prettier --write '*.html' '*.mjs'",
     "test": "node --experimental-modules test.mjs"
   },
   "devDependencies": {
+    "jsdom": "16.4.0",
     "prettier": "2.1.2"
   }
 }

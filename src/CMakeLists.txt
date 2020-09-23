@@ -95,5 +95,7 @@ if (EMSCRIPTEN)
     "-sEXPORTED_FUNCTIONS='[\"_quick_lint_js_parse_and_lint_for_wasm_demo\"]'"
     "-sEXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'"
     "-sMODULARIZE"
+    "-sEXPORT_NAME=QUICK_LINT_JS_WASM_DEMO"
+    # TODO(strager): Use -sEXPORT_ES6 when it works with Node.js.
   )
 endif ()

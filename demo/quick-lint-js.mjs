@@ -19,9 +19,33 @@ let WASM_DEMO_JS_MODULE_PATH =
   "../build-emscripten/src/quick-lint-js-wasm-demo.js";
 
 export async function loadQuickLintJS() {
-  let loadQuickLintJSModule = await import(WASM_DEMO_JS_MODULE_PATH);
-  let quickLintJSModule = await loadQuickLintJSModule.default();
+  let loadQuickLintJSModule;
+  if (typeof window === "undefined") {
+    loadQuickLintJSModule = (await import(WASM_DEMO_JS_MODULE_PATH)).default;
+  } else {
+    let moduleURL = new URL(
+      WASM_DEMO_JS_MODULE_PATH,
+      window.location
+    ).toString();
+    await loadScript(moduleURL);
+    loadQuickLintJSModule = window.QUICK_LINT_JS_WASM_DEMO;
+  }
+  let quickLintJSModule = await loadQuickLintJSModule();
   return new QuickLintJS(quickLintJSModule);
+}
+
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    let script = window.document.createElement("script");
+    script.onload = () => {
+      resolve();
+    };
+    script.onerror = (error) => {
+      reject(error);
+    };
+    script.src = url;
+    window.document.body.appendChild(script);
+  });
 }
 
 class QuickLintJS {
