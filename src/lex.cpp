@@ -724,10 +724,10 @@ const char8* lexer::parse_decimal_digits_and_underscores(
     has_trailing_underscore = false;
     input += 1;
     if (*input == '_') {
+      const char8* garbage_begin = input;
       has_trailing_underscore = true;
       input += 1;
       if (*input == '_') {
-        const char8* garbage_begin = input - 1;
         has_trailing_underscore = false;
 
         while (*input == '_') {
