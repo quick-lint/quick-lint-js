@@ -122,6 +122,7 @@ TEST(test_lex, lex_hex_numbers) {
   check_single_token(u8"0x0", token_type::number);
   check_single_token(u8"0x123456789abcdef", token_type::number);
   check_single_token(u8"0X123456789ABCDEF", token_type::number);
+  check_single_token(u8"0X123_4567_89AB_CDEF", token_type::number);
 }
 
 TEST(test_lex, lex_number_with_trailing_garbage) {

@@ -617,9 +617,7 @@ void lexer::parse_hexadecimal_number() {
   QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
 
-  while (this->is_hex_digit(*input)) {
-    input += 1;
-  }
+  input = parse_digits_and_underscores(input, is_hex_digit);
 
   this->input_ = check_garbage_in_number_literal(input);
 }
@@ -671,11 +669,11 @@ void lexer::parse_number() {
     input = garbage_end;
   };
 
-  input = this->parse_decimal_digits_and_underscores(input);
+  input = this->parse_digits_and_underscores(input, is_digit);
   bool has_decimal_point = *input == '.';
   if (has_decimal_point) {
     input += 1;
-    input = this->parse_decimal_digits_and_underscores(input);
+    input = this->parse_digits_and_underscores(input, is_digit);
     has_decimal_point = true;
   }
   bool has_exponent = *input == 'e' || *input == 'E';
@@ -686,7 +684,7 @@ void lexer::parse_number() {
       input += 1;
     }
     if (this->is_digit(*input)) {
-      input = this->parse_decimal_digits_and_underscores(input);
+      input = this->parse_digits_and_underscores(input, is_digit);
     } else {
       input = e;
       consume_garbage();
@@ -717,10 +715,10 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-const char8* lexer::parse_decimal_digits_and_underscores(
-    const char8* input) noexcept {
+const char8* lexer::parse_digits_and_underscores(
+    const char8* input, bool (*is_valid_digit)(char8)) noexcept {
   bool has_trailing_underscore = false;
-  while (is_digit(*input)) {
+  while (is_valid_digit(*input)) {
     has_trailing_underscore = false;
     input += 1;
     if (*input == '_') {
