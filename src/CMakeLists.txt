@@ -48,6 +48,7 @@ quick_lint_js_add_library(
   text-error-reporter.cpp
   vector.cpp
   vim-qflist-json-error-reporter.cpp
+  wasm-demo-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC include)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container)
