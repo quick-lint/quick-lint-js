@@ -734,8 +734,9 @@ const char8* lexer::parse_decimal_digits_and_underscores(
           input += 1;
         }
 
-        this->error_reporter_->report(error_number_literal_contains_consecutive_underscores{
-            source_code_span(garbage_begin, input)});
+        this->error_reporter_->report(
+            error_number_literal_contains_consecutive_underscores{
+                source_code_span(garbage_begin, input)});
       }
     }
   }

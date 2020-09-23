@@ -100,7 +100,8 @@
   QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores,                   \
       { source_code_span underscores; },                                       \
-      .error(u8"number literal contains consecutive underscores", underscores))\
+      .error(u8"number literal contains consecutive underscores",              \
+             underscores))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_redeclaration_of_global_variable, { identifier redeclaration; },   \
