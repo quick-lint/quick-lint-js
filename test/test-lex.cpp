@@ -306,9 +306,6 @@ TEST(test_lex, lex_number_with_double_underscore) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
     l.skip();
-    EXPECT_EQ(l.peek().type, token_type::number);
-    EXPECT_EQ(*l.peek().begin, '0');
-    l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -323,9 +320,6 @@ TEST(test_lex, lex_number_with_many_underscores) {
     padded_string input(u8"123_____000");
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::number);
-    EXPECT_EQ(*l.peek().begin, '0');
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
@@ -342,12 +336,6 @@ TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
     EXPECT_EQ(*l.peek().begin, '1');
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::number);
-    EXPECT_EQ(*l.peek().begin, '4');
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::number);
-    EXPECT_EQ(*l.peek().begin, '6');
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 

@@ -708,20 +708,6 @@ void lexer::parse_number() {
           source_code_span(number_begin, input)});
     }
   }
-  if (*input == '_') {
-    const char8* garbage_end = input + 1;
-
-    while (*input == '_') {
-      input -= 1;
-    }
-
-    const char8* garbage_begin = input + 1;
-
-    this->error_reporter_->report(error_number_literal_contains_consecutive_underscores{
-        source_code_span(garbage_begin, garbage_end)});
-
-    input = garbage_end;
-  }
 
   switch (*input) {
   QLJS_CASE_IDENTIFIER_START:
@@ -748,7 +734,10 @@ const char8* lexer::parse_decimal_digits_and_underscores(
           input += 1;
         }
 
-        input -= 1;
+        const char8* garbage_end = input;
+
+        this->error_reporter_->report(error_number_literal_contains_consecutive_underscores{
+            source_code_span(garbage_begin, garbage_end)});
       }
     }
   }
