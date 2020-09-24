@@ -120,9 +120,6 @@ class expression_arena {
   template <class Expression, class... Args>
   expression_ptr make_expression(Args &&... args);
 
-  template <class T>
-  array_ptr<T> make_array(std::vector<T> &&);
-
   template <class T, std::size_t InSituCapacity>
   array_ptr<T> make_array(vector<T, InSituCapacity> &&);
 
@@ -299,16 +296,6 @@ expression_ptr expression_arena::make_expression(Args &&... args) {
       this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
   return result;
-}
-
-template <class T>
-inline expression_arena::array_ptr<T> expression_arena::make_array(
-    std::vector<T> &&elements) {
-  T *result_begin = this->allocate_array_move(
-      elements.data(), elements.data() + elements.size());
-  int size = narrow_cast<int>(elements.size());
-  elements.clear();
-  return array_ptr<T>(result_begin, size);
 }
 
 template <class T, std::size_t InSituCapacity>
