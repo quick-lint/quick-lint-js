@@ -15,8 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // TODO(strager): Make this configurable.
-let WASM_DEMO_JS_MODULE_PATH =
-  "../build-emscripten/src/quick-lint-js-wasm-demo.js";
+// For build instructions, see demo/README.md.
+let WASM_DEMO_JS_MODULE_PATH = "./dist/quick-lint-js-wasm-demo.js";
 
 export async function loadQuickLintJS() {
   let loadQuickLintJSModule;

@@ -98,4 +98,18 @@ if (EMSCRIPTEN)
     "-sEXPORT_NAME=QUICK_LINT_JS_WASM_DEMO"
     # TODO(strager): Use -sEXPORT_ES6 when it works with Node.js.
   )
+
+  set(WASM_DEMO_DIST_DIR dist)
+  install(
+    TARGETS quick-lint-js-wasm-demo
+    RUNTIME
+    COMPONENT wasm-demo
+    EXCLUDE_FROM_ALL
+    DESTINATION "${WASM_DEMO_DIST_DIR}"
+  )
+  install(
+    PROGRAMS $<TARGET_FILE_DIR:quick-lint-js-wasm-demo>/$<TARGET_FILE_PREFIX:quick-lint-js-wasm-demo>$<TARGET_FILE_BASE_NAME:quick-lint-js-wasm-demo>.wasm
+    DESTINATION "${WASM_DEMO_DIST_DIR}"
+    COMPONENT wasm-demo
+  )
 endif ()
