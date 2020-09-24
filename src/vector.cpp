@@ -96,7 +96,7 @@ void vector_instrumentation::dump_max_size_histogram(
     const std::map<std::string, std::map<std::size_t, int>> &histogram,
     std::ostream &out, int maximum_line_length) {
   bool need_blank_line = false;
-  for (auto &[group_name, object_size_histogram] : histogram) {
+  for (const auto &[group_name, object_size_histogram] : histogram) {
     QLJS_ASSERT(!object_size_histogram.empty());
 
     if (need_blank_line) {
@@ -108,7 +108,7 @@ void vector_instrumentation::dump_max_size_histogram(
 
     int max_count = 0;
     int total_count = 0;
-    for (auto &[_object_size, count] : object_size_histogram) {
+    for (const auto &[_object_size, count] : object_size_histogram) {
       total_count += count;
       max_count = std::max(max_count, count);
     }
