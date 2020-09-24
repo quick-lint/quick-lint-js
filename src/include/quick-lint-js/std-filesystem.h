@@ -27,8 +27,7 @@
 #error "Unsupported platform"
 #endif
 
-namespace quick_lint_js {
-namespace filesystem {
+namespace quick_lint_js::filesystem {
 #if QLJS_HAVE_FILESYSTEM_HEADER
 using namespace std::filesystem;
 #elif QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER
@@ -36,7 +35,6 @@ using namespace std::experimental::filesystem;
 #else
 #error "Unsupported platform"
 #endif
-}
 }
 
 #endif
