@@ -279,7 +279,7 @@ void linter::visit_variable_declaration(identifier name, variable_kind kind) {
       /*scope=*/this->current_scope(),
       /*name=*/name,
       /*kind=*/kind,
-      /*variable_scope=*/declared_variable_scope::declared_in_current_scope);
+      /*declared_scope=*/declared_variable_scope::declared_in_current_scope);
 }
 
 void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
@@ -494,7 +494,7 @@ void linter::propagate_variable_declarations_to_parent_scope() {
           /*scope=*/parent_scope,
           /*name=*/var.declaration(),
           /*kind=*/var.kind,
-          /*variable_scope=*/
+          /*declared_scope=*/
           declared_variable_scope::declared_in_descendant_scope);
     }
   }

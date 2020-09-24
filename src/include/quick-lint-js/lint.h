@@ -154,7 +154,7 @@ class linter {
   };
 
   void declare_variable(scope &, identifier name, variable_kind kind,
-                        declared_variable_scope variable_scope);
+                        declared_variable_scope declared_scope);
   void visit_variable_use(identifier name, used_variable_kind);
 
   void propagate_variable_uses_to_parent_scope(
