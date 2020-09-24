@@ -15,11 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gmock/gmock.h>
-#include <quick-lint-js/assert.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/unreachable.h>
 #include <variant>
 
 namespace quick_lint_js {

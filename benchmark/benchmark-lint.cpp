@@ -21,8 +21,6 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/lint.h>
-#include <quick-lint-js/null-visitor.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/warning.h>
 #include <string>
