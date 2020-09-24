@@ -14,22 +14,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-name: deploy web demo (WIP)
+name: deploy web demo
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: 'Person to greet'
+      build_commit_id:
+        description: 'Commit (full commit hash)'
         required: true
-        default: 'Mona the Octocat'
-      home:
-        description: 'location'
-        required: false
 
 jobs:
-  say_hello:
+  deploy:
+    name: deploy
     runs-on: ubuntu-latest
     steps:
-    - run: |
-        echo "Hello ${{ github.event.inputs.name }}!"
-        echo "- in ${{ github.event.inputs.home }}!"
+      - name: check out
+        uses: actions/checkout@v1
+
+      - name: download build
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          commit: ${{ github.event.inputs.build_commit_id }}
+          name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
+          path: demo/dist/
+          workflow: build-and-test-web-demo.yml
+      - name: build site
+        run: demo/prepare-for-publish ./website-build
+
+      - name: publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          full_commit_message: "Website: deploy build ${{ github.event.inputs.build_commit_id }} source ${{ github.sha }}"
+          keep_files: false
+          publish_branch: gh-pages
+          publish_dir: ./website-build
