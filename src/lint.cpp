@@ -25,6 +25,84 @@
 #include <quick-lint-js/optional.h>
 #include <vector>
 
+// The linter class implements single-pass variable lookup. A single-pass
+// algorithm is complicated in JavaScript for a few reasons:
+//
+// * Variables declared with 'var' or 'function' statements are hoisted. This
+//   means that the declaration might be *textually-after* a use of that
+//   variable:
+//
+//     console.log(x);  // OK; x holds undefined.
+//     var x = 3;
+//
+// * Simiarly, variables declared with 'class', 'const', or 'let' statements are
+//   pseudo-hoisted: it is an error to reference the variable textually-before
+//   its declaration:
+//
+//     console.log(x);  // ERROR; x is uninitialized.
+//     let x = 3;
+//
+// * Variables of any type can referenced textually-before their declaration if
+//   the variable is declared in a containing function:
+//
+//     function f() {
+//       console.log(x);  // OK, if f is called after x' declaration.
+//     }
+//     let x = 3;
+//     f();
+//
+// * Pseudo-hoisted variables shadow other variables:
+//
+//     let x;
+//     {
+//       console.log(x);  // ERROR; x refers to the variable declared below, so
+//                        // x is uninitialized.
+//       let x;
+//     }
+//
+// To satisfy these requirements, the linter class implements the following
+// algorithm (simplified for digestion):
+//
+// * When we see a variable declaration (visit_variable_declaration):
+//   * Remember the declaration for the current scope (declared_variables).
+//   * If the variable was already used in the current scope (variables_used or
+//     variables_used_in_descendant_scope):
+//     * Report a use-before-declaration error if necessary.
+//     * Check use legality [1].
+//     * Forget the variable use in the current scope (variables_used or
+//       variables_used_in_descendant_scope).
+// * When we see a variable use (visit_variable_assignment or
+//   visit_variable_use):
+//   * If the variable is declared in the current scope:
+//     * Check use legality [1].
+//   * Otherwise (if the variable is not declared in the current scope):
+//     * Remember the use for the current scope (variables_used).
+// * When we reach the end of a scope:
+//   * For each remembered variable use in the current scope (variables_used and
+//     variables_used_in_descendant_scope):
+//     * If the current scope is a function scope:
+//       * Use the variable in the parent scope (as if calling
+//         visit_variable_assignment or visit_variable_use), except permit
+//         use-before-declaration (variables_used_in_descendant_scope).
+//     * Otherwise (if the current scope is not a function scope):
+//       * Use the variable in the parent scope (as if calling
+//         visit_variable_assignment or visit_variable_use).
+//     * Remember: the variable use is not in the current scope's remembered
+//       variable declarations (declared_variables).
+// * When we reach the end of the module (visit_end_of_module):
+//   * For each remember variable use in the current scope (variables_used and
+//     variables_used_in_descendant_scope):
+//     * Report a use-of-undeclared-variable error.
+//
+// Note: Counter to your likely intuition, when we see a variable use, we do
+// *not* look for declarations in all ancestor scopes. We only ever look for
+// declarations in the current scope. Looking in ancestor scopes would work for
+// a two-pass linter (find declaration pass; bind uses to declarations pass),
+// but not for a one-pass linter like ours.
+//
+// [1] "Check use legality" includes checks unrelated to variable lookup, such
+//     as reporting an error if a 'const'-declared variable is assigned to.
+
 namespace quick_lint_js {
 linter::linter(error_reporter *error_reporter)
     : error_reporter_(error_reporter) {

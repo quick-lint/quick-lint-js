@@ -25,6 +25,15 @@
 #include <vector>
 
 namespace quick_lint_js {
+// A linter is a parse_visitor which finds non-syntax bugs.
+//
+// linter-s detect the following bugs (and possibly more):
+//
+// * Assignments to const-declared variables
+// * Assignments to let-declared variables before their initialization
+// * Use of undeclared variables
+//
+// The linter class implements variable lookup internally.
 class linter {
  public:
   explicit linter(error_reporter *error_reporter);
@@ -79,6 +88,15 @@ class linter {
     used_variable_kind kind;
   };
 
+  // A scope tracks variable declarations and references in a lexical JavaScript
+  // scope.
+  //
+  // A scope is introduced by many syntax forms, including the following:
+  //
+  // * { } (block statement)
+  // * function f() {} (function declaration)
+  // * () => {} (arrow function)
+  // * for(let x of y)
   struct scope {
     std::vector<declared_variable> declared_variables;
     std::vector<used_variable> variables_used;
@@ -96,11 +114,29 @@ class linter {
     void clear();
   };
 
+  // A stack of scope objects.
   class scopes {
    public:
     explicit scopes();
 
+    // The global scope which holds properties of the globalThis object.
+    //
+    // The global scope cannot be modified lexically by user programs. Variables
+    // declared with 'let', 'class', etc. at the top level of the program are
+    // declared in the module scope, not the global scope.
+    //
+    // The global scope always exists.
     scope &global_scope() noexcept;
+
+    // The module scope which holds properties not on the globalThis object.
+    //
+    // Variables declared with 'let', 'class', etc. at the top level of the
+    // program are declared in this scope.
+    //
+    // CommonJS in Node.js uses the module scope for variables such as 'require'
+    // and '__filename'.
+    //
+    // The module scope always exists, except possibly at the end of linting.
     scope &module_scope() noexcept;
 
     scope &current_scope() noexcept;
