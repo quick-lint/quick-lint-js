@@ -213,17 +213,49 @@ struct token {
   bool has_leading_newline;
 };
 
+// A lexer reads JavaScript source code one token at a time.
+//
+// A token is (roughly) either a keyword (if, function, let, etc.), an operator
+// (+, !==, *=, etc.), an identifier (variable name), or a literal (number,
+// string, boolean, etc.).
+//
+// Whitespace and comments are not interpreted as tokens.
 class lexer {
  public:
   explicit lexer(padded_string_view input, error_reporter*) noexcept;
 
   void parse_current_token();
 
+  // Return information about the current token.
   const token& peek() const noexcept { return this->last_token_; }
 
+  // Advance to the next token. Use this->peek() after to observe the next
+  // token.
+  //
+  // This function ignores leading and trailing whitespace and comments.
+  //
+  // Precondition: this->peek().type != token_type::end_of_file.
   void skip() { this->parse_current_token(); }
+
+  // Like this->skip(), but interpret '}' as ending an expression inside a
+  // template literal.
+  //
+  // For example:
+  //
+  //   `senior ${language} engineer`
+  //
+  // After seeing the 'language' token, the caller should use
+  // this->skip_in_template() so '} engineer`' is interpreted as part of the
+  // template literal (instead of a '}' token, an 'engineer' token, and the
+  // beginning of another template literal).
+  //
+  // The given template_begin is used for error reporting.
   void skip_in_template(const char8* template_begin);
 
+  // Reparse a '/' token as a regular expression literal.
+  //
+  // Precondition: this->peek().type == token_type::slash.
+  // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
 
   void insert_semicolon();

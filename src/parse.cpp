@@ -26,6 +26,19 @@
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 
+// parser is a recursive-descent parser.
+//
+// The parser class currently does not build an abstract syntax tree (AST) for
+// statements. This allows the parser to send partial information to the lexer
+// incrementally, enabling single-pass parsing and linting [1].
+//
+// The parser class currently builds an AST for expressions. (See expression.h.)
+// Therefore, parsing and linting are not truly single-pass. This detail is not
+// exposed to the linter, however; the linter does not see the expression ASTs.
+//
+// Each parser stores a lexer object internally. From the caller's perspective,
+// the parser class takes characters as input.
+
 #define QLJS_PARSER_UNIMPLEMENTED() \
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 

@@ -43,6 +43,8 @@
   } while (false)
 
 namespace quick_lint_js {
+// A parser reads JavaScript source code and calls the member functions of a
+// parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
