@@ -167,8 +167,8 @@ void vector_instrumentation::add_entry(std::uintptr_t object_id,
 }
 
 void vector_instrumentation::register_dump_on_exit_if_requested() {
-  const char *dump_Vectors_value = std::getenv("QLJS_DUMP_VECTORS");
-  bool should_dump_on_exit = dump_Vectors_value && *dump_Vectors_value != '\0';
+  const char *dump_vectors_value = std::getenv("QLJS_DUMP_VECTORS");
+  bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
     std::atexit([]() -> void {
       instance.dump_max_size_histogram(instance.max_size_histogram_by_owner(),
