@@ -141,14 +141,15 @@ class char_vector_1 {
  public:
   static constexpr int size = 1;
 
-  QLJS_FORCE_INLINE explicit char_vector_1(char data) noexcept : data_(data) {}
+  QLJS_FORCE_INLINE explicit char_vector_1(std::uint8_t data) noexcept
+      : data_(data) {}
 
   QLJS_FORCE_INLINE static char_vector_1 load(const char8* data) {
-    return char_vector_1(static_cast<char>(data[0]));
+    return char_vector_1(static_cast<std::uint8_t>(data[0]));
   }
 
   QLJS_FORCE_INLINE static char_vector_1 repeated(std::uint8_t c) {
-    return char_vector_1(static_cast<char>(c));
+    return char_vector_1(c);
   }
 
   QLJS_FORCE_INLINE friend char_vector_1 operator|(char_vector_1 x,
@@ -172,7 +173,7 @@ class char_vector_1 {
   }
 
  private:
-  char data_;
+  std::uint8_t data_;
 };
 }
 

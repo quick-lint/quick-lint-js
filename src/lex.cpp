@@ -790,19 +790,19 @@ const char8* lexer::parse_identifier(const char8* input) {
     using bool_vector = bool_vector_1;
 #endif
 
-    constexpr std::uint8_t upper_to_lower_mask = 'a' - 'A';
-    static_assert(('A' | upper_to_lower_mask) == 'a');
+    constexpr std::uint8_t upper_to_lower_mask = u8'a' - u8'A';
+    static_assert((u8'A' | upper_to_lower_mask) == u8'a');
 
     char_vector lower_cased_characters =
         chars | char_vector::repeated(upper_to_lower_mask);
     bool_vector is_alpha =
-        (lower_cased_characters > char_vector::repeated('a' - 1)) &
-        (lower_cased_characters < char_vector::repeated('z' + 1));
-    bool_vector is_digit = (chars > char_vector::repeated('0' - 1)) &
-                           (chars < char_vector::repeated('9' + 1));
+        (lower_cased_characters > char_vector::repeated(u8'a' - 1)) &
+        (lower_cased_characters < char_vector::repeated(u8'z' + 1));
+    bool_vector is_digit = (chars > char_vector::repeated(u8'0' - 1)) &
+                           (chars < char_vector::repeated(u8'9' + 1));
     bool_vector is_identifier = is_alpha | is_digit |  //
-                                (chars == char_vector::repeated('$')) |
-                                (chars == char_vector::repeated('_'));
+                                (chars == char_vector::repeated(u8'$')) |
+                                (chars == char_vector::repeated(u8'_'));
     return is_identifier.find_first_false();
 #endif
   };
