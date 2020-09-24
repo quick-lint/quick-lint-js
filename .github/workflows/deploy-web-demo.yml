@@ -43,8 +43,9 @@ jobs:
       - name: publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          cname: quick-lint-js.com
           full_commit_message: "Website: deploy build ${{ github.event.inputs.build_commit_id }} source ${{ github.sha }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           keep_files: false
           publish_branch: gh-pages
           publish_dir: ./website-build
