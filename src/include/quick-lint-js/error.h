@@ -54,6 +54,17 @@
           .note(u8"const variable declared here", declaration))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_assignment_to_const_variable_before_its_declaration,               \
+      {                                                                        \
+        identifier declaration;                                                \
+        identifier assignment;                                                 \
+        variable_kind var_kind;                                                \
+      },                                                                       \
+      .error(u8"assignment to const variable before its declaration",          \
+             assignment)                                                       \
+          .note(u8"const variable declared here", declaration))                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_undeclared_variable, { identifier assignment; },     \
       .error(u8"assignment to undeclared variable", assignment))               \
                                                                                \
