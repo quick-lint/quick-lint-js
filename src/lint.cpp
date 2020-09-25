@@ -430,13 +430,13 @@ void linter::report_error_if_assignment_is_illegal(
         this->error_reporter_->report(
             error_assignment_to_const_global_variable{assignment});
       } else {
-        if (!is_assigned_before_declaration) {
-            this->error_reporter_->report(
-                error_assignment_to_const_variable{
+        if (is_assigned_before_declaration) {
+             this->error_reporter_->report(
+                error_assignment_to_const_variable_before_its_declaration{
                     var->declaration(), assignment, var->kind});
         } else {
             this->error_reporter_->report(
-                error_assignment_to_const_variable_before_its_declaration{
+                error_assignment_to_const_variable{
                     var->declaration(), assignment, var->kind});
         }
       }
