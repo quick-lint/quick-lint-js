@@ -986,12 +986,11 @@ TEST(test_lint, assign_to_immutable_variable_before_declaration) {
                                variable_kind::_const);
   l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      UnorderedElementsAre(
-          ERROR_TYPE_2_FIELDS(error_assignment_to_const_variable_before_its_declaration,    //
-                              assignment, span_matcher(assignment),                         //
-                              declaration, span_matcher(declaration))));
+  EXPECT_THAT(v.errors,
+              UnorderedElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_assignment_to_const_variable_before_its_declaration,  //
+                  assignment, span_matcher(assignment),                       //
+                  declaration, span_matcher(declaration))));
 }
 
 TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
@@ -1015,12 +1014,11 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
   l.visit_exit_block_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      UnorderedElementsAre(
-          ERROR_TYPE_2_FIELDS(error_assignment_to_const_variable_before_its_declaration,    //
-                              assignment, span_matcher(assignment),                         //
-                              declaration, span_matcher(inner_declaration))));
+  EXPECT_THAT(v.errors,
+              UnorderedElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_assignment_to_const_variable_before_its_declaration,  //
+                  assignment, span_matcher(assignment),                       //
+                  declaration, span_matcher(inner_declaration))));
 }
 
 TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
@@ -1099,12 +1097,11 @@ TEST(test_lint,
   l.visit_exit_block_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      UnorderedElementsAre(
-          ERROR_TYPE_2_FIELDS(error_assignment_to_const_variable_before_its_declaration,    //
-                              assignment, span_matcher(assignment),                         //
-                              declaration, span_matcher(inner_declaration))));
+  EXPECT_THAT(v.errors,
+              UnorderedElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_assignment_to_const_variable_before_its_declaration,  //
+                  assignment, span_matcher(assignment),                       //
+                  declaration, span_matcher(inner_declaration))));
 }
 
 TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {

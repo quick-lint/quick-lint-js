@@ -60,7 +60,8 @@
         identifier assignment;                                                 \
         variable_kind var_kind;                                                \
       },                                                                       \
-   .error(u8"assignment to const variable before its declaration", assignment) \
+      .error(u8"assignment to const variable before its declaration",          \
+             assignment)                                                       \
           .note(u8"const variable declared here", declaration))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
