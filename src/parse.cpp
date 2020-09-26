@@ -785,7 +785,7 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
       /*qljs_function_name=*/qljs_function_name,
       /*type=*/this->peek().type,
       /*token_begin=*/this->peek().begin);
-  std::abort();
+  QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
 
 namespace {

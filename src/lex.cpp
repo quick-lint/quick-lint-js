@@ -469,7 +469,7 @@ retry:
           /*qljs_line=*/__LINE__,
           /*qljs_function_name=*/__func__,
           /*character=*/this->input_);
-      std::abort();
+      QLJS_CRASH_DISALLOWING_CORE_DUMP();
       break;
   }
   this->last_token_.end = this->input_;

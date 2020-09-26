@@ -34,6 +34,7 @@ quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
   char8.cpp
+  crash.cpp
   error.cpp
   file-handle.cpp
   file.cpp

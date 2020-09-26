@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_ASSERT_H
 
 #include <cstdlib>
+#include <quick-lint-js/crash.h>
 #include <quick-lint-js/have.h>
 
 #if QLJS_HAVE_DEBUGBREAK
@@ -48,13 +49,7 @@
 #define QLJS_ASSERT(...) QLJS_ALWAYS_ASSERT(__VA_ARGS__)
 #endif
 
-#if QLJS_HAVE_DEBUGBREAK
-#define QLJS_ASSERT_TRAP() ::__debugbreak()
-#elif QLJS_HAVE_BUILTIN_TRAP
-#define QLJS_ASSERT_TRAP() __builtin_trap()
-#else
-#define QLJS_ASSERT_TRAP() ::std::abort()
-#endif
+#define QLJS_ASSERT_TRAP() QLJS_CRASH_ALLOWING_CORE_DUMP()
 
 namespace quick_lint_js {
 void report_assertion_failure(const char *qljs_file_name, int qljs_line,

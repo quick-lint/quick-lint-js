@@ -55,6 +55,18 @@
 #define QLJS_HAVE_SYS_STAT_H 0
 #endif
 
+#if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
+#elif defined(__has_include)
+#if __has_include(<sys/wait.h>)
+#define QLJS_HAVE_SYS_WAIT_H 1
+#endif
+#elif defined(__unix__)
+#define QLJS_HAVE_SYS_WAIT_H 1
+#endif
+#if !defined(QLJS_HAVE_SYS_WAIT_H)
+#define QLJS_HAVE_SYS_WAIT_H 0
+#endif
+
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
 #elif defined(__has_include)
 #if __has_include(<unistd.h>)
@@ -116,6 +128,16 @@
 #define QLJS_HAVE_MKFIFO 1
 #else
 #define QLJS_HAVE_MKFIFO 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_SETRLIMIT)
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
+     _POSIX_VERSION >= 200112L)
+#define QLJS_HAVE_SETRLIMIT 1
+#else
+#define QLJS_HAVE_SETRLIMIT 0
 #endif
 #endif
 

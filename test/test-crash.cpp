@@ -1,0 +1,84 @@
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include <gtest/gtest.h>
+#include <quick-lint-js/crash.h>
+#include <quick-lint-js/have.h>
+#include <quick-lint-js/warning.h>
+
+#if QLJS_HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+#if defined(__SANITIZE_ADDRESS__)
+#define SANITIZERS_ENABLED 1
+#elif defined(__has_feature)
+#if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer)
+#define SANITIZERS_ENABLED 1
+#else
+#define SANITIZERS_ENABLED 0
+#endif
+#else
+#define SANITIZERS_ENABLED 0
+#endif
+
+QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
+
+namespace quick_lint_js {
+namespace {
+#if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
+TEST(test_crash, crash_allowing_core_dump) {
+  auto check = [] { QLJS_CRASH_ALLOWING_CORE_DUMP(); };
+  auto crashed = [](int status) -> bool {
+#if QLJS_HAVE_SYS_WAIT_H
+    return WIFSIGNALED(status);
+#else
+    return status != 0;
+#endif
+  };
+  EXPECT_EXIT(check(), crashed, "");
+}
+#else
+TEST(test_crash, DISABLED_crash_allowing_core_dump) { ADD_FAILURE(); }
+#endif
+
+#if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
+#if SANITIZERS_ENABLED
+// On Linux, some versions of AddressSanitizer and ThreadSanitizer call
+// setrlimit(RLIMIT_CORE) with rlim_max=0. When this happens, the
+// disable_core_dumping function can't raise rlim_cur to 1. (See
+// disable_core_dumping's implementation for why this is sometimes necessary).
+// This causes our disable_core_dumping function to not work. Disable this test
+// if running with ASAN or TSAN.
+TEST(test_crash, DISABLED_crash_disallowing_core_dump) {
+#else
+TEST(test_crash, crash_disallowing_core_dump) {
+#endif
+  auto check = [] { QLJS_CRASH_DISALLOWING_CORE_DUMP(); };
+  auto crashed_without_core_dump = [](int status) -> bool {
+#if QLJS_HAVE_SYS_WAIT_H
+    return WIFSIGNALED(status) && !WCOREDUMP(status);
+#else
+    return status != 0;
+#endif
+  };
+  EXPECT_EXIT(check(), crashed_without_core_dump, "");
+}
+#else
+TEST(test_crash, DISABLED_crash_disallowing_core_dump) { ADD_FAILURE(); }
+#endif
+}
+}
