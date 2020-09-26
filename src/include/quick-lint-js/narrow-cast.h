@@ -30,13 +30,13 @@ constexpr bool can_narrow_cast([[maybe_unused]] In x) noexcept {
   if constexpr (std::is_same_v<In, Out>) {
     return true;
   } else if constexpr (std::is_signed_v<In> && std::is_signed_v<Out>) {
-    return out_limits::lowest() <= x && x <= out_limits::max();
+    return out_limits::lowest() <= x && x <= (out_limits::max)();
   } else if constexpr (std::is_signed_v<In> && !std::is_signed_v<Out>) {
-    return 0 <= x && static_cast<unsigned_in>(x) <= out_limits::max();
+    return 0 <= x && static_cast<unsigned_in>(x) <= (out_limits::max)();
   } else if constexpr (!std::is_signed_v<In> && std::is_signed_v<Out>) {
-    return x <= unsigned_out{out_limits::max()};
+    return x <= unsigned_out{(out_limits::max)()};
   } else if constexpr (!std::is_signed_v<In> && !std::is_signed_v<Out>) {
-    return x <= out_limits::max();
+    return x <= (out_limits::max)();
   }
 }
 

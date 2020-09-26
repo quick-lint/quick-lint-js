@@ -19,16 +19,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <limits>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/warning.h>
 #include <string>
-#include <string_view>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
@@ -36,10 +34,6 @@
 
 #if QLJS_HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-
-#if QLJS_HAVE_UNISTD_H
-#include <unistd.h>
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
@@ -70,77 +64,9 @@ read_file_result read_file_result::failure(const std::string &error) {
 
 namespace {
 #if defined(QLJS_FILE_WINDOWS)
-std::string windows_error_message(DWORD error);
-#endif
-
-#if defined(QLJS_FILE_WINDOWS)
-class windows_handle_file {
- public:
-  explicit windows_handle_file(HANDLE handle) noexcept : handle_(handle) {}
-
-  windows_handle_file(const windows_handle_file &) = delete;
-  windows_handle_file &operator=(const windows_handle_file &) = delete;
-
-  ~windows_handle_file() {
-    if (!::CloseHandle(this->handle_)) {
-      std::fprintf(stderr, "error: failed to close file\n");
-    }
-  }
-
-  HANDLE get() noexcept { return this->handle_; }
-
-  std::optional<int> read(void *buffer, int buffer_size) noexcept {
-    DWORD read_size;
-    if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
-                    &read_size,
-                    /*lpOverlapped=*/nullptr)) {
-      return std::nullopt;
-    }
-    return narrow_cast<int>(read_size);
-  }
-
-  static std::string get_last_error_message() {
-    return windows_error_message(::GetLastError());
-  }
-
- private:
-  HANDLE handle_;
-};
 using platform_file = windows_handle_file;
 #endif
-
 #if defined(QLJS_FILE_POSIX)
-class posix_fd_file {
- public:
-  explicit posix_fd_file(int fd) noexcept : fd_(fd) {}
-
-  posix_fd_file(const posix_fd_file &) = delete;
-  posix_fd_file &operator=(const posix_fd_file &) = delete;
-
-  ~posix_fd_file() {
-    int rc = ::close(this->fd_);
-    if (rc != 0) {
-      std::fprintf(stderr, "error: failed to close file: %s\n",
-                   std::strerror(errno));
-    }
-  }
-
-  int get() noexcept { return this->fd_; }
-
-  std::optional<int> read(void *buffer, int buffer_size) noexcept {
-    ::ssize_t read_size =
-        ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
-    if (read_size == -1) {
-      return std::nullopt;
-    }
-    return narrow_cast<int>(read_size);
-  }
-
-  static std::string get_last_error_message() { return std::strerror(errno); }
-
- private:
-  int fd_;
-};
 using platform_file = posix_fd_file;
 #endif
 
@@ -259,42 +185,4 @@ read_file_result read_file(const char *path) {
   return read_file(path, file);
 }
 #endif
-
-namespace {
-#if defined(QLJS_FILE_WINDOWS)
-std::string_view remove_suffix_if_present(std::string_view s,
-                                          std::string_view suffix) noexcept {
-  if (s.ends_with(suffix)) {
-    s.remove_suffix(suffix.size());
-  }
-  return s;
-}
-
-std::string windows_error_message(DWORD error) {
-  // TODO(strager): Use FormatMessageW.
-  LPSTR get_last_error_message;
-  DWORD get_last_error_message_length = ::FormatMessageA(
-      /*dwFlags=*/FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-          FORMAT_MESSAGE_IGNORE_INSERTS,
-      /*lpSource=*/nullptr,
-      /*dwMessageId=*/::GetLastError(),
-      /*dwLanguageId=*/0,
-      /*lpBuffer=*/reinterpret_cast<LPSTR>(&get_last_error_message),
-      /*nSize=*/(std::numeric_limits<DWORD>::max)(),
-      /*Arguments=*/nullptr);
-  if (get_last_error_message_length == 0) {
-    // FormatMessageA failed.
-    return "unknown error";
-  }
-
-  std::string_view message(
-      get_last_error_message,
-      narrow_cast<std::size_t>(get_last_error_message_length));
-  message = remove_suffix_if_present(message, "\r\n");
-  std::string message_copy(message);
-  static_cast<void>(::LocalFree(get_last_error_message));
-  return message_copy;
-}
-#endif
-}
 }

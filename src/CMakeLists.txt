@@ -35,6 +35,7 @@ quick_lint_js_add_library(
   assert.cpp
   char8.cpp
   error.cpp
+  file-handle.cpp
   file.cpp
   integer.cpp
   language.cpp
