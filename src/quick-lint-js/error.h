@@ -75,6 +75,7 @@
       error_big_int_literal_contains_exponent, { source_code_span where; },    \
       .error(QLJS_TRANSLATE("BigInt literal contains exponent"), where))       \
                                                                                \
+  /* TODO(mc2), remove */                                                      \
   QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_leading_zero,                             \
       { source_code_span where; },                                             \
@@ -178,6 +179,23 @@
       .error(u8"number literal contains trailing underscore(s)", underscores)) \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_octal_literal_may_not_have_exponent,                               \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATE("octal literal may not have exponent"),            \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_octal_literal_may_not_have_decimal,                                \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATE("octal literal may not have decimal"),             \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_octal_literal_may_not_be_big_int,                                  \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATE("octal literal may not be BigInt"), characters))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_redeclaration_of_global_variable, { identifier redeclaration; },   \
       .error(QLJS_TRANSLATE("redeclaration of global variable"),               \
              redeclaration))                                                   \
@@ -241,6 +259,12 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_control_character, { source_code_span character; },     \
       .error(QLJS_TRANSLATE("unexpected control character"), character))       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_characters_in_octal_number,                             \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATE("unexpected characters in octal literal"),         \
+             characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_hash_character, { source_code_span where; },            \

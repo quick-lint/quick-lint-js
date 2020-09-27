@@ -93,15 +93,18 @@
   case 'y':                        \
   case 'z'
 
+#define QLJS_CASE_OCTAL_DIGIT \
+  case '0':                   \
+  case '1':                   \
+  case '2':                   \
+  case '3':                   \
+  case '4':                   \
+  case '5':                   \
+  case '6':                   \
+  case '7'
+
 #define QLJS_CASE_DECIMAL_DIGIT \
-  case '0':                     \
-  case '1':                     \
-  case '2':                     \
-  case '3':                     \
-  case '4':                     \
-  case '5':                     \
-  case '6':                     \
-  case '7':                     \
+  QLJS_CASE_OCTAL_DIGIT:        \
   case '8':                     \
   case '9'
 
@@ -148,15 +151,23 @@ retry:
     this->last_token_.type = token_type::number;
     if (this->input_[0] == '0') {
       switch (this->input_[1]) {
-      case 'x':
-      case 'X':
-        this->input_ += 2;
-        this->parse_hexadecimal_number();
-        break;
       case 'b':
       case 'B':
         this->input_ += 2;
         this->parse_binary_number();
+        break;
+      case 'o':
+        this->input_ += 2;
+        this->parse_octal_number(octal_kind::strict_0o);
+        break;
+      QLJS_CASE_DECIMAL_DIGIT:
+        this->input_ += 1;
+        this->parse_octal_number(octal_kind::sloppy);
+        break;
+      case 'x':
+      case 'X':
+        this->input_ += 2;
+        this->parse_hexadecimal_number();
         break;
       default:
         this->parse_number();
@@ -756,6 +767,72 @@ void lexer::parse_binary_number() {
   this->input_ = check_garbage_in_number_literal(input);
 }
 
+void lexer::parse_octal_number(octal_kind kind) {
+  char8* input = this->input_;
+
+  input = this->parse_octal_digits(input);
+
+  if (kind == octal_kind::sloppy && is_digit(*input)) {
+    this->input_ = input;
+    this->parse_number();
+    return;
+  }
+
+  if (kind == octal_kind::strict_0o && *input == u8'n') {
+    ++input;
+  }
+
+  const char8* garbage_begin = input;
+  bool has_decimal_point = *input == '.';
+  if (has_decimal_point) {
+    input += 1;
+    this->error_reporter_->report(error_octal_literal_may_not_have_decimal{
+        source_code_span(garbage_begin, input)});
+    input = this->parse_octal_digits(input);
+  }
+  bool has_exponent = *input == 'e' || *input == 'E';
+  if (has_exponent) {
+    input += 1;
+    if (*input == '-' || *input == '+') {
+      input += 1;
+    }
+    this->error_reporter_->report(error_octal_literal_may_not_have_exponent{
+        source_code_span(garbage_begin, input)});
+    input = this->parse_octal_digits(input);
+  }
+  if (*input == 'n') {
+    input += 1;
+    this->error_reporter_->report(error_octal_literal_may_not_be_big_int{
+        source_code_span(garbage_begin, input)});
+    input = this->parse_octal_digits(input);
+  }
+
+  const char8* unknown_garbage_begin = input;
+
+  for (;;) {
+    switch (*input) {
+    // if we see a DECIMAL_DIGIT at this point it either means we're in
+    // strict mode or following another number character (such as a `.`),
+    // both of which are invalid
+    QLJS_CASE_DECIMAL_DIGIT:
+    QLJS_CASE_IDENTIFIER_START:
+    case u8'.':
+      ++input;
+      break;
+    default:
+      goto done_parsing_garbage;
+    }
+  }
+done_parsing_garbage:
+  char8* garbage_end = input;
+  if (garbage_end != unknown_garbage_begin) {
+    this->error_reporter_->report(error_unexpected_characters_in_octal_number{
+        source_code_span(unknown_garbage_begin, garbage_end)});
+    input = garbage_end;
+  }
+  this->input_ = input;
+}
+
 char8* lexer::check_garbage_in_number_literal(char8* input) {
   char8* garbage_begin = input;
   for (;;) {
@@ -823,10 +900,7 @@ void lexer::parse_number() {
       this->error_reporter_->report(error_big_int_literal_contains_exponent{
           source_code_span(number_begin, input)});
     }
-    if (number_begin[0] == u8'0' && this->is_digit(number_begin[1])) {
-      this->error_reporter_->report(error_big_int_literal_contains_leading_zero{
-          source_code_span(number_begin, input)});
-    }
+    QLJS_ASSERT(!(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
 
   switch (*input) {
@@ -872,6 +946,13 @@ char8* lexer::parse_digits_and_underscores(Func&& is_valid_digit,
     this->error_reporter_->report(
         error_number_literal_contains_trailing_underscores{
             source_code_span(garbage_begin, input)});
+  }
+  return input;
+}
+
+char8* lexer::parse_octal_digits(char8* input) noexcept {
+  while (this->is_octal_digit(*input)) {
+    ++input;
   }
   return input;
 }
@@ -1273,7 +1354,7 @@ void lexer::skip_line_comment_body() {
       this->skip_whitespace();
       break;
     }
-    // TODO(strager): Should we handle null bytes differently for #! comments?
+    // TODO(strager): Should we handle null bytes differently for #!  comments?
     if (*c == u8'\0' && this->is_eof(c)) {
       this->input_ = c;
       break;
@@ -1287,6 +1368,15 @@ bool lexer::is_eof(const char8* input) noexcept {
 }
 
 bool lexer::is_binary_digit(char8 c) { return c == u8'0' || c == u8'1'; }
+
+bool lexer::is_octal_digit(char8 c) {
+  switch (c) {
+  QLJS_CASE_OCTAL_DIGIT:
+    return true;
+  default:
+    return false;
+  }
+}
 
 bool lexer::is_digit(char8 c) {
   switch (c) {

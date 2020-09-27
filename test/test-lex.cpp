@@ -37,7 +37,6 @@ using namespace std::literals::string_view_literals;
 using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
-using ::testing::UnorderedElementsAre;
 using ::testing::VariantWith;
 
 namespace quick_lint_js {
@@ -152,6 +151,7 @@ TEST(test_lex, lex_numbers) {
 
   check_tokens(u8"1.2.3", {token_type::number, token_type::number});
   check_tokens(u8".2.3", {token_type::number, token_type::number});
+  check_single_token(u8"0.3", token_type::number);
 }
 
 TEST(test_lex, lex_binary_numbers) {
@@ -160,6 +160,78 @@ TEST(test_lex, lex_binary_numbers) {
   check_single_token(u8"0b010101010101010", token_type::number);
   check_single_token(u8"0B010101010101010", token_type::number);
 }
+
+// TODO(mc2) binary numbers may not have decimals
+TEST(test_lex, DISABLED_fail_lex_binary_number) {
+  {
+    error_collector v;
+    padded_string input(u8"0b1.1");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    // q(🎅🏾) have another error kind for
+    // `unexpected_character_in_binary_number?
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_characters_in_number, characters,
+                              offsets_matcher(&input, 3, 4))));
+  }
+}
+
+TEST(test_lex, lex_octal_numbers_strict) {
+  check_single_token(u8"000", token_type::number);
+  check_single_token(u8"001", token_type::number);
+  check_single_token(u8"00010101010101010", token_type::number);
+  check_single_token(u8"051", token_type::number);
+  check_single_token(u8"0o51", token_type::number);
+  check_single_token(u8"0o0", token_type::number);
+  check_single_token(u8"0o0n", token_type::number);
+  check_single_token(u8"0o01", token_type::number);
+  check_single_token(u8"0o123n", token_type::number);
+}
+
+TEST(test_lex, lex_octal_numbers_lax) {
+  check_single_token(u8"058", token_type::number);
+  check_single_token(u8"058.9", token_type::number);
+}
+
+TEST(test_lex, fail_lex_octal_numbers) {
+  check_tokens_with_errors(
+      u8"0123n", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_octal_literal_may_not_be_big_int,
+                                characters, offsets_matcher(input, 4, 5))));
+      });
+
+  check_tokens_with_errors(
+      u8"0o58", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_octal_number,
+                                characters, offsets_matcher(input, 3, 4))));
+      });
+
+  check_tokens_with_errors(
+      u8"0o58.2", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_octal_number,
+                                characters, offsets_matcher(input, 3, 6))));
+      });
+
+  check_tokens_with_errors(
+      u8"052.2", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_octal_literal_may_not_have_decimal,
+                                characters, offsets_matcher(input, 3, 4))));
+      });
+}
+
+// TODO (👮🏾‍♀️) (when strict mode implemented) octal number literal
+// tests to fail in strict mode
 
 TEST(test_lex, lex_hex_numbers) {
   check_single_token(u8"0x0", token_type::number);
@@ -212,6 +284,20 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
                                 error_unexpected_characters_in_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
+  check_tokens_with_errors(
+      u8"0o69", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_octal_number,
+                                characters, offsets_matcher(input, 3, 4))));
+      });
+  check_tokens_with_errors(
+      u8"0123n", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_octal_literal_may_not_be_big_int,
+                                characters, offsets_matcher(input, 4, 5))));
+      });
 }
 
 TEST(test_lex, lex_invalid_big_int_number) {
@@ -221,13 +307,6 @@ TEST(test_lex, lex_invalid_big_int_number) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_big_int_literal_contains_decimal_point,
                                 where, offsets_matcher(input, 0, 6))));
-      });
-  check_tokens_with_errors(
-      u8"0123n", {token_type::number},
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_big_int_literal_contains_leading_zero,
-                                where, offsets_matcher(input, 0, 5))));
       });
   check_tokens_with_errors(
       u8"1e3n", {token_type::number},
@@ -253,9 +332,9 @@ TEST(test_lex, lex_invalid_big_int_number) {
       [](padded_string_view, const auto& errors) {
         EXPECT_THAT(
             errors,
-            UnorderedElementsAre(
-                VariantWith<error_big_int_literal_contains_decimal_point>(_),
-                VariantWith<error_big_int_literal_contains_leading_zero>(_)));
+            ElementsAre(
+                VariantWith<error_octal_literal_may_not_have_decimal>(_),
+                VariantWith<error_octal_literal_may_not_be_big_int>(_)));
       });
 
   // Complain about everything. What a disaster.
@@ -264,10 +343,10 @@ TEST(test_lex, lex_invalid_big_int_number) {
       [](padded_string_view, const auto& errors) {
         EXPECT_THAT(
             errors,
-            UnorderedElementsAre(
-                VariantWith<error_big_int_literal_contains_decimal_point>(_),
-                VariantWith<error_big_int_literal_contains_exponent>(_),
-                VariantWith<error_big_int_literal_contains_leading_zero>(_)));
+            ElementsAre(
+                VariantWith<error_octal_literal_may_not_have_decimal>(_),
+                VariantWith<error_octal_literal_may_not_have_exponent>(_),
+                VariantWith<error_octal_literal_may_not_be_big_int>(_)));
       });
 }
 
