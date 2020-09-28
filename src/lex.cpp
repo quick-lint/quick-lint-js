@@ -495,9 +495,14 @@ lexer::parsed_template_body lexer::parse_template_body(
   for (;;) {
     switch (*c) {
       case '\0':
-        error_reporter->report(
-            error_unclosed_template{source_code_span(template_begin, c)});
-        return parsed_template_body{token_type::complete_template, c};
+        if (this->is_eof(c)) {
+          error_reporter->report(
+              error_unclosed_template{source_code_span(template_begin, c)});
+          return parsed_template_body{token_type::complete_template, c};
+        } else {
+          ++c;
+          break;
+        }
 
       case '`':
         ++c;
@@ -507,9 +512,14 @@ lexer::parsed_template_body lexer::parse_template_body(
         ++c;
         switch (*c) {
           case '\0':
-            error_reporter->report(
-                error_unclosed_template{source_code_span(template_begin, c)});
-            return parsed_template_body{token_type::complete_template, c};
+            if (this->is_eof(c)) {
+              error_reporter->report(
+                  error_unclosed_template{source_code_span(template_begin, c)});
+              return parsed_template_body{token_type::complete_template, c};
+            } else {
+              ++c;
+              break;
+            }
           default:
             ++c;
             break;

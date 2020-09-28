@@ -270,9 +270,9 @@ class lexer {
     const char8* end;
   };
 
-  static parsed_template_body parse_template_body(const char8* input,
-                                                  const char8* template_begin,
-                                                  error_reporter*);
+  parsed_template_body parse_template_body(const char8* input,
+                                           const char8* template_begin,
+                                           error_reporter*);
 
   void parse_binary_number();
   void parse_hexadecimal_number();

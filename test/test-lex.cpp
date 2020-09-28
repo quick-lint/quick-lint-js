@@ -626,6 +626,28 @@ world`)",
   // literals.
 }
 
+TEST(test_lex, lex_template_literal_with_ascii_control_characters) {
+  std::vector<string8_view> control_characters;
+  control_characters.insert(
+      control_characters.end(),
+      std::begin(control_characters_except_line_terminators),
+      std::end(control_characters_except_line_terminators));
+  control_characters.insert(control_characters.end(), line_terminators.begin(),
+                            line_terminators.end());
+  for (string8_view control_character : control_characters) {
+    padded_string input(u8"`hello" + string8(control_character) + u8"world`");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::complete_template);
+  }
+
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
+    padded_string input(u8"`hello\\" + string8(control_character) + u8"world`");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::complete_template);
+  }
+}
+
 TEST(test_lex, lex_regular_expression_literals) {
   auto check_regexp = [](const char8* raw_code) {
     padded_string code(raw_code);
