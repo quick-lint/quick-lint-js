@@ -47,7 +47,7 @@ from_chars_result from_chars(const char *begin, const char *end, int &value) {
   errno = 0;
   long long_value = std::strtol(buffer.c_str(), &endptr, /*base=*/10);
   const char *ptr = (endptr - buffer.c_str()) + begin;
-  if (errno == ERANGE || !can_narrow_cast<int>(long_value)) {
+  if (errno == ERANGE || !in_range<int>(long_value)) {
     return from_chars_result{.ptr = ptr, .ec = std::errc::result_out_of_range};
   }
   value = static_cast<int>(long_value);

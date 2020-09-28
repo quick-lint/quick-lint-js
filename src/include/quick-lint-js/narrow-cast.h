@@ -22,8 +22,9 @@
 #include <type_traits>
 
 namespace quick_lint_js {
+// TODO(strager): Use std::in_range if supported.
 template <class Out, class In>
-constexpr bool can_narrow_cast([[maybe_unused]] In x) noexcept {
+constexpr bool in_range([[maybe_unused]] In x) noexcept {
   using out_limits = std::numeric_limits<Out>;
   using unsigned_in = std::make_unsigned_t<In>;
   using unsigned_out = std::make_unsigned_t<Out>;
@@ -42,7 +43,7 @@ constexpr bool can_narrow_cast([[maybe_unused]] In x) noexcept {
 
 template <class Out, class In>
 Out narrow_cast(In x) noexcept {
-  QLJS_ASSERT(can_narrow_cast<Out>(x));
+  QLJS_ASSERT(in_range<Out>(x));
   return static_cast<Out>(x);
 }
 }
