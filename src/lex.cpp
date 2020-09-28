@@ -835,7 +835,7 @@ void lexer::skip_whitespace() {
 
 next:
   char8 c = input[0];
-  if (c == ' ' || c == '\t' || c == '\f') {
+  if (c == ' ' || c == '\t' || c == '\f' || c == '\v') {
     input += 1;
     goto next;
   } else if (c == '\n' || c == '\r') {

@@ -833,6 +833,7 @@ TEST(test_lex, lex_whitespace) {
            u8" ",       //
            u8"\t",      //
            u8"\f",      //
+           u8"\v",      //
            u8"\u00a0",  // 0xc2 0xa0      No-Break Space (NBSP)
            u8"\u1680",  // 0xe1 0x9a 0x80 Ogham Space Mark
            u8"\u2000",  // 0xe2 0x80 0x80 En Quad
