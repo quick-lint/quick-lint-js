@@ -397,16 +397,9 @@ retry:
 
           case '\n':
           case '\r':
-          case 0xe2: {
-            int newline_size = this->newline_character_size(c);
-            if (newline_size > 0) {
-              this->error_reporter_->report(error_unclosed_string_literal{
-                  source_code_span(&this->input_[0], c)});
-              goto done;
-            }
-            ++c;
-            break;
-          }
+            this->error_reporter_->report(error_unclosed_string_literal{
+                source_code_span(&this->input_[0], c)});
+            goto done;
 
           case '\\':
             ++c;

@@ -53,6 +53,12 @@ std::array<const char8*, 5> line_terminators = {
     u8"\u2029",  // 0xe2 0x80 0xa9 Paragraph Separator
 };
 
+std::array<const char8*, 3> line_terminators_except_ls_ps = {
+    u8"\n",
+    u8"\r",
+    u8"\r\n",
+};
+
 TEST(test_lex, lex_block_comments) {
   check_single_token(u8"/* */ hello", u8"hello");
   check_single_token(u8"/*/ comment */ hi", u8"hi");
@@ -373,7 +379,7 @@ TEST(test_lex, lex_strings) {
                               offsets_matcher(&input, 0, 13))));
   }
 
-  for (string8 line_terminator : line_terminators) {
+  for (string8 line_terminator : line_terminators_except_ls_ps) {
     error_collector v;
     padded_string input(u8"'unterminated" + line_terminator + u8"hello");
     lexer l(&input, &v);
