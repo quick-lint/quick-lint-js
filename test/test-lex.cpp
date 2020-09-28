@@ -132,6 +132,16 @@ TEST(test_lex, lex_line_comments) {
                {token_type::identifier, token_type::identifier});
 }
 
+TEST(test_lex, lex_line_comments_with_control_characters) {
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
+    padded_string input(u8"// hello " + string8(control_character) +
+                        u8" world\n42.0");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::number);
+  }
+}
+
 TEST(test_lex, lex_numbers) {
   check_single_token(u8"0", token_type::number);
   check_single_token(u8"2", token_type::number);
