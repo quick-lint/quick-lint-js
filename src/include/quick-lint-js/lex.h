@@ -22,6 +22,7 @@
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/padded-string.h>
 
 #define QLJS_CASE_KEYWORD                          \
   case ::quick_lint_js::token_type::kw_as:         \
@@ -71,7 +72,6 @@
 
 namespace quick_lint_js {
 class error_reporter;
-class padded_string_view;
 
 enum class token_type {
   // Single-character symbols:
@@ -288,6 +288,8 @@ class lexer {
   void skip_block_comment();
   void skip_line_comment();
 
+  bool is_eof(const char8*) noexcept;
+
   static bool is_binary_digit(char8);
   static bool is_digit(char8);
   static bool is_hex_digit(char8);
@@ -301,7 +303,7 @@ class lexer {
   const char8* last_last_token_end_;
   const char8* input_;
   error_reporter* error_reporter_;
-  const char8* original_input_;
+  padded_string_view original_input_;
 };
 }
 

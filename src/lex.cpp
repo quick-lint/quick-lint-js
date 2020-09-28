@@ -123,7 +123,7 @@ source_code_span token::span() const noexcept {
 lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
     : input_(input.c_str()),
       error_reporter_(error_reporter),
-      original_input_(this->input_) {
+      original_input_(input) {
   this->last_token_.end = nullptr;
   this->parse_current_token();
 }
@@ -391,9 +391,14 @@ retry:
       for (;;) {
         switch (static_cast<unsigned char>(*c)) {
           case '\0':
-            this->error_reporter_->report(error_unclosed_string_literal{
-                source_code_span(&this->input_[0], c)});
-            goto done;
+            if (this->is_eof(c)) {
+              this->error_reporter_->report(error_unclosed_string_literal{
+                  source_code_span(&this->input_[0], c)});
+              goto done;
+            } else {
+              ++c;
+              break;
+            }
 
           case '\n':
           case '\r':
@@ -405,9 +410,14 @@ retry:
             ++c;
             switch (*c) {
               case '\0':
-                this->error_reporter_->report(error_unclosed_string_literal{
-                    source_code_span(&this->input_[0], c)});
-                goto done;
+                if (this->is_eof(c)) {
+                  this->error_reporter_->report(error_unclosed_string_literal{
+                      source_code_span(&this->input_[0], c)});
+                  goto done;
+                } else {
+                  ++c;
+                  break;
+                }
               default:
                 ++c;
                 break;
@@ -444,7 +454,8 @@ retry:
     }
 
     case '#':
-      if (this->input_[1] == '!' && this->input_ == this->original_input_) {
+      if (this->input_[1] == '!' &&
+          this->input_ == this->original_input_.c_str()) {
         this->skip_line_comment();
         goto retry;
       } else {
@@ -1023,6 +1034,11 @@ void lexer::skip_line_comment() {
       break;
     }
   }
+}
+
+bool lexer::is_eof(const char8* input) noexcept {
+  QLJS_ASSERT(*input == u8'\0');
+  return input == this->original_input_.null_terminator();
 }
 
 bool lexer::is_binary_digit(char8 c) { return c == u8'0' || c == u8'1'; }

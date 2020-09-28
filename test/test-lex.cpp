@@ -29,6 +29,8 @@
 #include <quick-lint-js/padded-string.h>
 #include <string_view>
 
+using namespace std::literals::string_view_literals;
+
 using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
@@ -38,12 +40,19 @@ using ::testing::VariantWith;
 namespace quick_lint_js {
 namespace {
 void check_single_token(const char8* input, token_type expected_token_type);
+void check_single_token(padded_string_view input,
+                        token_type expected_token_type);
 void check_single_token(const char8* input,
                         string8_view expected_identifier_name);
 void check_single_token(const string8& input,
                         string8_view expected_identifier_name);
 void check_tokens(const char8* input,
                   std::initializer_list<token_type> expected_token_types);
+
+constexpr string8_view operator""_sv(const char8* string,
+                                     std::size_t length) noexcept {
+  return string8_view(string, length);
+}
 
 std::array<const char8*, 5> line_terminators = {
     u8"\n",      //
@@ -57,6 +66,40 @@ std::array<const char8*, 3> line_terminators_except_ls_ps = {
     u8"\n",
     u8"\r",
     u8"\r\n",
+};
+
+string8_view control_characters_except_line_terminators[] = {
+    u8"\u0000"_sv,  // NUL Null character
+    u8"\u0001"_sv,  // SOH Start of Heading
+    u8"\u0002"_sv,  // STX Start of Text
+    u8"\u0003"_sv,  // ETX End-of-text character
+    u8"\u0004"_sv,  // EOT End-of-transmission character
+    u8"\u0005"_sv,  // ENQ Enquiry character
+    u8"\u0006"_sv,  // ACK Acknowledge character
+    u8"\u0007"_sv,  // BEL Bell character
+    u8"\u0008"_sv,  // BS Backspace
+    u8"\u0009"_sv,  // HT Horizontal tab
+    u8"\u000b"_sv,  // VT Vertical tab
+    u8"\u000c"_sv,  // FF Form feed
+    u8"\u000e"_sv,  // SO Shift Out
+    u8"\u000f"_sv,  // SI Shift In
+    u8"\u0010"_sv,  // DLE Data Link Escape
+    u8"\u0011"_sv,  // DC1 Device Control 1
+    u8"\u0012"_sv,  // DC2 Device Control 2
+    u8"\u0013"_sv,  // DC3 Device Control 3
+    u8"\u0014"_sv,  // DC4 Device Control 4
+    u8"\u0015"_sv,  // NAK Negative-acknowledge character
+    u8"\u0016"_sv,  // SYN Synchronous Idle
+    u8"\u0017"_sv,  // ETB End of Transmission Block
+    u8"\u0018"_sv,  // CAN Cancel character
+    u8"\u0019"_sv,  // EM End of Medium
+    u8"\u001a"_sv,  // SUB Substitute character
+    u8"\u001b"_sv,  // ESC Escape character
+    u8"\u001c"_sv,  // FS File Separator
+    u8"\u001d"_sv,  // GS Group Separator
+    u8"\u001e"_sv,  // RS Record Separator
+    u8"\u001f"_sv,  // US Unit Separator
+    u8"\u007f"_sv,  // DEL Delete
 };
 
 TEST(test_lex, lex_block_comments) {
@@ -424,6 +467,30 @@ TEST(test_lex, lex_strings) {
   // TODO(strager): Report octal escape sequences in strict mode.
 
   // TODO(strager): Report invalid octal escape sequences in non-strict mode.
+}
+
+TEST(test_lex, lex_string_with_ascii_control_characters) {
+  std::vector<string8_view> control_characters;
+  control_characters.insert(
+      control_characters.end(),
+      std::begin(control_characters_except_line_terminators),
+      std::end(control_characters_except_line_terminators));
+  control_characters.emplace_back(
+      u8"\u2028"_sv);  // 0xe2 0x80 0xa8 Line Separator
+  control_characters.emplace_back(
+      u8"\u2029"_sv);  // 0xe2 0x80 0xa9 Paragraph Separator
+  for (string8_view control_character : control_characters) {
+    padded_string input(u8"'hello" + string8(control_character) + u8"world'");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::string);
+  }
+
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
+    padded_string input(u8"'hello\\" + string8(control_character) + u8"world'");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::string);
+  }
 }
 
 TEST(test_lex, lex_templates) {
@@ -930,8 +997,13 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
 
 void check_single_token(const char8* input, token_type expected_token_type) {
   padded_string code(input);
+  check_single_token(&code, expected_token_type);
+}
+
+void check_single_token(padded_string_view input,
+                        token_type expected_token_type) {
   error_collector errors;
-  lexer l(&code, &errors);
+  lexer l(input, &errors);
 
   EXPECT_EQ(l.peek().type, expected_token_type);
   l.skip();
