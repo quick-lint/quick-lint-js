@@ -713,6 +713,38 @@ TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
   }
 }
 
+TEST(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
+    padded_string input(u8"/hello" + string8(control_character) + u8"world/");
+    SCOPED_TRACE(input);
+    error_collector errors;
+    lexer l(&input, &errors);
+
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
+    padded_string input(u8"/hello\\" + string8(control_character) + u8"world/");
+    SCOPED_TRACE(input);
+    error_collector errors;
+    lexer l(&input, &errors);
+
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
 TEST(test_lex, lex_identifiers) {
   check_single_token(u8"i", token_type::identifier);
   check_single_token(u8"_", token_type::identifier);

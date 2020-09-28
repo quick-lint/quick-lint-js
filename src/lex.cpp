@@ -552,17 +552,28 @@ void lexer::reparse_as_regexp() {
 next:
   switch (*c) {
     case '\0':
-      this->error_reporter_->report(error_unclosed_regexp_literal{
-          source_code_span(this->last_token_.begin, c)});
-      break;
+      if (this->is_eof(c)) {
+        this->error_reporter_->report(error_unclosed_regexp_literal{
+            source_code_span(this->last_token_.begin, c)});
+        break;
+      } else {
+        ++c;
+        goto next;
+      }
 
     case '\\':
       ++c;
       switch (*c) {
         case '\0':
-          this->error_reporter_->report(error_unclosed_regexp_literal{
-              source_code_span(this->last_token_.begin, c)});
-          break;
+          if (this->is_eof(c)) {
+            this->error_reporter_->report(error_unclosed_regexp_literal{
+                source_code_span(this->last_token_.begin, c)});
+            break;
+          } else {
+            ++c;
+            goto next;
+          }
+
         default:
           ++c;
           goto next;
