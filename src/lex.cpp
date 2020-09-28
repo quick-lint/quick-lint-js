@@ -136,41 +136,37 @@ void lexer::parse_current_token() {
 retry:
   this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
-    case '\0':
-      this->last_token_.type = token_type::end_of_file;
-      break;
-
-    QLJS_CASE_DECIMAL_DIGIT:
-      this->last_token_.type = token_type::number;
-      if (this->input_[0] == '0') {
-        switch (this->input_[1]) {
-          case 'x':
-          case 'X':
-            this->input_ += 2;
-            this->parse_hexadecimal_number();
-            break;
-          case 'b':
-          case 'B':
-            this->input_ += 2;
-            this->parse_binary_number();
-            break;
-          default:
-            this->parse_number();
-            break;
-        }
-      } else {
-        this->parse_number();
+  QLJS_CASE_DECIMAL_DIGIT:
+    this->last_token_.type = token_type::number;
+    if (this->input_[0] == '0') {
+      switch (this->input_[1]) {
+        case 'x':
+        case 'X':
+          this->input_ += 2;
+          this->parse_hexadecimal_number();
+          break;
+        case 'b':
+        case 'B':
+          this->input_ += 2;
+          this->parse_binary_number();
+          break;
+        default:
+          this->parse_number();
+          break;
       }
-      break;
+    } else {
+      this->parse_number();
+    }
+    break;
 
-    QLJS_CASE_IDENTIFIER_START:
-      this->parse_identifier();
-      this->last_token_.end = this->input_;
-      this->last_token_.type = this->identifier_token_type(
-          string8_view(this->last_token_.begin,
-                       narrow_cast<std::size_t>(this->last_token_.end -
-                                                this->last_token_.begin)));
-      break;
+  QLJS_CASE_IDENTIFIER_START:
+    this->parse_identifier();
+    this->last_token_.end = this->input_;
+    this->last_token_.type = this->identifier_token_type(
+        string8_view(this->last_token_.begin,
+                     narrow_cast<std::size_t>(this->last_token_.end -
+                                              this->last_token_.begin)));
+    break;
 
     case '(':
     case ')':
@@ -466,6 +462,47 @@ retry:
         goto retry;
       }
       break;
+
+    case '\0':
+      if (this->is_eof(this->input_)) {
+        this->last_token_.type = token_type::end_of_file;
+        break;
+      } else {
+        [[fallthrough]];
+      }
+    case u8'\x01':    // SOH Start of Heading
+    case u8'\x02':    // STX Start of Text
+    case u8'\x03':    // ETX End-of-text character
+    case u8'\x04':    // EOT End-of-transmission character
+    case u8'\x05':    // ENQ Enquiry character
+    case u8'\x06':    // ACK Acknowledge character
+    case u8'\x07':    // BEL Bell character
+    case u8'\x08':    // BS Backspace
+    case u8'\x0e':    // SO Shift Out
+    case u8'\x0f':    // SI Shift In
+    case u8'\x10':    // DLE Data Link Escape
+    case u8'\x11':    // DC1 Device Control 1
+    case u8'\x12':    // DC2 Device Control 2
+    case u8'\x13':    // DC3 Device Control 3
+    case u8'\x14':    // DC4 Device Control 4
+    case u8'\x15':    // NAK Negative-acknowledge character
+    case u8'\x16':    // SYN Synchronous Idle
+    case u8'\x17':    // ETB End of Transmission Block
+    case u8'\x18':    // CAN Cancel character
+    case u8'\x19':    // EM End of Medium
+    case u8'\x1a':    // SUB Substitute character
+    case u8'\x1b':    // ESC Escape character
+    case u8'\x1c':    // FS File Separator
+    case u8'\x1d':    // GS Group Separator
+    case u8'\x1e':    // RS Record Separator
+    case u8'\x1f':    // US Unit Separator
+    case u8'\x7f': {  // DEL Delete
+      const char8* end = this->input_ + 1;
+      this->error_reporter_->report(error_unexpected_control_character{
+          .character = source_code_span(this->input_, end)});
+      this->input_ = end;
+      goto retry;
+    }
 
     default:
       this->error_reporter_->report_fatal_error_unimplemented_character(

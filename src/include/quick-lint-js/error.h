@@ -160,6 +160,10 @@
       .error(u8"unexpected characters in number literal", characters))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_control_character, { source_code_span character; },     \
+      .error(u8"unexpected control character", character))                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_hash_character, { source_code_span where; },            \
       .error(u8"unexpected '#'", where))                                       \
                                                                                \
