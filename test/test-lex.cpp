@@ -54,18 +54,18 @@ constexpr string8_view operator""_sv(const char8* string,
   return string8_view(string, length);
 }
 
-std::array<const char8*, 5> line_terminators = {
-    u8"\n",      //
-    u8"\r",      //
-    u8"\r\n",    //
-    u8"\u2028",  // 0xe2 0x80 0xa8 Line Separator
-    u8"\u2029",  // 0xe2 0x80 0xa9 Paragraph Separator
+std::array<string8_view, 5> line_terminators = {
+    u8"\n"_sv,      //
+    u8"\r"_sv,      //
+    u8"\r\n"_sv,    //
+    u8"\u2028"_sv,  // 0xe2 0x80 0xa8 Line Separator
+    u8"\u2029"_sv,  // 0xe2 0x80 0xa9 Paragraph Separator
 };
 
-std::array<const char8*, 3> line_terminators_except_ls_ps = {
-    u8"\n",
-    u8"\r",
-    u8"\r\n",
+std::array<string8_view, 3> line_terminators_except_ls_ps = {
+    u8"\n"_sv,
+    u8"\r"_sv,
+    u8"\r\n"_sv,
 };
 
 string8_view control_characters_except_line_terminators[] = {
@@ -155,8 +155,9 @@ TEST(test_lex, lex_block_comments) {
 
 TEST(test_lex, lex_line_comments) {
   check_single_token(u8"// hello", token_type::end_of_file);
-  for (string8 line_terminator : line_terminators) {
-    check_single_token(u8"// hello" + line_terminator + u8"world", u8"world");
+  for (string8_view line_terminator : line_terminators) {
+    check_single_token(u8"// hello" + string8(line_terminator) + u8"world",
+                       u8"world");
   }
   check_single_token(u8"// hello\n// world", token_type::end_of_file);
   check_tokens(u8"hello//*/\n \n \nworld",
@@ -463,9 +464,10 @@ TEST(test_lex, lex_strings) {
                               offsets_matcher(&input, 0, 13))));
   }
 
-  for (string8 line_terminator : line_terminators_except_ls_ps) {
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
     error_collector v;
-    padded_string input(u8"'unterminated" + line_terminator + u8"hello");
+    padded_string input(u8"'unterminated" + string8(line_terminator) +
+                        u8"hello");
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
@@ -1014,8 +1016,8 @@ TEST(test_lex, ascii_control_characters_are_disallowed) {
 }
 
 TEST(test_lex, lex_token_notes_leading_newline) {
-  for (string8 line_terminator : line_terminators) {
-    padded_string code(u8"a b" + line_terminator + u8"c d");
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"a b" + string8(line_terminator) + u8"c d");
     lexer l(&code, &null_error_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
@@ -1028,8 +1030,8 @@ TEST(test_lex, lex_token_notes_leading_newline) {
 }
 
 TEST(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
-  for (string8 line_terminator : line_terminators) {
-    padded_string code(u8"a /*" + line_terminator + u8"*/ b");
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"a /*" + string8(line_terminator) + u8"*/ b");
     lexer l(&code, &null_error_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
