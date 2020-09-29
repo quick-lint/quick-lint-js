@@ -505,6 +505,15 @@ retry:
       goto retry;
     }
 
+    case u8'@': {
+      const char8* end = this->input_ + 1;
+      this->error_reporter_->report(error_unexpected_at_character{
+          .character = source_code_span(this->input_, end)});
+      this->input_ = end;
+      this->skip_whitespace();
+      goto retry;
+    }
+
     default:
       this->error_reporter_->report_fatal_error_unimplemented_character(
           /*qljs_file_name=*/__FILE__,

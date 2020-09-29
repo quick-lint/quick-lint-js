@@ -156,6 +156,10 @@
       .error(u8"unclosed template", incomplete_template))                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_at_character, { source_code_span character; },          \
+      .error(u8"unexpected '@'", character))                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_number, { source_code_span characters; }, \
       .error(u8"unexpected characters in number literal", characters))         \
                                                                                \

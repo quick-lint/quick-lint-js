@@ -905,6 +905,23 @@ TEST(test_lex, lex_not_shebang) {
   }
 }
 
+TEST(test_lex, lex_invalid_common_characters_are_disallowed) {
+  {
+    error_collector v;
+    padded_string input(u8"hello @ world");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier) << "@ should be skipped";
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_at_character, character,
+                              offsets_matcher(&input, 6, 7))));
+  }
+}
+
 TEST(test_lex, ascii_control_characters_are_disallowed) {
   for (string8_view control_character : control_characters_except_whitespace) {
     padded_string input(string8(control_character) + u8"hello");
