@@ -141,6 +141,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_UNAME)
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 198808L)
+#define QLJS_HAVE_UNAME 1
+#else
+#define QLJS_HAVE_UNAME 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_CHARCONV_HEADER) && defined(__has_include)
 #if __has_include(<charconv>)
 #define QLJS_HAVE_CHARCONV_HEADER 1

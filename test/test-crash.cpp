@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/crash.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/std-filesystem.h>
 #include <quick-lint-js/warning.h>
+
+#if QLJS_HAVE_UNAME
+#include <sys/utsname.h>
+#endif
 
 #if QLJS_HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -39,6 +46,31 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 namespace quick_lint_js {
 namespace {
+bool is_windows_subsystem_for_linux() {
+#if QLJS_HAVE_UNAME && defined(__linux__)
+  // See: https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364
+  // Example .release for WSL1: "4.4.0-18362-Microsoft"
+  // Example .release for WSL2: "4.19.128-microsoft-standard"
+  ::utsname system_name;
+  int rc = ::uname(&system_name);
+  QLJS_ALWAYS_ASSERT(rc == 0);
+  // TODO(strager): See if this unintentionally matches other distributions
+  // (such as Linux on Azure).
+  return std::strstr(system_name.release, "icrosoft") ||
+         std::strstr(system_name.release, "WSL");
+#else
+  return false;
+#endif
+}
+
+bool is_windows_subsystem_for_linux_v1() {
+  if (!is_windows_subsystem_for_linux()) {
+    return false;
+  }
+  bool is_wsl_2 = filesystem::exists("/run/WSL");
+  return !is_wsl_2;
+}
+
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
 TEST(test_crash, crash_allowing_core_dump) {
   auto check = [] { QLJS_CRASH_ALLOWING_CORE_DUMP(); };
@@ -70,7 +102,13 @@ TEST(test_crash, crash_disallowing_core_dump) {
   auto check = [] { QLJS_CRASH_DISALLOWING_CORE_DUMP(); };
   auto crashed_without_core_dump = [](int status) -> bool {
 #if QLJS_HAVE_SYS_WAIT_H
-    return WIFSIGNALED(status) && !WCOREDUMP(status);
+    bool dumped_core = WCOREDUMP(status);
+    if (is_windows_subsystem_for_linux_v1()) {
+      // HACK(strager): WSL1 always claims it creates core dumps, but never
+      // actually makes any core dumps. Assume no core dump was generated.
+      dumped_core = false;
+    }
+    return WIFSIGNALED(status) && !dumped_core;
 #else
     return status != 0;
 #endif
