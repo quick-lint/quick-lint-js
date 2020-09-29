@@ -82,6 +82,19 @@ TEST(test_location, lf_cr_is_two_line_terminators) {
   EXPECT_EQ(x_range.begin().column_number, 5);
 }
 
+TEST(test_location, location_after_null_byte) {
+  padded_string code(string8(u8"hello\0beautiful\nworld"_sv));
+  const char8* r = &code[18];
+  ASSERT_EQ(*r, u8'r');
+
+  locator l(&code);
+  source_range r_range = l.range(source_code_span(r, r + 1));
+
+  EXPECT_EQ(r_range.begin_offset(), r - code.c_str());
+  EXPECT_EQ(r_range.begin().line_number, 2);
+  EXPECT_EQ(r_range.begin().column_number, 3);
+}
+
 TEST(test_location, position_backwards) {
   padded_string code(u8"ab\nc\n\nd\nefg\nh");
 

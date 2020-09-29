@@ -42,7 +42,7 @@ bool operator!=(source_code_span x, string8_view y) noexcept {
   return !(x == y);
 }
 
-locator::locator(padded_string_view input) noexcept : input_(input.c_str()) {}
+locator::locator(padded_string_view input) noexcept : input_(input) {}
 
 source_range locator::range(source_code_span span) const {
   source_position begin = this->position(span.begin());
@@ -60,10 +60,11 @@ source_position locator::position(const char8 *source) const noexcept {
 void locator::cache_offsets_of_lines() const {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(narrow_cast<source_position::offset_type>(
-        beginning_of_line - this->input_));
+        beginning_of_line - this->input_.c_str()));
   };
   this->offset_of_lines_.push_back(0);
-  for (const char8 *c = this->input_; *c != '\0';) {
+  for (const char8 *c = this->input_.c_str();
+       c != this->input_.null_terminator();) {
     if (*c == '\n' || *c == '\r') {
       if (c[0] == '\r' && c[1] == '\n') {
         c += 2;
@@ -107,7 +108,8 @@ source_position::line_number_type locator::find_line_at_offset(
 
 source_position::offset_type locator::offset(const char8 *source) const
     noexcept {
-  return narrow_cast<source_position::offset_type>(source - this->input_);
+  return narrow_cast<source_position::offset_type>(source -
+                                                   this->input_.c_str());
 }
 
 source_position locator::position(source_position::line_number_type line_number,

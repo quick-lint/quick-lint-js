@@ -21,11 +21,10 @@
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 #include <vector>
 
 namespace quick_lint_js {
-class padded_string_view;
-
 struct source_position {
   using line_number_type = int;
   using offset_type = std::size_t;
@@ -105,7 +104,7 @@ class locator {
   source_position position(source_position::line_number_type line_number,
                            source_position::offset_type offset) const noexcept;
 
-  const char8* input_;
+  padded_string_view input_;
   mutable std::vector<source_position::offset_type> offset_of_lines_;
 };
 }
