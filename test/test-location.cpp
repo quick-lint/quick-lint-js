@@ -18,6 +18,7 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/characters.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
@@ -25,14 +26,6 @@
 
 namespace quick_lint_js {
 namespace {
-std::array<const char8*, 5> line_terminators = {
-    u8"\n",      //
-    u8"\r",      //
-    u8"\r\n",    //
-    u8"\u2028",  // 0xe2 0x80 0xa8 Line Separator
-    u8"\u2029",  // 0xe2 0x80 0xa9 Paragraph Separator
-};
-
 TEST(test_location, ranges_on_first_line) {
   padded_string code(u8"let x = 2;");
   locator l(&code);
@@ -48,8 +41,9 @@ TEST(test_location, ranges_on_first_line) {
 }
 
 TEST(test_location, ranges_on_second_line) {
-  for (string8 line_terminator : line_terminators) {
-    padded_string code(u8"let x = 2;" + line_terminator + u8"let y = 3;");
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"let x = 2;" + string8(line_terminator) +
+                       u8"let y = 3;");
     const char8* y = strchr(code.c_str(), u8'y');
     locator l(&code);
     source_range x_range = l.range(source_code_span(y, y + 1));
@@ -65,8 +59,9 @@ TEST(test_location, ranges_on_second_line) {
 }
 
 TEST(test_location, first_character_on_line_has_column_1) {
-  for (string8 line_terminator : line_terminators) {
-    padded_string code(u8"function f() {}" + line_terminator + u8"g();");
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"function f() {}" + string8(line_terminator) +
+                       u8"g();");
     const char8* g = strchr(code.c_str(), u8'g');
     locator l(&code);
     source_position g_position = l.position(g);
