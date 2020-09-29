@@ -503,16 +503,8 @@ TEST(test_lex, lex_strings) {
 }
 
 TEST(test_lex, lex_string_with_ascii_control_characters) {
-  std::vector<string8_view> control_characters;
-  control_characters.insert(
-      control_characters.end(),
-      std::begin(control_characters_except_line_terminators),
-      std::end(control_characters_except_line_terminators));
-  control_characters.emplace_back(
-      u8"\u2028"_sv);  // 0xe2 0x80 0xa8 Line Separator
-  control_characters.emplace_back(
-      u8"\u2029"_sv);  // 0xe2 0x80 0xa9 Paragraph Separator
-  for (string8_view control_character : control_characters) {
+  for (string8_view control_character :
+       concat(control_characters_except_line_terminators, ls_and_ps)) {
     padded_string input(u8"'hello" + string8(control_character) + u8"world'");
     SCOPED_TRACE(input);
     check_single_token(&input, token_type::string);
@@ -650,14 +642,8 @@ world`)",
 }
 
 TEST(test_lex, lex_template_literal_with_ascii_control_characters) {
-  std::vector<string8_view> control_characters;
-  control_characters.insert(
-      control_characters.end(),
-      std::begin(control_characters_except_line_terminators),
-      std::end(control_characters_except_line_terminators));
-  control_characters.insert(control_characters.end(), line_terminators.begin(),
-                            line_terminators.end());
-  for (string8_view control_character : control_characters) {
+  for (string8_view control_character :
+       concat(control_characters_except_line_terminators, line_terminators)) {
     padded_string input(u8"`hello" + string8(control_character) + u8"world`");
     SCOPED_TRACE(input);
     check_single_token(&input, token_type::complete_template);
