@@ -920,6 +920,19 @@ TEST(test_lex, ascii_control_characters_are_disallowed) {
   }
 }
 
+TEST(test_lex, ascii_control_characters_sorta_treated_like_whitespace) {
+  for (string8_view control_character : control_characters_except_whitespace) {
+    padded_string input(u8"  " + string8(control_character) + u8"  hello");
+    SCOPED_TRACE(input);
+    error_collector v;
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::identifier)
+        << "control character should be skipped";
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+}
+
 TEST(test_lex, lex_token_notes_leading_newline) {
   for (string8_view line_terminator : line_terminators) {
     padded_string code(u8"a b" + string8(line_terminator) + u8"c d");
