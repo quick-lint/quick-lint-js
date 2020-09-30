@@ -23,4 +23,6 @@ struct from_chars_result {
 };
 
 from_chars_result from_chars(const char *begin, const char *end, int &value);
+from_chars_result from_chars_hex(const char *begin, const char *end,
+                                 int &value);
 }
