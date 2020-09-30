@@ -51,6 +51,10 @@ void check_single_token(const string8& input,
                         string8_view expected_identifier_name);
 void check_tokens(const char8* input,
                   std::initializer_list<token_type> expected_token_types);
+void check_tokens_with_errors(
+    const char8* input, std::initializer_list<token_type> expected_token_types,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&));
 
 TEST(test_lex, lex_block_comments) {
   check_single_token(u8"/* */ hello", u8"hello");
@@ -135,210 +139,128 @@ TEST(test_lex, lex_hex_numbers) {
 }
 
 TEST(test_lex, lex_number_with_trailing_garbage) {
-  {
-    error_collector v;
-    padded_string input(u8"123abcd");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 3, 7))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"123e f");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::identifier);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 3, 4))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"123e-f");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::minus);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::identifier);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 3, 4))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"0b01234");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 4, 7))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"0b0h0lla");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 3, 8))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"0xabjjw");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 4, 7))));
-  }
+  check_tokens_with_errors(
+      u8"123abcd", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 3, 7))));
+      });
+  check_tokens_with_errors(
+      u8"123e f", {token_type::number, token_type::identifier},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 3, 4))));
+      });
+  check_tokens_with_errors(
+      u8"123e-f",
+      {token_type::number, token_type::minus, token_type::identifier},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 3, 4))));
+      });
+  check_tokens_with_errors(
+      u8"0b01234", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 4, 7))));
+      });
+  check_tokens_with_errors(
+      u8"0b0h0lla", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 3, 8))));
+      });
+  check_tokens_with_errors(
+      u8"0xabjjw", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 4, 7))));
+      });
 }
 
 TEST(test_lex, lex_invalid_big_int_number) {
-  {
-    error_collector v;
-    padded_string input(u8"12.34n");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_big_int_literal_contains_decimal_point,
-                              where, offsets_matcher(&input, 0, 6))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"0123n");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_big_int_literal_contains_leading_zero,
-                              where, offsets_matcher(&input, 0, 5))));
-  }
-
-  {
-    error_collector v;
-    padded_string input(u8"1e3n");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_big_int_literal_contains_exponent, where,
-                              offsets_matcher(&input, 0, 4))));
-  }
+  check_tokens_with_errors(
+      u8"12.34n", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_big_int_literal_contains_decimal_point,
+                                where, offsets_matcher(input, 0, 6))));
+      });
+  check_tokens_with_errors(
+      u8"0123n", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_big_int_literal_contains_leading_zero,
+                                where, offsets_matcher(input, 0, 5))));
+      });
+  check_tokens_with_errors(
+      u8"1e3n", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_big_int_literal_contains_exponent, where,
+                                offsets_matcher(input, 0, 4))));
+      });
 
   // Only complain about the decimal point, not the leading 0 digit.
-  {
-    error_collector v;
-    padded_string input(u8"0.1n");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            VariantWith<error_big_int_literal_contains_decimal_point>(_)));
-  }
+  check_tokens_with_errors(
+      u8"0.1n", {token_type::number},
+      [](padded_string_view, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(
+                VariantWith<error_big_int_literal_contains_decimal_point>(_)));
+      });
 
   // Complain about both the decimal point and the leading 0 digit.
-  {
-    error_collector v;
-    padded_string input(u8"01.2n");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(
-        v.errors,
-        UnorderedElementsAre(
-            VariantWith<error_big_int_literal_contains_decimal_point>(_),
-            VariantWith<error_big_int_literal_contains_leading_zero>(_)));
-  }
+  check_tokens_with_errors(
+      u8"01.2n", {token_type::number},
+      [](padded_string_view, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            UnorderedElementsAre(
+                VariantWith<error_big_int_literal_contains_decimal_point>(_),
+                VariantWith<error_big_int_literal_contains_leading_zero>(_)));
+      });
 
   // Complain about everything. What a disaster.
-  {
-    error_collector v;
-    padded_string input(u8"01.2e+3n");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(
-        v.errors,
-        UnorderedElementsAre(
-            VariantWith<error_big_int_literal_contains_decimal_point>(_),
-            VariantWith<error_big_int_literal_contains_exponent>(_),
-            VariantWith<error_big_int_literal_contains_leading_zero>(_)));
-  }
+  check_tokens_with_errors(
+      u8"01.2e+3n", {token_type::number},
+      [](padded_string_view, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            UnorderedElementsAre(
+                VariantWith<error_big_int_literal_contains_decimal_point>(_),
+                VariantWith<error_big_int_literal_contains_exponent>(_),
+                VariantWith<error_big_int_literal_contains_leading_zero>(_)));
+      });
 }
 
 TEST(test_lex, lex_number_with_double_underscore) {
-  {
-    error_collector v;
-    padded_string input(u8"123__000");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_number_literal_contains_consecutive_underscores,
-                    underscores, offsets_matcher(&input, 3, 5))));
-  }
+  check_tokens_with_errors(
+      u8"123__000", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_consecutive_underscores,
+                        underscores, offsets_matcher(input, 3, 5))));
+      });
 }
 
 TEST(test_lex, lex_number_with_many_underscores) {
-  {
-    error_collector v;
-    padded_string input(u8"123_____000");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_number_literal_contains_consecutive_underscores,
-                    underscores, offsets_matcher(&input, 3, 8))));
-  }
+  check_tokens_with_errors(
+      u8"123_____000", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_consecutive_underscores,
+                        underscores, offsets_matcher(input, 3, 8))));
+      });
 }
 
 TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
@@ -370,18 +292,13 @@ TEST(test_lex, lex_strings) {
   check_single_token(u8R"('hello"world')", token_type::string);
   check_single_token(u8R"("hello'world")", token_type::string);
 
-  {
-    error_collector v;
-    padded_string input(u8R"("unterminated)");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::string);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_string_literal, string_literal,
-                              offsets_matcher(&input, 0, 13))));
-  }
+  check_tokens_with_errors(
+      u8R"("unterminated)", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unclosed_string_literal, string_literal,
+                                offsets_matcher(input, 0, 13))));
+      });
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     error_collector v;
@@ -398,18 +315,13 @@ TEST(test_lex, lex_strings) {
                               offsets_matcher(&input, 0, 13))));
   }
 
-  {
-    error_collector v;
-    padded_string input(u8"'unterminated\\");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::string);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_string_literal, string_literal,
-                              offsets_matcher(&input, 0, 14))));
-  }
+  check_tokens_with_errors(
+      u8"'unterminated\\", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unclosed_string_literal, string_literal,
+                                offsets_matcher(input, 0, 14))));
+      });
 
   // TODO(strager): Lex line continuations in string literals. For example:
   //
@@ -520,18 +432,13 @@ world`)",
   // `hello\   (backslash followed by end of line)
   // world`
 
-  {
-    error_collector v;
-    padded_string input(u8"`unterminated");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::complete_template);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_template, incomplete_template,
-                              offsets_matcher(&input, 0, 13))));
-  }
+  check_tokens_with_errors(
+      u8"`unterminated", {token_type::complete_template},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unclosed_template, incomplete_template,
+                                offsets_matcher(input, 0, 13))));
+      });
 
   {
     error_collector v;
@@ -553,18 +460,13 @@ world`)",
                               offsets_matcher(&input, 0, 16))));
   }
 
-  {
-    error_collector v;
-    padded_string input(u8"`unterminated\\");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::complete_template);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_template, incomplete_template,
-                              offsets_matcher(&input, 0, 14))));
-  }
+  check_tokens_with_errors(
+      u8"`unterminated\\", {token_type::complete_template},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unclosed_template, incomplete_template,
+                                offsets_matcher(input, 0, 14))));
+      });
 
   // TODO(strager): Report invalid escape sequences, like with plain string
   // literals.
@@ -1081,6 +983,16 @@ void check_single_token(const string8& input,
 
 void check_tokens(const char8* input,
                   std::initializer_list<token_type> expected_token_types) {
+  check_tokens_with_errors(input, expected_token_types,
+                           [](padded_string_view, const auto& errors) {
+                             EXPECT_THAT(errors, IsEmpty());
+                           });
+}
+
+void check_tokens_with_errors(
+    const char8* input, std::initializer_list<token_type> expected_token_types,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&)) {
   padded_string code(input);
   error_collector errors;
   lexer l(&code, &errors);
@@ -1091,7 +1003,7 @@ void check_tokens(const char8* input,
   }
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  EXPECT_THAT(errors.errors, IsEmpty());
+  check_errors(&code, errors.errors);
 }
 }
 }
