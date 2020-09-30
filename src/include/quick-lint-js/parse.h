@@ -372,9 +372,7 @@ class parser {
       case token_type::kw_let:
       case token_type::kw_var:
         this->parse_and_visit_let_bindings(v, this->peek().type);
-        if (this->peek().type == token_type::semicolon) {
-          this->lexer_.skip();
-        }
+        this->consume_semicolon();
         break;
 
       case token_type::kw_function:

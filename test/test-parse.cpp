@@ -903,6 +903,20 @@ TEST(test_parse, asi_for_statement_at_newline) {
   }
 
   {
+    spy_visitor v;
+    padded_string code(u8"let x = 2\nfor (;;) { console.log(); }");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
     // This code should emit an error, but also use ASI for error recovery.
     spy_visitor v;
     padded_string code(u8"console.log('hello') console.log('world');");
@@ -1835,6 +1849,43 @@ TEST(test_parse, debugger_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
+
+TEST(test_parse, report_missing_semicolon_for_declarations) {
+  {
+    spy_visitor v;
+    padded_string code(u8"let x = 2 for (;;) { console.log(); }");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    source_position::offset_type end_of_let_statement =
+        strlen(u8"let x = 2");
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_semicolon_after_expression, where,
+                              offsets_matcher(&code, end_of_let_statement,
+                                              end_of_let_statement))));
+  }
+  {
+    spy_visitor v;
+    padded_string code(u8"const x debugger");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_const}));
+    source_position::offset_type end_of_const_statement =
+        strlen(u8"const x");
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_semicolon_after_expression, where,
+                              offsets_matcher(&code, end_of_const_statement,
+                                              end_of_const_statement))));
   }
 }
 }
