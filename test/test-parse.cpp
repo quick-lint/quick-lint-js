@@ -350,6 +350,17 @@ TEST(test_parse, parse_invalid_let) {
                               error_invalid_binding_in_let_statement, where,
                               offsets_matcher(&code, 4, 6))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let debugger");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_binding_in_let_statement, where,
+                              offsets_matcher(&code, 4, 12))));
+  }
 }
 
 TEST(test_parse, parse_and_visit_import) {

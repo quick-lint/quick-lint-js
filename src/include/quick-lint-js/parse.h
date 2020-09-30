@@ -905,6 +905,13 @@ class parser {
           this->parse_and_visit_binding_element(v, declaration_kind);
           break;
         case token_type::kw_if:
+        case token_type::kw_break:
+        case token_type::kw_continue:
+        case token_type::kw_debugger:
+        case token_type::kw_false:
+        case token_type::kw_null:
+        case token_type::kw_true:
+        case token_type::kw_void:
         case token_type::number:
           this->error_reporter_->report(
               error_invalid_binding_in_let_statement{this->peek().span()});
