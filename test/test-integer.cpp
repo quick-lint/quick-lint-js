@@ -17,11 +17,10 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/integer.h>
+#include <quick-lint-js/warning.h>
 #include <system_error>
 
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wtype-limits"
-#endif
+QLJS_WARNING_IGNORE_GCC("-Wtype-limits")
 
 namespace quick_lint_js {
 namespace {
