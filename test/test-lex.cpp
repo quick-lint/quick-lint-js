@@ -49,6 +49,10 @@ void check_single_token(const char8* input,
                         string8_view expected_identifier_name);
 void check_single_token(const string8& input,
                         string8_view expected_identifier_name);
+void check_single_token_with_errors(
+    const char8* input, string8_view expected_identifier_name,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&));
 void check_tokens(const char8* input,
                   std::initializer_list<token_type> expected_token_types);
 void check_tokens_with_errors(
@@ -595,7 +599,197 @@ TEST(test_lex, lex_identifiers) {
   check_single_token(u8"MixedCaseIsAllowed", u8"MixedCaseIsAllowed");
   check_single_token(u8"ident$with$dollars", u8"ident$with$dollars");
   check_single_token(u8"digits0123456789", u8"digits0123456789");
-  // TODO(strager): Lex identifiers containing \u1234 or \u{1234}.
+}
+
+TEST(test_lex, lex_identifier_with_escape_sequence) {
+  check_single_token(u8"\\u0061", u8"a");
+  check_single_token(u8"\\u0041", u8"A");
+  check_single_token(u8"\\u004E", u8"N");
+  check_single_token(u8"\\u004e", u8"N");
+
+  check_single_token(u8"\\u{41}", u8"A");
+  check_single_token(u8"\\u{0041}", u8"A");
+  check_single_token(u8"\\u{00000000000000000000041}", u8"A");
+  check_single_token(u8"\\u{004E}", u8"N");
+  check_single_token(u8"\\u{004e}", u8"N");
+
+  check_single_token(u8"hell\\u006f", u8"hello");
+  check_single_token(u8"\\u0068ello", u8"hello");
+  check_single_token(u8"w\\u0061t", u8"wat");
+
+  check_single_token(u8"hel\\u006c0", u8"hell0");
+
+  check_single_token(u8"\\u0077\\u0061\\u0074", u8"wat");
+  check_single_token(u8"\\u{77}\\u{61}\\u{74}", u8"wat");
+
+  // TODO(strager): Support code points above U+007F.
+}
+
+TEST(test_lex, lex_identifier_with_escape_sequences_change_input) {
+  padded_string input(u8"hell\\u{6F} = \\u{77}orld;");
+
+  lexer l(&input, &null_error_reporter::instance);
+  while (l.peek().type != token_type::end_of_file) {
+    printf("toked\n");
+    l.skip();
+  }
+
+  EXPECT_THAT(input, u8"hello      = world     ;")
+      << "lexing should replace escape sequences with their character, and put "
+         "trailing spaces after the identifier";
+}
+
+TEST(test_lex, lex_identifier_with_malformed_escape_sequence) {
+  check_single_token_with_errors(
+      u8" are\\ufriendly ", u8"are\\ufriendly",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 4, 8))));
+      });
+  check_tokens_with_errors(
+      u8"are\\uf riendly", {token_type::identifier, token_type::identifier},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 3, 7))));
+      });
+  check_single_token_with_errors(
+      u8"stray\\backslash", u8"stray\\backslash",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_backslash_in_identifier,
+                                backslash, offsets_matcher(input, 5, 6))));
+      });
+  check_single_token_with_errors(
+      u8"stray\\", u8"stray\\",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_backslash_in_identifier,
+                                backslash, offsets_matcher(input, 5, 6))));
+      });
+  check_tokens_with_errors(
+      u8"hello\\u}world",
+      {token_type::identifier, token_type::right_curly, token_type::identifier},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 5, 8))));
+      });
+  check_tokens_with_errors(
+      u8"negative\\u-0041",
+      {token_type::identifier, token_type::minus, token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 8, 11))));
+      });
+
+  check_single_token_with_errors(
+      u8"a\\u{}b", u8"a\\u{}b",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 1, 5))));
+      });
+  check_single_token_with_errors(
+      u8"a\\u{q}b", u8"a\\u{q}b",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 1, 6))));
+      });
+  check_single_token_with_errors(
+      u8"negative\\u{-42}codepoint", u8"negative\\u{-42}codepoint",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 8, 15))));
+      });
+  check_single_token_with_errors(
+      u8"negative\\u{-0}zero", u8"negative\\u{-0}zero",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 8, 14))));
+      });
+
+  check_single_token_with_errors(
+      u8"unterminated\\u", u8"unterminated\\u",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_unclosed_identifier_escape_sequence,
+                        escape_sequence, offsets_matcher(input, 12, 14))));
+      });
+  check_single_token_with_errors(
+      u8"unterminated\\u012", u8"unterminated\\u012",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_unclosed_identifier_escape_sequence,
+                        escape_sequence, offsets_matcher(input, 12, 17))));
+      });
+  check_single_token_with_errors(
+      u8"unterminated\\u{", u8"unterminated\\u{",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_unclosed_identifier_escape_sequence,
+                        escape_sequence, offsets_matcher(input, 12, 15))));
+      });
+  check_single_token_with_errors(
+      u8"unterminated\\u{0123", u8"unterminated\\u{0123",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_unclosed_identifier_escape_sequence,
+                        escape_sequence, offsets_matcher(input, 12, 19))));
+      });
+}
+
+TEST(test_lex, lex_identifier_with_out_of_range_escaped_character) {
+  check_single_token_with_errors(
+      u8"too\\u{110000}big", u8"too\\u{110000}big",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_code_point_in_identifier_out_of_range,
+                        escape_sequence, offsets_matcher(input, 3, 13))));
+      });
+  check_single_token_with_errors(
+      u8"waytoo\\u{100000000000000}big", u8"waytoo\\u{100000000000000}big",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_code_point_in_identifier_out_of_range,
+                        escape_sequence, offsets_matcher(input, 6, 25))));
+      });
+
+  check_single_token_with_errors(
+      u8"illegal\\u0020", u8"illegal\\u0020",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 7, 13))));
+      });
+  check_single_token_with_errors(
+      u8"illegal\\u{0020}", u8"illegal\\u{0020}",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 7, 15))));
+      });
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {
@@ -964,6 +1158,21 @@ void check_single_token(padded_string_view input,
 
 void check_single_token(const char8* input,
                         string8_view expected_identifier_name) {
+  check_single_token_with_errors(input, expected_identifier_name,
+                                 [](padded_string_view, const auto& errors) {
+                                   EXPECT_THAT(errors, IsEmpty());
+                                 });
+}
+
+void check_single_token(const string8& input,
+                        string8_view expected_identifier_name) {
+  return check_single_token(input.c_str(), expected_identifier_name);
+}
+
+void check_single_token_with_errors(
+    const char8* input, string8_view expected_identifier_name,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&)) {
   padded_string code(input);
   error_collector errors;
   lexer l(&code, &errors);
@@ -973,12 +1182,7 @@ void check_single_token(const char8* input,
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  EXPECT_THAT(errors.errors, IsEmpty());
-}
-
-void check_single_token(const string8& input,
-                        string8_view expected_identifier_name) {
-  return check_single_token(input.c_str(), expected_identifier_name);
+  check_errors(&code, errors.errors);
 }
 
 void check_tokens(const char8* input,

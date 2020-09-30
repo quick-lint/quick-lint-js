@@ -220,6 +220,9 @@ struct token {
 // string, boolean, etc.).
 //
 // Whitespace and comments are not interpreted as tokens.
+//
+// lexer can modify the input string in some cases. For example, the identifier
+// w\u0061t is rewritten to wat (followed by padding spaces).
 class lexer {
  public:
   explicit lexer(padded_string_view input, error_reporter*) noexcept;
@@ -270,6 +273,25 @@ class lexer {
     char8* end;
   };
 
+  // The result of parsing an identifier.
+  //
+  // Normally, .end == .after. However, if an identifier's source code is
+  // changed, .end and .after might be different. Say we are parsing the
+  // identifier starting with 'w' in the following example:
+  //
+  // Original input: log(w\u{61}t)
+  // Modified input: log(wat     )
+  //                        ^    ^
+  //                      end    after
+  //
+  // In this case, .end points to the character following the rewritten
+  // identifier, and .after points to the character following the original
+  // identifier.
+  struct parsed_identifier {
+    char8* end;    // End of the identifier.
+    char8* after;  // Where to continue parsing.
+  };
+
   parsed_template_body parse_template_body(char8* input,
                                            const char8* template_begin,
                                            error_reporter*);
@@ -280,7 +302,8 @@ class lexer {
   void parse_number();
   char8* parse_decimal_digits_and_underscores(char8* input) noexcept;
 
-  static char8* parse_identifier(char8*);
+  parsed_identifier parse_identifier(char8*);
+  parsed_identifier parse_identifier_slow(char8*);
 
   void skip_whitespace();
   void skip_block_comment();
@@ -291,7 +314,7 @@ class lexer {
   static bool is_binary_digit(char8);
   static bool is_digit(char8);
   static bool is_hex_digit(char8);
-  static bool is_identifier_character(char8);
+  static bool is_identifier_character(int code_point);
 
   static int newline_character_size(const char8*);
 

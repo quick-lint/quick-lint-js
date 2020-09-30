@@ -83,12 +83,29 @@
       .error(u8"BigInt literal has a leading 0 digit", where))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_escaped_character_disallowed_in_identifiers,                       \
+      { source_code_span escape_sequence; },                                   \
+      .error(u8"escaped character is not allowed in identifiers",              \
+             escape_sequence))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_escaped_code_point_in_identifier_out_of_range,                     \
+      { source_code_span escape_sequence; },                                   \
+      .error(u8"code point out of range", escape_sequence))                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_before_newline, { source_code_span where; },   \
       .error(u8"expected expression before newline", where))                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_before_semicolon, { source_code_span where; }, \
       .error(u8"expected expression before semicolon", where))                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_hex_digits_in_unicode_escape,                             \
+      { source_code_span escape_sequence; },                                   \
+      .error(u8"expected hexadecimal digits in Unicode escape sequence",       \
+             escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, { source_code_span where; },     \
@@ -144,6 +161,11 @@
       .error(u8"unclosed block comment", comment_open))                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unclosed_identifier_escape_sequence,                               \
+      { source_code_span escape_sequence; },                                   \
+      .error(u8"unclosed identifier escape sequence", escape_sequence))        \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_regexp_literal, { source_code_span regexp_literal; },     \
       .error(u8"unclosed regexp literal", regexp_literal))                     \
                                                                                \
@@ -158,6 +180,11 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_at_character, { source_code_span character; },          \
       .error(u8"unexpected '@'", character))                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_backslash_in_identifier,                                \
+      { source_code_span backslash; },                                         \
+      .error(u8"unexpected '\\' in identifier", backslash))                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_number, { source_code_span characters; }, \
