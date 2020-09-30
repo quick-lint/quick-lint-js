@@ -267,22 +267,21 @@ class lexer {
  private:
   struct parsed_template_body {
     token_type type;
-    const char8* end;
+    char8* end;
   };
 
-  parsed_template_body parse_template_body(const char8* input,
+  parsed_template_body parse_template_body(char8* input,
                                            const char8* template_begin,
                                            error_reporter*);
 
   void parse_binary_number();
   void parse_hexadecimal_number();
-  const char8* check_garbage_in_number_literal(const char8* input);
+  char8* check_garbage_in_number_literal(char8* input);
   void parse_number();
-  const char8* parse_decimal_digits_and_underscores(
-      const char8* input) noexcept;
+  char8* parse_decimal_digits_and_underscores(char8* input) noexcept;
 
   void parse_identifier();
-  static const char8* parse_identifier(const char8*);
+  static char8* parse_identifier(char8*);
 
   void skip_whitespace();
   void skip_block_comment();
@@ -300,8 +299,8 @@ class lexer {
   static token_type identifier_token_type(string8_view) noexcept;
 
   token last_token_;
-  const char8* last_last_token_end_;
-  const char8* input_;
+  char8* last_last_token_end_;
+  char8* input_;
   error_reporter* error_reporter_;
   padded_string_view original_input_;
 };

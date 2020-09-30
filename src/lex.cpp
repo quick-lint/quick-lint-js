@@ -121,7 +121,7 @@ source_code_span token::span() const noexcept {
 }
 
 lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
-    : input_(input.c_str()),
+    : input_(input.data()),
       error_reporter_(error_reporter),
       original_input_(input) {
   this->last_token_.end = nullptr;
@@ -129,7 +129,7 @@ lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
 }
 
 void lexer::parse_current_token() {
-  this->last_last_token_end_ = this->last_token_.end;
+  this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
@@ -383,7 +383,7 @@ retry:
     case '\'': {
       char8 opening_quote = this->input_[0];
 
-      const char8* c = &this->input_[1];
+      char8* c = &this->input_[1];
       for (;;) {
         switch (static_cast<unsigned char>(*c)) {
           case '\0':
@@ -451,7 +451,7 @@ retry:
 
     case '#':
       if (this->input_[1] == '!' &&
-          this->input_ == this->original_input_.c_str()) {
+          this->input_ == this->original_input_.data()) {
         this->skip_line_comment();
         goto retry;
       } else {
@@ -497,7 +497,7 @@ retry:
     case u8'\x1e':    // RS Record Separator
     case u8'\x1f':    // US Unit Separator
     case u8'\x7f': {  // DEL Delete
-      const char8* end = this->input_ + 1;
+      char8* end = this->input_ + 1;
       this->error_reporter_->report(error_unexpected_control_character{
           .character = source_code_span(this->input_, end)});
       this->input_ = end;
@@ -506,7 +506,7 @@ retry:
     }
 
     case u8'@': {
-      const char8* end = this->input_ + 1;
+      char8* end = this->input_ + 1;
       this->error_reporter_->report(error_unexpected_at_character{
           .character = source_code_span(this->input_, end)});
       this->input_ = end;
@@ -536,9 +536,8 @@ void lexer::skip_in_template(const char8* template_begin) {
 }
 
 lexer::parsed_template_body lexer::parse_template_body(
-    const char8* input, const char8* template_begin,
-    error_reporter* error_reporter) {
-  const char8* c = input;
+    char8* input, const char8* template_begin, error_reporter* error_reporter) {
+  char8* c = input;
   for (;;) {
     switch (*c) {
       case '\0':
@@ -591,11 +590,11 @@ lexer::parsed_template_body lexer::parse_template_body(
 void lexer::reparse_as_regexp() {
   QLJS_ASSERT(this->last_token_.type == token_type::slash);
 
-  this->input_ = this->last_token_.begin;
+  this->input_ = const_cast<char8*>(this->last_token_.begin);
   QLJS_ASSERT(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
 
-  const char8* c = &this->input_[1];
+  char8* c = &this->input_[1];
 next:
   switch (*c) {
     case '\0':
@@ -686,7 +685,7 @@ const char8* lexer::end_of_previous_token() const noexcept {
 
 void lexer::parse_hexadecimal_number() {
   QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
-  const char8* input = this->input_;
+  char8* input = this->input_;
 
   while (this->is_hex_digit(*input)) {
     input += 1;
@@ -697,7 +696,7 @@ void lexer::parse_hexadecimal_number() {
 
 void lexer::parse_binary_number() {
   QLJS_ASSERT(this->is_binary_digit(this->input_[0]));
-  const char8* input = this->input_;
+  char8* input = this->input_;
 
   while (this->is_binary_digit(*input)) {
     input += 1;
@@ -706,8 +705,8 @@ void lexer::parse_binary_number() {
   this->input_ = check_garbage_in_number_literal(input);
 }
 
-const char8* lexer::check_garbage_in_number_literal(const char8* input) {
-  const char8* garbage_begin = input;
+char8* lexer::check_garbage_in_number_literal(char8* input) {
+  char8* garbage_begin = input;
   for (;;) {
     switch (*input) {
     QLJS_CASE_DECIMAL_DIGIT:
@@ -719,7 +718,7 @@ const char8* lexer::check_garbage_in_number_literal(const char8* input) {
     }
   }
 done_parsing_garbage:
-  const char8* garbage_end = input;
+  char8* garbage_end = input;
   if (garbage_end != garbage_begin) {
     this->error_reporter_->report(error_unexpected_characters_in_number{
         source_code_span(garbage_begin, garbage_end)});
@@ -731,12 +730,12 @@ done_parsing_garbage:
 
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
-  const char8* number_begin = this->input_;
-  const char8* input = number_begin;
+  char8* input = this->input_;
+  const char8* number_begin = input;
 
   auto consume_garbage = [this, &input]() {
-    const char8* garbage_begin = input;
-    const char8* garbage_end = this->parse_identifier(garbage_begin);
+    char8* garbage_begin = input;
+    char8* garbage_end = this->parse_identifier(garbage_begin);
     this->error_reporter_->report(error_unexpected_characters_in_number{
         source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
@@ -751,7 +750,7 @@ void lexer::parse_number() {
   }
   bool has_exponent = *input == 'e' || *input == 'E';
   if (has_exponent) {
-    const char8* e = input;
+    char8* e = input;
     input += 1;
     if (*input == '-' || *input == '+') {
       input += 1;
@@ -788,8 +787,7 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-const char8* lexer::parse_decimal_digits_and_underscores(
-    const char8* input) noexcept {
+char8* lexer::parse_decimal_digits_and_underscores(char8* input) noexcept {
   bool has_trailing_underscore = false;
   while (is_digit(*input)) {
     has_trailing_underscore = false;
@@ -822,7 +820,7 @@ void lexer::parse_identifier() {
   this->input_ = this->parse_identifier(this->input_);
 }
 
-const char8* lexer::parse_identifier(const char8* input) {
+char8* lexer::parse_identifier(char8* input) {
   switch (*input) {
   QLJS_CASE_IDENTIFIER_START:
     break;
@@ -899,7 +897,7 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
 QLJS_WARNING_IGNORE_GCC("-Wattributes")
 void lexer::skip_whitespace() {
-  const char8* input = this->input_;
+  char8* input = this->input_;
 
 next:
   char8 c = input[0];
@@ -1005,7 +1003,7 @@ QLJS_WARNING_POP
 
 void lexer::skip_block_comment() {
   QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
-  const char8* c = this->input_ + 2;
+  char8* c = this->input_ + 2;
 
 #if QLJS_HAVE_X86_SSE2
   using bool_vector = bool_vector_16_sse2;
@@ -1090,7 +1088,7 @@ found_end_of_file:
 void lexer::skip_line_comment() {
   QLJS_ASSERT((this->input_[0] == '/' && this->input_[1] == '/') ||
               (this->input_[0] == '#' && this->input_[1] == '!'));
-  for (const char8* c = this->input_ + 2;; ++c) {
+  for (char8* c = this->input_ + 2;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {
       this->input_ = c + newline_size;

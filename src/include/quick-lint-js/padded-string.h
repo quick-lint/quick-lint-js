@@ -67,10 +67,12 @@ class padded_string {
   string8 data_;
 };
 
+// Important: Unlike std::string_view, padded_string_view allows write access to
+// the underlying string.
 class padded_string_view {
  public:
-  /*implicit*/ padded_string_view(const padded_string *string)
-      : data_(string->c_str()), length_(string->size()) {}
+  /*implicit*/ padded_string_view(padded_string *string)
+      : data_(string->data()), length_(string->size()) {}
 
   padded_string_view(const padded_string_view &) noexcept = default;
   padded_string_view &operator=(const padded_string_view &) noexcept = default;
@@ -78,13 +80,14 @@ class padded_string_view {
   padded_string_view(padded_string_view &&) noexcept = default;
   padded_string_view &operator=(padded_string_view &&) noexcept = default;
 
-  const char8 *c_str() const noexcept { return this->data_; }
+  char8 *data() const noexcept { return this->data_; }
+
   const char8 *null_terminator() const noexcept {
     return this->data_ + this->length_;
   }
 
  private:
-  const char8 *data_;
+  char8 *data_;
   int length_;
 };
 }
