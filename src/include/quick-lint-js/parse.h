@@ -908,6 +908,7 @@ class parser {
         case token_type::number:
           this->error_reporter_->report(
               error_invalid_binding_in_let_statement{this->peek().span()});
+          this->lexer_.skip();
           break;
         default:
           if (first_binding) {
