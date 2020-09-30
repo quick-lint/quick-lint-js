@@ -280,7 +280,6 @@ class lexer {
   void parse_number();
   char8* parse_decimal_digits_and_underscores(char8* input) noexcept;
 
-  void parse_identifier();
   static char8* parse_identifier(char8*);
 
   void skip_whitespace();

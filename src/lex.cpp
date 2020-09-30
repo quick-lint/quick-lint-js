@@ -160,7 +160,7 @@ retry:
     break;
 
   QLJS_CASE_IDENTIFIER_START:
-    this->parse_identifier();
+    this->input_ = this->parse_identifier(this->input_);
     this->last_token_.end = this->input_;
     this->last_token_.type = this->identifier_token_type(
         string8_view(this->last_token_.begin,
@@ -814,10 +814,6 @@ char8* lexer::parse_decimal_digits_and_underscores(char8* input) noexcept {
     // the end of numeric literals
   }
   return input;
-}
-
-void lexer::parse_identifier() {
-  this->input_ = this->parse_identifier(this->input_);
 }
 
 char8* lexer::parse_identifier(char8* input) {
