@@ -554,6 +554,24 @@ TEST(test_lex, lex_regular_expression_literal_with_digit_flag) {
   // TODO(strager): Report an error, because '3' is an invalid flag.
 }
 
+TEST(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
+  error_collector errors;
+  padded_string input(u8"/hello/\\u{67}i");
+
+  lexer l(&input, &errors);
+  l.reparse_as_regexp();
+  EXPECT_EQ(l.peek().type, token_type::regexp);
+  EXPECT_EQ(l.peek().begin, &input[0]);
+  EXPECT_EQ(l.peek().end, &input[input.size()]);
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_regexp_literal_flags_cannot_contain_unicode_escapes,
+                  escape_sequence, offsets_matcher(&input, 7, 13))));
+}
+
 TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
     padded_string code(u8"\n/ /");

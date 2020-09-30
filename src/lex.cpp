@@ -670,12 +670,19 @@ next:
       }
       QLJS_UNREACHABLE();
 
-    case '/':
+    case '/': {
       ++c;
-      while (this->is_identifier_character(*c)) {
-        ++c;
+      if (this->is_identifier_character(*c)) {
+        parsed_identifier ident = this->parse_identifier(c);
+        c = ident.after;
+        for (const source_code_span& escape_sequence : ident.escape_sequences) {
+          this->error_reporter_->report(
+              error_regexp_literal_flags_cannot_contain_unicode_escapes{
+                  .escape_sequence = escape_sequence});
+        }
       }
       break;
+    }
 
     default:
       ++c;
@@ -838,13 +845,7 @@ char8* lexer::parse_decimal_digits_and_underscores(char8* input) noexcept {
 }
 
 lexer::parsed_identifier lexer::parse_identifier(char8* input) {
-  switch (*input) {
-  QLJS_CASE_IDENTIFIER_START:
-    break;
-    default:
-      QLJS_ASSERT(false);
-      break;
-  }
+  QLJS_ASSERT(this->is_identifier_character(*input));
 
 #if QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
@@ -912,12 +913,14 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
     return parsed_identifier{
         .end = input,
         .after = input,
+        .escape_sequences = {},
     };
   }
 }
 
 lexer::parsed_identifier lexer::parse_identifier_slow(char8* input) {
   char8* end = input;
+  std::vector<source_code_span> escape_sequences;
 
   auto parse_unicode_escape = [&]() {
     char8* escape_sequence_begin = input;
@@ -997,6 +1000,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input) {
     } else {
       // TODO(strager): Support non-ASCII identifier characters.
       *end++ = narrow_cast<char8>(code_point);
+      escape_sequences.emplace_back(escape_sequence_begin, input);
     }
   };
 
@@ -1023,6 +1027,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input) {
   return parsed_identifier{
       .end = end,
       .after = input,
+      .escape_sequences = std::move(escape_sequences),
   };
 }
 

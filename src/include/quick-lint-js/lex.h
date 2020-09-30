@@ -287,9 +287,14 @@ class lexer {
   // In this case, .end points to the character following the rewritten
   // identifier, and .after points to the character following the original
   // identifier.
+  //
+  // Invariant:
+  // if (escape_sequences.empty()) end == after;
   struct parsed_identifier {
     char8* end;    // End of the identifier.
     char8* after;  // Where to continue parsing.
+
+    std::vector<source_code_span> escape_sequences;
   };
 
   parsed_template_body parse_template_body(char8* input,

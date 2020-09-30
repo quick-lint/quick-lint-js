@@ -153,6 +153,12 @@
           .note(u8"variable already declared here", original_declaration))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_regexp_literal_flags_cannot_contain_unicode_escapes,               \
+      { source_code_span escape_sequence; },                                   \
+      .error(u8"RegExp literal cannot contain Unicode escapes",                \
+             escape_sequence))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_stray_comma_in_let_statement, { source_code_span where; },         \
       .error(u8"stray comma in let statement", where))                         \
                                                                                \
