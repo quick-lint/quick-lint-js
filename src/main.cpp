@@ -104,17 +104,17 @@ int main(int argc, char **argv) {
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
   if (o.help) {
     quick_lint_js::print_help_message();
-    return 0;
+    return EXIT_SUCCESS;
   }
   if (!o.error_unrecognized_options.empty()) {
     for (const auto &option : o.error_unrecognized_options) {
       std::cerr << "error: unrecognized option: " << option << '\n';
     }
-    return 1;
+    return EXIT_FAILURE;
   }
   if (o.files_to_lint.empty()) {
     std::cerr << "error: expected file name\n";
-    return 1;
+    return EXIT_FAILURE;
   }
 
   quick_lint_js::any_error_reporter reporter =
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
   }
   reporter.finish();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 namespace quick_lint_js {
