@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 #include <limits>
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {
@@ -41,6 +43,12 @@ using uint_limits = std::numeric_limits<uint>;
 using ulong_limits = std::numeric_limits<ulong>;
 using ullong_limits = std::numeric_limits<ullong>;
 
+#if QLJS_HAVE_CHAR8_T
+// NOTE(strager): Avoid using std::numeric_limits<char8_t> because it's buggy on
+// some compilers.
+using char8_t_limits = numeric_limits<char8_t>;
+#endif
+
 TEST(test_narrow_cast, same_type_signed_narrow_cast_never_fails) {
   EXPECT_EQ(narrow_cast<int>(int{0}), 0);
   EXPECT_EQ(narrow_cast<int>(int{1234}), 1234);
@@ -51,6 +59,14 @@ TEST(test_narrow_cast, same_type_signed_narrow_cast_never_fails) {
   EXPECT_EQ(narrow_cast<long>(long{1234}), 1234);
   EXPECT_EQ(narrow_cast<long>(long_limits::lowest()), long_limits::lowest());
   EXPECT_EQ(narrow_cast<long>(long_limits::max()), long_limits::max());
+
+#if QLJS_HAVE_CHAR8_T
+  EXPECT_EQ(narrow_cast<char8_t>(char8_t{0}), 0);
+  EXPECT_EQ(narrow_cast<char8_t>(char8_t{123}), 123);
+  EXPECT_EQ(narrow_cast<char8_t>(char8_t_limits::lowest()),
+            char8_t_limits::lowest());
+  EXPECT_EQ(narrow_cast<char8_t>(char8_t_limits::max()), char8_t_limits::max());
+#endif
 }
 
 TEST(test_narrow_cast, same_type_unsigned_narrow_cast_never_fails) {
@@ -112,6 +128,17 @@ TEST(test_narrow_cast, signed_signed_narrow_cast_fails_if_out_of_range) {
 }
 
 TEST(test_narrow_cast, unsigned_unsigned_narrow_cast_succeeds_if_in_range) {
+#if QLJS_HAVE_CHAR8_T
+  EXPECT_TRUE(in_range<char8_t>(ushort{char8_t_limits::lowest()}));
+  EXPECT_TRUE(in_range<char8_t>(ushort{char8_t_limits::max()}));
+  EXPECT_TRUE(in_range<char8_t>(uint{char8_t_limits::lowest()}));
+  EXPECT_TRUE(in_range<char8_t>(uint{char8_t_limits::max()}));
+  EXPECT_TRUE(in_range<char8_t>(ulong{char8_t_limits::lowest()}));
+  EXPECT_TRUE(in_range<char8_t>(ulong{char8_t_limits::max()}));
+  EXPECT_TRUE(in_range<char8_t>(ullong{char8_t_limits::lowest()}));
+  EXPECT_TRUE(in_range<char8_t>(ullong{char8_t_limits::max()}));
+#endif
+
   EXPECT_TRUE(in_range<uchar>(ushort{uchar_limits::lowest()}));
   EXPECT_TRUE(in_range<uchar>(ushort{uchar_limits::max()}));
   EXPECT_TRUE(in_range<uchar>(uint{uchar_limits::lowest()}));
@@ -198,6 +225,14 @@ TEST(test_narrow_cast, unsigned_to_signed_narrow_cast_fails_if_out_of_range) {
 }
 
 TEST(test_narrow_cast, signed_unsigned_narrow_cast_succeeds_if_in_range) {
+#if QLJS_HAVE_CHAR8_T
+  EXPECT_TRUE(in_range<char8_t>(schar{0}));
+  EXPECT_TRUE(in_range<char8_t>(short{0}));
+  EXPECT_TRUE(in_range<char8_t>(int{0}));
+  EXPECT_TRUE(in_range<char8_t>(long{0}));
+  EXPECT_TRUE(in_range<char8_t>(llong{0}));
+#endif
+
   EXPECT_TRUE(in_range<uchar>(schar{0}));
   EXPECT_TRUE(in_range<uchar>(short{0}));
   EXPECT_TRUE(in_range<uchar>(int{0}));
@@ -228,6 +263,9 @@ TEST(test_narrow_cast, signed_unsigned_narrow_cast_succeeds_if_in_range) {
   EXPECT_TRUE(in_range<ullong>(long{0}));
   EXPECT_TRUE(in_range<ullong>(llong{0}));
 
+#if QLJS_HAVE_CHAR8_T
+  EXPECT_TRUE(in_range<char8_t>(schar{schar_limits::max()}));
+#endif
   EXPECT_TRUE(in_range<uchar>(schar{schar_limits::max()}));
   EXPECT_TRUE(in_range<ushort>(short{short_limits::max()}));
   EXPECT_TRUE(in_range<uint>(int{int_limits::max()}));
@@ -237,6 +275,14 @@ TEST(test_narrow_cast, signed_unsigned_narrow_cast_succeeds_if_in_range) {
 
 TEST(test_narrow_cast,
      signed_to_unsigned_narrow_cast_fails_if_input_is_negative) {
+#if QLJS_HAVE_CHAR8_T
+  EXPECT_FALSE(in_range<char8_t>(schar{schar_limits::lowest()}));
+  EXPECT_FALSE(in_range<char8_t>(short{short_limits::lowest()}));
+  EXPECT_FALSE(in_range<char8_t>(int{int_limits::lowest()}));
+  EXPECT_FALSE(in_range<char8_t>(long{long_limits::lowest()}));
+  EXPECT_FALSE(in_range<char8_t>(llong{llong_limits::lowest()}));
+#endif
+
   EXPECT_FALSE(in_range<uchar>(schar{schar_limits::lowest()}));
   EXPECT_FALSE(in_range<uchar>(short{short_limits::lowest()}));
   EXPECT_FALSE(in_range<uchar>(int{int_limits::lowest()}));
@@ -269,6 +315,14 @@ TEST(test_narrow_cast,
 }
 
 TEST(test_narrow_cast, signed_to_unsigned_narrow_cast_fails_if_out_of_range) {
+#if QLJS_HAVE_CHAR8_T
+  static_assert(sizeof(short) > sizeof(char8_t));
+  EXPECT_FALSE(in_range<char8_t>(short{short_limits::max()}));
+  EXPECT_FALSE(in_range<char8_t>(int{int_limits::max()}));
+  EXPECT_FALSE(in_range<char8_t>(long{long_limits::max()}));
+  EXPECT_FALSE(in_range<char8_t>(llong{llong_limits::max()}));
+#endif
+
   static_assert(sizeof(short) > sizeof(uchar));
   EXPECT_FALSE(in_range<uchar>(short{short_limits::max()}));
   EXPECT_FALSE(in_range<uchar>(int{int_limits::max()}));
