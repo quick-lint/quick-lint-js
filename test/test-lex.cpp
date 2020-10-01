@@ -314,6 +314,28 @@ TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
   }
 }
 
+TEST(test_lex, lex_number_with_trailing_underscore) {
+  check_tokens_with_errors(
+      u8"123456_", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_trailing_underscores,
+                        underscores, offsets_matcher(input, 6, 7))));
+      });
+}
+
+TEST(test_lex, lex_number_with_trailing_underscores) {
+  check_tokens_with_errors(
+      u8"123456___", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_trailing_underscores,
+                        underscores, offsets_matcher(input, 6, 9))));
+      });
+}
+
 TEST(test_lex, lex_strings) {
   check_single_token(u8R"('hello')", token_type::string);
   check_single_token(u8R"("hello")", token_type::string);
