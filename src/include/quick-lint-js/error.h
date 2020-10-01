@@ -117,6 +117,11 @@
       .error(u8"invalid expression left of assignment", where))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_keywords_cannot_contain_escape_sequences,                          \
+      { source_code_span escape_sequence; },                                   \
+      .error(u8"keywords cannot contain escape sequences", escape_sequence))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_let_with_no_bindings, { source_code_span where; },                 \
       .error(u8"let with no bindings", where))                                 \
                                                                                \

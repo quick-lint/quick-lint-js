@@ -881,6 +881,28 @@ TEST(test_lex, lex_contextual_keywords) {
   check_single_token(u8"get", token_type::kw_get);
 }
 
+TEST(test_lex, lex_keywords_cannot_contain_escape_sequences) {
+  check_single_token_with_errors(
+      u8"\\u{69}f", u8"if", [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_keywords_cannot_contain_escape_sequences,
+                        escape_sequence, offsets_matcher(input, 0, 6))));
+      });
+
+  // TODO(strager): Allow escape sequences in contextual keywords. (They should
+  // be interpreted as identifiers, not keywords.)
+  //
+  // TODO(strager): Allow escape sequences in keywords if they are being parsed
+  // as identifiers.
+  //
+  // For example:
+  //
+  // let o = { \u{69}f: "hi", \u{67}et: "got" };
+  // console.log(o.i\u{66}); // Logs 'hi'.
+  // console.log(o.get); // Logs 'got'.
+}
+
 TEST(test_lex, lex_single_character_symbols) {
   check_single_token(u8"+", token_type::plus);
   check_single_token(u8"-", token_type::minus);

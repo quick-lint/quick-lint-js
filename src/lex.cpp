@@ -170,6 +170,16 @@ retry:
         string8_view(this->last_token_.begin,
                      narrow_cast<std::size_t>(this->last_token_.end -
                                               this->last_token_.begin)));
+    if (!ident.escape_sequences.empty() &&
+        this->last_token_.type != token_type::identifier) {
+      // Escape sequences in identifiers prevent it from becoming a keyword.
+      for (const source_code_span& escape_sequence : ident.escape_sequences) {
+        this->error_reporter_->report(
+            error_keywords_cannot_contain_escape_sequences{
+                .escape_sequence = escape_sequence});
+      }
+      this->last_token_.type = token_type::identifier;
+    }
     break;
   }
 
