@@ -156,6 +156,12 @@
              underscores))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_number_literal_contains_trailing_underscores,                      \
+      { source_code_span underscores; },                                       \
+      .error(u8"number literal contains trailing underscore(s)",               \
+              underscores))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_redeclaration_of_global_variable, { identifier redeclaration; },   \
       .error(u8"redeclaration of global variable", redeclaration))             \
                                                                                \
