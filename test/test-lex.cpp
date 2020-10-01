@@ -539,6 +539,21 @@ TEST(test_lex, lex_regular_expression_literals) {
   // TODO(strager): Report invalid characters and mismatched brackets.
 }
 
+TEST(test_lex, lex_regular_expression_literal_with_digit_flag) {
+  padded_string input(u8"/cellular/3g");
+
+  lexer l(&input, &null_error_reporter::instance);
+  EXPECT_EQ(l.peek().type, token_type::slash);
+  l.reparse_as_regexp();
+  EXPECT_EQ(l.peek().type, token_type::regexp);
+  EXPECT_EQ(l.peek().begin, &input[0]);
+  EXPECT_EQ(l.peek().end, &input[input.size()]);
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  // TODO(strager): Report an error, because '3' is an invalid flag.
+}
+
 TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
     padded_string code(u8"\n/ /");
