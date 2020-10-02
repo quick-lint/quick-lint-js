@@ -19,6 +19,7 @@
 
 #include <iosfwd>
 #include <optional>
+#include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
