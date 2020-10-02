@@ -256,7 +256,10 @@ retry:
       break;
 
     case '<':
-      if (this->input_[1] == '=') {
+      if (this->input_[1] == '!') {
+        this->skip_block_comment();
+        goto retry;
+      } else if (this->input_[1] == '=') {
         this->last_token_.type = token_type::less_equal;
         this->input_ += 2;
       } else if (this->input_[1] == '<') {
@@ -1157,8 +1160,12 @@ done:
 QLJS_WARNING_POP
 
 void lexer::skip_block_comment() {
-  QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
-  char8* c = this->input_ + 2;
+  QLJS_ASSERT((this->input_[0] == '/' && this->input_[1] == '*') ||
+              (this->input_[0] == '<' && this->input_[1] == '!' && this->input_[2] == '-' && this->input_[3] == '-'));
+
+  bool html_comment = this->input_[0] == '<';
+  uint8_t skip = html_comment ? 4 : 2;
+  char8* c = this->input_ + skip;
 
 #if QLJS_HAVE_X86_SSE2
   using bool_vector = bool_vector_16_sse2;
@@ -1168,13 +1175,18 @@ void lexer::skip_block_comment() {
   using char_vector = char_vector_1;
 #endif
 
-  auto is_comment_end = [](const char8* string) -> bool {
-    return string[0] == '*' && string[1] == '/';
-  };
+  auto is_comment_end = html_comment
+    ? [](const char8* string) -> bool {
+      return string[0] == '-' && string[1] == '-' && string[2] == '>';
+    }
+    : [](const char8* string) -> bool {
+      return string[0] == '*' && string[1] == '/';
+    };
 
   for (;;) {
     char_vector chars = char_vector::load(c);
     bool_vector matches = (chars == char_vector::repeated(u8'*')) |
+                          (chars == char_vector::repeated(u8'-')) |
                           (chars == char_vector::repeated(u8'\0')) |
                           (chars == char_vector::repeated(u8'\n')) |
                           (chars == char_vector::repeated(u8'\r')) |
@@ -1208,7 +1220,8 @@ found_newline_in_comment:
   for (;;) {
     char_vector chars = char_vector::load(c);
     bool_vector matches = (chars == char_vector::repeated(u8'\0')) |
-                          (chars == char_vector::repeated(u8'*'));
+                          (chars == char_vector::repeated(u8'*')) |
+                          (chars == char_vector::repeated(u8'-'));
     std::uint32_t mask = matches.mask();
     if (mask != 0) {
       for (int i = countr_zero(mask); i < chars.size; ++i) {
@@ -1229,14 +1242,14 @@ found_newline_in_comment:
   QLJS_UNREACHABLE();
 
 found_comment_end:
-  this->input_ = c + 2;
+  this->input_ = html_comment ? c + 3 : c + 2;
   this->skip_whitespace();
   return;
 
   QLJS_UNREACHABLE();
 found_end_of_file:
   this->error_reporter_->report(error_unclosed_block_comment{
-      .comment_open = source_code_span(&this->input_[0], &this->input_[2])});
+      .comment_open = source_code_span(&this->input_[0], &this->input_[skip])});
   this->input_ += strlen(this->input_);
 }
 
