@@ -541,11 +541,16 @@ next:
     case token_type::end_of_file:
     case token_type::identifier:
     case token_type::kw_const:
+    case token_type::kw_debugger:
+    case token_type::kw_do:
+    case token_type::kw_for:
     case token_type::kw_from:
     case token_type::kw_let:
     case token_type::kw_of:
     case token_type::kw_return:
+    case token_type::kw_switch:
     case token_type::kw_var:
+    case token_type::kw_while:
     case token_type::left_curly:
     case token_type::right_curly:
     case token_type::right_paren:
