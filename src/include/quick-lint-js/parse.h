@@ -108,6 +108,7 @@ class parser {
       case token_type::kw_null:
       case token_type::kw_super:
       case token_type::kw_this:
+      case token_type::kw_typeof:
       case token_type::kw_void:
       case token_type::left_paren:
       case token_type::minus_minus:
