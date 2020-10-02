@@ -62,15 +62,28 @@ class linter {
   };
 
   struct declared_variable {
-    string8_view name;
     bool is_global_variable;
     variable_kind kind;
     declared_variable_scope declaration_scope;
 
+    union {
+      // If is_global_variable is false:
+      identifier declaration_;
+      // If is_global_variable is true:
+      string8_view name_;
+    };
+
+    string8_view name() const noexcept {
+      if (this->is_global_variable) {
+        return this->name_;
+      } else {
+        return this->declaration_.string_view();
+      }
+    }
+
     identifier declaration() const noexcept {
       QLJS_ASSERT(!this->is_global_variable);
-      return identifier(
-          source_code_span(name.data(), name.data() + name.size()));
+      return this->declaration_;
     }
   };
 

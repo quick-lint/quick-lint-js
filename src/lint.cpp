@@ -237,10 +237,10 @@ void linter::visit_enter_function_scope_body() {
 void linter::visit_enter_named_function_scope(identifier function_name) {
   scope &current_scope = this->scopes_.push();
   current_scope.function_expression_declaration = declared_variable{
-      .name = function_name.string_view(),
       .is_global_variable = false,
       .kind = variable_kind::_function,
       .declaration_scope = declared_variable_scope::declared_in_current_scope,
+      .declaration_ = function_name,
   };
 }
 
@@ -437,7 +437,7 @@ void linter::propagate_variable_uses_to_parent_scope(
 
   auto is_current_scope_function_name = [&](const used_variable &var) {
     return current_scope.function_expression_declaration.has_value() &&
-           current_scope.function_expression_declaration->name ==
+           current_scope.function_expression_declaration->name() ==
                var.name.string_view();
   };
 
@@ -600,10 +600,10 @@ const linter::declared_variable *linter::scope::add_variable_declaration(
     identifier name, variable_kind kind,
     declared_variable_scope declared_scope) {
   this->declared_variables.emplace_back(declared_variable{
-      .name = name.string_view(),
       .is_global_variable = false,
       .kind = kind,
       .declaration_scope = declared_scope,
+      .declaration_ = name,
   });
   return &this->declared_variables.back();
 }
@@ -611,10 +611,10 @@ const linter::declared_variable *linter::scope::add_variable_declaration(
 void linter::scope::add_predefined_variable_declaration(const char8 *name,
                                                         variable_kind kind) {
   this->declared_variables.emplace_back(declared_variable{
-      .name = name,
       .is_global_variable = true,
       .kind = kind,
       .declaration_scope = declared_variable_scope::declared_in_current_scope,
+      .name_ = name,
   });
 }
 
@@ -622,7 +622,7 @@ const linter::declared_variable *linter::scope::find_declared_variable(
     identifier name) const noexcept {
   string8_view name_view = name.string_view();
   for (const declared_variable &var : this->declared_variables) {
-    if (var.name == name_view) {
+    if (var.name() == name_view) {
       return &var;
     }
   }

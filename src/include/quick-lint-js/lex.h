@@ -189,16 +189,21 @@ std::ostream& operator<<(std::ostream&, token_type);
 
 class identifier {
  public:
-  explicit identifier(source_code_span span) noexcept : span_(span) {}
+  // For tests only.
+  explicit identifier(source_code_span span) noexcept
+      : span_(span), normalized_end_(span.end()) {}
+
+  explicit identifier(source_code_span span,
+                      const char8* normalized_end) noexcept
+      : span_(span), normalized_end_(normalized_end) {}
 
   source_code_span span() const noexcept { return this->span_; }
 
-  string8_view string_view() const noexcept {
-    return this->span_.string_view();
-  }
+  string8_view string_view() const noexcept;
 
  private:
   source_code_span span_;
+  const char8* normalized_end_;
 };
 
 struct token {
@@ -211,6 +216,9 @@ struct token {
   const char8* end;
 
   bool has_leading_newline;
+
+  // Used only if this is a keyword token or an identifier token.
+  const char8* normalized_identifier_end;
 };
 
 // A lexer reads JavaScript source code one token at a time.

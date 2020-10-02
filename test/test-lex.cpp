@@ -658,6 +658,14 @@ TEST(test_lex, lex_identifier_with_escape_sequence) {
   // TODO(strager): Support code points above U+007F.
 }
 
+TEST(test_lex, identifier_with_escape_sequences_source_code_span_is_in_place) {
+  padded_string input(u8"\\u{77}a\\u{74}");
+  lexer l(&input, &null_error_reporter::instance);
+  source_code_span span = l.peek().identifier_name().span();
+  EXPECT_EQ(span.begin(), &input[0]);
+  EXPECT_EQ(span.end(), &input[input.size()]);
+}
+
 TEST(test_lex, lex_identifier_with_escape_sequences_change_input) {
   padded_string input(u8"hell\\u{6F} = \\u{77}orld;");
 

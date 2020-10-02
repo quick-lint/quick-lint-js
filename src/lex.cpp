@@ -106,6 +106,12 @@
   case '9'
 
 namespace quick_lint_js {
+string8_view identifier::string_view() const noexcept {
+  const char8* begin = this->span_.begin();
+  return string8_view(begin,
+                      narrow_cast<std::size_t>(this->normalized_end_ - begin));
+}
+
 identifier token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
@@ -115,7 +121,7 @@ identifier token::identifier_name() const noexcept {
       QLJS_ASSERT(false);
       break;
   }
-  return identifier(this->span());
+  return identifier(this->span(), this->normalized_identifier_end);
 }
 
 source_code_span token::span() const noexcept {
@@ -165,11 +171,12 @@ retry:
   QLJS_CASE_IDENTIFIER_START : {
     parsed_identifier ident = this->parse_identifier(this->input_);
     this->input_ = ident.after;
-    this->last_token_.end = ident.end;
-    this->last_token_.type = this->identifier_token_type(
-        string8_view(this->last_token_.begin,
-                     narrow_cast<std::size_t>(this->last_token_.end -
-                                              this->last_token_.begin)));
+    this->last_token_.normalized_identifier_end = ident.end;
+    this->last_token_.end = ident.after;
+    this->last_token_.type = this->identifier_token_type(string8_view(
+        this->last_token_.begin,
+        narrow_cast<std::size_t>(this->last_token_.normalized_identifier_end -
+                                 this->last_token_.begin)));
     if (!ident.escape_sequences.empty() &&
         this->last_token_.type != token_type::identifier) {
       // Escape sequences in identifiers prevent it from becoming a keyword.

@@ -27,6 +27,7 @@
 #include <quick-lint-js/parse.h>
 
 using ::testing::ElementsAre;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
@@ -41,5 +42,34 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
                             error_variable_used_before_declaration,  //
                             use, offsets_matcher(&input, 8, 9),      //
                             declaration, offsets_matcher(&input, 11, 12))));
+}
+
+TEST(
+    test_lint,
+    variables_with_different_escape_sequences_are_equivalent_after_normalization) {
+  padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;");
+  error_collector v;
+
+  linter l(&v);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint,
+     errors_for_variables_with_escape_sequences_cover_entire_variable_name) {
+  padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)");
+  error_collector v;
+
+  linter l(&v);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_assignment_to_const_variable,                //
+                  assignment, offsets_matcher(&input, 26, 26 + 14),  //
+                  declaration, offsets_matcher(&input, 6, 6 + 14))));
 }
 }
