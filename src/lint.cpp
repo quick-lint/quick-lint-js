@@ -236,12 +236,9 @@ void linter::visit_enter_function_scope_body() {
 
 void linter::visit_enter_named_function_scope(identifier function_name) {
   scope &current_scope = this->scopes_.push();
-  current_scope.function_expression_declaration = declared_variable{
-      .is_global_variable = false,
-      .kind = variable_kind::_function,
-      .declaration_scope = declared_variable_scope::declared_in_current_scope,
-      .declaration_ = function_name,
-  };
+  current_scope.function_expression_declaration = declared_variable::make_local(
+      function_name, variable_kind::_function,
+      declared_variable_scope::declared_in_current_scope);
 }
 
 void linter::visit_exit_block_scope() {
@@ -489,13 +486,13 @@ void linter::propagate_variable_declarations_to_parent_scope() {
   scope &parent_scope = this->parent_scope();
 
   for (const declared_variable &var : current_scope.declared_variables) {
-    if (var.kind == variable_kind::_function ||
-        var.kind == variable_kind::_var) {
-      QLJS_ASSERT(!var.is_global_variable);
+    if (var.kind() == variable_kind::_function ||
+        var.kind() == variable_kind::_var) {
+      QLJS_ASSERT(!var.is_global_variable());
       this->declare_variable(
           /*scope=*/parent_scope,
           /*name=*/var.declaration(),
-          /*kind=*/var.kind,
+          /*kind=*/var.kind(),
           /*declared_scope=*/
           declared_variable_scope::declared_in_descendant_scope);
     }
@@ -505,20 +502,20 @@ void linter::propagate_variable_declarations_to_parent_scope() {
 void linter::report_error_if_assignment_is_illegal(
     const linter::declared_variable *var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
-  switch (var->kind) {
+  switch (var->kind()) {
     case variable_kind::_const:
     case variable_kind::_import:
-      if (var->is_global_variable) {
+      if (var->is_global_variable()) {
         this->error_reporter_->report(
             error_assignment_to_const_global_variable{assignment});
       } else {
         if (is_assigned_before_declaration) {
           this->error_reporter_->report(
               error_assignment_to_const_variable_before_its_declaration{
-                  var->declaration(), assignment, var->kind});
+                  var->declaration(), assignment, var->kind()});
         } else {
           this->error_reporter_->report(error_assignment_to_const_variable{
-              var->declaration(), assignment, var->kind});
+              var->declaration(), assignment, var->kind()});
         }
       }
       break;
@@ -544,7 +541,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
       scope.find_declared_variable(name);
   if (already_declared_variable) {
     using vk = variable_kind;
-    vk other_kind = already_declared_variable->kind;
+    vk other_kind = already_declared_variable->kind();
 
     switch (other_kind) {
       case vk::_catch:
@@ -579,13 +576,13 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
         (other_kind == vk::_parameter && kind == vk::_var) ||
         (other_kind == vk::_var && kind == vk::_var) ||
         (other_kind == vk::_function &&
-         already_declared_variable->declaration_scope ==
+         already_declared_variable->declaration_scope() ==
              declared_variable_scope::declared_in_descendant_scope) ||
         (kind == vk::_function &&
          declaration_scope ==
              declared_variable_scope::declared_in_descendant_scope);
     if (!redeclaration_ok) {
-      if (already_declared_variable->is_global_variable) {
+      if (already_declared_variable->is_global_variable()) {
         this->error_reporter_->report(
             error_redeclaration_of_global_variable{name});
       } else {
@@ -599,23 +596,15 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
 const linter::declared_variable *linter::scope::add_variable_declaration(
     identifier name, variable_kind kind,
     declared_variable_scope declared_scope) {
-  this->declared_variables.emplace_back(declared_variable{
-      .is_global_variable = false,
-      .kind = kind,
-      .declaration_scope = declared_scope,
-      .declaration_ = name,
-  });
+  this->declared_variables.emplace_back(
+      declared_variable::make_local(name, kind, declared_scope));
   return &this->declared_variables.back();
 }
 
 void linter::scope::add_predefined_variable_declaration(const char8 *name,
                                                         variable_kind kind) {
-  this->declared_variables.emplace_back(declared_variable{
-      .is_global_variable = true,
-      .kind = kind,
-      .declaration_scope = declared_variable_scope::declared_in_current_scope,
-      .name_ = name,
-  });
+  this->declared_variables.emplace_back(
+      declared_variable::make_global(name, kind));
 }
 
 const linter::declared_variable *linter::scope::find_declared_variable(
