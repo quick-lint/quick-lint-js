@@ -72,4 +72,15 @@ TEST(test_lint,
                   assignment, offsets_matcher(&input, 26, 26 + 14),  //
                   declaration, offsets_matcher(&input, 6, 6 + 14))));
 }
+
+TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
+  padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })");
+  error_collector v;
+
+  linter l(&v);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
