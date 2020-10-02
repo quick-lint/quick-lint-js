@@ -80,6 +80,26 @@ TEST(test_lex, lex_block_comments) {
   }
 }
 
+TEST(test_lex, lex_html_block_comments) {
+  check_single_token(u8"<!-- --> hello", u8"hello");
+  check_single_token(u8"<!--> comment --> hi", u8"hi");
+  check_single_token(u8"<!-- comment ->--> hi", u8"hi");
+  check_single_token(u8"<!-- not <!-- nested --> ident", u8"ident");
+  check_single_token(u8"<!---->", token_type::end_of_file);
+
+  {
+    error_collector v;
+    padded_string input(u8"hello <!-- unterminated comment ");
+    lexer l(&input, &v);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_block_comment, comment_open,
+                              offsets_matcher(&input, 6, 10))));
+  }
+}
+
 TEST(test_lex, lex_line_comments) {
   check_single_token(u8"// hello", token_type::end_of_file);
   for (string8_view line_terminator : line_terminators) {
