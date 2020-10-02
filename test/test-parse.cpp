@@ -849,6 +849,13 @@ TEST(test_parse, expression_statement) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(u8"new C();");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"delete x;");
     // TODO(strager): Should this be visit_variable_assignment instead? Or
     // something else?
