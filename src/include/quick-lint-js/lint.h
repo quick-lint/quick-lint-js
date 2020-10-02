@@ -80,7 +80,7 @@ class linter {
 
     string8_view name() const noexcept {
       if (this->is_global_variable()) {
-        return this->name_;
+        return this->global_variable_name_;
       } else {
         return this->declaration_.string_view();
       }
@@ -103,7 +103,7 @@ class linter {
           declaration_scope_(
               declared_variable_scope::declared_in_current_scope),
           is_global_variable_(true),
-          name_(global_variable_name) {}
+          global_variable_name_(global_variable_name) {}
 
     explicit declared_variable(
         identifier name, variable_kind kind,
@@ -120,7 +120,7 @@ class linter {
       // If is_global_variable_ is false:
       identifier declaration_;
       // If is_global_variable_ is true:
-      string8_view name_;
+      string8_view global_variable_name_;
     };
   };
 
