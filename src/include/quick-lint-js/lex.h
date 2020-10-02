@@ -24,7 +24,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 
-#define QLJS_CASE_KEYWORD                          \
+#define QLJS_CASE_KEYWORD_EXCEPT_GET               \
   case ::quick_lint_js::token_type::kw_as:         \
   case ::quick_lint_js::token_type::kw_async:      \
   case ::quick_lint_js::token_type::kw_await:      \
@@ -46,7 +46,6 @@
   case ::quick_lint_js::token_type::kw_for:        \
   case ::quick_lint_js::token_type::kw_from:       \
   case ::quick_lint_js::token_type::kw_function:   \
-  case ::quick_lint_js::token_type::kw_get:        \
   case ::quick_lint_js::token_type::kw_if:         \
   case ::quick_lint_js::token_type::kw_import:     \
   case ::quick_lint_js::token_type::kw_in:         \
@@ -69,6 +68,10 @@
   case ::quick_lint_js::token_type::kw_while:      \
   case ::quick_lint_js::token_type::kw_with:       \
   case ::quick_lint_js::token_type::kw_yield
+
+#define QLJS_CASE_KEYWORD                   \
+  case ::quick_lint_js::token_type::kw_get: \
+    QLJS_CASE_KEYWORD_EXCEPT_GET
 
 namespace quick_lint_js {
 class error_reporter;

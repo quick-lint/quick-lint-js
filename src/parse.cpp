@@ -646,7 +646,7 @@ expression_ptr parser::parse_object_literal() {
         QLJS_ASSERT(false);
         break;
 
-      QLJS_CASE_KEYWORD:
+      QLJS_CASE_KEYWORD_EXCEPT_GET:
       case token_type::identifier:
       case token_type::number:
       case token_type::string: {
@@ -694,6 +694,43 @@ expression_ptr parser::parse_object_literal() {
           default:
             QLJS_PARSER_UNIMPLEMENTED();
             break;
+        }
+        break;
+      }
+
+      // { get propertyName() { } }
+      case token_type::kw_get: {
+        source_code_span get_span = this->peek().span();
+        this->lexer_.skip();
+        switch (this->peek().type) {
+        QLJS_CASE_KEYWORD:
+        case token_type::identifier: {
+          source_code_span key_span = this->peek().span();
+          expression_ptr key =
+              this->make_expression<expression::literal>(key_span);
+          this->lexer_.skip();
+
+          buffering_visitor *v = this->expressions_.make_buffering_visitor();
+          this->parse_and_visit_function_parameters_and_body_no_scope(*v);
+          const char8 *span_end = this->lexer_.end_of_previous_token();
+          expression_ptr func = this->make_expression<expression::function>(
+              function_attributes::normal, v,
+              source_code_span(key_span.begin(), span_end));
+          entries.emplace_back(key, func);
+          break;
+        }
+
+        case token_type::colon: {
+          this->lexer_.skip();
+          expression_ptr key =
+              this->make_expression<expression::literal>(get_span);
+          entries.emplace_back(key, parse_value_expression());
+          break;
+        }
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
         }
         break;
       }
