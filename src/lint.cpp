@@ -298,7 +298,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         variables.end());
   };
   erase_if(scope.variables_used, [&](const used_variable &used_var) {
-    if (name.string_view() == used_var.name.string_view()) {
+    if (name.normalized_name() == used_var.name.normalized_name()) {
       if (kind == variable_kind::_class || kind == variable_kind::_const ||
           kind == variable_kind::_let) {
         switch (used_var.kind) {
@@ -331,7 +331,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                case used_variable_kind::use:
                  break;
              }
-             return name.string_view() == used_var.name.string_view();
+             return name.normalized_name() == used_var.name.normalized_name();
            });
 }
 
@@ -390,8 +390,8 @@ void linter::visit_end_of_module() {
   auto is_variable_declared_by_typeof = [&](const used_variable &var) -> bool {
     return std::find_if(typeof_variables.begin(), typeof_variables.end(),
                         [&](const identifier &typeof_variable) {
-                          return typeof_variable.string_view() ==
-                                 var.name.string_view();
+                          return typeof_variable.normalized_name() ==
+                                 var.name.normalized_name();
                         }) != typeof_variables.end();
   };
   auto is_variable_declared = [&](const used_variable &var) -> bool {
@@ -435,7 +435,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   auto is_current_scope_function_name = [&](const used_variable &var) {
     return current_scope.function_expression_declaration.has_value() &&
            current_scope.function_expression_declaration->name() ==
-               var.name.string_view();
+               var.name.normalized_name();
   };
 
   for (const used_variable &used_var : current_scope.variables_used) {
@@ -449,7 +449,7 @@ void linter::propagate_variable_uses_to_parent_scope(
             var, used_var.name, /*is_assigned_before_declaration=*/false);
       }
     } else if (consume_arguments &&
-               used_var.name.string_view() == u8"arguments") {
+               used_var.name.normalized_name() == u8"arguments") {
       // Treat this variable as declared in the current scope.
     } else if (is_current_scope_function_name(used_var)) {
       // Treat this variable as declared in the current scope.
@@ -609,7 +609,7 @@ void linter::scope::add_predefined_variable_declaration(const char8 *name,
 
 const linter::declared_variable *linter::scope::find_declared_variable(
     identifier name) const noexcept {
-  string8_view name_view = name.string_view();
+  string8_view name_view = name.normalized_name();
   for (const declared_variable &var : this->declared_variables) {
     if (var.name() == name_view) {
       return &var;

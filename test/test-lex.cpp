@@ -312,7 +312,7 @@ TEST(test_lex, lex_strings) {
     EXPECT_EQ(l.peek().type, token_type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
-    EXPECT_EQ(l.peek().identifier_name().string_view(), u8"hello");
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unclosed_string_literal, string_literal,
@@ -1146,13 +1146,13 @@ TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
   lexer l(&code, &null_error_reporter::instance);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().string_view(), u8"hello");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
   EXPECT_FALSE(l.peek().has_leading_newline);
   const char8* hello_end = l.peek().end;
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().string_view(), u8"world");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
   EXPECT_TRUE(l.peek().has_leading_newline);
   l.insert_semicolon();
   EXPECT_EQ(l.peek().type, token_type::semicolon);
@@ -1162,7 +1162,7 @@ TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().string_view(), u8"world");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
   EXPECT_TRUE(l.peek().has_leading_newline);
   l.skip();
 
@@ -1179,7 +1179,7 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   l.skip();
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().string_view(), u8"x");
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"x");
   EXPECT_FALSE(l.peek().has_leading_newline);
   const char8* x_end = l.peek().end;
   l.skip();
@@ -1241,7 +1241,8 @@ void check_single_token_with_errors(
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
-  EXPECT_EQ(l.peek().identifier_name().string_view(), expected_identifier_name);
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(),
+            expected_identifier_name);
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 

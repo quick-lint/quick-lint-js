@@ -82,7 +82,7 @@ class linter {
       if (this->is_global_variable()) {
         return this->global_variable_name_;
       } else {
-        return this->declaration_.string_view();
+        return this->declaration_.normalized_name();
       }
     }
 

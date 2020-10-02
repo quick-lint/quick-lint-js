@@ -199,7 +199,15 @@ class identifier {
 
   source_code_span span() const noexcept { return this->span_; }
 
-  string8_view string_view() const noexcept;
+  // normalized_name returns the variable's name with escape sequences resolved.
+  //
+  // For example, a variable named \u{61} in the source code will have
+  // normalized_name refer to u8"a".
+  //
+  // The returned pointers might not reside within the source code string. In
+  // other words, the normalized name might be heap-allocated. Call span()
+  // instead if you want pointers within the source code input.
+  string8_view normalized_name() const noexcept;
 
  private:
   source_code_span span_;

@@ -168,7 +168,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"x");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::variable);
-    EXPECT_EQ(ast->variable_identifier().string_view(), u8"x");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"x");
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 1);
@@ -502,7 +502,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::dot);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_EQ(ast->variable_identifier().string_view(), u8"prop");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"prop");
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 6);
@@ -1026,7 +1026,7 @@ TEST_F(test_parse_expression, parse_function_expression) {
     expression_ptr ast = this->parse_expression(u8"function f(){}");
     EXPECT_EQ(ast->kind(), expression_kind::named_function);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->variable_identifier().string_view(), u8"f");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"f");
   }
 }
 
@@ -1324,7 +1324,8 @@ std::string summarize(const expression &expression) {
              summarize(expression.child_2()) + ")";
     case expression_kind::dot:
       return "dot(" + summarize(expression.child_0()) + ", " +
-             string8_to_string(expression.variable_identifier().string_view()) +
+             string8_to_string(
+                 expression.variable_identifier().normalized_name()) +
              ")";
     case expression_kind::function:
       return "function";
@@ -1336,7 +1337,8 @@ std::string summarize(const expression &expression) {
       return "literal";
     case expression_kind::named_function:
       return "function " +
-             string8_to_string(expression.variable_identifier().string_view());
+             string8_to_string(
+                 expression.variable_identifier().normalized_name());
     case expression_kind::object: {
       std::string result = "object(";
       bool need_comma = false;
@@ -1366,8 +1368,8 @@ std::string summarize(const expression &expression) {
     case expression_kind::compound_assignment:
       return "upassign(" + children() + ")";
     case expression_kind::variable:
-      return "var " +
-             string8_to_string(expression.variable_identifier().string_view());
+      return "var " + string8_to_string(
+                          expression.variable_identifier().normalized_name());
     case expression_kind::binary_operator:
       return "binary(" + children() + ")";
   }

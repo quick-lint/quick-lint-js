@@ -106,7 +106,7 @@
   case '9'
 
 namespace quick_lint_js {
-string8_view identifier::string_view() const noexcept {
+string8_view identifier::normalized_name() const noexcept {
   const char8* begin = this->span_.begin();
   return string8_view(begin,
                       narrow_cast<std::size_t>(this->normalized_end_ - begin));
