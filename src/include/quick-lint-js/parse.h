@@ -109,6 +109,7 @@ class parser {
       case token_type::kw_void:
       case token_type::left_paren:
       case token_type::minus_minus:
+      case token_type::number:
       case token_type::plus_plus:
       case token_type::string:
         this->parse_and_visit_expression(v);
