@@ -100,6 +100,7 @@ class parser {
         this->parse_and_visit_import(v);
         break;
 
+      case token_type::bang:
       case token_type::identifier:
       case token_type::kw_await:
       case token_type::kw_delete:
