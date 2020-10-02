@@ -838,6 +838,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_import(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_import);
+    source_code_span import_span = this->peek().span();
     this->lexer_.skip();
 
     switch (this->peek().type) {
@@ -845,6 +846,18 @@ class parser {
       case token_type::left_curly:
         this->parse_and_visit_binding_element(v, variable_kind::_import);
         break;
+
+      // import expression statement:
+      //
+      // import(url).then(() => { /* ... */ })
+      case token_type::left_paren: {
+        expression_ptr ast = this->parse_expression_remainder(
+            this->make_expression<expression::import>(import_span),
+            precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
+        this->consume_semicolon();
+        return;
+      }
 
       case token_type::star:
         this->lexer_.skip();

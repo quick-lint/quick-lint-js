@@ -873,6 +873,19 @@ TEST(test_parse, expression_statement) {
     spy_visitor v = parse_and_visit_statement(u8"42");
     EXPECT_THAT(v.visits, IsEmpty());
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"import(url).then(); secondStatement;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",    // url
+                            "visit_variable_use"));  // secondStatement
+  }
 }
 
 TEST(test_parse, asi_plusplus_minusminus) {
