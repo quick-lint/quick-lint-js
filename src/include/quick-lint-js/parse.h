@@ -114,6 +114,7 @@ class parser {
       case token_type::number:
       case token_type::plus_plus:
       case token_type::string:
+      case token_type::tilde:
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
         break;
