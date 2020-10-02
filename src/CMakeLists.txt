@@ -28,6 +28,7 @@ quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
 )
+set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
 
 quick_lint_js_add_library(
