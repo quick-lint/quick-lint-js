@@ -80,26 +80,6 @@ TEST(test_lex, lex_block_comments) {
   }
 }
 
-TEST(test_lex, lex_html_block_comments) {
-  check_single_token(u8"<!-- --> hello", u8"hello");
-  check_single_token(u8"<!--> comment --> hi", u8"hi");
-  check_single_token(u8"<!-- comment ->--> hi", u8"hi");
-  check_single_token(u8"<!-- not <!-- nested --> ident", u8"ident");
-  check_single_token(u8"<!---->", token_type::end_of_file);
-
-  {
-    error_collector v;
-    padded_string input(u8"hello <!-- unterminated comment ");
-    lexer l(&input, &v);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_block_comment, comment_open,
-                              offsets_matcher(&input, 6, 10))));
-  }
-}
-
 TEST(test_lex, lex_line_comments) {
   check_single_token(u8"// hello", token_type::end_of_file);
   for (string8_view line_terminator : line_terminators) {
@@ -115,6 +95,25 @@ TEST(test_lex, lex_line_comments_with_control_characters) {
   for (string8_view control_character :
        control_characters_except_line_terminators) {
     padded_string input(u8"// hello " + string8(control_character) +
+                        u8" world\n42.0");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::number);
+  }
+}
+
+TEST(test_lex, lex_html_open_comments) {
+  check_single_token(u8"<!-- --> hello", token_type::end_of_file);
+  for (string8_view line_terminator : line_terminators) {
+    check_single_token(u8"<!-- hello" + string8(line_terminator) + u8"world",
+                       u8"world");
+  }
+  check_single_token(u8"<!-- hello\n<!-- world", token_type::end_of_file);
+  check_single_token(u8"<!--// hello", token_type::end_of_file);
+  check_tokens(u8"hello<!--->\n \n \nworld",
+               {token_type::identifier, token_type::identifier});
+
+  for (string8_view control_character : control_characters_except_line_terminators) {
+    padded_string input(u8"<!-- hello " + string8(control_character) +
                         u8" world\n42.0");
     SCOPED_TRACE(input);
     check_single_token(&input, token_type::number);

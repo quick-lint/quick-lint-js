@@ -329,7 +329,8 @@ class lexer {
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment();
-
+  void skip_html_line_comment();
+  
   bool is_eof(const char8*) noexcept;
 
   static bool is_binary_digit(char8);
