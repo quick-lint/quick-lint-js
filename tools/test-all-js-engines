@@ -1,22 +1,55 @@
 #!/usr/bin/env bash
 
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 # test-all-js-engines runs the file or text (with `-e`) through three popular JS engines
 
-node_path=$(which node)
-if [[ -x "$node_path" ]] ; then
-  printf "#### node (V8) (e.g. Chrome):\n"
-  node "$@"
-fi
+set -e
+set -u
 
-jsc_path=$(which jsc)
-if [[ -x "$jsc_path" ]] ; then
-  printf "\n\n#### jsc (JSCore) (e.g. Safari):\n"
-  jsc "$@"
-fi
+tools_directory="$(cd "$(dirname "${0}")" && pwd)"
+HOME="${tools_directory}/.js-engines"
+export HOME
+mkdir -p "${HOME}"
 
-js_path=$(which js)
-if [[ -x "$js_path" ]] ; then
-  printf "\n\n#### js (SpiderMonkey) (e.g. Firefox):\n"
-  js "$@"
-fi
+node_bin="${HOME}/node_modules/.bin"
 
+main() {
+  install_tools
+  install_engines
+  "${node_bin}/eshost" "${@}"
+}
+
+install_tools() {
+  if ! [ -f "${node_bin}/eshost" -a -f "${node_bin}/jsvu" ]; then
+    printf '%s\n' '{"dependencies": {"eshost-cli": "*", "jsvu": "*"}}' >"${HOME}/package.json"
+    (cd "${HOME}" && npm install --no-audit --no-optional --no-package-lock)
+  fi
+}
+
+install_engines() {
+  local jsvu="${HOME}/.jsvu"
+  if ! [ -f "${jsvu}/jsc" -a -f "${jsvu}/sm" -a -f "${jsvu}/v8" ]; then
+    "${node_bin}/jsvu" --engines=javascriptcore,spidermonkey,v8 --os=default
+  fi
+
+  if ! [ -f "${HOME}/.eshost-config.json" ]; then
+    "${node_bin}/eshost" --configure-jsvu
+  fi
+}
+
+main "${@}"
