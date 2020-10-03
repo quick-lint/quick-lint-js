@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
+include(GNUInstallDirs)
 include(QuickLintJSCompiler)
 include(QuickLintJSTarget)
 
@@ -30,6 +31,10 @@ quick_lint_js_add_executable(
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
+
+# TODO(strager): Use the default DESTINATION for CMake versions which have a
+# default. (3.18.0 has a default; 3.12.4 doesn't have a default.)
+install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 quick_lint_js_add_library(
   quick-lint-js-lib
