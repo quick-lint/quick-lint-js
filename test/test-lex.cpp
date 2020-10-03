@@ -372,6 +372,7 @@ TEST(test_lex, lex_templates) {
       u8R"(`hello
 world`)",
       {token_type::complete_template});
+  check_tokens(u8"`hello\\\nworld`", {token_type::complete_template});
 
   {
     padded_string code(u8"`hello${42}`");
@@ -427,11 +428,6 @@ world`)",
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
-
-  // TODO(strager): Lex line continuations in templates. For example:
-  //
-  // `hello\   (backslash followed by end of line)
-  // world`
 
   check_tokens_with_errors(
       u8"`unterminated", {token_type::complete_template},
