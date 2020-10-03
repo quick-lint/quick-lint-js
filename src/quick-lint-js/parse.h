@@ -436,14 +436,20 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
     this->lexer_.skip();
 
-    if (this->peek().type != token_type::identifier) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    v.visit_variable_declaration(this->peek().identifier_name(),
-                                 variable_kind::_function);
-    this->lexer_.skip();
+    switch (this->peek().type) {
+      case token_type::identifier:
+      case token_type::kw_let:
+        v.visit_variable_declaration(this->peek().identifier_name(),
+                                     variable_kind::_function);
+        this->lexer_.skip();
 
-    this->parse_and_visit_function_parameters_and_body(v);
+        this->parse_and_visit_function_parameters_and_body(v);
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+    }
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -474,6 +480,7 @@ class parser {
       switch (this->peek().type) {
         case token_type::dot_dot_dot:
         case token_type::identifier:
+        case token_type::kw_let:
         case token_type::left_curly:
           this->parse_and_visit_binding_element(v, variable_kind::_parameter);
           break;
@@ -652,10 +659,17 @@ class parser {
       this->lexer_.skip();
       v.visit_enter_block_scope();
 
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-      v.visit_variable_declaration(this->peek().identifier_name(),
-                                   variable_kind::_catch);
-      this->lexer_.skip();
+      switch (this->peek().type) {
+        case token_type::identifier:
+        case token_type::kw_let:
+          v.visit_variable_declaration(this->peek().identifier_name(),
+                                       variable_kind::_catch);
+          this->lexer_.skip();
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+      }
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
       this->lexer_.skip();
@@ -937,6 +951,7 @@ class parser {
 
       switch (this->peek().type) {
         case token_type::identifier:
+        case token_type::kw_let:
         case token_type::left_curly:
         case token_type::left_square:
           this->parse_and_visit_binding_element(v, declaration_kind);

@@ -1938,5 +1938,60 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                                               end_of_const_statement))));
   }
 }
+
+TEST(test_parse, variables_can_be_named_let) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"var let = initial;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // initial
+                                      "visit_variable_declaration"));  // let
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"function let(let) {}");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // let (function)
+                            "visit_enter_function_scope",
+                            "visit_variable_declaration",  // let (parameter)
+                            "visit_enter_function_scope_body",
+                            "visit_exit_function_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_EQ(v.variable_declarations[1].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"try { } catch (let) { }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope", "visit_exit_block_scope",
+                            "visit_enter_block_scope",
+                            "visit_variable_declaration",  // let
+                            "visit_exit_block_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let {x = let} = o;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // o
+                                      "visit_variable_use",            // let
+                                      "visit_variable_declaration"));  // x
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[1].name, u8"let");
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"console.log(let);");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
+                                      "visit_variable_use"));  // let
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[1].name, u8"let");
+  }
+}
 }
 }
