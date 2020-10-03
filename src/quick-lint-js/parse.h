@@ -509,8 +509,22 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
     this->lexer_.skip();
 
-    identifier class_name = this->peek().identifier_name();
-    this->lexer_.skip();
+    std::optional<identifier> optional_class_name;
+    switch (this->peek().type) {
+      case token_type::kw_let:
+        this->error_reporter_->report(error_cannot_declare_class_named_let{
+            .name = this->peek().identifier_name().span()});
+        [[fallthrough]];
+      case token_type::identifier:
+        optional_class_name = this->peek().identifier_name();
+        this->lexer_.skip();
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+    }
+    identifier &class_name = optional_class_name.value();
 
     switch (this->peek().type) {
       case token_type::kw_extends:
@@ -863,6 +877,7 @@ class parser {
 
     switch (this->peek().type) {
       case token_type::identifier:
+      case token_type::kw_let:
       case token_type::left_curly:
         this->parse_and_visit_binding_element(v, variable_kind::_import);
         break;
@@ -887,9 +902,21 @@ class parser {
         }
         this->lexer_.skip();
 
-        v.visit_variable_declaration(this->peek().identifier_name(),
-                                     variable_kind::_import);
-        this->lexer_.skip();
+        switch (this->peek().type) {
+          case token_type::kw_let:
+            this->error_reporter_->report(error_cannot_import_let{
+                .import_name = this->peek().identifier_name().span()});
+            [[fallthrough]];
+          case token_type::identifier:
+            v.visit_variable_declaration(this->peek().identifier_name(),
+                                         variable_kind::_import);
+            this->lexer_.skip();
+            break;
+
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+        }
         break;
 
       default:
@@ -1004,10 +1031,25 @@ class parser {
         this->visit_expression(ast->child_1(), v, variable_context::rhs);
         this->visit_binding_element(ast->child_0(), v, declaration_kind);
         break;
-      case expression_kind::variable:
-        v.visit_variable_declaration(ast->variable_identifier(),
-                                     declaration_kind);
+      case expression_kind::variable: {
+        identifier ident = ast->variable_identifier();
+        // TODO(strager): Avoid string comparisons here.
+        if ((declaration_kind == variable_kind::_const ||
+             declaration_kind == variable_kind::_import ||
+             declaration_kind == variable_kind::_let) &&
+            ident.normalized_name() == u8"let") {
+          if (declaration_kind == variable_kind::_import) {
+            this->error_reporter_->report(
+                error_cannot_import_let{.import_name = ident.span()});
+          } else {
+            this->error_reporter_->report(
+                error_cannot_declare_variable_named_let_with_let{
+                    .name = ident.span()});
+          }
+        }
+        v.visit_variable_declaration(ident, declaration_kind);
         break;
+      }
       case expression_kind::object:
         for (int i = 0; i < ast->object_entry_count(); ++i) {
           expression_ptr value = ast->object_entry(i).value;

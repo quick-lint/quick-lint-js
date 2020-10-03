@@ -77,6 +77,23 @@
       .error(u8"BigInt literal has a leading 0 digit", where))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_declare_class_named_let, { source_code_span name; },        \
+      .error(u8"classes cannot be named 'let'", name))                         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_cannot_declare_variable_named_let_with_let,                        \
+      { source_code_span name; },                                              \
+      .error(u8"let statement cannot declare variables named 'let'", name))    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_cannot_export_let, { source_code_span export_name; },              \
+      .error(u8"cannot export variable named 'let'", export_name))             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_cannot_import_let, { source_code_span import_name; },              \
+      .error(u8"cannot import 'let'", import_name))                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_escaped_character_disallowed_in_identifiers,                       \
       { source_code_span escape_sequence; },                                   \
       .error(u8"escaped character is not allowed in identifiers",              \

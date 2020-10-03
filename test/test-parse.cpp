@@ -1993,5 +1993,110 @@ TEST(test_parse, variables_can_be_named_let) {
     EXPECT_EQ(v.variable_uses[1].name, u8"let");
   }
 }
+
+TEST(test_parse, new_style_variables_cannot_be_named_let) {
+  for (string8 declaration_kind : {u8"const", u8"let"}) {
+    spy_visitor v;
+    padded_string code(declaration_kind + u8" let = null;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_variable_named_let_with_let, name,
+                    offsets_matcher(&code, declaration_kind.size() + 1,
+                                    declaration_kind.size() + 1 + 3))));
+
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let {other, let} = stuff;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_cannot_declare_variable_named_let_with_let,
+                              name, offsets_matcher(&code, 12, 12 + 3))));
+  }
+
+  // import implies strict mode (because modules imply strict mode).
+  {
+    spy_visitor v;
+    padded_string code(u8"import let from 'weird';");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_cannot_import_let, import_name,
+                              offsets_matcher(&code, 7, 7 + 3))));
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+  }
+
+  // import implies strict mode (because modules imply strict mode).
+  {
+    spy_visitor v;
+    padded_string code(u8"import * as let from 'weird';");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_cannot_import_let, import_name,
+                              offsets_matcher(&code, 12, 12 + 3))));
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+  }
+
+  // import implies strict mode (because modules imply strict mode).
+  {
+    spy_visitor v;
+    padded_string code(u8"import { let } from 'weird';");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_cannot_import_let, import_name,
+                              offsets_matcher(&code, 9, 9 + 3))));
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+  }
+
+  // TODO(strager): export implies strict mode (because modules imply strict
+  // mode).
+  if ((false)) {
+    spy_visitor v;
+    padded_string code(u8"export function let() {}");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_cannot_export_let, export_name,
+                              offsets_matcher(&code, 16, 16 + 3))));
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+  }
+
+  // class implies strict mode.
+  {
+    spy_visitor v;
+    padded_string code(u8"class let {}");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_cannot_declare_class_named_let, name,
+                              offsets_matcher(&code, 6, 6 + 3))));
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
+  }
+}
 }
 }
