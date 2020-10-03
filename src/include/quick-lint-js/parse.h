@@ -114,6 +114,7 @@ class parser {
       case token_type::minus:
       case token_type::minus_minus:
       case token_type::number:
+      case token_type::plus:
       case token_type::plus_plus:
       case token_type::string:
       case token_type::tilde:
