@@ -16,6 +16,7 @@ development environment and build tool:
 * [macOS and Linux: Ninja](#macos-and-linux-ninja)
 * [macOS and Linux: make](#macos-and-linux-make)
 * [Windows: Visual Studio](#windows-visual-studio)
+* [macOS and Linux: nix](#macos-and-linux-nix)
 
 ---
 
@@ -122,6 +123,61 @@ If you want to run the quick-lint-js program, you can find it in
 `build\Debug\quick-lint-js.exe`. Run it from a command prompt or PowerShell
 window.
 
+---
+
+### macOS and Linux: nix
+
+This is for advanced users only. You need to
+[install the Nix package manager](https://nixos.org/download.html) if you have
+not already done so.
+
+[Nix][] uses derivation files that contain instructions for automation on how
+to build and package software. The `dist/` folder contains such derivations for
+quick-lint-js and can be used to download dependencies and build it.
+
+#### 0. Prepare environment
+
+The derivations in `dist/` contain the necessary dependencies to build
+quick-lint-js using cmake and ninja. We can use `nix-shell` to download those
+dependencies and make them available for development.
+
+    $ nix-shell dist/shell.nix
+
+While it seems this does not do anything, you will be dropped in a shell that
+has the build tools available necessary to build quick-lint-js. Once you exit
+this shell, the downloaded dependencies will not be available anymore. You
+can use the above command again to re-create a shell with the build tools
+available at any time.
+
+#### 1. Configure
+
+After running above command, we configure the build environment:
+
+    $ cmakeConfigurePhase
+
+This will create a `build/` folder in the project folder and changes the
+current directory to it.
+
+#### 2. Build
+
+To build quick-lint-js, make sure you are in the `build/` folder; the
+previous command should have already put you there. To start the build
+using ninja, you use:
+
+    $ ninjaBuildPhase
+
+#### 3. Run
+
+After building, the binary is available as `quick-lint-js` in the build
+folder:
+
+    $ ./quick-lint-js
+
+To run the tests, execute the test binary in the build directory:
+
+    $ ./test/quick-lint-js-test
+
 [CMake]: https://cmake.org/
 [Ninja]: https://ninja-build.org/
 [Visual Studio]: https://visualstudio.microsoft.com/vs/
+[Nix]: https://nixos.org/manual/nix/stable/
