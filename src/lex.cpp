@@ -1172,8 +1172,8 @@ void lexer::skip_block_comment() {
 #endif
 
   auto is_comment_end = [](const char8* string) -> bool {
-      return string[0] == '*' && string[1] == '/';
-    };
+    return string[0] == '*' && string[1] == '/';
+  };
 
   for (;;) {
     char_vector chars = char_vector::load(c);
@@ -1244,10 +1244,8 @@ found_end_of_file:
 }
 
 void lexer::skip_html_line_comment() {
-  QLJS_ASSERT((this->input_[0] == '<' && this->input_[1] == '!' && this->input_[2] == '-' && this->input_[3] == '-') ||
-              (this->input_[0] == '-' && this->input_[1] == '-' && this->input_[2] == '>'));
-  int8_t skip = this->input_[0] == '<' ? 4 : 3;
-  for (char8* c = this->input_ + skip;; ++c) {
+  QLJS_ASSERT(this->input_[0] == '<' && this->input_[1] == '!' && this->input_[2] == '-' && this->input_[3] == '-');
+  for (char8* c = this->input_ + 4;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {
       this->input_ = c + newline_size;
