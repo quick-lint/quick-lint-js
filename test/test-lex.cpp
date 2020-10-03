@@ -295,6 +295,8 @@ TEST(test_lex, lex_strings) {
   check_single_token(u8R"('hello\'world')", token_type::string);
   check_single_token(u8R"('hello"world')", token_type::string);
   check_single_token(u8R"("hello'world")", token_type::string);
+  check_single_token(u8"'hello\\\nworld'", token_type::string);
+  check_single_token(u8"\"hello\\\nworld\"", token_type::string);
 
   check_tokens_with_errors(
       u8R"("unterminated)", {token_type::string},
@@ -326,11 +328,6 @@ TEST(test_lex, lex_strings) {
                                 error_unclosed_string_literal, string_literal,
                                 offsets_matcher(input, 0, 14))));
       });
-
-  // TODO(strager): Lex line continuations in string literals. For example:
-  //
-  // "hello\   (backslash followed by end of line)
-  // world"
 
   // TODO(strager): Report invalid hex escape sequences. For example:
   //
