@@ -865,13 +865,6 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"void x;");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
-  }
-
-  {
     spy_visitor v = parse_and_visit_statement(u8R"("use strict";)");
     EXPECT_THAT(v.visits, IsEmpty());
   }
@@ -895,23 +888,17 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"!x");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-  }
-
-  {
-    spy_visitor v = parse_and_visit_statement(u8"~x");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-  }
-
-  {
-    spy_visitor v = parse_and_visit_statement(u8"-x");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-  }
-
-  {
     spy_visitor v = parse_and_visit_statement(u8"typeof x");
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
+  }
+
+  for (string8 op : {u8"void ", u8"!", u8"~", u8"-"}) {
+    string8 code = op + u8" x;";
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code.c_str());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
   }
 }
 
