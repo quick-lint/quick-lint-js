@@ -43,7 +43,7 @@ quick_lint_js_add_executable(
   test-vim-qflist-json-error-reporter.cpp
   test-wasm-demo-error-reporter.cpp
 )
-target_include_directories(quick-lint-js-test PRIVATE include)
+target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(
   quick-lint-js-test
   PRIVATE
