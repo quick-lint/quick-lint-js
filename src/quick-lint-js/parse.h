@@ -1033,11 +1033,10 @@ class parser {
         break;
       case expression_kind::variable: {
         identifier ident = ast->variable_identifier();
-        // TODO(strager): Avoid string comparisons here.
         if ((declaration_kind == variable_kind::_const ||
              declaration_kind == variable_kind::_import ||
              declaration_kind == variable_kind::_let) &&
-            ident.normalized_name() == u8"let") {
+            ast->variable_identifier_token_type() == token_type::kw_let) {
           if (declaration_kind == variable_kind::_import) {
             this->error_reporter_->report(
                 error_cannot_import_let{.import_name = ident.span()});

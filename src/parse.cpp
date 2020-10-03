@@ -74,7 +74,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::identifier:
     case token_type::kw_let: {
       expression_ptr ast = this->make_expression<expression::variable>(
-          this->peek().identifier_name());
+          this->peek().identifier_name(), this->peek().type);
       this->lexer_.skip();
       if (!prec.binary_operators) {
         return ast;
@@ -234,7 +234,7 @@ expression_ptr parser::parse_expression(precedence prec) {
         // Arrow function: async parameter => expression-or-block
         case token_type::identifier:
           parameters.emplace_back(this->make_expression<expression::variable>(
-              identifier(this->peek().span())));
+              identifier(this->peek().span()), this->peek().type));
           this->lexer_.skip();
           break;
 
@@ -651,6 +651,7 @@ expression_ptr parser::parse_object_literal() {
       case token_type::identifier:
       case token_type::number:
       case token_type::string: {
+        token_type key_type = this->peek().type;
         source_code_span key_span = this->peek().span();
         expression_ptr key =
             this->make_expression<expression::literal>(key_span);
@@ -662,7 +663,7 @@ expression_ptr parser::parse_object_literal() {
             // TODO(strager): Only allow this for identifiers, not numbers or
             // strings.
             expression_ptr value = this->make_expression<expression::variable>(
-                identifier(key_span));
+                identifier(key_span), key_type);
             entries.emplace_back(key, value);
             break;
           }
@@ -675,7 +676,7 @@ expression_ptr parser::parse_object_literal() {
             // strings.
             expression_ptr value = this->parse_expression_remainder(
                 this->make_expression<expression::variable>(
-                    identifier(key_span)),
+                    identifier(key_span), key_type),
                 precedence{.commas = false});
             entries.emplace_back(key, value);
             break;
