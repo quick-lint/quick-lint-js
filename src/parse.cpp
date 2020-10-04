@@ -649,7 +649,7 @@ expression_ptr parser::parse_object_literal() {
         QLJS_ASSERT(false);
         break;
 
-      QLJS_CASE_KEYWORD_EXCEPT_GET:
+      QLJS_CASE_KEYWORD_EXCEPT_GET_AND_SET:
       case token_type::identifier:
       case token_type::number:
       case token_type::string: {
@@ -703,7 +703,8 @@ expression_ptr parser::parse_object_literal() {
       }
 
       // { get propertyName() { } }
-      case token_type::kw_get: {
+      case token_type::kw_get:
+      case token_type::kw_set: {
         source_code_span get_span = this->peek().span();
         this->lexer_.skip();
         switch (this->peek().type) {

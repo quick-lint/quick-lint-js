@@ -80,6 +80,7 @@ new,        token_type::kw_new
 null,       token_type::kw_null
 of,         token_type::kw_of
 return,     token_type::kw_return
+set,        token_type::kw_set
 static,     token_type::kw_static
 super,      token_type::kw_super
 switch,     token_type::kw_switch
