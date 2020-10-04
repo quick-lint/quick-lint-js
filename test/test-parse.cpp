@@ -1992,6 +1992,23 @@ TEST(test_parse, variables_can_be_named_let) {
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[1].name, u8"let");
   }
+
+  for (const char8 *code : {
+           u8"(async let => null)",
+           u8"(async (let) => null)",
+           u8"(let => null)",
+           u8"((let) => null)",
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_variable_declaration",  // let
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
+  }
 }
 
 TEST(test_parse, new_style_variables_cannot_be_named_let) {

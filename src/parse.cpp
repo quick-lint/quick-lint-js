@@ -233,6 +233,7 @@ expression_ptr parser::parse_expression(precedence prec) {
 
         // Arrow function: async parameter => expression-or-block
         case token_type::identifier:
+        case token_type::kw_let:
           parameters.emplace_back(this->make_expression<expression::variable>(
               identifier(this->peek().span()), this->peek().type));
           this->lexer_.skip();
