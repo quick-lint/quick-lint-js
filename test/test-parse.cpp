@@ -892,6 +892,14 @@ TEST(test_parse, expression_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
   }
 
+  {
+    spy_visitor v = parse_and_visit_statement(u8"[x, y, z];");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",    // x
+                            "visit_variable_use",    // y
+                            "visit_variable_use"));  // z
+  }
+
   for (string8 op : {u8"void ", u8"!", u8"~", u8"+", u8"-"}) {
     string8 code = op + u8" x;";
     SCOPED_TRACE(out_string8(code));
