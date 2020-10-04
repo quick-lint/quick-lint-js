@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <benchmark/benchmark.h>
-#include <cstring>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>

@@ -25,8 +25,10 @@ quick_lint_js_add_executable(
   spy-visitor.cpp
   test-assert.cpp
   test-buffering-visitor.cpp
+  test-crash.cpp
   test-file.cpp
-  test-integer.cpp
+  test-integer-decimal.cpp
+  test-integer-hexadecimal.cpp
   test-lex.cpp
   test-lint-parse.cpp
   test-lint.cpp
@@ -39,8 +41,9 @@ quick_lint_js_add_executable(
   test-text-error-reporter.cpp
   test-vector.cpp
   test-vim-qflist-json-error-reporter.cpp
+  test-wasm-demo-error-reporter.cpp
 )
-target_include_directories(quick-lint-js-test PRIVATE include)
+target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(
   quick-lint-js-test
   PRIVATE
@@ -77,3 +80,16 @@ quick_lint_js_add_warning_options_if_supported(
   /wd26495 # Always initialize a member variable
   /wd26812 # Prefer 'enum class' over 'enum'
 )
+
+# HACK(strager): UndefinedBehaviorSanitizer is buggy on Linunx x86_64 with GCC
+# 8.4.0. Disable some UBSAN checks to avoid false positives.
+if (
+  CMAKE_CXX_COMPILER_ID STREQUAL GNU
+  AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0
+)
+  set_source_files_properties(
+    test-lex.cpp
+    PROPERTIES
+    COMPILE_OPTIONS -fno-sanitize=null
+  )
+endif ()

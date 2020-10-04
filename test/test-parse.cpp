@@ -350,6 +350,17 @@ TEST(test_parse, parse_invalid_let) {
                               error_invalid_binding_in_let_statement, where,
                               offsets_matcher(&code, 4, 6))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let debugger");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_binding_in_let_statement, where,
+                              offsets_matcher(&code, 4, 12))));
+  }
 }
 
 TEST(test_parse, parse_and_visit_import) {
@@ -447,6 +458,26 @@ TEST(test_parse, throw_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Error"}));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"throw;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_expected_expression_before_semicolon, where,
+                              offsets_matcher(&code, 5, 6))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"throw\nnew Error();");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_expected_expression_before_newline, where,
+                              offsets_matcher(&code, 5, 5))));
   }
 }
 
@@ -818,6 +849,13 @@ TEST(test_parse, expression_statement) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(u8"new C();");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"delete x;");
     // TODO(strager): Should this be visit_variable_assignment instead? Or
     // something else?
@@ -827,15 +865,40 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"void x;");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+    spy_visitor v = parse_and_visit_statement(u8R"("use strict";)");
+    EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8R"("use strict";)");
+    spy_visitor v = parse_and_visit_statement(u8"42");
     EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"import(url).then(); secondStatement;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",    // url
+                            "visit_variable_use"));  // secondStatement
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"typeof x");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
+  }
+
+  for (string8 op : {u8"void ", u8"!", u8"~", u8"+", u8"-"}) {
+    string8 code = op + u8" x;";
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code.c_str());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
   }
 }
 
@@ -889,6 +952,20 @@ TEST(test_parse, asi_for_statement_at_newline) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"},
                             spy_visitor::visited_variable_use{u8"console"}));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x = 2\nfor (;;) { console.log(); }");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 
   {
@@ -1824,6 +1901,41 @@ TEST(test_parse, debugger_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
+
+TEST(test_parse, report_missing_semicolon_for_declarations) {
+  {
+    spy_visitor v;
+    padded_string code(u8"let x = 2 for (;;) { console.log(); }");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    source_position::offset_type end_of_let_statement = strlen(u8"let x = 2");
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_semicolon_after_expression, where,
+                              offsets_matcher(&code, end_of_let_statement,
+                                              end_of_let_statement))));
+  }
+  {
+    spy_visitor v;
+    padded_string code(u8"const x debugger");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_const}));
+    source_position::offset_type end_of_const_statement = strlen(u8"const x");
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_semicolon_after_expression, where,
+                              offsets_matcher(&code, end_of_const_statement,
+                                              end_of_const_statement))));
   }
 }
 }

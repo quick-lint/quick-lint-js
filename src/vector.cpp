@@ -96,7 +96,7 @@ void vector_instrumentation::dump_max_size_histogram(
     const std::map<std::string, std::map<std::size_t, int>> &histogram,
     std::ostream &out, int maximum_line_length) {
   bool need_blank_line = false;
-  for (auto &[group_name, object_size_histogram] : histogram) {
+  for (const auto &[group_name, object_size_histogram] : histogram) {
     QLJS_ASSERT(!object_size_histogram.empty());
 
     if (need_blank_line) {
@@ -108,7 +108,7 @@ void vector_instrumentation::dump_max_size_histogram(
 
     int max_count = 0;
     int total_count = 0;
-    for (auto &[_object_size, count] : object_size_histogram) {
+    for (const auto &[_object_size, count] : object_size_histogram) {
       total_count += count;
       max_count = std::max(max_count, count);
     }
@@ -167,8 +167,8 @@ void vector_instrumentation::add_entry(std::uintptr_t object_id,
 }
 
 void vector_instrumentation::register_dump_on_exit_if_requested() {
-  const char *dump_Vectors_value = std::getenv("QLJS_DUMP_VECTORS");
-  bool should_dump_on_exit = dump_Vectors_value && *dump_Vectors_value != '\0';
+  const char *dump_vectors_value = std::getenv("QLJS_DUMP_VECTORS");
+  bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
     std::atexit([]() -> void {
       instance.dump_max_size_histogram(instance.max_size_histogram_by_owner(),

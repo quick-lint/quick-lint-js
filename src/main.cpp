@@ -163,27 +163,28 @@ class debug_visitor {
   void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
 
   void visit_property_declaration(identifier name) {
-    std::cerr << "property declaration: " << out_string8(name.string_view())
+    std::cerr << "property declaration: " << out_string8(name.normalized_name())
               << '\n';
   }
 
   void visit_variable_assignment(identifier name) {
-    std::cerr << "variable assignment: " << out_string8(name.string_view())
+    std::cerr << "variable assignment: " << out_string8(name.normalized_name())
               << '\n';
   }
 
   void visit_variable_declaration(identifier name, variable_kind) {
-    std::cerr << "variable declaration: " << out_string8(name.string_view())
+    std::cerr << "variable declaration: " << out_string8(name.normalized_name())
               << '\n';
   }
 
   void visit_variable_typeof_use(identifier name) {
-    std::cerr << "variable typeof use: " << out_string8(name.string_view())
+    std::cerr << "variable typeof use: " << out_string8(name.normalized_name())
               << '\n';
   }
 
   void visit_variable_use(identifier name) {
-    std::cerr << "variable use: " << out_string8(name.string_view()) << '\n';
+    std::cerr << "variable use: " << out_string8(name.normalized_name())
+              << '\n';
   }
 };
 

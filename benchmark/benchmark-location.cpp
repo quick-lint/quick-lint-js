@@ -22,7 +22,6 @@
 #include <quick-lint-js/padded-string.h>
 #include <random>
 #include <set>
-#include <string>
 #include <vector>
 
 namespace quick_lint_js {

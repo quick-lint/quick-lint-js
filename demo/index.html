@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<html>
+  <head>
+    <title>quick-lint-js web demo</title>
+    <meta charset="utf-8" />
+    <style>
+      /* Make #code-input and #shadow-code-input have the same size. */
+      main {
+        position: relative;
+      }
+      #code-input,
+      #shadow-code-input {
+        width: 100%;
+        height: 20em;
+      }
+
+      /* Normalize #code-input and #shadow-code-input to have the internal layout. */
+      #code-input,
+      #shadow-code-input {
+        border: 0;
+        font-family: monospace;
+        font-size: 1rem;
+        line-height: 1em;
+        margin: 0;
+        overflow: auto;
+        padding: 0;
+        white-space: pre;
+      }
+
+      #code-input,
+      #shadow-code-input {
+        overflow: scroll;
+        padding: 3px;
+      }
+
+      /* Show #shadow-code-input visually behind #code-input. */
+      #code-input {
+        background: transparent;
+      }
+      #shadow-code-input,
+      #shadow-code-input mark {
+        color: transparent;
+      }
+      #shadow-code-input {
+        z-index: -1;
+        position: absolute;
+      }
+
+      /* Make errors stand out. */
+      mark {
+        text-decoration: underline;
+
+        background-color: #ffdddd;
+        text-decoration-color: red;
+        text-decoration-line: underline;
+        text-decoration-skip-ink: none;
+        text-decoration-style: wavy;
+      }
+      mark:empty::before {
+        color: red;
+        content: url("carat.svg") / "^";
+        content: url("carat.svg");
+        margin-left: -2px; /* (width of SVG) / 2 */
+        margin-top: 4px; /* height of SVG */
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+    Known bugs:
+
+    * Empty marks (indicating missing semicolons) are practically invisible
+      on Chrome due to its thick underline.
+    * Overscrolling on macOS has visual issues.
+    * Scrolling in general works poorly when sub-pixel scrolling (e.g. when
+      zoomed in).
+    * Scrolling horizontally sometimes doesn't scroll the highlights.
+    * Resizing the editor breaks highlights.
+    * Browser text search finds text in the shadow code input in addition to
+      text in the user code input.
+
+    -->
+
+    <main>
+      <h1>quick-lint-js demo</h1>
+
+      <p>
+        See how quick-lint-js works right here in your browser! Paste your
+        favorite buggy JavaScript code below:
+      </p>
+
+      <pre id="shadow-code-input"></pre>
+      <textarea id="code-input" spellcheck="false">
+const occupation = language + " coder";
+const language = "JavaScript";
+occupation = "Senior " + occupation;
+
+console.log(`Welcome, ${ocupation}!`);
+</textarea
+      >
+
+      <script type="module">
+        import { markEditorText } from "./editor.mjs";
+        import { loadQuickLintJS } from "./quick-lint-js.mjs";
+
+        let codeInputElement = document.getElementById("code-input");
+        let shadowCodeInputElement = document.getElementById(
+          "shadow-code-input"
+        );
+
+        codeInputElement.addEventListener("scroll", (event) => {
+          synchronizeScrolling();
+        });
+        synchronizeContent();
+
+        loadQuickLintJS()
+          .then((quickLintJS) => {
+            function lintAndUpdate() {
+              synchronizeContent();
+
+              // TODO(strager): On crash, show the error to the user.
+              let input = codeInputElement.value;
+              let marks = quickLintJS.parseAndLint(input);
+              markEditorText(shadowCodeInputElement, window, marks);
+            }
+            codeInputElement.addEventListener("input", (event) => {
+              lintAndUpdate();
+            });
+            lintAndUpdate();
+          })
+          .catch((error) => {
+            // TODO(strager): Show this error to the user.
+            console.error(error);
+          });
+
+        function synchronizeContent() {
+          let input = codeInputElement.value;
+          shadowCodeInputElement.textContent = input + "\n\n\n";
+        }
+
+        function synchronizeScrolling() {
+          shadowCodeInputElement.scrollLeft = codeInputElement.scrollLeft;
+          shadowCodeInputElement.scrollTop = codeInputElement.scrollTop;
+        }
+      </script>
+    </main>
+  </body>
+</html>

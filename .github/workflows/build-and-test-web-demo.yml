@@ -1,0 +1,48 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: build and test web demo
+on: [push]
+
+jobs:
+  build:
+    name: web demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mymindstorm/setup-emsdk@v6
+        with:
+          version: 2.0.4
+      - name: check out
+        uses: actions/checkout@v1
+
+      - name: C++ configure
+        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: C++ build
+        run: emmake make -C build quick-lint-js-wasm-demo
+      - name: C++ install
+        run: emmake cmake --install build --component wasm-demo --prefix demo
+
+      - name: JS configure
+        run: cd demo && yarn
+      - name: JS test
+        run: cd demo && yarn test
+
+      - name: upload build
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: web-demo-dist-${{ github.sha }}
+          path: demo/dist/

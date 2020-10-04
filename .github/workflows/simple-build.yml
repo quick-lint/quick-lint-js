@@ -37,4 +37,4 @@ jobs:
       - name: check out
         uses: actions/checkout@v1
       - name: build
-        run: '"${CXX}" ${CXXFLAGS} -o quick-lint-js -I src/include -I vendor/boost src/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c'
+        run: '"${CXX}" ${CXXFLAGS} -o quick-lint-js -I src -I vendor/boost src/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c'

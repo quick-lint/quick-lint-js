@@ -28,5 +28,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "" CACHE PATH "")
 set(CMAKE_PDB_OUTPUT_DIRECTORY     "" CACHE PATH "")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "" CACHE PATH "")
 
-add_subdirectory(jsoncpp)
+add_subdirectory(jsoncpp EXCLUDE_FROM_ALL)
 target_compile_definitions(jsoncpp_lib PUBLIC JSON_USE_EXCEPTION=0)

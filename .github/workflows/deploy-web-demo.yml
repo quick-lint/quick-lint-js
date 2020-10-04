@@ -1,0 +1,51 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: deploy web demo
+on:
+  workflow_dispatch:
+    inputs:
+      build_commit_id:
+        description: 'Commit (full commit hash)'
+        required: true
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: check out
+        uses: actions/checkout@v1
+
+      - name: download build
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          commit: ${{ github.event.inputs.build_commit_id }}
+          name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
+          path: demo/dist/
+          workflow: build-and-test-web-demo.yml
+      - name: build site
+        run: demo/prepare-for-publish ./website-build
+
+      - name: publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          cname: quick-lint-js.com
+          full_commit_message: "Website: deploy build ${{ github.event.inputs.build_commit_id }} source ${{ github.sha }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          keep_files: false
+          publish_branch: gh-pages
+          publish_dir: ./website-build

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
+include(GNUInstallDirs)
 include(QuickLintJSCompiler)
 include(QuickLintJSTarget)
 
@@ -28,13 +29,20 @@ quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
 )
+set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
+
+# TODO(strager): Use the default DESTINATION for CMake versions which have a
+# default. (3.18.0 has a default; 3.12.4 doesn't have a default.)
+install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
   char8.cpp
+  crash.cpp
   error.cpp
+  file-handle.cpp
   file.cpp
   integer.cpp
   language.cpp
@@ -48,8 +56,9 @@ quick_lint_js_add_library(
   text-error-reporter.cpp
   vector.cpp
   vim-qflist-json-error-reporter.cpp
+  wasm-demo-error-reporter.cpp
 )
-target_include_directories(quick-lint-js-lib PUBLIC include)
+target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container)
 
 if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
@@ -79,5 +88,36 @@ if (
     lex-keyword.cpp
     PROPERTIES
     COMPILE_OPTIONS -fno-builtin
+  )
+endif ()
+
+if (EMSCRIPTEN)
+  quick_lint_js_add_executable(
+    quick-lint-js-wasm-demo
+    wasm-demo.cpp
+  )
+  target_link_libraries(
+    quick-lint-js-wasm-demo
+    PRIVATE
+    quick-lint-js-lib
+    "-sEXPORTED_FUNCTIONS='[\"_quick_lint_js_parse_and_lint_for_wasm_demo\"]'"
+    "-sEXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'"
+    "-sMODULARIZE"
+    "-sEXPORT_NAME=QUICK_LINT_JS_WASM_DEMO"
+    # TODO(strager): Use -sEXPORT_ES6 when it works with Node.js.
+  )
+
+  set(WASM_DEMO_DIST_DIR dist)
+  install(
+    TARGETS quick-lint-js-wasm-demo
+    RUNTIME
+    COMPONENT wasm-demo
+    EXCLUDE_FROM_ALL
+    DESTINATION "${WASM_DEMO_DIST_DIR}"
+  )
+  install(
+    PROGRAMS $<TARGET_FILE_DIR:quick-lint-js-wasm-demo>/$<TARGET_FILE_PREFIX:quick-lint-js-wasm-demo>$<TARGET_FILE_BASE_NAME:quick-lint-js-wasm-demo>.wasm
+    DESTINATION "${WASM_DEMO_DIST_DIR}"
+    COMPONENT wasm-demo
   )
 endif ()

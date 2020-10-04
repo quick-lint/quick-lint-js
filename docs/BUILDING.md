@@ -51,7 +51,7 @@ Run the following command to run quick-lint-js' test suite:
 
 If you want to run the quick-lint-js program:
 
-    $ ./build/src/quick-lint-js
+    $ ./build/quick-lint-js
 
 ---
 
@@ -87,7 +87,7 @@ Run the following command to run quick-lint-js' test suite:
 
 If you want to run the quick-lint-js program:
 
-    $ ./build/src/quick-lint-js
+    $ ./build/quick-lint-js
 
 ---
 
@@ -119,7 +119,7 @@ Run the test program: press F5, or select the Debug > Start Debugging menu
 option.
 
 If you want to run the quick-lint-js program, you can find it in
-`build\src\Debug\quick-lint-js.exe`. Run it from a command prompt or PowerShell
+`build\Debug\quick-lint-js.exe`. Run it from a command prompt or PowerShell
 window.
 
 [CMake]: https://cmake.org/
