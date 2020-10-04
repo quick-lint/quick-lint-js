@@ -626,7 +626,8 @@ lexer::parsed_template_body lexer::parse_template_body(
 }
 
 void lexer::reparse_as_regexp() {
-  QLJS_ASSERT(this->last_token_.type == token_type::slash);
+  QLJS_ASSERT(this->last_token_.type == token_type::slash ||
+              this->last_token_.type == token_type::slash_equal);
 
   this->input_ = const_cast<char8*>(this->last_token_.begin);
   QLJS_ASSERT(this->input_[0] == '/');

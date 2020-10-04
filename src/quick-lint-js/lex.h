@@ -274,9 +274,10 @@ class lexer {
   // The given template_begin is used for error reporting.
   void skip_in_template(const char8* template_begin);
 
-  // Reparse a '/' token as a regular expression literal.
+  // Reparse a '/' or '/=' token as a regular expression literal.
   //
-  // Precondition: this->peek().type == token_type::slash.
+  // Precondition: this->peek().type == token_type::slash or
+  //               token_type::slash_equal.
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
 

@@ -319,7 +319,8 @@ expression_ptr parser::parse_expression(precedence prec) {
     case token_type::right_paren:
       return this->make_expression<expression::_invalid>();
 
-    case token_type::slash: {
+    case token_type::slash:
+    case token_type::slash_equal: {
       this->lexer_.reparse_as_regexp();
       expression_ptr regexp =
           this->make_expression<expression::literal>(this->peek().span());
