@@ -327,7 +327,13 @@ class lexer {
   void parse_hexadecimal_number();
   char8* check_garbage_in_number_literal(char8* input);
   void parse_number();
+
+  template <class Func>
+  char8* parse_digits_and_underscores(Func&& is_valid_digit,
+                                      char8* input) noexcept;
+
   char8* parse_decimal_digits_and_underscores(char8* input) noexcept;
+  char8* parse_hex_digits_and_underscores(char8* input) noexcept;
 
   parsed_identifier parse_identifier(char8*);
   parsed_identifier parse_identifier_slow(char8*);
