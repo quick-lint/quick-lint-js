@@ -43,10 +43,10 @@ class any_error_reporter {
  public:
   static any_error_reporter make(output_format format) {
     switch (format) {
-      case output_format::gnu_like:
-        return any_error_reporter(text_error_reporter(std::cerr));
-      case output_format::vim_qflist_json:
-        return any_error_reporter(vim_qflist_json_error_reporter(std::cout));
+    case output_format::gnu_like:
+      return any_error_reporter(text_error_reporter(std::cerr));
+    case output_format::vim_qflist_json:
+      return any_error_reporter(vim_qflist_json_error_reporter(std::cout));
     }
     QLJS_UNREACHABLE();
   }

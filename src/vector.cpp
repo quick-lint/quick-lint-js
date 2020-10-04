@@ -36,21 +36,21 @@ std::ostream &operator<<(std::ostream &out,
                          const vector_instrumentation::entry &e) {
   out << "entry{.owner = \"" << e.owner << "\", .event = ";
   switch (e.event) {
-    case vector_instrumentation::event::append:
-      out << "append";
-      break;
-    case vector_instrumentation::event::assign:
-      out << "assign";
-      break;
-    case vector_instrumentation::event::clear:
-      out << "clear";
-      break;
-    case vector_instrumentation::event::create:
-      out << "create";
-      break;
-    case vector_instrumentation::event::destroy:
-      out << "destroy";
-      break;
+  case vector_instrumentation::event::append:
+    out << "append";
+    break;
+  case vector_instrumentation::event::assign:
+    out << "assign";
+    break;
+  case vector_instrumentation::event::clear:
+    out << "clear";
+    break;
+  case vector_instrumentation::event::create:
+    out << "create";
+    break;
+  case vector_instrumentation::event::destroy:
+    out << "destroy";
+    break;
   }
   out << ", .size = " << e.size << ", .capacity = " << e.capacity << "}";
   return out;

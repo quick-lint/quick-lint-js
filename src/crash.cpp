@@ -96,18 +96,18 @@ void disable_core_dumping() {
 #if defined(__linux__)
   core_style style = linux_detect_core_style();
   switch (style) {
-    case core_style::unknown:
-    case core_style::file_path:
-      limits.rlim_cur = 0;
-      break;
-    case core_style::pipe:
-      // HACK(strager): rlim_cur is not properly respected if
-      // kernel.core_pattern is a pipe. However, if rlim_cur=1, core dumping is
-      // skipped for pipe patterns:
-      // https://github.com/torvalds/linux/blob/v4.2/fs/coredump.c#L577-L598
-      // Take advantage of this quirk to disable core dumping for pipe patterns.
-      limits.rlim_cur = 1;
-      break;
+  case core_style::unknown:
+  case core_style::file_path:
+    limits.rlim_cur = 0;
+    break;
+  case core_style::pipe:
+    // HACK(strager): rlim_cur is not properly respected if
+    // kernel.core_pattern is a pipe. However, if rlim_cur=1, core dumping is
+    // skipped for pipe patterns:
+    // https://github.com/torvalds/linux/blob/v4.2/fs/coredump.c#L577-L598
+    // Take advantage of this quirk to disable core dumping for pipe patterns.
+    limits.rlim_cur = 1;
+    break;
   }
 #else
   limits.rlim_cur = 0;

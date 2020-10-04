@@ -21,3 +21,4 @@ IncludeCategories: [{Regex: '.*', Priority: 0}]
 SortIncludes: true
 
 FixNamespaceComments: false
+IndentCaseLabels: false

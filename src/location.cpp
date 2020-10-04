@@ -76,15 +76,15 @@ void locator::cache_offsets_of_lines() const {
     } else if (static_cast<unsigned char>(c[0]) == 0xe2 &&
                static_cast<unsigned char>(c[1]) == 0x80) {
       switch (static_cast<unsigned char>(c[2])) {
-        case 0xa8:  // U+2028 Line Separator
-        case 0xa9:  // U+2029 Paragraph Separator
-          c += 3;
-          add_beginning_of_line(c);
-          break;
+      case 0xa8:  // U+2028 Line Separator
+      case 0xa9:  // U+2029 Paragraph Separator
+        c += 3;
+        add_beginning_of_line(c);
+        break;
 
-        default:
-          c += 1;
-          break;
+      default:
+        c += 1;
+        break;
       }
     } else {
       c += 1;
