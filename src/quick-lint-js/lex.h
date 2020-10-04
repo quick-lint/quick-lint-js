@@ -248,8 +248,6 @@ class lexer {
  public:
   explicit lexer(padded_string_view input, error_reporter*) noexcept;
 
-  void parse_current_token();
-
   // Return information about the current token.
   const token& peek() const noexcept { return this->last_token_; }
 
@@ -318,6 +316,8 @@ class lexer {
 
     std::vector<source_code_span> escape_sequences;
   };
+
+  void parse_current_token();
 
   parsed_template_body parse_template_body(char8* input,
                                            const char8* template_begin,
