@@ -246,8 +246,13 @@ class lexer {
   void parse_hexadecimal_number();
   const char8* check_garbage_in_number_literal(const char8* input);
   void parse_number();
-  const char8* parse_digits_and_underscores(
-      const char8* input, bool (*is_valid_digit)(char8)) noexcept;
+
+  template <class Func>
+  const char8* parse_digits_and_underscores(Func &&is_valid_digit, 
+                                            const char8*& input) noexcept;
+
+  const char8* parse_decimal_digits_and_underscores(const char8* input) noexcept;
+  const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;
 
   void parse_identifier();
   static const char8* parse_identifier(const char8*);

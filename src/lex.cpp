@@ -617,7 +617,7 @@ void lexer::parse_hexadecimal_number() {
   QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
 
-  input = parse_digits_and_underscores(input, is_hex_digit);
+  input = parse_hex_digits_and_underscores(input);
 
   this->input_ = check_garbage_in_number_literal(input);
 }
@@ -669,11 +669,11 @@ void lexer::parse_number() {
     input = garbage_end;
   };
 
-  input = this->parse_digits_and_underscores(input, is_digit);
+  input = this->parse_decimal_digits_and_underscores(input);
   bool has_decimal_point = *input == '.';
   if (has_decimal_point) {
     input += 1;
-    input = this->parse_digits_and_underscores(input, is_digit);
+    input = this->parse_decimal_digits_and_underscores(input);
   }
   bool has_exponent = *input == 'e' || *input == 'E';
   if (has_exponent) {
@@ -683,7 +683,7 @@ void lexer::parse_number() {
       input += 1;
     }
     if (this->is_digit(*input)) {
-      input = this->parse_digits_and_underscores(input, is_digit);
+      input = this->parse_decimal_digits_and_underscores(input);
     } else {
       input = e;
       consume_garbage();
@@ -714,10 +714,41 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-const char8* lexer::parse_digits_and_underscores(
-    const char8* input, bool (*is_valid_digit)(char8)) noexcept {
+//template <class Func>
+//const char8* lexer::parse_digits_and_underscores(
+//    Func &&is_valid_digit, const char8*& input) noexcept {
+//  bool has_trailing_underscore = false;
+//  while (is_valid_digit(*input)) {
+//    has_trailing_underscore = false;
+//    input += 1;
+//    if (*input == '_') {
+//      const char8* garbage_begin = input;
+//      has_trailing_underscore = true;
+//      input += 1;
+//      if (*input == '_') {
+//        has_trailing_underscore = false;
+//
+//        while (*input == '_') {
+//          input += 1;
+//        }
+//
+//        this->error_reporter_->report(
+//            error_number_literal_contains_consecutive_underscores{
+//                source_code_span(garbage_begin, input)});
+//      }
+//    }
+//  }
+//  if (has_trailing_underscore == true) {
+//    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at
+//    // the end of numeric literals
+//  }
+//  return input;
+//}
+
+const char8* lexer::parse_decimal_digits_and_underscores(
+    const char8* input) noexcept {
   bool has_trailing_underscore = false;
-  while (is_valid_digit(*input)) {
+  while (is_digit(*input)) {
     has_trailing_underscore = false;
     input += 1;
     if (*input == '_') {
@@ -743,6 +774,50 @@ const char8* lexer::parse_digits_and_underscores(
   }
   return input;
 }
+
+const char8* lexer::parse_hex_digits_and_underscores(
+    const char8* input) noexcept {
+  bool has_trailing_underscore = false;
+  while (is_hex_digit(*input)) {
+    has_trailing_underscore = false;
+    input += 1;
+    if (*input == '_') {
+      const char8* garbage_begin = input;
+      has_trailing_underscore = true;
+      input += 1;
+      if (*input == '_') {
+        has_trailing_underscore = false;
+
+        while (*input == '_') {
+          input += 1;
+        }
+
+        this->error_reporter_->report(
+            error_number_literal_contains_consecutive_underscores{
+                source_code_span(garbage_begin, input)});
+      }
+    }
+  }
+  if (has_trailing_underscore == true) {
+    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at
+    // the end of numeric literals
+  }
+  return input;
+}
+
+//const char8* lexer::parse_decimal_digits_and_underscores(
+//    const char8* input) noexcept {
+//  return this->parse_digits_and_underscores(
+//      [](const char8 character) -> bool { return is_digit(character); },
+//      input); 
+//}
+//
+//const char8* lexer::parse_hex_digits_and_underscores(
+//    const char8* input) noexcept {
+//  return this->parse_digits_and_underscores(
+//      [](const char8 character) -> bool { return is_hex_digit(character); },
+//      input);
+//}
 
 void lexer::parse_identifier() {
   this->input_ = this->parse_identifier(this->input_);
