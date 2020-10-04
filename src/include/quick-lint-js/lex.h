@@ -249,7 +249,7 @@ class lexer {
 
   template <class Func>
   const char8* parse_digits_and_underscores(Func &&is_valid_digit, 
-                                            const char8*& input) noexcept;
+                                            const char8* input) noexcept;
 
   const char8* parse_decimal_digits_and_underscores(const char8* input) noexcept;
   const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;

@@ -714,41 +714,11 @@ void lexer::parse_number() {
   this->input_ = input;
 }
 
-//template <class Func>
-//const char8* lexer::parse_digits_and_underscores(
-//    Func &&is_valid_digit, const char8*& input) noexcept {
-//  bool has_trailing_underscore = false;
-//  while (is_valid_digit(*input)) {
-//    has_trailing_underscore = false;
-//    input += 1;
-//    if (*input == '_') {
-//      const char8* garbage_begin = input;
-//      has_trailing_underscore = true;
-//      input += 1;
-//      if (*input == '_') {
-//        has_trailing_underscore = false;
-//
-//        while (*input == '_') {
-//          input += 1;
-//        }
-//
-//        this->error_reporter_->report(
-//            error_number_literal_contains_consecutive_underscores{
-//                source_code_span(garbage_begin, input)});
-//      }
-//    }
-//  }
-//  if (has_trailing_underscore == true) {
-//    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at
-//    // the end of numeric literals
-//  }
-//  return input;
-//}
-
-const char8* lexer::parse_decimal_digits_and_underscores(
-    const char8* input) noexcept {
+template <class Func>
+const char8* lexer::parse_digits_and_underscores(
+    Func &&is_valid_digit, const char8* input) noexcept {
   bool has_trailing_underscore = false;
-  while (is_digit(*input)) {
+  while (is_valid_digit(*input)) {
     has_trailing_underscore = false;
     input += 1;
     if (*input == '_') {
@@ -773,51 +743,21 @@ const char8* lexer::parse_decimal_digits_and_underscores(
     // the end of numeric literals
   }
   return input;
+}
+
+const char8* lexer::parse_decimal_digits_and_underscores(
+    const char8* input) noexcept {
+  return this->parse_digits_and_underscores(
+      [](const char8 character) -> bool { return is_digit(character); },
+      input); 
 }
 
 const char8* lexer::parse_hex_digits_and_underscores(
     const char8* input) noexcept {
-  bool has_trailing_underscore = false;
-  while (is_hex_digit(*input)) {
-    has_trailing_underscore = false;
-    input += 1;
-    if (*input == '_') {
-      const char8* garbage_begin = input;
-      has_trailing_underscore = true;
-      input += 1;
-      if (*input == '_') {
-        has_trailing_underscore = false;
-
-        while (*input == '_') {
-          input += 1;
-        }
-
-        this->error_reporter_->report(
-            error_number_literal_contains_consecutive_underscores{
-                source_code_span(garbage_begin, input)});
-      }
-    }
-  }
-  if (has_trailing_underscore == true) {
-    // TODO error_reporter: SyntaxError: Numeric separators are not allowed at
-    // the end of numeric literals
-  }
-  return input;
+  return this->parse_digits_and_underscores(
+      [](const char8 character) -> bool { return is_hex_digit(character); },
+      input);
 }
-
-//const char8* lexer::parse_decimal_digits_and_underscores(
-//    const char8* input) noexcept {
-//  return this->parse_digits_and_underscores(
-//      [](const char8 character) -> bool { return is_digit(character); },
-//      input); 
-//}
-//
-//const char8* lexer::parse_hex_digits_and_underscores(
-//    const char8* input) noexcept {
-//  return this->parse_digits_and_underscores(
-//      [](const char8 character) -> bool { return is_hex_digit(character); },
-//      input);
-//}
 
 void lexer::parse_identifier() {
   this->input_ = this->parse_identifier(this->input_);
