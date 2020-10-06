@@ -989,6 +989,13 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
     expression_ptr ast = this->parse_expression(u8"{get 'string key'() { }}");
     EXPECT_EQ(summarize(ast), "object(literal, function)");
   }
+
+  {
+    expression_ptr ast =
+        this->parse_expression(u8"{get [expression + key]() { }}");
+    EXPECT_EQ(summarize(ast),
+              "object(binary(var expression, var key), function)");
+  }
 }
 
 TEST_F(test_parse_expression, object_literal_with_keyword_key) {

@@ -619,6 +619,15 @@ expression_ptr parser::parse_object_literal() {
   auto parse_value_expression = [&]() {
     return this->parse_expression(precedence{.commas = false});
   };
+  auto parse_computed_property_name = [this]() -> expression_ptr {
+    QLJS_ASSERT(this->peek().type == token_type::left_square);
+    this->lexer_.skip();
+    expression_ptr property_name = this->parse_expression();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+    this->lexer_.skip();
+    return property_name;
+  };
+
   bool expect_comma_or_end = false;
   for (;;) {
     if (this->peek().type == token_type::right_curly) {
@@ -702,6 +711,17 @@ expression_ptr parser::parse_object_literal() {
     // { get propertyName() { } }
     case token_type::kw_get:
     case token_type::kw_set: {
+      auto parse_method_entry = [&](const char8 *key_span_begin,
+                                    expression_ptr key) -> void {
+        buffering_visitor *v = this->expressions_.make_buffering_visitor();
+        this->parse_and_visit_function_parameters_and_body_no_scope(*v);
+        const char8 *span_end = this->lexer_.end_of_previous_token();
+        expression_ptr func = this->make_expression<expression::function>(
+            function_attributes::normal, v,
+            source_code_span(key_span_begin, span_end));
+        entries.emplace_back(key, func);
+      };
+
       source_code_span get_span = this->peek().span();
       this->lexer_.skip();
       switch (this->peek().type) {
@@ -713,14 +733,15 @@ expression_ptr parser::parse_object_literal() {
         expression_ptr key =
             this->make_expression<expression::literal>(key_span);
         this->lexer_.skip();
+        parse_method_entry(key_span.begin(), key);
+        break;
+      }
 
-        buffering_visitor *v = this->expressions_.make_buffering_visitor();
-        this->parse_and_visit_function_parameters_and_body_no_scope(*v);
-        const char8 *span_end = this->lexer_.end_of_previous_token();
-        expression_ptr func = this->make_expression<expression::function>(
-            function_attributes::normal, v,
-            source_code_span(key_span.begin(), span_end));
-        entries.emplace_back(key, func);
+      // { get [expr]() {} }
+      case token_type::left_square: {
+        source_code_span left_square_span = this->peek().span();
+        expression_ptr key = parse_computed_property_name();
+        parse_method_entry(left_square_span.begin(), key);
         break;
       }
 
@@ -740,10 +761,7 @@ expression_ptr parser::parse_object_literal() {
     }
 
     case token_type::left_square: {
-      this->lexer_.skip();
-      expression_ptr key = this->parse_expression();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
-      this->lexer_.skip();
+      expression_ptr key = parse_computed_property_name();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
       this->lexer_.skip();
       entries.emplace_back(key, parse_value_expression());
