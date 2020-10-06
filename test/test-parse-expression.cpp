@@ -951,7 +951,9 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 16);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+}
 
+TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
   {
     test_parser p(u8"{ get prop() { } }");
     expression_ptr ast = p.parse_expression();
@@ -976,6 +978,16 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 6);
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 17);
     EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{get 1234() { }}");
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{get 'string key'() { }}");
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
   }
 }
 

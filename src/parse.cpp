@@ -706,7 +706,9 @@ expression_ptr parser::parse_object_literal() {
       this->lexer_.skip();
       switch (this->peek().type) {
       QLJS_CASE_KEYWORD:
-      case token_type::identifier: {
+      case token_type::identifier:
+      case token_type::number:
+      case token_type::string: {
         source_code_span key_span = this->peek().span();
         expression_ptr key =
             this->make_expression<expression::literal>(key_span);
