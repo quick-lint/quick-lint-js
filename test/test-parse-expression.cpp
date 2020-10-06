@@ -939,7 +939,9 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->object_entry(1).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(1).value), "var v");
   }
+}
 
+TEST_F(test_parse_expression, object_literal_with_method_key) {
   {
     test_parser p(u8"{ func(a, b) { } }");
     expression_ptr ast = p.parse_expression();
@@ -949,6 +951,30 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 16);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"{ 'func'(a, b) { } }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 18);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"{ [func](a, b) { } }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 18);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
