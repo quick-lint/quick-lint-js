@@ -72,7 +72,8 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
   case token_type::identifier:
-  case token_type::kw_let: {
+  case token_type::kw_let:
+  case token_type::kw_static: {
     expression_ptr ast = this->make_expression<expression::variable>(
         this->peek().identifier_name(), this->peek().type);
     this->lexer_.skip();
@@ -233,6 +234,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     // Arrow function: async parameter => expression-or-block
     case token_type::identifier:
     case token_type::kw_let:
+    case token_type::kw_static:
       parameters.emplace_back(this->make_expression<expression::variable>(
           identifier(this->peek().span()), this->peek().type));
       this->lexer_.skip();

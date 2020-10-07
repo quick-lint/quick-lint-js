@@ -107,6 +107,7 @@ class parser {
     case token_type::kw_false:
     case token_type::kw_new:
     case token_type::kw_null:
+    case token_type::kw_static:
     case token_type::kw_super:
     case token_type::kw_this:
     case token_type::kw_true:
@@ -472,6 +473,7 @@ class parser {
     switch (this->peek().type) {
     case token_type::identifier:
     case token_type::kw_let:
+    case token_type::kw_static:
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_function);
       this->lexer_.skip();
@@ -514,6 +516,7 @@ class parser {
       case token_type::dot_dot_dot:
       case token_type::identifier:
       case token_type::kw_let:
+      case token_type::kw_static:
       case token_type::left_curly:
         this->parse_and_visit_binding_element(v, variable_kind::_parameter);
         break;
@@ -709,6 +712,7 @@ class parser {
       switch (this->peek().type) {
       case token_type::identifier:
       case token_type::kw_let:
+      case token_type::kw_static:
         v.visit_variable_declaration(this->peek().identifier_name(),
                                      variable_kind::_catch);
         this->lexer_.skip();
@@ -1025,6 +1029,7 @@ class parser {
       switch (this->peek().type) {
       case token_type::identifier:
       case token_type::kw_let:
+      case token_type::kw_static:
       case token_type::left_curly:
       case token_type::left_square:
         this->parse_and_visit_binding_element(v, declaration_kind);
