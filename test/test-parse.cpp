@@ -193,6 +193,15 @@ TEST(test_parse, parse_let_with_initializers) {
     EXPECT_EQ(v.variable_uses[0].name, u8"other");
     EXPECT_EQ(v.variable_uses[1].name, u8"x");
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let x = y in z;");
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, u8"y");
+    EXPECT_EQ(v.variable_uses[1].name, u8"z");
+  }
 }
 
 TEST(test_parse, parse_let_with_object_destructuring) {

@@ -431,7 +431,8 @@ class parser {
     case token_type::kw_const:
     case token_type::kw_let:
     case token_type::kw_var:
-      this->parse_and_visit_let_bindings(v, this->peek().type);
+      this->parse_and_visit_let_bindings(v, this->peek().type,
+                                         /*allow_in_operator=*/true);
       this->consume_semicolon();
       break;
 
@@ -518,7 +519,8 @@ class parser {
       case token_type::kw_let:
       case token_type::kw_static:
       case token_type::left_curly:
-        this->parse_and_visit_binding_element(v, variable_kind::_parameter);
+        this->parse_and_visit_binding_element(v, variable_kind::_parameter,
+                                              /*allow_in_operator=*/true);
         break;
       case token_type::right_paren:
         goto done;
@@ -796,7 +798,8 @@ class parser {
     case token_type::kw_var: {
       token_type variable_token = this->peek().type;
       buffering_visitor lhs;
-      this->parse_and_visit_let_bindings(lhs, this->peek().type);
+      this->parse_and_visit_let_bindings(lhs, this->peek().type,
+                                         /*allow_in_operator=*/false);
       switch (this->peek().type) {
       case token_type::semicolon:
         this->lexer_.skip();
@@ -930,7 +933,8 @@ class parser {
     case token_type::identifier:
     case token_type::kw_let:
     case token_type::left_curly:
-      this->parse_and_visit_binding_element(v, variable_kind::_import);
+      this->parse_and_visit_binding_element(v, variable_kind::_import,
+                                            /*allow_in_operator=*/true);
       break;
 
     // import expression statement:
@@ -990,7 +994,8 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v, token_type declaring_token) {
+  void parse_and_visit_let_bindings(Visitor &v, token_type declaring_token,
+                                    bool allow_in_operator) {
     variable_kind declaration_kind;
     switch (declaring_token) {
     case token_type::kw_const:
@@ -1007,12 +1012,13 @@ class parser {
       declaration_kind = variable_kind::_let;
       break;
     }
-    this->parse_and_visit_let_bindings(v, declaration_kind);
+    this->parse_and_visit_let_bindings(v, declaration_kind,
+                                       /*allow_in_operator=*/allow_in_operator);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v,
-                                    variable_kind declaration_kind) {
+  void parse_and_visit_let_bindings(Visitor &v, variable_kind declaration_kind,
+                                    bool allow_in_operator) {
     source_code_span let_span = this->peek().span();
     this->lexer_.skip();
     bool first_binding = true;
@@ -1032,7 +1038,8 @@ class parser {
       case token_type::kw_static:
       case token_type::left_curly:
       case token_type::left_square:
-        this->parse_and_visit_binding_element(v, declaration_kind);
+        this->parse_and_visit_binding_element(
+            v, declaration_kind, /*allow_in_operator=*/allow_in_operator);
         break;
       case token_type::kw_if:
       case token_type::kw_break:
@@ -1063,9 +1070,10 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_binding_element(Visitor &v,
-                                       variable_kind declaration_kind) {
+                                       variable_kind declaration_kind,
+                                       bool allow_in_operator) {
     expression_ptr ast = this->parse_expression(
-        precedence{.commas = false, .in_operator = false});
+        precedence{.commas = false, .in_operator = allow_in_operator});
     this->visit_binding_element(ast, v, declaration_kind);
   }
 
