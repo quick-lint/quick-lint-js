@@ -1953,6 +1953,34 @@ TEST(test_parse, debugger_statement) {
   }
 }
 
+TEST(test_parse, labelled_statement) {
+  {
+    spy_visitor v;
+    padded_string code(u8"some_label: ; x;");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    // TODO(strager): Announce the label with a visit?
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"foob: for (;;) body");
+    EXPECT_THAT(v.errors, IsEmpty());
+    // TODO(strager): Announce the label with a visit.
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // body
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"one: two: three: while (false) body;");
+    EXPECT_THAT(v.errors, IsEmpty());
+    // TODO(strager): Announce the labels with a visit or visits.
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // body
+  }
+}
+
 TEST(test_parse, report_missing_semicolon_for_declarations) {
   {
     spy_visitor v;

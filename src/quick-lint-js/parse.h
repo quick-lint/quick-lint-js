@@ -67,6 +67,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_statement(Visitor &v) {
+  parse_statement:
     switch (this->peek().type) {
     case token_type::kw_export:
       this->lexer_.skip();
@@ -101,7 +102,6 @@ class parser {
       break;
 
     case token_type::bang:
-    case token_type::identifier:
     case token_type::kw_await:
     case token_type::kw_delete:
     case token_type::kw_false:
@@ -126,6 +126,27 @@ class parser {
       this->parse_and_visit_expression(v);
       this->consume_semicolon();
       break;
+
+    case token_type::identifier: {
+      identifier ident = this->peek().identifier_name();
+      this->lexer_.skip();
+      switch (this->peek().type) {
+      // Labelled statement.
+      case token_type::colon:
+        this->lexer_.skip();
+        goto parse_statement;
+
+      // Expression statement.
+      default:
+        expression_ptr ast = this->make_expression<expression::variable>(
+            ident, token_type::identifier);
+        ast = this->parse_expression_remainder(ast, precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
+        this->consume_semicolon();
+        break;
+      }
+      break;
+    }
 
     case token_type::kw_class:
       this->parse_and_visit_class(v);
