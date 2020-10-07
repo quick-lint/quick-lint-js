@@ -893,6 +893,16 @@ TEST(test_parse, expression_statement) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(u8"`hello`");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"`hello ${world}`");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // world
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"42");
     EXPECT_THAT(v.visits, IsEmpty());
   }

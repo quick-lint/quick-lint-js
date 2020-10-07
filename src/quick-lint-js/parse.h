@@ -102,6 +102,8 @@ class parser {
       break;
 
     case token_type::bang:
+    case token_type::complete_template:
+    case token_type::incomplete_template:
     case token_type::kw_await:
     case token_type::kw_delete:
     case token_type::kw_false:
