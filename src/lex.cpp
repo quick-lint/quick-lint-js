@@ -257,11 +257,11 @@ retry:
 
   case '<':
     if (this->input_[1] == '!') {
-        this->skip_html_line_comment();
-        goto retry;
+      this->skip_html_line_comment();
+      goto retry;
     } else if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::less_equal;
-        this->input_ += 2;
+      this->last_token_.type = token_type::less_equal;
+      this->input_ += 2;
     } else if (this->input_[1] == '<') {
       if (this->input_[2] == '=') {
         this->last_token_.type = token_type::less_less_equal;
@@ -1245,7 +1245,8 @@ found_end_of_file:
 }
 
 void lexer::skip_html_line_comment() {
-  QLJS_ASSERT(this->input_[0] == '<' && this->input_[1] == '!' && this->input_[2] == '-' && this->input_[3] == '-');
+  QLJS_ASSERT(this->input_[0] == '<' && this->input_[1] == '!' &&
+              this->input_[2] == '-' && this->input_[3] == '-');
   for (char8* c = this->input_ + 4;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {

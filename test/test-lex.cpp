@@ -111,8 +111,8 @@ TEST(test_lex, lex_html_open_comments) {
   check_single_token(u8"<!--// hello", token_type::end_of_file);
   check_tokens(u8"hello<!--->\n \n \nworld",
                {token_type::identifier, token_type::identifier});
-
-  for (string8_view control_character : control_characters_except_line_terminators) {
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
     padded_string input(u8"<!-- hello " + string8(control_character) +
                         u8" world\n42.0");
     SCOPED_TRACE(input);
