@@ -120,7 +120,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   }
 
   case token_type::incomplete_template:
-    return this->parse_template();
+    return this->parse_template(/*tag=*/std::nullopt);
 
   case token_type::kw_await: {
     source_code_span operator_span = this->peek().span();
@@ -541,6 +541,22 @@ next:
     goto next;
   }
 
+  case token_type::complete_template: {
+    source_code_span template_span = this->peek().span();
+    this->lexer_.skip();
+    expression_ptr tag = children.back();
+    children.back() =
+        this->make_expression<expression::tagged_template_literal>(
+            this->expressions_.make_array(&tag, &tag + 1), template_span);
+    goto next;
+  }
+
+  case token_type::incomplete_template: {
+    expression_ptr tag = children.back();
+    children.back() = this->parse_template(tag);
+    goto next;
+  }
+
   case token_type::colon:
   case token_type::end_of_file:
   case token_type::identifier:
@@ -789,9 +805,12 @@ expression_ptr parser::parse_object_literal() {
       source_code_span(left_curly_begin, right_curly_end));
 }
 
-expression_ptr parser::parse_template() {
+expression_ptr parser::parse_template(std::optional<expression_ptr> tag) {
   const char8 *template_begin = this->peek().begin;
   vector<expression_ptr> children("parse_template children");
+  if (tag.has_value()) {
+    children.emplace_back(*tag);
+  }
   for (;;) {
     QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
     this->lexer_.skip();
@@ -803,9 +822,17 @@ expression_ptr parser::parse_template() {
       case token_type::complete_template: {
         const char8 *template_end = this->peek().end;
         this->lexer_.skip();
-        return this->make_expression<expression::_template>(
-            this->expressions_.make_array(std::move(children)),
-            source_code_span(template_begin, template_end));
+
+        expression_arena::array_ptr<expression_ptr> children_array =
+            this->expressions_.make_array(std::move(children));
+        source_code_span template_span(template_begin, template_end);
+        if (tag.has_value()) {
+          return this->make_expression<expression::tagged_template_literal>(
+              children_array, template_span);
+        } else {
+          return this->make_expression<expression::_template>(children_array,
+                                                              template_span);
+        }
       }
 
       case token_type::incomplete_template:

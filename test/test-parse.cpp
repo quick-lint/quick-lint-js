@@ -1105,6 +1105,13 @@ TEST(test_parse, parse_templates_in_expressions) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, u8"four");
   }
+
+  {
+    spy_visitor v = parse_and_visit_expression(u8"tag`${inside}`");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, u8"tag");
+    EXPECT_EQ(v.variable_uses[1].name, u8"inside");
+  }
 }
 
 TEST(test_parse, DISABLED_parse_invalid_function_calls) {

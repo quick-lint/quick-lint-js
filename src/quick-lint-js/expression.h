@@ -90,6 +90,7 @@ enum class expression_kind {
   rw_unary_suffix,
   spread,
   super,
+  tagged_template_literal,
   unary_operator,
   variable,
 };
@@ -122,6 +123,9 @@ class expression_arena {
 
   template <class T, std::size_t InSituCapacity>
   array_ptr<T> make_array(vector<T, InSituCapacity> &&);
+
+  template <class T>
+  array_ptr<T> make_array(T *begin, T *end);
 
   buffering_visitor_ptr make_buffering_visitor() {
     // See matching 'delete' in delete_buffering_visitor.
@@ -182,6 +186,7 @@ class expression {
   class rw_unary_suffix;
   class spread;
   class super;
+  class tagged_template_literal;
   class unary_operator;
   class variable;
 
@@ -306,10 +311,17 @@ expression_ptr expression_arena::make_expression(Args &&... args) {
 template <class T, std::size_t InSituCapacity>
 inline expression_arena::array_ptr<T> expression_arena::make_array(
     vector<T, InSituCapacity> &&elements) {
-  T *result_begin = this->allocate_array_move(
-      elements.data(), elements.data() + elements.size());
-  int size = narrow_cast<int>(elements.size());
+  array_ptr<T> result =
+      this->make_array(elements.data(), elements.data() + elements.size());
   elements.clear();
+  return result;
+}
+
+template <class T>
+inline expression_arena::array_ptr<T> expression_arena::make_array(T *begin,
+                                                                   T *end) {
+  T *result_begin = this->allocate_array_move(begin, end);
+  int size = narrow_cast<int>(end - begin);
   return array_ptr<T>(result_begin, size);
 }
 
@@ -915,6 +927,37 @@ class expression::super final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::super>);
 
+class expression::tagged_template_literal final : public expression {
+ public:
+  explicit tagged_template_literal(
+      expression_arena::array_ptr<expression_ptr> tag_and_template_children,
+      source_code_span template_span) noexcept
+      : expression(expression_kind::tagged_template_literal),
+        tag_and_template_children_(tag_and_template_children),
+        template_span_end_(template_span.end()) {
+    QLJS_ASSERT(!tag_and_template_children.empty());
+  }
+
+  int child_count_impl() const noexcept {
+    return this->tag_and_template_children_.size();
+  }
+
+  expression_ptr child_impl(int index) const noexcept {
+    return this->tag_and_template_children_[index];
+  }
+
+  source_code_span span_impl() const noexcept {
+    return source_code_span(this->tag_and_template_children_[0]->span().begin(),
+                            this->template_span_end_);
+  }
+
+ private:
+  expression_arena::array_ptr<expression_ptr> tag_and_template_children_;
+  const char8 *template_span_end_;
+};
+static_assert(
+    expression_arena::is_allocatable<expression::tagged_template_literal>);
+
 class expression::unary_operator final
     : public expression::expression_with_prefix_operator_base {
  public:
@@ -987,6 +1030,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(rw_unary_suffix)
     QLJS_EXPRESSION_CASE(spread)
     QLJS_EXPRESSION_CASE(super)
+    QLJS_EXPRESSION_CASE(tagged_template_literal)
     QLJS_EXPRESSION_CASE(unary_operator)
     QLJS_EXPRESSION_CASE(variable)
   }

@@ -102,6 +102,7 @@ class test_parser {
     case expression_kind::call:
     case expression_kind::compound_assignment:
     case expression_kind::index:
+    case expression_kind::tagged_template_literal:
       children();
       break;
     case expression_kind::arrow_function_with_statements:
@@ -812,6 +813,46 @@ TEST_F(test_parse_expression, parse_template) {
   }
 }
 
+TEST_F(test_parse_expression, tagged_template_literal) {
+  {
+    test_parser p(u8"hello`world`");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::tagged_template_literal);
+    EXPECT_EQ(ast->child_count(), 1);
+    EXPECT_EQ(summarize(ast->child(0)), "var hello");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 12);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"hello`template ${literal} thingy`");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::tagged_template_literal);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "var hello");
+    EXPECT_EQ(summarize(ast->child(1)), "var literal");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 33);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"a.b()`c`");
+    EXPECT_EQ(summarize(ast), "taggedtemplate(call(dot(var a, b)))");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"tag`template`.property");
+    EXPECT_EQ(summarize(ast), "dot(taggedtemplate(var tag), property)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"x + tag`template`");
+    EXPECT_EQ(summarize(ast), "binary(var x, taggedtemplate(var tag))");
+  }
+}
+
 TEST_F(test_parse_expression, array_literal) {
   {
     test_parser p(u8"[]");
@@ -1454,6 +1495,8 @@ std::string summarize(const expression &expression) {
     return "spread(" + summarize(expression.child_0()) + ")";
   case expression_kind::super:
     return "super";
+  case expression_kind::tagged_template_literal:
+    return "taggedtemplate(" + children() + ")";
   case expression_kind::unary_operator:
     return "unary(" + summarize(expression.child_0()) + ")";
   case expression_kind::compound_assignment:
