@@ -188,6 +188,7 @@ class expression {
   expression_kind kind() const noexcept { return this->kind_; }
 
   identifier variable_identifier() const noexcept;
+  token_type variable_identifier_token_type() const noexcept;
 
   int child_count() const noexcept;
 
@@ -221,6 +222,10 @@ class expression {
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
 
   identifier variable_identifier_impl() const noexcept {
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+
+  token_type variable_identifier_token_type_impl() const noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
@@ -926,11 +931,17 @@ class expression::variable final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::variable;
 
-  explicit variable(identifier variable_identifier) noexcept
-      : expression(kind), variable_identifier_(variable_identifier) {}
+  explicit variable(identifier variable_identifier, token_type type) noexcept
+      : expression(kind),
+        type_(type),
+        variable_identifier_(variable_identifier) {}
 
   identifier variable_identifier_impl() const noexcept {
     return this->variable_identifier_;
+  }
+
+  token_type variable_identifier_token_type_impl() const noexcept {
+    return this->type_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -938,6 +949,7 @@ class expression::variable final : public expression {
   }
 
  private:
+  token_type type_;
   identifier variable_identifier_;
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
@@ -992,6 +1004,12 @@ inline auto expression::with_derived(Func &&func) const {
 inline identifier expression::variable_identifier() const noexcept {
   return this->with_derived(
       [](const auto &self) { return self.variable_identifier_impl(); });
+}
+
+inline token_type expression::variable_identifier_token_type() const noexcept {
+  return this->with_derived([](const auto &self) {
+    return self.variable_identifier_token_type_impl();
+  });
 }
 
 inline int expression::child_count() const noexcept {

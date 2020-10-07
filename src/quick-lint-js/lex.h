@@ -24,7 +24,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 
-#define QLJS_CASE_KEYWORD_EXCEPT_GET               \
+#define QLJS_CASE_KEYWORD_EXCEPT_GET_AND_SET       \
   case ::quick_lint_js::token_type::kw_as:         \
   case ::quick_lint_js::token_type::kw_async:      \
   case ::quick_lint_js::token_type::kw_await:      \
@@ -71,7 +71,8 @@
 
 #define QLJS_CASE_KEYWORD                   \
   case ::quick_lint_js::token_type::kw_get: \
-    QLJS_CASE_KEYWORD_EXCEPT_GET
+  case ::quick_lint_js::token_type::kw_set: \
+    QLJS_CASE_KEYWORD_EXCEPT_GET_AND_SET
 
 namespace quick_lint_js {
 class error_reporter;
@@ -143,6 +144,7 @@ enum class token_type {
   kw_null,
   kw_of,
   kw_return,
+  kw_set,
   kw_static,
   kw_super,
   kw_switch,
@@ -274,9 +276,10 @@ class lexer {
   // The given template_begin is used for error reporting.
   void skip_in_template(const char8* template_begin);
 
-  // Reparse a '/' token as a regular expression literal.
+  // Reparse a '/' or '/=' token as a regular expression literal.
   //
-  // Precondition: this->peek().type == token_type::slash.
+  // Precondition: this->peek().type == token_type::slash or
+  //               token_type::slash_equal.
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
 

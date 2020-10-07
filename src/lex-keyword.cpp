@@ -68,7 +68,7 @@ struct keyword_entry {
   int string_offset;
   token_type type;
 };
-/* maximum key range = 63, duplicates = 0 */
+/* maximum key range = 58, duplicates = 0 */
 
 class lexer_keyword {
  private:
@@ -80,21 +80,21 @@ class lexer_keyword {
 
 inline unsigned int lexer_keyword::hash(const char *str, size_t len) {
   static const unsigned char asso_values[] = {
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 5,  15, 0,  5,  0,  15, 20, 50, 15, 66, 66,
-      40, 15, 25, 0,  66, 66, 0,  20, 0,  10, 30, 5,  15, 45, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
-      66, 66, 66, 66};
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 5,  25, 0,  5,  0,  25, 45, 50, 5,  61, 61,
+      40, 20, 35, 0,  61, 61, 0,  15, 0,  0,  15, 5,  10, 30, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61,
+      61, 61, 61, 61};
   return len + asso_values[static_cast<unsigned char>(str[1])] +
          asso_values[static_cast<unsigned char>(str[0])];
 }
@@ -111,68 +111,69 @@ struct stringpool_t {
   char stringpool_str11[sizeof("delete")];
   char stringpool_str12[sizeof("default")];
   char stringpool_str13[sizeof("debugger")];
+  char stringpool_str14[sizeof("with")];
   char stringpool_str15[sizeof("await")];
-  char stringpool_str17[sizeof("of")];
-  char stringpool_str18[sizeof("for")];
-  char stringpool_str19[sizeof("from")];
-  char stringpool_str20[sizeof("break")];
-  char stringpool_str21[sizeof("export")];
-  char stringpool_str22[sizeof("extends")];
-  char stringpool_str23[sizeof("get")];
-  char stringpool_str24[sizeof("with")];
-  char stringpool_str25[sizeof("false")];
-  char stringpool_str26[sizeof("static")];
-  char stringpool_str27[sizeof("as")];
-  char stringpool_str28[sizeof("new")];
-  char stringpool_str30[sizeof("async")];
-  char stringpool_str31[sizeof("switch")];
+  char stringpool_str16[sizeof("export")];
+  char stringpool_str17[sizeof("extends")];
+  char stringpool_str18[sizeof("set")];
+  char stringpool_str19[sizeof("void")];
+  char stringpool_str20[sizeof("super")];
+  char stringpool_str21[sizeof("static")];
+  char stringpool_str22[sizeof("as")];
+  char stringpool_str23[sizeof("var")];
+  char stringpool_str25[sizeof("async")];
+  char stringpool_str26[sizeof("switch")];
+  char stringpool_str27[sizeof("of")];
+  char stringpool_str28[sizeof("for")];
+  char stringpool_str29[sizeof("from")];
+  char stringpool_str30[sizeof("break")];
+  char stringpool_str31[sizeof("import")];
   char stringpool_str32[sizeof("if")];
   char stringpool_str33[sizeof("function")];
-  char stringpool_str34[sizeof("void")];
-  char stringpool_str35[sizeof("super")];
-  char stringpool_str36[sizeof("import")];
+  char stringpool_str35[sizeof("false")];
+  char stringpool_str36[sizeof("typeof")];
   char stringpool_str37[sizeof("finally")];
-  char stringpool_str38[sizeof("var")];
+  char stringpool_str38[sizeof("new")];
   char stringpool_str39[sizeof("null")];
+  char stringpool_str40[sizeof("yield")];
   char stringpool_str42[sizeof("in")];
   char stringpool_str43[sizeof("let")];
   char stringpool_str44[sizeof("else")];
   char stringpool_str45[sizeof("class")];
+  char stringpool_str48[sizeof("get")];
   char stringpool_str50[sizeof("instanceof")];
-  char stringpool_str51[sizeof("typeof")];
   char stringpool_str54[sizeof("this")];
   char stringpool_str55[sizeof("throw")];
   char stringpool_str60[sizeof("while")];
-  char stringpool_str65[sizeof("yield")];
 };
 static const struct stringpool_t stringpool_contents = {
-    "try",    "true",    "const",      "return",   "do",       "continue",
-    "case",   "catch",   "delete",     "default",  "debugger", "await",
-    "of",     "for",     "from",       "break",    "export",   "extends",
-    "get",    "with",    "false",      "static",   "as",       "new",
-    "async",  "switch",  "if",         "function", "void",     "super",
-    "import", "finally", "var",        "null",     "in",       "let",
-    "else",   "class",   "instanceof", "typeof",   "this",     "throw",
-    "while",  "yield"};
+    "try",    "true",   "const",   "return",  "do",       "continue",
+    "case",   "catch",  "delete",  "default", "debugger", "with",
+    "await",  "export", "extends", "set",     "void",     "super",
+    "static", "as",     "var",     "async",   "switch",   "of",
+    "for",    "from",   "break",   "import",  "if",       "function",
+    "false",  "typeof", "finally", "new",     "null",     "yield",
+    "in",     "let",    "else",    "class",   "get",      "instanceof",
+    "this",   "throw",  "while"};
 #define stringpool ((const char *)&stringpool_contents)
 const struct keyword_entry *lexer_keyword::look_up(const char *str,
                                                    size_t len) {
   enum {
-    TOTAL_KEYWORDS = 44,
+    TOTAL_KEYWORDS = 45,
     MIN_WORD_LENGTH = 2,
     MAX_WORD_LENGTH = 10,
     MIN_HASH_VALUE = 3,
-    MAX_HASH_VALUE = 65
+    MAX_HASH_VALUE = 60
   };
 
   static const struct keyword_entry wordlist[] = {
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 89 "src/lex-keyword.gperf"
+      // #line 90 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str3,
        token_type::kw_try},
-      // #line 88 "src/lex-keyword.gperf"
+      // #line 89 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str4,
        token_type::kw_true},
       // #line 59 "src/lex-keyword.gperf"
@@ -202,79 +203,83 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
       // #line 61 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str13,
        token_type::kw_debugger},
-      {-1, static_cast<token_type>(0)},
+      // #line 95 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str14,
+       token_type::kw_with},
       // #line 54 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str15,
        token_type::kw_await},
-      {-1, static_cast<token_type>(0)},
-      // #line 81 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str17,
-       token_type::kw_of},
-      // #line 70 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str18,
-       token_type::kw_for},
-      // #line 71 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str19,
-       token_type::kw_from},
-      // #line 55 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str20,
-       token_type::kw_break},
       // #line 66 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str21,
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str16,
        token_type::kw_export},
       // #line 67 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str22,
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str17,
        token_type::kw_extends},
-      // #line 73 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str23,
-       token_type::kw_get},
-      // #line 94 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str24,
-       token_type::kw_with},
-      // #line 68 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str25,
-       token_type::kw_false},
       // #line 83 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str26,
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str18,
+       token_type::kw_set},
+      // #line 93 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str19,
+       token_type::kw_void},
+      // #line 85 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str20,
+       token_type::kw_super},
+      // #line 84 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str21,
        token_type::kw_static},
       // #line 52 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str27,
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str22,
        token_type::kw_as},
-      // #line 79 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str28,
-       token_type::kw_new},
+      // #line 92 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str23,
+       token_type::kw_var},
       {-1, static_cast<token_type>(0)},
       // #line 53 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str30,
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str25,
        token_type::kw_async},
-      // #line 85 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str31,
+      // #line 86 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str26,
        token_type::kw_switch},
+      // #line 81 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str27,
+       token_type::kw_of},
+      // #line 70 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str28,
+       token_type::kw_for},
+      // #line 71 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str29,
+       token_type::kw_from},
+      // #line 55 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str30,
+       token_type::kw_break},
+      // #line 75 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str31,
+       token_type::kw_import},
       // #line 74 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str32,
        token_type::kw_if},
       // #line 72 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str33,
        token_type::kw_function},
-      // #line 92 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str34,
-       token_type::kw_void},
-      // #line 84 "src/lex-keyword.gperf"
+      {-1, static_cast<token_type>(0)},
+      // #line 68 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str35,
-       token_type::kw_super},
-      // #line 75 "src/lex-keyword.gperf"
+       token_type::kw_false},
+      // #line 91 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str36,
-       token_type::kw_import},
+       token_type::kw_typeof},
       // #line 69 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str37,
        token_type::kw_finally},
-      // #line 91 "src/lex-keyword.gperf"
+      // #line 79 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str38,
-       token_type::kw_var},
+       token_type::kw_new},
       // #line 80 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str39,
        token_type::kw_null},
-      {-1, static_cast<token_type>(0)},
+      // #line 96 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str40,
+       token_type::kw_yield},
       {-1, static_cast<token_type>(0)},
       // #line 76 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str42,
@@ -290,36 +295,29 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
        token_type::kw_class},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      {-1, static_cast<token_type>(0)},
+      // #line 73 "src/lex-keyword.gperf"
+      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str48,
+       token_type::kw_get},
       {-1, static_cast<token_type>(0)},
       // #line 77 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str50,
        token_type::kw_instanceof},
-      // #line 90 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str51,
-       token_type::kw_typeof},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 86 "src/lex-keyword.gperf"
+      {-1, static_cast<token_type>(0)},
+      // #line 87 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str54,
        token_type::kw_this},
-      // #line 87 "src/lex-keyword.gperf"
+      // #line 88 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str55,
        token_type::kw_throw},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
       {-1, static_cast<token_type>(0)},
-      // #line 93 "src/lex-keyword.gperf"
+      // #line 94 "src/lex-keyword.gperf"
       {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str60,
-       token_type::kw_while},
-      {-1, static_cast<token_type>(0)},
-      {-1, static_cast<token_type>(0)},
-      {-1, static_cast<token_type>(0)},
-      {-1, static_cast<token_type>(0)},
-      // #line 95 "src/lex-keyword.gperf"
-      {(int)(size_t) & ((struct stringpool_t *)0)->stringpool_str65,
-       token_type::kw_yield}};
+       token_type::kw_while}};
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH) {
     unsigned int key = hash(str, len);
@@ -336,7 +334,7 @@ const struct keyword_entry *lexer_keyword::look_up(const char *str,
   }
   return 0;
 }
-// #line 96 "src/lex-keyword.gperf"
+// #line 97 "src/lex-keyword.gperf"
 
 }
 

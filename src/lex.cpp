@@ -117,9 +117,9 @@ identifier token::identifier_name() const noexcept {
   QLJS_CASE_KEYWORD:
   case token_type::identifier:
     break;
-    default:
-      QLJS_ASSERT(false);
-      break;
+  default:
+    QLJS_ASSERT(false);
+    break;
   }
   return identifier(this->span(), this->normalized_identifier_end);
 }
@@ -148,19 +148,19 @@ retry:
     this->last_token_.type = token_type::number;
     if (this->input_[0] == '0') {
       switch (this->input_[1]) {
-        case 'x':
-        case 'X':
-          this->input_ += 2;
-          this->parse_hexadecimal_number();
-          break;
-        case 'b':
-        case 'B':
-          this->input_ += 2;
-          this->parse_binary_number();
-          break;
-        default:
-          this->parse_number();
-          break;
+      case 'x':
+      case 'X':
+        this->input_ += 2;
+        this->parse_hexadecimal_number();
+        break;
+      case 'b':
+      case 'B':
+        this->input_ += 2;
+        this->parse_binary_number();
+        break;
+      default:
+        this->parse_number();
+        break;
       }
     } else {
       this->parse_number();
@@ -206,364 +206,364 @@ retry:
     this->last_token_.end = this->input_;
     break;
 
-    case '.':
-      if (this->input_[1] == '.' && this->input_[2] == '.') {
-        this->last_token_.type = token_type::dot_dot_dot;
+  case '.':
+    if (this->input_[1] == '.' && this->input_[2] == '.') {
+      this->last_token_.type = token_type::dot_dot_dot;
+      this->input_ += 3;
+    } else if (this->is_digit(this->input_[1])) {
+      this->last_token_.type = token_type::number;
+      this->parse_number();
+    } else {
+      this->last_token_.type = token_type::dot;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '=':
+    if (this->input_[1] == '=') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::equal_equal_equal;
         this->input_ += 3;
-      } else if (this->is_digit(this->input_[1])) {
-        this->last_token_.type = token_type::number;
-        this->parse_number();
       } else {
-        this->last_token_.type = token_type::dot;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '=':
-      if (this->input_[1] == '=') {
-        if (this->input_[2] == '=') {
-          this->last_token_.type = token_type::equal_equal_equal;
-          this->input_ += 3;
-        } else {
-          this->last_token_.type = token_type::equal_equal;
-          this->input_ += 2;
-        }
-      } else if (this->input_[1] == '>') {
-        this->last_token_.type = token_type::equal_greater;
+        this->last_token_.type = token_type::equal_equal;
         this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::equal;
-        this->input_ += 1;
       }
-      this->last_token_.end = this->input_;
-      break;
+    } else if (this->input_[1] == '>') {
+      this->last_token_.type = token_type::equal_greater;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::equal;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
 
-    case '!':
-      if (this->input_[1] == '=') {
-        if (this->input_[2] == '=') {
-          this->last_token_.type = token_type::bang_equal_equal;
-          this->input_ += 3;
-        } else {
-          this->last_token_.type = token_type::bang_equal;
-          this->input_ += 2;
-        }
+  case '!':
+    if (this->input_[1] == '=') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::bang_equal_equal;
+        this->input_ += 3;
       } else {
-        this->last_token_.type = token_type::bang;
-        this->input_ += 1;
+        this->last_token_.type = token_type::bang_equal;
+        this->input_ += 2;
       }
-      this->last_token_.end = this->input_;
-      break;
+    } else {
+      this->last_token_.type = token_type::bang;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
 
-    case '<':
-      if (this->input_[1] == '!') {
+  case '<':
+    if (this->input_[1] == '!') {
         this->skip_html_line_comment();
         goto retry;
-      } else if (this->input_[1] == '=') {
+    } else if (this->input_[1] == '=') {
         this->last_token_.type = token_type::less_equal;
         this->input_ += 2;
-      } else if (this->input_[1] == '<') {
-        if (this->input_[2] == '=') {
-          this->last_token_.type = token_type::less_less_equal;
-          this->input_ += 3;
+    } else if (this->input_[1] == '<') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::less_less_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::less_less;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::less;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '>':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::greater_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '>') {
+      if (this->input_[2] == '>') {
+        if (this->input_[3] == '=') {
+          this->last_token_.type = token_type::greater_greater_greater_equal;
+          this->input_ += 4;
         } else {
-          this->last_token_.type = token_type::less_less;
-          this->input_ += 2;
-        }
-      } else {
-        this->last_token_.type = token_type::less;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '>':
-      if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::greater_equal;
-        this->input_ += 2;
-      } else if (this->input_[1] == '>') {
-        if (this->input_[2] == '>') {
-          if (this->input_[3] == '=') {
-            this->last_token_.type = token_type::greater_greater_greater_equal;
-            this->input_ += 4;
-          } else {
-            this->last_token_.type = token_type::greater_greater_greater;
-            this->input_ += 3;
-          }
-        } else if (this->input_[2] == '=') {
-          this->last_token_.type = token_type::greater_greater_equal;
+          this->last_token_.type = token_type::greater_greater_greater;
           this->input_ += 3;
-        } else {
-          this->last_token_.type = token_type::greater_greater;
-          this->input_ += 2;
         }
+      } else if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::greater_greater_equal;
+        this->input_ += 3;
       } else {
-        this->last_token_.type = token_type::greater;
-        this->input_ += 1;
+        this->last_token_.type = token_type::greater_greater;
+        this->input_ += 2;
       }
-      this->last_token_.end = this->input_;
-      break;
+    } else {
+      this->last_token_.type = token_type::greater;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
 
-    case '+':
-      if (this->input_[1] == '+') {
-        this->last_token_.type = token_type::plus_plus;
-        this->input_ += 2;
-      } else if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::plus_equal;
-        this->input_ += 2;
+  case '+':
+    if (this->input_[1] == '+') {
+      this->last_token_.type = token_type::plus_plus;
+      this->input_ += 2;
+    } else if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::plus_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::plus;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '-':
+    if (this->input_[1] == '-') {
+      this->last_token_.type = token_type::minus_minus;
+      this->input_ += 2;
+    } else if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::minus_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::minus;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '*':
+    if (this->input_[1] == '*') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::star_star_equal;
+        this->input_ += 3;
       } else {
-        this->last_token_.type = token_type::plus;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '-':
-      if (this->input_[1] == '-') {
-        this->last_token_.type = token_type::minus_minus;
+        this->last_token_.type = token_type::star_star;
         this->input_ += 2;
-      } else if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::minus_equal;
-        this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::minus;
-        this->input_ += 1;
       }
-      this->last_token_.end = this->input_;
-      break;
+    } else if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::star_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::star;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
 
-    case '*':
-      if (this->input_[1] == '*') {
-        if (this->input_[2] == '=') {
-          this->last_token_.type = token_type::star_star_equal;
-          this->input_ += 3;
+  case '/':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::slash_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '*') {
+      this->skip_block_comment();
+      goto retry;
+    } else if (this->input_[1] == '/') {
+      this->skip_line_comment();
+      goto retry;
+    } else {
+      this->last_token_.type = token_type::slash;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '^':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::circumflex_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::circumflex;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '%':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::percent_equal;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::percent;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '&':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::ampersand_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '&') {
+      this->last_token_.type = token_type::ampersand_ampersand;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::ampersand;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '|':
+    if (this->input_[1] == '=') {
+      this->last_token_.type = token_type::pipe_equal;
+      this->input_ += 2;
+    } else if (this->input_[1] == '|') {
+      this->last_token_.type = token_type::pipe_pipe;
+      this->input_ += 2;
+    } else {
+      this->last_token_.type = token_type::pipe;
+      this->input_ += 1;
+    }
+    this->last_token_.end = this->input_;
+    break;
+
+  case '"':
+  case '\'': {
+    char8 opening_quote = this->input_[0];
+
+    char8* c = &this->input_[1];
+    for (;;) {
+      switch (static_cast<unsigned char>(*c)) {
+      case '\0':
+        if (this->is_eof(c)) {
+          this->error_reporter_->report(error_unclosed_string_literal{
+              source_code_span(&this->input_[0], c)});
+          goto done;
         } else {
-          this->last_token_.type = token_type::star_star;
-          this->input_ += 2;
+          ++c;
+          break;
         }
-      } else if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::star_equal;
-        this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::star;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
 
-    case '/':
-      if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::slash_equal;
-        this->input_ += 2;
-      } else if (this->input_[1] == '*') {
-        this->skip_block_comment();
-        goto retry;
-      } else if (this->input_[1] == '/') {
-        this->skip_line_comment();
-        goto retry;
-      } else {
-        this->last_token_.type = token_type::slash;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
+      case '\n':
+      case '\r':
+        this->error_reporter_->report(error_unclosed_string_literal{
+            source_code_span(&this->input_[0], c)});
+        goto done;
 
-    case '^':
-      if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::circumflex_equal;
-        this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::circumflex;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '%':
-      if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::percent_equal;
-        this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::percent;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '&':
-      if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::ampersand_equal;
-        this->input_ += 2;
-      } else if (this->input_[1] == '&') {
-        this->last_token_.type = token_type::ampersand_ampersand;
-        this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::ampersand;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '|':
-      if (this->input_[1] == '=') {
-        this->last_token_.type = token_type::pipe_equal;
-        this->input_ += 2;
-      } else if (this->input_[1] == '|') {
-        this->last_token_.type = token_type::pipe_pipe;
-        this->input_ += 2;
-      } else {
-        this->last_token_.type = token_type::pipe;
-        this->input_ += 1;
-      }
-      this->last_token_.end = this->input_;
-      break;
-
-    case '"':
-    case '\'': {
-      char8 opening_quote = this->input_[0];
-
-      char8* c = &this->input_[1];
-      for (;;) {
-        switch (static_cast<unsigned char>(*c)) {
-          case '\0':
-            if (this->is_eof(c)) {
-              this->error_reporter_->report(error_unclosed_string_literal{
-                  source_code_span(&this->input_[0], c)});
-              goto done;
-            } else {
-              ++c;
-              break;
-            }
-
-          case '\n':
-          case '\r':
+      case '\\':
+        ++c;
+        switch (*c) {
+        case '\0':
+          if (this->is_eof(c)) {
             this->error_reporter_->report(error_unclosed_string_literal{
                 source_code_span(&this->input_[0], c)});
             goto done;
-
-          case '\\':
-            ++c;
-            switch (*c) {
-              case '\0':
-                if (this->is_eof(c)) {
-                  this->error_reporter_->report(error_unclosed_string_literal{
-                      source_code_span(&this->input_[0], c)});
-                  goto done;
-                } else {
-                  ++c;
-                  break;
-                }
-              default:
-                ++c;
-                break;
-            }
-            break;
-
-          case '"':
-          case '\'':
-            if (*c == opening_quote) {
-              ++c;
-              goto done;
-            }
+          } else {
             ++c;
             break;
-
-          default:
-            ++c;
-            break;
+          }
+        default:
+          ++c;
+          break;
         }
-      }
-    done:
-      this->last_token_.type = token_type::string;
-      this->input_ = c;
-      this->last_token_.end = this->input_;
-      break;
-    }
-
-    case '`': {
-      this->input_ += 1;
-      parsed_template_body body = this->parse_template_body(
-          this->input_, this->last_token_.begin, this->error_reporter_);
-      this->last_token_.type = body.type;
-      this->input_ = body.end;
-      this->last_token_.end = this->input_;
-      break;
-    }
-
-    case '#':
-      if (this->input_[1] == '!' &&
-          this->input_ == this->original_input_.data()) {
-        this->skip_line_comment();
-        goto retry;
-      } else {
-        this->error_reporter_->report(error_unexpected_hash_character{
-            source_code_span(&this->input_[0], &this->input_[1])});
-        this->input_ += 1;
-        this->skip_whitespace();
-        goto retry;
-      }
-      break;
-
-    case '\0':
-      if (this->is_eof(this->input_)) {
-        this->last_token_.type = token_type::end_of_file;
-        this->last_token_.end = this->input_;
         break;
-      } else {
-        [[fallthrough]];
+
+      case '"':
+      case '\'':
+        if (*c == opening_quote) {
+          ++c;
+          goto done;
+        }
+        ++c;
+        break;
+
+      default:
+        ++c;
+        break;
       }
-    case u8'\x01':    // SOH Start of Heading
-    case u8'\x02':    // STX Start of Text
-    case u8'\x03':    // ETX End-of-text character
-    case u8'\x04':    // EOT End-of-transmission character
-    case u8'\x05':    // ENQ Enquiry character
-    case u8'\x06':    // ACK Acknowledge character
-    case u8'\x07':    // BEL Bell character
-    case u8'\x08':    // BS Backspace
-    case u8'\x0e':    // SO Shift Out
-    case u8'\x0f':    // SI Shift In
-    case u8'\x10':    // DLE Data Link Escape
-    case u8'\x11':    // DC1 Device Control 1
-    case u8'\x12':    // DC2 Device Control 2
-    case u8'\x13':    // DC3 Device Control 3
-    case u8'\x14':    // DC4 Device Control 4
-    case u8'\x15':    // NAK Negative-acknowledge character
-    case u8'\x16':    // SYN Synchronous Idle
-    case u8'\x17':    // ETB End of Transmission Block
-    case u8'\x18':    // CAN Cancel character
-    case u8'\x19':    // EM End of Medium
-    case u8'\x1a':    // SUB Substitute character
-    case u8'\x1b':    // ESC Escape character
-    case u8'\x1c':    // FS File Separator
-    case u8'\x1d':    // GS Group Separator
-    case u8'\x1e':    // RS Record Separator
-    case u8'\x1f':    // US Unit Separator
-    case u8'\x7f': {  // DEL Delete
-      char8* end = this->input_ + 1;
-      this->error_reporter_->report(error_unexpected_control_character{
-          .character = source_code_span(this->input_, end)});
-      this->input_ = end;
+    }
+  done:
+    this->last_token_.type = token_type::string;
+    this->input_ = c;
+    this->last_token_.end = this->input_;
+    break;
+  }
+
+  case '`': {
+    this->input_ += 1;
+    parsed_template_body body = this->parse_template_body(
+        this->input_, this->last_token_.begin, this->error_reporter_);
+    this->last_token_.type = body.type;
+    this->input_ = body.end;
+    this->last_token_.end = this->input_;
+    break;
+  }
+
+  case '#':
+    if (this->input_[1] == '!' &&
+        this->input_ == this->original_input_.data()) {
+      this->skip_line_comment();
+      goto retry;
+    } else {
+      this->error_reporter_->report(error_unexpected_hash_character{
+          source_code_span(&this->input_[0], &this->input_[1])});
+      this->input_ += 1;
       this->skip_whitespace();
       goto retry;
     }
+    break;
 
-    case u8'@': {
-      char8* end = this->input_ + 1;
-      this->error_reporter_->report(error_unexpected_at_character{
-          .character = source_code_span(this->input_, end)});
-      this->input_ = end;
-      this->skip_whitespace();
-      goto retry;
-    }
-
-    default:
-      this->error_reporter_->report_fatal_error_unimplemented_character(
-          /*qljs_file_name=*/__FILE__,
-          /*qljs_line=*/__LINE__,
-          /*qljs_function_name=*/__func__,
-          /*character=*/this->input_);
-      QLJS_CRASH_DISALLOWING_CORE_DUMP();
+  case '\0':
+    if (this->is_eof(this->input_)) {
+      this->last_token_.type = token_type::end_of_file;
+      this->last_token_.end = this->input_;
       break;
+    } else {
+      [[fallthrough]];
+    }
+  case u8'\x01':    // SOH Start of Heading
+  case u8'\x02':    // STX Start of Text
+  case u8'\x03':    // ETX End-of-text character
+  case u8'\x04':    // EOT End-of-transmission character
+  case u8'\x05':    // ENQ Enquiry character
+  case u8'\x06':    // ACK Acknowledge character
+  case u8'\x07':    // BEL Bell character
+  case u8'\x08':    // BS Backspace
+  case u8'\x0e':    // SO Shift Out
+  case u8'\x0f':    // SI Shift In
+  case u8'\x10':    // DLE Data Link Escape
+  case u8'\x11':    // DC1 Device Control 1
+  case u8'\x12':    // DC2 Device Control 2
+  case u8'\x13':    // DC3 Device Control 3
+  case u8'\x14':    // DC4 Device Control 4
+  case u8'\x15':    // NAK Negative-acknowledge character
+  case u8'\x16':    // SYN Synchronous Idle
+  case u8'\x17':    // ETB End of Transmission Block
+  case u8'\x18':    // CAN Cancel character
+  case u8'\x19':    // EM End of Medium
+  case u8'\x1a':    // SUB Substitute character
+  case u8'\x1b':    // ESC Escape character
+  case u8'\x1c':    // FS File Separator
+  case u8'\x1d':    // GS Group Separator
+  case u8'\x1e':    // RS Record Separator
+  case u8'\x1f':    // US Unit Separator
+  case u8'\x7f': {  // DEL Delete
+    char8* end = this->input_ + 1;
+    this->error_reporter_->report(error_unexpected_control_character{
+        .character = source_code_span(this->input_, end)});
+    this->input_ = end;
+    this->skip_whitespace();
+    goto retry;
+  }
+
+  case u8'@': {
+    char8* end = this->input_ + 1;
+    this->error_reporter_->report(error_unexpected_at_character{
+        .character = source_code_span(this->input_, end)});
+    this->input_ = end;
+    this->skip_whitespace();
+    goto retry;
+  }
+
+  default:
+    this->error_reporter_->report_fatal_error_unimplemented_character(
+        /*qljs_file_name=*/__FILE__,
+        /*qljs_line=*/__LINE__,
+        /*qljs_function_name=*/__func__,
+        /*character=*/this->input_);
+    QLJS_CRASH_DISALLOWING_CORE_DUMP();
+    break;
   }
 }
 
@@ -581,6 +581,23 @@ lexer::parsed_template_body lexer::parse_template_body(
   char8* c = input;
   for (;;) {
     switch (*c) {
+    case '\0':
+      if (this->is_eof(c)) {
+        error_reporter->report(
+            error_unclosed_template{source_code_span(template_begin, c)});
+        return parsed_template_body{token_type::complete_template, c};
+      } else {
+        ++c;
+        break;
+      }
+
+    case '`':
+      ++c;
+      return parsed_template_body{token_type::complete_template, c};
+
+    case '\\':
+      ++c;
+      switch (*c) {
       case '\0':
         if (this->is_eof(c)) {
           error_reporter->report(
@@ -590,46 +607,30 @@ lexer::parsed_template_body lexer::parse_template_body(
           ++c;
           break;
         }
-
-      case '`':
-        ++c;
-        return parsed_template_body{token_type::complete_template, c};
-
-      case '\\':
-        ++c;
-        switch (*c) {
-          case '\0':
-            if (this->is_eof(c)) {
-              error_reporter->report(
-                  error_unclosed_template{source_code_span(template_begin, c)});
-              return parsed_template_body{token_type::complete_template, c};
-            } else {
-              ++c;
-              break;
-            }
-          default:
-            ++c;
-            break;
-        }
-        break;
-
-      case '$':
-        if (c[1] == '{') {
-          c += 2;
-          return parsed_template_body{token_type::incomplete_template, c};
-        }
-        ++c;
-        break;
-
       default:
         ++c;
         break;
+      }
+      break;
+
+    case '$':
+      if (c[1] == '{') {
+        c += 2;
+        return parsed_template_body{token_type::incomplete_template, c};
+      }
+      ++c;
+      break;
+
+    default:
+      ++c;
+      break;
     }
   }
 }
 
 void lexer::reparse_as_regexp() {
-  QLJS_ASSERT(this->last_token_.type == token_type::slash);
+  QLJS_ASSERT(this->last_token_.type == token_type::slash ||
+              this->last_token_.type == token_type::slash_equal);
 
   this->input_ = const_cast<char8*>(this->last_token_.begin);
   QLJS_ASSERT(this->input_[0] == '/');
@@ -638,6 +639,19 @@ void lexer::reparse_as_regexp() {
   char8* c = &this->input_[1];
 next:
   switch (*c) {
+  case '\0':
+    if (this->is_eof(c)) {
+      this->error_reporter_->report(error_unclosed_regexp_literal{
+          source_code_span(this->last_token_.begin, c)});
+      break;
+    } else {
+      ++c;
+      goto next;
+    }
+
+  case '\\':
+    ++c;
+    switch (*c) {
     case '\0':
       if (this->is_eof(c)) {
         this->error_reporter_->report(error_unclosed_regexp_literal{
@@ -648,65 +662,52 @@ next:
         goto next;
       }
 
-    case '\\':
-      ++c;
-      switch (*c) {
-        case '\0':
-          if (this->is_eof(c)) {
-            this->error_reporter_->report(error_unclosed_regexp_literal{
-                source_code_span(this->last_token_.begin, c)});
-            break;
-          } else {
-            ++c;
-            goto next;
-          }
-
-        default:
-          ++c;
-          goto next;
-      }
-      break;
-
-    case '[':
-      ++c;
-      for (;;) {
-        switch (*c) {
-          case u8']':
-          case u8'\0':
-            goto next;
-
-          case u8'\\':
-            if (c[1] == u8']') {
-              c += 2;
-            } else {
-              c += 1;
-            }
-            break;
-
-          default:
-            ++c;
-            break;
-        }
-      }
-      QLJS_UNREACHABLE();
-
-    case '/': {
-      ++c;
-      if (this->is_identifier_character(*c)) {
-        parsed_identifier ident = this->parse_identifier(c);
-        c = ident.after;
-        for (const source_code_span& escape_sequence : ident.escape_sequences) {
-          this->error_reporter_->report(
-              error_regexp_literal_flags_cannot_contain_unicode_escapes{
-                  .escape_sequence = escape_sequence});
-        }
-      }
-      break;
-    }
-
     default:
       ++c;
       goto next;
+    }
+    break;
+
+  case '[':
+    ++c;
+    for (;;) {
+      switch (*c) {
+      case u8']':
+      case u8'\0':
+        goto next;
+
+      case u8'\\':
+        if (c[1] == u8']') {
+          c += 2;
+        } else {
+          c += 1;
+        }
+        break;
+
+      default:
+        ++c;
+        break;
+      }
+    }
+    QLJS_UNREACHABLE();
+
+  case '/': {
+    ++c;
+    if (this->is_identifier_character(*c)) {
+      parsed_identifier ident = this->parse_identifier(c);
+      c = ident.after;
+      for (const source_code_span& escape_sequence : ident.escape_sequences) {
+        this->error_reporter_->report(
+            error_regexp_literal_flags_cannot_contain_unicode_escapes{
+                .escape_sequence = escape_sequence});
+      }
+    }
+    break;
+  }
+
+  default:
+    ++c;
+    goto next;
   }
 
   this->input_ = c;
@@ -761,8 +762,8 @@ char8* lexer::check_garbage_in_number_literal(char8* input) {
     QLJS_CASE_IDENTIFIER_START:
       input += 1;
       break;
-      default:
-        goto done_parsing_garbage;
+    default:
+      goto done_parsing_garbage;
     }
   }
 done_parsing_garbage:
@@ -1068,87 +1069,87 @@ next:
     goto next;
   } else if (static_cast<unsigned char>(c) >= 0xc2) {
     [[unlikely]] switch (static_cast<unsigned char>(c)) {
-      case 0xe1:
-        if (static_cast<unsigned char>(input[1]) == 0x9a &&
-            static_cast<unsigned char>(input[2]) == 0x80) {
-          // U+1680 Ogham Space Mark
-          input += 3;
-          goto next;
-        } else {
-          goto done;
-        }
-
-      case 0xe2:
-        if (static_cast<unsigned char>(input[1]) == 0x80) {
-          switch (static_cast<unsigned char>(input[2])) {
-            case 0x80:  // U+2000 En Quad
-            case 0x81:  // U+2001 Em Quad
-            case 0x82:  // U+2002 En Space
-            case 0x83:  // U+2003 Em Space
-            case 0x84:  // U+2004 Three-Per-Em Space
-            case 0x85:  // U+2005 Four-Per-Em Space
-            case 0x86:  // U+2006 Six-Per-Em Space
-            case 0x87:  // U+2007 Figure Space
-            case 0x88:  // U+2008 Punctuation Space
-            case 0x89:  // U+2009 Thin Space
-            case 0x8a:  // U+200A Hair Space
-            case 0xaf:  // U+202F Narrow No-Break Space (NNBSP)
-              input += 3;
-              goto next;
-
-            case 0xa8:  // U+2028 Line Separator
-            case 0xa9:  // U+2029 Paragraph Separator
-              QLJS_ASSERT(this->newline_character_size(input) == 3);
-              this->last_token_.has_leading_newline = true;
-              input += 3;
-              goto next;
-
-            default:
-              goto done;
-          }
-        } else if (static_cast<unsigned char>(input[1]) == 0x81) {
-          if (static_cast<unsigned char>(input[2]) == 0x9f) {
-            // U+205F Medium Mathematical Space (MMSP)
-            input += 3;
-            goto next;
-          } else {
-            goto done;
-          }
-        } else {
-          goto done;
-        }
-
-      case 0xe3:
-        if (static_cast<unsigned char>(input[1]) == 0x80 &&
-            static_cast<unsigned char>(input[2]) == 0x80) {
-          // U+3000 Ideographic Space
-          input += 3;
-          goto next;
-        } else {
-          goto done;
-        }
-
-      case 0xef:
-        if (static_cast<unsigned char>(input[1]) == 0xbb &&
-            static_cast<unsigned char>(input[2]) == 0xbf) {
-          // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
-          input += 3;
-          goto next;
-        } else {
-          goto done;
-        }
-
-      case 0xc2:
-        if (static_cast<unsigned char>(input[1]) == 0xa0) {
-          // U+00A0 No-Break Space (NBSP)
-          input += 2;
-          goto next;
-        } else {
-          goto done;
-        }
-
-      default:
+    case 0xe1:
+      if (static_cast<unsigned char>(input[1]) == 0x9a &&
+          static_cast<unsigned char>(input[2]) == 0x80) {
+        // U+1680 Ogham Space Mark
+        input += 3;
+        goto next;
+      } else {
         goto done;
+      }
+
+    case 0xe2:
+      if (static_cast<unsigned char>(input[1]) == 0x80) {
+        switch (static_cast<unsigned char>(input[2])) {
+        case 0x80:  // U+2000 En Quad
+        case 0x81:  // U+2001 Em Quad
+        case 0x82:  // U+2002 En Space
+        case 0x83:  // U+2003 Em Space
+        case 0x84:  // U+2004 Three-Per-Em Space
+        case 0x85:  // U+2005 Four-Per-Em Space
+        case 0x86:  // U+2006 Six-Per-Em Space
+        case 0x87:  // U+2007 Figure Space
+        case 0x88:  // U+2008 Punctuation Space
+        case 0x89:  // U+2009 Thin Space
+        case 0x8a:  // U+200A Hair Space
+        case 0xaf:  // U+202F Narrow No-Break Space (NNBSP)
+          input += 3;
+          goto next;
+
+        case 0xa8:  // U+2028 Line Separator
+        case 0xa9:  // U+2029 Paragraph Separator
+          QLJS_ASSERT(this->newline_character_size(input) == 3);
+          this->last_token_.has_leading_newline = true;
+          input += 3;
+          goto next;
+
+        default:
+          goto done;
+        }
+      } else if (static_cast<unsigned char>(input[1]) == 0x81) {
+        if (static_cast<unsigned char>(input[2]) == 0x9f) {
+          // U+205F Medium Mathematical Space (MMSP)
+          input += 3;
+          goto next;
+        } else {
+          goto done;
+        }
+      } else {
+        goto done;
+      }
+
+    case 0xe3:
+      if (static_cast<unsigned char>(input[1]) == 0x80 &&
+          static_cast<unsigned char>(input[2]) == 0x80) {
+        // U+3000 Ideographic Space
+        input += 3;
+        goto next;
+      } else {
+        goto done;
+      }
+
+    case 0xef:
+      if (static_cast<unsigned char>(input[1]) == 0xbb &&
+          static_cast<unsigned char>(input[2]) == 0xbf) {
+        // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
+        input += 3;
+        goto next;
+      } else {
+        goto done;
+      }
+
+    case 0xc2:
+      if (static_cast<unsigned char>(input[1]) == 0xa0) {
+        // U+00A0 No-Break Space (NBSP)
+        input += 2;
+        goto next;
+      } else {
+        goto done;
+      }
+
+    default:
+      goto done;
     }
   } else {
     goto done;
@@ -1288,8 +1289,8 @@ bool lexer::is_digit(char8 c) {
   switch (c) {
   QLJS_CASE_DECIMAL_DIGIT:
     return true;
-    default:
-      return false;
+  default:
+    return false;
   }
 }
 
@@ -1309,8 +1310,8 @@ bool lexer::is_hex_digit(char8 c) {
   case 'E':
   case 'F':
     return true;
-    default:
-      return false;
+  default:
+    return false;
   }
 }
 
@@ -1319,9 +1320,9 @@ bool lexer::is_identifier_character(int code_point) {
   QLJS_CASE_IDENTIFIER_START:
   QLJS_CASE_DECIMAL_DIGIT:
     return true;
-    // TODO(strager): Support non-ASCII code points.
-    default:
-      return false;
+  // TODO(strager): Support non-ASCII code points.
+  default:
+    return false;
   }
 }
 
@@ -1332,9 +1333,9 @@ int lexer::newline_character_size(const char8* input) {
   if (static_cast<unsigned char>(input[0]) == 0xe2 &&
       static_cast<unsigned char>(input[1]) == 0x80) {
     switch (static_cast<unsigned char>(input[2])) {
-      case 0xa8:  // U+2028 Line Separator
-      case 0xa9:  // U+2029 Paragraph Separator
-        return 3;
+    case 0xa8:  // U+2028 Line Separator
+    case 0xa9:  // U+2029 Paragraph Separator
+      return 3;
     }
   }
   return 0;
@@ -1346,6 +1347,32 @@ const char* to_string(token_type type) {
   case token_type::t: \
     return #t;
   switch (type) {
+    QLJS_CASE(ampersand)
+    QLJS_CASE(ampersand_ampersand)
+    QLJS_CASE(ampersand_equal)
+    QLJS_CASE(bang)
+    QLJS_CASE(bang_equal)
+    QLJS_CASE(bang_equal_equal)
+    QLJS_CASE(circumflex)
+    QLJS_CASE(circumflex_equal)
+    QLJS_CASE(colon)
+    QLJS_CASE(comma)
+    QLJS_CASE(complete_template)
+    QLJS_CASE(dot)
+    QLJS_CASE(dot_dot_dot)
+    QLJS_CASE(end_of_file)
+    QLJS_CASE(equal)
+    QLJS_CASE(equal_equal)
+    QLJS_CASE(equal_equal_equal)
+    QLJS_CASE(equal_greater)
+    QLJS_CASE(greater)
+    QLJS_CASE(greater_equal)
+    QLJS_CASE(greater_greater)
+    QLJS_CASE(greater_greater_equal)
+    QLJS_CASE(greater_greater_greater)
+    QLJS_CASE(greater_greater_greater_equal)
+    QLJS_CASE(identifier)
+    QLJS_CASE(incomplete_template)
     QLJS_CASE(kw_as)
     QLJS_CASE(kw_async)
     QLJS_CASE(kw_await)
@@ -1377,6 +1404,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(kw_null)
     QLJS_CASE(kw_of)
     QLJS_CASE(kw_return)
+    QLJS_CASE(kw_set)
     QLJS_CASE(kw_static)
     QLJS_CASE(kw_super)
     QLJS_CASE(kw_switch)
@@ -1390,32 +1418,6 @@ const char* to_string(token_type type) {
     QLJS_CASE(kw_while)
     QLJS_CASE(kw_with)
     QLJS_CASE(kw_yield)
-    QLJS_CASE(ampersand)
-    QLJS_CASE(ampersand_ampersand)
-    QLJS_CASE(ampersand_equal)
-    QLJS_CASE(bang)
-    QLJS_CASE(bang_equal)
-    QLJS_CASE(bang_equal_equal)
-    QLJS_CASE(circumflex)
-    QLJS_CASE(circumflex_equal)
-    QLJS_CASE(colon)
-    QLJS_CASE(comma)
-    QLJS_CASE(complete_template)
-    QLJS_CASE(dot)
-    QLJS_CASE(dot_dot_dot)
-    QLJS_CASE(end_of_file)
-    QLJS_CASE(equal)
-    QLJS_CASE(equal_equal)
-    QLJS_CASE(equal_equal_equal)
-    QLJS_CASE(equal_greater)
-    QLJS_CASE(greater)
-    QLJS_CASE(greater_equal)
-    QLJS_CASE(greater_greater)
-    QLJS_CASE(greater_greater_equal)
-    QLJS_CASE(greater_greater_greater)
-    QLJS_CASE(greater_greater_greater_equal)
-    QLJS_CASE(identifier)
-    QLJS_CASE(incomplete_template)
     QLJS_CASE(left_curly)
     QLJS_CASE(left_paren)
     QLJS_CASE(left_square)

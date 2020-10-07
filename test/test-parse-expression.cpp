@@ -87,54 +87,54 @@ class test_parser {
       }
     };
     switch (ast->kind()) {
-      case expression_kind::_invalid:
-      case expression_kind::import:
-      case expression_kind::literal:
-      case expression_kind::super:
-      case expression_kind::variable:
-        break;
-      case expression_kind::_new:
-      case expression_kind::_template:
-      case expression_kind::array:
-      case expression_kind::arrow_function_with_expression:
-      case expression_kind::assignment:
-      case expression_kind::binary_operator:
-      case expression_kind::call:
-      case expression_kind::compound_assignment:
-      case expression_kind::index:
-        children();
-        break;
-      case expression_kind::arrow_function_with_statements:
-        children();
-        visit_children();
-        break;
-      case expression_kind::_typeof:
-      case expression_kind::await:
-      case expression_kind::dot:
-      case expression_kind::rw_unary_prefix:
-      case expression_kind::rw_unary_suffix:
-      case expression_kind::spread:
-      case expression_kind::unary_operator:
-        this->clean_up_expression(ast->child_0());
-        break;
-      case expression_kind::conditional:
-        this->clean_up_expression(ast->child_0());
-        this->clean_up_expression(ast->child_1());
-        this->clean_up_expression(ast->child_2());
-        break;
-      case expression_kind::function:
-      case expression_kind::named_function:
-        visit_children();
-        break;
-      case expression_kind::object:
-        for (int i = 0; i < ast->object_entry_count(); ++i) {
-          auto entry = ast->object_entry(i);
-          if (entry.property.has_value()) {
-            this->clean_up_expression(*entry.property);
-          }
-          this->clean_up_expression(entry.value);
+    case expression_kind::_invalid:
+    case expression_kind::import:
+    case expression_kind::literal:
+    case expression_kind::super:
+    case expression_kind::variable:
+      break;
+    case expression_kind::_new:
+    case expression_kind::_template:
+    case expression_kind::array:
+    case expression_kind::arrow_function_with_expression:
+    case expression_kind::assignment:
+    case expression_kind::binary_operator:
+    case expression_kind::call:
+    case expression_kind::compound_assignment:
+    case expression_kind::index:
+      children();
+      break;
+    case expression_kind::arrow_function_with_statements:
+      children();
+      visit_children();
+      break;
+    case expression_kind::_typeof:
+    case expression_kind::await:
+    case expression_kind::dot:
+    case expression_kind::rw_unary_prefix:
+    case expression_kind::rw_unary_suffix:
+    case expression_kind::spread:
+    case expression_kind::unary_operator:
+      this->clean_up_expression(ast->child_0());
+      break;
+    case expression_kind::conditional:
+      this->clean_up_expression(ast->child_0());
+      this->clean_up_expression(ast->child_1());
+      this->clean_up_expression(ast->child_2());
+      break;
+    case expression_kind::function:
+    case expression_kind::named_function:
+      visit_children();
+      break;
+    case expression_kind::object:
+      for (int i = 0; i < ast->object_entry_count(); ++i) {
+        auto entry = ast->object_entry(i);
+        if (entry.property.has_value()) {
+          this->clean_up_expression(*entry.property);
         }
-        break;
+        this->clean_up_expression(entry.value);
+      }
+      break;
     }
   }
 
@@ -227,7 +227,9 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 4);
   }
+}
 
+TEST_F(test_parse_expression, parse_regular_expression) {
   {
     test_parser p(u8"/regexp/");
     expression_ptr ast = p.parse_expression();
@@ -235,6 +237,15 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 8);
+  }
+
+  {
+    test_parser p(u8"/=regexp/");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::literal);
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 9);
   }
 }
 
@@ -928,7 +939,9 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->object_entry(1).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(1).value), "var v");
   }
+}
 
+TEST_F(test_parse_expression, object_literal_with_method_key) {
   {
     test_parser p(u8"{ func(a, b) { } }");
     expression_ptr ast = p.parse_expression();
@@ -942,6 +955,32 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
+    test_parser p(u8"{ 'func'(a, b) { } }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 18);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"{ [func](a, b) { } }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 18);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
+  {
     test_parser p(u8"{ get prop() { } }");
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
@@ -952,6 +991,36 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 6);
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 16);
     EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"{ set prop(v) { } }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+    // TODO(strager): Should the span start at 'set' instead?
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 6);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 17);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{get 1234() { }}");
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{get 'string key'() { }}");
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+  }
+
+  {
+    expression_ptr ast =
+        this->parse_expression(u8"{get [expression + key]() { }}");
+    EXPECT_EQ(summarize(ast),
+              "object(binary(var expression, var key), function)");
   }
 }
 
@@ -1312,88 +1381,88 @@ std::string summarize(const expression &expression) {
   };
   auto function_attributes = [&]() -> std::string {
     switch (expression.attributes()) {
-      case function_attributes::normal:
-        return "";
-      case function_attributes::async:
-        return "async";
+    case function_attributes::normal:
+      return "";
+    case function_attributes::async:
+      return "async";
     }
     QLJS_UNREACHABLE();
   };
   switch (expression.kind()) {
-    case expression_kind::_invalid:
-      return "?";
-    case expression_kind::_new:
-      return "new(" + children() + ")";
-    case expression_kind::_template:
-      return "template(" + children() + ")";
-    case expression_kind::_typeof:
-      return "typeof(" + summarize(expression.child_0()) + ")";
-    case expression_kind::array:
-      return "array(" + children() + ")";
-    case expression_kind::arrow_function_with_expression:
-      return function_attributes() + "arrowexpr(" + children() + ")";
-    case expression_kind::arrow_function_with_statements:
-      return function_attributes() + "arrowblock(" + children() + ")";
-    case expression_kind::assignment:
-      return "assign(" + children() + ")";
-    case expression_kind::await:
-      return "await(" + summarize(expression.child_0()) + ")";
-    case expression_kind::call:
-      return "call(" + children() + ")";
-    case expression_kind::conditional:
-      return "cond(" + summarize(expression.child_0()) + ", " +
-             summarize(expression.child_1()) + ", " +
-             summarize(expression.child_2()) + ")";
-    case expression_kind::dot:
-      return "dot(" + summarize(expression.child_0()) + ", " +
-             string8_to_string(
-                 expression.variable_identifier().normalized_name()) +
-             ")";
-    case expression_kind::function:
-      return "function";
-    case expression_kind::import:
-      return "import";
-    case expression_kind::index:
-      return "index(" + children() + ")";
-    case expression_kind::literal:
-      return "literal";
-    case expression_kind::named_function:
-      return "function " +
-             string8_to_string(
-                 expression.variable_identifier().normalized_name());
-    case expression_kind::object: {
-      std::string result = "object(";
-      bool need_comma = false;
-      for (int i = 0; i < expression.object_entry_count(); ++i) {
-        if (need_comma) {
-          result += ", ";
-        }
-        auto entry = expression.object_entry(i);
-        result += summarize(entry.property);
+  case expression_kind::_invalid:
+    return "?";
+  case expression_kind::_new:
+    return "new(" + children() + ")";
+  case expression_kind::_template:
+    return "template(" + children() + ")";
+  case expression_kind::_typeof:
+    return "typeof(" + summarize(expression.child_0()) + ")";
+  case expression_kind::array:
+    return "array(" + children() + ")";
+  case expression_kind::arrow_function_with_expression:
+    return function_attributes() + "arrowexpr(" + children() + ")";
+  case expression_kind::arrow_function_with_statements:
+    return function_attributes() + "arrowblock(" + children() + ")";
+  case expression_kind::assignment:
+    return "assign(" + children() + ")";
+  case expression_kind::await:
+    return "await(" + summarize(expression.child_0()) + ")";
+  case expression_kind::call:
+    return "call(" + children() + ")";
+  case expression_kind::conditional:
+    return "cond(" + summarize(expression.child_0()) + ", " +
+           summarize(expression.child_1()) + ", " +
+           summarize(expression.child_2()) + ")";
+  case expression_kind::dot:
+    return "dot(" + summarize(expression.child_0()) + ", " +
+           string8_to_string(
+               expression.variable_identifier().normalized_name()) +
+           ")";
+  case expression_kind::function:
+    return "function";
+  case expression_kind::import:
+    return "import";
+  case expression_kind::index:
+    return "index(" + children() + ")";
+  case expression_kind::literal:
+    return "literal";
+  case expression_kind::named_function:
+    return "function " +
+           string8_to_string(
+               expression.variable_identifier().normalized_name());
+  case expression_kind::object: {
+    std::string result = "object(";
+    bool need_comma = false;
+    for (int i = 0; i < expression.object_entry_count(); ++i) {
+      if (need_comma) {
         result += ", ";
-        result += summarize(entry.value);
-        need_comma = true;
       }
-      result += ")";
-      return result;
+      auto entry = expression.object_entry(i);
+      result += summarize(entry.property);
+      result += ", ";
+      result += summarize(entry.value);
+      need_comma = true;
     }
-    case expression_kind::rw_unary_prefix:
-      return "rwunary(" + summarize(expression.child_0()) + ")";
-    case expression_kind::rw_unary_suffix:
-      return "rwunarysuffix(" + summarize(expression.child_0()) + ")";
-    case expression_kind::spread:
-      return "spread(" + summarize(expression.child_0()) + ")";
-    case expression_kind::super:
-      return "super";
-    case expression_kind::unary_operator:
-      return "unary(" + summarize(expression.child_0()) + ")";
-    case expression_kind::compound_assignment:
-      return "upassign(" + children() + ")";
-    case expression_kind::variable:
-      return "var " + string8_to_string(
-                          expression.variable_identifier().normalized_name());
-    case expression_kind::binary_operator:
-      return "binary(" + children() + ")";
+    result += ")";
+    return result;
+  }
+  case expression_kind::rw_unary_prefix:
+    return "rwunary(" + summarize(expression.child_0()) + ")";
+  case expression_kind::rw_unary_suffix:
+    return "rwunarysuffix(" + summarize(expression.child_0()) + ")";
+  case expression_kind::spread:
+    return "spread(" + summarize(expression.child_0()) + ")";
+  case expression_kind::super:
+    return "super";
+  case expression_kind::unary_operator:
+    return "unary(" + summarize(expression.child_0()) + ")";
+  case expression_kind::compound_assignment:
+    return "upassign(" + children() + ")";
+  case expression_kind::variable:
+    return "var " + string8_to_string(
+                        expression.variable_identifier().normalized_name());
+  case expression_kind::binary_operator:
+    return "binary(" + children() + ")";
   }
   QLJS_UNREACHABLE();
 }

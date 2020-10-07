@@ -302,16 +302,16 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
       if (kind == variable_kind::_class || kind == variable_kind::_const ||
           kind == variable_kind::_let) {
         switch (used_var.kind) {
-          case used_variable_kind::assignment:
-            this->report_error_if_assignment_is_illegal(
-                declared, used_var.name,
-                /*is_assigned_before_declaration=*/true);
-            break;
-          case used_variable_kind::_typeof:
-          case used_variable_kind::use:
-            this->error_reporter_->report(
-                error_variable_used_before_declaration{used_var.name, name});
-            break;
+        case used_variable_kind::assignment:
+          this->report_error_if_assignment_is_illegal(
+              declared, used_var.name,
+              /*is_assigned_before_declaration=*/true);
+          break;
+        case used_variable_kind::_typeof:
+        case used_variable_kind::use:
+          this->error_reporter_->report(
+              error_variable_used_before_declaration{used_var.name, name});
+          break;
         }
       }
       return true;
@@ -322,14 +322,14 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
   erase_if(scope.variables_used_in_descendant_scope,
            [&](const used_variable &used_var) {
              switch (used_var.kind) {
-               case used_variable_kind::assignment:
-                 this->report_error_if_assignment_is_illegal(
-                     declared, used_var.name,
-                     /*is_assigned_before_declaration=*/false);
-                 break;
-               case used_variable_kind::_typeof:
-               case used_variable_kind::use:
-                 break;
+             case used_variable_kind::assignment:
+               this->report_error_if_assignment_is_illegal(
+                   declared, used_var.name,
+                   /*is_assigned_before_declaration=*/false);
+               break;
+             case used_variable_kind::_typeof:
+             case used_variable_kind::use:
+               break;
              }
              return name.normalized_name() == used_var.name.normalized_name();
            });
@@ -402,18 +402,18 @@ void linter::visit_end_of_module() {
   for (const used_variable &used_var : global_scope.variables_used) {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
-        case used_variable_kind::assignment:
-          this->error_reporter_->report(
-              error_assignment_to_undeclared_variable{used_var.name});
-          break;
-        case used_variable_kind::use:
-          this->error_reporter_->report(
-              error_use_of_undeclared_variable{used_var.name});
-          break;
-        case used_variable_kind::_typeof:
-          // 'typeof foo' is often used to detect if the variable 'foo' is
-          // declared. Do not report that the variable is undeclared.
-          break;
+      case used_variable_kind::assignment:
+        this->error_reporter_->report(
+            error_assignment_to_undeclared_variable{used_var.name});
+        break;
+      case used_variable_kind::use:
+        this->error_reporter_->report(
+            error_use_of_undeclared_variable{used_var.name});
+        break;
+      case used_variable_kind::_typeof:
+        // 'typeof foo' is often used to detect if the variable 'foo' is
+        // declared. Do not report that the variable is undeclared.
+        break;
       }
     }
   }
@@ -503,34 +503,34 @@ void linter::report_error_if_assignment_is_illegal(
     const linter::declared_variable *var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
   switch (var->kind()) {
-    case variable_kind::_const:
-    case variable_kind::_import:
-      if (var->is_global_variable()) {
-        this->error_reporter_->report(
-            error_assignment_to_const_global_variable{assignment});
-      } else {
-        if (is_assigned_before_declaration) {
-          this->error_reporter_->report(
-              error_assignment_to_const_variable_before_its_declaration{
-                  var->declaration(), assignment, var->kind()});
-        } else {
-          this->error_reporter_->report(error_assignment_to_const_variable{
-              var->declaration(), assignment, var->kind()});
-        }
-      }
-      break;
-    case variable_kind::_catch:
-    case variable_kind::_class:
-    case variable_kind::_function:
-    case variable_kind::_let:
-    case variable_kind::_parameter:
-    case variable_kind::_var:
+  case variable_kind::_const:
+  case variable_kind::_import:
+    if (var->is_global_variable()) {
+      this->error_reporter_->report(
+          error_assignment_to_const_global_variable{assignment});
+    } else {
       if (is_assigned_before_declaration) {
         this->error_reporter_->report(
-            error_assignment_before_variable_declaration{
-                .assignment = assignment, .declaration = var->declaration()});
+            error_assignment_to_const_variable_before_its_declaration{
+                var->declaration(), assignment, var->kind()});
+      } else {
+        this->error_reporter_->report(error_assignment_to_const_variable{
+            var->declaration(), assignment, var->kind()});
       }
-      break;
+    }
+    break;
+  case variable_kind::_catch:
+  case variable_kind::_class:
+  case variable_kind::_function:
+  case variable_kind::_let:
+  case variable_kind::_parameter:
+  case variable_kind::_var:
+    if (is_assigned_before_declaration) {
+      this->error_reporter_->report(
+          error_assignment_before_variable_declaration{
+              .assignment = assignment, .declaration = var->declaration()});
+    }
+    break;
   }
 }
 
@@ -544,25 +544,25 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
     vk other_kind = already_declared_variable->kind();
 
     switch (other_kind) {
-      case vk::_catch:
-        QLJS_ASSERT(kind != vk::_catch);
-        QLJS_ASSERT(kind != vk::_import);
-        QLJS_ASSERT(kind != vk::_parameter);
-        break;
-      case vk::_class:
-      case vk::_const:
-      case vk::_function:
-      case vk::_let:
-      case vk::_var:
-        QLJS_ASSERT(kind != vk::_catch);
-        QLJS_ASSERT(kind != vk::_parameter);
-        break;
-      case vk::_parameter:
-        QLJS_ASSERT(kind != vk::_catch);
-        QLJS_ASSERT(kind != vk::_import);
-        break;
-      case vk::_import:
-        break;
+    case vk::_catch:
+      QLJS_ASSERT(kind != vk::_catch);
+      QLJS_ASSERT(kind != vk::_import);
+      QLJS_ASSERT(kind != vk::_parameter);
+      break;
+    case vk::_class:
+    case vk::_const:
+    case vk::_function:
+    case vk::_let:
+    case vk::_var:
+      QLJS_ASSERT(kind != vk::_catch);
+      QLJS_ASSERT(kind != vk::_parameter);
+      break;
+    case vk::_parameter:
+      QLJS_ASSERT(kind != vk::_catch);
+      QLJS_ASSERT(kind != vk::_import);
+      break;
+    case vk::_import:
+      break;
     }
 
     bool redeclaration_ok =

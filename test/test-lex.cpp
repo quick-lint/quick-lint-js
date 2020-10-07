@@ -509,7 +509,8 @@ TEST(test_lex, lex_regular_expression_literals) {
     padded_string code(raw_code);
     SCOPED_TRACE(code);
     lexer l(&code, &null_error_reporter::instance);
-    EXPECT_EQ(l.peek().type, token_type::slash);
+    EXPECT_THAT(l.peek().type,
+                testing::AnyOf(token_type::slash, token_type::slash_equal));
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_EQ(l.peek().begin, &code[0]);
@@ -523,6 +524,7 @@ TEST(test_lex, lex_regular_expression_literals) {
   check_regexp(u8"/re/g");
   check_regexp(u8R"(/[/]/)");
   check_regexp(u8R"(/[\]/]/)");
+  check_regexp(u8"/=/");
 
   for (const char8* raw_code : {u8"/end_of_file", u8R"(/eof\)"}) {
     padded_string code(raw_code);
