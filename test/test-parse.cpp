@@ -832,8 +832,9 @@ TEST(test_parse, expression_statement) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"xPos"}));
   }
 
-  {
-    spy_visitor v = parse_and_visit_statement(u8"null;");
+  for (string8 literal : {u8"null", u8"true", u8"false"}) {
+    SCOPED_TRACE(out_string8(literal));
+    spy_visitor v = parse_and_visit_statement((literal + u8";").c_str());
     EXPECT_THAT(v.visits, IsEmpty());
   }
 

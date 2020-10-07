@@ -104,10 +104,12 @@ class parser {
     case token_type::identifier:
     case token_type::kw_await:
     case token_type::kw_delete:
+    case token_type::kw_false:
     case token_type::kw_new:
     case token_type::kw_null:
     case token_type::kw_super:
     case token_type::kw_this:
+    case token_type::kw_true:
     case token_type::kw_typeof:
     case token_type::kw_void:
     case token_type::left_paren:
