@@ -1725,10 +1725,10 @@ TEST(test_parse, for_in_loop) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"for (var x in xs) { body; }");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          //
-                                      "visit_variable_declaration",  //
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // xs
                                       "visit_enter_block_scope",     //
-                                      "visit_variable_use",          //
+                                      "visit_variable_use",          // body
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -1737,6 +1737,36 @@ TEST(test_parse, for_in_loop) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"xs"},  //
                             spy_visitor::visited_variable_use{u8"body"}));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = init in xs) { body; }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // init
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // xs
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_use",          // body
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_var}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"},  //
+                            spy_visitor::visited_variable_use{u8"xs"},    //
+                            spy_visitor::visited_variable_use{u8"body"}));
+  }
+
+  // TODO(strager): Report error for the following code:
+  //
+  //   for (let x = init in xs) {}
+  //
+  // ('var' is allowed, but not 'let'.)
+
+  // TODO(strager): Report error for the following code:
+  //
+  //   for (var x = init of xs) {}
+  //
+  // (for-in is allowed, but not for-of.)
 }
 
 TEST(test_parse, for_of_loop) {

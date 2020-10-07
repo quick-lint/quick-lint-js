@@ -452,7 +452,8 @@ next:
     case expression_kind::variable:
       break;
     }
-    expression_ptr rhs = this->parse_expression(precedence{.commas = false});
+    expression_ptr rhs = this->parse_expression(
+        precedence{.commas = false, .in_operator = prec.in_operator});
     children.clear();
     children.emplace_back(this->make_expression<expression::assignment>(
         is_plain_assignment ? expression_kind::assignment

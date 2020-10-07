@@ -760,6 +760,7 @@ class parser {
       entered_for_scope = true;
       [[fallthrough]];
     case token_type::kw_var: {
+      token_type variable_token = this->peek().type;
       buffering_visitor lhs;
       this->parse_and_visit_let_bindings(lhs, this->peek().type);
       switch (this->peek().type) {
@@ -770,10 +771,23 @@ class parser {
         break;
       case token_type::kw_in:
       case token_type::kw_of: {
+        bool is_var_in = variable_token == token_type::kw_var &&
+                         this->peek().type == token_type::kw_in;
         this->lexer_.skip();
         expression_ptr rhs = this->parse_expression();
+        if (is_var_in) {
+          // In the following code, 'init' is evaluated before 'array':
+          //
+          //   for (var x = init in array) {}
+          lhs.move_into(v);
+        }
         this->visit_expression(rhs, v, variable_context::rhs);
-        lhs.move_into(v);
+        if (!is_var_in) {
+          // In the following code, 'x' is declared before 'array' is evaluated:
+          //
+          //   for (let x in array) {}
+          lhs.move_into(v);
+        }
         break;
       }
       default:
