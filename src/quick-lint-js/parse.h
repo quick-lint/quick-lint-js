@@ -158,12 +158,19 @@ class parser {
 
     case token_type::kw_return:
       this->lexer_.skip();
-      if (this->peek().type == token_type::semicolon) {
+      switch (this->peek().type) {
+      case token_type::semicolon:
         this->lexer_.skip();
         break;
+
+      case token_type::right_curly:
+        break;
+
+      default:
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon();
+        break;
       }
-      this->parse_and_visit_expression(v);
-      this->consume_semicolon();
       break;
 
     case token_type::kw_throw:

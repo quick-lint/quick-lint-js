@@ -450,6 +450,19 @@ TEST(test_parse, return_statement) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"if (true) { return } else { other }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  //
+                            "visit_exit_block_scope",   //
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // other
+                            "visit_exit_block_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"other"}));
+  }
 }
 
 TEST(test_parse, throw_statement) {
