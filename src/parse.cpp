@@ -303,19 +303,39 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::kw_new: {
     source_code_span operator_span = this->peek().span();
     this->lexer_.skip();
-    expression_ptr target = this->parse_expression(prec);
-    vector<expression_ptr> children("parse_expression new children");
-    if (target->kind() == expression_kind::call) {
-      for (int i = 0; i < target->child_count(); ++i) {
-        children.emplace_back(target->child(i));
+
+    switch (this->peek().type) {
+    default: {
+      expression_ptr target = this->parse_expression(prec);
+      vector<expression_ptr> children("parse_expression new children");
+      if (target->kind() == expression_kind::call) {
+        for (int i = 0; i < target->child_count(); ++i) {
+          children.emplace_back(target->child(i));
+        }
+      } else {
+        children.emplace_back(target);
       }
-    } else {
-      children.emplace_back(target);
+      return this->make_expression<expression::_new>(
+          this->expressions_.make_array(std::move(children)),
+          source_code_span(operator_span.begin(), target->span().end()));
     }
-    return this->make_expression<expression::_new>(
-        this->expressions_.make_array(std::move(children)),
-        source_code_span(operator_span.begin(), target->span().end()));
+
+    // new.target
+    case token_type::dot: {
+      this->lexer_.skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      // TODO(strager): Check that the given identifier is 'target'.
+      // * Are \u{} escapes allowed?
+      source_code_span target_span = this->peek().identifier_name().span();
+      this->lexer_.skip();
+      expression_ptr ast = this->make_expression<expression::new_target>(
+          source_code_span(operator_span.begin(), target_span.end()));
+      return this->parse_expression_remainder(ast, prec);
+    }
+    }
+    QLJS_UNREACHABLE();
   }
+
   case token_type::end_of_file:
   case token_type::right_paren:
     return this->make_expression<expression::_invalid>();

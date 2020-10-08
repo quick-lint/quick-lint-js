@@ -90,6 +90,7 @@ class test_parser {
     case expression_kind::_invalid:
     case expression_kind::import:
     case expression_kind::literal:
+    case expression_kind::new_target:
     case expression_kind::super:
     case expression_kind::variable:
       break;
@@ -620,6 +621,22 @@ TEST_F(test_parse_expression, parse_new_expression) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Date, var y, var m, var d)");
     EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST_F(test_parse_expression, new_target) {
+  {
+    test_parser p(u8"new.target");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "newtarget");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 10);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"new.target()");
+    EXPECT_EQ(summarize(ast), "call(newtarget)");
   }
 }
 
@@ -1471,6 +1488,8 @@ std::string summarize(const expression &expression) {
     return "function " +
            string8_to_string(
                expression.variable_identifier().normalized_name());
+  case expression_kind::new_target:
+    return "newtarget";
   case expression_kind::object: {
     std::string result = "object(";
     bool need_comma = false;

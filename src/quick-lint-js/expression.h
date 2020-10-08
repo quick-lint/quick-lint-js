@@ -85,6 +85,7 @@ enum class expression_kind {
   index,
   literal,
   named_function,
+  new_target,
   object,
   rw_unary_prefix,
   rw_unary_suffix,
@@ -181,6 +182,7 @@ class expression {
   class index;
   class literal;
   class named_function;
+  class new_target;
   class object;
   class rw_unary_prefix;
   class rw_unary_suffix;
@@ -839,6 +841,20 @@ class expression::named_function final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::named_function>);
 
+class expression::new_target final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::new_target;
+
+  explicit new_target(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::new_target>);
+
 class expression::object final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::object;
@@ -1025,6 +1041,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(index)
     QLJS_EXPRESSION_CASE(literal)
     QLJS_EXPRESSION_CASE(named_function)
+    QLJS_EXPRESSION_CASE(new_target)
     QLJS_EXPRESSION_CASE(object)
     QLJS_EXPRESSION_CASE(rw_unary_prefix)
     QLJS_EXPRESSION_CASE(rw_unary_suffix)

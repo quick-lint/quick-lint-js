@@ -279,6 +279,7 @@ class parser {
     case expression_kind::_invalid:
     case expression_kind::import:
     case expression_kind::literal:
+    case expression_kind::new_target:
     case expression_kind::super:
       break;
     case expression_kind::_new:
