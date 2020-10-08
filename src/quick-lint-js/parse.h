@@ -445,8 +445,17 @@ class parser {
       break;
     }
 
-    default:  // TODO(strager): Enumerate explicitly.
+    case token_type::kw_async:
+    case token_type::kw_class:
+    case token_type::kw_const:
+    case token_type::kw_function:
+    case token_type::kw_let:
+    case token_type::kw_var:
       this->parse_and_visit_declaration(v);
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
   }
