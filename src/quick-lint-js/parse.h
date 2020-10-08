@@ -460,9 +460,7 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       null_visitor null_v;
-      this->parse_and_visit_binding_element(null_v, variable_kind::_import,
-                                            /*allow_in_operator=*/true);
-
+      this->parse_and_visit_named_exports(null_v);
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);

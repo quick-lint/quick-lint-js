@@ -164,6 +164,12 @@ TEST(test_parse, export_from) {
         u8"export {util1, util2, util3} from 'other';");
     EXPECT_THAT(v.visits, IsEmpty());
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"export {readFileSync as readFile} from 'fs';");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
 }
 
 TEST(test_parse, parse_simple_var) {
