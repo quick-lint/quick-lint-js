@@ -148,6 +148,13 @@ TEST(test_parse, export_default) {
   }
 }
 
+TEST(test_parse, export_list) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export {one, two};");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
+
 TEST(test_parse, export_from) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export * from 'other';");
