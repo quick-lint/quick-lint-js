@@ -1025,9 +1025,13 @@ class parser {
     // import fs from "fs";
     case token_type::identifier:
     case token_type::kw_let:
-    case token_type::left_curly:
       this->parse_and_visit_binding_element(v, variable_kind::_import,
                                             /*allow_in_operator=*/true);
+      break;
+
+    // import {readFile} from "fs";
+    case token_type::left_curly:
+      parse_and_visit_named_exports(v);
       break;
 
     // import expression statement:
@@ -1085,6 +1089,36 @@ class parser {
     if (this->peek().type == token_type::semicolon) {
       this->skip();
     }
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_named_exports(Visitor &v) {
+    QLJS_ASSERT(this->peek().type == token_type::left_curly);
+    this->skip();
+    for (;;) {
+      switch (this->peek().type) {
+      case token_type::kw_let:
+        this->error_reporter_->report(error_cannot_import_let{
+            .import_name = this->peek().identifier_name().span()});
+        [[fallthrough]];
+      case token_type::identifier:
+        v.visit_variable_declaration(this->peek().identifier_name(),
+                                     variable_kind::_import);
+        this->skip();
+        break;
+      case token_type::right_curly:
+        goto done;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      if (this->peek().type == token_type::comma) {
+        this->skip();
+      }
+    }
+  done:
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+    this->skip();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
