@@ -408,7 +408,8 @@ class parser {
   void parse_and_visit_export(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_export);
     this->lexer_.skip();
-    if (this->peek().type == token_type::kw_default) {
+    switch (this->peek().type) {
+    case token_type::kw_default:
       this->lexer_.skip();
       if (this->peek().type == token_type::kw_async ||
           this->peek().type == token_type::kw_class ||
@@ -417,8 +418,21 @@ class parser {
       } else {
         this->parse_and_visit_expression(v);
       }
-    } else {
+      break;
+
+    // export * from "module";
+    case token_type::star:
+      this->lexer_.skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
+      this->lexer_.skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
+      this->lexer_.skip();
+      this->consume_semicolon();
+      break;
+
+    default:  // TODO(strager): Enumerate explicitly.
       this->parse_and_visit_declaration(v);
+      break;
     }
   }
 

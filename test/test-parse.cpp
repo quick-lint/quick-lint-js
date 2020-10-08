@@ -148,6 +148,13 @@ TEST(test_parse, export_default) {
   }
 }
 
+TEST(test_parse, export_star) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export * from 'other';");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
+
 TEST(test_parse, parse_simple_var) {
   spy_visitor v;
   padded_string code(u8"var x");
