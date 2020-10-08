@@ -146,6 +146,12 @@ TEST(test_parse, export_default) {
                                       "visit_enter_class_scope",     //
                                       "visit_exit_class_scope"));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export default class {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+                                      "visit_exit_class_scope"));
+  }
 }
 
 TEST(test_parse, export_list) {

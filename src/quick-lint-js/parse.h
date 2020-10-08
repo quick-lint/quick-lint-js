@@ -637,11 +637,14 @@ class parser {
       this->skip();
       break;
 
+    // class { ... }
+    case token_type::left_curly:
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
-    identifier &class_name = optional_class_name.value();
 
     switch (this->peek().type) {
     case token_type::kw_extends:
@@ -665,7 +668,12 @@ class parser {
       break;
     }
 
-    v.visit_variable_declaration(class_name, variable_kind::_class);
+    if (optional_class_name.has_value()) {
+      v.visit_variable_declaration(*optional_class_name, variable_kind::_class);
+    } else {
+      // TODO(strager): Require class name for class declarations. Class names
+      // are only optional for 'export default' and expressions.
+    }
 
     v.visit_enter_class_scope();
 
