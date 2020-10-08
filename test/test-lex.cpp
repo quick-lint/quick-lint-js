@@ -101,6 +101,31 @@ TEST(test_lex, lex_line_comments_with_control_characters) {
   }
 }
 
+TEST(test_lex, lex_html_open_comments) {
+  check_single_token(u8"<!-- --> hello", token_type::end_of_file);
+  for (string8_view line_terminator : line_terminators) {
+    check_single_token(u8"<!-- hello" + string8(line_terminator) + u8"world",
+                       u8"world");
+  }
+  check_single_token(u8"<!-- hello\n<!-- world", token_type::end_of_file);
+  check_single_token(u8"<!--// hello", token_type::end_of_file);
+  check_tokens(u8"hello<!--->\n \n \nworld",
+               {token_type::identifier, token_type::identifier});
+  for (string8_view control_character :
+       control_characters_except_line_terminators) {
+    padded_string input(u8"<!-- hello " + string8(control_character) +
+                        u8" world\n42.0");
+    SCOPED_TRACE(input);
+    check_single_token(&input, token_type::number);
+  }
+
+  check_tokens(u8"hello<!world", {token_type::identifier, token_type::less,
+                                  token_type::bang, token_type::identifier});
+  check_tokens(u8"hello<!-world",
+               {token_type::identifier, token_type::less, token_type::bang,
+                token_type::minus, token_type::identifier});
+}
+
 TEST(test_lex, lex_numbers) {
   check_single_token(u8"0", token_type::number);
   check_single_token(u8"2", token_type::number);
