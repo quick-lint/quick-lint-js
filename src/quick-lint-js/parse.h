@@ -27,6 +27,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 
@@ -429,6 +430,20 @@ class parser {
       this->lexer_.skip();
       this->consume_semicolon();
       break;
+
+      // export {a, b, c} from "module";
+    case token_type::left_curly: {
+      null_visitor null_v;
+      this->parse_and_visit_binding_element(null_v, variable_kind::_import,
+                                            /*allow_in_operator=*/true);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
+      this->lexer_.skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
+      this->lexer_.skip();
+      this->consume_semicolon();
+      break;
+    }
 
     default:  // TODO(strager): Enumerate explicitly.
       this->parse_and_visit_declaration(v);
