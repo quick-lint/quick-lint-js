@@ -124,10 +124,25 @@ TEST(test_parse, export_default) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(u8"export default function() {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+  }
+
+  {
     spy_visitor v =
         parse_and_visit_statement(u8"export default async function f() {}");
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export default async function() {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
   }

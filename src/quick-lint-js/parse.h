@@ -561,6 +561,13 @@ class parser {
       this->parse_and_visit_function_parameters_and_body(v);
       break;
 
+    // export default function() {}
+    case token_type::left_paren:
+      // TODO(strager): Require name for function declarations. Functions names
+      // are only optional for 'export default' and expressions.
+      this->parse_and_visit_function_parameters_and_body(v);
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
