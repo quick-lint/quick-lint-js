@@ -258,7 +258,8 @@ retry:
   case '<':
     if (this->input_[1] == '!' && this->input_[2] == '-' &&
         this->input_[3] == '-') {
-      this->skip_line_comment();
+      this->input_ += 4;
+      this->skip_line_comment_body();
       goto retry;
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::less_equal;
@@ -360,7 +361,8 @@ retry:
       this->skip_block_comment();
       goto retry;
     } else if (this->input_[1] == '/') {
-      this->skip_line_comment();
+      this->input_ += 2;
+      this->skip_line_comment_body();
       goto retry;
     } else {
       this->last_token_.type = token_type::slash;
@@ -494,7 +496,8 @@ retry:
   case '#':
     if (this->input_[1] == '!' &&
         this->input_ == this->original_input_.data()) {
-      this->skip_line_comment();
+      this->input_ += 2;
+      this->skip_line_comment_body();
       goto retry;
     } else {
       this->error_reporter_->report(error_unexpected_hash_character{
@@ -1245,13 +1248,8 @@ found_end_of_file:
   this->input_ += strlen(this->input_);
 }
 
-void lexer::skip_line_comment() {
-  QLJS_ASSERT((this->input_[0] == '/' && this->input_[1] == '/') ||
-              (this->input_[0] == '#' && this->input_[1] == '!') ||
-              (this->input_[0] == '<' && this->input_[1] == '!' &&
-               this->input_[2] == '-' && this->input_[3] == '-'));
-  uint8_t skip_length = this->input_[0] == '<' ? 4 : 2;
-  for (char8* c = this->input_ + skip_length;; ++c) {
+void lexer::skip_line_comment_body() {
+  for (char8* c = this->input_;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {
       this->input_ = c + newline_size;
