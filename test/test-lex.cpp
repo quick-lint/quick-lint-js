@@ -118,6 +118,13 @@ TEST(test_lex, lex_html_open_comments) {
     SCOPED_TRACE(input);
     check_single_token(&input, token_type::number);
   }
+
+  check_tokens(u8"hello<!world",
+               {token_type::identifier, token_type::less, token_type::bang,
+                token_type::identifier});
+  check_tokens(u8"hello<!-world",
+               {token_type::identifier, token_type::less, token_type::bang,
+                token_type::minus, token_type::identifier});
 }
 
 TEST(test_lex, lex_numbers) {

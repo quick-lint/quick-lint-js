@@ -256,8 +256,10 @@ retry:
     break;
 
   case '<':
-    if (this->input_[1] == '!') {
-      this->skip_html_line_comment();
+    if (this->input_[1] == '!' &&
+        this->input_[2] == '-' &&
+        this->input_[3] == '-') {
+      this->skip_line_comment();
       goto retry;
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::less_equal;
@@ -1244,27 +1246,13 @@ found_end_of_file:
   this->input_ += strlen(this->input_);
 }
 
-void lexer::skip_html_line_comment() {
-  QLJS_ASSERT(this->input_[0] == '<' && this->input_[1] == '!' &&
-              this->input_[2] == '-' && this->input_[3] == '-');
-  for (char8* c = this->input_ + 4;; ++c) {
-    int newline_size = this->newline_character_size(c);
-    if (newline_size > 0) {
-      this->input_ = c + newline_size;
-      this->skip_whitespace();
-      break;
-    }
-    if (*c == u8'\0' && this->is_eof(c)) {
-      this->input_ = c;
-      break;
-    }
-  }
-}
-
 void lexer::skip_line_comment() {
   QLJS_ASSERT((this->input_[0] == '/' && this->input_[1] == '/') ||
-              (this->input_[0] == '#' && this->input_[1] == '!'));
-  for (char8* c = this->input_ + 2;; ++c) {
+              (this->input_[0] == '#' && this->input_[1] == '!') ||
+              (this->input_[0] == '<' && this->input_[1] == '!' &&
+               this->input_[2] == '-' && this->input_[3] == '-'));
+  uint8_t skip_length = this->input_[0] == '<' ? 4 : 2;
+  for (char8* c = this->input_ + skip_length;; ++c) {
     int newline_size = this->newline_character_size(c);
     if (newline_size > 0) {
       this->input_ = c + newline_size;
