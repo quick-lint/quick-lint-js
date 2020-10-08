@@ -1104,9 +1104,17 @@ class parser {
         this->skip();
         if (this->peek().type == token_type::kw_as) {
           this->skip();
-          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-          imported_name = this->peek().identifier_name();
-          this->skip();
+          switch (this->peek().type) {
+          case token_type::kw_default:
+            // TODO(strager): Is 'import {x as default} ...' allowed?
+          case token_type::identifier:
+            imported_name = this->peek().identifier_name();
+            this->skip();
+            break;
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+          }
         }
         v.visit_variable_declaration(imported_name, variable_kind::_import);
         break;
