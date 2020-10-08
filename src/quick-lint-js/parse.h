@@ -70,19 +70,7 @@ class parser {
   parse_statement:
     switch (this->peek().type) {
     case token_type::kw_export:
-      this->lexer_.skip();
-      if (this->peek().type == token_type::kw_default) {
-        this->lexer_.skip();
-        if (this->peek().type == token_type::kw_async ||
-            this->peek().type == token_type::kw_class ||
-            this->peek().type == token_type::kw_function) {
-          this->parse_and_visit_declaration(v);
-        } else {
-          this->parse_and_visit_expression(v);
-        }
-      } else {
-        this->parse_and_visit_declaration(v);
-      }
+      this->parse_and_visit_export(v);
       break;
 
     case token_type::semicolon:
@@ -413,6 +401,24 @@ class parser {
       break;
     default:
       break;
+    }
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_export(Visitor &v) {
+    QLJS_ASSERT(this->peek().type == token_type::kw_export);
+    this->lexer_.skip();
+    if (this->peek().type == token_type::kw_default) {
+      this->lexer_.skip();
+      if (this->peek().type == token_type::kw_async ||
+          this->peek().type == token_type::kw_class ||
+          this->peek().type == token_type::kw_function) {
+        this->parse_and_visit_declaration(v);
+      } else {
+        this->parse_and_visit_expression(v);
+      }
+    } else {
+      this->parse_and_visit_declaration(v);
     }
   }
 
