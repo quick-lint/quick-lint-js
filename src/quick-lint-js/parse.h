@@ -1101,6 +1101,9 @@ class parser {
         this->error_reporter_->report(error_cannot_import_let{
             .import_name = this->peek().identifier_name().span()});
         [[fallthrough]];
+      case token_type::kw_default:
+        // TODO(strager): Is 'import {default} ...' allowed?
+        [[fallthrough]];
       case token_type::identifier: {
         identifier imported_name = this->peek().identifier_name();
         this->skip();

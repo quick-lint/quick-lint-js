@@ -183,6 +183,12 @@ TEST(test_parse, export_from) {
         parse_and_visit_statement(u8"export {promises as default} from 'fs';");
     EXPECT_THAT(v.visits, IsEmpty());
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export {default} from 'other';");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
 }
 
 TEST(test_parse, parse_simple_var) {
