@@ -70,6 +70,8 @@ class parser {
   void parse_and_visit_statement(Visitor &v) {
   parse_statement:
     switch (this->peek().type) {
+    // export class C {}
+    // export {taco} from "taco-stand";
     case token_type::kw_export:
       this->parse_and_visit_export(v);
       break;
@@ -78,6 +80,8 @@ class parser {
       this->lexer_.skip();
       break;
 
+    // let x = 42;
+    // function f() {}
     case token_type::kw_async:
     case token_type::kw_const:
     case token_type::kw_function:
@@ -86,10 +90,14 @@ class parser {
       this->parse_and_visit_declaration(v);
       break;
 
+    // import {bananas} from "Thailand";
+    // import(url).then(loaded);
     case token_type::kw_import:
       this->parse_and_visit_import(v);
       break;
 
+    // await settings.save();
+    // [1, 2, 3].forEach(x => console.log(x));
     case token_type::bang:
     case token_type::complete_template:
     case token_type::incomplete_template:
@@ -119,6 +127,8 @@ class parser {
       this->consume_semicolon();
       break;
 
+    // console.log("hello");
+    // label: for(;;);
     case token_type::identifier: {
       identifier ident = this->peek().identifier_name();
       this->lexer_.skip();
@@ -140,14 +150,18 @@ class parser {
       break;
     }
 
+    // class C {}
     case token_type::kw_class:
       this->parse_and_visit_class(v);
       break;
 
+    // switch (x) { default: ; }
     case token_type::kw_switch:
       this->parse_and_visit_switch(v);
       break;
 
+    // return;
+    // return 42;
     case token_type::kw_return:
       this->lexer_.skip();
       switch (this->peek().type) {
@@ -165,6 +179,7 @@ class parser {
       }
       break;
 
+    // throw fit;
     case token_type::kw_throw:
       this->lexer_.skip();
       if (this->peek().type == token_type::semicolon) {
@@ -184,41 +199,51 @@ class parser {
       this->consume_semicolon();
       break;
 
+    // try { hard(); } catch (exhaustion) {}
     case token_type::kw_try:
       this->parse_and_visit_try(v);
       break;
 
+    // do { } while (can);
     case token_type::kw_do:
       this->parse_and_visit_do_while(v);
       break;
 
+    // for (let i = 0; i < length; ++i) {}
+    // for (let x of xs) {}
     case token_type::kw_for:
       this->parse_and_visit_for(v);
       break;
 
+    // while (cond) {}
     case token_type::kw_while:
       this->parse_and_visit_while(v);
       break;
 
+    // with (o) { eek(); }
     case token_type::kw_with:
       this->parse_and_visit_with(v);
       break;
 
+    // if (cond) { yay; } else { nay; }
     case token_type::kw_if:
       this->parse_and_visit_if(v);
       break;
 
+    // break;
     case token_type::kw_break:
     case token_type::kw_continue:
       this->lexer_.skip();
       this->consume_semicolon();
       break;
 
+    // debugger;
     case token_type::kw_debugger:
       this->lexer_.skip();
       this->consume_semicolon();
       break;
 
+    // { statement; statement; }
     case token_type::left_curly:
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
@@ -410,6 +435,7 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_export);
     this->lexer_.skip();
     switch (this->peek().type) {
+    // export default class C {}
     case token_type::kw_default:
       this->lexer_.skip();
       if (this->peek().type == token_type::kw_async ||
@@ -431,7 +457,7 @@ class parser {
       this->consume_semicolon();
       break;
 
-      // export {a, b, c} from "module";
+    // export {a, b, c} from "module";
     case token_type::left_curly: {
       null_visitor null_v;
       this->parse_and_visit_binding_element(null_v, variable_kind::_import,
@@ -445,6 +471,7 @@ class parser {
       break;
     }
 
+    // export class C {}
     case token_type::kw_async:
     case token_type::kw_class:
     case token_type::kw_const:
@@ -463,6 +490,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
+    // async function f() {}
     case token_type::kw_async:
       this->lexer_.skip();
       switch (this->peek().type) {
@@ -476,6 +504,7 @@ class parser {
       }
       break;
 
+    // let x = 42;
     case token_type::kw_const:
     case token_type::kw_let:
     case token_type::kw_var:
@@ -484,10 +513,12 @@ class parser {
       this->consume_semicolon();
       break;
 
+    // function f() {}
     case token_type::kw_function:
       this->parse_and_visit_function_declaration(v);
       break;
 
+    // class C {}
     case token_type::kw_class:
       this->parse_and_visit_class(v);
       break;
@@ -669,6 +700,7 @@ class parser {
     }
 
     switch (this->peek().type) {
+    // async f() {}
     case token_type::kw_async:
       this->lexer_.skip();
       switch (this->peek().type) {
@@ -684,9 +716,11 @@ class parser {
       }
       break;
 
+    // get prop() {}
     case token_type::kw_get:
       this->lexer_.skip();
       [[fallthrough]];
+    // method() {}
     case token_type::identifier:
       v.visit_property_declaration(this->peek().identifier_name());
       this->lexer_.skip();
@@ -834,10 +868,14 @@ class parser {
     bool entered_for_scope = false;
 
     switch (this->peek().type) {
+    // for (;;) {}
     case token_type::semicolon:
       this->lexer_.skip();
       parse_c_style_head_remainder();
       break;
+
+    // for (let i = 0; i < length; ++length) {}
+    // for (let x of xs) {}
     case token_type::kw_const:
     case token_type::kw_let:
       v.visit_enter_for_scope();
@@ -849,11 +887,14 @@ class parser {
       this->parse_and_visit_let_bindings(lhs, this->peek().type,
                                          /*allow_in_operator=*/false);
       switch (this->peek().type) {
+      // for (let i = 0; i < length; ++length) {}
       case token_type::semicolon:
         this->lexer_.skip();
         lhs.move_into(v);
         parse_c_style_head_remainder();
         break;
+
+      // for (let x of xs) {}
       case token_type::kw_in:
       case token_type::kw_of: {
         bool is_var_in = variable_token == token_type::kw_var &&
@@ -875,12 +916,15 @@ class parser {
         }
         break;
       }
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
       break;
     }
+
+    // for (init; condition; update) {}
     default: {
       expression_ptr init_expression =
           this->parse_expression(precedence{.in_operator = false});
@@ -978,6 +1022,7 @@ class parser {
     this->lexer_.skip();
 
     switch (this->peek().type) {
+    // import fs from "fs";
     case token_type::identifier:
     case token_type::kw_let:
     case token_type::left_curly:
@@ -996,6 +1041,7 @@ class parser {
       return;
     }
 
+    // import * as fs from "fs";
     case token_type::star:
       this->lexer_.skip();
 
