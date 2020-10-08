@@ -1101,11 +1101,18 @@ class parser {
         this->error_reporter_->report(error_cannot_import_let{
             .import_name = this->peek().identifier_name().span()});
         [[fallthrough]];
-      case token_type::identifier:
-        v.visit_variable_declaration(this->peek().identifier_name(),
-                                     variable_kind::_import);
+      case token_type::identifier: {
+        identifier imported_name = this->peek().identifier_name();
         this->skip();
+        if (this->peek().type == token_type::kw_as) {
+          this->skip();
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+          imported_name = this->peek().identifier_name();
+          this->skip();
+        }
+        v.visit_variable_declaration(imported_name, variable_kind::_import);
         break;
+      }
       case token_type::right_curly:
         goto done;
       default:
