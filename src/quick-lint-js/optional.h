@@ -17,9 +17,15 @@
 #include <optional>
 
 namespace quick_lint_js {
-// TODO(strager): Disable rvalue reference arguments to prevent mistakes.
 template <class T>
 const T *get(const std::optional<T> &o) noexcept {
   return o.has_value() ? &*o : nullptr;
 }
+
+// Prevent dangling pointers. For example:
+//
+//   std::optional<int> get_thing();
+//   int *x = get(get_thing());  // ERROR
+template <class T>
+T *get(std::optional<T> &&) noexcept = delete;
 }
