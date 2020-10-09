@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <cerrno>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -25,6 +26,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/std-filesystem.h>
@@ -40,11 +42,24 @@
 #include <sys/types.h>
 #endif
 
+#if QLJS_HAVE_PIPE
+#include <unistd.h>
+#endif
+
 using ::testing::AnyOf;
 using ::testing::HasSubstr;
+using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
+#if QLJS_HAVE_PIPE
+struct pipe_fds {
+  posix_fd_file reader;
+  posix_fd_file writer;
+};
+pipe_fds make_pipe();
+#endif
+
 filesystem::path make_temporary_directory();
 void write_file(filesystem::path, const std::string &content);
 
@@ -115,6 +130,96 @@ TEST_F(test_file, read_fifo) {
 
   writer_thread.join();
 }
+
+TEST_F(test_file, read_fifo_multiple_writes) {
+  filesystem::path temp_file_path =
+      this->make_temporary_directory() / "fifo.js";
+  ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
+
+  std::thread writer_thread([&]() {
+    std::ofstream file(temp_file_path,
+                       std::ofstream::binary | std::ofstream::out);
+    if (!file) {
+      std::cerr << "failed to open file for writing\n";
+      std::abort();
+    }
+
+    file << "hello" << std::flush;
+    std::this_thread::sleep_for(1ms);
+    file << " from" << std::flush;
+    std::this_thread::sleep_for(1ms);
+    file << " fifo" << std::flush;
+
+    file.close();
+    if (!file) {
+      std::cerr << "failed to write file content\n";
+      std::abort();
+    }
+  });
+
+  read_file_result file_content = read_file(temp_file_path.string().c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
+
+  writer_thread.join();
+}
+#endif
+
+#if QLJS_HAVE_PIPE
+class substitute_fd_guard {
+ public:
+  explicit substitute_fd_guard(int original_fd, int replacement_fd)
+      : original_fd_(original_fd),
+        original_file_(posix_fd_file::duplicate(original_fd)) {
+    this->dup2(replacement_fd, original_fd);
+  }
+
+  substitute_fd_guard(const substitute_fd_guard &) = delete;
+  substitute_fd_guard &operator=(const substitute_fd_guard &) = delete;
+
+  ~substitute_fd_guard() {
+    this->dup2(this->original_file_.get(), this->original_fd_);
+  }
+
+ private:
+  static void dup2(int oldfd, int newfd) {
+    int rc = ::dup2(oldfd, newfd);
+    if (rc == -1) {
+      std::cerr << "fatal: failed to dup2: " << std::strerror(errno) << '\n';
+      std::abort();
+    }
+  }
+
+  int original_fd_;
+  posix_fd_file original_file_;
+};
+
+TEST_F(test_file, read_pipe_multiple_writes) {
+  pipe_fds pipe = make_pipe();
+  substitute_fd_guard stdin_substitution(/*original_fd=*/STDIN_FILENO,
+                                         /*replacement_fd=*/pipe.reader.get());
+
+  auto write_message = [&](const char *message) -> void {
+    std::size_t message_size = std::strlen(message);
+    ssize_t rc = ::write(pipe.writer.get(), message, message_size);
+    EXPECT_EQ(rc, message_size) << std::strerror(errno);
+  };
+  std::thread writer_thread([&]() {
+    write_message("hello");
+    std::this_thread::sleep_for(1ms);
+    write_message(" from");
+    std::this_thread::sleep_for(1ms);
+    write_message(" fifo");
+
+    pipe.writer.close();
+  });
+
+  read_file_result file_content = read_file("/dev/stdin");
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
+
+  writer_thread.join();
+}
 #endif
 
 #if QLJS_HAVE_MKDTEMP
@@ -153,6 +258,21 @@ filesystem::path make_temporary_directory() {
   }
   std::cerr << "failed to create temporary directory\n";
   std::abort();
+}
+#endif
+
+#if QLJS_HAVE_PIPE
+pipe_fds make_pipe() {
+  int fds[2];
+  int rc = ::pipe(fds);
+  if (rc == -1) {
+    std::cerr << "failed to create pipe: " << std::strerror(errno) << '\n';
+    std::abort();
+  }
+  return pipe_fds{
+      .reader = posix_fd_file(fds[0]),
+      .writer = posix_fd_file(fds[1]),
+  };
 }
 #endif
 

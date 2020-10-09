@@ -62,9 +62,16 @@ class posix_fd_file {
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
 
+  posix_fd_file duplicate();
+  static posix_fd_file duplicate(int existing_fd);
+
+  void close();
+
   static std::string get_last_error_message();
 
  private:
+  static constexpr int invalid_fd = -1;
+
   int fd_;
 };
 #endif

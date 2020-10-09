@@ -85,7 +85,7 @@ void read_file_buffered(platform_file &file, int buffer_size,
       return;
     }
     out->content.resize(size_before + *read_size);
-    if (*read_size < buffer_size) {
+    if (*read_size == 0) {
       // We read the entire file.
       return;
     }
@@ -103,11 +103,27 @@ read_file_result read_file_with_expected_size(platform_file &file,
     result.error = "failed to read from file: " + file.get_last_error_message();
     return result;
   }
-  result.content.resize(*read_size);
-  if (*read_size < size_to_read) {
-    // We read the entire file.
-    return result;
+  if (*read_size == file_size) {
+    // We possibly read the entire file. Make extra sure by reading one more
+    // byte.
+    std::optional<int> extra_read_size =
+        file.read(result.content.data() + file_size, 1);
+    if (!extra_read_size.has_value()) {
+      result.error =
+          "failed to read from file: " + file.get_last_error_message();
+      return result;
+    }
+    result.content.resize(*read_size + *extra_read_size);
+    if (*extra_read_size == 0) {
+      // We definitely read the entire file.
+      return result;
+    } else {
+      // We didn't read the entire file the first time. Keep reading.
+      read_file_buffered(file, buffer_size, &result);
+      return result;
+    }
   } else {
+    result.content.resize(*read_size);
     // We did not read the entire file. There is more data to read.
     read_file_buffered(file, buffer_size, &result);
     return result;

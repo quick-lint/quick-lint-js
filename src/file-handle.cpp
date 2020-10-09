@@ -20,6 +20,7 @@
 #include <cstring>
 #include <limits>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -72,13 +73,13 @@ std::string windows_handle_file::get_last_error_message() {
 #endif
 
 #if QLJS_HAVE_UNISTD_H
-posix_fd_file::posix_fd_file(int fd) noexcept : fd_(fd) {}
+posix_fd_file::posix_fd_file(int fd) noexcept : fd_(fd) {
+  QLJS_ASSERT(fd != invalid_fd);
+}
 
 posix_fd_file::~posix_fd_file() {
-  int rc = ::close(this->fd_);
-  if (rc != 0) {
-    std::fprintf(stderr, "error: failed to close file: %s\n",
-                 std::strerror(errno));
+  if (this->fd_ != invalid_fd) {
+    this->close();
   }
 }
 
@@ -91,6 +92,27 @@ std::optional<int> posix_fd_file::read(void *buffer, int buffer_size) noexcept {
     return std::nullopt;
   }
   return narrow_cast<int>(read_size);
+}
+
+posix_fd_file posix_fd_file::duplicate() { return this->duplicate(this->fd_); }
+
+posix_fd_file posix_fd_file::duplicate(int existing_fd) {
+  int new_fd = ::dup(existing_fd);
+  if (new_fd == -1) {
+    std::fprintf(stderr, "fatal: failed to duplicate file descriptor: %s\n",
+                 std::strerror(errno));
+    std::abort();
+  }
+  return posix_fd_file(new_fd);
+}
+
+void posix_fd_file::close() {
+  QLJS_ASSERT(this->fd_ != invalid_fd);
+  int rc = ::close(this->fd_);
+  if (rc != 0) {
+    std::fprintf(stderr, "error: failed to close file: %s\n",
+                 std::strerror(errno));
+  }
 }
 
 std::string posix_fd_file::get_last_error_message() {
