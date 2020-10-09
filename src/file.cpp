@@ -124,7 +124,10 @@ read_file_result read_file(const char *path, windows_handle_file &file) {
         std::string("failed to get size of file ") + path + ": " +
         windows_error_message(error));
   }
-  // TODO(strager): Fail if file_size exceeds int.
+  if (!in_range<int>(file_size.QuadPart)) {
+    return read_file_result::failure(
+        std::string("file too large to read into memory: ") + path);
+  }
   return read_file_with_expected_size(
       /*file=*/file, /*file_size=*/narrow_cast<int>(file_size.QuadPart),
       /*buffer_size=*/buffer_size);
@@ -144,8 +147,10 @@ read_file_result read_file(const char *path, posix_fd_file &file) {
         std::strerror(error));
   }
   auto file_size = s.st_size;
-  // TODO(strager): Fail if file_size exceeds int.
-
+  if (!in_range<int>(file_size)) {
+    return read_file_result::failure(
+        std::string("file too large to read into memory: ") + path);
+  }
   return read_file_with_expected_size(
       /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
       /*buffer_size=*/buffer_size);
