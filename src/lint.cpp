@@ -545,7 +545,6 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
 
     switch (other_kind) {
     case vk::_catch:
-      QLJS_ASSERT(kind != vk::_catch);
       QLJS_ASSERT(kind != vk::_import);
       QLJS_ASSERT(kind != vk::_parameter);
       break;

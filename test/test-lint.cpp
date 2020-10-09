@@ -1846,6 +1846,33 @@ TEST(test_lint, import_conflicts_with_any_variable_declaration) {
   }
 }
 
+TEST(test_lint,
+     catch_variable_conflicts_with_catch_variable_declared_in_same_scope) {
+  const char8 catch_declaration_1[] = u8"e";
+  const char8 catch_declaration_2[] = u8"e";
+
+  // try {
+  // } catch ([e, e]) {  // ERROR
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_block_scope();
+  l.visit_exit_block_scope();
+  l.visit_enter_block_scope();
+  l.visit_variable_declaration(identifier_of(catch_declaration_1),
+                               variable_kind::_catch);
+  l.visit_variable_declaration(identifier_of(catch_declaration_2),
+                               variable_kind::_catch);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_redeclaration_of_variable,                   //
+                  redeclaration, span_matcher(catch_declaration_2),  //
+                  original_declaration, span_matcher(catch_declaration_1))));
+}
+
 TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
   const char8 parameter_declaration[] = u8"x";
   const char8 local_declaration[] = u8"x";
