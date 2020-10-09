@@ -1650,7 +1650,7 @@ TEST(test_parse, parse_class_statement) {
 
 TEST(test_parse, class_statement_with_keyword_property) {
   for (string8 keyword : {u8"async", u8"catch", u8"class", u8"default", u8"get",
-                          u8"set", u8"try"}) {
+                          u8"set", u8"static", u8"try"}) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
