@@ -818,6 +818,12 @@ class parser {
         this->skip();
         break;
 
+      case token_type::left_curly:
+      case token_type::left_square:
+        this->parse_and_visit_binding_element(v, variable_kind::_catch,
+                                              /*allow_in_operator=*/false);
+        break;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
       }

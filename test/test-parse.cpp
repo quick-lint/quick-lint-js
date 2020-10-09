@@ -1696,6 +1696,38 @@ TEST(test_parse, parse_and_visit_try) {
     EXPECT_EQ(v.variable_uses[1].name, u8"g");
     EXPECT_EQ(v.variable_uses[2].name, u8"h");
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"try {} catch ({message, code}) {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     // (catch)
+                                      "visit_variable_declaration",  // message
+                                      "visit_variable_declaration",  // code
+                                      "visit_exit_block_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"message");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+    EXPECT_EQ(v.variable_declarations[1].name, u8"code");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_catch);
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"try {} catch ([message, code]) {}");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     // (catch)
+                                      "visit_variable_declaration",  // message
+                                      "visit_variable_declaration",  // code
+                                      "visit_exit_block_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"message");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+    EXPECT_EQ(v.variable_declarations[1].name, u8"code");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_catch);
+  }
 }
 
 TEST(test_parse, if_without_else) {
