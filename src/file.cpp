@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <algorithm>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -135,9 +136,19 @@ read_file_result read_file(const char *path, windows_handle_file &file) {
 #endif
 
 #if defined(QLJS_FILE_POSIX)
-read_file_result read_file(const char *path, posix_fd_file &file) {
-  int buffer_size = 1024;  // TODO(strager): Compute using stat.
+namespace {
+int reasonable_buffer_size(const struct stat &s) noexcept {
+  using size_type = decltype(s.st_blksize);
+  size_type minimum_buffer_size = 512;
+  size_type megabyte = 1 << 20;
+  // Bound st_blksize in case the OS gives us crazy numbers (like 0 or
+  // (size_t)-1).
+  return narrow_cast<int>(
+      std::clamp(s.st_blksize, /*lo=*/minimum_buffer_size, /*hi=*/megabyte));
+}
+}
 
+read_file_result read_file(const char *path, posix_fd_file &file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
@@ -153,7 +164,7 @@ read_file_result read_file(const char *path, posix_fd_file &file) {
   }
   return read_file_with_expected_size(
       /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
-      /*buffer_size=*/buffer_size);
+      /*buffer_size=*/reasonable_buffer_size(s));
 }
 #endif
 }
