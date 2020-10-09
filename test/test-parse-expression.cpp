@@ -1084,7 +1084,7 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
 
 TEST_F(test_parse_expression, object_literal_with_keyword_key) {
   for (string8 keyword :
-       {u8"catch", u8"class", u8"default", u8"get", u8"try"}) {
+       {u8"catch", u8"class", u8"default", u8"get", u8"set", u8"try"}) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
@@ -1095,6 +1095,12 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
 
     {
       string8 code = u8"{get " + keyword + u8"() {}}";
+      expression_ptr ast = this->parse_expression(code.c_str());
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      string8 code = u8"{" + keyword + u8"() {}}";
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, function)");
     }

@@ -784,6 +784,14 @@ expression_ptr parser::parse_object_literal() {
         break;
       }
 
+      // { get() {} }
+      case token_type::left_paren: {
+        expression_ptr key =
+            this->make_expression<expression::literal>(get_span);
+        parse_method_entry(get_span.begin(), key);
+        break;
+      }
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
