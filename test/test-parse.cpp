@@ -1648,6 +1648,20 @@ TEST(test_parse, parse_class_statement) {
   }
 }
 
+TEST(test_parse, class_statement_with_keyword_property) {
+  for (string8 keyword : {u8"async", u8"catch", u8"class", u8"default", u8"get",
+                          u8"set", u8"try"}) {
+    SCOPED_TRACE(out_string8(keyword));
+
+    {
+      string8 code = u8"class C { " + keyword + u8"(){} }";
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      ASSERT_EQ(v.property_declarations.size(), 1);
+      EXPECT_EQ(v.property_declarations[0].name, keyword);
+    }
+  }
+}
+
 TEST(test_parse, parse_and_visit_try) {
   {
     spy_visitor v = parse_and_visit_statement(u8"try {} finally {}");

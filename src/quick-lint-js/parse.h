@@ -717,12 +717,20 @@ class parser {
 
     switch (this->peek().type) {
     // async f() {}
-    case token_type::kw_async:
+    case token_type::kw_async: {
+      identifier async_ident = this->peek().identifier_name();
       this->skip();
+
       switch (this->peek().type) {
       case token_type::identifier:
         v.visit_property_declaration(this->peek().identifier_name());
         this->skip();
+        this->parse_and_visit_function_parameters_and_body(v);
+        break;
+
+      // async() {}
+      case token_type::left_paren:
+        v.visit_property_declaration(async_ident);
         this->parse_and_visit_function_parameters_and_body(v);
         break;
 
@@ -731,14 +739,36 @@ class parser {
         break;
       }
       break;
+    }
 
+    // get() {}
     // get prop() {}
     case token_type::kw_get:
-    case token_type::kw_set:
+    case token_type::kw_set: {
+      identifier get_ident = this->peek().identifier_name();
       this->skip();
-      [[fallthrough]];
+
+      switch (this->peek().type) {
+      // get() {}
+      case token_type::left_paren:
+        v.visit_property_declaration(get_ident);
+        this->parse_and_visit_function_parameters_and_body(v);
+        break;
+
+      // get prop() {}
+      default:
+        goto method;
+      }
+      break;
+    }
+
     // method() {}
     case token_type::identifier:
+    case token_type::kw_catch:
+    case token_type::kw_class:
+    case token_type::kw_default:
+    case token_type::kw_try:
+    method:
       v.visit_property_declaration(this->peek().identifier_name());
       this->skip();
       this->parse_and_visit_function_parameters_and_body(v);
