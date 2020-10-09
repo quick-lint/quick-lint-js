@@ -1670,6 +1670,12 @@ TEST(test_parse, class_statement_with_keyword_property) {
   }
 }
 
+TEST(test_parse, class_statement_allows_stray_semicolons) {
+  spy_visitor v = parse_and_visit_statement(u8"class C{ ; f(){} ; }");
+  ASSERT_EQ(v.property_declarations.size(), 1);
+  EXPECT_EQ(v.property_declarations[0].name, u8"f");
+}
+
 TEST(test_parse, parse_and_visit_try) {
   {
     spy_visitor v = parse_and_visit_statement(u8"try {} finally {}");

@@ -756,6 +756,10 @@ class parser {
       }
       break;
 
+    case token_type::semicolon:
+      this->skip();
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
