@@ -1613,6 +1613,18 @@ TEST(test_parse, parse_class_statement) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(
+        u8"class C {\n"
+        u8"  static get length() { }\n"
+        u8"  static set length(l) { }\n"
+        u8"}");
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"length"},
+                    spy_visitor::visited_property_declaration{u8"length"}));
+  }
+
+  {
     spy_visitor v =
         parse_and_visit_statement(u8"class C { a(){} b(){} c(){} }");
     ASSERT_EQ(v.property_declarations.size(), 3);

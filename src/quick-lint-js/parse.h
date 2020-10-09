@@ -734,6 +734,7 @@ class parser {
 
     // get prop() {}
     case token_type::kw_get:
+    case token_type::kw_set:
       this->skip();
       [[fallthrough]];
     // method() {}
