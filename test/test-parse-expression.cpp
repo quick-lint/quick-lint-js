@@ -1179,6 +1179,18 @@ TEST_F(test_parse_expression, parse_function_expression) {
   }
 }
 
+TEST_F(test_parse_expression, function_with_destructuring_parameters) {
+  {
+    expression_ptr ast = this->parse_expression(u8"function({a, b}) { c }");
+    EXPECT_EQ(summarize(ast), "function");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"function([a, b]) { c }");
+    EXPECT_EQ(summarize(ast), "function");
+  }
+}
+
 TEST_F(test_parse_expression, async_function_expression) {
   {
     test_parser p(u8"async function(){}");
