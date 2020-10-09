@@ -33,6 +33,7 @@ quick_lint_js_add_executable(
   test-lint-parse.cpp
   test-lint.cpp
   test-location.cpp
+  test-math-overflow.cpp
   test-narrow-cast.cpp
   test-options.cpp
   test-padded-string.cpp

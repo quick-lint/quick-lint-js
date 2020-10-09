@@ -26,6 +26,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <string>
 
@@ -75,8 +76,15 @@ void read_file_buffered(platform_file &file, int buffer_size,
                         read_file_result *out) {
   for (;;) {
     int size_before = out->content.size();
-    // TODO(strager): Check for overflow.
-    out->content.resize(size_before + buffer_size);
+    {
+      std::optional<int> new_size = checked_add(size_before, buffer_size);
+      if (!new_size.has_value()) {
+        // TODO(strager): Should we try a small buffer size?
+        out->error = "file too large to read into memory";
+        return;
+      }
+      out->content.resize(size_before + buffer_size);
+    }
 
     std::optional<int> read_size =
         file.read(&out->content.data()[size_before], buffer_size);
@@ -84,7 +92,9 @@ void read_file_buffered(platform_file &file, int buffer_size,
       out->error = "failed to read from file: " + file.get_last_error_message();
       return;
     }
-    out->content.resize(size_before + *read_size);
+    std::optional<int> new_size = checked_add(size_before, *read_size);
+    QLJS_ASSERT(new_size.has_value());
+    out->content.resize(*new_size);
     if (*read_size == 0) {
       // We read the entire file.
       return;
