@@ -715,52 +715,29 @@ class parser {
       this->skip();
     }
 
+    std::optional<identifier> async_ident;
+    std::optional<identifier> get_ident;
+
+  next:
     switch (this->peek().type) {
     // async f() {}
-    case token_type::kw_async: {
-      identifier async_ident = this->peek().identifier_name();
-      this->skip();
-
-      switch (this->peek().type) {
-      case token_type::identifier:
-        v.visit_property_declaration(this->peek().identifier_name());
-        this->skip();
-        this->parse_and_visit_function_parameters_and_body(v);
-        break;
-
-      // async() {}
-      case token_type::left_paren:
-        v.visit_property_declaration(async_ident);
-        this->parse_and_visit_function_parameters_and_body(v);
-        break;
-
-      default:
+    case token_type::kw_async:
+      if (async_ident.has_value()) {
         QLJS_PARSER_UNIMPLEMENTED();
-        break;
       }
-      break;
-    }
+      async_ident = this->peek().identifier_name();
+      this->skip();
+      goto next;
 
-    // get() {}
     // get prop() {}
     case token_type::kw_get:
-    case token_type::kw_set: {
-      identifier get_ident = this->peek().identifier_name();
-      this->skip();
-
-      switch (this->peek().type) {
-      // get() {}
-      case token_type::left_paren:
-        v.visit_property_declaration(get_ident);
-        this->parse_and_visit_function_parameters_and_body(v);
-        break;
-
-      // get prop() {}
-      default:
-        goto method;
+    case token_type::kw_set:
+      if (get_ident.has_value()) {
+        QLJS_PARSER_UNIMPLEMENTED();
       }
-      break;
-    }
+      get_ident = this->peek().identifier_name();
+      this->skip();
+      goto next;
 
     // method() {}
     case token_type::identifier:
@@ -768,10 +745,23 @@ class parser {
     case token_type::kw_class:
     case token_type::kw_default:
     case token_type::kw_try:
-    method:
       v.visit_property_declaration(this->peek().identifier_name());
       this->skip();
       this->parse_and_visit_function_parameters_and_body(v);
+      break;
+
+    // async() {}
+    // get() {}
+    case token_type::left_paren:
+      if (async_ident.has_value()) {
+        v.visit_property_declaration(*async_ident);
+        this->parse_and_visit_function_parameters_and_body(v);
+      } else if (get_ident.has_value()) {
+        v.visit_property_declaration(*get_ident);
+        this->parse_and_visit_function_parameters_and_body(v);
+      } else {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
       break;
 
     default:
