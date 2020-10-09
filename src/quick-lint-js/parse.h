@@ -711,37 +711,26 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class_member(Visitor &v) {
-    std::optional<identifier> async_ident;
-    std::optional<identifier> get_ident;
-    std::optional<identifier> static_ident;
+    std::optional<identifier> last_ident;
 
   next:
     switch (this->peek().type) {
     // async f() {}
     case token_type::kw_async:
-      if (async_ident.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
-      async_ident = this->peek().identifier_name();
+      last_ident = this->peek().identifier_name();
       this->skip();
       goto next;
 
     // static f() {}
     case token_type::kw_static:
-      if (static_ident.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
-      static_ident = this->peek().identifier_name();
+      last_ident = this->peek().identifier_name();
       this->skip();
       goto next;
 
     // get prop() {}
     case token_type::kw_get:
     case token_type::kw_set:
-      if (get_ident.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
-      get_ident = this->peek().identifier_name();
+      last_ident = this->peek().identifier_name();
       this->skip();
       goto next;
 
@@ -759,14 +748,8 @@ class parser {
     // async() {}
     // get() {}
     case token_type::left_paren:
-      if (async_ident.has_value()) {
-        v.visit_property_declaration(*async_ident);
-        this->parse_and_visit_function_parameters_and_body(v);
-      } else if (get_ident.has_value()) {
-        v.visit_property_declaration(*get_ident);
-        this->parse_and_visit_function_parameters_and_body(v);
-      } else if (static_ident.has_value()) {
-        v.visit_property_declaration(*static_ident);
+      if (last_ident.has_value()) {
+        v.visit_property_declaration(*last_ident);
         this->parse_and_visit_function_parameters_and_body(v);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
