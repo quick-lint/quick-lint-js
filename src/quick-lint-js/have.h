@@ -219,4 +219,14 @@
 #endif
 #endif
 
+#include <locale.h>
+
+#if !defined(QLJS_HAVE_LC_MESSAGES)
+#if defined(LC_MESSAGES)
+#define QLJS_HAVE_LC_MESSAGES 1
+#else
+#define QLJS_HAVE_LC_MESSAGES 0
+#endif
+#endif
+
 #endif

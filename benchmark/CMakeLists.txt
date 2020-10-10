@@ -64,3 +64,15 @@ target_link_libraries(
   benchmark::benchmark_main
   quick-lint-js-lib
 )
+
+quick_lint_js_add_executable(
+  quick-lint-js-benchmark-translation
+  benchmark-translation.cpp
+)
+target_link_libraries(
+  quick-lint-js-benchmark-translation
+  PRIVATE
+  benchmark::benchmark
+  benchmark::benchmark_main
+  quick-lint-js-lib
+)

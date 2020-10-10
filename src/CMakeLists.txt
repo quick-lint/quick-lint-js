@@ -44,16 +44,20 @@ quick_lint_js_add_library(
   error.cpp
   file-handle.cpp
   file.cpp
+  gmo.cpp
   integer.cpp
   language.cpp
   lex-keyword.cpp
   lex.cpp
   lint.cpp
+  locale.cpp
   location.cpp
   options.cpp
   padded-string.cpp
   parse.cpp
   text-error-reporter.cpp
+  translation-data.cpp
+  translation.cpp
   vector.cpp
   vim-qflist-json-error-reporter.cpp
   wasm-demo-error-reporter.cpp
