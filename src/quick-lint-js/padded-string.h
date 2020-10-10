@@ -40,7 +40,8 @@ class padded_string {
   char8 *data() noexcept { return this->data_.data(); }
 
   int size() const noexcept {
-    return narrow_cast<int>(this->data_.size()) - this->null_bytes_to_add;
+    return narrow_cast<int>(this->data_.size() -
+                            narrow_cast<unsigned>(this->null_bytes_to_add));
   }
 
   const char8 &operator[](int index) const noexcept {

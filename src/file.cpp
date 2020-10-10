@@ -105,10 +105,16 @@ void read_file_buffered(platform_file &file, int buffer_size,
 read_file_result read_file_with_expected_size(platform_file &file,
                                               int file_size, int buffer_size) {
   read_file_result result;
-  // TODO(strager): Check for overflow.
-  int size_to_read = file_size + 1;
-  result.content.resize(size_to_read);
-  std::optional<int> read_size = file.read(result.content.data(), size_to_read);
+
+  std::optional<int> size_to_read = checked_add(file_size, 1);
+  if (!size_to_read.has_value()) {
+    result.error = "file too large to read into memory";
+    return result;
+  }
+  result.content.resize(*size_to_read);
+
+  std::optional<int> read_size =
+      file.read(result.content.data(), *size_to_read);
   if (!read_size.has_value()) {
     result.error = "failed to read from file: " + file.get_last_error_message();
     return result;

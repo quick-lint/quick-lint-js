@@ -35,8 +35,8 @@ padded_string::padded_string(const char8* string)
     : padded_string(string8(string)) {}
 
 void padded_string::resize(int new_size) {
-  this->data_.resize(
-      narrow_cast<std::size_t>(new_size + this->null_bytes_to_add));
+  this->data_.resize(narrow_cast<std::size_t>(new_size) +
+                     this->null_bytes_to_add);
   std::fill(this->data_.end() - this->null_bytes_to_add, this->data_.end(),
             u8'\0');
 }
