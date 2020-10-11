@@ -35,10 +35,10 @@ jobs:
         with:
           commit: ${{ github.event.inputs.build_commit_id }}
           name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
-          path: demo/dist/
+          path: website/demo/dist/
           workflow: build-and-test-web-demo.yml
       - name: build site
-        run: demo/prepare-for-publish ./website-build
+        run: website/prepare-for-publish ./website-build
 
       - name: publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

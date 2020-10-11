@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!--
+Other files may have different copyright and may be licensed under different
+licenses. See license.html for details.
+-->
+<html>
+  <head>
+    <title>quick-lint-js finds JavaScript bugs</title>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: sans-serif;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 45rem;
+      }
+
+      figure {
+        margin: 0;
+        margin-bottom: 1rem;
+      }
+
+      .feature-comparison table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .feature-comparison td,
+      .feature-comparison th {
+        border-color: #888888;
+        border-style: solid;
+        border-width: 0;
+        padding: 0.5em 1em;
+        text-align: center;
+      }
+      .feature-comparison th:first-child {
+        text-align: right;
+      }
+      .feature-comparison tbody td,
+      .feature-comparison tbody th {
+        border-top-width: 1px;
+      }
+      .feature-comparison td.good {
+        background-color: #ddffdd;
+      }
+      .feature-comparison td.bad {
+        background-color: #ffdddd;
+      }
+      .feature-comparison td.meh {
+        background-color: #ffeecc;
+      }
+
+      .feature-comparison td.quick-lint-js,
+      .feature-comparison th.quick-lint-js {
+        border-left-width: 1px;
+        border-right-width: 1px;
+      }
+
+      .feature-comparison .footnote-marker {
+        position: absolute;
+      }
+
+      .feature-comparison figcaption p {
+        margin-top: 0.25em;
+        margin-bottom: 0.25em;
+      }
+
+      h1 {
+        margin-top: 1rem;
+      }
+
+      header nav {
+        margin-top: 1rem;
+        text-align: right;
+      }
+      header nav > ul {
+        margin: 0;
+        padding: 0;
+      }
+      header nav li {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      header nav li > a {
+        padding: 0;
+      }
+
+      header {
+        display: grid;
+        grid-template:
+          "title nav"
+          "tag-line nav";
+      }
+      header > h1 {
+        grid-area: title;
+      }
+      header > .tag-line {
+        grid-area: tag-line;
+      }
+      header > nav {
+        grid-area: nav;
+      }
+
+      footer,
+      h2 {
+        border-top: 1px solid #ccc;
+        padding-top: 1rem;
+      }
+
+      .install-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+      }
+      .install-options > li {
+        list-style-type: none;
+        margin: 0.375rem 0.5rem;
+        padding: 0;
+        white-space: nowrap;
+      }
+
+      .install-options a {
+        /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
+        background-color: rgb(240, 219, 79);
+        border-radius: 0.5rem;
+        display: inline-block;
+        font-weight: bold;
+        letter-spacing: 0.75px;
+        padding: 0.75rem 1.25rem 0.5em 1.25rem;
+        text-decoration: none;
+      }
+      .install-options a,
+      .install-options a:visited {
+        /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
+        color: rgb(50, 51, 48);
+      }
+      .install-options a:hover {
+        /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
+        background-color: rgba(240, 219, 79, 0.75);
+      }
+
+      .install-options {
+        line-height: 1.4em;
+      }
+      .install-logo {
+        height: 1.2em;
+        width: 1.2em;
+        vertical-align: text-bottom;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>quick-lint-js</h1>
+      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+      <nav>
+        <ul>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <p>
+        quick-lint-js gives you <strong>instant feedback</strong> as you code.
+        <strong>Find bugs</strong> in your JavaScript before your finger leaves
+        the keyboard.
+      </p>
+
+      <p><a href="demo/">Try it out in your browser.</a></p>
+
+      <figure>
+        <object data="vscode-demo.webp" type="image/webp" style="width: 100%">
+          <video autoplay loop poster="vscode-demo.png" style="width: 100%">
+            <source src="vscode-demo.mp4" type="video/mp4" />
+            <img
+              src="vscode-demo.png"
+              style="width: 100%"
+              alt="quick-lint-js running in Visual Studio Code"
+            />
+          </video>
+        </object>
+      </figure>
+
+      <h2>Install quick-lint-js</h2>
+      <ul class="install-options">
+        <li>
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/blob/master/docs/INSTALLING.md#installing-quick-lint-js"
+            ><img
+              class="install-logo"
+              src="gnome-terminal.svg"
+              alt=""
+              aria-labeled-by="install-cli"
+            />
+            <span id="install-cli">install CLI</span></a
+          >
+        </li>
+        <li>
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/tree/master/plugin/vim#quick-lint-js-vim-plugin"
+            ><img
+              class="install-logo"
+              src="vim.gif"
+              alt=""
+              aria-labeled-by="install-vim"
+            />
+            <span id="install-vim">install Vim plugin</span></a
+          >
+        </li>
+        <li>
+          <a
+            href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
+            ><img
+              class="install-logo"
+              src="vscode.png"
+              alt=""
+              aria-labeled-by="install-vs-code"
+            />
+            <span id="install-vs-code">install VS Code plugin</span></a
+          >
+        </li>
+      </ul>
+
+      <h2 id="linter-feature-comparison">Features</h2>
+      <figure class="feature-comparison">
+        <table>
+          <thead>
+            <tr>
+              <th>feature</th>
+              <th class="quick-lint-js">quick-lint-js</th>
+              <th><a href="https://eslint.org/">ESLint</a></th>
+              <th><a href="https://jshint.com/">JSHint</a></th>
+              <th><a href="https://rslint.org/">RSLint</a></th>
+              <th><a href="https://lint.deno.land/">deno lint</a></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>speed</th>
+              <td class="good quick-lint-js">
+                <span aria-labelled-by="feature-speed-qljs-quick">🚀</span
+                ><br /><span id="feature-speed-qljs-quick">quick</span>
+              </td>
+              <td class="bad">
+                <span aria-labelled-by="feature-speed-eslint-slow">🐢</span
+                ><br /><span id="feature-speed-eslint-slow">slow</span>
+              </td>
+              <td class="bad">
+                <span aria-labelled-by="feature-speed-jshint-slow">🐢</span
+                ><br /><span id="feature-speed-jshint-slow">slow</span>
+              </td>
+              <td class="meh">
+                <span aria-labelled-by="feature-speed-rslint-capable">🐇</span
+                ><br /><span id="feature-speed-rslint-capable">capable</span>
+              </td>
+              <td class="meh">
+                <span aria-labelled-by="feature-speed-deno-lint-capable"
+                  >🐇</span
+                ><br /><span id="feature-speed-deno-lint-capable">capable</span>
+              </td>
+            </tr>
+            <tr>
+              <th>license</th>
+              <td class="good quick-lint-js">free<br />GPLv3</td>
+              <td class="meh">open source<br />MIT</td>
+              <td class="meh">open source<br />MIT</td>
+              <td class="meh">open source<br />MIT</td>
+              <td class="meh">open source<br />MIT</td>
+            </tr>
+            <tr>
+              <th>easy npm install</th>
+              <td class="bad quick-lint-js">
+                <span aria-label="hard">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
+              <td class="good"><span aria-label="easy">✅</span></td>
+              <td class="good"><span aria-label="easy">✅</span></td>
+              <td class="bad">
+                <span aria-label="hard">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;<a
+                    href="https://old.reddit.com/r/javascript/comments/j4zj3c/rslint_an_extremely_fast_javascript_linter/g7r46mp/?context=1"
+                    >*</a
+                  ></span
+                >
+              </td>
+              <td class="bad"><span aria-label="hard">❌</span></td>
+            </tr>
+            <tr>
+              <th>easy setup</th>
+              <td class="good quick-lint-js">
+                <span aria-label="easy">✅</span><br />zero config
+              </td>
+              <td class="meh">
+                <span aria-label="hard">❌</span><br />config or <tt>init</tt>
+              </td>
+              <td class="bad"><span aria-label="hard">❌</span><br />config</td>
+              <td class="good">
+                <span aria-label="easy">✅</span><br />config optional
+              </td>
+              <td class="good">
+                <span aria-label="easy">✅</span><br />zero config
+              </td>
+            </tr>
+            <tr>
+              <th>JSX</th>
+              <td class="bad quick-lint-js">
+                <span aria-label="no">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
+              <td class="meh">
+                <span aria-label="yes">✅</span
+                ><span
+                  aria-label="with plugin"
+                  title="with plugin"
+                  class="footnote-marker"
+                  >&nbsp;†</span
+                >
+              </td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad">
+                <span aria-label="no">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
+              <th>TypeScript</th>
+              <td class="bad quick-lint-js">
+                <span aria-label="no">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
+              <td class="meh">
+                <span aria-label="yes">✅</span
+                ><span
+                  aria-label="with plugin"
+                  title="with plugin"
+                  class="footnote-marker"
+                  >&nbsp;<a href="https://typescript-eslint.io/">†</a></span
+                >
+              </td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad">
+                <span aria-label="no">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
+              <th>editor integration</th>
+              <td class="good quick-lint-js">
+                <a
+                  href="https://github.com/quick-lint/quick-lint-js/tree/master/plugin/vim"
+                  >Vim</a
+                ><br /><a
+                  href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
+                  >VS Code</a
+                ><br />LSP
+              </td>
+              <td class="good">
+                <a href="https://eslint.org/docs/user-guide/integrations"
+                  >yes</a
+                >
+              </td>
+              <td class="good">
+                <a href="https://jshint.com/install/">yes</a>
+              </td>
+              <td class="bad">
+                <span aria-label="no">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;<a
+                    href="https://old.reddit.com/r/rust/comments/j4z1ud/rslint_an_extremely_fast_and_user_friendly/g7oka27/?context=1"
+                    >*</a
+                  ></span
+                >
+              </td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>lint rules</th>
+              <td class="meh quick-lint-js">minimal</td>
+              <td class="good">
+                <a href="https://eslint.org/docs/rules/">zillions</a>
+              </td>
+              <td class="meh">
+                <a href="https://jshint.com/docs/options/">some</a>
+              </td>
+              <td class="meh">
+                <a
+                  href="https://rdambrosio016.github.io/RSLint/rules/index.html"
+                  >some</a
+                >
+              </td>
+              <td class="meh"><a href="https://lint.deno.land/">some</a></td>
+            </tr>
+            <tr>
+              <th>stable</th>
+              <td class="bad quick-lint-js">
+                <span aria-label="unstable">❌</span>
+              </td>
+              <td class="good"><span aria-label="stable">✅</span></td>
+              <td class="good"><span aria-label="stable">✅</span></td>
+              <td class="bad"><span aria-label="unstable">❌</span></td>
+              <td class="bad"><span aria-label="unstable">❌</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <figcaption>
+          <p id="footnote-planned">
+            <span aria-label="planned footnote">*</span> feature is planned
+          </p>
+          <p id="footnote-with-plugin">
+            <span aria-label="planned with plugin">†</span> feature requires a
+            plugin
+          </p>
+        </figcaption>
+      </figure>
+    </main>
+
+    <footer>
+      <nav>
+        <ul>
+          <li><a href="demo/">try quick-lint-js in your browser</a></li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+          <li><a href="license.html">copyright and license information</a></li>
+        </ul>
+      </nav>
+    </footer>
+  </body>
+</html>

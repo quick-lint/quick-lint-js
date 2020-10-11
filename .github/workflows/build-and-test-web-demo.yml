@@ -42,16 +42,16 @@ jobs:
       - name: C++ build
         run: emmake make -C build quick-lint-js-wasm-demo
       - name: C++ install
-        run: emmake cmake --install build --component wasm-demo --prefix demo
+        run: emmake cmake --install build --component wasm-demo --prefix website/demo
 
       - name: JS configure
-        run: cd demo && yarn
+        run: cd website/demo && yarn
       - name: JS test
-        run: cd demo && yarn test
+        run: cd website/demo && yarn test
 
       - name: upload build
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: web-demo-dist-${{ github.sha }}
-          path: demo/dist/
+          path: website/demo/dist/
