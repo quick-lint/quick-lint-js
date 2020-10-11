@@ -15,7 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 name: build and test web demo
-on: [push]
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -25,8 +28,14 @@ jobs:
       - uses: mymindstorm/setup-emsdk@v6
         with:
           version: 2.0.4
-      - name: check out
-        uses: actions/checkout@v1
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: C++ configure
         run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
