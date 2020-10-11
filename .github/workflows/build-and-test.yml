@@ -15,7 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 name: build and test
-on: [push]
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
@@ -56,8 +59,15 @@ jobs:
         ) }}
 
     steps:
-      - name: check out
-        uses: actions/checkout@v1
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort

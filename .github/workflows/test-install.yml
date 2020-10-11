@@ -15,15 +15,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 name: test install
-on: [push]
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   build:
     name: test install
     runs-on: ubuntu-latest
     steps:
-      - name: check out
-        uses: actions/checkout@v1
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: configure
         run: cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DBUILD_TESTING=OFF -S . -B .
       - name: build
