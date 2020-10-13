@@ -34,4 +34,8 @@ jobs:
 
       - run: clang-format --version
       - run: ./tools/format
-      - run: git diff --exit-code
+      - run: |
+          if ! git diff --exit-code; then
+            printf '::error ::%s\n' 'Sources are not formatted with clang-format. Run clang-format or apply the above patch, and amend your commit: https://github.com/quick-lint/quick-lint-js/blob/master/docs/CONTRIBUTING.md#clang-format'
+            exit 1
+          fi
