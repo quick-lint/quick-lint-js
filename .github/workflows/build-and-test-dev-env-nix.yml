@@ -1,0 +1,54 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: build test dev env nix
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    name: build and test dev env nix
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # Install nix
+      - uses: cachix/install-nix-action@v11
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
+
+      # We can't split this up into multiple actions because
+      # nix-shell is quit after the action is done. We want
+      # all commands be executed in the context of the shell.
+      - name: configure, build, test and run in nix-shell
+        run: > 
+          nix-shell dist/shell.nix --command
+          "cmakeConfigurePhase &&
+          ninjaBuildPhase &&
+          ./test/quick-lint-js-test &&
+          ./quick-lint-js --help"
+      - name: Run executable without nix-shell
+        run: ./build/quick-lint-js --help
+
