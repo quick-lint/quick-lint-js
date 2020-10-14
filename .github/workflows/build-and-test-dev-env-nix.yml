@@ -34,21 +34,20 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      # Install nix
-      - uses: cachix/install-nix-action@v11
+      - name: install nix
+        uses: cachix/install-nix-action@v11
         with:
           nix_path: nixpkgs=channel:nixpkgs-unstable
 
       # We can't split this up into multiple actions because
       # nix-shell is quit after the action is done. We want
       # all commands be executed in the context of the shell.
-      - name: configure, build, test and run in nix-shell
+      - name: configure, build, test, and run in nix-shell
         run: > 
           nix-shell dist/shell.nix --command
           "cmakeConfigurePhase &&
           ninjaBuildPhase &&
           ./test/quick-lint-js-test &&
           ./quick-lint-js --help"
-      - name: Run executable without nix-shell
+      - name: run executable without nix-shell
         run: ./build/quick-lint-js --help
-
