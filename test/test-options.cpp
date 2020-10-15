@@ -43,6 +43,7 @@ TEST(test_options, default_options_with_no_files) {
   options o = parse_options({});
   EXPECT_FALSE(o.print_parser_visits);
   EXPECT_FALSE(o.help);
+  EXPECT_FALSE(o.version);
   EXPECT_EQ(o.output_format, output_format::gnu_like);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
@@ -175,6 +176,18 @@ TEST(test_options, print_help) {
   {
     options o = parse_options({"--h"});
     EXPECT_TRUE(o.help);
+  }
+}
+
+TEST(test_options, print_version) {
+  {
+    options o = parse_options({"--version"});
+    EXPECT_TRUE(o.version);
+  }
+
+  {
+    options o = parse_options({"--v"});
+    EXPECT_TRUE(o.version);
   }
 }
 
