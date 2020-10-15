@@ -327,7 +327,7 @@ retry:
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::minus_equal;
       this->input_ += 2;
-    } else if (this->input_[1] == '-') && this->input_[2] == ">") {
+    } else if (this->input_[1] == '-' && this->input_[2] == ">") {
 	  this ->input_ += 3;
 	  this->skip_line_comment_body();
 	  goto retry;
