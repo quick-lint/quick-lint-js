@@ -38,9 +38,6 @@
 #include <variant>
 
 // Version information
-#define QUICK_LINT_JS_VERSION_MAJOR 1
-#define QUICK_LINT_JS_VERSION_MINOR 0
-#define QUICK_LINT_JS_VERSION_PATCHLEVEL 0
 #define QUICK_LINT_JS_VERSION_STRING "1.0.0"
 
 namespace quick_lint_js {
