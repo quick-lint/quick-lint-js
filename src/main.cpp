@@ -37,6 +37,12 @@
 #include <string>
 #include <variant>
 
+// Version information
+#define QUICK_LINT_JS_VERSION_MAJOR 1
+#define QUICK_LINT_JS_VERSION_MINOR 0
+#define QUICK_LINT_JS_VERSION_PATCHLEVEL 0
+#define QUICK_LINT_JS_VERSION_STRING "1.0.0"
+
 namespace quick_lint_js {
 namespace {
 class any_error_reporter {
@@ -95,6 +101,7 @@ void process_file(padded_string_view input, error_reporter *,
                   bool print_parser_visits);
 
 void print_help_message();
+void print_version_information();
 }
 }
 
@@ -104,6 +111,10 @@ int main(int argc, char **argv) {
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
   if (o.help) {
     quick_lint_js::print_help_message();
+    return 0;
+  }
+  if (o.version) {
+    quick_lint_js::print_version_information();
     return 0;
   }
   if (!o.error_unrecognized_options.empty()) {
@@ -304,9 +315,14 @@ void print_help_message() {
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
   print_option("", "gnu-like (default if omitted), vim-qflist-json");
+  print_option("--v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
   print_option("--h, --help", "Print help message");
+}
+
+void print_version_information() {
+  std::cout << "quick-lint-js version " << QUICK_LINT_JS_VERSION_STRING << '\n';
 }
 }
 }

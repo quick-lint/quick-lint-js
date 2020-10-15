@@ -33,6 +33,7 @@ struct file_to_lint {
 
 struct options {
   bool help = false;
+  bool version = false;
   bool print_parser_visits = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::gnu_like;
