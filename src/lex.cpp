@@ -450,10 +450,34 @@ retry:
         }
 
       case '\n':
-      case '\r':
+      case '\r': {
+        char8* c_up_to_first_matching_quote = nullptr;
+        char8* c_end = c;
+        if (c_end[0] == '\r' && c_end[1] == '\n') {
+          c_end += 2;
+        } else {
+          c_end += 1;
+        }
+        for (;;) {
+          if (*c_end == opening_quote) {
+            if (c_up_to_first_matching_quote) {
+              break;
+            }
+            c_up_to_first_matching_quote = ++c_end;
+          } else if (*c_end == '\r' || *c_end == '\n' ||
+                     (*c_end == '\0' && this->is_eof(c_end))) {
+            if (c_up_to_first_matching_quote) {
+              c = c_up_to_first_matching_quote;
+            }
+            break;
+          } else {
+            ++c_end;
+          }
+        }
         this->error_reporter_->report(error_unclosed_string_literal{
             source_code_span(&this->input_[0], c)});
         goto done;
+      }
 
       case '\\':
         ++c;
