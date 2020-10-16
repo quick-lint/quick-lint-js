@@ -717,11 +717,20 @@ expression_ptr parser::parse_object_literal() {
       case token_type::comma:
       case token_type::right_curly: {
         // Name and value are the same: {keyandvalue}
-        // TODO(strager): Only allow this for identifiers, not numbers or
-        // strings.
-        expression_ptr value = this->make_expression<expression::variable>(
-            identifier(key_span), key_type);
-        entries.emplace_back(key, value);
+
+        if (key_type == token_type::string || key_type == token_type::number) {
+          expression_ptr value = this->make_expression<expression::_invalid>();
+          this->error_reporter_->report(
+              invalid_lone_literal_in_object_literal{key_span});
+          entries.emplace_back(key, value);
+        }
+
+        if (key_type == token_type::identifier) {
+          expression_ptr value = this->make_expression<expression::variable>(
+              identifier(key_span), key_type);
+          entries.emplace_back(key, value);
+        }
+
         break;
       }
       case token_type::colon:
