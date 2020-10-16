@@ -246,6 +246,9 @@
       .error(u8"variable used before declaration: {0}", use)                   \
           .note(u8"variable declared here", declaration))                      \
                                                                                \
+  QLJS_ERROR_TYPE(                                                             \
+      invalid_lone_literal_in_object_literal, { source_code_span where; },     \
+      .error(u8"invalid lone literal in object literal", where))               \
   /* END */
 
 namespace quick_lint_js {
