@@ -1122,6 +1122,24 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                     error_missing_comma_between_object_literal_entries, where,
                     offsets_matcher(p.locator, 7, 7))));
   }
+
+  {
+    test_parser p(u8"{1234}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, ?)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_invalid_lone_literal_in_object_literal,
+                                where, offsets_matcher(p.locator, 1, 5))));
+  }
+
+  {
+    test_parser p(u8"{'x'}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, ?)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_invalid_lone_literal_in_object_literal,
+                                where, offsets_matcher(p.locator, 1, 4))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_comma_expression) {

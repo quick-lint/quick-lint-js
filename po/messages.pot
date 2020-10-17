@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2020-10-12 21:10-0700\n"
+"POT-Creation-Date: 2020-10-17 14:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,6 +110,10 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "invalid expression left of assignment"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "invalid lone literal in object literal"
 msgstr ""
 
 #: src/quick-lint-js/error.h
