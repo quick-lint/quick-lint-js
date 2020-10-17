@@ -33,12 +33,12 @@ class native_gmo_file {
   }
 
   std::string_view original_string_at(word_type index) const noexcept {
-    return this->string_at(/*table_offset=*/this->original_strings_offset(),
+    return this->string_at(/*table_offset=*/this->read_word(/*offset=*/0x0c),
                            /*index=*/index);
   }
 
   std::string_view translated_string_at(word_type index) const noexcept {
-    return this->string_at(/*table_offset=*/this->translated_strings_offset(),
+    return this->string_at(/*table_offset=*/this->read_word(/*offset=*/0x10),
                            /*index=*/index);
   }
 
@@ -101,14 +101,6 @@ class native_gmo_file {
 
   word_type hash_table_size() const noexcept {
     return this->read_word(/*offset=*/0x14);
-  }
-
-  offset_type original_strings_offset() const noexcept {
-    return this->read_word(/*offset=*/0x0c);
-  }
-
-  offset_type translated_strings_offset() const noexcept {
-    return this->read_word(/*offset=*/0x10);
   }
 
   std::string_view string_at(offset_type table_offset, word_type index) const
