@@ -17,62 +17,35 @@
 cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSTarget)
 
-quick_lint_js_add_executable(
+function (quick_lint_js_add_benchmark_executable TARGET_NAME)
+  set(SOURCES "${ARGN}")
+  quick_lint_js_add_executable("${TARGET_NAME}" ${SOURCES})
+  target_link_libraries(
+    "${TARGET_NAME}"
+    PRIVATE
+    benchmark::benchmark
+    benchmark::benchmark_main
+    quick-lint-js-lib
+  )
+endfunction ()
+
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lex
   benchmark-lex.cpp
 )
-target_link_libraries(
-  quick-lint-js-benchmark-lex
-  PRIVATE
-  benchmark::benchmark
-  benchmark::benchmark_main
-  quick-lint-js-lib
-)
-
-quick_lint_js_add_executable(
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lint
   benchmark-lint.cpp
 )
-target_link_libraries(
-  quick-lint-js-benchmark-lint
-  PRIVATE
-  benchmark::benchmark
-  benchmark::benchmark_main
-  quick-lint-js-lib
-)
-
-quick_lint_js_add_executable(
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-location
   benchmark-location.cpp
 )
-target_link_libraries(
-  quick-lint-js-benchmark-location
-  PRIVATE
-  benchmark::benchmark
-  benchmark::benchmark_main
-  quick-lint-js-lib
-)
-
-quick_lint_js_add_executable(
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-parse
   benchmark-parse.cpp
 )
-target_link_libraries(
-  quick-lint-js-benchmark-parse
-  PRIVATE
-  benchmark::benchmark
-  benchmark::benchmark_main
-  quick-lint-js-lib
-)
-
-quick_lint_js_add_executable(
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-translation
   benchmark-translation.cpp
-)
-target_link_libraries(
-  quick-lint-js-benchmark-translation
-  PRIVATE
-  benchmark::benchmark
-  benchmark::benchmark_main
-  quick-lint-js-lib
 )
