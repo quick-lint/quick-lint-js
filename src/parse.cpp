@@ -723,14 +723,11 @@ expression_ptr parser::parse_object_literal() {
           this->error_reporter_->report(
               invalid_lone_literal_in_object_literal{key_span});
           entries.emplace_back(key, value);
-        }
-
-        if (key_type == token_type::identifier) {
+        } else {
           expression_ptr value = this->make_expression<expression::variable>(
               identifier(key_span), key_type);
           entries.emplace_back(key, value);
         }
-
         break;
       }
       case token_type::colon:
