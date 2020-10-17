@@ -85,16 +85,17 @@ class native_gmo_file {
   }
 
   word_type read_word(word_type offset) const noexcept {
+    const std::uint8_t *d = &this->data_[offset];
     if constexpr (E == endian::little) {
-      return (word_type{this->data_[offset + 0]} << 0) |
-             (word_type{this->data_[offset + 1]} << 8) |
-             (word_type{this->data_[offset + 2]} << 16) |
-             (word_type{this->data_[offset + 3]} << 24);
+      return (word_type{d[0]} << 0) |   //
+             (word_type{d[1]} << 8) |   //
+             (word_type{d[2]} << 16) |  //
+             (word_type{d[3]} << 24);
     } else {
-      return (word_type{this->data_[offset + 3]} << 0) |
-             (word_type{this->data_[offset + 2]} << 8) |
-             (word_type{this->data_[offset + 1]} << 16) |
-             (word_type{this->data_[offset + 0]} << 24);
+      return (word_type{d[3]} << 0) |   //
+             (word_type{d[2]} << 8) |   //
+             (word_type{d[1]} << 16) |  //
+             (word_type{d[0]} << 24);
     }
   }
 
