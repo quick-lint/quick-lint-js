@@ -24,10 +24,11 @@
 #include <string>
 #include <vector>
 
-#define QLJS_TRANSLATE(...) (::quick_lint_js::translate(__VA_ARGS__))
+#define QLJS_TRANSLATE(...) \
+  (::quick_lint_js::translate(__VA_ARGS__##_gmo_message))
 
 namespace quick_lint_js {
-const char8* translate(const char*);
+const char8* translate(const gmo_message&);
 
 void initialize_translations_from_environment();
 void initialize_translations_from_locale(const char* locale_name);
@@ -42,7 +43,7 @@ class translatable_messages {
       const std::vector<std::string>& locale_names,
       const locale_entry<const std::uint8_t*>* gmo_files);
 
-  const char* translate(const char* message);
+  const char* translate(const gmo_message& message);
 
  private:
   std::optional<gmo_file> translation_;

@@ -177,6 +177,10 @@ TEST(test_gmo, find_with_hash_table_with_no_collisions) {
   EXPECT_EQ(p.find_translation("b"sv), "B"sv);
   EXPECT_EQ(p.find_translation("c"sv), "C"sv);
 
+  EXPECT_EQ(p.find_translation("a"_gmo_message), "A"sv);
+  EXPECT_EQ(p.find_translation("b"_gmo_message), "B"sv);
+  EXPECT_EQ(p.find_translation("c"_gmo_message), "C"sv);
+
   // Possible collisions:
   for (std::string_view message : {"d"sv, "e"sv, "f"sv, "g"sv, "h"sv}) {
     EXPECT_EQ(p.find_translation(message), message);

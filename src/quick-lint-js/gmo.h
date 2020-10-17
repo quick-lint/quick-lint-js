@@ -17,10 +17,13 @@
 #ifndef QUICK_LINT_JS_GMO_H
 #define QUICK_LINT_JS_GMO_H
 
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
 
 namespace quick_lint_js {
+struct gmo_message;
+
 enum class endian {
   little,
   big,
@@ -46,14 +49,48 @@ class gmo_file {
   std::string_view translated_string_at(word_type index) const noexcept;
 
   std::string_view find_translation(std::string_view original) const noexcept;
+  std::string_view find_translation(gmo_message original) const noexcept;
 
-  static word_type hash_string(std::string_view) noexcept;
+  static constexpr word_type hash_string(std::string_view s) noexcept {
+    // This function implements the hashpjw routine documented in:
+    //
+    // Compilers: Principles, Techniques, and Tools, first edition (1986),
+    // by Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jeffrey D. Ullman;
+    // chapter 7 Run-Time Environments,
+    // section 6 Symbol Tables,
+    // figure 7.35,
+    // page 436.
+
+    std::uint32_t hash = 0;
+    for (char c : s) {
+      hash = (hash << 4) + static_cast<unsigned char>(c);
+      std::uint32_t g = hash & 0xf0000000;
+      hash ^= (g >> 24);
+      hash ^= g;
+    }
+    return hash;
+  }
 
  private:
   endian get_endian() const noexcept;
 
   const std::uint8_t *data_;
 };
+
+// An un-translated message.
+struct gmo_message {
+  std::string_view message;
+  gmo_file::word_type hash;
+};
+
+inline constexpr gmo_message operator""_gmo_message(const char *raw_message,
+                                                    std::size_t length) {
+  std::string_view message(raw_message, length);
+  return gmo_message{
+      .message = message,
+      .hash = gmo_file::hash_string(message),
+  };
+}
 }
 
 #endif

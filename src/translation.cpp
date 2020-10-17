@@ -86,7 +86,7 @@ void initialize_locale() {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-const char8* translate(const char* message) {
+const char8* translate(const gmo_message& message) {
   const char* translated_message = qljs_messages.translate(message);
   // HACK(strager): Assume message encoding is UTF-8.
   return reinterpret_cast<const char8*>(translated_message);
@@ -142,11 +142,11 @@ bool translatable_messages::use_messages_from_locales(
   return false;
 }
 
-const char* translatable_messages::translate(const char* message) {
+const char* translatable_messages::translate(const gmo_message& message) {
   if (this->translation_.has_value()) {
     return this->translation_->find_translation(message).data();
   } else {
-    return message;
+    return message.message.data();
   }
 }
 }

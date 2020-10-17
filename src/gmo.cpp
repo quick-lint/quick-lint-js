@@ -46,6 +46,15 @@ class native_gmo_file {
     if (this->hash_table_size() == 0) {
       return this->find_translation_scanning(original);
     } else {
+      return this->find_translation_hashing(gmo_message{
+          .message = original, .hash = gmo_file::hash_string(original)});
+    }
+  }
+
+  std::string_view find_translation(gmo_message original) const noexcept {
+    if (this->hash_table_size() == 0) {
+      return this->find_translation_scanning(original.message);
+    } else {
       return this->find_translation_hashing(original);
     }
   }
@@ -60,14 +69,13 @@ class native_gmo_file {
     return original;
   }
 
-  std::string_view find_translation_hashing(std::string_view original) const
+  std::string_view find_translation_hashing(gmo_message original) const
       noexcept {
     offset_type hash_table_offset = this->read_word(/*offset=*/0x18);
     word_type hash_table_size = this->hash_table_size();
 
-    word_type hash = gmo_file::hash_string(original);
-    word_type bucket_index = hash % hash_table_size;
-    word_type probe_increment = 1 + (hash % (hash_table_size - 2));
+    word_type bucket_index = original.hash % hash_table_size;
+    word_type probe_increment = 1 + (original.hash % (hash_table_size - 2));
 
     for (;;) {
       word_type string_number =
@@ -76,12 +84,12 @@ class native_gmo_file {
         break;
       }
       word_type string_index = string_number - 1;
-      if (this->original_string_at(string_index) == original) {
+      if (this->original_string_at(string_index) == original.message) {
         return this->translated_string_at(string_number - 1);
       }
       bucket_index = (bucket_index + probe_increment) % hash_table_size;
     }
-    return original;
+    return original.message;
   }
 
   word_type read_word(word_type offset) const noexcept {
@@ -147,24 +155,9 @@ std::string_view gmo_file::find_translation(std::string_view original) const
   QLJS_ENDIAN_DISPATCH(.find_translation(original));
 }
 
-gmo_file::word_type gmo_file::hash_string(std::string_view s) noexcept {
-  // This function implements the hashpjw routine documented in:
-  //
-  // Compilers: Principles, Techniques, and Tools, first edition (1986),
-  // by Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jeffrey D. Ullman;
-  // chapter 7 Run-Time Environments,
-  // section 6 Symbol Tables,
-  // figure 7.35,
-  // page 436.
-
-  std::uint32_t hash = 0;
-  for (char c : s) {
-    hash = (hash << 4) + static_cast<unsigned char>(c);
-    std::uint32_t g = hash & 0xf0000000;
-    hash ^= (g >> 24);
-    hash ^= g;
-  }
-  return hash;
+std::string_view gmo_file::find_translation(gmo_message original) const
+    noexcept {
+  QLJS_ENDIAN_DISPATCH(.find_translation(original));
 }
 
 endian gmo_file::get_endian() const noexcept {
