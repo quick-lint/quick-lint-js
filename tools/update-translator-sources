@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+set -e
+set -u
+
+cd "$(dirname "${0}")/.."
+
+main() {
+  update_template_file
+  update_translation_files
+  ./tools/compile-translations
+}
+
+update_template_file() {
+  pot_file=po/messages.pot
+  printf 'updating: %s\n' "${pot_file}"
+
+  pot_temp_file="$(mktemp)"
+  xgettext --keyword=QLJS_TRANSLATE --output="${pot_temp_file}" --force-po --add-location=file --msgid-bugs-address=strager.nds@gmail.com src/quick-lint-js/error.h
+  sed -i -e 's/charset=CHARSET/charset=UTF-8/g' "${pot_temp_file}"
+
+  mkdir -p po
+  msgmerge --backup=none --update -- "${pot_file}" "${pot_temp_file}"
+
+  rm -- "${pot_temp_file}"
+}
+
+update_translation_files() {
+  for po_file in po/*.po ; do
+    printf 'updating: %s\n' "${po_file}"
+    msgmerge --backup=none --update -- "${po_file}" po/messages.pot
+  done
+}
+
+main

@@ -27,11 +27,13 @@ quick_lint_js_add_executable(
   test-buffering-visitor.cpp
   test-crash.cpp
   test-file.cpp
+  test-gmo.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-lex.cpp
   test-lint-parse.cpp
   test-lint.cpp
+  test-locale.cpp
   test-location.cpp
   test-math-overflow.cpp
   test-narrow-cast.cpp
@@ -40,6 +42,7 @@ quick_lint_js_add_executable(
   test-parse-expression.cpp
   test-parse.cpp
   test-text-error-reporter.cpp
+  test-translation.cpp
   test-vector.cpp
   test-vim-qflist-json-error-reporter.cpp
   test-wasm-demo-error-reporter.cpp

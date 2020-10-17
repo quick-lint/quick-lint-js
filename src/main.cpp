@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <iostream>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/error-tape.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -31,6 +31,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
@@ -44,9 +45,11 @@ class any_error_reporter {
   static any_error_reporter make(output_format format) {
     switch (format) {
     case output_format::gnu_like:
-      return any_error_reporter(text_error_reporter(std::cerr));
+      return any_error_reporter(
+          error_tape<text_error_reporter>(text_error_reporter(std::cerr)));
     case output_format::vim_qflist_json:
-      return any_error_reporter(vim_qflist_json_error_reporter(std::cout));
+      return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
+          vim_qflist_json_error_reporter(std::cout)));
     }
     QLJS_UNREACHABLE();
   }
@@ -55,40 +58,45 @@ class any_error_reporter {
     std::visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<vim_qflist_json_error_reporter,
-                                          reporter_type>) {
-            r.set_source(input, file.path, file.vim_bufnr);
+          if constexpr (std::is_base_of_v<
+                            error_tape<vim_qflist_json_error_reporter>,
+                            reporter_type>) {
+            r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
           } else {
-            r.set_source(input, file.path);
+            r.get_reporter()->set_source(input, file.path);
           }
         },
-        this->reporter_);
+        this->tape_);
   }
 
   error_reporter *get() noexcept {
-    return std::visit([](error_reporter &r) { return &r; }, this->reporter_);
+    return std::visit([](error_reporter &r) { return &r; }, this->tape_);
+  }
+
+  bool get_error() noexcept {
+    return std::visit([](auto &r) { return r.get_error(); }, this->tape_);
   }
 
   void finish() {
     std::visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<vim_qflist_json_error_reporter,
-                                          reporter_type>) {
-            r.finish();
+          if constexpr (std::is_base_of_v<
+                            error_tape<vim_qflist_json_error_reporter>,
+                            reporter_type>) {
+            r.get_reporter()->finish();
           }
         },
-        this->reporter_);
+        this->tape_);
   }
 
  private:
-  using reporter_variant =
-      std::variant<text_error_reporter, vim_qflist_json_error_reporter>;
+  using tape_variant = std::variant<error_tape<text_error_reporter>,
+                                    error_tape<vim_qflist_json_error_reporter>>;
 
-  explicit any_error_reporter(reporter_variant &&reporter)
-      : reporter_(std::move(reporter)) {}
+  explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
 
-  reporter_variant reporter_;
+  tape_variant tape_;
 };
 
 void process_file(padded_string_view input, error_reporter *,
@@ -100,21 +108,22 @@ void print_help_message();
 
 int main(int argc, char **argv) {
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
+  quick_lint_js::initialize_translations_from_environment();
 
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
   if (o.help) {
     quick_lint_js::print_help_message();
-    return 0;
+    return EXIT_SUCCESS;
   }
   if (!o.error_unrecognized_options.empty()) {
     for (const auto &option : o.error_unrecognized_options) {
       std::cerr << "error: unrecognized option: " << option << '\n';
     }
-    return 1;
+    return EXIT_FAILURE;
   }
   if (o.files_to_lint.empty()) {
     std::cerr << "error: expected file name\n";
-    return 1;
+    return EXIT_FAILURE;
   }
 
   quick_lint_js::any_error_reporter reporter =
@@ -129,7 +138,11 @@ int main(int argc, char **argv) {
   }
   reporter.finish();
 
-  return 0;
+  if (reporter.get_error() == true) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
 }
 
 namespace quick_lint_js {

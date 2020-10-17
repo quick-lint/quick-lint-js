@@ -1,0 +1,81 @@
+#!/bin/sh
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+set -e
+set -u
+
+cd "$(dirname "${0}")/.."
+
+locales=
+for po_file in po/*.po ; do
+  locales="${locales} $(basename "${po_file}" .po)"
+done
+# Sort locales to make builds reproducible.
+locales="$(printf '%s\n' ${locales} | LC_ALL=C sort)"
+
+{
+  printf '// quick-lint-js finds bugs in JavaScript programs.\n'
+  printf '// Copyright (C) 2020  Matthew Glazar\n'
+  printf '//\n'
+  printf '// This program is free software: you can redistribute it and/or modify\n'
+  printf '// it under the terms of the GNU General Public License as published by\n'
+  printf '// the Free Software Foundation, either version 3 of the License, or\n'
+  printf '// (at your option) any later version.\n'
+  printf '//\n'
+  printf '// This program is distributed in the hope that it will be useful,\n'
+  printf '// but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
+  printf '// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n'
+  printf '// GNU General Public License for more details.\n'
+  printf '//\n'
+  printf '// You should have received a copy of the GNU General Public License\n'
+  printf '// along with this program.  If not, see <https://www.gnu.org/licenses/>.\n'
+  printf '\n'
+  printf '// This file is **GENERATED** by tools/compile-translations.\n'
+  printf '\n'
+  printf '#include <cstdint>\n'
+  printf '#include <quick-lint-js/locale.h>\n'
+  printf '#include <quick-lint-js/translation-data.h>\n'
+  printf '\n'
+  printf 'namespace quick_lint_js {\n'
+
+  printf 'namespace {\n'
+  printf '// clang-format off\n'
+  i=0
+  for locale in ${locales} ; do
+    po_file="po/${locale}.po"
+
+    printf 'const std::uint8_t language_%s[] = {\n' "${i}"
+    msgfmt --output-file=- -- "${po_file}" | xxd -include
+    printf '};\n'
+    i=$((${i}+1))
+  done
+  printf '// clang-format on\n'
+  printf '}\n'
+  printf '\n'
+
+  i=0
+  printf 'const locale_entry<const std::uint8_t *> gmo_files[] = {\n'
+  for locale in ${locales} ; do
+    printf '    {"%s", language_%s},\n' "${locale}" "${i}"
+    i=$((${i}+1))
+  done
+  printf '    {},\n'
+  printf '};\n'
+
+  printf '}\n'
+} >src/translation-data.cpp

@@ -1,0 +1,213 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
+"POT-Creation-Date: 2020-10-12 18:19-0700\n"
+"PO-Revision-Date: 2020-10-09 19:19-0700\n"
+"Last-Translator: Matthew \"strager\" Glazar <strager.nds@gmail.com>\n"
+"Language-Team: English\n"
+"Language: en@loud\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/quick-lint-js/error.h
+msgid "variable assigned before its declaration"
+msgstr "VARIABLE USED BEFORE DECLARATION: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "variable declared here"
+msgstr "VARIABLE DECLARED HERE"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to const global variable"
+msgstr "ASSIGNMENT TO CONST GLOBAL VARIABLE"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to const variable"
+msgstr "ASSIGNMENT TO CONST VARIABLE"
+
+#: src/quick-lint-js/error.h
+msgid "const variable declared here"
+msgstr "VARIABLE DECLARED HERE"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to const variable before its declaration"
+msgstr "VARIABLE USED BEFORE DECLARATION: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to undeclared variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "BigInt literal contains decimal point"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "BigInt literal contains exponent"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "BigInt literal has a leading 0 digit"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "classes cannot be named 'let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "let statement cannot declare variables named 'let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot export variable named 'let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot import 'let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "escaped character is not allowed in identifiers"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "code point out of range"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected expression before newline"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected expression before semicolon"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected hexadecimal digits in Unicode escape sequence"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "invalid binding in let statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "invalid expression left of assignment"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "keywords cannot contain escape sequences"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "let with no bindings"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing comma between object literal entries"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing operand for operator"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon after expression"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "number literal contains consecutive underscores"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "redeclaration of global variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "redeclaration of variable: {0}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "variable already declared here"
+msgstr "VARIABLE DECLARED HERE"
+
+#: src/quick-lint-js/error.h
+msgid "RegExp literal cannot contain Unicode escapes"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "stray comma in let statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed block comment"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed identifier escape sequence"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed regexp literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed string literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed template"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '@'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '\\' in identifier"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in number literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected control character"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '#'"
+msgstr "UNEXPECTED '#'"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected identifier"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unmatched parenthesis"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "use of undeclared variable: {0}"
+msgstr "USE OF UNDECLARED VARIABLE: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "variable used before declaration: {0}"
+msgstr "VARIABLE USED BEFORE DECLARATION: {0}"

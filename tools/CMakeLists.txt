@@ -15,22 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
-project(quick-lint-js)
+include(QuickLintJSTarget)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-include(QuickLintJSCompiler)
-
-quick_lint_js_set_cxx_standard()
-quick_lint_js_enable_char8_t_if_supported()
-
-add_subdirectory(vendor)
-
-add_subdirectory(benchmark)
-add_subdirectory(fuzz)
-add_subdirectory(src)
-add_subdirectory(tools)
-include(CTest)
-if (BUILD_TESTING)
-  add_subdirectory(test)
-endif ()
+quick_lint_js_add_executable(
+  quick-lint-js-dump-gmo
+  dump-gmo.cpp
+)
+target_link_libraries(quick-lint-js-dump-gmo PRIVATE quick-lint-js-lib)

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -14,23 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.10)
-project(quick-lint-js)
+set -e
+set -u
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+cd "$(dirname "${0}")/../po"
 
-include(QuickLintJSCompiler)
-
-quick_lint_js_set_cxx_standard()
-quick_lint_js_enable_char8_t_if_supported()
-
-add_subdirectory(vendor)
-
-add_subdirectory(benchmark)
-add_subdirectory(fuzz)
-add_subdirectory(src)
-add_subdirectory(tools)
-include(CTest)
-if (BUILD_TESTING)
-  add_subdirectory(test)
-endif ()
+msginit --input=messages.pot
