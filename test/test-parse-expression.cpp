@@ -1128,8 +1128,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, ?)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
-                                invalid_lone_literal_in_object_literal, where,
-                                offsets_matcher(p.locator, 1, 5))));
+                                error_invalid_lone_literal_in_object_literal,
+                                where, offsets_matcher(p.locator, 1, 5))));
   }
 
   {
@@ -1137,8 +1137,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, ?)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
-                                invalid_lone_literal_in_object_literal, where,
-                                offsets_matcher(p.locator, 1, 4))));
+                                error_invalid_lone_literal_in_object_literal,
+                                where, offsets_matcher(p.locator, 1, 4))));
   }
 }
 

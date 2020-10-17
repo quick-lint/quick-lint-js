@@ -721,7 +721,7 @@ expression_ptr parser::parse_object_literal() {
         if (key_type == token_type::string || key_type == token_type::number) {
           expression_ptr value = this->make_expression<expression::_invalid>();
           this->error_reporter_->report(
-              invalid_lone_literal_in_object_literal{key_span});
+              error_invalid_lone_literal_in_object_literal{key_span});
           entries.emplace_back(key, value);
         } else {
           expression_ptr value = this->make_expression<expression::variable>(

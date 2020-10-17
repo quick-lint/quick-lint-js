@@ -137,6 +137,11 @@
       .error(QLJS_TRANSLATE("invalid expression left of assignment"), where))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_invalid_lone_literal_in_object_literal,                            \
+      { source_code_span where; },                                             \
+      .error(u8"invalid lone literal in object literal", where))               \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_keywords_cannot_contain_escape_sequences,                          \
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATE("keywords cannot contain escape sequences"),       \
@@ -261,10 +266,6 @@
       },                                                                       \
       .error(QLJS_TRANSLATE("variable used before declaration: {0}"), use)     \
           .note(QLJS_TRANSLATE("variable declared here"), declaration))        \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
-      invalid_lone_literal_in_object_literal, { source_code_span where; },     \
-      .error(u8"invalid lone literal in object literal", where))               \
   /* END */
 
 namespace quick_lint_js {
