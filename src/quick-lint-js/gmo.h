@@ -48,7 +48,6 @@ class gmo_file {
   std::string_view original_string_at(word_type index) const noexcept;
   std::string_view translated_string_at(word_type index) const noexcept;
 
-  std::string_view find_translation(std::string_view original) const noexcept;
   std::string_view find_translation(gmo_message original) const noexcept;
 
   static constexpr word_type hash_string(std::string_view s) noexcept {
@@ -81,15 +80,15 @@ class gmo_file {
 struct gmo_message {
   std::string_view message;
   gmo_file::word_type hash;
+
+  explicit constexpr gmo_message(const char *raw_message, std::size_t length)
+      : message(raw_message, length),
+        hash(gmo_file::hash_string(this->message)) {}
 };
 
 inline constexpr gmo_message operator""_gmo_message(const char *raw_message,
                                                     std::size_t length) {
-  std::string_view message(raw_message, length);
-  return gmo_message{
-      .message = message,
-      .hash = gmo_file::hash_string(message),
-  };
+  return gmo_message(raw_message, length);
 }
 }
 

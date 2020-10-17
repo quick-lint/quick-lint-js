@@ -42,15 +42,6 @@ class native_gmo_file {
                            /*index=*/index);
   }
 
-  std::string_view find_translation(std::string_view original) const noexcept {
-    if (this->hash_table_size() == 0) {
-      return this->find_translation_scanning(original);
-    } else {
-      return this->find_translation_hashing(gmo_message{
-          .message = original, .hash = gmo_file::hash_string(original)});
-    }
-  }
-
   std::string_view find_translation(gmo_message original) const noexcept {
     if (this->hash_table_size() == 0) {
       return this->find_translation_scanning(original.message);
@@ -148,11 +139,6 @@ std::string_view gmo_file::original_string_at(word_type index) const noexcept {
 std::string_view gmo_file::translated_string_at(word_type index) const
     noexcept {
   QLJS_ENDIAN_DISPATCH(.translated_string_at(index));
-}
-
-std::string_view gmo_file::find_translation(std::string_view original) const
-    noexcept {
-  QLJS_ENDIAN_DISPATCH(.find_translation(original));
 }
 
 std::string_view gmo_file::find_translation(gmo_message original) const

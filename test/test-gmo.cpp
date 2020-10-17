@@ -72,7 +72,7 @@ TEST(test_gmo, little_endian_gmo_with_one_string) {
   EXPECT_EQ(p.original_string_at(0), "hi"sv);
   EXPECT_EQ(p.translated_string_at(0), "yo"sv);
 
-  EXPECT_EQ(p.find_translation("hi"sv), "yo"sv);
+  EXPECT_EQ(p.find_translation("hi"_gmo_message), "yo"sv);
 }
 
 // clang-format off
@@ -117,17 +117,17 @@ TEST(test_gmo, big_endian_gmo_with_two_strings) {
   EXPECT_EQ(p.original_string_at(1), "goodbye"sv);
   EXPECT_EQ(p.translated_string_at(1), "au revoir"sv);
 
-  EXPECT_EQ(p.find_translation("hello"sv), "bonjour"sv);
-  EXPECT_EQ(p.find_translation("goodbye"sv), "au revoir"sv);
+  EXPECT_EQ(p.find_translation("hello"_gmo_message), "bonjour"sv);
+  EXPECT_EQ(p.find_translation("goodbye"_gmo_message), "au revoir"sv);
 }
 
 TEST(test_gmo, missing_translation_gives_original_string) {
   gmo_file p(big_endian_two_string_gmo_file);
 
-  std::string_view message = "does not exist"sv;
-  std::string_view translated = p.find_translation(message);
-  EXPECT_EQ(translated, message);
-  EXPECT_EQ(translated.data(), message.data());
+  const char *message = "does not exist";
+  std::string_view translated =
+      p.find_translation(gmo_message(message, std::strlen(message)));
+  EXPECT_EQ(translated.data(), message);
 }
 
 TEST(test_gmo, find_with_hash_table_with_no_collisions) {
@@ -173,17 +173,14 @@ TEST(test_gmo, find_with_hash_table_with_no_collisions) {
   // clang-format on
   gmo_file p(gmo_file_data);
 
-  EXPECT_EQ(p.find_translation("a"sv), "A"sv);
-  EXPECT_EQ(p.find_translation("b"sv), "B"sv);
-  EXPECT_EQ(p.find_translation("c"sv), "C"sv);
-
   EXPECT_EQ(p.find_translation("a"_gmo_message), "A"sv);
   EXPECT_EQ(p.find_translation("b"_gmo_message), "B"sv);
   EXPECT_EQ(p.find_translation("c"_gmo_message), "C"sv);
 
   // Possible collisions:
-  for (std::string_view message : {"d"sv, "e"sv, "f"sv, "g"sv, "h"sv}) {
-    EXPECT_EQ(p.find_translation(message), message);
+  for (gmo_message message : {"d"_gmo_message, "e"_gmo_message, "f"_gmo_message,
+                              "g"_gmo_message, "h"_gmo_message}) {
+    EXPECT_EQ(p.find_translation(message), message.message);
   }
 }
 
@@ -236,10 +233,10 @@ TEST(test_gmo, find_with_hash_table_with_collisions) {
   // clang-format on
   gmo_file p(gmo_file_data);
 
-  EXPECT_EQ(p.find_translation("d"sv), "D"sv);
-  EXPECT_EQ(p.find_translation("i"sv), "I"sv);
-  EXPECT_EQ(p.find_translation("n"sv), "N"sv);
-  EXPECT_EQ(p.find_translation("s"sv), "S"sv);
+  EXPECT_EQ(p.find_translation("d"_gmo_message), "D"sv);
+  EXPECT_EQ(p.find_translation("i"_gmo_message), "I"sv);
+  EXPECT_EQ(p.find_translation("n"_gmo_message), "N"sv);
+  EXPECT_EQ(p.find_translation("s"_gmo_message), "S"sv);
 }
 
 TEST(test_gmo, hash_string) {

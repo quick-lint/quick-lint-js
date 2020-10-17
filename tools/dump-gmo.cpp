@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
     std::string_view translated = gmo.translated_string_at(i);
     std::cerr << original << "\n  -> " << translated << '\n';
 
-    std::string_view translated_by_lookup = gmo.find_translation(original);
+    std::string_view translated_by_lookup = gmo.find_translation(
+        quick_lint_js::gmo_message(original.data(), original.size()));
     if (translated_by_lookup != translated) {
       std::cerr << "    !!! error: lookup returned instead: "
                 << translated_by_lookup << '\n';
