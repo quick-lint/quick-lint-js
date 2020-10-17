@@ -27,6 +27,7 @@ quick_lint_js_enable_char8_t_if_supported()
 add_subdirectory(vendor)
 
 add_subdirectory(benchmark)
+add_subdirectory(demo)
 add_subdirectory(fuzz)
 add_subdirectory(src)
 add_subdirectory(tools)
