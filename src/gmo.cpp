@@ -19,65 +19,139 @@
 #include <string_view>
 
 namespace quick_lint_js {
+namespace {
+template <endian E>
+class native_gmo_file {
+ public:
+  using offset_type = gmo_file::offset_type;
+  using word_type = gmo_file::word_type;
+
+  explicit native_gmo_file(const std::uint8_t *data) noexcept : data_(data) {}
+
+  word_type string_count() const noexcept {
+    return this->read_word(/*offset=*/0x08);
+  }
+
+  std::string_view original_string_at(word_type index) const noexcept {
+    return this->string_at(/*table_offset=*/this->original_strings_offset(),
+                           /*index=*/index);
+  }
+
+  std::string_view translated_string_at(word_type index) const noexcept {
+    return this->string_at(/*table_offset=*/this->translated_strings_offset(),
+                           /*index=*/index);
+  }
+
+  std::string_view find_translation(std::string_view original) const noexcept {
+    if (this->hash_table_size() == 0) {
+      return this->find_translation_scanning(original);
+    } else {
+      return this->find_translation_hashing(original);
+    }
+  }
+
+  std::string_view find_translation_scanning(std::string_view original) const
+      noexcept {
+    for (word_type i = 0; i < this->string_count(); ++i) {
+      if (this->original_string_at(i) == original) {
+        return this->translated_string_at(i);
+      }
+    }
+    return original;
+  }
+
+  std::string_view find_translation_hashing(std::string_view original) const
+      noexcept {
+    offset_type hash_table_offset = this->read_word(/*offset=*/0x18);
+    word_type hash_table_size = this->hash_table_size();
+
+    word_type hash = gmo_file::hash_string(original);
+    word_type bucket_index = hash % hash_table_size;
+    word_type probe_increment = 1 + (hash % (hash_table_size - 2));
+
+    for (;;) {
+      word_type string_number =
+          this->read_word(/*offset=*/hash_table_offset + bucket_index * 4);
+      if (string_number == 0) {
+        break;
+      }
+      word_type string_index = string_number - 1;
+      if (this->original_string_at(string_index) == original) {
+        return this->translated_string_at(string_number - 1);
+      }
+      bucket_index = (bucket_index + probe_increment) % hash_table_size;
+    }
+    return original;
+  }
+
+  word_type read_word(word_type offset) const noexcept {
+    if constexpr (E == endian::little) {
+      return (word_type{this->data_[offset + 0]} << 0) |
+             (word_type{this->data_[offset + 1]} << 8) |
+             (word_type{this->data_[offset + 2]} << 16) |
+             (word_type{this->data_[offset + 3]} << 24);
+    } else {
+      return (word_type{this->data_[offset + 3]} << 0) |
+             (word_type{this->data_[offset + 2]} << 8) |
+             (word_type{this->data_[offset + 1]} << 16) |
+             (word_type{this->data_[offset + 0]} << 24);
+    }
+  }
+
+  word_type hash_table_size() const noexcept {
+    return this->read_word(/*offset=*/0x14);
+  }
+
+  offset_type original_strings_offset() const noexcept {
+    return this->read_word(/*offset=*/0x0c);
+  }
+
+  offset_type translated_strings_offset() const noexcept {
+    return this->read_word(/*offset=*/0x10);
+  }
+
+  std::string_view string_at(offset_type table_offset, word_type index) const
+      noexcept {
+    offset_type table_entry_offset = table_offset + index * 0x8;
+    word_type length = this->read_word(table_entry_offset + 0x0);
+    word_type offset = this->read_word(table_entry_offset + 0x4);
+    return std::string_view(
+        reinterpret_cast<const char *>(&this->data_[offset]), length);
+  }
+
+ private:
+  const std::uint8_t *data_;
+};
+}
+
 gmo_file::gmo_file(const void *data) noexcept
     : data_(reinterpret_cast<const std::uint8_t *>(data)) {}
 
+#define QLJS_ENDIAN_DISPATCH(call)                              \
+  do {                                                          \
+    if (this->get_endian() == endian::little) {                 \
+      return native_gmo_file<endian::little>(this->data_) call; \
+    } else {                                                    \
+      return native_gmo_file<endian::big>(this->data_) call;    \
+    }                                                           \
+  } while (false)
+
 gmo_file::word_type gmo_file::string_count() const noexcept {
-  return this->read_word(/*offset=*/0x08);
+  QLJS_ENDIAN_DISPATCH(.string_count());
 }
 
 std::string_view gmo_file::original_string_at(word_type index) const noexcept {
-  return this->string_at(/*table_offset=*/this->original_strings_offset(),
-                         /*index=*/index);
+  QLJS_ENDIAN_DISPATCH(.original_string_at(index));
 }
 
 std::string_view gmo_file::translated_string_at(word_type index) const
     noexcept {
-  return this->string_at(/*table_offset=*/this->translated_strings_offset(),
-                         /*index=*/index);
+  QLJS_ENDIAN_DISPATCH(.translated_string_at(index));
 }
 
 std::string_view gmo_file::find_translation(std::string_view original) const
     noexcept {
-  if (this->hash_table_size() == 0) {
-    return this->find_translation_scanning(original);
-  } else {
-    return this->find_translation_hashing(original);
-  }
-}
-
-std::string_view gmo_file::find_translation_scanning(
-    std::string_view original) const noexcept {
-  for (word_type i = 0; i < this->string_count(); ++i) {
-    if (this->original_string_at(i) == original) {
-      return this->translated_string_at(i);
-    }
-  }
-  return original;
-}
-
-std::string_view gmo_file::find_translation_hashing(
-    std::string_view original) const noexcept {
-  offset_type hash_table_offset = this->read_word(/*offset=*/0x18);
-  word_type hash_table_size = this->hash_table_size();
-
-  word_type hash = this->hash_string(original);
-  word_type bucket_index = hash % hash_table_size;
-  word_type probe_increment = 1 + (hash % (hash_table_size - 2));
-
-  for (;;) {
-    word_type string_number =
-        this->read_word(/*offset=*/hash_table_offset + bucket_index * 4);
-    if (string_number == 0) {
-      break;
-    }
-    word_type string_index = string_number - 1;
-    if (this->original_string_at(string_index) == original) {
-      return this->translated_string_at(string_number - 1);
-    }
-    bucket_index = (bucket_index + probe_increment) % hash_table_size;
-  }
-  return original;
+  QLJS_ENDIAN_DISPATCH(.find_translation(original));
 }
 
 gmo_file::word_type gmo_file::hash_string(std::string_view s) noexcept {
@@ -100,53 +174,9 @@ gmo_file::word_type gmo_file::hash_string(std::string_view s) noexcept {
   return hash;
 }
 
-gmo_file::word_type gmo_file::read_word(word_type offset) const noexcept {
-  if (this->is_little_endian()) {
-    return this->read_word_little_endian(offset);
-  } else {
-    return this->read_word_big_endian(offset);
-  }
-}
-
-gmo_file::word_type gmo_file::read_word_little_endian(word_type offset) const
-    noexcept {
-  return (word_type{this->data_[offset + 0]} << 0) |
-         (word_type{this->data_[offset + 1]} << 8) |
-         (word_type{this->data_[offset + 2]} << 16) |
-         (word_type{this->data_[offset + 3]} << 24);
-}
-
-gmo_file::word_type gmo_file::read_word_big_endian(word_type offset) const
-    noexcept {
-  return (word_type{this->data_[offset + 3]} << 0) |
-         (word_type{this->data_[offset + 2]} << 8) |
-         (word_type{this->data_[offset + 1]} << 16) |
-         (word_type{this->data_[offset + 0]} << 24);
-}
-
-gmo_file::word_type gmo_file::hash_table_size() const noexcept {
-  return this->read_word(/*offset=*/0x14);
-}
-
-gmo_file::offset_type gmo_file::original_strings_offset() const noexcept {
-  return this->read_word(/*offset=*/0x0c);
-}
-
-gmo_file::offset_type gmo_file::translated_strings_offset() const noexcept {
-  return this->read_word(/*offset=*/0x10);
-}
-
-std::string_view gmo_file::string_at(offset_type table_offset,
-                                     word_type index) const noexcept {
-  offset_type table_entry_offset = table_offset + index * 0x8;
-  word_type length = this->read_word(table_entry_offset + 0x0);
-  word_type offset = this->read_word(table_entry_offset + 0x4);
-  return std::string_view(reinterpret_cast<const char *>(&this->data_[offset]),
-                          length);
-}
-
-bool gmo_file::is_little_endian() const noexcept {
-  word_type magic = this->read_word_little_endian(/*offset=*/0);
-  return magic == 0x950412de;
+endian gmo_file::get_endian() const noexcept {
+  word_type magic =
+      native_gmo_file<endian::little>(this->data_).read_word(/*offset=*/0);
+  return magic == 0x950412de ? endian::little : endian::big;
 }
 }
