@@ -70,16 +70,16 @@ The following directories have been deleted to reduce storage consumption:
 * jsoncpp/test/
 
 Copyright: Public Domain; Copyright (c) 2007-2010 Baptiste Lepilleur and The JsonCpp Authors
-Download URL: https://github.com/open-source-parsers/jsoncpp/archive/1.9.3.tar.gz
-Download date: August 13, 2020
-Git commit: 6aba23f4a8628d599a9ef7fa4811c4ff6e4070e2
+Download URL: https://github.com/open-source-parsers/jsoncpp/archive/1.9.4.tar.gz
+Download date: October 18, 2020
+Git commit: 9059f5cad030ba11d37818847443a53918c327b1
 License file: jsoncpp/LICENSE
 License type: Public Domain; MIT
 Location: jsoncpp
 Project URL: https://github.com/open-source-parsers/jsoncpp
-Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.3
-Release date: May 29, 2020
-Version: 1.9.3
+Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.4
+Release date: September 25, 2020
+Version: 1.9.4
 
 ## simdjson
 

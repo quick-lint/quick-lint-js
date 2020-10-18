@@ -14,6 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+set(BUILD_OBJECT_LIBS FALSE CACHE INTERNAL "")
+set(BUILD_SHARED_LIBS FALSE CACHE INTERNAL "")
+set(BUILD_STATIC_LIBS TRUE CACHE INTERNAL "")
 set(JSONCPP_WITH_CMAKE_PACKAGE FALSE CACHE INTERNAL "")
 set(JSONCPP_WITH_EXAMPLE FALSE CACHE INTERNAL "")
 set(JSONCPP_WITH_PKGCONFIG_SUPPORT FALSE CACHE INTERNAL "")
@@ -29,9 +32,9 @@ set(CMAKE_PDB_OUTPUT_DIRECTORY     "" CACHE PATH "")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "" CACHE PATH "")
 
 add_subdirectory(jsoncpp EXCLUDE_FROM_ALL)
-target_compile_definitions(jsoncpp_lib PUBLIC JSON_USE_EXCEPTION=0)
+target_compile_definitions(jsoncpp_static PUBLIC JSON_USE_EXCEPTION=0)
 quick_lint_js_add_warning_options_if_supported(
-  jsoncpp_lib
+  jsoncpp_static
   PUBLIC
   -Wno-deprecated-volatile
 )

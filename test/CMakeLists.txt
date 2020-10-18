@@ -85,7 +85,7 @@ target_link_libraries(
   gmock
   gmock_main
   gtest
-  jsoncpp_lib
+  jsoncpp_static
   quick-lint-js-lib
 )
 quick_lint_js_use_cxx_filesystem(quick-lint-js-test PRIVATE)
