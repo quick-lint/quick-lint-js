@@ -119,7 +119,7 @@ bool translatable_messages::use_messages_from_locale(
   const locale_entry<const std::uint8_t*>* gmo_file_entry =
       find_locale_entry(gmo_files, locale_name);
   if (gmo_file_entry) {
-    this->translation_ = gmo_file(gmo_file_entry->data);
+    this->translation_.emplace(gmo_file_entry->data);
     return true;
   }
   return false;

@@ -24,7 +24,9 @@ quick_lint_js_add_executable(
   error-matcher.cpp
   spy-visitor.cpp
   test-assert.cpp
+  test-bit.cpp
   test-buffering-visitor.cpp
+  test-constant-divider.cpp
   test-crash.cpp
   test-file.cpp
   test-gmo.cpp

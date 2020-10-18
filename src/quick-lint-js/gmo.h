@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/constant-divider.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -28,6 +29,9 @@ enum class endian {
   little,
   big,
 };
+
+template <endian E>
+class native_gmo_file;
 
 // gmo_file gives access to data within a GNU MO file.
 //
@@ -71,9 +75,16 @@ class gmo_file {
   }
 
  private:
+  word_type hash_table_size() const noexcept;
+
   endian get_endian() const noexcept;
 
   const std::uint8_t *data_;
+  constant_divider<word_type> hash_table_size_;
+  constant_divider<word_type> hash_table_probe_;
+
+  template <endian>
+  friend class native_gmo_file;
 };
 
 // An un-translated message.

@@ -52,6 +52,27 @@ inline int countr_one(std::uint32_t x) noexcept {
   return i;
 #endif
 }
+
+// TODO(strager): Use std::countl_zero if available.
+inline int countl_zero(std::uint32_t x) noexcept {
+#if defined(__GNUC__)
+  if (x == 0) {
+    return 32;
+  }
+  return __builtin_clz(x);
+#else
+  int i;
+  for (i = 0; i < 32; ++i) {
+    if ((x & (std::uint32_t(1) << (32 - i - 1))) != 0) {
+      break;
+    }
+  }
+  return i;
+#endif
+}
+
+// TODO(strager): Use std::bit_width if available.
+inline int bit_width(std::uint32_t x) noexcept { return 32 - countl_zero(x); }
 }
 
 #endif
