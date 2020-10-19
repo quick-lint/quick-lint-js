@@ -177,6 +177,11 @@ TEST(test_options, print_help) {
     options o = parse_options({"--h"});
     EXPECT_TRUE(o.help);
   }
+
+  {
+    options o = parse_options({"-h"});
+    EXPECT_TRUE(o.help);
+  }
 }
 
 TEST(test_options, print_version) {
@@ -187,6 +192,11 @@ TEST(test_options, print_version) {
 
   {
     options o = parse_options({"--v"});
+    EXPECT_TRUE(o.version);
+  }
+
+  {
+    options o = parse_options({"-v"});
     EXPECT_TRUE(o.version);
   }
 }
@@ -231,6 +241,14 @@ TEST(test_options, invalid_option) {
     EXPECT_EQ(o.error_unrecognized_options[0], "--debug-parse-visits-xxx"sv);
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
+
+  {
+    options o = parse_options({"-version", "foo.js"});
+    ASSERT_EQ(o.error_unrecognized_options.size(), 1);
+    EXPECT_EQ(o.error_unrecognized_options[0], "-version"sv);
+    EXPECT_THAT(o.files_to_lint, IsEmpty());
+  }
+
 }
 }
 }
