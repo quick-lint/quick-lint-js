@@ -100,5 +100,55 @@ BENCHMARK_CAPTURE(benchmark_load_translations, en_us_utf8, "en_US.utf8");
 BENCHMARK_CAPTURE(benchmark_load_translations, en_us_utf8_loud,
                   "en_US.utf8@loud");
 BENCHMARK_CAPTURE(benchmark_load_translations, posix, "POSIX");
+
+void benchmark_load_translations_and_find_hit(benchmark::State &state) {
+  static constexpr gmo_message message_to_translate =
+      "variable assigned before its declaration"_gmo_message;
+
+  const char *locale = "en@loud";
+  {
+    // Message should be translated.
+    translatable_messages messages;
+    bool have_translation =
+        messages.use_messages_from_locale(locale, gmo_files);
+    QLJS_ALWAYS_ASSERT(have_translation);
+    QLJS_ALWAYS_ASSERT(messages.translate(message_to_translate) !=
+                       message_to_translate.message);
+  }
+
+  for (auto _ : state) {
+    translatable_messages messages;
+    bool have_translation =
+        messages.use_messages_from_locale(locale, gmo_files);
+    ::benchmark::DoNotOptimize(have_translation);
+    ::benchmark::DoNotOptimize(messages.translate(message_to_translate));
+  }
+}
+BENCHMARK(benchmark_load_translations_and_find_hit);
+
+void benchmark_load_translations_and_find_miss(benchmark::State &state) {
+  static constexpr gmo_message message_to_translate =
+      "~~~ invalid string, do not use outside benchmark ~~~"_gmo_message;
+
+  const char *locale = "en@loud";
+  {
+    // Message should not be translated.
+    translatable_messages messages;
+    bool have_translation =
+        messages.use_messages_from_locale(locale, gmo_files);
+    QLJS_ALWAYS_ASSERT(have_translation);
+    QLJS_ALWAYS_ASSERT(messages.translate(message_to_translate) ==
+                       message_to_translate.message);
+  }
+
+  for (auto _ : state) {
+    translatable_messages messages;
+    bool have_translation =
+        messages.use_messages_from_locale(locale, gmo_files);
+    ::benchmark::DoNotOptimize(have_translation);
+    ::benchmark::DoNotOptimize(messages.translate(message_to_translate));
+  }
+}
+BENCHMARK(benchmark_load_translations_and_find_miss);
 }
 }
