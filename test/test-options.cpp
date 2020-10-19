@@ -248,7 +248,6 @@ TEST(test_options, invalid_option) {
     EXPECT_EQ(o.error_unrecognized_options[0], "-version"sv);
     EXPECT_THAT(o.files_to_lint, IsEmpty());
   }
-
 }
 }
 }
