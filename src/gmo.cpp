@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/gmo.h>
 #include <string_view>
 
@@ -67,6 +68,7 @@ class native_gmo_file {
 
     word_type bucket_index = original.hash % hash_table_size;
     word_type probe_increment = 1 + (original.hash % (hash_table_size - 2));
+    QLJS_ASSERT(probe_increment < hash_table_size);
 
     for (;;) {
       word_type string_number =
@@ -78,7 +80,11 @@ class native_gmo_file {
       if (this->original_string_at(string_index) == original.message) {
         return this->translated_string_at(string_number - 1);
       }
-      bucket_index = (bucket_index + probe_increment) % hash_table_size;
+      // TODO(strager): Check for addition overflow.
+      bucket_index += probe_increment;
+      if (bucket_index >= hash_table_size) {
+        bucket_index -= hash_table_size;
+      }
     }
     return original.message;
   }
