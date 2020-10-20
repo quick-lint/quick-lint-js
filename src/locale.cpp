@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <array>
+#include <boost/container/small_vector.hpp>
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/locale.h>
@@ -90,9 +91,9 @@ const locale_entry<T>* find_locale_entry(const locale_entry<T>* entries,
                                          const char* locale_name) {
   const locale_entry<T>* found_entry = nullptr;
   locale_name_combinations(
-      locale_name, [&](std::string&& current_locale_name) -> bool {
+      locale_name, [&](std::string_view current_locale_name) -> bool {
         for (const locale_entry<T>* entry = entries; entry->valid(); ++entry) {
-          if (entry->has_locale_name(current_locale_name.c_str())) {
+          if (entry->has_locale_name(current_locale_name)) {
             found_entry = entry;
             return false;
           }
@@ -110,7 +111,7 @@ template const locale_entry<int>* find_locale_entry(const locale_entry<int>*,
 std::vector<std::string> locale_name_combinations(const char* locale_name) {
   std::vector<std::string> locale_names;
   locale_name_combinations(locale_name,
-                           [&](std::string&& current_locale) -> bool {
+                           [&](std::string_view current_locale) -> bool {
                              locale_names.emplace_back(current_locale);
                              return true;
                            });
@@ -121,6 +122,11 @@ namespace {
 template <class Func>
 void locale_name_combinations(const char* locale_name, Func&& callback) {
   locale_parts parts = parse_locale(locale_name);
+
+  boost::container::small_vector<char, 32> locale;
+  locale.reserve(std::strlen(locale_name));
+  locale.insert(locale.end(), parts.language().begin(), parts.language().end());
+
   enum {
     TERRITORY = 1 << locale_parts::territory_index,
     CODESET = 1 << locale_parts::codeset_index,
@@ -139,20 +145,21 @@ void locale_name_combinations(const char* locale_name, Func&& callback) {
   };
   // clang-format on
   for (unsigned char mask : masks) {
-    std::string locale(parts.language());
+    locale.resize(parts.language().size());
     for (std::size_t part_index = 1; part_index < 4; ++part_index) {
       if (mask & (1 << part_index)) {
         std::string_view part = parts.parts[part_index];
         if (part.empty()) {
           goto skip;
         }
-        locale += locale_part_separators[part_index - 1];
-        locale += part;
+        locale.push_back(locale_part_separators[part_index - 1]);
+        locale.insert(locale.end(), part.begin(), part.end());
       }
     }
 
     {
-      bool keep_going = callback(std::move(locale));
+      bool keep_going =
+          callback(std::string_view(locale.data(), locale.size()));
       if (!keep_going) {
         break;
       }

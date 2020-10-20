@@ -29,8 +29,8 @@ struct locale_entry {
 
   bool valid() const noexcept { return this->locale[0] != '\0'; }
 
-  bool has_locale_name(const char* name) const noexcept {
-    return std::strcmp(this->locale, name) == 0;
+  bool has_locale_name(std::string_view name) const noexcept {
+    return std::string_view(this->locale) == name;
   }
 };
 
