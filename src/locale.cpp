@@ -20,6 +20,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/locale.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <vector>
 
@@ -119,6 +120,9 @@ std::vector<std::string> locale_name_combinations(const char* locale_name) {
 }
 
 namespace {
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+
 template <class Func>
 void locale_name_combinations(const char* locale_name, Func&& callback) {
   locale_parts parts = parse_locale(locale_name);
@@ -126,6 +130,12 @@ void locale_name_combinations(const char* locale_name, Func&& callback) {
   boost::container::small_vector<char, 32> locale;
   locale.reserve(std::strlen(locale_name));
   locale.insert(locale.end(), parts.language().begin(), parts.language().end());
+
+  unsigned present_parts_mask = 0;
+  for (std::size_t part_index = 1; part_index < 4; ++part_index) {
+    std::string_view part = parts.parts[part_index];
+    present_parts_mask |= (part.empty() ? 0U : 1U) << part_index;
+  }
 
   enum {
     TERRITORY = 1 << locale_parts::territory_index,
@@ -145,27 +155,26 @@ void locale_name_combinations(const char* locale_name, Func&& callback) {
   };
   // clang-format on
   for (unsigned char mask : masks) {
+    if ((present_parts_mask & mask) != mask) {
+      continue;
+    }
+
     locale.resize(parts.language().size());
     for (std::size_t part_index = 1; part_index < 4; ++part_index) {
       if (mask & (1 << part_index)) {
         std::string_view part = parts.parts[part_index];
-        if (part.empty()) {
-          goto skip;
-        }
         locale.push_back(locale_part_separators[part_index - 1]);
         locale.insert(locale.end(), part.begin(), part.end());
       }
     }
 
-    {
-      bool keep_going =
-          callback(std::string_view(locale.data(), locale.size()));
-      if (!keep_going) {
-        break;
-      }
+    bool keep_going = callback(std::string_view(locale.data(), locale.size()));
+    if (!keep_going) {
+      break;
     }
-  skip:;
   }
 }
+
+QLJS_WARNING_POP
 }
 }
