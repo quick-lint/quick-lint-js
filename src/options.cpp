@@ -59,11 +59,11 @@ class arg_parser {
     return arg_value;
   }
 
-  bool match_flag_shorthand(std::string_view option_shorthand) noexcept {
+  bool match_flag_shorthand(char option_shorthand) noexcept {
     if (!this->option_.has_value()) {
       return false;
     }
-    bool matches = this->option_->arg_key == option_shorthand;
+    bool matches = this->option_->arg_key == std::string{'-', option_shorthand};
 
     if (matches) {
       this->advance(1);
@@ -193,10 +193,10 @@ options parse_options(int argc, char** argv) {
         next_vim_file_bufnr = bufnr;
       }
     } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
-               parser.match_flag_shorthand("-h"sv)) {
+               parser.match_flag_shorthand('h')) {
       o.help = true;
     } else if (parser.match_flag_option("--version"sv, "--v"sv) ||
-               parser.match_flag_shorthand("-v"sv)) {
+               parser.match_flag_shorthand('v')) {
       o.version = true;
     } else {
       const char* unrecognized = parser.match_anything();
