@@ -80,21 +80,26 @@ locale_parts parse_locale(const char* locale_name) {
   }
   return parts;
 }
+
+template <class Func>
+void locale_name_combinations(const char* locale_name, Func&& callback);
 }
 
 template <class T>
 const locale_entry<T>* find_locale_entry(const locale_entry<T>* entries,
                                          const char* locale_name) {
-  std::vector<std::string> locale_names_to_search =
-      locale_name_combinations(locale_name);
-  for (const std::string& current_locale_name : locale_names_to_search) {
-    for (const locale_entry<T>* entry = entries; entry->valid(); ++entry) {
-      if (entry->has_locale_name(current_locale_name.c_str())) {
-        return entry;
-      }
-    }
-  }
-  return nullptr;
+  const locale_entry<T>* found_entry = nullptr;
+  locale_name_combinations(
+      locale_name, [&](std::string&& current_locale_name) -> bool {
+        for (const locale_entry<T>* entry = entries; entry->valid(); ++entry) {
+          if (entry->has_locale_name(current_locale_name.c_str())) {
+            found_entry = entry;
+            return false;
+          }
+        }
+        return true;
+      });
+  return found_entry;
 }
 
 template const locale_entry<const std::uint8_t*>* find_locale_entry(
@@ -103,6 +108,18 @@ template const locale_entry<int>* find_locale_entry(const locale_entry<int>*,
                                                     const char*);
 
 std::vector<std::string> locale_name_combinations(const char* locale_name) {
+  std::vector<std::string> locale_names;
+  locale_name_combinations(locale_name,
+                           [&](std::string&& current_locale) -> bool {
+                             locale_names.emplace_back(current_locale);
+                             return true;
+                           });
+  return locale_names;
+}
+
+namespace {
+template <class Func>
+void locale_name_combinations(const char* locale_name, Func&& callback) {
   locale_parts parts = parse_locale(locale_name);
   enum {
     TERRITORY = 1 << locale_parts::territory_index,
@@ -121,7 +138,6 @@ std::vector<std::string> locale_name_combinations(const char* locale_name) {
       0,
   };
   // clang-format on
-  std::vector<std::string> results;
   for (unsigned char mask : masks) {
     std::string locale(parts.language());
     for (std::size_t part_index = 1; part_index < 4; ++part_index) {
@@ -134,9 +150,15 @@ std::vector<std::string> locale_name_combinations(const char* locale_name) {
         locale += part;
       }
     }
-    results.emplace_back(std::move(locale));
+
+    {
+      bool keep_going = callback(std::move(locale));
+      if (!keep_going) {
+        break;
+      }
+    }
   skip:;
   }
-  return results;
+}
 }
 }
