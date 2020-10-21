@@ -1161,10 +1161,9 @@ TEST(test_lint, use_and_assign_to_undeclared_variable) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                            error_use_and_assignment_of_undeclared_variable, assignment,
-                            span_matcher(assignment))));
+                            error_use_and_assignment_of_undeclared_variable,
+                            assignment, span_matcher(assignment))));
 }
-
 
 TEST(test_lint, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";

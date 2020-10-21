@@ -315,7 +315,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         case used_variable_kind::use_and_assignment:
           this->error_reporter_->report(
               error_use_and_assignment_of_undeclared_variable{used_var.name});
-        break;
+          break;
         }
       }
       return true;
@@ -420,7 +420,7 @@ void linter::visit_end_of_module() {
         break;
       case used_variable_kind::use_and_assignment:
         this->error_reporter_->report(
-          error_use_and_assignment_of_undeclared_variable{used_var.name});
+            error_use_and_assignment_of_undeclared_variable{used_var.name});
         break;
       case used_variable_kind::_typeof:
         // 'typeof foo' is often used to detect if the variable 'foo' is
@@ -433,8 +433,7 @@ void linter::visit_end_of_module() {
        global_scope.variables_used_in_descendant_scope) {
     if (!is_variable_declared(used_var)) {
       // TODO(strager): Should we check used_var.kind?
-      switch (used_var.kind)
-      {
+      switch (used_var.kind) {
       case used_variable_kind::use:
         this->error_reporter_->report(
             error_use_of_undeclared_variable{used_var.name});

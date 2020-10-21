@@ -33,7 +33,8 @@ void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {
   *out << out_string8(x.name);
 }
 
-void PrintTo(const spy_visitor::visited_variable_use_and_assignment &x, std::ostream *out) {
+void PrintTo(const spy_visitor::visited_variable_use_and_assignment &x,
+             std::ostream *out) {
   *out << out_string8(x.name);
 }
 }

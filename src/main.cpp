@@ -208,8 +208,8 @@ class debug_visitor {
   }
 
   void visit_variable_use_and_assignment(identifier name) {
-    std::cerr << "variable use and assignment: " << out_string8(name.normalized_name())
-              << '\n';
+    std::cerr << "variable use and assignment: "
+              << out_string8(name.normalized_name()) << '\n';
   }
 };
 

@@ -53,7 +53,7 @@ class linter {
   void visit_variable_assignment(identifier name);
   void visit_variable_typeof_use(identifier name);
   void visit_variable_use(identifier name);
-   void visit_variable_use_and_assignment(identifier name);
+  void visit_variable_use_and_assignment(identifier name);
   void visit_end_of_module();
 
  private:
@@ -160,8 +160,8 @@ class linter {
                                                       declared_variable_scope);
     void add_predefined_variable_declaration(const char8 *name, variable_kind);
 
-    const declared_variable *find_declared_variable(identifier name) const
-        noexcept;
+    const declared_variable *find_declared_variable(
+        identifier name) const noexcept;
 
     void clear();
   };

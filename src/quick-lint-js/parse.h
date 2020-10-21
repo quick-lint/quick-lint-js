@@ -276,8 +276,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   bool visit_expression(expression_ptr ast, Visitor &v,
-                        variable_context context,
-                        bool compound = false) {
+                        variable_context context, bool compound = false) {
     auto visit_children = [&] {
       int child_count = ast->child_count();
       for (int i = 0; i < child_count; ++i) {
@@ -422,7 +421,8 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void maybe_visit_assignment(expression_ptr ast, Visitor &v, bool used = false) {
+  void maybe_visit_assignment(expression_ptr ast, Visitor &v,
+                              bool used = false) {
     switch (ast->kind()) {
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {

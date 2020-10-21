@@ -106,15 +106,15 @@ source_position::line_number_type locator::find_line_at_offset(
          1;
 }
 
-source_position::offset_type locator::offset(const char8 *source) const
-    noexcept {
+source_position::offset_type locator::offset(
+    const char8 *source) const noexcept {
   return narrow_cast<source_position::offset_type>(source -
                                                    this->input_.data());
 }
 
-source_position locator::position(source_position::line_number_type line_number,
-                                  source_position::offset_type offset) const
-    noexcept {
+source_position locator::position(
+    source_position::line_number_type line_number,
+    source_position::offset_type offset) const noexcept {
   source_position::offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number - 1)];
   int column_number = narrow_cast<int>(offset - beginning_of_line_offset) + 1;
