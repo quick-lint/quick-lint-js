@@ -141,16 +141,16 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::variable_assignment, name);
   }
 
-  void visit_variable_use_and_assignment(identifier name) {
-    this->visits_.emplace_back(visit_kind::variable_use_and_assignment, name);
-  }
-
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->visits_.emplace_back(visit_kind::variable_declaration, name, kind);
   }
 
   void visit_variable_use(identifier name) {
     this->visits_.emplace_back(visit_kind::variable_use, name);
+  }
+
+   void visit_variable_use_and_assignment(identifier name) {
+    this->visits_.emplace_back(visit_kind::variable_use_and_assignment, name);
   }
 
   void visit_variable_typeof_use(identifier name) {

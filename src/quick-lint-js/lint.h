@@ -53,7 +53,7 @@ class linter {
   void visit_variable_assignment(identifier name);
   void visit_variable_typeof_use(identifier name);
   void visit_variable_use(identifier name);
-  void visit_variable_use_and_assignment(identifier name);
+   void visit_variable_use_and_assignment(identifier name);
   void visit_end_of_module();
 
  private:
@@ -129,7 +129,7 @@ class linter {
     _typeof,
     assignment,
     use,
-    use_and_assignment,
+    use_and_assignment
   };
 
   struct used_variable {

@@ -794,13 +794,11 @@ TEST(test_parse, parse_compound_assignment) {
   {
     spy_visitor v = parse_and_visit_expression(u8"x += y");
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
-                                      "visit_variable_use",  //
-                                      "visit_variable_assignment"));
+                                      "visit_variable_use_and_assignment"));
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"},  //
-                            spy_visitor::visited_variable_use{u8"y"}));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+                ElementsAre(spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_use_and_assignments,
+                ElementsAre(spy_visitor::visited_variable_use_and_assignment{u8"x"}));
   }
 
   {

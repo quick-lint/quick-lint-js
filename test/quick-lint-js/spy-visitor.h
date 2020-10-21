@@ -175,11 +175,31 @@ struct spy_visitor : public error_collector {
     }
   };
   std::vector<visited_variable_use> variable_uses;
+
+  void visit_variable_use_and_assignment(identifier name) {
+    this->variable_use_and_assignments.emplace_back(
+        visited_variable_use_and_assignment{string8(name.normalized_name())});
+    this->visits.emplace_back("visit_variable_use_and_assignment");
+  }
+
+  struct visited_variable_use_and_assignment {
+    string8 name;
+
+    bool operator==(const visited_variable_use_and_assignment &other) const {
+      return this->name == other.name;
+    }
+
+    bool operator!=(const visited_variable_use_and_assignment &other) const {
+      return !(*this == other);
+    }
+  };
+  std::vector<visited_variable_use_and_assignment> variable_use_and_assignments;
 };
 
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_use &, std::ostream *);
+void PrintTo(const spy_visitor::visited_variable_use_and_assignment &, std::ostream *);
 }
 
 #endif

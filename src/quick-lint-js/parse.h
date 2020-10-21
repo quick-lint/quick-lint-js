@@ -384,7 +384,7 @@ class parser {
         if (compound) {
           return true;
         }
-        
+
         v.visit_variable_use(ast->variable_identifier());
         break;
       }

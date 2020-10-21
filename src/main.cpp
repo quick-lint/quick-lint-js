@@ -294,14 +294,14 @@ class multi_visitor {
     this->visitor_2_->visit_variable_typeof_use(name);
   }
 
-  void visit_variable_use(identifier name) {
-    this->visitor_1_->visit_variable_use(name);
-    this->visitor_2_->visit_variable_use(name);
-  }
-
   void visit_variable_use_and_assignment(identifier name) {
     this->visitor_1_->visit_variable_use_and_assignment(name);
     this->visitor_2_->visit_variable_use_and_assignment(name);
+  }
+
+  void visit_variable_use(identifier name) {
+    this->visitor_1_->visit_variable_use(name);
+    this->visitor_2_->visit_variable_use(name);
   }
 
  private:

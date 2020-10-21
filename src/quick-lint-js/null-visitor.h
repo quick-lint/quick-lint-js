@@ -54,6 +54,8 @@ class null_visitor {
   void visit_variable_typeof_use(identifier) {}
 
   void visit_variable_use(identifier) {}
+
+  void visit_variable_use_and_assignment(identifier) {}
 };
 }
 

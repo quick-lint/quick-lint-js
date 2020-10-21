@@ -25,8 +25,6 @@
 #include <quick-lint-js/optional.h>
 #include <vector>
 
-#include <iostream>
-
 // The linter class implements single-pass variable lookup. A single-pass
 // algorithm is complicated in JavaScript for a few reasons:
 //
@@ -303,21 +301,21 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
     if (name.normalized_name() == used_var.name.normalized_name()) {
       if (kind == variable_kind::_class || kind == variable_kind::_const ||
           kind == variable_kind::_let) {
-        switch (used_var.kind) { 
+        switch (used_var.kind) {
         case used_variable_kind::assignment:
           this->report_error_if_assignment_is_illegal(
               declared, used_var.name,
               /*is_assigned_before_declaration=*/true);
           break;
         case used_variable_kind::_typeof:
-        case used_variable_kind::use_and_assignment:
-          this->error_reporter_->report(
-              error_use_and_assignment_of_undeclared_variable{used_var.name});
-          break;
         case used_variable_kind::use:
           this->error_reporter_->report(
               error_variable_used_before_declaration{used_var.name, name});
           break;
+        case used_variable_kind::use_and_assignment:
+          this->error_reporter_->report(
+              error_use_and_assignment_of_undeclared_variable{used_var.name});
+        break;
         }
       }
       return true;
@@ -412,10 +410,6 @@ void linter::visit_end_of_module() {
   for (const used_variable &used_var : global_scope.variables_used) {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
-      case used_variable_kind::use_and_assignment:
-        this->error_reporter_->report(
-          error_use_and_assignment_of_undeclared_variable{used_var.name});
-        break;
       case used_variable_kind::assignment:
         this->error_reporter_->report(
             error_assignment_to_undeclared_variable{used_var.name});
@@ -423,6 +417,10 @@ void linter::visit_end_of_module() {
       case used_variable_kind::use:
         this->error_reporter_->report(
             error_use_of_undeclared_variable{used_var.name});
+        break;
+      case used_variable_kind::use_and_assignment:
+        this->error_reporter_->report(
+          error_use_and_assignment_of_undeclared_variable{used_var.name});
         break;
       case used_variable_kind::_typeof:
         // 'typeof foo' is often used to detect if the variable 'foo' is
@@ -439,9 +437,9 @@ void linter::visit_end_of_module() {
       {
       case used_variable_kind::use:
         this->error_reporter_->report(
-          error_use_of_undeclared_variable{used_var.name});
+            error_use_of_undeclared_variable{used_var.name});
         break;
-      
+
       default:
         break;
       }

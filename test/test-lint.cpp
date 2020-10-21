@@ -1165,6 +1165,7 @@ TEST(test_lint, use_and_assign_to_undeclared_variable) {
                             span_matcher(assignment))));
 }
 
+
 TEST(test_lint, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
