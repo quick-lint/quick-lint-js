@@ -275,8 +275,9 @@ class parser {
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void visit_expression(expression_ptr ast, Visitor &v,
-                        variable_context context) {
+  bool visit_expression(expression_ptr ast, Visitor &v,
+                        variable_context context,
+                        bool compound = false) {
     auto visit_children = [&] {
       int child_count = ast->child_count();
       for (int i = 0; i < child_count; ++i) {
@@ -380,6 +381,10 @@ class parser {
       case variable_context::lhs:
         break;
       case variable_context::rhs:
+        if (compound) {
+          return true;
+        }
+        
         v.visit_variable_use(ast->variable_identifier());
         break;
       }
@@ -395,6 +400,8 @@ class parser {
       v.visit_exit_function_scope();
       break;
     }
+
+    return false;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -408,13 +415,14 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_compound_assignment_expression(expression_ptr lhs,
                                             expression_ptr rhs, Visitor &v) {
-    this->visit_expression(lhs, v, variable_context::rhs);
+    bool used = false;
+    used = this->visit_expression(lhs, v, variable_context::rhs, true);
     this->visit_expression(rhs, v, variable_context::rhs);
-    this->maybe_visit_assignment(lhs, v);
+    this->maybe_visit_assignment(lhs, v, used);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void maybe_visit_assignment(expression_ptr ast, Visitor &v) {
+  void maybe_visit_assignment(expression_ptr ast, Visitor &v, bool used = false) {
     switch (ast->kind()) {
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
@@ -423,7 +431,11 @@ class parser {
       }
       break;
     case expression_kind::variable:
-      v.visit_variable_assignment(ast->variable_identifier());
+      if (used) {
+        v.visit_variable_use_and_assignment(ast->variable_identifier());
+      } else {
+        v.visit_variable_assignment(ast->variable_identifier());
+      }
       break;
     default:
       break;

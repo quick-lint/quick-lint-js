@@ -206,6 +206,11 @@ class debug_visitor {
     std::cerr << "variable use: " << out_string8(name.normalized_name())
               << '\n';
   }
+
+  void visit_variable_use_and_assignment(identifier name) {
+    std::cerr << "variable use and assignment: " << out_string8(name.normalized_name())
+              << '\n';
+  }
 };
 
 template <QLJS_PARSE_VISITOR Visitor1, QLJS_PARSE_VISITOR Visitor2>
@@ -292,6 +297,11 @@ class multi_visitor {
   void visit_variable_use(identifier name) {
     this->visitor_1_->visit_variable_use(name);
     this->visitor_2_->visit_variable_use(name);
+  }
+
+  void visit_variable_use_and_assignment(identifier name) {
+    this->visitor_1_->visit_variable_use_and_assignment(name);
+    this->visitor_2_->visit_variable_use_and_assignment(name);
   }
 
  private:

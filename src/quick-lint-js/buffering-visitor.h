@@ -76,6 +76,9 @@ class buffering_visitor {
       case visit_kind::variable_use:
         target.visit_variable_use(v.name);
         break;
+      case visit_kind::variable_use_and_assignment:
+        target.visit_variable_use_and_assignment(v.name);
+        break;
       case visit_kind::variable_typeof_use:
         target.visit_variable_typeof_use(v.name);
         break;
@@ -138,6 +141,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::variable_assignment, name);
   }
 
+  void visit_variable_use_and_assignment(identifier name) {
+    this->visits_.emplace_back(visit_kind::variable_use_and_assignment, name);
+  }
+
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->visits_.emplace_back(visit_kind::variable_declaration, name, kind);
   }
@@ -166,6 +173,7 @@ class buffering_visitor {
     property_declaration,
     variable_assignment,
     variable_use,
+    variable_use_and_assignment,
     variable_typeof_use,
     variable_declaration,
   };

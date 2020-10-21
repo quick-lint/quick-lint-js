@@ -1148,6 +1148,23 @@ TEST(test_lint, assign_to_undeclared_variable) {
                             span_matcher(assignment))));
 }
 
+TEST(test_lint, use_and_assign_to_undeclared_variable) {
+  const char8 name[] = u8"x";
+  const char8 assignment[] = u8"x += 1";
+
+  // x += 1;  // ERROR
+  error_collector v;
+  linter l(&v);
+  // l.visit_variable_use(identifier_of(name));
+  // l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_use_and_assignment(identifier_of(assignment));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                            error_use_and_assignment_of_undeclared_variable, assignment,
+                            span_matcher(assignment))));
+}
+
 TEST(test_lint, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";

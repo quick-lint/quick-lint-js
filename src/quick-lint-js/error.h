@@ -259,6 +259,12 @@
       .error(QLJS_TRANSLATE("use of undeclared variable: {0}"), name))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_use_and_assignment_of_undeclared_variable,                         \
+      { identifier assignment; },                                              \
+      .error(QLJS_TRANSLATE("use and assignment of undeclared variable: {0}"), \
+             assignment))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_variable_used_before_declaration,                                  \
       {                                                                        \
         identifier use;                                                        \
