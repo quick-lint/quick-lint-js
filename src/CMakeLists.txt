@@ -46,6 +46,7 @@ quick_lint_js_add_library(
   file.cpp
   gmo.cpp
   integer.cpp
+  json.cpp
   language.cpp
   lex-keyword.cpp
   lex.cpp

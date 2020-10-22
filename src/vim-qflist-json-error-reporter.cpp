@@ -17,6 +17,7 @@
 #include <iostream>
 #include <ostream>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/json.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/optional.h>
@@ -26,32 +27,6 @@
 #include <string>
 
 namespace quick_lint_js {
-namespace {
-template <class Char>
-void write_escaped_string(std::ostream &output,
-                          std::basic_string_view<Char> string) {
-  auto write_string = [&](std::basic_string_view<Char> s) {
-    if constexpr (std::is_same_v<Char, char>) {
-      output << s;
-    } else {
-      output << out_string8(s);
-    }
-  };
-
-  for (;;) {
-    auto special_character_index =
-        string.find_first_of(reinterpret_cast<const Char *>(u8"\\\""));
-    if (special_character_index == string.npos) {
-      break;
-    }
-    write_string(string.substr(0, special_character_index));
-    output << '\\' << static_cast<char>(string[special_character_index]);
-    string = string.substr(special_character_index + 1);
-  }
-  write_string(string);
-}
-}
-
 vim_qflist_json_error_reporter::vim_qflist_json_error_reporter(
     std::ostream &output)
     : output_(output) {
@@ -168,7 +143,7 @@ void vim_qflist_json_error_formatter::write_message_part(severity sev,
     return;
   }
 
-  write_escaped_string(this->output_, message);
+  write_json_escaped_string(this->output_, message);
 }
 
 void vim_qflist_json_error_formatter::write_after_message(
@@ -184,7 +159,7 @@ void vim_qflist_json_error_formatter::write_after_message(
   }
   if (!this->file_name_.empty()) {
     this->output_ << ", \"filename\": \"";
-    write_escaped_string(this->output_, this->file_name_);
+    write_json_escaped_string(this->output_, this->file_name_);
     this->output_ << '"';
   }
   this->output_ << '}';
