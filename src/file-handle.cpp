@@ -113,6 +113,7 @@ void posix_fd_file::close() {
     std::fprintf(stderr, "error: failed to close file: %s\n",
                  std::strerror(errno));
   }
+  this->fd_ = invalid_fd;
 }
 
 std::string posix_fd_file::get_last_error_message() {
