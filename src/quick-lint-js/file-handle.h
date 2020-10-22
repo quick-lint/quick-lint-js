@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef QUICK_LINT_JS_FILE_HANDLE_H
+#define QUICK_LINT_JS_FILE_HANDLE_H
+
 #include <optional>
 #include <quick-lint-js/have.h>
 #include <string>
@@ -76,3 +79,5 @@ class posix_fd_file {
 };
 #endif
 }
+
+#endif

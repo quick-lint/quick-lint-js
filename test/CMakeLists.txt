@@ -23,6 +23,7 @@ quick_lint_js_add_executable(
   error-collector.cpp
   error-matcher.cpp
   parse-json.cpp
+  pipe.cpp
   spy-visitor.cpp
   test-assert.cpp
   test-bit.cpp
