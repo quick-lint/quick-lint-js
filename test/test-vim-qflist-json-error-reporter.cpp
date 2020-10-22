@@ -20,23 +20,12 @@
 #include <json/writer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <sstream>
 
 namespace quick_lint_js {
 namespace {
-::Json::Value parse_json(std::stringstream &stream) {
-  SCOPED_TRACE(stream.str());
-  stream.seekg(0);
-  ::Json::Value root;
-  ::Json::CharReaderBuilder builder;
-  builder.strictMode(&builder.settings_);
-  ::Json::String errors;
-  bool ok = ::Json::parseFromStream(builder, stream, &root, &errors);
-  EXPECT_TRUE(ok) << errors;
-  return root;
-}
-
 class test_vim_qflist_json_error_reporter : public ::testing::Test {
  protected:
   vim_qflist_json_error_reporter make_reporter() {
