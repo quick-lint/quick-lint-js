@@ -22,6 +22,8 @@ quick_lint_js_add_executable(
   quick-lint-js-test
   error-collector.cpp
   error-matcher.cpp
+  parse-json.cpp
+  pipe.cpp
   spy-visitor.cpp
   test-assert.cpp
   test-bit.cpp
@@ -37,6 +39,7 @@ quick_lint_js_add_executable(
   test-lint.cpp
   test-locale.cpp
   test-location.cpp
+  test-lsp-error-reporter.cpp
   test-math-overflow.cpp
   test-narrow-cast.cpp
   test-options.cpp

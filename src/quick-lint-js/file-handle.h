@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef QUICK_LINT_JS_FILE_HANDLE_H
+#define QUICK_LINT_JS_FILE_HANDLE_H
+
 #include <optional>
 #include <quick-lint-js/have.h>
 #include <string>
@@ -49,6 +52,9 @@ class windows_handle_file {
 #endif
 
 #if QLJS_HAVE_UNISTD_H
+class posix_fd_file_ref;
+
+// posix_fd_file is the owner of a POSIX file descriptor.
 class posix_fd_file {
  public:
   explicit posix_fd_file(int fd) noexcept;
@@ -62,10 +68,9 @@ class posix_fd_file {
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
 
-  posix_fd_file duplicate();
-  static posix_fd_file duplicate(int existing_fd);
-
   void close();
+
+  posix_fd_file_ref ref() noexcept;
 
   static std::string get_last_error_message();
 
@@ -74,5 +79,18 @@ class posix_fd_file {
 
   int fd_;
 };
+
+// posix_fd_file_ref is a non-owning reference to a POSIX file descriptor.
+class posix_fd_file_ref {
+ public:
+  explicit posix_fd_file_ref(int fd) noexcept;
+
+  posix_fd_file duplicate();
+
+ private:
+  int fd_;
+};
 #endif
 }
+
+#endif

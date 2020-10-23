@@ -59,6 +59,18 @@ class arg_parser {
     return arg_value;
   }
 
+  bool match_flag_shorthand(char option_shorthand) noexcept {
+    if (!this->option_.has_value()) {
+      return false;
+    }
+    bool matches = this->option_->arg_key == std::string{'-', option_shorthand};
+
+    if (matches) {
+      this->advance(1);
+    }
+    return matches;
+  }
+
   bool match_flag_option(std::string_view full_option_name,
                          std::string_view partial_option_name) noexcept {
     if (!this->option_.has_value()) {
@@ -101,7 +113,7 @@ class arg_parser {
       }
       this->is_ignoring_options_ = true;
       this->option_ = std::nullopt;
-    } else if (this->current_arg()[0] == '-' && this->current_arg()[1] == '-') {
+    } else if (this->current_arg()[0] == '-') {
       const char* equal = std::strchr(this->current_arg(), '=');
       option o;
       o.arg_has_equal = equal != nullptr;
@@ -180,9 +192,11 @@ options parse_options(int argc, char** argv) {
       } else {
         next_vim_file_bufnr = bufnr;
       }
-    } else if (parser.match_flag_option("--help"sv, "--h"sv)) {
+    } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
+               parser.match_flag_shorthand('h')) {
       o.help = true;
-    } else if (parser.match_flag_option("--version"sv, "--v"sv)) {
+    } else if (parser.match_flag_option("--version"sv, "--v"sv) ||
+               parser.match_flag_shorthand('v')) {
       o.version = true;
     } else {
       const char* unrecognized = parser.match_anything();

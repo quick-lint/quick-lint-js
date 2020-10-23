@@ -29,6 +29,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/pipe.h>
 #include <quick-lint-js/std-filesystem.h>
 #include <random>
 #include <stdlib.h>
@@ -42,24 +43,12 @@
 #include <sys/types.h>
 #endif
 
-#if QLJS_HAVE_PIPE
-#include <unistd.h>
-#endif
-
 using ::testing::AnyOf;
 using ::testing::HasSubstr;
 using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-#if QLJS_HAVE_PIPE
-struct pipe_fds {
-  posix_fd_file reader;
-  posix_fd_file writer;
-};
-pipe_fds make_pipe();
-#endif
-
 filesystem::path make_temporary_directory();
 void write_file(filesystem::path, const std::string &content);
 
@@ -170,7 +159,7 @@ class substitute_fd_guard {
  public:
   explicit substitute_fd_guard(int original_fd, int replacement_fd)
       : original_fd_(original_fd),
-        original_file_(posix_fd_file::duplicate(original_fd)) {
+        original_file_(posix_fd_file_ref(original_fd).duplicate()) {
     this->dup2(replacement_fd, original_fd);
   }
 
@@ -258,21 +247,6 @@ filesystem::path make_temporary_directory() {
   }
   std::cerr << "failed to create temporary directory\n";
   std::abort();
-}
-#endif
-
-#if QLJS_HAVE_PIPE
-pipe_fds make_pipe() {
-  int fds[2];
-  int rc = ::pipe(fds);
-  if (rc == -1) {
-    std::cerr << "failed to create pipe: " << std::strerror(errno) << '\n';
-    std::abort();
-  }
-  return pipe_fds{
-      .reader = posix_fd_file(fds[0]),
-      .writer = posix_fd_file(fds[1]),
-  };
 }
 #endif
 

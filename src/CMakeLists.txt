@@ -46,12 +46,14 @@ quick_lint_js_add_library(
   file.cpp
   gmo.cpp
   integer.cpp
+  json.cpp
   language.cpp
   lex-keyword.cpp
   lex.cpp
   lint.cpp
   locale.cpp
   location.cpp
+  lsp-error-reporter.cpp
   options.cpp
   padded-string.cpp
   parse.cpp
