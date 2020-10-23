@@ -159,7 +159,7 @@ class substitute_fd_guard {
  public:
   explicit substitute_fd_guard(int original_fd, int replacement_fd)
       : original_fd_(original_fd),
-        original_file_(posix_fd_file::duplicate(original_fd)) {
+        original_file_(posix_fd_file_ref(original_fd).duplicate()) {
     this->dup2(replacement_fd, original_fd);
   }
 

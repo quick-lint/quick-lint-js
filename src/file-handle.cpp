@@ -94,18 +94,6 @@ std::optional<int> posix_fd_file::read(void *buffer, int buffer_size) noexcept {
   return narrow_cast<int>(read_size);
 }
 
-posix_fd_file posix_fd_file::duplicate() { return this->duplicate(this->fd_); }
-
-posix_fd_file posix_fd_file::duplicate(int existing_fd) {
-  int new_fd = ::dup(existing_fd);
-  if (new_fd == -1) {
-    std::fprintf(stderr, "fatal: failed to duplicate file descriptor: %s\n",
-                 std::strerror(errno));
-    std::abort();
-  }
-  return posix_fd_file(new_fd);
-}
-
 void posix_fd_file::close() {
   QLJS_ASSERT(this->fd_ != invalid_fd);
   int rc = ::close(this->fd_);
@@ -118,6 +106,24 @@ void posix_fd_file::close() {
 
 std::string posix_fd_file::get_last_error_message() {
   return std::strerror(errno);
+}
+
+posix_fd_file_ref posix_fd_file::ref() noexcept {
+  return posix_fd_file_ref(this->fd_);
+}
+
+posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
+  QLJS_ASSERT(this->fd_ != -1);
+}
+
+posix_fd_file posix_fd_file_ref::duplicate() {
+  int new_fd = ::dup(this->fd_);
+  if (new_fd == -1) {
+    std::fprintf(stderr, "fatal: failed to duplicate file descriptor: %s\n",
+                 std::strerror(errno));
+    std::abort();
+  }
+  return posix_fd_file(new_fd);
 }
 #endif
 

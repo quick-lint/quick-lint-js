@@ -52,6 +52,9 @@ class windows_handle_file {
 #endif
 
 #if QLJS_HAVE_UNISTD_H
+class posix_fd_file_ref;
+
+// posix_fd_file is the owner of a POSIX file descriptor.
 class posix_fd_file {
  public:
   explicit posix_fd_file(int fd) noexcept;
@@ -65,16 +68,26 @@ class posix_fd_file {
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
 
-  posix_fd_file duplicate();
-  static posix_fd_file duplicate(int existing_fd);
-
   void close();
+
+  posix_fd_file_ref ref() noexcept;
 
   static std::string get_last_error_message();
 
  private:
   static constexpr int invalid_fd = -1;
 
+  int fd_;
+};
+
+// posix_fd_file_ref is a non-owning reference to a POSIX file descriptor.
+class posix_fd_file_ref {
+ public:
+  explicit posix_fd_file_ref(int fd) noexcept;
+
+  posix_fd_file duplicate();
+
+ private:
   int fd_;
 };
 #endif
