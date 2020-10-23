@@ -1149,7 +1149,6 @@ TEST(test_lint, assign_to_undeclared_variable) {
 }
 
 TEST(test_lint, use_and_assign_to_undeclared_variable) {
-  const char8 name[] = u8"x";
   const char8 assignment[] = u8"x += 1";
 
   // x += 1;  // ERROR
