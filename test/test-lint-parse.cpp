@@ -44,6 +44,20 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
                             declaration, offsets_matcher(&input, 11, 12))));
 }
 
+TEST(test_lint, use_and_assign_before_declaration) {
+  padded_string input(u8"x += 1; let x = 42;");
+  error_collector v;
+  linter l(&v);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_use_and_assignment_before_variable_declaration,  //
+                  use, offsets_matcher(&input, 0, 1),                    //
+                  declaration, offsets_matcher(&input, 12, 13))));
+}
+
 TEST(
     test_lint,
     variables_with_different_escape_sequences_are_equivalent_after_normalization) {

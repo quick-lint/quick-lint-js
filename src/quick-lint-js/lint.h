@@ -160,8 +160,8 @@ class linter {
                                                       declared_variable_scope);
     void add_predefined_variable_declaration(const char8 *name, variable_kind);
 
-    const declared_variable *find_declared_variable(
-        identifier name) const noexcept;
+    const declared_variable *find_declared_variable(identifier name) const
+        noexcept;
 
     void clear();
   };
@@ -216,7 +216,8 @@ class linter {
 
   void report_error_if_assignment_is_illegal(
       const declared_variable *var, const identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      bool is_used_before_declaration = false) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;

@@ -1155,8 +1155,6 @@ TEST(test_lint, use_and_assign_to_undeclared_variable) {
   // x += 1;  // ERROR
   error_collector v;
   linter l(&v);
-  // l.visit_variable_use(identifier_of(name));
-  // l.visit_variable_assignment(identifier_of(assignment));
   l.visit_variable_use_and_assignment(identifier_of(assignment));
   l.visit_end_of_module();
 

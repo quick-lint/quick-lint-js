@@ -272,6 +272,16 @@
       },                                                                       \
       .error(QLJS_TRANSLATE("variable used before declaration: {0}"), use)     \
           .note(QLJS_TRANSLATE("variable declared here"), declaration))        \
+  QLJS_ERROR_TYPE(                                                             \
+      error_use_and_assignment_before_variable_declaration,                    \
+      {                                                                        \
+        identifier use;                                                        \
+        identifier declaration;                                                \
+      },                                                                       \
+      .error(QLJS_TRANSLATE(                                                   \
+                 "used and assigned variable before its declaration: {0}"),    \
+             use)                                                              \
+          .note(QLJS_TRANSLATE("variable declared here"), declaration))        \
   /* END */
 
 namespace quick_lint_js {
