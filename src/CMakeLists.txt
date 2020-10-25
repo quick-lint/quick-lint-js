@@ -55,6 +55,7 @@ quick_lint_js_add_library(
   location.cpp
   lsp-error-reporter.cpp
   lsp-message-parser.cpp
+  lsp-pipe-writer.cpp
   options.cpp
   padded-string.cpp
   parse.cpp

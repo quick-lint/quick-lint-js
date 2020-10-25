@@ -41,6 +41,10 @@ void padded_string::resize(int new_size) {
             u8'\0');
 }
 
+string8_view padded_string::string_view() const noexcept {
+  return string8_view(this->data(), narrow_cast<std::size_t>(this->size()));
+}
+
 bool operator==(string8_view x, const padded_string& y) noexcept {
   return y == x;
 }

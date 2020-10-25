@@ -77,6 +77,11 @@ TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
   EXPECT_EQ(stream.str(), "BEFOREhelloAFTER");
 }
 
+TEST(test_padded_string, std_string_view_excludes_padding_bytes) {
+  padded_string s(string8(u8"hello"));
+  EXPECT_TRUE(s.string_view() == string8_view(u8"hello"));
+}
+
 namespace {
 void expect_null_terminated(const padded_string &s) {
   const char8 *data = s.c_str();

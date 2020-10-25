@@ -43,6 +43,18 @@
 #define QLJS_HAVE_FCNTL_H 0
 #endif
 
+#if defined(QLJS_HAVE_PTHREAD_H) && QLJS_HAVE_PTHREAD_H
+#elif defined(__has_include)
+#if __has_include(<pthread.h>)
+#define QLJS_HAVE_PTHREAD_H 1
+#endif
+#elif defined(__unix__)
+#define QLJS_HAVE_PTHREAD_H 1
+#endif
+#if !defined(QLJS_HAVE_PTHREAD_H)
+#define QLJS_HAVE_PTHREAD_H 0
+#endif
+
 #if defined(QLJS_HAVE_SYS_STAT_H) && QLJS_HAVE_SYS_STAT_H
 #elif defined(__has_include)
 #if __has_include(<sys/stat.h>)
@@ -216,6 +228,22 @@
 #define QLJS_HAVE_CXX_CONCEPTS 1
 #else
 #define QLJS_HAVE_CXX_CONCEPTS 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_F_GETPIPE_SZ)
+#if defined(__linux__)
+#define QLJS_HAVE_F_GETPIPE_SZ 1
+#else
+#define QLJS_HAVE_F_GETPIPE_SZ 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_PTHREAD_KILL)
+#if QLJS_HAVE_PTHREAD_H
+#define QLJS_HAVE_PTHREAD_KILL 1
+#else
+#define QLJS_HAVE_PTHREAD_KILL 0
 #endif
 #endif
 
