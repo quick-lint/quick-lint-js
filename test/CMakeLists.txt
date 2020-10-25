@@ -51,6 +51,7 @@ quick_lint_js_add_executable(
   test-vector.cpp
   test-vim-qflist-json-error-reporter.cpp
   test-wasm-demo-error-reporter.cpp
+  test-write-integer.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(

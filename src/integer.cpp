@@ -15,11 +15,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cerrno>
+#include <cstdio>
 #include <cstdlib>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/warning.h>
 #include <string>
+#include <type_traits>
+
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 #if QLJS_HAVE_CHARCONV_HEADER
 #include <charconv>
@@ -37,6 +43,15 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   std::from_chars_result result =
       std::from_chars(begin, end, value, /*base=*/16);
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
+}
+
+template <class T>
+char8 *write_integer(T value, char8 *out) {
+  char *buffer = reinterpret_cast<char *>(out);
+  std::to_chars_result result =
+      std::to_chars(buffer, &buffer[integer_string_length<T>], value);
+  QLJS_ASSERT(result.ec == std::errc{});
+  return out + (result.ptr - buffer);
 }
 #else
 namespace {
@@ -88,5 +103,29 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   value = static_cast<int>(long_value);
   return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
 }
+
+template <class T>
+char8 *write_integer(T value, char8 *out) {
+  char *buffer = reinterpret_cast<char *>(out);
+  constexpr std::size_t buffer_size = integer_string_length<T>;
+  constexpr const char *format =
+      std::is_same_v<T, unsigned>
+          ? "%u"
+          : std::is_same_v<T, unsigned long>
+                ? "%lu"
+                : std::is_same_v<T, unsigned long long> ? "%llu" : "";
+  static_assert(*format != '\0', "Unsupported integer type");
+
+  int rc = std::snprintf(buffer, buffer_size, format, value);
+  QLJS_ASSERT(rc >= 0);
+  if (rc == buffer_size) {
+    static_assert(std::is_unsigned_v<T>,
+                  "Signed integer types are unsupported");
+    buffer[buffer_size - 1] = u8'0' + (value % 10);
+  }
+  return out + rc;
+}
 #endif
+
+template char8 *write_integer<std::size_t>(std::size_t, char8 *out);
 }
