@@ -198,6 +198,8 @@ options parse_options(int argc, char** argv) {
     } else if (parser.match_flag_option("--version"sv, "--v"sv) ||
                parser.match_flag_shorthand('v')) {
       o.version = true;
+    } else if (parser.match_flag_option("--lsp-server"sv, "--lsp"sv)) {
+      o.lsp_server = true;
     } else {
       const char* unrecognized = parser.match_anything();
       o.error_unrecognized_options.emplace_back(unrecognized);

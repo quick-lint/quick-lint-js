@@ -26,19 +26,22 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/lsp-endpoint.h>
+#include <quick-lint-js/lsp-pipe-writer.h>
+#include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/pipe-reader.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
+#include <quick-lint-js/version.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
 #include <variant>
-
-#define QUICK_LINT_JS_VERSION_STRING "0.1.0"
 
 namespace quick_lint_js {
 namespace {
@@ -104,6 +107,8 @@ class any_error_reporter {
 void process_file(padded_string_view input, error_reporter *,
                   bool print_parser_visits);
 
+void run_lsp_server();
+
 void print_help_message();
 void print_version_information();
 }
@@ -127,6 +132,14 @@ int main(int argc, char **argv) {
       std::cerr << "error: unrecognized option: " << option << '\n';
     }
     return EXIT_FAILURE;
+  }
+  if (o.lsp_server) {
+    quick_lint_js::run_lsp_server();
+    if (!o.files_to_lint.empty()) {
+      std::cerr << "warning: ignoring files given on command line in "
+                   "--lsp-server mode\n";
+    }
+    return 0;
   }
   if (o.files_to_lint.empty()) {
     std::cerr << "error: expected file name\n";
@@ -310,6 +323,19 @@ void process_file(padded_string_view input, error_reporter *error_reporter,
   } else {
     p.parse_and_visit_module(l);
   }
+}
+
+void run_lsp_server() {
+#if defined(_WIN32)
+  windows_handle_file_ref input_pipe(::GetStdHandle(STD_INPUT_HANDLE));
+  windows_handle_file_ref output_pipe(::GetStdHandle(STD_OUTPUT_HANDLE));
+#else
+  posix_fd_file_ref input_pipe(STDIN_FILENO);
+  posix_fd_file_ref output_pipe(STDOUT_FILENO);
+#endif
+  pipe_reader<lsp_endpoint<linting_lsp_server_handler, lsp_pipe_writer>> server(
+      input_pipe, output_pipe);
+  server.run();
 }
 
 void print_help_message() {

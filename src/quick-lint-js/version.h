@@ -14,36 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_OPTIONS_H
-#define QUICK_LINT_JS_OPTIONS_H
+#ifndef QUICK_LINT_JS_VERSION_H
+#define QUICK_LINT_JS_VERSION_H
 
-#include <optional>
-#include <vector>
+#include <quick-lint-js/cpp.h>
 
-namespace quick_lint_js {
-enum class output_format {
-  gnu_like,
-  vim_qflist_json,
-};
-
-struct file_to_lint {
-  const char *path;
-  std::optional<int> vim_bufnr;
-};
-
-struct options {
-  bool help = false;
-  bool version = false;
-  bool print_parser_visits = false;
-  bool lsp_server = false;
-  quick_lint_js::output_format output_format =
-      quick_lint_js::output_format::gnu_like;
-  std::vector<file_to_lint> files_to_lint;
-
-  std::vector<const char *> error_unrecognized_options;
-};
-
-options parse_options(int argc, char **argv);
-}
+#define QUICK_LINT_JS_VERSION_STRING "0.1.0"
+#define QUICK_LINT_JS_VERSION_STRING_U8 \
+  QLJS_CPP_CONCAT(u8, QUICK_LINT_JS_VERSION_STRING)
 
 #endif

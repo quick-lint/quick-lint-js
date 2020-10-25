@@ -44,6 +44,7 @@ quick_lint_js_add_executable(
   test-lsp-message-parser.cpp
   test-lsp-pipe-reader.cpp
   test-lsp-pipe-writer.cpp
+  test-lsp-server.cpp
   test-math-overflow.cpp
   test-narrow-cast.cpp
   test-options.cpp
