@@ -15,8 +15,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <iosfwd>
+#include <json/reader.h>
+#include <json/value.h>
 #include <ostream>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/json.h>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -51,4 +55,19 @@ template void write_json_escaped_string<char>(std::ostream &,
 template void write_json_escaped_string<char8_t>(
     std::ostream &, std::basic_string_view<char8_t>);
 #endif
+
+bool parse_json(string8_view json, ::Json::Value *result,
+                ::Json::String *errors) {
+#if QLJS_HAVE_CHAR8_T
+  const char *json_chars = reinterpret_cast<const char *>(json.data());
+#else
+  const char *json_chars = json.data();
+#endif
+  // TODO(strager): Avoid copying the JSON string.
+  std::istringstream message_stream(std::string(json_chars, json.size()));
+  ::Json::CharReaderBuilder builder;
+  builder.strictMode(&builder.settings_);
+  bool ok = ::Json::parseFromStream(builder, message_stream, result, errors);
+  return ok;
+}
 }

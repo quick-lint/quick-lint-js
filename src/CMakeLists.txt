@@ -67,7 +67,7 @@ quick_lint_js_add_library(
   wasm-demo-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
-target_link_libraries(quick-lint-js-lib PUBLIC boost_container)
+target_link_libraries(quick-lint-js-lib PUBLIC boost_container jsoncpp_lib)
 
 if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
   target_compile_definitions(

@@ -14,30 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_LSP_PIPE_WRITER_H
-#define QUICK_LINT_JS_LSP_PIPE_WRITER_H
+#ifndef QUICK_LINT_JS_SPY_LSP_ENDPOINT_REMOTE_H
+#define QUICK_LINT_JS_SPY_LSP_ENDPOINT_REMOTE_H
 
+#include <gtest/gtest.h>
+#include <json/value.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/json.h>
+#include <vector>
 
 namespace quick_lint_js {
-// An lsp_pipe_writer sends server->client Language Server Protocol messages via
-// a pipe or socket.
-//
-// lsp_pipe_writer satisfies lsp_endpoint_remote.
-class lsp_pipe_writer {
+class spy_lsp_endpoint_remote {
  public:
-  explicit lsp_pipe_writer(platform_file_ref pipe);
+  void send_message(string8_view message) {
+    ::Json::Value parsed_message;
+    ::Json::String errors;
+    bool ok = parse_json(message, &parsed_message, &errors);
+    EXPECT_TRUE(ok) << errors;
 
-  void send_message(string8_view);
+    if (parsed_message.isObject()) {
+      EXPECT_EQ(parsed_message["jsonrpc"], "2.0");
+    } else if (parsed_message.isArray()) {
+      for (::Json::Value& sub_message : parsed_message) {
+        EXPECT_EQ(sub_message["jsonrpc"], "2.0");
+      }
+    }
 
- private:
-  template <class T>
-  void write_integer(T);
+    this->messages.push_back(parsed_message);
+  }
 
-  void write(string8_view);
-
-  platform_file_ref pipe_;
+  std::vector<::Json::Value> messages;
 };
 }
 

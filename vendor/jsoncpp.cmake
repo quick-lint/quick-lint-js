@@ -30,3 +30,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "" CACHE PATH "")
 
 add_subdirectory(jsoncpp EXCLUDE_FROM_ALL)
 target_compile_definitions(jsoncpp_lib PUBLIC JSON_USE_EXCEPTION=0)
+quick_lint_js_add_warning_options_if_supported(
+  jsoncpp_lib
+  PUBLIC
+  -Wno-deprecated-volatile
+)

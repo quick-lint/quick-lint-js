@@ -37,6 +37,14 @@ streamable_string8_view out_string8(string8_view sv) noexcept {
 #endif
 
 #if QLJS_HAVE_CHAR8_T
+string8 to_string8(const std::string &s) {
+  return string8(reinterpret_cast<const char8 *>(s.c_str()), s.size());
+}
+#else
+string8 to_string8(const std::string &s) { return s; }
+#endif
+
+#if QLJS_HAVE_CHAR8_T
 std::size_t strlen(const char8 *s) {
   return std::strlen(reinterpret_cast<const char *>(s));
 }
