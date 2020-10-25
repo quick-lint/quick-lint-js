@@ -25,6 +25,8 @@
 #include <intrin.h>
 #endif
 
+#define QLJS_UNIMPLEMENTED() QLJS_ALWAYS_ASSERT(false)
+
 #define QLJS_ALWAYS_ASSERT(...)                                               \
   do {                                                                        \
     if (__VA_ARGS__) {                                                        \

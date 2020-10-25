@@ -51,6 +51,11 @@ const char8 *strstr(const char8 *haystack, const char8 *needle) {
       std::strstr(reinterpret_cast<const char *>(haystack),
                   reinterpret_cast<const char *>(needle)));
 }
+
+std::size_t strspn(const char8 *haystack, const char8 *needles) {
+  return std::strspn(reinterpret_cast<const char *>(haystack),
+                     reinterpret_cast<const char *>(needles));
+}
 #else
 std::size_t strlen(const char8 *s) { return std::strlen(s); }
 
@@ -60,6 +65,10 @@ const char8 *strchr(const char8 *haystack, char8 needle) {
 
 const char8 *strstr(const char8 *haystack, const char8 *needle) {
   return std::strstr(haystack, needle);
+}
+
+std::size_t strspn(const char8 *haystack, const char8 *needles) {
+  return std::strspn(haystack, needles);
 }
 #endif
 }
