@@ -45,45 +45,6 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
-windows_handle_file::windows_handle_file(HANDLE handle) noexcept
-    : handle_(handle) {
-  QLJS_ASSERT(handle != nullptr);
-  QLJS_ASSERT(handle != INVALID_HANDLE_VALUE);
-}
-
-windows_handle_file::~windows_handle_file() {
-  if (this->handle_ != this->invalid_handle) {
-    this->close();
-  }
-}
-
-HANDLE windows_handle_file::get() noexcept { return this->handle_; }
-
-std::optional<int> windows_handle_file::read(void *buffer,
-                                             int buffer_size) noexcept {
-  return this->ref().read(buffer, buffer_size);
-}
-
-std::optional<int> windows_handle_file::write(const void *buffer,
-                                              int buffer_size) noexcept {
-  return this->ref().write(buffer, buffer_size);
-}
-
-void windows_handle_file::close() {
-  if (!::CloseHandle(this->handle_)) {
-    std::fprintf(stderr, "error: failed to close file\n");
-  }
-  this->handle_ = this->invalid_handle;
-}
-
-windows_handle_file_ref windows_handle_file::ref() noexcept {
-  return windows_handle_file_ref(this->handle_);
-}
-
-std::string windows_handle_file::get_last_error_message() {
-  return windows_error_message(::GetLastError());
-}
-
 windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
     : handle_(handle) {
   QLJS_ASSERT(this->handle_ != nullptr);
@@ -115,50 +76,29 @@ std::optional<int> windows_handle_file_ref::write(const void *buffer,
 }
 
 std::string windows_handle_file_ref::get_last_error_message() {
-  return windows_handle_file::get_last_error_message();
-}
-#endif
-
-#if QLJS_HAVE_UNISTD_H
-posix_fd_file::posix_fd_file(int fd) noexcept : fd_(fd) {
-  QLJS_ASSERT(fd != invalid_fd);
+  return windows_error_message(::GetLastError());
 }
 
-posix_fd_file::~posix_fd_file() {
-  if (this->fd_ != invalid_fd) {
+windows_handle_file::windows_handle_file(HANDLE handle) noexcept
+    : windows_handle_file_ref(handle) {}
+
+windows_handle_file::~windows_handle_file() {
+  if (this->handle_ != this->invalid_handle) {
     this->close();
   }
 }
 
-int posix_fd_file::get() noexcept { return this->fd_; }
-
-std::optional<int> posix_fd_file::read(void *buffer, int buffer_size) noexcept {
-  return this->ref().read(buffer, buffer_size);
-}
-
-std::optional<int> posix_fd_file::write(const void *buffer,
-                                        int buffer_size) noexcept {
-  return this->ref().write(buffer, buffer_size);
-}
-
-void posix_fd_file::close() {
-  QLJS_ASSERT(this->fd_ != invalid_fd);
-  int rc = ::close(this->fd_);
-  if (rc != 0) {
-    std::fprintf(stderr, "error: failed to close file: %s\n",
-                 std::strerror(errno));
+void windows_handle_file::close() {
+  if (!::CloseHandle(this->handle_)) {
+    std::fprintf(stderr, "error: failed to close file\n");
   }
-  this->fd_ = invalid_fd;
+  this->handle_ = this->invalid_handle;
 }
 
-std::string posix_fd_file::get_last_error_message() {
-  return std::strerror(errno);
-}
+windows_handle_file_ref windows_handle_file::ref() noexcept { return *this; }
+#endif
 
-posix_fd_file_ref posix_fd_file::ref() noexcept {
-  return posix_fd_file_ref(this->fd_);
-}
-
+#if QLJS_HAVE_UNISTD_H
 posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
   QLJS_ASSERT(this->fd_ != -1);
 }
@@ -186,8 +126,30 @@ std::optional<int> posix_fd_file_ref::write(const void *buffer,
 }
 
 std::string posix_fd_file_ref::get_last_error_message() {
-  return posix_fd_file::get_last_error_message();
+  return std::strerror(errno);
 }
+
+posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {
+  QLJS_ASSERT(fd != invalid_fd);
+}
+
+posix_fd_file::~posix_fd_file() {
+  if (this->fd_ != invalid_fd) {
+    this->close();
+  }
+}
+
+void posix_fd_file::close() {
+  QLJS_ASSERT(this->fd_ != invalid_fd);
+  int rc = ::close(this->fd_);
+  if (rc != 0) {
+    std::fprintf(stderr, "error: failed to close file: %s\n",
+                 std::strerror(errno));
+  }
+  this->fd_ = invalid_fd;
+}
+
+posix_fd_file_ref posix_fd_file::ref() noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H

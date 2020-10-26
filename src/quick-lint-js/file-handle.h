@@ -31,35 +31,6 @@ std::string windows_error_message(DWORD error);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-class windows_handle_file_ref;
-
-// windows_handle_file is the owner of a Win32 file handle.
-class windows_handle_file {
- public:
-  explicit windows_handle_file(HANDLE) noexcept;
-
-  windows_handle_file(const windows_handle_file &) = delete;
-  windows_handle_file &operator=(const windows_handle_file &) = delete;
-
-  ~windows_handle_file();
-
-  HANDLE get() noexcept;
-
-  std::optional<int> read(void *buffer, int buffer_size) noexcept;
-  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
-
-  void close();
-
-  windows_handle_file_ref ref() noexcept;
-
-  static std::string get_last_error_message();
-
- private:
-  static constexpr HANDLE invalid_handle = nullptr;
-
-  HANDLE handle_;
-};
-
 // windows_handle_file_ref is a non-owning reference to a Win32 file handle.
 class windows_handle_file_ref {
  public:
@@ -72,41 +43,35 @@ class windows_handle_file_ref {
 
   static std::string get_last_error_message();
 
- private:
+ protected:
   HANDLE handle_;
+};
+
+// windows_handle_file is the owner of a Win32 file handle.
+class windows_handle_file : private windows_handle_file_ref {
+ public:
+  explicit windows_handle_file(HANDLE) noexcept;
+
+  windows_handle_file(const windows_handle_file &) = delete;
+  windows_handle_file &operator=(const windows_handle_file &) = delete;
+
+  ~windows_handle_file();
+
+  void close();
+
+  windows_handle_file_ref ref() noexcept;
+
+  using windows_handle_file_ref::get;
+  using windows_handle_file_ref::get_last_error_message;
+  using windows_handle_file_ref::read;
+  using windows_handle_file_ref::write;
+
+ private:
+  static constexpr HANDLE invalid_handle = nullptr;
 };
 #endif
 
 #if QLJS_HAVE_UNISTD_H
-class posix_fd_file_ref;
-
-// posix_fd_file is the owner of a POSIX file descriptor.
-class posix_fd_file {
- public:
-  explicit posix_fd_file(int fd) noexcept;
-
-  posix_fd_file(const posix_fd_file &) = delete;
-  posix_fd_file &operator=(const posix_fd_file &) = delete;
-
-  ~posix_fd_file();
-
-  int get() noexcept;
-
-  std::optional<int> read(void *buffer, int buffer_size) noexcept;
-  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
-
-  void close();
-
-  posix_fd_file_ref ref() noexcept;
-
-  static std::string get_last_error_message();
-
- private:
-  static constexpr int invalid_fd = -1;
-
-  int fd_;
-};
-
 // posix_fd_file_ref is a non-owning reference to a POSIX file descriptor.
 class posix_fd_file_ref {
  public:
@@ -119,8 +84,31 @@ class posix_fd_file_ref {
 
   static std::string get_last_error_message();
 
- private:
+ protected:
   int fd_;
+};
+
+// posix_fd_file is the owner of a POSIX file descriptor.
+class posix_fd_file : private posix_fd_file_ref {
+ public:
+  explicit posix_fd_file(int fd) noexcept;
+
+  posix_fd_file(const posix_fd_file &) = delete;
+  posix_fd_file &operator=(const posix_fd_file &) = delete;
+
+  ~posix_fd_file();
+
+  void close();
+
+  posix_fd_file_ref ref() noexcept;
+
+  using posix_fd_file_ref::get;
+  using posix_fd_file_ref::get_last_error_message;
+  using posix_fd_file_ref::read;
+  using posix_fd_file_ref::write;
+
+ private:
+  static constexpr int invalid_fd = -1;
 };
 #endif
 
