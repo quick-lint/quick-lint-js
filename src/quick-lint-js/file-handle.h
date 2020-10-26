@@ -117,8 +117,6 @@ class posix_fd_file_ref {
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
-  posix_fd_file duplicate();
-
   static std::string get_last_error_message();
 
  private:

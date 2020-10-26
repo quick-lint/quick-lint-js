@@ -185,16 +185,6 @@ std::optional<int> posix_fd_file_ref::write(const void *buffer,
   return narrow_cast<int>(written_size);
 }
 
-posix_fd_file posix_fd_file_ref::duplicate() {
-  int new_fd = ::dup(this->fd_);
-  if (new_fd == -1) {
-    std::fprintf(stderr, "fatal: failed to duplicate file descriptor: %s\n",
-                 std::strerror(errno));
-    std::abort();
-  }
-  return posix_fd_file(new_fd);
-}
-
 std::string posix_fd_file_ref::get_last_error_message() {
   return posix_fd_file::get_last_error_message();
 }
