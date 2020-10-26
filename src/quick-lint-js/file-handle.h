@@ -21,11 +21,37 @@
 #include <quick-lint-js/have.h>
 #include <string>
 
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #if QLJS_HAVE_WINDOWS_H
 #include <Windows.h>
 #endif
 
 namespace quick_lint_js {
+// A file_read_result represents the effect of a call to
+// platform_file_ref::read.
+//
+// A file_read_result is in exactly one of three states:
+//
+// * end of file (at_end_of_file is true)
+// * error (at_end_of_file is false and error_message.has_value() is true)
+// * success (at_end_of_file is false and error_message.has_value() is false)
+struct file_read_result {
+  // If at_end_of_file is true, then the value of bytes_read is
+  // platform-specific, and whether error_message holds a value is
+  // platform-specific.
+  bool at_end_of_file;
+
+  // If at_end_of_file is true, then bytes_read equals 0.
+  //
+  // If error_message holds a value, then bytes_read's value is indeterminate.
+  int bytes_read;
+
+  std::optional<std::string> error_message;
+};
+
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
 #endif
@@ -38,7 +64,7 @@ class windows_handle_file_ref {
 
   HANDLE get() noexcept;
 
-  std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  file_read_result read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   static std::string get_last_error_message();
@@ -79,7 +105,7 @@ class posix_fd_file_ref {
 
   int get() noexcept;
 
-  std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  file_read_result read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   static std::string get_last_error_message();

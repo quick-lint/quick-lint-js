@@ -53,15 +53,36 @@ windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
 
 HANDLE windows_handle_file_ref::get() noexcept { return this->handle_; }
 
-std::optional<int> windows_handle_file_ref::read(void *buffer,
-                                                 int buffer_size) noexcept {
+file_read_result windows_handle_file_ref::read(void *buffer,
+                                               int buffer_size) noexcept {
   DWORD read_size;
   if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
                   &read_size,
                   /*lpOverlapped=*/nullptr)) {
-    return std::nullopt;
+    DWORD error = ::GetLastError();
+    return file_read_result{
+        .at_end_of_file = error == ERROR_BROKEN_PIPE,
+        .bytes_read = 0,
+        .error_message = windows_error_message(error),
+    };
   }
-  return narrow_cast<int>(read_size);
+  return file_read_result{
+      // TODO(strager): Microsoft's documentation for ReadFile claims the
+      // following:
+      //
+      // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns
+      // > TRUE on a pipe, the other end of the pipe called the WriteFile
+      // > function with nNumberOfBytesToWrite set to zero.
+      //
+      // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+      //
+      // In my experiments, I haven't been able to make ReadFile give
+      // 0-bytes-read in this case. However, given the documentation, when we
+      // get 0 bytes read, we should ask the pipe of we reached EOF.
+      .at_end_of_file = read_size == 0,
+      .bytes_read = narrow_cast<int>(read_size),
+      .error_message = std::nullopt,
+  };
 }
 
 std::optional<int> windows_handle_file_ref::write(const void *buffer,
@@ -105,14 +126,22 @@ posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
 
 int posix_fd_file_ref::get() noexcept { return this->fd_; }
 
-std::optional<int> posix_fd_file_ref::read(void *buffer,
-                                           int buffer_size) noexcept {
+file_read_result posix_fd_file_ref::read(void *buffer,
+                                         int buffer_size) noexcept {
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return std::nullopt;
+    return file_read_result{
+        .at_end_of_file = false,
+        .bytes_read = 0,
+        .error_message = this->get_last_error_message(),
+    };
   }
-  return narrow_cast<int>(read_size);
+  return file_read_result{
+      .at_end_of_file = read_size == 0,
+      .bytes_read = narrow_cast<int>(read_size),
+      .error_message = std::nullopt,
+  };
 }
 
 std::optional<int> posix_fd_file_ref::write(const void *buffer,
