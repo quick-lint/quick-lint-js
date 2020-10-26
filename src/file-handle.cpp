@@ -58,6 +58,27 @@ HANDLE windows_handle_file::get() noexcept { return this->handle_; }
 
 std::optional<int> windows_handle_file::read(void *buffer,
                                              int buffer_size) noexcept {
+  return this->ref().read(buffer, buffer_size);
+}
+
+windows_handle_file_ref windows_handle_file::ref() noexcept {
+  return windows_handle_file_ref(this->handle_);
+}
+
+std::string windows_handle_file::get_last_error_message() {
+  return windows_error_message(::GetLastError());
+}
+
+windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
+    : handle_(handle) {
+  QLJS_ASSERT(this->handle_ != nullptr);
+  QLJS_ASSERT(this->handle_ != INVALID_HANDLE_VALUE);
+}
+
+HANDLE windows_handle_file_ref::get() noexcept { return this->handle_; }
+
+std::optional<int> windows_handle_file_ref::read(void *buffer,
+                                                 int buffer_size) noexcept {
   DWORD read_size;
   if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
                   &read_size,
@@ -67,8 +88,8 @@ std::optional<int> windows_handle_file::read(void *buffer,
   return narrow_cast<int>(read_size);
 }
 
-std::string windows_handle_file::get_last_error_message() {
-  return windows_error_message(::GetLastError());
+std::string windows_handle_file_ref::get_last_error_message() {
+  return windows_handle_file::get_last_error_message();
 }
 #endif
 
@@ -86,12 +107,7 @@ posix_fd_file::~posix_fd_file() {
 int posix_fd_file::get() noexcept { return this->fd_; }
 
 std::optional<int> posix_fd_file::read(void *buffer, int buffer_size) noexcept {
-  ::ssize_t read_size =
-      ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
-  if (read_size == -1) {
-    return std::nullopt;
-  }
-  return narrow_cast<int>(read_size);
+  return this->ref().read(buffer, buffer_size);
 }
 
 void posix_fd_file::close() {
@@ -116,6 +132,18 @@ posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
   QLJS_ASSERT(this->fd_ != -1);
 }
 
+int posix_fd_file_ref::get() noexcept { return this->fd_; }
+
+std::optional<int> posix_fd_file_ref::read(void *buffer,
+                                           int buffer_size) noexcept {
+  ::ssize_t read_size =
+      ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
+  if (read_size == -1) {
+    return std::nullopt;
+  }
+  return narrow_cast<int>(read_size);
+}
+
 posix_fd_file posix_fd_file_ref::duplicate() {
   int new_fd = ::dup(this->fd_);
   if (new_fd == -1) {
@@ -124,6 +152,10 @@ posix_fd_file posix_fd_file_ref::duplicate() {
     std::abort();
   }
   return posix_fd_file(new_fd);
+}
+
+std::string posix_fd_file_ref::get_last_error_message() {
+  return posix_fd_file::get_last_error_message();
 }
 #endif
 

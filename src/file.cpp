@@ -67,12 +67,14 @@ read_file_result read_file_result::failure(const std::string &error) {
 namespace {
 #if defined(QLJS_FILE_WINDOWS)
 using platform_file = windows_handle_file;
+using platform_file_ref = windows_handle_file_ref;
 #endif
 #if defined(QLJS_FILE_POSIX)
 using platform_file = posix_fd_file;
+using platform_file_ref = posix_fd_file_ref;
 #endif
 
-void read_file_buffered(platform_file &file, int buffer_size,
+void read_file_buffered(platform_file_ref file, int buffer_size,
                         read_file_result *out) {
   for (;;) {
     int size_before = out->content.size();
@@ -102,7 +104,7 @@ void read_file_buffered(platform_file &file, int buffer_size,
   }
 }
 
-read_file_result read_file_with_expected_size(platform_file &file,
+read_file_result read_file_with_expected_size(platform_file_ref file,
                                               int file_size, int buffer_size) {
   read_file_result result;
 
@@ -147,7 +149,7 @@ read_file_result read_file_with_expected_size(platform_file &file,
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-read_file_result read_file(const char *path, windows_handle_file &file) {
+read_file_result read_file(const char *path, windows_handle_file_ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
   ::LARGE_INTEGER file_size;
@@ -180,7 +182,7 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 }
 
-read_file_result read_file(const char *path, posix_fd_file &file) {
+read_file_result read_file(const char *path, posix_fd_file_ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
@@ -217,7 +219,7 @@ read_file_result read_file(const char *path) {
                                      ": " + windows_error_message(error));
   }
   windows_handle_file file(handle);
-  return read_file(path, file);
+  return read_file(path, file.ref());
 }
 #endif
 
@@ -230,7 +232,7 @@ read_file_result read_file(const char *path) {
                                      ": " + std::strerror(error));
   }
   posix_fd_file file(fd);
-  return read_file(path, file);
+  return read_file(path, file.ref());
 }
 #endif
 }

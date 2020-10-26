@@ -31,6 +31,9 @@ std::string windows_error_message(DWORD error);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
+class windows_handle_file_ref;
+
+// windows_handle_file is the owner of a Win32 file handle.
 class windows_handle_file {
  public:
   explicit windows_handle_file(HANDLE) noexcept;
@@ -39,6 +42,25 @@ class windows_handle_file {
   windows_handle_file &operator=(const windows_handle_file &) = delete;
 
   ~windows_handle_file();
+
+  HANDLE get() noexcept;
+
+  std::optional<int> read(void *buffer, int buffer_size) noexcept;
+
+  void close();
+
+  windows_handle_file_ref ref() noexcept;
+
+  static std::string get_last_error_message();
+
+ private:
+  HANDLE handle_;
+};
+
+// windows_handle_file_ref is a non-owning reference to a Win32 file handle.
+class windows_handle_file_ref {
+ public:
+  explicit windows_handle_file_ref(HANDLE) noexcept;
 
   HANDLE get() noexcept;
 
@@ -85,7 +107,13 @@ class posix_fd_file_ref {
  public:
   explicit posix_fd_file_ref(int fd) noexcept;
 
+  int get() noexcept;
+
+  std::optional<int> read(void *buffer, int buffer_size) noexcept;
+
   posix_fd_file duplicate();
+
+  static std::string get_last_error_message();
 
  private:
   int fd_;
