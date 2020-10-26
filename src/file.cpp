@@ -65,6 +65,38 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
+bool is_read_end_of_file(std::optional<int> read_result) {
+  if (read_result.has_value()) {
+    if (read_result == 0) {
+      // TODO(strager): Microsoft's documentation for ReadFile claims the
+      // following:
+      //
+      // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns
+      // > TRUE on a pipe, the other end of the pipe called the WriteFile
+      // > function with nNumberOfBytesToWrite set to zero.
+      //
+      // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+      //
+      // In my experiments, I haven't been able to make ReadFile give
+      // 0-bytes-read in this case. However, given the documentation, when we
+      // get 0 bytes read, we should ask the pipe of we reached EOF.
+      return true;
+    }
+    return false;
+  } else {
+#if defined(_WIN32)
+    if constexpr (std::is_base_of_v<windows_handle_file_ref,
+                                    platform_file_ref>) {
+      if (::GetLastError() == ERROR_BROKEN_PIPE) {
+        // We read the entire pipe.
+        return true;
+      }
+    }
+#endif
+    return false;
+  }
+}
+
 void read_file_buffered(platform_file_ref file, int buffer_size,
                         read_file_result *out) {
   for (;;) {
@@ -81,14 +113,15 @@ void read_file_buffered(platform_file_ref file, int buffer_size,
 
     std::optional<int> read_size =
         file.read(&out->content.data()[size_before], buffer_size);
-    if (!read_size.has_value()) {
+    bool at_eof = is_read_end_of_file(read_size);
+    if (!at_eof && !read_size.has_value()) {
       out->error = "failed to read from file: " + file.get_last_error_message();
       return;
     }
     std::optional<int> new_size = checked_add(size_before, *read_size);
     QLJS_ASSERT(new_size.has_value());
     out->content.resize(*new_size);
-    if (*read_size == 0) {
+    if (at_eof) {
       // We read the entire file.
       return;
     }
@@ -108,7 +141,8 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
 
   std::optional<int> read_size =
       file.read(result.content.data(), *size_to_read);
-  if (!read_size.has_value()) {
+  bool at_eof = is_read_end_of_file(read_size);
+  if (!at_eof && !read_size.has_value()) {
     result.error = "failed to read from file: " + file.get_last_error_message();
     return result;
   }
@@ -117,13 +151,14 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
     // byte.
     std::optional<int> extra_read_size =
         file.read(result.content.data() + file_size, 1);
-    if (!extra_read_size.has_value()) {
+    bool extra_at_eof = is_read_end_of_file(extra_read_size);
+    if (!extra_at_eof && !extra_read_size.has_value()) {
       result.error =
           "failed to read from file: " + file.get_last_error_message();
       return result;
     }
     result.content.resize(*read_size + *extra_read_size);
-    if (*extra_read_size == 0) {
+    if (extra_at_eof) {
       // We definitely read the entire file.
       return result;
     } else {

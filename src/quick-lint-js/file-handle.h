@@ -46,6 +46,7 @@ class windows_handle_file {
   HANDLE get() noexcept;
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   void close();
 
@@ -54,6 +55,8 @@ class windows_handle_file {
   static std::string get_last_error_message();
 
  private:
+  static constexpr HANDLE invalid_handle = nullptr;
+
   HANDLE handle_;
 };
 
@@ -65,6 +68,7 @@ class windows_handle_file_ref {
   HANDLE get() noexcept;
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   static std::string get_last_error_message();
 
@@ -89,6 +93,7 @@ class posix_fd_file {
   int get() noexcept;
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   void close();
 
@@ -110,6 +115,7 @@ class posix_fd_file_ref {
   int get() noexcept;
 
   std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   posix_fd_file duplicate();
 

@@ -18,17 +18,14 @@
 #define QUICK_LINT_JS_PIPE_H
 
 #include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/have.h>
 
 namespace quick_lint_js {
-#if QLJS_HAVE_PIPE
 struct pipe_fds {
-  posix_fd_file reader;
-  posix_fd_file writer;
+  platform_file reader;
+  platform_file writer;
 };
 
 pipe_fds make_pipe();
-#endif
 }
 
 #endif

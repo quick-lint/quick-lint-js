@@ -46,11 +46,14 @@
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
 windows_handle_file::windows_handle_file(HANDLE handle) noexcept
-    : handle_(handle) {}
+    : handle_(handle) {
+  QLJS_ASSERT(handle != nullptr);
+  QLJS_ASSERT(handle != INVALID_HANDLE_VALUE);
+}
 
 windows_handle_file::~windows_handle_file() {
-  if (!::CloseHandle(this->handle_)) {
-    std::fprintf(stderr, "error: failed to close file\n");
+  if (this->handle_ != this->invalid_handle) {
+    this->close();
   }
 }
 
@@ -59,6 +62,18 @@ HANDLE windows_handle_file::get() noexcept { return this->handle_; }
 std::optional<int> windows_handle_file::read(void *buffer,
                                              int buffer_size) noexcept {
   return this->ref().read(buffer, buffer_size);
+}
+
+std::optional<int> windows_handle_file::write(const void *buffer,
+                                              int buffer_size) noexcept {
+  return this->ref().write(buffer, buffer_size);
+}
+
+void windows_handle_file::close() {
+  if (!::CloseHandle(this->handle_)) {
+    std::fprintf(stderr, "error: failed to close file\n");
+  }
+  this->handle_ = this->invalid_handle;
 }
 
 windows_handle_file_ref windows_handle_file::ref() noexcept {
@@ -88,6 +103,17 @@ std::optional<int> windows_handle_file_ref::read(void *buffer,
   return narrow_cast<int>(read_size);
 }
 
+std::optional<int> windows_handle_file_ref::write(const void *buffer,
+                                                  int buffer_size) noexcept {
+  DWORD write_size;
+  if (!::WriteFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
+                   &write_size,
+                   /*lpOverlapped=*/nullptr)) {
+    return std::nullopt;
+  }
+  return narrow_cast<int>(write_size);
+}
+
 std::string windows_handle_file_ref::get_last_error_message() {
   return windows_handle_file::get_last_error_message();
 }
@@ -108,6 +134,11 @@ int posix_fd_file::get() noexcept { return this->fd_; }
 
 std::optional<int> posix_fd_file::read(void *buffer, int buffer_size) noexcept {
   return this->ref().read(buffer, buffer_size);
+}
+
+std::optional<int> posix_fd_file::write(const void *buffer,
+                                        int buffer_size) noexcept {
+  return this->ref().write(buffer, buffer_size);
 }
 
 void posix_fd_file::close() {
@@ -142,6 +173,16 @@ std::optional<int> posix_fd_file_ref::read(void *buffer,
     return std::nullopt;
   }
   return narrow_cast<int>(read_size);
+}
+
+std::optional<int> posix_fd_file_ref::write(const void *buffer,
+                                            int buffer_size) noexcept {
+  ::ssize_t written_size =
+      ::write(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
+  if (written_size == -1) {
+    return std::nullopt;
+  }
+  return narrow_cast<int>(written_size);
 }
 
 posix_fd_file posix_fd_file_ref::duplicate() {

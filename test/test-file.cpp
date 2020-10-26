@@ -154,14 +154,16 @@ TEST_F(test_file, read_fifo_multiple_writes) {
 }
 #endif
 
-#if QLJS_HAVE_PIPE
 TEST_F(test_file, read_pipe_multiple_writes) {
   pipe_fds pipe = make_pipe();
 
   auto write_message = [&](const char *message) -> void {
     std::size_t message_size = std::strlen(message);
-    ssize_t rc = ::write(pipe.writer.get(), message, message_size);
-    EXPECT_EQ(rc, message_size) << std::strerror(errno);
+    std::optional<int> bytes_written =
+        pipe.writer.write(message, narrow_cast<int>(message_size));
+    ASSERT_TRUE(bytes_written.has_value())
+        << pipe.writer.get_last_error_message();
+    EXPECT_EQ(*bytes_written, message_size);
   };
   std::thread writer_thread([&]() {
     write_message("hello");
@@ -179,7 +181,39 @@ TEST_F(test_file, read_pipe_multiple_writes) {
 
   writer_thread.join();
 }
-#endif
+
+// Windows and POSIX handle end-of-file for pipes differently. POSIX reports
+// end-of-file via an empty read; Windows reports end-of-file via an error code.
+// Try to confuse read_file.
+TEST_F(test_file, read_pipe_empty_writes) {
+  pipe_fds pipe = make_pipe();
+
+  auto write_message = [&](const char *message) -> void {
+    std::size_t message_size = std::strlen(message);
+    std::optional<int> bytes_written =
+        pipe.writer.write(message, narrow_cast<int>(message_size));
+    ASSERT_TRUE(bytes_written.has_value())
+        << pipe.writer.get_last_error_message();
+    EXPECT_EQ(*bytes_written, message_size);
+  };
+  std::thread writer_thread([&]() {
+    write_message("");
+    std::this_thread::sleep_for(1ms);
+    write_message("hello");
+    std::this_thread::sleep_for(1ms);
+    write_message("");
+    std::this_thread::sleep_for(1ms);
+    write_message("world");
+
+    pipe.writer.close();
+  });
+
+  read_file_result file_content = read_file("<pipe>", pipe.reader.ref());
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8"helloworld"));
+
+  writer_thread.join();
+}
 
 #if QLJS_HAVE_MKDTEMP
 filesystem::path make_temporary_directory() {
