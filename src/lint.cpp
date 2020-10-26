@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
+#include <map>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -23,6 +24,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/optional.h>
+#include <unordered_set>
 #include <vector>
 
 // The linter class implements single-pass variable lookup. A single-pass
@@ -399,22 +401,27 @@ void linter::visit_end_of_module() {
            is_variable_declared_by_typeof(var);
   };
 
+  std::map<identifier, std::unordered_set<used_variable_kind>>
+      undeclared_identifier_to_kinds;
   for (const used_variable &used_var : global_scope.variables_used) {
     if (!is_variable_declared(used_var)) {
-      switch (used_var.kind) {
-      case used_variable_kind::assignment:
-        this->error_reporter_->report(
-            error_assignment_to_undeclared_variable{used_var.name});
-        break;
-      case used_variable_kind::use:
-        this->error_reporter_->report(
-            error_use_of_undeclared_variable{used_var.name});
-        break;
-      case used_variable_kind::_typeof:
-        // 'typeof foo' is often used to detect if the variable 'foo' is
-        // declared. Do not report that the variable is undeclared.
-        break;
-      }
+      undeclared_identifier_to_kinds[used_var.name].insert(used_var.kind);
+    }
+  }
+  for (const auto &[identifier, kind] : undeclared_identifier_to_kinds) {
+    bool has_assign = kind.find(used_variable_kind::assignment) != kind.end();
+    bool has_use = kind.find(used_variable_kind::use) != kind.end();
+    // 'typeof foo' is often used to detect if the variable 'foo' is
+    // declared. Do not report that the variable is undeclared.
+    if (has_assign && has_use) {
+      this->error_reporter_->report(
+          error_use_and_assignment_of_undeclared_variable{identifier});
+    } else if (has_assign) {
+      this->error_reporter_->report(
+          error_assignment_to_undeclared_variable{identifier});
+    } else if (has_use) {
+      this->error_reporter_->report(
+          error_use_of_undeclared_variable{identifier});
     }
   }
   for (const used_variable &used_var :

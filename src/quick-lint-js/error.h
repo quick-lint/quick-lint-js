@@ -266,6 +266,10 @@
       },                                                                       \
       .error(QLJS_TRANSLATE("variable used before declaration: {0}"), use)     \
           .note(QLJS_TRANSLATE("variable declared here"), declaration))        \
+  QLJS_ERROR_TYPE(                                                             \
+      error_use_and_assignment_of_undeclared_variable, { identifier name; },   \
+      .error(QLJS_TRANSLATE("use and assignment of undeclared variable: {0}"), \
+             name))                                                            \
   /* END */
 
 namespace quick_lint_js {

@@ -111,6 +111,9 @@ string8_view identifier::normalized_name() const noexcept {
   return string8_view(begin,
                       narrow_cast<std::size_t>(this->normalized_end_ - begin));
 }
+bool identifier::operator<(const identifier& other) const noexcept {
+  return this->span_ < other.span();
+}
 
 identifier token::identifier_name() const noexcept {
   switch (this->type) {

@@ -214,6 +214,8 @@ class identifier {
   // instead if you want pointers within the source code input.
   string8_view normalized_name() const noexcept;
 
+  bool operator<(const identifier& other) const noexcept;
+
  private:
   source_code_span span_;
   const char8* normalized_end_;

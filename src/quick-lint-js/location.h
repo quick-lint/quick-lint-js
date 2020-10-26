@@ -78,6 +78,8 @@ class source_code_span {
                         narrow_cast<std::size_t>(this->end() - this->begin()));
   }
 
+  bool operator<(const source_code_span& other) const noexcept;
+
  private:
   const char8* begin_;
   const char8* end_;

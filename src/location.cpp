@@ -34,6 +34,11 @@ source_position source_range::begin() const noexcept { return this->begin_; }
 
 source_position source_range::end() const noexcept { return this->end_; }
 
+bool source_code_span::operator<(const source_code_span &other) const noexcept {
+  return this->begin_ < other.begin() ||
+         (this->begin_ == other.begin() && this->end_ < other.end());
+}
+
 bool operator==(source_code_span x, string8_view y) noexcept {
   return x.string_view() == y;
 }

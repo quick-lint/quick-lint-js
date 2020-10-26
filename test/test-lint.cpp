@@ -766,12 +766,11 @@ TEST(
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
-
 TEST(test_lint,
      name_of_named_function_expression_is_not_usable_outside_function) {
   const char8 declaration[] = u8"f";
-  const char8 use_before[] = u8"f";
   const char8 use_after[] = u8"f";
+  const char8 use_before[] = u8"f";
 
   // f;               // ERROR
   // (function f() {
@@ -794,8 +793,8 @@ TEST(test_lint,
 }
 
 TEST(test_lint, use_global_variable_within_functions) {
-  const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
+  const char8 declaration[] = u8"x";
 
   // let x;
   // (() => {
@@ -1134,6 +1133,21 @@ TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
                             var_kind, variable_kind::_const)));
 }
 
+TEST(test_lint, use_and_assign_to_undeclared_variable) {
+  const char8 use_and_assignment[] = u8"x";
+
+  // x += null;  // ERROR
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_assignment(identifier_of(use_and_assignment));
+  l.visit_variable_use(identifier_of(use_and_assignment));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                            error_use_and_assignment_of_undeclared_variable,
+                            name, span_matcher(use_and_assignment))));
+}
+
 TEST(test_lint, assign_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
 
@@ -1247,9 +1261,9 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
 }
 
 TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
+  const char8 use_after[] = u8"element";
   const char8 declaration[] = u8"element";
   const char8 use_before[] = u8"element";
-  const char8 use_after[] = u8"element";
 
   // element;                  // ERROR
   // for (let element of []);
@@ -2414,9 +2428,9 @@ TEST(test_lint_typeof, typeof_declares_variable_automagically) {
 
 TEST(test_lint_typeof,
      typeof_declares_variable_automagically_in_parent_function) {
-  const char8 use_before[] = u8"v";
-  const char8 typeof_use[] = u8"v";
   const char8 use_after[] = u8"v";
+  const char8 typeof_use[] = u8"v";
+  const char8 use_before[] = u8"v";
 
   // v;
   // (() => {
@@ -2472,10 +2486,10 @@ TEST(test_lint_typeof, typeof_variable_declared_later_is_an_error) {
 TEST(
     test_lint_typeof,
     typeof_already_declared_variable_does_not_declare_variable_in_parent_function) {
-  const char8 use_before[] = u8"v";
-  const char8 declaration[] = u8"v";
-  const char8 typeof_use[] = u8"v";
   const char8 use_after[] = u8"v";
+  const char8 typeof_use[] = u8"v";
+  const char8 declaration[] = u8"v";
+  const char8 use_before[] = u8"v";
 
   // v;           // ERROR
   // (() => {
