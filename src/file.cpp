@@ -65,15 +65,6 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
-#if defined(QLJS_FILE_WINDOWS)
-using platform_file = windows_handle_file;
-using platform_file_ref = windows_handle_file_ref;
-#endif
-#if defined(QLJS_FILE_POSIX)
-using platform_file = posix_fd_file;
-using platform_file_ref = posix_fd_file_ref;
-#endif
-
 void read_file_buffered(platform_file_ref file, int buffer_size,
                         read_file_result *out) {
   for (;;) {
@@ -147,6 +138,7 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
     return result;
   }
 }
+}
 
 #if defined(QLJS_FILE_WINDOWS)
 read_file_result read_file(const char *path, windows_handle_file_ref file) {
@@ -201,7 +193,6 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
       /*buffer_size=*/reasonable_buffer_size(s));
 }
 #endif
-}
 
 #if defined(QLJS_FILE_WINDOWS)
 read_file_result read_file(const char *path) {

@@ -155,38 +155,8 @@ TEST_F(test_file, read_fifo_multiple_writes) {
 #endif
 
 #if QLJS_HAVE_PIPE
-class substitute_fd_guard {
- public:
-  explicit substitute_fd_guard(int original_fd, int replacement_fd)
-      : original_fd_(original_fd),
-        original_file_(posix_fd_file_ref(original_fd).duplicate()) {
-    this->dup2(replacement_fd, original_fd);
-  }
-
-  substitute_fd_guard(const substitute_fd_guard &) = delete;
-  substitute_fd_guard &operator=(const substitute_fd_guard &) = delete;
-
-  ~substitute_fd_guard() {
-    this->dup2(this->original_file_.get(), this->original_fd_);
-  }
-
- private:
-  static void dup2(int oldfd, int newfd) {
-    int rc = ::dup2(oldfd, newfd);
-    if (rc == -1) {
-      std::cerr << "fatal: failed to dup2: " << std::strerror(errno) << '\n';
-      std::abort();
-    }
-  }
-
-  int original_fd_;
-  posix_fd_file original_file_;
-};
-
 TEST_F(test_file, read_pipe_multiple_writes) {
   pipe_fds pipe = make_pipe();
-  substitute_fd_guard stdin_substitution(/*original_fd=*/STDIN_FILENO,
-                                         /*replacement_fd=*/pipe.reader.get());
 
   auto write_message = [&](const char *message) -> void {
     std::size_t message_size = std::strlen(message);
@@ -203,7 +173,7 @@ TEST_F(test_file, read_pipe_multiple_writes) {
     pipe.writer.close();
   });
 
-  read_file_result file_content = read_file("/dev/stdin");
+  read_file_result file_content = read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error;
   EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
 

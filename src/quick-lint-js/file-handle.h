@@ -119,6 +119,16 @@ class posix_fd_file_ref {
   int fd_;
 };
 #endif
+
+#if QLJS_HAVE_WINDOWS_H
+using platform_file = windows_handle_file;
+using platform_file_ref = windows_handle_file_ref;
+#elif QLJS_HAVE_UNISTD_H
+using platform_file = posix_fd_file;
+using platform_file_ref = posix_fd_file_ref;
+#else
+#error "Unknown platform"
+#endif
 }
 
 #endif
