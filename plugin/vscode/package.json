@@ -1,0 +1,46 @@
+{
+  "name": "vscode-quick-lint-js",
+  "description": "Find JavaScript bugs with quick-lint-js (Visual Studio Code extension)",
+  "publisher": "quick-lint",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.43.0"
+  },
+  "activationEvents": [
+    "onLanguage:javascript"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "quick-lint-js",
+      "properties": {
+        "quick-lint-js.exe-path": {
+          "type": "string",
+          "description": "Path to the quick-lint-js executable.",
+          "scope": "machine-overridable"
+        },
+        "quick-lint-js.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log messages between VS Code and quick-lint-js."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "fmt": "prettier --write '*.js' '*.json' '.vscode/*.json'"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^6.1.3"
+  },
+  "devDependencies": {
+    "prettier": "2.1.2"
+  }
+}
