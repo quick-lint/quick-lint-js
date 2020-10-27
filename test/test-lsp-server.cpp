@@ -114,7 +114,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
 }
 
 TEST_F(test_linting_lsp_server,
-       opening_non_javasript_file_does_not_cause_diagnostics) {
+       opening_non_javascript_file_does_not_cause_diagnostics) {
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
