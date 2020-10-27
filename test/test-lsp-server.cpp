@@ -113,6 +113,85 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
   EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
 }
 
+TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+  this->client.messages.clear();
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "version": 11
+          },
+          "contentChanges": [
+            {
+              "text": "let x = x;"
+            }
+          ]
+        }
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::Json::Value& response = this->client.messages[0];
+  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+  // LSP PublishDiagnosticsParams:
+  EXPECT_EQ(response["params"]["uri"], "file:///test2.js");
+  EXPECT_EQ(response["params"]["version"], 11);
+  EXPECT_EQ(response["params"]["diagnostics"].size(), 1);
+}
+
+TEST_F(test_linting_lsp_server,
+       changing_non_javascript_document_produces_no_lint) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test-fake.js",
+            "languageId": "coffeescript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+  this->client.messages.clear();
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test-fake.js",
+            "version": 11
+          },
+          "contentChanges": [
+            {
+              "text": "let x = x;"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->client.messages, IsEmpty());
+}
+
 TEST_F(test_linting_lsp_server,
        opening_non_javascript_file_does_not_cause_diagnostics) {
   this->server.append(

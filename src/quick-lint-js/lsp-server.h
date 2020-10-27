@@ -26,6 +26,7 @@
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <vector>
 
 namespace quick_lint_js {
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
@@ -42,16 +43,25 @@ class linting_lsp_server_handler {
                                  ::Json::Value& request,
                                  string8& response_json);
 
+  void handle_text_document_did_change_notification(const char8* message_begin,
+                                                    ::Json::Value& request,
+                                                    string8& notification_json);
   void handle_text_document_did_open_notification(const char8* message_begin,
                                                   ::Json::Value& request,
                                                   string8& notification_json);
 
+  void lint_and_get_diagnostics_notification(padded_string_view code,
+                                             ::Json::Value& text_document,
+                                             const char8* message_begin,
+                                             string8& notification_json);
+
   void lint_and_get_diagnostics(padded_string_view code,
                                 string8& diagnostics_json);
 
+  static string8_view raw_json(::Json::Value& value, const char8* json);
   static padded_string make_padded_string(::Json::Value& string);
 
-  static string8_view raw_json(::Json::Value& value, const char8* json);
+  std::vector<string8> lintable_uris_;
 };
 }
 

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <json/value.h>
@@ -25,10 +26,15 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/version.h>
+#include <quick-lint-js/warning.h>
 #include <sstream>
 #include <string>
 
 namespace quick_lint_js {
+namespace {
+string8_view make_string_view(::Json::Value& string);
+}
+
 void linting_lsp_server_handler::handle_request(const char8* message_begin,
                                                 ::Json::Value& request,
                                                 string8& response_json) {
@@ -44,7 +50,10 @@ void linting_lsp_server_handler::handle_notification(
     const char8* message_begin, ::Json::Value& request,
     string8& notification_json) {
   ::Json::Value& method = request["method"];
-  if (method == "textDocument/didOpen") {
+  if (method == "textDocument/didChange") {
+    this->handle_text_document_did_change_notification(message_begin, request,
+                                                       notification_json);
+  } else if (method == "textDocument/didOpen") {
     this->handle_text_document_did_open_notification(message_begin, request,
                                                      notification_json);
   } else if (method == "initialized") {
@@ -75,6 +84,26 @@ void linting_lsp_server_handler::handle_initialize_request(
   // clang-format on
 }
 
+void linting_lsp_server_handler::handle_text_document_did_change_notification(
+    const char8* message_begin, ::Json::Value& request,
+    string8& notification_json) {
+  ::Json::Value& text_document = request["params"]["textDocument"];
+  bool url_is_lintable =
+      std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
+                make_string_view(text_document["uri"])) !=
+      this->lintable_uris_.end();
+  if (!url_is_lintable) {
+    return;
+  }
+
+  // TODO(strager): What if contentChanges is empty or contains more than one
+  // entry?
+  padded_string code =
+      make_padded_string(request["params"]["contentChanges"][0]["text"]);
+  this->lint_and_get_diagnostics_notification(&code, text_document,
+                                              message_begin, notification_json);
+}
+
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
     const char8* message_begin, ::Json::Value& request,
     string8& notification_json) {
@@ -82,6 +111,17 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     return;
   }
 
+  ::Json::Value& text_document = request["params"]["textDocument"];
+  this->lintable_uris_.emplace_back(make_string_view(text_document["uri"]));
+
+  padded_string code = make_padded_string(text_document["text"]);
+  this->lint_and_get_diagnostics_notification(&code, text_document,
+                                              message_begin, notification_json);
+}
+
+void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
+    padded_string_view code, ::Json::Value& text_document,
+    const char8* message_begin, string8& notification_json) {
   // clang-format off
   notification_json.append(
     u8R"--({)--"
@@ -89,17 +129,14 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
       u8R"--("params":{)--"
         u8R"--("uri":)--");
   // clang-format on
-  notification_json.append(
-      this->raw_json(request["params"]["textDocument"]["uri"], message_begin));
+  notification_json.append(this->raw_json(text_document["uri"], message_begin));
 
   notification_json.append(u8R"--(,"version":)--");
-  notification_json.append(this->raw_json(
-      request["params"]["textDocument"]["version"], message_begin));
+  notification_json.append(
+      this->raw_json(text_document["version"], message_begin));
 
   notification_json.append(u8R"--(,"diagnostics":)--");
-  padded_string code =
-      this->make_padded_string(request["params"]["textDocument"]["text"]);
-  this->lint_and_get_diagnostics(&code, notification_json);
+  this->lint_and_get_diagnostics(code, notification_json);
 
   notification_json.append(u8R"--(},"jsonrpc":"2.0"})--");
 }
@@ -119,25 +156,34 @@ void linting_lsp_server_handler::lint_and_get_diagnostics(
                           diagnostics.size());
 }
 
-padded_string linting_lsp_server_handler::make_padded_string(
-    ::Json::Value& string) {
-  const char* begin;
-  const char* end;
-  if (!string.getString(&begin, &end)) {
-    QLJS_UNIMPLEMENTED();
-  }
-  int size = narrow_cast<int>(end - begin);
-
-  padded_string result;
-  result.resize(size);
-  std::memcpy(result.data(), begin, narrow_cast<std::size_t>(size));
-  return result;
-}
-
 string8_view linting_lsp_server_handler::raw_json(::Json::Value& value,
                                                   const char8* json) {
   return string8_view(json + value.getOffsetStart(),
                       narrow_cast<std::size_t>(value.getOffsetLimit() -
                                                value.getOffsetStart()));
+}
+
+padded_string linting_lsp_server_handler::make_padded_string(
+    ::Json::Value& string) {
+  string8_view string_view = make_string_view(string);
+  padded_string result;
+  result.resize(narrow_cast<int>(string_view.size()));
+  std::memcpy(result.data(), string_view.data(), string_view.size());
+  return result;
+}
+
+namespace {
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+string8_view make_string_view(::Json::Value& string) {
+  const char* begin;
+  const char* end;
+  if (!string.getString(&begin, &end)) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return string8_view(reinterpret_cast<const char8*>(begin),
+                      narrow_cast<std::size_t>(end - begin));
+}
+QLJS_WARNING_POP
 }
 }
