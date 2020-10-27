@@ -747,6 +747,29 @@ const char8* lexer::end_of_previous_token() const noexcept {
   return this->last_last_token_end_;
 }
 
+char8* lexer::check_garbage_in_number_literal(char8* input) {
+  char8* garbage_begin = input;
+  for (;;) {
+    switch (*input) {
+    QLJS_CASE_DECIMAL_DIGIT:
+    QLJS_CASE_IDENTIFIER_START:
+      input += 1;
+      break;
+    default:
+      goto done_parsing_garbage;
+    }
+  }
+done_parsing_garbage:
+  char8* garbage_end = input;
+  if (garbage_end != garbage_begin) {
+    this->error_reporter_->report(error_unexpected_characters_in_number{
+        source_code_span(garbage_begin, garbage_end)});
+    input = garbage_end;
+  }
+
+  return input;
+}
+
 void lexer::parse_hexadecimal_number() {
   QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
   char8* input = this->input_;
@@ -833,28 +856,6 @@ done_parsing_garbage:
   this->input_ = input;
 }
 
-char8* lexer::check_garbage_in_number_literal(char8* input) {
-  char8* garbage_begin = input;
-  for (;;) {
-    switch (*input) {
-    QLJS_CASE_DECIMAL_DIGIT:
-    QLJS_CASE_IDENTIFIER_START:
-      input += 1;
-      break;
-    default:
-      goto done_parsing_garbage;
-    }
-  }
-done_parsing_garbage:
-  char8* garbage_end = input;
-  if (garbage_end != garbage_begin) {
-    this->error_reporter_->report(error_unexpected_characters_in_number{
-        source_code_span(garbage_begin, garbage_end)});
-    input = garbage_end;
-  }
-
-  return input;
-}
 
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
