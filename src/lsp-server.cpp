@@ -19,6 +19,7 @@
 #include <cstring>
 #include <json/value.h>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-error-reporter.h>
@@ -156,17 +157,18 @@ void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
 
 void linting_lsp_server_handler::lint_and_get_diagnostics(
     padded_string_view code, string8& diagnostics_json) {
-  std::ostringstream diagnostics_stream;
-  lsp_error_reporter error_reporter(diagnostics_stream, code);
+  byte_buffer diagnostics_buffer;
+  lsp_error_reporter error_reporter(diagnostics_buffer, code);
 
   parser p(code, &error_reporter);
   linter l(&error_reporter);
   p.parse_and_visit_module(l);
 
   error_reporter.finish();
-  std::string diagnostics = diagnostics_stream.str();
-  diagnostics_json.append(reinterpret_cast<const char8*>(diagnostics.data()),
-                          diagnostics.size());
+  string8 diagnostics;
+  diagnostics.resize(diagnostics_buffer.size());
+  diagnostics_buffer.copy_to(diagnostics.data());
+  diagnostics_json.append(diagnostics);
 }
 
 string8_view linting_lsp_server_handler::raw_json(::Json::Value& value,

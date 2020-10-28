@@ -33,7 +33,10 @@ string8 write_integer(T value) {
 TEST(test_write_integer, common_integers) {
   EXPECT_EQ(write_integer(std::size_t{0}), u8"0");
   EXPECT_EQ(write_integer(std::size_t{1234}), u8"1234");
-  EXPECT_EQ(write_integer(std::size_t{1234}), u8"1234");
+
+  EXPECT_EQ(write_integer(int{0}), u8"0");
+  EXPECT_EQ(write_integer(int{1234}), u8"1234");
+  EXPECT_EQ(write_integer(int{-42}), u8"-42");
 }
 
 TEST(test_write_integer, maximum) {
@@ -44,6 +47,16 @@ TEST(test_write_integer, maximum) {
                 18446744073709551615ULL) {
     EXPECT_EQ(write_integer(std::size_t{18446744073709551615ULL}),
               u8"18446744073709551615");
+  }
+
+  if constexpr (std::numeric_limits<int>::max() >= 2147483647LL) {
+    EXPECT_EQ(write_integer(int(2147483647LL)), u8"2147483647");
+  }
+}
+
+TEST(test_write_integer, minimum) {
+  if constexpr (std::numeric_limits<int>::min() <= -2147483648LL) {
+    EXPECT_EQ(write_integer(int(-2147483648LL)), u8"-2147483648");
   }
 }
 }

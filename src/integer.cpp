@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cerrno>
+#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/char8.h>
@@ -109,23 +110,30 @@ char8 *write_integer(T value, char8 *out) {
   char *buffer = reinterpret_cast<char *>(out);
   constexpr std::size_t buffer_size = integer_string_length<T>;
   constexpr const char *format =
-      std::is_same_v<T, unsigned>
-          ? "%u"
-          : std::is_same_v<T, unsigned long>
-                ? "%lu"
-                : std::is_same_v<T, unsigned long long> ? "%llu" : "";
+      std::is_same_v<T, int>
+          ? "%d"
+          : std::is_same_v<T, unsigned>
+                ? "%u"
+                : std::is_same_v<T, unsigned long>
+                      ? "%lu"
+                      : std::is_same_v<T, unsigned long long> ? "%llu" : "";
   static_assert(*format != '\0', "Unsupported integer type");
 
   int rc = std::snprintf(buffer, buffer_size, format, value);
   QLJS_ASSERT(rc >= 0);
   if (rc == buffer_size) {
-    static_assert(std::is_unsigned_v<T>,
-                  "Signed integer types are unsupported");
-    buffer[buffer_size - 1] = u8'0' + (value % 10);
+    int digit;
+    if constexpr (std::is_unsigned_v<T>) {
+      digit = value % 10;
+    } else {
+      digit = std::abs(value % 10);
+    }
+    buffer[buffer_size - 1] = narrow_cast<char>(u8'0' + digit);
   }
   return out + rc;
 }
 #endif
 
+template char8 *write_integer<int>(int, char8 *out);
 template char8 *write_integer<std::size_t>(std::size_t, char8 *out);
 }
