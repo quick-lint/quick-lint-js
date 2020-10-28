@@ -64,10 +64,10 @@ bool parse_json(string8_view json, ::Json::Value *result,
   const char *json_chars = json.data();
 #endif
   // TODO(strager): Avoid copying the JSON string.
-  std::istringstream message_stream(std::string(json_chars, json.size()));
-  ::Json::CharReaderBuilder builder;
-  builder.strictMode(&builder.settings_);
-  bool ok = ::Json::parseFromStream(builder, message_stream, result, errors);
+  ::Json::CharReaderBuilder readerBuilder;
+  readerBuilder.strictMode(&readerBuilder.settings_);
+  std::unique_ptr<::Json::CharReader> reader(readerBuilder.newCharReader());
+  bool ok = reader->parse(json_chars, &json_chars[json.size()], result, errors);
   return ok;
 }
 }
