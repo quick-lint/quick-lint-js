@@ -42,6 +42,10 @@ quick_lint_js_add_benchmark_executable(
   benchmark-location.cpp
 )
 quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-lsp
+  benchmark-lsp.cpp
+)
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-parse
   benchmark-parse.cpp
 )
