@@ -46,6 +46,7 @@ class linting_lsp_server_handler {
   void handle_text_document_did_change_notification(const char8* message_begin,
                                                     ::Json::Value& request,
                                                     string8& notification_json);
+  void handle_text_document_did_close_notification(::Json::Value& request);
   void handle_text_document_did_open_notification(const char8* message_begin,
                                                   ::Json::Value& request,
                                                   string8& notification_json);

@@ -56,6 +56,8 @@ void linting_lsp_server_handler::handle_notification(
   } else if (method == "textDocument/didOpen") {
     this->handle_text_document_did_open_notification(message_begin, request,
                                                      notification_json);
+  } else if (method == "textDocument/didClose") {
+    this->handle_text_document_did_close_notification(request);
   } else if (method == "initialized") {
     // Do nothing.
   } else {
@@ -102,6 +104,17 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
       make_padded_string(request["params"]["contentChanges"][0]["text"]);
   this->lint_and_get_diagnostics_notification(&code, text_document,
                                               message_begin, notification_json);
+}
+
+void linting_lsp_server_handler::handle_text_document_did_close_notification(
+    ::Json::Value& request) {
+  ::Json::Value& uri = request["params"]["textDocument"]["uri"];
+  auto lintable_uri_it =
+      std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
+                make_string_view(uri));
+  if (lintable_uri_it != this->lintable_uris_.end()) {
+    this->lintable_uris_.erase(lintable_uri_it);
+  }
 }
 
 void linting_lsp_server_handler::handle_text_document_did_open_notification(

@@ -211,6 +211,142 @@ TEST_F(test_linting_lsp_server,
   EXPECT_THAT(this->client.messages, IsEmpty());
 }
 
+TEST_F(test_linting_lsp_server,
+       closing_non_javascript_and_opening_javascript_lints) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "html",
+            "version": 10,
+            "text": "let x = x;"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didClose",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js"
+          }
+        }
+      })"));
+  this->client.messages.clear();
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "javascript",
+            "version": 11,
+            "text": "let x = x;"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "version": 12
+          },
+          "contentChanges": [
+            {
+              "text": "let y = y;"
+            }
+          ]
+        }
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 2);
+  {
+    ::Json::Value& response = this->client.messages[0];
+    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    // LSP PublishDiagnosticsParams:
+    EXPECT_EQ(response["params"]["uri"], "file:///test.js");
+    EXPECT_EQ(response["params"]["version"], 11);
+    EXPECT_EQ(response["params"]["diagnostics"].size(), 1);
+  }
+  {
+    ::Json::Value& response = this->client.messages[1];
+    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    // LSP PublishDiagnosticsParams:
+    EXPECT_EQ(response["params"]["uri"], "file:///test.js");
+    EXPECT_EQ(response["params"]["version"], 12);
+    EXPECT_EQ(response["params"]["diagnostics"].size(), 1);
+  }
+}
+
+TEST_F(test_linting_lsp_server,
+       closing_javascript_and_opening_non_javascript_does_not_lint) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "let x = x;"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didClose",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js"
+          }
+        }
+      })"));
+  this->client.messages.clear();
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "html",
+            "version": 11,
+            "text": "let x = x;"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "version": 12
+          },
+          "contentChanges": [
+            {
+              "text": "let y = y;"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->client.messages, IsEmpty());
+}
+
 // TODO(strager): For batch requests containing multiple edits, lint and publish
 // diagnostics only once.
 
