@@ -39,6 +39,7 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
+  byte-buffer.cpp
   char8.cpp
   crash.cpp
   error.cpp

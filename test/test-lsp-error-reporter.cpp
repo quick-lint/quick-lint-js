@@ -17,10 +17,11 @@
 #include <gtest/gtest.h>
 #include <json/reader.h>
 #include <json/value.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-error-reporter.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/parse-json.h>
 #include <sstream>
 
 namespace quick_lint_js {
@@ -30,16 +31,25 @@ constexpr int lsp_error_severity = 1;
 class test_lsp_error_reporter : public ::testing::Test {
  protected:
   lsp_error_reporter make_reporter(padded_string_view input) {
-    return lsp_error_reporter(this->stream_, input);
+    return lsp_error_reporter(this->buffer_, input);
   }
 
   ::Json::Value parse_json() {
-    ::Json::Value root = quick_lint_js::parse_json(this->stream_);
-    this->stream_ = std::stringstream();
+    string8 json;
+    json.resize(this->buffer_.size());
+    this->buffer_.copy_to(json.data());
+    SCOPED_TRACE(out_string8(json));
+
+    ::Json::Value root;
+    ::Json::String errors;
+    bool ok = quick_lint_js::parse_json(json, &root, &errors);
+    EXPECT_TRUE(ok) << errors;
+
+    this->buffer_ = byte_buffer();
     return root;
   }
 
-  std::stringstream stream_;
+  byte_buffer buffer_;
 };
 
 TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {

@@ -17,8 +17,8 @@
 #ifndef QUICK_LINT_JS_LSP_ERROR_REPORTER_H
 #define QUICK_LINT_JS_LSP_ERROR_REPORTER_H
 
-#include <iosfwd>
 #include <optional>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
@@ -31,7 +31,7 @@ class lsp_error_formatter;
 
 class lsp_error_reporter final : public error_reporter {
  public:
-  explicit lsp_error_reporter(std::ostream &output, padded_string_view input);
+  explicit lsp_error_reporter(byte_buffer &output, padded_string_view input);
 
   void finish();
 
@@ -50,20 +50,20 @@ class lsp_error_reporter final : public error_reporter {
   void begin_error();
   lsp_error_formatter format();
 
-  std::ostream &output_;
+  byte_buffer &output_;
   locator locator_;
   bool need_comma_ = false;
 };
 
 class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
  public:
-  explicit lsp_error_formatter(std::ostream &output, locator &);
+  explicit lsp_error_formatter(byte_buffer &output, locator &);
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
   void write_after_message(severity, const source_code_span &origin);
 
  private:
-  std::ostream &output_;
+  byte_buffer &output_;
   locator &locator_;
 };
 }

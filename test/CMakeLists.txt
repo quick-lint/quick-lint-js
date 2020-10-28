@@ -28,6 +28,7 @@ quick_lint_js_add_executable(
   test-assert.cpp
   test-bit.cpp
   test-buffering-visitor.cpp
+  test-byte-buffer.cpp
   test-constant-divider.cpp
   test-crash.cpp
   test-file.cpp

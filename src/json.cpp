@@ -18,6 +18,7 @@
 #include <json/reader.h>
 #include <json/value.h>
 #include <ostream>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <sstream>
@@ -55,6 +56,21 @@ template void write_json_escaped_string<char>(std::ostream &,
 template void write_json_escaped_string<char8_t>(
     std::ostream &, std::basic_string_view<char8_t>);
 #endif
+
+void write_json_escaped_string(byte_buffer &output, string8_view string) {
+  for (;;) {
+    auto special_character_index = string.find_first_of(u8"\\\"");
+    if (special_character_index == string.npos) {
+      break;
+    }
+    output.append_copy(string.substr(0, special_character_index));
+    char8 *out = reinterpret_cast<char8 *>(output.append(2));
+    out[0] = u8'\\';
+    out[1] = string[special_character_index];
+    string = string.substr(special_character_index + 1);
+  }
+  output.append_copy(string);
+}
 
 bool parse_json(string8_view json, ::Json::Value *result,
                 ::Json::String *errors) {

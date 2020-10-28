@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <iostream>
-#include <ostream>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lex.h>
@@ -27,13 +27,13 @@
 #include <string>
 
 namespace quick_lint_js {
-lsp_error_reporter::lsp_error_reporter(std::ostream &output,
+lsp_error_reporter::lsp_error_reporter(byte_buffer &output,
                                        padded_string_view input)
     : output_(output), locator_(input) {
-  this->output_ << '[';
+  this->output_.append_copy(u8"[");
 }
 
-void lsp_error_reporter::finish() { this->output_ << "]"; }
+void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"); }
 
 #define QLJS_ERROR_TYPE(name, struct_body, format_call) \
   void lsp_error_reporter::report(name e) {             \
@@ -70,7 +70,7 @@ void lsp_error_reporter::report_fatal_error_unimplemented_token(
 
 void lsp_error_reporter::begin_error() {
   if (this->need_comma_) {
-    this->output_ << ",\n";
+    this->output_.append_copy(u8",\n");
   }
   this->need_comma_ = true;
 }
@@ -80,7 +80,7 @@ lsp_error_formatter lsp_error_reporter::format() {
                              /*locator=*/this->locator_);
 }
 
-lsp_error_formatter::lsp_error_formatter(std::ostream &output,
+lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
                                          quick_lint_js::locator &locator)
     : output_(output), locator_(locator) {}
 
@@ -92,13 +92,17 @@ void lsp_error_formatter::write_before_message(severity sev,
   }
 
   source_range r = this->locator_.range(origin);
-  this->output_ << "{\"range\":{\"start\":"
-                << "{\"line\":" << (r.begin().line_number - 1)
-                << ",\"character\":" << (r.begin().column_number - 1)
-                << "},\"end\":"
-                << "{\"line\":" << (r.end().line_number - 1)
-                << ",\"character\":" << (r.end().column_number - 1)
-                << "}},\"severity\":1,\"message\":\"";
+  this->output_.append_copy(u8"{\"range\":{\"start\":");
+  this->output_.append_copy(u8"{\"line\":");
+  this->output_.append_decimal_integer(r.begin().line_number - 1);
+  this->output_.append_copy(u8",\"character\":");
+  this->output_.append_decimal_integer(r.begin().column_number - 1);
+  this->output_.append_copy(u8"},\"end\":");
+  this->output_.append_copy(u8"{\"line\":");
+  this->output_.append_decimal_integer(r.end().line_number - 1);
+  this->output_.append_copy(u8",\"character\":");
+  this->output_.append_decimal_integer(r.end().column_number - 1);
+  this->output_.append_copy(u8"}},\"severity\":1,\"message\":\"");
 }
 
 void lsp_error_formatter::write_message_part(severity sev,
@@ -118,6 +122,6 @@ void lsp_error_formatter::write_after_message(severity sev,
     return;
   }
 
-  this->output_ << "\"}";
+  this->output_.append_copy(u8"\"}");
 }
 }
