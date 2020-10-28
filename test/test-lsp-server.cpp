@@ -349,7 +349,5 @@ TEST_F(test_linting_lsp_server,
 
 // TODO(strager): For batch requests containing multiple edits, lint and publish
 // diagnostics only once.
-
-// TODO(strager): Handle textDocument/didOpen.
 }
 }
