@@ -46,6 +46,20 @@ byte_buffer::size_type byte_buffer::size() const noexcept {
   return total_size;
 }
 
+bool byte_buffer::empty() const noexcept {
+  if (this->bytes_used_in_current_chunk() > 0) {
+    return false;
+  }
+  for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
+       ++chunk_index) {
+    const chunk& c = this->chunks_[chunk_index];
+    if (c.size > 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void byte_buffer::copy_to(void* raw_out) const {
   std::byte* out = reinterpret_cast<std::byte*>(raw_out);
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();

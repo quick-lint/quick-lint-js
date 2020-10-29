@@ -38,7 +38,7 @@ string8_view make_string_view(::Json::Value& string);
 
 void linting_lsp_server_handler::handle_request(const char8* message_begin,
                                                 ::Json::Value& request,
-                                                string8& response_json) {
+                                                byte_buffer& response_json) {
   ::Json::Value& method = request["method"];
   if (method == "initialize") {
     this->handle_initialize_request(message_begin, request, response_json);
@@ -49,7 +49,7 @@ void linting_lsp_server_handler::handle_request(const char8* message_begin,
 
 void linting_lsp_server_handler::handle_notification(
     const char8* message_begin, ::Json::Value& request,
-    string8& notification_json) {
+    byte_buffer& notification_json) {
   ::Json::Value& method = request["method"];
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(message_begin, request,
@@ -68,11 +68,11 @@ void linting_lsp_server_handler::handle_notification(
 
 void linting_lsp_server_handler::handle_initialize_request(
     const char8* message_begin, ::Json::Value& request,
-    string8& response_json) {
-  response_json.append(u8R"--({"id":)--");
-  response_json.append(this->raw_json(request["id"], message_begin));
+    byte_buffer& response_json) {
+  response_json.append_copy(u8R"--({"id":)--");
+  response_json.append_copy(this->raw_json(request["id"], message_begin));
   // clang-format off
-  response_json.append(
+  response_json.append_copy(
     u8R"--(,)--"
     u8R"--("result":{)--"
       u8R"--("capabilities":{)--"
@@ -89,7 +89,7 @@ void linting_lsp_server_handler::handle_initialize_request(
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
     const char8* message_begin, ::Json::Value& request,
-    string8& notification_json) {
+    byte_buffer& notification_json) {
   ::Json::Value& text_document = request["params"]["textDocument"];
   bool url_is_lintable =
       std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
@@ -120,7 +120,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
     const char8* message_begin, ::Json::Value& request,
-    string8& notification_json) {
+    byte_buffer& notification_json) {
   if (request["params"]["textDocument"]["languageId"] != "javascript") {
     return;
   }
@@ -135,40 +135,36 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
 void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
     padded_string_view code, ::Json::Value& text_document,
-    const char8* message_begin, string8& notification_json) {
+    const char8* message_begin, byte_buffer& notification_json) {
   // clang-format off
-  notification_json.append(
+  notification_json.append_copy(
     u8R"--({)--"
       u8R"--("method":"textDocument/publishDiagnostics",)--"
       u8R"--("params":{)--"
         u8R"--("uri":)--");
   // clang-format on
-  notification_json.append(this->raw_json(text_document["uri"], message_begin));
+  notification_json.append_copy(
+      this->raw_json(text_document["uri"], message_begin));
 
-  notification_json.append(u8R"--(,"version":)--");
-  notification_json.append(
+  notification_json.append_copy(u8R"--(,"version":)--");
+  notification_json.append_copy(
       this->raw_json(text_document["version"], message_begin));
 
-  notification_json.append(u8R"--(,"diagnostics":)--");
+  notification_json.append_copy(u8R"--(,"diagnostics":)--");
   this->lint_and_get_diagnostics(code, notification_json);
 
-  notification_json.append(u8R"--(},"jsonrpc":"2.0"})--");
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
 }
 
 void linting_lsp_server_handler::lint_and_get_diagnostics(
-    padded_string_view code, string8& diagnostics_json) {
-  byte_buffer diagnostics_buffer;
-  lsp_error_reporter error_reporter(diagnostics_buffer, code);
+    padded_string_view code, byte_buffer& diagnostics_json) {
+  lsp_error_reporter error_reporter(diagnostics_json, code);
 
   parser p(code, &error_reporter);
   linter l(&error_reporter);
   p.parse_and_visit_module(l);
 
   error_reporter.finish();
-  string8 diagnostics;
-  diagnostics.resize(diagnostics_buffer.size());
-  diagnostics_buffer.copy_to(diagnostics.data());
-  diagnostics_json.append(diagnostics);
 }
 
 string8_view linting_lsp_server_handler::raw_json(::Json::Value& value,
