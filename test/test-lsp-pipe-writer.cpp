@@ -19,6 +19,7 @@
 #include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
@@ -75,8 +76,14 @@ class test_lsp_pipe_writer : public ::testing::Test {
   lsp_pipe_writer writer{this->pipe.writer.ref()};
 };
 
+byte_buffer byte_buffer_of(string8_view data) {
+  byte_buffer bb;
+  bb.append_copy(data);
+  return bb;
+}
+
 TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
-  this->writer.send_message(u8"hi");
+  this->writer.send_message(byte_buffer_of(u8"hi"));
   this->pipe.writer.close();
 
   read_file_result data = read_file("<pipe>", this->pipe.reader.ref());
@@ -92,7 +99,7 @@ TEST_F(test_lsp_pipe_writer, large_message_sends_fully) {
   string8 message =
       u8"[" + string8(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x') +
       u8"]";
-  this->writer.send_message(message);
+  this->writer.send_message(byte_buffer_of(message));
   this->pipe.writer.close();
 
   read_file_result data = data_future.get();
@@ -138,7 +145,7 @@ TEST_F(test_lsp_pipe_writer, large_message_sends_fully_with_interrupt) {
   string8 message =
       u8"[" + string8(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x') +
       u8"]";
-  this->writer.send_message(message);
+  this->writer.send_message(byte_buffer_of(message));
   this->pipe.writer.close();
 
   read_file_result data = data_future.get();

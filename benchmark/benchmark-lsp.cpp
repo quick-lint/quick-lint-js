@@ -23,10 +23,12 @@
 #include <string>
 
 namespace quick_lint_js {
+class byte_buffer;
+
 namespace {
 class null_lsp_writer {
  public:
-  void send_message(string8_view message) {
+  void send_message(const byte_buffer& message) {
     ::benchmark::ClobberMemory();
     ::benchmark::DoNotOptimize(message);
   }
@@ -38,7 +40,7 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-void benchmark_lsp_document_change(::benchmark::State &state) {
+void benchmark_lsp_document_change(::benchmark::State& state) {
   lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server;
   lsp_server.append(
       make_message(u8R"({

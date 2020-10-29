@@ -21,6 +21,8 @@
 #include <quick-lint-js/file-handle.h>
 
 namespace quick_lint_js {
+class byte_buffer;
+
 // An lsp_pipe_writer sends server->client Language Server Protocol messages via
 // a pipe or socket.
 //
@@ -29,7 +31,7 @@ class lsp_pipe_writer {
  public:
   explicit lsp_pipe_writer(platform_file_ref pipe);
 
-  void send_message(string8_view);
+  void send_message(const byte_buffer&);
 
  private:
   template <class T>
