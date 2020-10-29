@@ -19,6 +19,7 @@
 
 #include <gtest/gtest.h>
 #include <json/value.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <vector>
@@ -26,10 +27,14 @@
 namespace quick_lint_js {
 class spy_lsp_endpoint_remote {
  public:
-  void send_message(string8_view message) {
+  void send_message(const byte_buffer& message) {
+    string8 message_json;
+    message_json.resize(message.size());
+    message.copy_to(message_json.data());
+
     ::Json::Value parsed_message;
     ::Json::String errors;
-    bool ok = parse_json(message, &parsed_message, &errors);
+    bool ok = parse_json(message_json, &parsed_message, &errors);
     EXPECT_TRUE(ok) << errors;
 
     if (parsed_message.isObject()) {

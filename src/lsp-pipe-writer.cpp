@@ -16,6 +16,7 @@
 
 #include <array>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/integer.h>
@@ -25,11 +26,16 @@
 namespace quick_lint_js {
 lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_(pipe) {}
 
-void lsp_pipe_writer::send_message(string8_view message) {
+void lsp_pipe_writer::send_message(const byte_buffer& message) {
   this->write(u8"Content-Length: ");
   this->write_integer(message.size());
   this->write(u8"\r\n\r\n");
-  this->write(message);
+
+  // TODO(strager): Don't copy. Write all the chunks with writev if possible.
+  string8 message_string;
+  message_string.resize(message.size());
+  message.copy_to(message_string.data());
+  this->write(message_string);
 }
 
 template <class T>

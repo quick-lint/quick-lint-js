@@ -37,7 +37,7 @@
 namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Remote>
-concept lsp_endpoint_remote = requires(Remote r, string8_view message) {
+concept lsp_endpoint_remote = requires(Remote r, const byte_buffer message) {
   {r.send_message(message)};
 };
 
@@ -102,16 +102,10 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
 
     if (!response_json.empty()) {
-      string8 response_json_copy;
-      response_json_copy.resize(response_json.size());
-      response_json.copy_to(response_json_copy.data());
-      this->remote_.send_message(response_json_copy);
+      this->remote_.send_message(response_json);
     }
     if (!notification_json.empty()) {
-      string8 notification_json_copy;
-      notification_json_copy.resize(notification_json.size());
-      notification_json.copy_to(notification_json_copy.data());
-      this->remote_.send_message(notification_json_copy);
+      this->remote_.send_message(notification_json);
     }
   }
 
