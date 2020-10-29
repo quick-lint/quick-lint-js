@@ -25,6 +25,7 @@ namespace {
 TEST(test_byte_buffer, empty_byte_buffer_is_empty) {
   byte_buffer bb;
   EXPECT_EQ(bb.size(), 0);
+  EXPECT_TRUE(bb.empty());
 }
 
 TEST(test_byte_buffer, append_small_pieces_within_single_chunk) {
@@ -39,6 +40,7 @@ TEST(test_byte_buffer, append_small_pieces_within_single_chunk) {
   std::memcpy(piece_2, u8"thr3", 4);
 
   EXPECT_EQ(bb.size(), 4 + 8 + 4);
+  EXPECT_FALSE(bb.empty());
   std::vector<char8> data(bb.size());
   bb.copy_to(data.data());
   EXPECT_EQ(string8_view(data.data(), data.size()), u8"one and two thr3");
@@ -71,6 +73,22 @@ TEST(test_byte_buffer, append_small_with_callback) {
   std::vector<char8> data(bb.size());
   bb.copy_to(data.data());
   EXPECT_EQ(string8_view(data.data(), data.size()), u8"abcdef");
+}
+
+TEST(test_byte_buffer,
+     reserving_space_but_writing_nothing_preserves_size_of_empty_buffer) {
+  byte_buffer bb;
+
+  bb.append(4, [](void*) -> byte_buffer::size_type { return 0; });
+
+  EXPECT_EQ(bb.size(), 0);
+  EXPECT_TRUE(bb.empty());
+
+  bb.append(byte_buffer::default_chunk_size * 2,
+            [](void*) -> byte_buffer::size_type { return 0; });
+
+  EXPECT_EQ(bb.size(), 0);
+  EXPECT_TRUE(bb.empty());
 }
 
 TEST(test_byte_buffer, append_small_pieces_within_multiple_chunks) {

@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <json/value.h>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
@@ -42,7 +43,8 @@ concept lsp_endpoint_remote = requires(Remote r, string8_view message) {
 
 template <class Handler>
 concept lsp_endpoint_handler = requires(Handler h, const char8* raw_message,
-                                        ::Json::Value request, string8 reply) {
+                                        ::Json::Value request,
+                                        byte_buffer reply) {
   {h.handle_request(raw_message, request, reply)};
   {h.handle_notification(raw_message, request, reply)};
 };
@@ -75,11 +77,11 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       QLJS_UNIMPLEMENTED();
     }
 
-    string8 response_json;
-    string8 notification_json;
+    byte_buffer response_json;
+    byte_buffer notification_json;
     bool is_batch_request = request.isArray();
     if (is_batch_request) {
-      response_json += u8'[';
+      response_json.append_copy(u8"[");
       std::size_t empty_response_json_size = response_json.size();
       for (::Json::Value& sub_request : request) {
         this->handle_message(
@@ -87,7 +89,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
             /*add_comma_before_response=*/response_json.size() !=
                 empty_response_json_size);
       }
-      response_json += u8']';
+      response_json.append_copy(u8"]");
     } else {
       this->handle_message(message.data(), request, response_json,
                            notification_json,
@@ -100,19 +102,26 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
 
     if (!response_json.empty()) {
-      this->remote_.send_message(response_json);
+      string8 response_json_copy;
+      response_json_copy.resize(response_json.size());
+      response_json.copy_to(response_json_copy.data());
+      this->remote_.send_message(response_json_copy);
     }
     if (!notification_json.empty()) {
-      this->remote_.send_message(notification_json);
+      string8 notification_json_copy;
+      notification_json_copy.resize(notification_json.size());
+      notification_json.copy_to(notification_json_copy.data());
+      this->remote_.send_message(notification_json_copy);
     }
   }
 
   void handle_message(const char8* message_begin, ::Json::Value& request,
-                      string8& response_json, string8& notification_json,
+                      byte_buffer& response_json,
+                      byte_buffer& notification_json,
                       bool add_comma_before_response) {
     if (request.isMember("id")) {
       if (add_comma_before_response) {
-        response_json += u8',';
+        response_json.append_copy(u8",");
       }
       this->handler_.handle_request(message_begin, request, response_json);
     } else {

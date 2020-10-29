@@ -56,6 +56,8 @@ class byte_buffer {
 
   size_type size() const noexcept;
 
+  bool empty() const noexcept;
+
   void copy_to(void* raw_out) const;
 
  private:

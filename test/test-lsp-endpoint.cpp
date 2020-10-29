@@ -40,17 +40,17 @@ string8 json_to_string(::Json::Value& value) {
 TEST(test_lsp_endpoint, single_unbatched_request) {
   struct mock_lsp_server_handler {
     void handle_request(const char8*, ::Json::Value& request,
-                        string8& response_json) {
+                        byte_buffer& response_json) {
       EXPECT_EQ(request["method"], "testmethod");
 
       ::Json::Value response;
       response["jsonrpc"] = "2.0";
       response["id"] = request["id"];
       response["params"] = "testresponse";
-      response_json.append(json_to_string(response));
+      response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(const char8*, ::Json::Value&, string8&) {
+    void handle_notification(const char8*, ::Json::Value&, byte_buffer&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -73,7 +73,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
 TEST(test_lsp_endpoint, batched_request) {
   struct mock_lsp_server_handler {
     void handle_request(const char8*, ::Json::Value& request,
-                        string8& response_json) {
+                        byte_buffer& response_json) {
       EXPECT_THAT(request["method"],
                   ::testing::AnyOf("testmethod A", "testmethod B"));
 
@@ -81,10 +81,10 @@ TEST(test_lsp_endpoint, batched_request) {
       response["jsonrpc"] = "2.0";
       response["id"] = request["id"];
       response["params"] = "testresponse";
-      response_json.append(json_to_string(response));
+      response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(const char8*, ::Json::Value&, string8&) {
+    void handle_notification(const char8*, ::Json::Value&, byte_buffer&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -117,12 +117,12 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, string8&) {
+    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(const char8*, ::Json::Value& notification,
-                             string8&) {
+                             byte_buffer&) {
       EXPECT_EQ(notification["method"], "testmethod");
       handle_notification_count += 1;
     }
@@ -143,19 +143,19 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, string8&) {
+    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(const char8*, ::Json::Value& notification,
-                             string8& reply_json) {
+                             byte_buffer& reply_json) {
       EXPECT_EQ(notification["method"], "testmethod");
 
       ::Json::Value reply;
       reply["jsonrpc"] = "2.0";
       reply["method"] = "testreply";
       reply["params"] = "testparams";
-      reply_json.append(json_to_string(reply));
+      reply_json.append_copy(json_to_string(reply));
     }
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
@@ -178,12 +178,12 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, string8&) {
+    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(const char8*, ::Json::Value& notification,
-                             string8&) {
+                             byte_buffer&) {
       EXPECT_EQ(notification["method"], "testmethod");
       handle_notification_count += 1;
     }
@@ -205,19 +205,19 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, batched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, string8&) {
+    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(const char8*, ::Json::Value& notification,
-                             string8& reply_json) {
+                             byte_buffer& reply_json) {
       EXPECT_EQ(notification["method"], "testmethod");
 
       ::Json::Value reply;
       reply["jsonrpc"] = "2.0";
       reply["method"] = "testreply";
       reply["params"] = "testparams";
-      reply_json.append(json_to_string(reply));
+      reply_json.append_copy(json_to_string(reply));
     }
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
