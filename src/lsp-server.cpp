@@ -28,18 +28,21 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
+#include <rapidjson/stream.h>
+#include <rapidjson/writer.h>
 #include <sstream>
 #include <string>
 
 namespace quick_lint_js {
 namespace {
-string8_view make_string_view(::Json::Value& string);
+void append_raw_json(::rapidjson::Value& value, byte_buffer& out);
+string8_view make_string_view(::rapidjson::Value& string);
 }
 
 void linting_lsp_server_handler::handle_request(const char8* message_begin,
-                                                ::Json::Value& request,
+                                                ::rapidjson::Value& request,
                                                 byte_buffer& response_json) {
-  ::Json::Value& method = request["method"];
+  ::rapidjson::Value& method = request["method"];
   if (method == "initialize") {
     this->handle_initialize_request(message_begin, request, response_json);
   } else {
@@ -48,9 +51,9 @@ void linting_lsp_server_handler::handle_request(const char8* message_begin,
 }
 
 void linting_lsp_server_handler::handle_notification(
-    const char8* message_begin, ::Json::Value& request,
+    const char8* message_begin, ::rapidjson::Value& request,
     byte_buffer& notification_json) {
-  ::Json::Value& method = request["method"];
+  ::rapidjson::Value& method = request["method"];
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(message_begin, request,
                                                        notification_json);
@@ -67,10 +70,9 @@ void linting_lsp_server_handler::handle_notification(
 }
 
 void linting_lsp_server_handler::handle_initialize_request(
-    const char8* message_begin, ::Json::Value& request,
-    byte_buffer& response_json) {
+    const char8*, ::rapidjson::Value& request, byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");
-  response_json.append_copy(this->raw_json(request["id"], message_begin));
+  append_raw_json(request["id"], response_json);
   // clang-format off
   response_json.append_copy(
     u8R"--(,)--"
@@ -88,9 +90,9 @@ void linting_lsp_server_handler::handle_initialize_request(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
-    const char8* message_begin, ::Json::Value& request,
+    const char8* message_begin, ::rapidjson::Value& request,
     byte_buffer& notification_json) {
-  ::Json::Value& text_document = request["params"]["textDocument"];
+  ::rapidjson::Value& text_document = request["params"]["textDocument"];
   bool url_is_lintable =
       std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
                 make_string_view(text_document["uri"])) !=
@@ -108,8 +110,8 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(
-    ::Json::Value& request) {
-  ::Json::Value& uri = request["params"]["textDocument"]["uri"];
+    ::rapidjson::Value& request) {
+  ::rapidjson::Value& uri = request["params"]["textDocument"]["uri"];
   auto lintable_uri_it =
       std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
                 make_string_view(uri));
@@ -119,13 +121,13 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
-    const char8* message_begin, ::Json::Value& request,
+    const char8* message_begin, ::rapidjson::Value& request,
     byte_buffer& notification_json) {
   if (request["params"]["textDocument"]["languageId"] != "javascript") {
     return;
   }
 
-  ::Json::Value& text_document = request["params"]["textDocument"];
+  ::rapidjson::Value& text_document = request["params"]["textDocument"];
   this->lintable_uris_.emplace_back(make_string_view(text_document["uri"]));
 
   padded_string code = make_padded_string(text_document["text"]);
@@ -134,8 +136,8 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 }
 
 void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
-    padded_string_view code, ::Json::Value& text_document,
-    const char8* message_begin, byte_buffer& notification_json) {
+    padded_string_view code, ::rapidjson::Value& text_document, const char8*,
+    byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -143,12 +145,10 @@ void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
       u8R"--("params":{)--"
         u8R"--("uri":)--");
   // clang-format on
-  notification_json.append_copy(
-      this->raw_json(text_document["uri"], message_begin));
+  append_raw_json(text_document["uri"], notification_json);
 
   notification_json.append_copy(u8R"--(,"version":)--");
-  notification_json.append_copy(
-      this->raw_json(text_document["version"], message_begin));
+  append_raw_json(text_document["version"], notification_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--");
   this->lint_and_get_diagnostics(code, notification_json);
@@ -167,15 +167,8 @@ void linting_lsp_server_handler::lint_and_get_diagnostics(
   error_reporter.finish();
 }
 
-string8_view linting_lsp_server_handler::raw_json(::Json::Value& value,
-                                                  const char8* json) {
-  return string8_view(json + value.getOffsetStart(),
-                      narrow_cast<std::size_t>(value.getOffsetLimit() -
-                                               value.getOffsetStart()));
-}
-
 padded_string linting_lsp_server_handler::make_padded_string(
-    ::Json::Value& string) {
+    ::rapidjson::Value& string) {
   string8_view string_view = make_string_view(string);
   padded_string result;
   result.resize(narrow_cast<int>(string_view.size()));
@@ -184,16 +177,20 @@ padded_string linting_lsp_server_handler::make_padded_string(
 }
 
 namespace {
+void append_raw_json(::rapidjson::Value& value, byte_buffer& out) {
+  // @@@ copyright not me
+  ::rapidjson::StringBuffer sb;
+  ::rapidjson::Writer<::rapidjson::StringBuffer> writer(sb);
+  value.Accept(writer);
+  out.append_copy(string8_view(reinterpret_cast<const char8*>(sb.GetString()),
+                               sb.GetSize()));
+}
+
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-string8_view make_string_view(::Json::Value& string) {
-  const char* begin;
-  const char* end;
-  if (!string.getString(&begin, &end)) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return string8_view(reinterpret_cast<const char8*>(begin),
-                      narrow_cast<std::size_t>(end - begin));
+string8_view make_string_view(::rapidjson::Value& string) {
+  return string8_view(reinterpret_cast<const char8*>(string.GetString()),
+                      narrow_cast<std::size_t>(string.GetStringLength()));
 }
 QLJS_WARNING_POP
 }

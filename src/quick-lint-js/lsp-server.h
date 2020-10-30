@@ -18,7 +18,6 @@
 #define QUICK_LINT_JS_LSP_SERVER_H
 
 #include <cstddef>
-#include <json/value.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
@@ -26,6 +25,7 @@
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <rapidjson/document.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -35,34 +35,34 @@ class byte_buffer;
 // the client of diagnostics.
 class linting_lsp_server_handler {
  public:
-  void handle_request(const char8* message_begin, ::Json::Value& request,
+  void handle_request(const char8* message_begin, ::rapidjson::Value& request,
                       byte_buffer& response_json);
-  void handle_notification(const char8* message_begin, ::Json::Value& request,
+  void handle_notification(const char8* message_begin,
+                           ::rapidjson::Value& request,
                            byte_buffer& notification_json);
 
  private:
   void handle_initialize_request(const char8* message_begin,
-                                 ::Json::Value& request,
+                                 ::rapidjson::Value& request,
                                  byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      const char8* message_begin, ::Json::Value& request,
+      const char8* message_begin, ::rapidjson::Value& request,
       byte_buffer& notification_json);
-  void handle_text_document_did_close_notification(::Json::Value& request);
+  void handle_text_document_did_close_notification(::rapidjson::Value& request);
   void handle_text_document_did_open_notification(
-      const char8* message_begin, ::Json::Value& request,
+      const char8* message_begin, ::rapidjson::Value& request,
       byte_buffer& notification_json);
 
   void lint_and_get_diagnostics_notification(padded_string_view code,
-                                             ::Json::Value& text_document,
+                                             ::rapidjson::Value& text_document,
                                              const char8* message_begin,
                                              byte_buffer& notification_json);
 
   void lint_and_get_diagnostics(padded_string_view code,
                                 byte_buffer& diagnostics_json);
 
-  static string8_view raw_json(::Json::Value& value, const char8* json);
-  static padded_string make_padded_string(::Json::Value& string);
+  static padded_string make_padded_string(::rapidjson::Value& string);
 
   std::vector<string8> lintable_uris_;
 };
