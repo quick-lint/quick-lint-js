@@ -70,6 +70,46 @@ TEST_F(test_linting_lsp_server, initialize) {
             QUICK_LINT_JS_VERSION_STRING);
 }
 
+// For the "id" field of a request, JSON-RPC allows numbers, strings, and null.
+TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
+  struct test_case {
+    string8_view id_json;
+    ::Json::Value id;
+  };
+
+  // TODO(strager): Support numbers with fractional parts, such as 12.34.
+  for (const test_case& test : {
+           test_case{u8"null", ::Json::Value::nullSingleton()},
+           test_case{u8"1", ::Json::Value(1)},
+           test_case{u8"9007199254740991",
+                     ::Json::Value(std::int64_t{9007199254740991LL})},
+           test_case{u8"-12345", ::Json::Value(-12345)},
+           test_case{u8R"("A")", ::Json::Value("A")},
+           test_case{u8R"("id value goes \"here\"")",
+                     ::Json::Value("id value goes \"here\"")},
+           test_case{u8R"("id value goes \"here\"")",
+                     ::Json::Value("id value goes \"here\"")},
+       }) {
+    this->client.messages.clear();
+
+    this->server.append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "id": )" + string8(test.id_json) +
+                     u8R"(,
+          "method": "initialize",
+          "params": {
+            "processId": null,
+            "rootUri": null,
+            "capabilities": {}
+          }
+        })"));
+
+    ASSERT_EQ(this->client.messages.size(), 1);
+    EXPECT_EQ(this->client.messages[0]["id"], test.id);
+  }
+}
+
 TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
   this->server.append(
       make_message(u8R"({

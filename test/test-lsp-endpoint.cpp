@@ -22,6 +22,9 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
+#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
+#include <simdjson.h>
 
 using ::testing::IsEmpty;
 
@@ -37,20 +40,76 @@ string8 json_to_string(::Json::Value& value) {
   return to_string8(::Json::writeString(::Json::StreamWriterBuilder(), value));
 }
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
+::Json::Value simdjson_to_jsoncpp(const ::simdjson::dom::element& value) {
+  switch (value.type()) {
+  case ::simdjson::dom::element_type::INT64: {
+    std::int64_t data;
+    ::simdjson::error_code error = value.get(data);
+    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
+    return ::Json::Value(data);
+  }
+
+  case ::simdjson::dom::element_type::UINT64: {
+    std::uint64_t data;
+    ::simdjson::error_code error = value.get(data);
+    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
+    return ::Json::Value(data);
+  }
+
+  case ::simdjson::dom::element_type::STRING: {
+    std::string_view data;
+    ::simdjson::error_code error = value.get(data);
+    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
+    return ::Json::Value(data.data(), data.data() + data.size());
+  }
+
+  case ::simdjson::dom::element_type::ARRAY:
+  case ::simdjson::dom::element_type::BOOL:
+  case ::simdjson::dom::element_type::DOUBLE:
+  case ::simdjson::dom::element_type::NULL_VALUE:
+  case ::simdjson::dom::element_type::OBJECT:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+
+  QLJS_UNREACHABLE();
+}
+QLJS_WARNING_POP
+
+::Json::Value simdjson_to_jsoncpp(
+    ::simdjson::simdjson_result<::simdjson::dom::element>&& value) {
+  ::simdjson::dom::element unwrapped_value;
+  ::simdjson::error_code error = value.get(unwrapped_value);
+  if (error != ::simdjson::error_code::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return simdjson_to_jsoncpp(unwrapped_value);
+}
+
+std::string json_get_string(
+    ::simdjson::simdjson_result<::simdjson::dom::element>&& value) {
+  std::string_view s = "<not found>";
+  EXPECT_EQ(value.get(s), ::simdjson::error_code::SUCCESS);
+  return std::string(s);
+}
+
 TEST(test_lsp_endpoint, single_unbatched_request) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value& request,
+    void handle_request(const char8*, ::simdjson::dom::element& request,
                         byte_buffer& response_json) {
-      EXPECT_EQ(request["method"], "testmethod");
+      EXPECT_EQ(json_get_string(request["method"]), "testmethod");
 
       ::Json::Value response;
       response["jsonrpc"] = "2.0";
-      response["id"] = request["id"];
+      response["id"] = simdjson_to_jsoncpp(request["id"]);
       response["params"] = "testresponse";
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(const char8*, ::Json::Value&, byte_buffer&) {
+    void handle_notification(const char8*, ::simdjson::dom::element&,
+                             byte_buffer&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -72,19 +131,20 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
 
 TEST(test_lsp_endpoint, batched_request) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value& request,
+    void handle_request(const char8*, ::simdjson::dom::element& request,
                         byte_buffer& response_json) {
-      EXPECT_THAT(request["method"],
+      EXPECT_THAT(json_get_string(request["method"]),
                   ::testing::AnyOf("testmethod A", "testmethod B"));
 
       ::Json::Value response;
       response["jsonrpc"] = "2.0";
-      response["id"] = request["id"];
+      response["id"] = simdjson_to_jsoncpp(request["id"]);
       response["params"] = "testresponse";
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(const char8*, ::Json::Value&, byte_buffer&) {
+    void handle_notification(const char8*, ::simdjson::dom::element&,
+                             byte_buffer&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -117,13 +177,14 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
+    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*, ::Json::Value& notification,
+    void handle_notification(const char8*,
+                             ::simdjson::dom::element& notification,
                              byte_buffer&) {
-      EXPECT_EQ(notification["method"], "testmethod");
+      EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
     }
   };
@@ -143,13 +204,14 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
+    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*, ::Json::Value& notification,
+    void handle_notification(const char8*,
+                             ::simdjson::dom::element& notification,
                              byte_buffer& reply_json) {
-      EXPECT_EQ(notification["method"], "testmethod");
+      EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
       ::Json::Value reply;
       reply["jsonrpc"] = "2.0";
@@ -178,13 +240,14 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
+    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*, ::Json::Value& notification,
+    void handle_notification(const char8*,
+                             ::simdjson::dom::element& notification,
                              byte_buffer&) {
-      EXPECT_EQ(notification["method"], "testmethod");
+      EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
     }
   };
@@ -205,13 +268,14 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, batched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::Json::Value&, byte_buffer&) {
+    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*, ::Json::Value& notification,
+    void handle_notification(const char8*,
+                             ::simdjson::dom::element& notification,
                              byte_buffer& reply_json) {
-      EXPECT_EQ(notification["method"], "testmethod");
+      EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
       ::Json::Value reply;
       reply["jsonrpc"] = "2.0";

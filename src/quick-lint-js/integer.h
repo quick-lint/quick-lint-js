@@ -41,7 +41,12 @@ template <class T>
 char8 *write_integer(T, char8 *out);
 
 extern template char8 *write_integer<int>(int, char8 *out);
-extern template char8 *write_integer<std::size_t>(std::size_t, char8 *out);
+extern template char8 *write_integer<long>(long, char8 *out);
+extern template char8 *write_integer<long long>(long long, char8 *out);
+extern template char8 *write_integer<unsigned>(unsigned, char8 *out);
+extern template char8 *write_integer<unsigned long>(unsigned long, char8 *out);
+extern template char8 *write_integer<unsigned long long>(unsigned long long,
+                                                         char8 *out);
 }
 
 #endif
