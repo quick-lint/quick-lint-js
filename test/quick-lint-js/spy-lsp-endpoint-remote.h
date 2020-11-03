@@ -31,6 +31,7 @@ class spy_lsp_endpoint_remote {
     string8 message_json;
     message_json.resize(message.size());
     message.copy_to(message_json.data());
+    SCOPED_TRACE(out_string8(message_json));
 
     ::Json::Value parsed_message;
     ::Json::String errors;

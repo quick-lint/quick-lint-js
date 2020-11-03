@@ -1,0 +1,27 @@
+#!/bin/bash
+cd `dirname "$0"`/..
+
+# note: for valgrind to work on 32-bit targets, the libc6-dbg:i386
+# package must be installed.
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    SYSTEM_VALGRIND=
+else
+    SYSTEM_VALGRIND=$(which valgrind)
+fi
+
+set -e
+
+for a in $(ls build); do
+    if [[ "$a" == *-san || "$SYSTEM_VALGRIND" == "" ]]; then
+        # ASAN doesn't tolerate being run under valgrind.
+        # Shadow memory range interleaves with an existing memory mapping.
+        VALGRIND=
+    else
+        VALGRIND="valgrind -q"
+    fi
+    echo "$a:"
+    $VALGRIND build/$a/test
+    $VALGRIND build/$a/test_unsorted
+    echo
+done

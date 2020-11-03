@@ -1,0 +1,7 @@
+#!/bin/bash
+cd `dirname "$0"`/..
+
+set -e
+
+find example include benchmark swift tests \( -name '*.h' -o -name '*.cpp' \) -exec clang-format -i {} +
+find . \( -iname SConstruct -o -iname SConscript \) -exec black {} +

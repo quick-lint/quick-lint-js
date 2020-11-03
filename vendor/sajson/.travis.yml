@@ -1,0 +1,21 @@
+os: osx
+osx_image: xcode9.2
+
+language: cpp
+
+# sudo: required
+
+# dist: trusty
+
+#install:
+#- sudo apt-get install libstdc++6 gcc-multilib g++-multilib
+
+install:
+- brew install scons valgrind
+
+script:
+- s/build
+- s/test
+# TODO: add test.  (can't run swift tests until newer osx_image, but newer osx_image
+# has broken valgrind.)
+- xcodebuild clean build -project swift/sajson.xcodeproj -scheme sajson-macOS

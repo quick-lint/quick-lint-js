@@ -18,13 +18,13 @@
 #define QUICK_LINT_JS_LSP_ENDPOINT_H
 
 #include <cstddef>
-#include <json/value.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-message-parser.h>
+#include <sajson.h>
 
 #if QLJS_HAVE_CXX_CONCEPTS
 #define QLJS_LSP_ENDPOINT_HANDLER ::quick_lint_js::lsp_endpoint_handler
@@ -43,7 +43,7 @@ concept lsp_endpoint_remote = requires(Remote r, const byte_buffer message) {
 
 template <class Handler>
 concept lsp_endpoint_handler = requires(Handler h, const char8* raw_message,
-                                        ::Json::Value request,
+                                        ::sajson::value request,
                                         byte_buffer reply) {
   {h.handle_request(raw_message, request, reply)};
   {h.handle_notification(raw_message, request, reply)};
@@ -70,20 +70,26 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
 
  private:
   void message_parsed(string8_view message) {
-    ::Json::Value request;
-    ::Json::String errors;
-    bool ok = parse_json(message, &request, &errors);
-    if (!ok) {
+    // @@@ don't copy plz
+    string8 json(message);
+
+    ::sajson::document request_document =
+        sajson::parse(::sajson::dynamic_allocation(),
+                      ::sajson::mutable_string_view(
+                          json.size(), reinterpret_cast<char*>(json.data())));
+    if (!request_document.is_valid()) {
       QLJS_UNIMPLEMENTED();
     }
+    ::sajson::value request = request_document.get_root();
 
     byte_buffer response_json;
     byte_buffer notification_json;
-    bool is_batch_request = request.isArray();
+    bool is_batch_request = request.get_type() == ::sajson::TYPE_ARRAY;
     if (is_batch_request) {
       response_json.append_copy(u8"[");
       std::size_t empty_response_json_size = response_json.size();
-      for (::Json::Value& sub_request : request) {
+      for (std::size_t i = 0; i < request.get_length(); ++i) {
+        ::sajson::value sub_request = request.get_array_element(i);
         this->handle_message(
             message.data(), sub_request, response_json, notification_json,
             /*add_comma_before_response=*/response_json.size() !=
@@ -109,11 +115,12 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
   }
 
-  void handle_message(const char8* message_begin, ::Json::Value& request,
+  void handle_message(const char8* message_begin, ::sajson::value& request,
                       byte_buffer& response_json,
                       byte_buffer& notification_json,
                       bool add_comma_before_response) {
-    if (request.isMember("id")) {
+    ::sajson::string id_key("id", 2);  // @@@ eh...
+    if (request.get_value_of_key(id_key).get_type() != ::sajson::TYPE_NULL) {
       if (add_comma_before_response) {
         response_json.append_copy(u8",");
       }

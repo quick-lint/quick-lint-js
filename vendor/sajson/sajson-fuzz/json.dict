@@ -1,0 +1,44 @@
+#
+# AFL dictionary for JSON
+# -----------------------
+#
+# Based on https://github.com/DaveGamble/cJSON/blob/master/fuzzing/json.dict
+
+punct_open_bracket="["
+punct_close_bracket="]"
+punct_open_brace="{"
+punct_close_brace="}"
+punct_comma=","
+punct_quote="\""
+punct_comma=":"
+
+escape_sequence_b="\\b"
+escape_sequence_f="\\f"
+escape_sequence_n="\\n"
+escape_sequence_r="\\r"
+escape_sequence_t="\\t"
+escape_sequence_quote="\\\""
+escape_sequence_backslash="\\\\"
+escape_sequence_slash="\\/"
+escape_sequence_utf16_base="\\u"
+escape_sequence_utf16="\\u12ab"
+
+number_integer="1"
+number_double="1.0"
+number_negative_integer="-1"
+number_negative_double="-1.0"
+number_engineering1="1e1"
+number_engineering2="1e-1"
+number_positive_integer="+1"
+number_positive_double="+1.0"
+number_e="e"
+number_plus="+"
+number_minus="-"
+number_separator="."
+
+null="null"
+true="true"
+false="false"
+
+example_empty_object="{}"
+example_empty_array="[]"

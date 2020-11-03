@@ -1,0 +1,15 @@
+#!/bin/bash
+cd `dirname "$0"`/..
+
+# note: for valgrind to work on 32-bit targets, the libc6-dbg:i386
+# package must be installed.
+
+set -e
+
+for a in $(ls build); do
+    if [[ "$a" == *-opt ]]; then
+        echo "$a:"
+        build/$a/bench
+        echo
+    fi
+done

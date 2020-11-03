@@ -1,0 +1,4 @@
+#!/bin/bash
+cd `dirname "$0"`/..
+
+sudo apt install clang scons valgrind graphviz doxygen clang-format gcc-multilib g++-multilib libc6-dbg:i386 black

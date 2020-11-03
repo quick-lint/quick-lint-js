@@ -1,0 +1,5 @@
+.DS_Store
+/.sconsign.dblite
+/build/
+/.vscode/
+/swift/sajson.xcodeproj/project.xcworkspace/xcshareddata/

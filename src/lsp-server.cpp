@@ -28,19 +28,26 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
+#include <sajson.h>
 #include <sstream>
 #include <string>
 
 namespace quick_lint_js {
 namespace {
-string8_view make_string_view(::Json::Value& string);
+string8_view make_string_view(const ::sajson::value& string);
+
+::sajson::string s(const char* string) {
+  return ::sajson::string(string, std::strlen(string));
+}
+
+void append_raw_json(const ::sajson::value& value, byte_buffer& out);
 }
 
 void linting_lsp_server_handler::handle_request(const char8* message_begin,
-                                                ::Json::Value& request,
+                                                ::sajson::value& request,
                                                 byte_buffer& response_json) {
-  ::Json::Value& method = request["method"];
-  if (method == "initialize") {
+  ::sajson::value method = request.get_value_of_key(s("method"));
+  if (make_string_view(method) == u8"initialize") {
     this->handle_initialize_request(message_begin, request, response_json);
   } else {
     QLJS_UNIMPLEMENTED();
@@ -48,18 +55,19 @@ void linting_lsp_server_handler::handle_request(const char8* message_begin,
 }
 
 void linting_lsp_server_handler::handle_notification(
-    const char8* message_begin, ::Json::Value& request,
+    const char8* message_begin, ::sajson::value& request,
     byte_buffer& notification_json) {
-  ::Json::Value& method = request["method"];
-  if (method == "textDocument/didChange") {
+  ::sajson::value method = request.get_value_of_key(s("method"));
+  string8_view method_view = make_string_view(method);
+  if (method_view == u8"textDocument/didChange") {
     this->handle_text_document_did_change_notification(message_begin, request,
                                                        notification_json);
-  } else if (method == "textDocument/didOpen") {
+  } else if (method_view == u8"textDocument/didOpen") {
     this->handle_text_document_did_open_notification(message_begin, request,
                                                      notification_json);
-  } else if (method == "textDocument/didClose") {
+  } else if (method_view == u8"textDocument/didClose") {
     this->handle_text_document_did_close_notification(request);
-  } else if (method == "initialized") {
+  } else if (method_view == u8"initialized") {
     // Do nothing.
   } else {
     QLJS_UNIMPLEMENTED();
@@ -67,10 +75,9 @@ void linting_lsp_server_handler::handle_notification(
 }
 
 void linting_lsp_server_handler::handle_initialize_request(
-    const char8* message_begin, ::Json::Value& request,
-    byte_buffer& response_json) {
+    const char8*, ::sajson::value& request, byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");
-  response_json.append_copy(this->raw_json(request["id"], message_begin));
+  append_raw_json(request.get_value_of_key(s("id")), response_json);
   // clang-format off
   response_json.append_copy(
     u8R"--(,)--"
@@ -88,12 +95,13 @@ void linting_lsp_server_handler::handle_initialize_request(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
-    const char8* message_begin, ::Json::Value& request,
+    const char8* message_begin, ::sajson::value& request,
     byte_buffer& notification_json) {
-  ::Json::Value& text_document = request["params"]["textDocument"];
+  ::sajson::value text_document =
+      request.get_value_of_key(s("params")).get_value_of_key(s("textDocument"));
   bool url_is_lintable =
       std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
-                make_string_view(text_document["uri"])) !=
+                make_string_view(text_document.get_value_of_key(s("uri")))) !=
       this->lintable_uris_.end();
   if (!url_is_lintable) {
     return;
@@ -102,14 +110,19 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   // TODO(strager): What if contentChanges is empty or contains more than one
   // entry?
   padded_string code =
-      make_padded_string(request["params"]["contentChanges"][0]["text"]);
+      make_padded_string(request.get_value_of_key(s("params"))
+                             .get_value_of_key(s("contentChanges"))
+                             .get_array_element(0)
+                             .get_value_of_key(s("text")));
   this->lint_and_get_diagnostics_notification(&code, text_document,
                                               message_begin, notification_json);
 }
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(
-    ::Json::Value& request) {
-  ::Json::Value& uri = request["params"]["textDocument"]["uri"];
+    ::sajson::value& request) {
+  ::sajson::value uri = request.get_value_of_key(s("params"))
+                            .get_value_of_key(s("textDocument"))
+                            .get_value_of_key(s("uri"));
   auto lintable_uri_it =
       std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
                 make_string_view(uri));
@@ -119,23 +132,29 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
-    const char8* message_begin, ::Json::Value& request,
+    const char8* message_begin, ::sajson::value& request,
     byte_buffer& notification_json) {
-  if (request["params"]["textDocument"]["languageId"] != "javascript") {
+  if (make_string_view(request.get_value_of_key(s("params"))
+                           .get_value_of_key(s("textDocument"))
+                           .get_value_of_key(s("languageId"))) !=
+      u8"javascript") {
     return;
   }
 
-  ::Json::Value& text_document = request["params"]["textDocument"];
-  this->lintable_uris_.emplace_back(make_string_view(text_document["uri"]));
+  ::sajson::value text_document =
+      request.get_value_of_key(s("params")).get_value_of_key(s("textDocument"));
+  this->lintable_uris_.emplace_back(
+      make_string_view(text_document.get_value_of_key(s("uri"))));
 
-  padded_string code = make_padded_string(text_document["text"]);
+  padded_string code =
+      make_padded_string(text_document.get_value_of_key(s("text")));
   this->lint_and_get_diagnostics_notification(&code, text_document,
                                               message_begin, notification_json);
 }
 
 void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
-    padded_string_view code, ::Json::Value& text_document,
-    const char8* message_begin, byte_buffer& notification_json) {
+    padded_string_view code, ::sajson::value& text_document, const char8*,
+    byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -143,12 +162,11 @@ void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
       u8R"--("params":{)--"
         u8R"--("uri":)--");
   // clang-format on
-  notification_json.append_copy(
-      this->raw_json(text_document["uri"], message_begin));
+  append_raw_json(text_document.get_value_of_key(s("uri")), notification_json);
 
   notification_json.append_copy(u8R"--(,"version":)--");
-  notification_json.append_copy(
-      this->raw_json(text_document["version"], message_begin));
+  append_raw_json(text_document.get_value_of_key(s("version")),
+                  notification_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--");
   this->lint_and_get_diagnostics(code, notification_json);
@@ -167,15 +185,8 @@ void linting_lsp_server_handler::lint_and_get_diagnostics(
   error_reporter.finish();
 }
 
-string8_view linting_lsp_server_handler::raw_json(::Json::Value& value,
-                                                  const char8* json) {
-  return string8_view(json + value.getOffsetStart(),
-                      narrow_cast<std::size_t>(value.getOffsetLimit() -
-                                               value.getOffsetStart()));
-}
-
 padded_string linting_lsp_server_handler::make_padded_string(
-    ::Json::Value& string) {
+    const ::sajson::value& string) {
   string8_view string_view = make_string_view(string);
   padded_string result;
   result.resize(narrow_cast<int>(string_view.size()));
@@ -184,16 +195,35 @@ padded_string linting_lsp_server_handler::make_padded_string(
 }
 
 namespace {
+void append_raw_json(const ::sajson::value& value, byte_buffer& out) {
+  switch (value.get_type()) {
+  case ::sajson::TYPE_INTEGER:
+    out.append_decimal_integer(value.get_integer_value());
+    break;
+
+  case ::sajson::TYPE_STRING:
+    out.append_copy(u8"\"");
+    // @@@ tests plz
+    write_json_escaped_string(out, make_string_view(value));
+    out.append_copy(u8"\"");
+    break;
+
+  case ::sajson::TYPE_ARRAY:
+  case ::sajson::TYPE_DOUBLE:
+  case ::sajson::TYPE_FALSE:
+  case ::sajson::TYPE_NULL:
+  case ::sajson::TYPE_OBJECT:
+  case ::sajson::TYPE_TRUE:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+}
+
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-string8_view make_string_view(::Json::Value& string) {
-  const char* begin;
-  const char* end;
-  if (!string.getString(&begin, &end)) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return string8_view(reinterpret_cast<const char8*>(begin),
-                      narrow_cast<std::size_t>(end - begin));
+string8_view make_string_view(const ::sajson::value& string) {
+  return string8_view(reinterpret_cast<const char8*>(string.as_cstring()),
+                      string.get_string_length());
 }
 QLJS_WARNING_POP
 }
