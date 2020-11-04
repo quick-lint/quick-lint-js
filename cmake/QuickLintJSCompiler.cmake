@@ -15,6 +15,12 @@ function (quick_lint_js_enable_char8_t_if_supported)
   endif ()
 endfunction ()
 
+function (quick_lint_js_configure_exception_handling)
+  if (MSVC)
+    add_compile_options(/EHcs)
+  endif ()
+endfunction ()
+
 function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
   quick_lint_js_check_cxx_filesystem(
     REQUIRED_LIBRARIES stdc++fs
