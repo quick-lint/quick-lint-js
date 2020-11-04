@@ -80,3 +80,33 @@ Project URL: https://github.com/open-source-parsers/jsoncpp
 Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.3
 Release date: May 29, 2020
 Version: 1.9.3
+
+## simdjson
+
+The simdjson directory contains simdjson, a C++ library for parsing JSON.
+
+The following directories and files have been deleted to reduce storage
+consumption:
+
+* simdjson/Doxyfile
+* simdjson/benchmark/
+* simdjson/dependencies/
+* simdjson/doc/
+* simdjson/fuzz/
+* simdjson/images/
+* simdjson/jsonchecker/
+* simdjson/jsonexamples/
+* simdjson/singleheader/
+* simdjson/tests/
+
+Copyright: Copyright 2018-2019 The simdjson authors; various
+Download URL: https://github.com/simdjson/simdjson/archive/v0.6.0.tar.gz
+Download date: November 3, 2020
+Git commit: 6a86ef5a7dd3381535a7f8047c0c067ce06dfcea
+License file: simdjson/LICENSE; simdjson/src/to_chars.cpp; simdjson/windows/toni_ronnko_dirent.h; simdjson/windows/getopt.h; simdjson/include/simdjson/internal/isadetection.h
+License type: Apache-2.0; MIT; MIT; MIT(Old Style with legal disclaimer 2)/BSD-2-Clause; BSD-3-Clause
+Location: simdjson
+Project URL: https://github.com/simdjson/simdjson
+Release URL: https://github.com/simdjson/simdjson/releases/tag/v0.6.0
+Release date: October 23, 2020
+Version: 0.6.0
