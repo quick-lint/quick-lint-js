@@ -15,8 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <iosfwd>
-#include <json/reader.h>
-#include <json/value.h>
 #include <ostream>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
@@ -70,20 +68,5 @@ void write_json_escaped_string(byte_buffer &output, string8_view string) {
     string = string.substr(special_character_index + 1);
   }
   output.append_copy(string);
-}
-
-bool parse_json(string8_view json, ::Json::Value *result,
-                ::Json::String *errors) {
-#if QLJS_HAVE_CHAR8_T
-  const char *json_chars = reinterpret_cast<const char *>(json.data());
-#else
-  const char *json_chars = json.data();
-#endif
-  // TODO(strager): Avoid copying the JSON string.
-  ::Json::CharReaderBuilder readerBuilder;
-  readerBuilder.strictMode(&readerBuilder.settings_);
-  std::unique_ptr<::Json::CharReader> reader(readerBuilder.newCharReader());
-  bool ok = reader->parse(json_chars, &json_chars[json.size()], result, errors);
-  return ok;
 }
 }

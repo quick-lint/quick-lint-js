@@ -18,7 +18,6 @@
 #define QUICK_LINT_JS_JSON_H
 
 #include <iosfwd>
-#include <json/value.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <string>
@@ -37,9 +36,6 @@ extern template void write_json_escaped_string<char8_t>(
 #endif
 
 void write_json_escaped_string(byte_buffer &, string8_view);
-
-bool parse_json(string8_view json, ::Json::Value *result,
-                ::Json::String *errors);
 }
 
 #endif
