@@ -194,8 +194,8 @@ linter::linter(error_reporter *error_reporter)
   };
 
   for (const char8 *global_variable : writable_global_variables) {
-    global_scope.add_predefined_variable_declaration(global_variable,
-                                                     variable_kind::_function);
+    global_scope.declared_variables.add_predefined_variable_declaration(
+        global_variable, variable_kind::_function);
   }
 
   const char8 *non_writable_global_variables[] = {
@@ -205,8 +205,8 @@ linter::linter(error_reporter *error_reporter)
       u8"undefined",
   };
   for (const char8 *global_variable : non_writable_global_variables) {
-    global_scope.add_predefined_variable_declaration(global_variable,
-                                                     variable_kind::_const);
+    global_scope.declared_variables.add_predefined_variable_declaration(
+        global_variable, variable_kind::_const);
   }
 
   const char8 *writable_module_variables[] = {
@@ -215,8 +215,8 @@ linter::linter(error_reporter *error_reporter)
   };
 
   for (const char8 *module_variable : writable_module_variables) {
-    module_scope.add_predefined_variable_declaration(module_variable,
-                                                     variable_kind::_function);
+    module_scope.declared_variables.add_predefined_variable_declaration(
+        module_variable, variable_kind::_function);
   }
 }
 
@@ -290,7 +290,8 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
       scope, name, kind, declared_scope);
 
   const declared_variable *declared =
-      scope.add_variable_declaration(name, kind, declared_scope);
+      scope.declared_variables.add_variable_declaration(name, kind,
+                                                        declared_scope);
 
   auto erase_if = [](auto &variables, auto predicate) {
     variables.erase(
@@ -338,7 +339,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
 void linter::visit_variable_assignment(identifier name) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
-  const declared_variable *var = current_scope.find_declared_variable(name);
+  const declared_variable *var = current_scope.declared_variables.find(name);
   if (var) {
     this->report_error_if_assignment_is_illegal(
         var, name, /*is_assigned_before_declaration=*/false);
@@ -360,7 +361,7 @@ void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
   bool variable_is_declared =
-      current_scope.find_declared_variable(name) != nullptr;
+      current_scope.declared_variables.find(name) != nullptr;
   if (!variable_is_declared) {
     current_scope.variables_used.emplace_back(name, use_kind);
   }
@@ -395,7 +396,7 @@ void linter::visit_end_of_module() {
                         }) != typeof_variables.end();
   };
   auto is_variable_declared = [&](const used_variable &var) -> bool {
-    return global_scope.find_declared_variable(var.name) ||
+    return global_scope.declared_variables.find(var.name) ||
            is_variable_declared_by_typeof(var);
   };
 
@@ -439,9 +440,9 @@ void linter::propagate_variable_uses_to_parent_scope(
   };
 
   for (const used_variable &used_var : current_scope.variables_used) {
-    QLJS_ASSERT(!current_scope.find_declared_variable(used_var.name));
+    QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
     const declared_variable *var =
-        parent_scope.find_declared_variable(used_var.name);
+        parent_scope.declared_variables.find(used_var.name);
     if (var) {
       // This variable was declared in the parent scope. Don't propagate.
       if (used_var.kind == used_variable_kind::assignment) {
@@ -465,7 +466,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   for (const used_variable &used_var :
        current_scope.variables_used_in_descendant_scope) {
     const declared_variable *var =
-        parent_scope.find_declared_variable(used_var.name);
+        parent_scope.declared_variables.find(used_var.name);
     if (var) {
       // This variable was declared in the parent scope. Don't propagate.
       if (used_var.kind == used_variable_kind::assignment) {
@@ -538,7 +539,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
     const linter::scope &scope, identifier name, variable_kind kind,
     linter::declared_variable_scope declaration_scope) const {
   const declared_variable *already_declared_variable =
-      scope.find_declared_variable(name);
+      scope.declared_variables.find(name);
   if (already_declared_variable) {
     using vk = variable_kind;
     vk other_kind = already_declared_variable->kind();
@@ -592,29 +593,43 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
   }
 }
 
-const linter::declared_variable *linter::scope::add_variable_declaration(
+const linter::declared_variable *
+linter::declared_variable_set::add_variable_declaration(
     identifier name, variable_kind kind,
     declared_variable_scope declared_scope) {
-  this->declared_variables.emplace_back(
+  this->variables_.emplace_back(
       declared_variable::make_local(name, kind, declared_scope));
-  return &this->declared_variables.back();
+  return &this->variables_.back();
 }
 
-void linter::scope::add_predefined_variable_declaration(const char8 *name,
-                                                        variable_kind kind) {
-  this->declared_variables.emplace_back(
-      declared_variable::make_global(name, kind));
+void linter::declared_variable_set::add_predefined_variable_declaration(
+    const char8 *name, variable_kind kind) {
+  this->variables_.emplace_back(declared_variable::make_global(name, kind));
 }
 
-const linter::declared_variable *linter::scope::find_declared_variable(
+const linter::declared_variable *linter::declared_variable_set::find(
     identifier name) const noexcept {
   string8_view name_view = name.normalized_name();
-  for (const declared_variable &var : this->declared_variables) {
+  for (const declared_variable &var : this->variables_) {
     if (var.name() == name_view) {
       return &var;
     }
   }
   return nullptr;
+}
+
+void linter::declared_variable_set::clear() noexcept {
+  this->variables_.clear();
+}
+
+std::vector<linter::declared_variable>::const_iterator
+linter::declared_variable_set::begin() const noexcept {
+  return this->variables_.cbegin();
+}
+
+std::vector<linter::declared_variable>::const_iterator
+linter::declared_variable_set::end() const noexcept {
+  return this->variables_.cend();
 }
 
 void linter::scope::clear() {

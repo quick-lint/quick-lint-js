@@ -138,6 +138,24 @@ class linter {
     used_variable_kind kind;
   };
 
+  class declared_variable_set {
+   public:
+    const declared_variable *add_variable_declaration(identifier name,
+                                                      variable_kind,
+                                                      declared_variable_scope);
+    void add_predefined_variable_declaration(const char8 *name, variable_kind);
+
+    const declared_variable *find(identifier name) const noexcept;
+
+    void clear() noexcept;
+
+    std::vector<declared_variable>::const_iterator begin() const noexcept;
+    std::vector<declared_variable>::const_iterator end() const noexcept;
+
+   private:
+    std::vector<declared_variable> variables_;
+  };
+
   // A scope tracks variable declarations and references in a lexical JavaScript
   // scope.
   //
@@ -148,18 +166,10 @@ class linter {
   // * () => {} (arrow function)
   // * for(let x of y)
   struct scope {
-    std::vector<declared_variable> declared_variables;
+    declared_variable_set declared_variables;
     std::vector<used_variable> variables_used;
     std::vector<used_variable> variables_used_in_descendant_scope;
     std::optional<declared_variable> function_expression_declaration;
-
-    const declared_variable *add_variable_declaration(identifier name,
-                                                      variable_kind,
-                                                      declared_variable_scope);
-    void add_predefined_variable_declaration(const char8 *name, variable_kind);
-
-    const declared_variable *find_declared_variable(identifier name) const
-        noexcept;
 
     void clear();
   };
