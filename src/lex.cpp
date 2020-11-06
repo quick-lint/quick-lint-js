@@ -770,15 +770,6 @@ done_parsing_garbage:
   return input;
 }
 
-void lexer::parse_hexadecimal_number() {
-  QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
-  char8* input = this->input_;
-
-  input = parse_hex_digits_and_underscores(input);
-
-  this->input_ = check_garbage_in_number_literal(input);
-}
-
 void lexer::parse_binary_number() {
   QLJS_ASSERT(this->is_binary_digit(this->input_[0]));
   char8* input = this->input_;
@@ -856,7 +847,6 @@ done_parsing_garbage:
   this->input_ = input;
 }
 
-
 void lexer::parse_number() {
   QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   char8* input = this->input_;
@@ -910,6 +900,15 @@ void lexer::parse_number() {
     break;
   }
   this->input_ = input;
+}
+
+void lexer::parse_hexadecimal_number() {
+  QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
+  char8* input = this->input_;
+
+  input = parse_hex_digits_and_underscores(input);
+
+  this->input_ = check_garbage_in_number_literal(input);
 }
 
 template <class Func>
