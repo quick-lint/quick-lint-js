@@ -106,7 +106,6 @@
 namespace quick_lint_js {
 linter::linter(error_reporter *error_reporter)
     : error_reporter_(error_reporter) {
-  scope &global_scope = this->scopes_.global_scope();
   scope &module_scope = this->scopes_.module_scope();
 
   const char8 *writable_global_variables[] = {
@@ -194,7 +193,7 @@ linter::linter(error_reporter *error_reporter)
   };
 
   for (const char8 *global_variable : writable_global_variables) {
-    global_scope.declared_variables.add_predefined_variable_declaration(
+    this->global_scope_.declared_variables.add_predefined_variable_declaration(
         global_variable, variable_kind::_function);
   }
 
@@ -205,7 +204,7 @@ linter::linter(error_reporter *error_reporter)
       u8"undefined",
   };
   for (const char8 *global_variable : non_writable_global_variables) {
-    global_scope.declared_variables.add_predefined_variable_declaration(
+    this->global_scope_.declared_variables.add_predefined_variable_declaration(
         global_variable, variable_kind::_const);
   }
 
@@ -368,13 +367,15 @@ void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
 }
 
 void linter::visit_end_of_module() {
+  // We expect only the module scope.
+  QLJS_ASSERT(this->scopes_.size() == 1);
+
+  scope &global_scope = this->global_scope_;
+
   this->propagate_variable_uses_to_parent_scope(
+      /*parent_scope=*/global_scope,
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
-  this->scopes_.pop();
-
-  QLJS_ASSERT(this->scopes_.size() == 1);
-  scope &global_scope = this->current_scope();
 
   std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : global_scope.variables_used) {
@@ -430,8 +431,17 @@ void linter::visit_end_of_module() {
 
 void linter::propagate_variable_uses_to_parent_scope(
     bool allow_variable_use_before_declaration, bool consume_arguments) {
+  this->propagate_variable_uses_to_parent_scope(
+      /*parent_scope=*/this->parent_scope(),
+      /*allow_variable_use_before_declaration=*/
+      allow_variable_use_before_declaration,
+      /*consume_arguments=*/consume_arguments);
+}
+
+void linter::propagate_variable_uses_to_parent_scope(
+    scope &parent_scope, bool allow_variable_use_before_declaration,
+    bool consume_arguments) {
   scope &current_scope = this->current_scope();
-  scope &parent_scope = this->parent_scope();
 
   auto is_current_scope_function_name = [&](const used_variable &var) {
     return current_scope.function_expression_declaration.has_value() &&
@@ -640,16 +650,11 @@ void linter::scope::clear() {
 }
 
 linter::scopes::scopes() {
-  this->push();  // global_scope
   this->push();  // module_scope
 }
 
-linter::scope &linter::scopes::global_scope() noexcept {
-  return this->scopes_[0];
-}
-
 linter::scope &linter::scopes::module_scope() noexcept {
-  return this->scopes_[1];
+  return this->scopes_[0];
 }
 
 linter::scope &linter::scopes::current_scope() noexcept {

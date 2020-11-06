@@ -179,15 +179,6 @@ class linter {
    public:
     explicit scopes();
 
-    // The global scope which holds properties of the globalThis object.
-    //
-    // The global scope cannot be modified lexically by user programs. Variables
-    // declared with 'let', 'class', etc. at the top level of the program are
-    // declared in the module scope, not the global scope.
-    //
-    // The global scope always exists.
-    scope &global_scope() noexcept;
-
     // The module scope which holds properties not on the globalThis object.
     //
     // Variables declared with 'let', 'class', etc. at the top level of the
@@ -219,6 +210,9 @@ class linter {
 
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments);
+  void propagate_variable_uses_to_parent_scope(
+      scope &parent_scope, bool allow_variable_use_before_declaration,
+      bool consume_arguments);
 
   void propagate_variable_declarations_to_parent_scope();
 
@@ -233,6 +227,14 @@ class linter {
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
 
   scopes scopes_;
+
+  // The scope which holds properties of the globalThis object.
+  //
+  // The global scope cannot be modified lexically by user programs. Variables
+  // declared with 'let', 'class', etc. at the top level of the program are
+  // declared in the module scope, not the global scope.
+  scope global_scope_;
+
   error_reporter *error_reporter_;
 };
 }
