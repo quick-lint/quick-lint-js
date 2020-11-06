@@ -370,7 +370,7 @@ void linter::visit_end_of_module() {
   // We expect only the module scope.
   QLJS_ASSERT(this->scopes_.size() == 1);
 
-  scope &global_scope = this->global_scope_;
+  linter::global_scope &global_scope = this->global_scope_;
 
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/global_scope,
@@ -438,8 +438,9 @@ void linter::propagate_variable_uses_to_parent_scope(
       /*consume_arguments=*/consume_arguments);
 }
 
+template <class Scope>
 void linter::propagate_variable_uses_to_parent_scope(
-    scope &parent_scope, bool allow_variable_use_before_declaration,
+    Scope &parent_scope, bool allow_variable_use_before_declaration,
     bool consume_arguments) {
   scope &current_scope = this->current_scope();
 

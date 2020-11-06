@@ -174,6 +174,12 @@ class linter {
     void clear();
   };
 
+  struct global_scope {
+    declared_variable_set declared_variables;
+    std::vector<used_variable> variables_used;
+    std::vector<used_variable> variables_used_in_descendant_scope;
+  };
+
   // A stack of scope objects.
   class scopes {
    public:
@@ -210,8 +216,9 @@ class linter {
 
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments);
+  template <class Scope>
   void propagate_variable_uses_to_parent_scope(
-      scope &parent_scope, bool allow_variable_use_before_declaration,
+      Scope &parent_scope, bool allow_variable_use_before_declaration,
       bool consume_arguments);
 
   void propagate_variable_declarations_to_parent_scope();
@@ -233,7 +240,7 @@ class linter {
   // The global scope cannot be modified lexically by user programs. Variables
   // declared with 'let', 'class', etc. at the top level of the program are
   // declared in the module scope, not the global scope.
-  scope global_scope_;
+  global_scope global_scope_;
 
   error_reporter *error_reporter_;
 };
