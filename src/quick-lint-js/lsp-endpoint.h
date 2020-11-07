@@ -70,12 +70,9 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
 
  private:
   void message_parsed(string8_view message) {
-    // TODO(strager): Reuse parser across calls.
-    ::simdjson::dom::parser json_parser;
-
     ::simdjson::dom::element request;
     ::simdjson::error_code parse_error;
-    json_parser
+    this->json_parser_
         .parse(reinterpret_cast<const char*>(message.data()), message.size())
         .tie(request, parse_error);
     if (parse_error != ::simdjson::error_code::SUCCESS) {
@@ -135,6 +132,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
 
   Remote remote_;
   Handler handler_;
+  ::simdjson::dom::parser json_parser_;
 
   friend message_parser;
 };
