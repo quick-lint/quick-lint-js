@@ -104,9 +104,8 @@
 //     as reporting an error if a 'const'-declared variable is assigned to.
 
 namespace quick_lint_js {
-linter::linter(error_reporter *error_reporter)
-    : error_reporter_(error_reporter) {
-  scope &module_scope = this->scopes_.module_scope();
+linter::declared_variable_set linter::make_global_variables() {
+  declared_variable_set vars;
 
   const char8 *writable_global_variables[] = {
       // ECMA-262 18.1 Value Properties of the Global Object
@@ -191,10 +190,9 @@ linter::linter(error_reporter *error_reporter)
       u8"setTimeout",
       u8"unescape",
   };
-
   for (const char8 *global_variable : writable_global_variables) {
-    this->global_scope_.declared_variables.add_predefined_variable_declaration(
-        global_variable, variable_kind::_function);
+    vars.add_predefined_variable_declaration(global_variable,
+                                             variable_kind::_function);
   }
 
   const char8 *non_writable_global_variables[] = {
@@ -204,9 +202,22 @@ linter::linter(error_reporter *error_reporter)
       u8"undefined",
   };
   for (const char8 *global_variable : non_writable_global_variables) {
-    this->global_scope_.declared_variables.add_predefined_variable_declaration(
-        global_variable, variable_kind::_const);
+    vars.add_predefined_variable_declaration(global_variable,
+                                             variable_kind::_const);
   }
+
+  return vars;
+}
+
+const linter::declared_variable_set *linter::get_global_variables() {
+  static declared_variable_set vars = make_global_variables();
+  return &vars;
+}
+
+linter::linter(error_reporter *error_reporter)
+    : global_scope_(this->get_global_variables()),
+      error_reporter_(error_reporter) {
+  scope &module_scope = this->scopes_.module_scope();
 
   const char8 *writable_module_variables[] = {
       // Node.js

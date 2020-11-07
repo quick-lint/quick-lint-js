@@ -175,7 +175,10 @@ class linter {
   };
 
   struct global_scope {
-    declared_variable_set declared_variables;
+    explicit global_scope(const declared_variable_set *declared_variables)
+        : declared_variables(*declared_variables) {}
+
+    const declared_variable_set &declared_variables;
     std::vector<used_variable> variables_used;
     std::vector<used_variable> variables_used_in_descendant_scope;
   };
@@ -232,6 +235,9 @@ class linter {
 
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
+
+  static linter::declared_variable_set make_global_variables();
+  const static linter::declared_variable_set *get_global_variables();
 
   scopes scopes_;
 
