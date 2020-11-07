@@ -13,14 +13,15 @@ Recommended process:
 The exact commands you need to run differs depending on your preferred
 development environment and build tool:
 
-* [macOS and Linux: Ninja](#macos-and-linux-ninja)
-* [macOS and Linux: make](#macos-and-linux-make)
+* [Linux: Ninja](#linux-ninja)
+* [Linux: make](#linux-make)
+* [macOS: Homebrew LLVM and Ninja](#macos-homebrew-llvm-and-ninja)
 * [Windows: Visual Studio](#windows-visual-studio)
 * [macOS and Linux: nix](#macos-and-linux-nix)
 
 ---
 
-### macOS and Linux: Ninja
+### Linux: Ninja
 
 #### 1. Configure with CMake
 
@@ -56,7 +57,7 @@ If you want to run the quick-lint-js program:
 
 ---
 
-### macOS and Linux: make
+### Linux: make
 
 #### 1. Configure with CMake
 
@@ -79,6 +80,55 @@ If you only want to build the quick-lint-js executable:
 If you only want to build quick-lint-js' tests:
 
     $ make -j4 -C build quick-lint-js-test
+
+#### 3. Run
+
+Run the following command to run quick-lint-js' test suite:
+
+    $ ./build/test/quick-lint-js-test
+
+If you want to run the quick-lint-js program:
+
+    $ ./build/quick-lint-js
+
+---
+
+### macOS: Homebrew LLVM and Ninja
+
+#### 0. Install Homebrew packages
+
+Install LLVM, CMake, and Ninja using [Homebrew][] by running the following
+command:
+
+    $ brew install cmake llvm ninja
+
+#### 1. Configure with CMake
+
+Run the following command to use Homebrew's version of LLVM and create a
+directory called `build`:
+
+    $ PATH="$(brew --prefix)/opt/llvm/bin:$PATH" \
+      CC=clang \
+      CXX=clang++ \
+      CPPFLAGS="-I$(brew --prefix)/opt/llvm/include" \
+      CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY \
+      LDFLAGS="-L$(brew --prefix)/opt/llvm/lib" \
+      cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -S . -B build
+
+#### 2. Build
+
+Run the following command to build the quick-lint-js executable, quick-lint-js'
+tests, and quick-lint-js' benchmarks:
+
+    $ ninja -C build
+
+If you only want to build the quick-lint-js executable:
+
+    $ ninja -C build quick-lint-js
+
+If you only want to build quick-lint-js' tests:
+
+    $ ninja -C build quick-lint-js-test
 
 #### 3. Run
 
