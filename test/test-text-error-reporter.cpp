@@ -136,17 +136,6 @@ TEST_F(test_text_error_reporter, big_int_literal_contains_exponent) {
             "FILE:1:1: error: BigInt literal contains exponent\n");
 }
 
-TEST_F(test_text_error_reporter, big_int_literal_contains_leading_zero) {
-  padded_string input(u8"080085n"_sv);
-  source_code_span number_span(&input[1 - 1], &input[7 + 1 - 1]);
-  ASSERT_EQ(number_span.string_view(), u8"080085n");
-
-  this->make_reporter(&input).report(
-      error_big_int_literal_contains_leading_zero{number_span});
-  EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: BigInt literal has a leading 0 digit\n");
-}
-
 TEST_F(test_text_error_reporter, invalid_binding_in_let_statement) {
   padded_string input(u8"let 2 = 3;"_sv);
   source_code_span two_span(&input[5 - 1], &input[5 + 1 - 1]);

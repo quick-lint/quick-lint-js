@@ -76,26 +76,6 @@ TEST_F(test_vim_qflist_json_error_reporter,
 }
 
 TEST_F(test_vim_qflist_json_error_reporter,
-       big_int_literal_contains_leading_zero) {
-  padded_string input(u8"080085n"_sv);
-  source_code_span number_span(&input[1 - 1], &input[7 + 1 - 1]);
-  ASSERT_EQ(number_span.string_view(), u8"080085n");
-
-  vim_qflist_json_error_reporter reporter =
-      this->make_reporter(&input, /*vim_bufnr=*/0);
-  reporter.report(error_big_int_literal_contains_leading_zero{number_span});
-  reporter.finish();
-
-  ::Json::Value qflist = this->parse_json()["qflist"];
-  ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["col"], 1);
-  EXPECT_EQ(qflist[0]["end_col"], 7);
-  EXPECT_EQ(qflist[0]["end_lnum"], 1);
-  EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["text"], "BigInt literal has a leading 0 digit");
-}
-
-TEST_F(test_vim_qflist_json_error_reporter,
        assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);

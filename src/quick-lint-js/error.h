@@ -75,12 +75,6 @@
       error_big_int_literal_contains_exponent, { source_code_span where; },    \
       .error(QLJS_TRANSLATE("BigInt literal contains exponent"), where))       \
                                                                                \
-  /* TODO(mc2), remove */                                                      \
-  QLJS_ERROR_TYPE(                                                             \
-      error_big_int_literal_contains_leading_zero,                             \
-      { source_code_span where; },                                             \
-      .error(QLJS_TRANSLATE("BigInt literal has a leading 0 digit"), where))   \
-                                                                               \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_class_named_let, { source_code_span name; },        \
       .error(QLJS_TRANSLATE("classes cannot be named 'let'"), name))           \
