@@ -31,6 +31,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 
 using namespace std::literals::string_view_literals;
 
@@ -56,13 +57,16 @@ void check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&));
+std::vector<token_type> lex_to_eof(padded_string_view, error_collector&);
+std::vector<token_type> lex_to_eof(padded_string_view);
+std::vector<token_type> lex_to_eof(string8_view);
 
 TEST(test_lex, lex_block_comments) {
   check_single_token(u8"/* */ hello"_sv, u8"hello");
   check_single_token(u8"/*/ comment */ hi"_sv, u8"hi");
   check_single_token(u8"/* comment /*/ hi"_sv, u8"hi");
   check_single_token(u8"/* not /* nested */ ident"_sv, u8"ident");
-  check_single_token(u8"/**/"_sv, token_type::end_of_file);
+  EXPECT_THAT(lex_to_eof(u8"/**/"_sv), IsEmpty());
 
   {
     error_collector v;
@@ -78,12 +82,12 @@ TEST(test_lex, lex_block_comments) {
 }
 
 TEST(test_lex, lex_line_comments) {
-  check_single_token(u8"// hello"_sv, token_type::end_of_file);
+  EXPECT_THAT(lex_to_eof(u8"// hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
     check_single_token(u8"// hello" + string8(line_terminator) + u8"world",
                        u8"world");
   }
-  check_single_token(u8"// hello\n// world"_sv, token_type::end_of_file);
+  EXPECT_THAT(lex_to_eof(u8"// hello\n// world"_sv), IsEmpty());
   check_tokens(u8"hello//*/\n \n \nworld"_sv,
                {token_type::identifier, token_type::identifier});
 }
@@ -99,13 +103,13 @@ TEST(test_lex, lex_line_comments_with_control_characters) {
 }
 
 TEST(test_lex, lex_html_open_comments) {
-  check_single_token(u8"<!-- --> hello"_sv, token_type::end_of_file);
+  EXPECT_THAT(lex_to_eof(u8"<!-- --> hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
     check_single_token(u8"<!-- hello" + string8(line_terminator) + u8"world",
                        u8"world");
   }
-  check_single_token(u8"<!-- hello\n<!-- world"_sv, token_type::end_of_file);
-  check_single_token(u8"<!--// hello"_sv, token_type::end_of_file);
+  EXPECT_THAT(lex_to_eof(u8"<!-- hello\n<!-- world"_sv), IsEmpty());
+  EXPECT_THAT(lex_to_eof(u8"<!--// hello"_sv), IsEmpty());
   check_tokens(u8"hello<!--->\n \n \nworld"_sv,
                {token_type::identifier, token_type::identifier});
   for (string8_view control_character :
@@ -1631,14 +1635,8 @@ void check_single_token(string8_view input, token_type expected_token_type) {
 
 void check_single_token(padded_string_view input,
                         token_type expected_token_type) {
-  error_collector errors;
-  lexer l(input, &errors);
-
-  EXPECT_EQ(l.peek().type, expected_token_type);
-  l.skip();
-  EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-  EXPECT_THAT(errors.errors, IsEmpty());
+  std::vector<token_type> tokens = lex_to_eof(input);
+  EXPECT_THAT(tokens, ElementsAre(expected_token_type));
 }
 
 void check_single_token(string8_view input,
@@ -1680,15 +1678,32 @@ void check_tokens_with_errors(
                          const std::vector<error_collector::error>&)) {
   padded_string code(input);
   error_collector errors;
-  lexer l(&code, &errors);
+  std::vector<token_type> tokens = lex_to_eof(&code, errors);
+  EXPECT_THAT(tokens, ::testing::ElementsAreArray(expected_token_types));
+  check_errors(&code, errors.errors);
+}
 
-  for (token_type expected_token_type : expected_token_types) {
-    EXPECT_EQ(l.peek().type, expected_token_type);
+std::vector<token_type> lex_to_eof(padded_string_view input) {
+  error_collector errors;
+  std::vector<token_type> tokens = lex_to_eof(input, errors);
+  EXPECT_THAT(errors.errors, IsEmpty());
+  return tokens;
+}
+
+std::vector<token_type> lex_to_eof(padded_string_view input,
+                                   error_collector& errors) {
+  lexer l(input, &errors);
+  std::vector<token_type> tokens;
+  while (l.peek().type != token_type::end_of_file) {
+    tokens.push_back(l.peek().type);
     l.skip();
   }
-  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  return tokens;
+}
 
-  check_errors(&code, errors.errors);
+std::vector<token_type> lex_to_eof(string8_view input) {
+  padded_string real_input(input);
+  return lex_to_eof(&real_input);
 }
 }
 }
