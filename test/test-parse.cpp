@@ -1571,6 +1571,22 @@ TEST(test_parse, parse_class_statement) {
   }
 
   {
+    spy_visitor v;
+    padded_string code(u8"class A {} class B {}");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"A", variable_kind::_class},
+                    spy_visitor::visited_variable_declaration{
+                        u8"B", variable_kind::_class}));
+  }
+}
+
+TEST(test_parse, class_statement_with_methods) {
+  {
     spy_visitor v = parse_and_visit_statement(
         u8"class Monster { eatMuffins(muffinCount) { } }");
 
@@ -1646,20 +1662,6 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_EQ(v.property_declarations[0].name, u8"a");
     EXPECT_EQ(v.property_declarations[1].name, u8"b");
     EXPECT_EQ(v.property_declarations[2].name, u8"c");
-  }
-
-  {
-    spy_visitor v;
-    padded_string code(u8"class A {} class B {}");
-    parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"A", variable_kind::_class},
-                    spy_visitor::visited_variable_declaration{
-                        u8"B", variable_kind::_class}));
   }
 }
 
