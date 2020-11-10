@@ -1670,6 +1670,15 @@ TEST(test_parse, class_statement_with_methods) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { [x + y]() {} }");
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, u8"x");
+    EXPECT_EQ(v.variable_uses[1].name, u8"y");
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
+  }
 }
 
 TEST(test_parse, class_statement_with_keyword_property) {

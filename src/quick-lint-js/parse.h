@@ -752,6 +752,19 @@ class parser {
       this->parse_and_visit_function_parameters_and_body(v);
       break;
 
+    // [methodNameExpression]() {}
+    case token_type::left_square:
+      this->skip();
+
+      this->parse_and_visit_expression(v);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+      this->skip();
+
+      v.visit_property_declaration();
+      this->parse_and_visit_function_parameters_and_body(v);
+      break;
+
     // async() {}
     // get() {}
     case token_type::left_paren:
