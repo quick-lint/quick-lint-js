@@ -1663,6 +1663,13 @@ TEST(test_parse, class_statement_with_methods) {
     EXPECT_EQ(v.property_declarations[1].name, u8"b");
     EXPECT_EQ(v.property_declarations[2].name, u8"c");
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { \"stringKey\"() {} }");
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
+  }
 }
 
 TEST(test_parse, class_statement_with_keyword_property) {

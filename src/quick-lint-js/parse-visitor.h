@@ -48,6 +48,7 @@ concept parse_visitor = requires(Visitor v, identifier name,
   {v.visit_exit_class_scope()};
   {v.visit_exit_for_scope()};
   {v.visit_exit_function_scope()};
+  {v.visit_property_declaration()};
   {v.visit_property_declaration(name)};
   {v.visit_variable_assignment(name)};
   {v.visit_variable_declaration(name, var_kind)};

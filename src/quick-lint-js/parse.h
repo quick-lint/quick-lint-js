@@ -745,6 +745,13 @@ class parser {
       this->parse_and_visit_function_parameters_and_body(v);
       break;
 
+    // "method"() {}
+    case token_type::string:
+      v.visit_property_declaration();
+      this->skip();
+      this->parse_and_visit_function_parameters_and_body(v);
+      break;
+
     // async() {}
     // get() {}
     case token_type::left_paren:

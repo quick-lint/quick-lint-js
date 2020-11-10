@@ -279,6 +279,8 @@ void linter::visit_exit_function_scope() {
   this->scopes_.pop();
 }
 
+void linter::visit_property_declaration() {}
+
 void linter::visit_property_declaration(identifier) {}
 
 void linter::visit_variable_declaration(identifier name, variable_kind kind) {

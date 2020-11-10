@@ -195,6 +195,8 @@ class debug_visitor {
 
   void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
 
+  void visit_property_declaration() { std::cerr << "property declaration\n"; }
+
   void visit_property_declaration(identifier name) {
     std::cerr << "property declaration: " << out_string8(name.normalized_name())
               << '\n';
@@ -280,6 +282,11 @@ class multi_visitor {
   void visit_exit_function_scope() {
     this->visitor_1_->visit_exit_function_scope();
     this->visitor_2_->visit_exit_function_scope();
+  }
+
+  void visit_property_declaration() {
+    this->visitor_1_->visit_property_declaration();
+    this->visitor_2_->visit_property_declaration();
   }
 
   void visit_property_declaration(identifier name) {

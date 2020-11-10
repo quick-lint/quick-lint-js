@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_SPY_VISITOR_H
 
 #include <iosfwd>
+#include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
@@ -93,6 +94,11 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_exit_function_scope");
   }
 
+  void visit_property_declaration() {
+    this->property_declarations.emplace_back(visited_property_declaration());
+    this->visits.emplace_back("visit_property_declaration");
+  }
+
   void visit_property_declaration(identifier name) {
     this->property_declarations.emplace_back(
         visited_property_declaration{string8(name.normalized_name())});
@@ -100,7 +106,7 @@ struct spy_visitor : public error_collector {
   }
 
   struct visited_property_declaration {
-    string8 name;
+    std::optional<string8> name;
 
     bool operator==(const visited_property_declaration &other) const {
       return this->name == other.name;

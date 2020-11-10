@@ -67,8 +67,11 @@ class buffering_visitor {
       case visit_kind::exit_function_scope:
         target.visit_exit_function_scope();
         break;
-      case visit_kind::property_declaration:
+      case visit_kind::property_declaration_with_name:
         target.visit_property_declaration(v.name);
+        break;
+      case visit_kind::property_declaration_without_name:
+        target.visit_property_declaration();
         break;
       case visit_kind::variable_assignment:
         target.visit_variable_assignment(v.name);
@@ -130,8 +133,13 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::exit_function_scope);
   }
 
+  void visit_property_declaration() {
+    this->visits_.emplace_back(visit_kind::property_declaration_without_name);
+  }
+
   void visit_property_declaration(identifier name) {
-    this->visits_.emplace_back(visit_kind::property_declaration, name);
+    this->visits_.emplace_back(visit_kind::property_declaration_with_name,
+                               name);
   }
 
   void visit_variable_assignment(identifier name) {
@@ -163,7 +171,8 @@ class buffering_visitor {
     exit_class_scope,
     exit_for_scope,
     exit_function_scope,
-    property_declaration,
+    property_declaration_with_name,
+    property_declaration_without_name,
     variable_assignment,
     variable_use,
     variable_typeof_use,

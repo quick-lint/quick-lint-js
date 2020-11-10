@@ -45,6 +45,8 @@ class null_visitor {
 
   void visit_exit_function_scope() {}
 
+  void visit_property_declaration() {}
+
   void visit_property_declaration(identifier) {}
 
   void visit_variable_assignment(identifier) {}
