@@ -300,6 +300,12 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(function, prec);
   }
 
+  // class {}
+  case token_type::kw_class: {
+    expression_ptr class_expression = this->parse_class_expression();
+    return this->parse_expression_remainder(class_expression, prec);
+  }
+
   case token_type::kw_new: {
     source_code_span operator_span = this->peek().span();
     this->skip();
@@ -837,6 +843,31 @@ expression_ptr parser::parse_object_literal() {
   return this->make_expression<expression::object>(
       this->expressions_.make_array(std::move(entries)),
       source_code_span(left_curly_begin, right_curly_end));
+}
+
+expression_ptr parser::parse_class_expression() {
+  QLJS_ASSERT(this->peek().type == token_type::kw_class);
+  const char8 *span_begin = this->peek().begin;
+  this->skip();
+
+  buffering_visitor *v = this->expressions_.make_buffering_visitor();
+  if (this->peek().type == token_type::identifier) {
+    v->visit_variable_declaration(this->peek().identifier_name(),
+                                  variable_kind::_class);
+    this->skip();
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+  this->skip();
+
+  this->parse_and_visit_class_body(*v);
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  const char8 *span_end = this->peek().end;
+  this->skip();
+
+  return this->make_expression<expression::_class>(
+      v, source_code_span(span_begin, span_end));
 }
 
 expression_ptr parser::parse_template(std::optional<expression_ptr> tag) {

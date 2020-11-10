@@ -1703,6 +1703,39 @@ TEST(test_parse, class_statement_with_keyword_property) {
   }
 }
 
+TEST(test_parse, class_expression) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(class C { })");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     //
+                                      "visit_variable_declaration",  // C
+                                      "visit_exit_class_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"C");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(class { })");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+                                      "visit_exit_class_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(class { a() {} [b]() {} })");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          //
+                                      "visit_property_declaration",       // a
+                                      "visit_enter_function_scope",       // a
+                                      "visit_enter_function_scope_body",  // a
+                                      "visit_exit_function_scope",        // a
+                                      "visit_variable_use",               // b
+                                      "visit_property_declaration",       // [b]
+                                      "visit_enter_function_scope",       // [b]
+                                      "visit_enter_function_scope_body",  // [b]
+                                      "visit_exit_function_scope",        // [b]
+                                      "visit_exit_class_scope"));
+  }
+}
+
 TEST(test_parse, class_statement_allows_stray_semicolons) {
   spy_visitor v = parse_and_visit_statement(u8"class C{ ; f(){} ; }");
   ASSERT_EQ(v.property_declarations.size(), 1);

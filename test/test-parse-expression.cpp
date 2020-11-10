@@ -124,6 +124,7 @@ class test_parser {
       this->clean_up_expression(ast->child_1());
       this->clean_up_expression(ast->child_2());
       break;
+    case expression_kind::_class:
     case expression_kind::function:
     case expression_kind::named_function:
       visit_children();
@@ -1405,6 +1406,26 @@ TEST_F(test_parse_expression, async_arrow_function) {
   }
 }
 
+TEST_F(test_parse_expression, anonymous_class) {
+  {
+    test_parser p(u8"class {}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::_class);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 8);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"class C {}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::_class);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 10);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST_F(test_parse_expression, parse_mixed_expression) {
   {
     expression_ptr ast = this->parse_expression(u8"a+f()");
@@ -1458,6 +1479,11 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
     expression_ptr ast = this->parse_expression(u8"x --> 0");
     EXPECT_EQ(summarize(ast), "binary(rwunarysuffix(var x), literal)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"class {} + 42");
+    EXPECT_EQ(summarize(ast), "binary(class, literal)");
+  }
 }
 
 std::string summarize(const expression &expression) {
@@ -1483,6 +1509,8 @@ std::string summarize(const expression &expression) {
     QLJS_UNREACHABLE();
   };
   switch (expression.kind()) {
+  case expression_kind::_class:
+    return "class";
   case expression_kind::_invalid:
     return "?";
   case expression_kind::_new:

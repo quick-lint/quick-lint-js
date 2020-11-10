@@ -304,6 +304,11 @@ class parser {
     case expression_kind::tagged_template_literal:
       visit_children();
       break;
+    case expression_kind::_class:
+      v.visit_enter_class_scope();
+      ast->visit_children(v, this->expressions_);
+      v.visit_exit_class_scope();
+      break;
     case expression_kind::arrow_function_with_expression: {
       v.visit_enter_function_scope();
       int body_child_index = ast->child_count() - 1;
@@ -1357,6 +1362,8 @@ class parser {
                                            const char8 *span_begin);
 
   expression_ptr parse_object_literal();
+
+  expression_ptr parse_class_expression();
 
   expression_ptr parse_template(std::optional<expression_ptr> tag);
 

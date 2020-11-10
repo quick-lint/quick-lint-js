@@ -66,6 +66,7 @@ class expression_ptr {
 };
 
 enum class expression_kind {
+  _class,
   _invalid,
   _new,
   _template,
@@ -164,6 +165,7 @@ class expression {
  public:
   class expression_with_prefix_operator_base;
 
+  class _class;
   class _invalid;
   class _new;
   class _template;
@@ -352,6 +354,26 @@ class expression::expression_with_prefix_operator_base : public expression {
   const char8 *unary_operator_begin_;
   expression_ptr child_;
 };
+
+class expression::_class : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_class;
+
+  explicit _class(expression_arena::buffering_visitor_ptr child_visits,
+                  source_code_span span) noexcept
+      : expression(kind), child_visits_(child_visits), span_(span) {}
+
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
+    return std::exchange(this->child_visits_, nullptr);
+  }
+
+ private:
+  expression_arena::buffering_visitor_ptr child_visits_;
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::_class>);
 
 class expression::_invalid final : public expression {
  public:
@@ -1022,6 +1044,7 @@ inline auto expression::with_derived(Func &&func) {
     return func(static_cast<kind &>(*this));
 
   switch (this->kind()) {
+    QLJS_EXPRESSION_CASE(_class)
     QLJS_EXPRESSION_CASE(_invalid)
     QLJS_EXPRESSION_CASE(_new)
     QLJS_EXPRESSION_CASE(_template)
