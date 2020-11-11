@@ -2350,6 +2350,27 @@ TEST(test_parse, variables_can_be_named_let) {
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (let in xs) ;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",      //
+                                      "visit_variable_use",         // xs
+                                      "visit_variable_assignment",  // let
+                                      "visit_exit_for_scope"));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"let"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (let.prop in xs) ;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",  //
+                                      "visit_variable_use",     // xs
+                                      "visit_variable_use",     // let
+                                      "visit_exit_for_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"xs"},  //
+                            spy_visitor::visited_variable_use{u8"let"}));
+  }
 }
 
 TEST(test_parse, statement_beginning_with_let) {

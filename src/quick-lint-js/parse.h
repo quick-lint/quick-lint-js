@@ -1339,12 +1339,24 @@ class parser {
           // * let = expression;
           // * let();
           // * let;
+          // * let in other;  // If allow_in_operator is false.
+          // * for (let in myArray) {}  // allow_in_operator is true.
           expression_ptr let_variable =
               this->make_expression<expression::variable>(let_identifier,
                                                           let_token_type);
-          expression_ptr ast =
-              this->parse_expression_remainder(let_variable, precedence{});
-          this->visit_expression(ast, v, variable_context::rhs);
+          expression_ptr ast = this->parse_expression_remainder(
+              let_variable, precedence{.in_operator = allow_in_operator});
+
+          // TODO(strager): Make this a parameter instead of hackily overloading
+          // the meaning of the allow_in_operator parameter.
+          bool in_for_loop_init = !allow_in_operator;
+          if (in_for_loop_init) {
+            // for (let in myArray) {}
+            this->visit_expression(ast, v, variable_context::lhs);
+            this->maybe_visit_assignment(ast, v);
+          } else {
+            this->visit_expression(ast, v, variable_context::rhs);
+          }
         } else {
           QLJS_PARSER_UNIMPLEMENTED();
         }
