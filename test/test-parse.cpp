@@ -1742,6 +1742,13 @@ TEST(test_parse, class_expression) {
                                       "visit_variable_declaration",  // A
                                       "visit_exit_class_scope"));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(class extends C {})");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+                                      "visit_variable_use",       // C
+                                      "visit_exit_class_scope"));
+  }
 }
 
 TEST(test_parse, class_statement_allows_stray_semicolons) {

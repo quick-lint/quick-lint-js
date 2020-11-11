@@ -681,6 +681,10 @@ class parser {
     case token_type::left_curly:
       break;
 
+    // class extends C { }
+    case token_type::kw_extends:
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
