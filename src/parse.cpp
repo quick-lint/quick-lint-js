@@ -848,14 +848,9 @@ expression_ptr parser::parse_object_literal() {
 expression_ptr parser::parse_class_expression() {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   const char8 *span_begin = this->peek().begin;
-  this->skip();
 
   buffering_visitor *v = this->expressions_.make_buffering_visitor();
-  if (this->peek().type == token_type::identifier) {
-    v->visit_variable_declaration(this->peek().identifier_name(),
-                                  variable_kind::_class);
-    this->skip();
-  }
+  this->parse_and_visit_class_heading(*v);
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();
