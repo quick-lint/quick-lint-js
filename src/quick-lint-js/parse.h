@@ -31,6 +31,42 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 
+#define QLJS_CASE_BINARY_ONLY_OPERATOR      \
+  case token_type::kw_instanceof:           \
+  case token_type::ampersand:               \
+  case token_type::ampersand_ampersand:     \
+  case token_type::bang_equal:              \
+  case token_type::bang_equal_equal:        \
+  case token_type::circumflex:              \
+  case token_type::equal_equal:             \
+  case token_type::equal_equal_equal:       \
+  case token_type::greater:                 \
+  case token_type::greater_equal:           \
+  case token_type::greater_greater:         \
+  case token_type::greater_greater_greater: \
+  case token_type::less:                    \
+  case token_type::less_equal:              \
+  case token_type::less_less:               \
+  case token_type::percent:                 \
+  case token_type::pipe:                    \
+  case token_type::pipe_pipe:               \
+  case token_type::star:                    \
+  case token_type::star_star
+
+#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR    \
+  case token_type::ampersand_equal:               \
+  case token_type::circumflex_equal:              \
+  case token_type::greater_greater_equal:         \
+  case token_type::greater_greater_greater_equal: \
+  case token_type::less_less_equal:               \
+  case token_type::minus_equal:                   \
+  case token_type::percent_equal:                 \
+  case token_type::pipe_equal:                    \
+  case token_type::plus_equal:                    \
+  case token_type::slash_equal:                   \
+  case token_type::star_equal:                    \
+  case token_type::star_star_equal
+
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
     this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
@@ -1243,6 +1279,8 @@ class parser {
   void parse_and_visit_let_bindings(Visitor &v, variable_kind declaration_kind,
                                     bool allow_in_operator) {
     source_code_span let_span = this->peek().span();
+    identifier let_identifier = this->peek().identifier_name();
+    token_type let_token_type = this->peek().type;
     this->skip();
     bool first_binding = true;
     for (;;) {
@@ -1277,6 +1315,41 @@ class parser {
             error_invalid_binding_in_let_statement{this->peek().span()});
         this->skip();
         break;
+
+      QLJS_CASE_BINARY_ONLY_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      case token_type::comma:
+      case token_type::question:
+      case token_type::equal_greater:
+      case token_type::incomplete_template:
+      case token_type::complete_template:
+      case token_type::dot:
+      case token_type::equal:
+      case token_type::kw_in:
+      case token_type::left_paren:
+      case token_type::minus:
+      case token_type::minus_minus:
+      case token_type::plus:
+      case token_type::plus_plus:
+      case token_type::semicolon:
+      case token_type::slash:
+        if (first_binding && let_token_type == token_type::kw_let) {
+          // 'let' is the name of a variable. Examples:
+          //
+          // * let = expression;
+          // * let();
+          // * let;
+          expression_ptr let_variable =
+              this->make_expression<expression::variable>(let_identifier,
+                                                          let_token_type);
+          expression_ptr ast =
+              this->parse_expression_remainder(let_variable, precedence{});
+          this->visit_expression(ast, v, variable_context::rhs);
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+        break;
+
       default:
         if (first_binding) {
           this->error_reporter_->report(error_let_with_no_bindings{let_span});
