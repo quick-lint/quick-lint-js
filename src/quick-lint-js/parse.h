@@ -637,6 +637,33 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
+
+    this->parse_and_visit_class_heading(v);
+
+    v.visit_enter_class_scope();
+
+    switch (this->peek().type) {
+    case token_type::left_curly:
+      this->skip();
+      this->parse_and_visit_class_body(v);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+      this->skip();
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+
+    v.visit_exit_class_scope();
+  }
+
+  // Parse the 'class' keyword, the class's optional name, and any extends
+  // clause.
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_class_heading(Visitor &v) {
+    QLJS_ASSERT(this->peek().type == token_type::kw_class);
     this->skip();
 
     std::optional<identifier> optional_class_name;
@@ -687,24 +714,6 @@ class parser {
       // TODO(strager): Require class name for class declarations. Class names
       // are only optional for 'export default' and expressions.
     }
-
-    v.visit_enter_class_scope();
-
-    switch (this->peek().type) {
-    case token_type::left_curly:
-      this->skip();
-      this->parse_and_visit_class_body(v);
-
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-      this->skip();
-      break;
-
-    default:
-      QLJS_PARSER_UNIMPLEMENTED();
-      break;
-    }
-
-    v.visit_exit_class_scope();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
