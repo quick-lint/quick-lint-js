@@ -325,6 +325,9 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           this->error_reporter_->report(
               error_variable_used_before_declaration{used_var.name, name});
           break;
+        case used_variable_kind::_export:
+          // Use before declaration is legal for variable exports.
+          break;
         }
       }
       return true;
@@ -339,6 +342,10 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                this->report_error_if_assignment_is_illegal(
                    declared, used_var.name,
                    /*is_assigned_before_declaration=*/false);
+               break;
+             case used_variable_kind::_export:
+               // TODO(strager): This shouldn't happen. export statemenents are
+               // not allowed inside functions.
                break;
              case used_variable_kind::_typeof:
              case used_variable_kind::use:
@@ -361,7 +368,9 @@ void linter::visit_variable_assignment(identifier name) {
   }
 }
 
-void linter::visit_variable_export_use(identifier) {}
+void linter::visit_variable_export_use(identifier name) {
+  this->visit_variable_use(name, used_variable_kind::_export);
+}
 
 void linter::visit_variable_typeof_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_typeof);
@@ -423,6 +432,7 @@ void linter::visit_end_of_module() {
         this->error_reporter_->report(
             error_assignment_to_undeclared_variable{used_var.name});
         break;
+      case used_variable_kind::_export:
       case used_variable_kind::use:
         this->error_reporter_->report(
             error_use_of_undeclared_variable{used_var.name});

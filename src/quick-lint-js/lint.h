@@ -128,6 +128,7 @@ class linter {
   };
 
   enum class used_variable_kind {
+    _export,
     _typeof,
     assignment,
     use,

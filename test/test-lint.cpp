@@ -326,6 +326,58 @@ TEST(test_lint, import_use_before_declaration_is_okay) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
+TEST(test_lint, export_use_after_declaration_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
+
+  for (variable_kind kind : {
+           variable_kind::_class,
+           variable_kind::_const,
+           variable_kind::_function,
+           variable_kind::_import,
+           variable_kind::_let,
+           variable_kind::_var,
+       }) {
+    SCOPED_TRACE(kind);
+
+    // let x;
+    // export {x};
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, export_use_before_declaration_is_okay) {
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
+
+  for (variable_kind kind : {
+           variable_kind::_class,
+           variable_kind::_const,
+           variable_kind::_function,
+           variable_kind::_import,
+           variable_kind::_let,
+           variable_kind::_var,
+       }) {
+    SCOPED_TRACE(kind);
+
+    // export {x};
+    // let x;
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint, let_variable_use_before_declaration_within_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
@@ -586,6 +638,20 @@ TEST(test_lint, variable_use_with_no_declaration) {
   error_collector v;
   linter l(&v);
   l.visit_variable_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                           name, span_matcher(use))));
+}
+
+TEST(test_lint, variable_export_with_no_declaration) {
+  const char8 use[] = u8"x";
+
+  // export {x};  // ERROR
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_export_use(identifier_of(use));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
