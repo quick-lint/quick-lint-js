@@ -212,6 +212,11 @@ class debug_visitor {
               << '\n';
   }
 
+  void visit_variable_export_use(identifier name) {
+    std::cerr << "variable export use: " << out_string8(name.normalized_name())
+              << '\n';
+  }
+
   void visit_variable_typeof_use(identifier name) {
     std::cerr << "variable typeof use: " << out_string8(name.normalized_name())
               << '\n';
@@ -303,6 +308,11 @@ class multi_visitor {
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->visitor_1_->visit_variable_declaration(name, kind);
     this->visitor_2_->visit_variable_declaration(name, kind);
+  }
+
+  void visit_variable_export_use(identifier name) {
+    this->visitor_1_->visit_variable_export_use(name);
+    this->visitor_2_->visit_variable_export_use(name);
   }
 
   void visit_variable_typeof_use(identifier name) {

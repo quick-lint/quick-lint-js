@@ -53,6 +53,7 @@ class linter {
   void visit_property_declaration(identifier);
   void visit_variable_declaration(identifier name, variable_kind kind);
   void visit_variable_assignment(identifier name);
+  void visit_variable_export_use(identifier name);
   void visit_variable_typeof_use(identifier name);
   void visit_variable_use(identifier name);
   void visit_end_of_module();

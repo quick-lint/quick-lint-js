@@ -172,7 +172,8 @@ TEST(test_parse, export_default) {
 TEST(test_parse, export_list) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export {one, two};");
-    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",    // one
+                                      "visit_variable_export_use"));  // two
   }
 }
 

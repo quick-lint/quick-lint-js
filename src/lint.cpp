@@ -361,6 +361,8 @@ void linter::visit_variable_assignment(identifier name) {
   }
 }
 
+void linter::visit_variable_export_use(identifier) {}
+
 void linter::visit_variable_typeof_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_typeof);
 }

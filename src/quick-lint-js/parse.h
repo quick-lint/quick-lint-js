@@ -501,12 +501,14 @@ class parser {
     // export {a as default, b};
     // export {a, b, c} from "module";
     case token_type::left_curly: {
-      null_visitor null_v;
-      this->parse_and_visit_named_exports(null_v);
+      buffering_visitor exports_visitor;
+      this->parse_and_visit_named_exports(exports_visitor, /*is_export=*/true);
       if (this->peek().type == token_type::kw_from) {
         this->skip();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
         this->skip();
+      } else {
+        exports_visitor.move_into(v);
       }
       this->consume_semicolon();
       break;
@@ -1144,7 +1146,7 @@ class parser {
 
     // import {readFile} from "fs";
     case token_type::left_curly:
-      parse_and_visit_named_exports(v);
+      parse_and_visit_named_exports(v, /*is_export=*/false);
       break;
 
     // import expression statement:
@@ -1205,7 +1207,7 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports(Visitor &v) {
+  void parse_and_visit_named_exports(Visitor &v, bool is_export) {
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
@@ -1234,7 +1236,11 @@ class parser {
             break;
           }
         }
-        v.visit_variable_declaration(imported_name, variable_kind::_import);
+        if (is_export) {
+          v.visit_variable_export_use(imported_name);
+        } else {
+          v.visit_variable_declaration(imported_name, variable_kind::_import);
+        }
         break;
       }
       case token_type::right_curly:
