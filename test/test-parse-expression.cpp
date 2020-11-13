@@ -1348,6 +1348,17 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(summarize(ast->child(1)), "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p(u8"(...args) => null");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
+    EXPECT_EQ(summarize(ast->child(1)), "literal");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST_F(test_parse_expression, async_arrow_function) {
