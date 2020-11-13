@@ -474,6 +474,11 @@ TEST(test_parse, parse_invalid_let) {
 
 TEST(test_parse, parse_and_visit_import) {
   {
+    spy_visitor v = parse_and_visit_statement(u8"import 'foo';");
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"import fs from 'fs'");
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"fs");

@@ -1183,6 +1183,12 @@ class parser {
       this->parse_and_visit_name_space_import(v);
       break;
 
+    // import "foo";
+    case token_type::string:
+      this->skip();
+      this->consume_semicolon();
+      return;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
