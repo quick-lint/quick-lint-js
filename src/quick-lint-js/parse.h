@@ -1142,6 +1142,24 @@ class parser {
     case token_type::kw_let:
       this->parse_and_visit_binding_element(v, variable_kind::_import,
                                             /*allow_in_operator=*/true);
+      if (this->peek().type == token_type::comma) {
+        this->skip();
+        switch (this->peek().type) {
+        // import fs, {readFile} from "fs";
+        case token_type::left_curly:
+          parse_and_visit_named_exports(v, /*is_export=*/false);
+          break;
+
+        // import fs, * as fs2 from "fs";
+        case token_type::star:
+          this->parse_and_visit_name_space_import(v);
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+        }
+      }
       break;
 
     // import {readFile} from "fs";
@@ -1162,28 +1180,7 @@ class parser {
 
     // import * as fs from "fs";
     case token_type::star:
-      this->skip();
-
-      if (this->peek().type != token_type::kw_as) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
-      this->skip();
-
-      switch (this->peek().type) {
-      case token_type::kw_let:
-        this->error_reporter_->report(error_cannot_import_let{
-            .import_name = this->peek().identifier_name().span()});
-        [[fallthrough]];
-      case token_type::identifier:
-        v.visit_variable_declaration(this->peek().identifier_name(),
-                                     variable_kind::_import);
-        this->skip();
-        break;
-
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
+      this->parse_and_visit_name_space_import(v);
       break;
 
     default:
@@ -1203,6 +1200,32 @@ class parser {
 
     if (this->peek().type == token_type::semicolon) {
       this->skip();
+    }
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_name_space_import(Visitor &v) {
+    this->skip();
+
+    if (this->peek().type != token_type::kw_as) {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+    this->skip();
+
+    switch (this->peek().type) {
+    case token_type::kw_let:
+      this->error_reporter_->report(error_cannot_import_let{
+          .import_name = this->peek().identifier_name().span()});
+      [[fallthrough]];
+    case token_type::identifier:
+      v.visit_variable_declaration(this->peek().identifier_name(),
+                                   variable_kind::_import);
+      this->skip();
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
     }
   }
 

@@ -518,6 +518,28 @@ TEST(test_parse, parse_and_visit_import) {
     EXPECT_EQ(v.variable_declarations[0].name, u8"rf");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"import fs, {readFileSync} from 'fs';");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"fs", variable_kind::_import},
+                    spy_visitor::visited_variable_declaration{
+                        u8"readFileSync", variable_kind::_import}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"import fsDefault, * as fsExports from 'fs';");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"fsDefault", variable_kind::_import},
+                    spy_visitor::visited_variable_declaration{
+                        u8"fsExports", variable_kind::_import}));
+  }
 }
 
 TEST(test_parse, return_statement) {
