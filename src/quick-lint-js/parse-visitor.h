@@ -32,6 +32,13 @@
 #define QLJS_PARSE_VISITOR class
 #endif
 
+#if QLJS_HAVE_CXX_CONCEPTS
+#define QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(...) \
+  static_assert(::quick_lint_js::parse_visitor<__VA_ARGS__>)
+#else
+#define QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(...) static_assert(true)
+#endif
+
 namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Visitor>

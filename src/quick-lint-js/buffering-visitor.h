@@ -207,6 +207,7 @@ class buffering_visitor {
 
   std::vector<visit> visits_;
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(buffering_visitor);
 }
 
 QLJS_WARNING_POP

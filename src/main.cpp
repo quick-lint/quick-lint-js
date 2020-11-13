@@ -222,6 +222,7 @@ class debug_visitor {
               << '\n';
   }
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(debug_visitor);
 
 template <QLJS_PARSE_VISITOR Visitor1, QLJS_PARSE_VISITOR Visitor2>
 class multi_visitor {
@@ -318,6 +319,8 @@ class multi_visitor {
   Visitor1 *visitor_1_;
   Visitor2 *visitor_2_;
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
+    multi_visitor<debug_visitor, debug_visitor>);
 
 void process_file(padded_string_view input, error_reporter *error_reporter,
                   bool print_parser_visits) {

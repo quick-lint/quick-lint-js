@@ -23,6 +23,7 @@
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <string_view>
 #include <vector>
 
@@ -182,6 +183,7 @@ struct spy_visitor : public error_collector {
   };
   std::vector<visited_variable_use> variable_uses;
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(spy_visitor);
 
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);

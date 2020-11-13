@@ -21,6 +21,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <string>
 #include <vector>
 
@@ -251,6 +252,7 @@ class linter {
 
   error_reporter *error_reporter_;
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 }
 
 #endif
