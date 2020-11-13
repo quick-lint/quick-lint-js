@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {
 inline constexpr string8_view operator""_sv(const char8* string,
@@ -40,11 +41,16 @@ inline constexpr std::array<T, LHSSize + RHSSize> concat(
   return result;
 }
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wlarge-by-value-copy")
+
 template <class... Args>
 inline constexpr auto make_array(Args&&... items) {
   using item_type = std::common_type_t<Args...>;
   return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
 }
+
+QLJS_WARNING_POP
 
 inline constexpr std::array line_terminators_except_ls_ps =
     make_array(u8"\n"_sv, u8"\r"_sv, u8"\r\n"_sv);

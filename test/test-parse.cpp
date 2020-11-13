@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/characters.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
@@ -53,6 +54,15 @@ spy_visitor parse_and_visit_expression(const char8 *raw_code) {
   EXPECT_THAT(v.errors, IsEmpty());
   return v;
 }
+
+constexpr std::array keywords = make_array(
+    u8"as", u8"async", u8"await", u8"break", u8"case", u8"catch", u8"class",
+    u8"const", u8"continue", u8"debugger", u8"default", u8"delete", u8"do",
+    u8"else", u8"export", u8"extends", u8"false", u8"finally", u8"for",
+    u8"from", u8"function", u8"get", u8"if", u8"import", u8"in", u8"instanceof",
+    u8"let", u8"new", u8"null", u8"of", u8"return", u8"set", u8"static",
+    u8"super", u8"switch", u8"this", u8"throw", u8"true", u8"try", u8"typeof",
+    u8"var", u8"void", u8"while", u8"with", u8"yield");
 
 TEST(test_parse, parse_simple_let) {
   {
@@ -2683,6 +2693,33 @@ TEST(test_parse, variables_can_be_named_private_protected_public_static) {
       EXPECT_EQ(v.variable_declarations[0].name, variable_name);
       EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
     }
+  }
+}
+
+TEST(test_parse, exported_names_can_be_named_keywords) {
+  for (string8 export_name : keywords) {
+    string8 code = u8"export {someFunction as " + export_name + u8"};";
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code.c_str());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_export_use"));  // someFunction
+    EXPECT_THAT(
+        v.variable_uses,
+        ElementsAre(spy_visitor::visited_variable_use{u8"someFunction"}));
+  }
+}
+
+TEST(test_parse, imported_names_can_be_named_keywords) {
+  for (string8 import_name : keywords) {
+    string8 code =
+        u8"import {" + import_name + u8" as someFunction} from 'somewhere';";
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code.c_str());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration"));  // someFunction
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"someFunction", variable_kind::_import}));
   }
 }
 }

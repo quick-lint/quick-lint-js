@@ -1212,24 +1212,21 @@ class parser {
     this->skip();
     for (;;) {
       switch (this->peek().type) {
-      case token_type::kw_let:
-        this->error_reporter_->report(error_cannot_import_let{
-            .import_name = this->peek().identifier_name().span()});
-        [[fallthrough]];
-      case token_type::kw_default:
-        // TODO(strager): Is 'import {default} ...' allowed?
-        [[fallthrough]];
+      QLJS_CASE_KEYWORD:
       case token_type::identifier: {
+        // TODO(strager): Is 'import {default} ...' allowed?
         identifier left_name = this->peek().identifier_name();
         identifier right_name = left_name;
+        token_type right_token_type = this->peek().type;
         this->skip();
         if (this->peek().type == token_type::kw_as) {
           this->skip();
           switch (this->peek().type) {
-          case token_type::kw_default:
-            // TODO(strager): Is 'import {x as default} ...' allowed?
+          QLJS_CASE_KEYWORD:
           case token_type::identifier:
+            // TODO(strager): Is 'import {x as default} ...' allowed?
             right_name = this->peek().identifier_name();
+            right_token_type = this->peek().type;
             this->skip();
             break;
           default:
@@ -1240,6 +1237,11 @@ class parser {
         if (is_export) {
           v.visit_variable_export_use(left_name);
         } else {
+          if (right_token_type == token_type::kw_let) {
+            // TODO(strager): What about other keywords?
+            this->error_reporter_->report(
+                error_cannot_import_let{.import_name = right_name.span()});
+          }
           v.visit_variable_declaration(right_name, variable_kind::_import);
         }
         break;
