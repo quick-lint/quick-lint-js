@@ -1220,7 +1220,8 @@ class parser {
         // TODO(strager): Is 'import {default} ...' allowed?
         [[fallthrough]];
       case token_type::identifier: {
-        identifier imported_name = this->peek().identifier_name();
+        identifier left_name = this->peek().identifier_name();
+        identifier right_name = left_name;
         this->skip();
         if (this->peek().type == token_type::kw_as) {
           this->skip();
@@ -1228,7 +1229,7 @@ class parser {
           case token_type::kw_default:
             // TODO(strager): Is 'import {x as default} ...' allowed?
           case token_type::identifier:
-            imported_name = this->peek().identifier_name();
+            right_name = this->peek().identifier_name();
             this->skip();
             break;
           default:
@@ -1237,9 +1238,9 @@ class parser {
           }
         }
         if (is_export) {
-          v.visit_variable_export_use(imported_name);
+          v.visit_variable_export_use(left_name);
         } else {
-          v.visit_variable_declaration(imported_name, variable_kind::_import);
+          v.visit_variable_declaration(right_name, variable_kind::_import);
         }
         break;
       }

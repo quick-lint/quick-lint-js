@@ -175,6 +175,16 @@ TEST(test_parse, export_list) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",    // one
                                       "visit_variable_export_use"));  // two
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export {one as two, three as four};");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",    // one
+                                      "visit_variable_export_use"));  // three
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"one"},
+                            spy_visitor::visited_variable_use{u8"three"}));
+  }
 }
 
 TEST(test_parse, export_from) {
