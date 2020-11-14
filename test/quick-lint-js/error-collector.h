@@ -18,11 +18,11 @@
 #define QUICK_LINT_JS_ERROR_COLLECTOR_H
 
 #include <iosfwd>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <utility>
-#include <variant>
 #include <vector>
 
 namespace quick_lint_js {
@@ -39,21 +39,44 @@ struct error_collector : public error_reporter {
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin) override;
 
-  // HACK(strager): Derive from std::variant<> instead of aliasing it to improve
-  // googletest's error messages when it prints out the class' name.
-  // HACK(strager): std::monostate allows us to use QLJS_X_ERROR_TYPES. Without
-  // std::monostate, we would have a dangling leading or trailing comma.
-  using error_variant = std::variant<std::monostate
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) , name
-                                         QLJS_X_ERROR_TYPES
+  // Like std::variant<(error types)>, but with much faster compilation.
+  class error {
+   public:
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) explicit error(name &&);
+    QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-                                     >;
-  struct error : public error_variant {
-    using error_variant::error_variant;
+
+    template <class Error>
+    friend const Error &get(const error &) noexcept;
+
+    template <class Error>
+    friend bool holds_alternative(const error &) noexcept;
+
+    friend void PrintTo(const error &, std::ostream *);
+
+   private:
+    enum class kind {
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) kind_##name,
+      QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+    };
+
+    kind kind_;
+    union {
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) name variant_##name##_;
+      QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+    };
   };
 
   std::vector<error> errors;
 };
+
+template <class Error>
+const Error &get(const error_collector::error &) noexcept;
+
+template <class Error>
+bool holds_alternative(const error_collector::error &) noexcept;
 
 void PrintTo(const error_collector::error &, std::ostream *);
 
