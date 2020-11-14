@@ -18,6 +18,13 @@
 #include <quick-lint-js/error-collector.h>
 
 namespace quick_lint_js {
+#define QLJS_ERROR_TYPE(name, struct_body, format_call)                \
+  void error_collector::report(name e) {                               \
+    this->errors.emplace_back(std::in_place_type<name>, std::move(e)); \
+  }
+QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+
 void error_collector::report_fatal_error_unimplemented_character(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
     const char8 *character) {

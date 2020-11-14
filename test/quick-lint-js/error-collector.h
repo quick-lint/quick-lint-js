@@ -27,10 +27,8 @@
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
-#define QLJS_ERROR_TYPE(name, struct_body, format_call)                \
-  void report(name e) override {                                       \
-    this->errors.emplace_back(std::in_place_type<name>, std::move(e)); \
-  }
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  void report(name e) override;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
