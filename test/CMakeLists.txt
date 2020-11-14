@@ -74,6 +74,9 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
+    <boost/container/pmr/monotonic_buffer_resource.hpp>
+    <boost/container/pmr/polymorphic_allocator.hpp>
+    <boost/container/small_vector.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>
