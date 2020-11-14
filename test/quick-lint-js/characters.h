@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef QUICK_LINT_JS_CHARACTERS_H
+#define QUICK_LINT_JS_CHARACTERS_H
+
 #include <array>
 #include <cstddef>
+#include <quick-lint-js/array.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {
 inline constexpr string8_view operator""_sv(const char8* string,
@@ -40,17 +43,6 @@ inline constexpr std::array<T, LHSSize + RHSSize> concat(
   QLJS_ASSERT(it == result.end());
   return result;
 }
-
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_CLANG("-Wlarge-by-value-copy")
-
-template <class... Args>
-inline constexpr auto make_array(Args&&... items) {
-  using item_type = std::common_type_t<Args...>;
-  return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
-}
-
-QLJS_WARNING_POP
 
 inline constexpr std::array line_terminators_except_ls_ps =
     make_array(u8"\n"_sv, u8"\r"_sv, u8"\r\n"_sv);
@@ -98,3 +90,5 @@ inline constexpr std::array control_characters_except_line_terminators =
                       u8"\u000b"_sv,    // VT Vertical tab
                       u8"\u000c"_sv));  // FF Form feed
 }
+
+#endif

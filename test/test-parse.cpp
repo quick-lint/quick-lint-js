@@ -16,8 +16,8 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/characters.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
