@@ -83,6 +83,7 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
     <json/reader.h>
     <json/value.h>
     <json/writer.h>
+    <simdjson.h>
   )
 endif ()
 
