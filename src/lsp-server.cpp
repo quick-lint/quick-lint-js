@@ -52,31 +52,29 @@ string8_view make_string_view(
 }
 
 void linting_lsp_server_handler::handle_request(
-    const char8* message_begin, ::simdjson::dom::element& request,
-    byte_buffer& response_json) {
+    ::simdjson::dom::element& request, byte_buffer& response_json) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
   if (method == "initialize") {
-    this->handle_initialize_request(message_begin, request, response_json);
+    this->handle_initialize_request(request, response_json);
   } else {
     QLJS_UNIMPLEMENTED();
   }
 }
 
 void linting_lsp_server_handler::handle_notification(
-    const char8* message_begin, ::simdjson::dom::element& request,
-    byte_buffer& notification_json) {
+    ::simdjson::dom::element& request, byte_buffer& notification_json) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
   if (method == "textDocument/didChange") {
-    this->handle_text_document_did_change_notification(message_begin, request,
+    this->handle_text_document_did_change_notification(request,
                                                        notification_json);
   } else if (method == "textDocument/didOpen") {
-    this->handle_text_document_did_open_notification(message_begin, request,
+    this->handle_text_document_did_open_notification(request,
                                                      notification_json);
   } else if (method == "textDocument/didClose") {
     this->handle_text_document_did_close_notification(request);
@@ -88,8 +86,7 @@ void linting_lsp_server_handler::handle_notification(
 }
 
 void linting_lsp_server_handler::handle_initialize_request(
-    const char8*, ::simdjson::dom::element& request,
-    byte_buffer& response_json) {
+    ::simdjson::dom::element& request, byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");
   append_raw_json(request["id"], response_json);
   // clang-format off
@@ -109,8 +106,7 @@ void linting_lsp_server_handler::handle_initialize_request(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(
-    const char8* message_begin, ::simdjson::dom::element& request,
-    byte_buffer& notification_json) {
+    ::simdjson::dom::element& request, byte_buffer& notification_json) {
   ::simdjson::dom::element text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -129,7 +125,7 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   padded_string code =
       make_padded_string(request["params"]["contentChanges"].at(0)["text"]);
   this->lint_and_get_diagnostics_notification(&code, text_document,
-                                              message_begin, notification_json);
+                                              notification_json);
 }
 
 void linting_lsp_server_handler::handle_text_document_did_close_notification(
@@ -143,8 +139,7 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
 }
 
 void linting_lsp_server_handler::handle_text_document_did_open_notification(
-    const char8* message_begin, ::simdjson::dom::element& request,
-    byte_buffer& notification_json) {
+    ::simdjson::dom::element& request, byte_buffer& notification_json) {
   std::string_view language_id;
   if (request["params"]["textDocument"]["languageId"].get(language_id) !=
       ::simdjson::error_code::SUCCESS) {
@@ -163,12 +158,12 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
 
   padded_string code = make_padded_string(text_document["text"]);
   this->lint_and_get_diagnostics_notification(&code, text_document,
-                                              message_begin, notification_json);
+                                              notification_json);
 }
 
 void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
     padded_string_view code, ::simdjson::dom::element& text_document,
-    const char8*, byte_buffer& notification_json) {
+    byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"

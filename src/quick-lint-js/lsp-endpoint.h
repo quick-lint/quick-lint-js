@@ -42,11 +42,11 @@ concept lsp_endpoint_remote = requires(Remote r, const byte_buffer message) {
 };
 
 template <class Handler>
-concept lsp_endpoint_handler = requires(Handler h, const char8* raw_message,
+concept lsp_endpoint_handler = requires(Handler h,
                                         ::simdjson::dom::element request,
                                         byte_buffer reply) {
-  {h.handle_request(raw_message, request, reply)};
-  {h.handle_notification(raw_message, request, reply)};
+  {h.handle_request(request, reply)};
+  {h.handle_notification(request, reply)};
 };
 #endif
 
@@ -90,14 +90,13 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       std::size_t empty_response_json_size = response_json.size();
       for (::simdjson::dom::element sub_request : batched_requests) {
         this->handle_message(
-            message.data(), sub_request, response_json, notification_json,
+            sub_request, response_json, notification_json,
             /*add_comma_before_response=*/response_json.size() !=
                 empty_response_json_size);
       }
       response_json.append_copy(u8"]");
     } else {
-      this->handle_message(message.data(), request, response_json,
-                           notification_json,
+      this->handle_message(request, response_json, notification_json,
                            /*add_comma_before_response=*/false);
     }
 
@@ -114,8 +113,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
   }
 
-  void handle_message(const char8* message_begin,
-                      ::simdjson::dom::element& request,
+  void handle_message(::simdjson::dom::element& request,
                       byte_buffer& response_json,
                       byte_buffer& notification_json,
                       bool add_comma_before_response) {
@@ -123,10 +121,9 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       if (add_comma_before_response) {
         response_json.append_copy(u8",");
       }
-      this->handler_.handle_request(message_begin, request, response_json);
+      this->handler_.handle_request(request, response_json);
     } else {
-      this->handler_.handle_notification(message_begin, request,
-                                         notification_json);
+      this->handler_.handle_notification(request, notification_json);
     }
   }
 

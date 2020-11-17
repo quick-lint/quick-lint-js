@@ -97,7 +97,7 @@ std::string json_get_string(
 
 TEST(test_lsp_endpoint, single_unbatched_request) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::simdjson::dom::element& request,
+    void handle_request(::simdjson::dom::element& request,
                         byte_buffer& response_json) {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
 
@@ -108,8 +108,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(const char8*, ::simdjson::dom::element&,
-                             byte_buffer&) {
+    void handle_notification(::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -131,7 +130,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
 
 TEST(test_lsp_endpoint, batched_request) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::simdjson::dom::element& request,
+    void handle_request(::simdjson::dom::element& request,
                         byte_buffer& response_json) {
       EXPECT_THAT(json_get_string(request["method"]),
                   ::testing::AnyOf("testmethod A", "testmethod B"));
@@ -143,8 +142,7 @@ TEST(test_lsp_endpoint, batched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(const char8*, ::simdjson::dom::element&,
-                             byte_buffer&) {
+    void handle_notification(::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -177,12 +175,11 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
+    void handle_request(::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*,
-                             ::simdjson::dom::element& notification,
+    void handle_notification(::simdjson::dom::element& notification,
                              byte_buffer&) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
@@ -204,12 +201,11 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
+    void handle_request(::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*,
-                             ::simdjson::dom::element& notification,
+    void handle_notification(::simdjson::dom::element& notification,
                              byte_buffer& reply_json) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
@@ -240,12 +236,11 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
+    void handle_request(::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*,
-                             ::simdjson::dom::element& notification,
+    void handle_notification(::simdjson::dom::element& notification,
                              byte_buffer&) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
@@ -268,12 +263,11 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, batched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(const char8*, ::simdjson::dom::element&, byte_buffer&) {
+    void handle_request(::simdjson::dom::element&, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(const char8*,
-                             ::simdjson::dom::element& notification,
+    void handle_notification(::simdjson::dom::element& notification,
                              byte_buffer& reply_json) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 

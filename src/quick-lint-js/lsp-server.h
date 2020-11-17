@@ -35,30 +35,25 @@ class byte_buffer;
 // the client of diagnostics.
 class linting_lsp_server_handler {
  public:
-  void handle_request(const char8* message_begin,
-                      ::simdjson::dom::element& request,
+  void handle_request(::simdjson::dom::element& request,
                       byte_buffer& response_json);
-  void handle_notification(const char8* message_begin,
-                           ::simdjson::dom::element& request,
+  void handle_notification(::simdjson::dom::element& request,
                            byte_buffer& notification_json);
 
  private:
-  void handle_initialize_request(const char8* message_begin,
-                                 ::simdjson::dom::element& request,
+  void handle_initialize_request(::simdjson::dom::element& request,
                                  byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      const char8* message_begin, ::simdjson::dom::element& request,
-      byte_buffer& notification_json);
+      ::simdjson::dom::element& request, byte_buffer& notification_json);
   void handle_text_document_did_close_notification(
       ::simdjson::dom::element& request);
   void handle_text_document_did_open_notification(
-      const char8* message_begin, ::simdjson::dom::element& request,
-      byte_buffer& notification_json);
+      ::simdjson::dom::element& request, byte_buffer& notification_json);
 
   void lint_and_get_diagnostics_notification(
       padded_string_view code, ::simdjson::dom::element& text_document,
-      const char8* message_begin, byte_buffer& notification_json);
+      byte_buffer& notification_json);
 
   void lint_and_get_diagnostics(padded_string_view code,
                                 byte_buffer& diagnostics_json);
