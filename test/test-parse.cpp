@@ -1564,6 +1564,29 @@ TEST(test_parse, arrow_function_expression_with_statements) {
   }
 }
 
+TEST(test_parse, function_statements_allow_trailing_commas_in_parameter_list) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"function f(x,) { y; });");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope"));
+  }
+}
+
+TEST(test_parse, arrow_functions_allow_trailing_commas_in_parameter_list) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"((x,) => { y; });");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope"));
+  }
+}
+
 TEST(test_parse, parse_empty_module) {
   spy_visitor v;
   padded_string code(u8"");
@@ -2757,6 +2780,18 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"someFunction", variable_kind::_import}));
+  }
+}
+
+TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
+  {
+    spy_visitor v;
+    padded_string code(u8"(a, b, );");
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 5, 5 + 1))));
   }
 }
 }

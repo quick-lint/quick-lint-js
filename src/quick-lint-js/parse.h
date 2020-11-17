@@ -340,6 +340,15 @@ class parser {
     case expression_kind::tagged_template_literal:
       visit_children();
       break;
+    case expression_kind::trailing_comma: {
+      auto &trailing_comma_ast =
+          static_cast<expression::trailing_comma &>(*ast);
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = trailing_comma_ast.comma_span(),
+      });
+      visit_children();
+      break;
+    }
     case expression_kind::_class:
       v.visit_enter_class_scope();
       ast->visit_children(v, this->expressions_);

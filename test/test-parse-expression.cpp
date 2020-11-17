@@ -104,6 +104,7 @@ class test_parser {
     case expression_kind::compound_assignment:
     case expression_kind::index:
     case expression_kind::tagged_template_literal:
+    case expression_kind::trailing_comma:
       children();
       break;
     case expression_kind::arrow_function_with_statements:
@@ -376,6 +377,19 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
                                      offsets_matcher(p.locator, 9, 10)),
                     ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
                                      offsets_matcher(p.locator, 4, 5))));
+  }
+}
+
+TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
+  {
+    // Arrow expressions allow trailing commas in their parenthesized parameter
+    // lists, but comma expressions do not allow trailing commas.
+    test_parser p(u8"(a, b, c,)");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "trailingcomma(var a, var b, var c)");
+    EXPECT_THAT(p.errors(), IsEmpty())
+        << "trailing comma expression emits no errors; errors are emitted "
+           "depending on the context";
   }
 }
 
@@ -1309,6 +1323,11 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression_ptr ast = this->parse_expression(u8"a => b, c");
     EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a, var b), var c)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"(a,) => b");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var a, var b)");
+  }
 }
 
 TEST_F(test_parse_expression, arrow_function_with_statements) {
@@ -1425,6 +1444,11 @@ TEST_F(test_parse_expression, async_arrow_function) {
   {
     expression_ptr ast = this->parse_expression(u8"async (x, y, z) => w");
     EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z, var w)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"async (a,) => b");
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var a, var b)");
   }
 }
 
@@ -1602,6 +1626,8 @@ std::string summarize(const expression &expression) {
     return "super";
   case expression_kind::tagged_template_literal:
     return "taggedtemplate(" + children() + ")";
+  case expression_kind::trailing_comma:
+    return "trailingcomma(" + children() + ")";
   case expression_kind::unary_operator:
     return "unary(" + summarize(expression.child_0()) + ")";
   case expression_kind::compound_assignment:

@@ -375,13 +375,22 @@ next:
     if (!prec.commas) {
       break;
     }
-    source_code_span operator_span = this->peek().span();
+    source_code_span comma_span = this->peek().span();
     this->skip();
-    expression_ptr rhs = children.emplace_back(
-        this->parse_expression(precedence{.commas = false}));
-    if (rhs->kind() == expression_kind::_invalid) {
-      this->error_reporter_->report(
-          error_missing_operand_for_operator{operator_span});
+
+    if (this->peek().type == token_type::right_paren) {
+      // Probably an arrow function with a trailing comma in its parameter list:
+      // (parameters, go, here, ) => expression-or-block
+      return this->make_expression<expression::trailing_comma>(
+          this->expressions_.make_array(std::move(children)), comma_span);
+    } else {
+      // Comma expression: a, b, c
+      expression_ptr rhs = children.emplace_back(
+          this->parse_expression(precedence{.commas = false}));
+      if (rhs->kind() == expression_kind::_invalid) {
+        this->error_reporter_->report(
+            error_missing_operand_for_operator{comma_span});
+      }
     }
     goto next;
   }
@@ -929,6 +938,7 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
   vector<expression_ptr> parameters("arrow_function_parameters_from_lhs");
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
+  case expression_kind::trailing_comma:
     // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
     // for example.
     for (int i = 0; i < lhs->child_count(); ++i) {
