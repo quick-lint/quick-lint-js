@@ -54,8 +54,6 @@ TODO_JS_FILES = (
     "fixtures/expression/primary/array/migrated_0007.js",
     "literal/string/migrated_0017.js",
     "multiline_string_literal.js",
-    "tokenize/migrated_0011.js",
-    "tokenize/migrated_0015.js",
 )
 
 

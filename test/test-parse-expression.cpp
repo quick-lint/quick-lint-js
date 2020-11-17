@@ -550,6 +550,17 @@ TEST_F(test_parse_expression, parse_indexing_expression) {
   }
 }
 
+TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
+  {
+    test_parser p(u8"xs[i");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_unmatched_indexing_bracket, left_square,
+                                offsets_matcher(p.locator, 2, 3))));
+  }
+}
+
 TEST_F(test_parse_expression, parse_parenthesized_expression) {
   {
     test_parser p(u8"(x)");

@@ -475,9 +475,21 @@ next:
   }
 
   case token_type::left_square: {
+    source_code_span left_square_span = this->peek().span();
     this->skip();
     expression_ptr subscript = this->parse_expression();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+    switch (this->peek().type) {
+    case token_type::right_square:
+      break;
+    case token_type::end_of_file:
+      this->error_reporter_->report(
+          error_unmatched_indexing_bracket{.left_square = left_square_span});
+      break;
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+
     children.back() = this->make_expression<expression::index>(
         children.back(), subscript, this->peek().end);
     this->skip();

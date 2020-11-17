@@ -275,6 +275,10 @@
       .error(QLJS_TRANSLATE("unexpected identifier"), where))                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unmatched_indexing_bracket, { source_code_span left_square; },     \
+      .error(QLJS_TRANSLATE("unmatched indexing bracket"), left_square))       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unmatched_parenthesis, { source_code_span where; },                \
       .error(QLJS_TRANSLATE("unmatched parenthesis"), where))                  \
                                                                                \
