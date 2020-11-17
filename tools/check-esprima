@@ -30,10 +30,6 @@ import unittest
 TODO_JS_FILES = (
     "ES6/arrow-function/*",
     "ES6/arrow-function/*/*",
-    "ES6/class/migrated_0001.js",
-    "ES6/class/migrated_0016.js",
-    "ES6/class/migrated_0024.js",
-    "ES6/class/migrated_0025.js",
     "ES6/for-of/let-of-of.js",
     "ES6/generator/*",
     "ES6/identifier/valid_await.js",

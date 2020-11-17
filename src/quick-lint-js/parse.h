@@ -733,6 +733,7 @@ class parser {
       this->skip();
       switch (this->peek().type) {
       case token_type::identifier:
+      case token_type::number:
         // TODO(strager): Don't allow extending any ol' expression.
         this->parse_and_visit_expression(v, precedence{.commas = false});
         break;
