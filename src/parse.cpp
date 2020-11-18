@@ -51,7 +51,8 @@ expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
   case token_type::identifier:
   case token_type::kw_let:
-  case token_type::kw_static: {
+  case token_type::kw_static:
+  case token_type::kw_yield: {
     expression_ptr ast = this->make_expression<expression::variable>(
         this->peek().identifier_name(), this->peek().type);
     this->skip();

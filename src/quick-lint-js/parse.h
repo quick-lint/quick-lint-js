@@ -663,6 +663,7 @@ class parser {
       case token_type::identifier:
       case token_type::kw_let:
       case token_type::kw_static:
+      case token_type::kw_yield:
       case token_type::left_curly:
       case token_type::left_square:
         this->parse_and_visit_binding_element(v, variable_kind::_parameter,

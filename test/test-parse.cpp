@@ -2811,6 +2811,26 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
   }
 }
 
+TEST(test_parse, parameters_can_be_named_contextual_keywords) {
+  for (string8 parameter_name : {u8"yield"}) {
+    string8 code =
+        u8"function f(" + parameter_name + u8") {}";
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code.c_str());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration", // f
+                  "visit_enter_function_scope",
+                  "visit_variable_declaration", // (parameter_name)
+                  "visit_enter_function_scope_body",
+                  "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"f", variable_kind::_function},
+                    spy_visitor::visited_variable_declaration{
+                    parameter_name, variable_kind::_parameter}));
+  }
+}
+
 TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
   {
     spy_visitor v;
