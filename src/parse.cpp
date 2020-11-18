@@ -50,7 +50,11 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
   case token_type::identifier:
+  case token_type::kw_as:
+  case token_type::kw_from:
+  case token_type::kw_get:
   case token_type::kw_let:
+  case token_type::kw_set:
   case token_type::kw_static:
   case token_type::kw_yield: {
     expression_ptr ast = this->make_expression<expression::variable>(

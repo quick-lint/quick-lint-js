@@ -551,8 +551,14 @@ class parser {
         break;
 
       // async (x) => expressionOrStatement
-      // TODO(strager): Should we allow 'get', 'let', etc. as parameter names?
       case token_type::identifier:
+      case token_type::kw_as:
+      case token_type::kw_from:
+      case token_type::kw_get:
+      case token_type::kw_let:
+      case token_type::kw_set:
+      case token_type::kw_static:
+      case token_type::kw_yield:
       case token_type::left_paren:
         this->parse_and_visit_expression(v);
         break;
@@ -661,7 +667,11 @@ class parser {
       switch (this->peek().type) {
       case token_type::dot_dot_dot:
       case token_type::identifier:
+      case token_type::kw_as:
+      case token_type::kw_from:
+      case token_type::kw_get:
       case token_type::kw_let:
+      case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
       case token_type::left_curly:

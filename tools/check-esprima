@@ -29,13 +29,11 @@ import unittest
 
 TODO_JS_FILES = (
     "ES6/arrow-function/*",
-    "ES6/arrow-function/*/*",
     "ES6/for-of/let-of-of.js",
     "ES6/generator/*",
     "ES6/identifier/valid_await.js",
     "ES6/yield/*",
     "JSX/*",
-    "es2017/async/arrows/*",
     "es2017/async/methods/*",
     "es2017/async/regular-identifier/*",
     "fixtures/ES2016/identifier/gujarati_zha.js",
