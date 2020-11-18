@@ -1536,6 +1536,34 @@ TEST(test_parse, arrow_function_expression) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"y"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"async (x) => y;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"async (x) => y, z;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",
+                                      "visit_variable_use"));  // z
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"async x => y;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope"));
+  }
 }
 
 TEST(test_parse, arrow_function_expression_with_statements) {

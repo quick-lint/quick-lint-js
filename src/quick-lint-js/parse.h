@@ -542,12 +542,19 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
-    // async function f() {}
     case token_type::kw_async:
       this->skip();
       switch (this->peek().type) {
+      // async function f() {}
       case token_type::kw_function:
         this->parse_and_visit_function_declaration(v);
+        break;
+
+      // async (x) => expressionOrStatement
+      // TODO(strager): Should we allow 'get', 'let', etc. as parameter names?
+      case token_type::identifier:
+      case token_type::left_paren:
+        this->parse_and_visit_expression(v);
         break;
 
       default:
