@@ -24,6 +24,7 @@ include(QuickLintJSCompiler)
 quick_lint_js_set_cxx_standard()
 quick_lint_js_enable_char8_t_if_supported()
 quick_lint_js_configure_exception_handling()
+quick_lint_js_work_around_implicit_link_directories()
 
 add_subdirectory(vendor)
 
