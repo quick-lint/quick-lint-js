@@ -305,7 +305,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         case used_variable_kind::assignment:
           this->report_error_if_assignment_is_illegal(
               declared, used_var.name,
-              /*is_assigned_before_declaration=*/true);
+              assignment_context::assigned_before_declaration);
           break;
         case used_variable_kind::_typeof:
         case used_variable_kind::use:
@@ -315,8 +315,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         case used_variable_kind::use_and_assignment:
           this->report_error_if_assignment_is_illegal(
               declared, used_var.name,
-              /*is_assigned_before_declaration=*/true,
-              /* is_used_before_declaration=*/true);
+              assignment_context::used_and_assigned_before_declaration);
           break;
         }
       }
@@ -330,14 +329,11 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              switch (used_var.kind) {
              case used_variable_kind::assignment:
                this->report_error_if_assignment_is_illegal(
-                   declared, used_var.name,
-                   /*is_assigned_before_declaration=*/false);
+                   declared, used_var.name, assignment_context::unknown);
                break;
              case used_variable_kind::use_and_assignment:
                this->report_error_if_assignment_is_illegal(
-                   declared, used_var.name,
-                   /*is_assigned_before_declaration=*/false,
-                   /* is_used_before_declaration=*/true);
+                   declared, used_var.name, assignment_context::unknown);
                break;
              case used_variable_kind::_typeof:
              case used_variable_kind::use:
@@ -352,8 +348,8 @@ void linter::visit_variable_assignment(identifier name) {
   scope &current_scope = this->current_scope();
   const declared_variable *var = current_scope.find_declared_variable(name);
   if (var) {
-    this->report_error_if_assignment_is_illegal(
-        var, name, /*is_assigned_before_declaration=*/false);
+    this->report_error_if_assignment_is_illegal(var, name,
+                                                assignment_context::unknown);
   } else {
     current_scope.variables_used.emplace_back(name,
                                               used_variable_kind::assignment);
@@ -472,7 +468,7 @@ void linter::propagate_variable_uses_to_parent_scope(
       // This variable was declared in the parent scope. Don't propagate.
       if (used_var.kind == used_variable_kind::assignment) {
         this->report_error_if_assignment_is_illegal(
-            var, used_var.name, /*is_assigned_before_declaration=*/false);
+            var, used_var.name, assignment_context::unknown);
       }
     } else if (consume_arguments &&
                used_var.name.normalized_name() == u8"arguments") {
@@ -496,7 +492,7 @@ void linter::propagate_variable_uses_to_parent_scope(
       // This variable was declared in the parent scope. Don't propagate.
       if (used_var.kind == used_variable_kind::assignment) {
         this->report_error_if_assignment_is_illegal(
-            var, used_var.name, /*is_assigned_before_declaration=*/false);
+            var, used_var.name, assignment_context::unknown);
       }
     } else if (is_current_scope_function_name(used_var)) {
       // Treat this variable as declared in the current scope.
@@ -527,8 +523,7 @@ void linter::propagate_variable_declarations_to_parent_scope() {
 
 void linter::report_error_if_assignment_is_illegal(
     const linter::declared_variable *var, const identifier &assignment,
-    bool is_assigned_before_declaration,
-    bool is_used_before_declaration) const {
+    assignment_context context) const {
   switch (var->kind()) {
   case variable_kind::_const:
   case variable_kind::_import:
@@ -536,13 +531,16 @@ void linter::report_error_if_assignment_is_illegal(
       this->error_reporter_->report(
           error_assignment_to_const_global_variable{assignment});
     } else {
-      if (is_assigned_before_declaration) {
+      switch (context) {
+      case assignment_context::assigned_before_declaration:
         this->error_reporter_->report(
             error_assignment_to_const_variable_before_its_declaration{
                 var->declaration(), assignment, var->kind()});
-      } else {
+        break;
+      default:
         this->error_reporter_->report(error_assignment_to_const_variable{
             var->declaration(), assignment, var->kind()});
+        break;
       }
     }
     break;
@@ -552,16 +550,19 @@ void linter::report_error_if_assignment_is_illegal(
   case variable_kind::_let:
   case variable_kind::_parameter:
   case variable_kind::_var:
-    if (is_assigned_before_declaration) {
-      if (is_used_before_declaration) {
-        this->error_reporter_->report(
-            error_use_and_assignment_before_variable_declaration{
-                .use = assignment, .declaration = var->declaration()});
-      } else {
-        this->error_reporter_->report(
-            error_assignment_before_variable_declaration{
-                .assignment = assignment, .declaration = var->declaration()});
-      }
+    switch (context) {
+    case assignment_context::assigned_before_declaration:
+      this->error_reporter_->report(
+          error_assignment_before_variable_declaration{
+              .assignment = assignment, .declaration = var->declaration()});
+      break;
+    case assignment_context::used_and_assigned_before_declaration:
+      this->error_reporter_->report(
+          error_use_and_assignment_before_variable_declaration{
+              .use = assignment, .declaration = var->declaration()});
+      break;
+    default:
+      break;
     }
     break;
   }

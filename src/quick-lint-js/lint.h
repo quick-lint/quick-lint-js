@@ -132,6 +132,12 @@ class linter {
     use_and_assignment
   };
 
+  enum class assignment_context {
+    assigned_before_declaration,
+    used_and_assigned_before_declaration,
+    unknown
+  };
+
   struct used_variable {
     explicit used_variable(identifier name, used_variable_kind kind) noexcept
         : name(name), kind(kind) {}
@@ -214,10 +220,9 @@ class linter {
 
   void propagate_variable_declarations_to_parent_scope();
 
-  void report_error_if_assignment_is_illegal(
-      const declared_variable *var, const identifier &assignment,
-      bool is_assigned_before_declaration,
-      bool is_used_before_declaration = false) const;
+  void report_error_if_assignment_is_illegal(const declared_variable *var,
+                                             const identifier &assignment,
+                                             assignment_context context) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;
