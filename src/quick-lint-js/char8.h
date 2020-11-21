@@ -69,6 +69,8 @@ template <>
 void PrintTo(const char8_t &, std::ostream *);
 template <>
 void PrintTo(const char8_t *const &, std::ostream *);
+template <>
+void PrintTo(char8_t *const &, std::ostream *);
 #endif
 }
 

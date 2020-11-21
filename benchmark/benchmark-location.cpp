@@ -24,6 +24,8 @@
 #include <set>
 #include <vector>
 
+// TODO(strager): Also benchmark lsp_locator.
+
 namespace quick_lint_js {
 namespace {
 struct source_code_with_spans {

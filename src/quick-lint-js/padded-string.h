@@ -86,8 +86,16 @@ class padded_string_view {
 
   char8 *data() const noexcept { return this->data_; }
 
+  int size() const noexcept { return this->length_; }
+
   const char8 *null_terminator() const noexcept {
     return this->data_ + this->length_;
+  }
+
+  char8 &operator[](int index) const noexcept {
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index <= this->size());
+    return this->data_[index];
   }
 
  private:

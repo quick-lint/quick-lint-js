@@ -92,5 +92,10 @@ template <>
 void PrintTo(const char8_t *const &s, std::ostream *out) {
   *out << reinterpret_cast<const char *>(s);
 }
+
+template <>
+void PrintTo(char8_t *const &s, std::ostream *out) {
+  PrintTo(const_cast<const char8_t *>(s), out);
+}
 #endif
 }
