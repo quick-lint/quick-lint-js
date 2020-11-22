@@ -2569,8 +2569,9 @@ TEST(test_parse, statement_beginning_with_let) {
     spy_visitor v = parse_and_visit_statement(code.c_str());
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"other"}));
-    EXPECT_THAT(v.variable_use_and_assignments,
-                ElementsAre(spy_visitor::visited_variable_use_and_assignment{u8"let"}));
+    EXPECT_THAT(
+        v.variable_use_and_assignments,
+        ElementsAre(spy_visitor::visited_variable_use_and_assignment{u8"let"}));
   }
 
   for (const char8 *binary_operator : {
