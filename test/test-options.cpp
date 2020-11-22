@@ -44,6 +44,7 @@ TEST(test_options, default_options_with_no_files) {
   EXPECT_FALSE(o.print_parser_visits);
   EXPECT_FALSE(o.help);
   EXPECT_FALSE(o.version);
+  EXPECT_FALSE(o.lsp_server);
   EXPECT_EQ(o.output_format, output_format::gnu_like);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
@@ -164,6 +165,18 @@ TEST(test_options, vim_file_bufnr) {
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
     EXPECT_EQ(o.files_to_lint[1].vim_bufnr, std::nullopt);
+  }
+}
+
+TEST(test_options, lsp_server) {
+  {
+    options o = parse_options({"--lsp-server"});
+    EXPECT_TRUE(o.lsp_server);
+  }
+
+  {
+    options o = parse_options({"--lsp"});
+    EXPECT_TRUE(o.lsp_server);
   }
 }
 

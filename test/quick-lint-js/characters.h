@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef QUICK_LINT_JS_CHARACTERS_H
+#define QUICK_LINT_JS_CHARACTERS_H
+
 #include <array>
 #include <cstddef>
+#include <quick-lint-js/array.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 
@@ -38,12 +42,6 @@ inline constexpr std::array<T, LHSSize + RHSSize> concat(
   }
   QLJS_ASSERT(it == result.end());
   return result;
-}
-
-template <class... Args>
-inline constexpr auto make_array(Args&&... items) {
-  using item_type = std::common_type_t<Args...>;
-  return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
 }
 
 inline constexpr std::array line_terminators_except_ls_ps =
@@ -92,3 +90,5 @@ inline constexpr std::array control_characters_except_line_terminators =
                       u8"\u000b"_sv,    // VT Vertical tab
                       u8"\u000c"_sv));  // FF Form feed
 }
+
+#endif

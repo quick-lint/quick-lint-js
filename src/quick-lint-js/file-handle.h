@@ -21,17 +21,60 @@
 #include <quick-lint-js/have.h>
 #include <string>
 
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #if QLJS_HAVE_WINDOWS_H
 #include <Windows.h>
 #endif
 
 namespace quick_lint_js {
+// A file_read_result represents the effect of a call to
+// platform_file_ref::read.
+//
+// A file_read_result is in exactly one of three states:
+//
+// * end of file (at_end_of_file is true)
+// * error (at_end_of_file is false and error_message.has_value() is true)
+// * success (at_end_of_file is false and error_message.has_value() is false)
+struct file_read_result {
+  // If at_end_of_file is true, then the value of bytes_read is
+  // platform-specific, and whether error_message holds a value is
+  // platform-specific.
+  bool at_end_of_file;
+
+  // If at_end_of_file is true, then bytes_read equals 0.
+  //
+  // If error_message holds a value, then bytes_read's value is indeterminate.
+  int bytes_read;
+
+  std::optional<std::string> error_message;
+};
+
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-class windows_handle_file {
+// windows_handle_file_ref is a non-owning reference to a Win32 file handle.
+class windows_handle_file_ref {
+ public:
+  explicit windows_handle_file_ref(HANDLE) noexcept;
+
+  HANDLE get() noexcept;
+
+  file_read_result read(void *buffer, int buffer_size) noexcept;
+  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
+
+  static std::string get_last_error_message();
+
+ protected:
+  HANDLE handle_;
+};
+
+// windows_handle_file is the owner of a Win32 file handle.
+class windows_handle_file : private windows_handle_file_ref {
  public:
   explicit windows_handle_file(HANDLE) noexcept;
 
@@ -40,22 +83,39 @@ class windows_handle_file {
 
   ~windows_handle_file();
 
-  HANDLE get() noexcept;
+  void close();
 
-  std::optional<int> read(void *buffer, int buffer_size) noexcept;
+  windows_handle_file_ref ref() noexcept;
 
-  static std::string get_last_error_message();
+  using windows_handle_file_ref::get;
+  using windows_handle_file_ref::get_last_error_message;
+  using windows_handle_file_ref::read;
+  using windows_handle_file_ref::write;
 
  private:
-  HANDLE handle_;
+  static constexpr HANDLE invalid_handle = nullptr;
 };
 #endif
 
 #if QLJS_HAVE_UNISTD_H
-class posix_fd_file_ref;
+// posix_fd_file_ref is a non-owning reference to a POSIX file descriptor.
+class posix_fd_file_ref {
+ public:
+  explicit posix_fd_file_ref(int fd) noexcept;
+
+  int get() noexcept;
+
+  file_read_result read(void *buffer, int buffer_size) noexcept;
+  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
+
+  static std::string get_last_error_message();
+
+ protected:
+  int fd_;
+};
 
 // posix_fd_file is the owner of a POSIX file descriptor.
-class posix_fd_file {
+class posix_fd_file : private posix_fd_file_ref {
  public:
   explicit posix_fd_file(int fd) noexcept;
 
@@ -64,32 +124,28 @@ class posix_fd_file {
 
   ~posix_fd_file();
 
-  int get() noexcept;
-
-  std::optional<int> read(void *buffer, int buffer_size) noexcept;
-
   void close();
 
   posix_fd_file_ref ref() noexcept;
 
-  static std::string get_last_error_message();
+  using posix_fd_file_ref::get;
+  using posix_fd_file_ref::get_last_error_message;
+  using posix_fd_file_ref::read;
+  using posix_fd_file_ref::write;
 
  private:
   static constexpr int invalid_fd = -1;
-
-  int fd_;
 };
+#endif
 
-// posix_fd_file_ref is a non-owning reference to a POSIX file descriptor.
-class posix_fd_file_ref {
- public:
-  explicit posix_fd_file_ref(int fd) noexcept;
-
-  posix_fd_file duplicate();
-
- private:
-  int fd_;
-};
+#if QLJS_HAVE_WINDOWS_H
+using platform_file = windows_handle_file;
+using platform_file_ref = windows_handle_file_ref;
+#elif QLJS_HAVE_UNISTD_H
+using platform_file = posix_fd_file;
+using platform_file_ref = posix_fd_file_ref;
+#else
+#error "Unknown platform"
 #endif
 }
 

@@ -35,6 +35,7 @@ struct options {
   bool help = false;
   bool version = false;
   bool print_parser_visits = false;
+  bool lsp_server = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::gnu_like;
   std::vector<file_to_lint> files_to_lint;

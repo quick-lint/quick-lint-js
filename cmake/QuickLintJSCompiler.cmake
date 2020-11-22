@@ -15,6 +15,12 @@ function (quick_lint_js_enable_char8_t_if_supported)
   endif ()
 endfunction ()
 
+function (quick_lint_js_configure_exception_handling)
+  if (MSVC)
+    add_compile_options(/EHcs)
+  endif ()
+endfunction ()
+
 function (quick_lint_js_use_cxx_filesystem TARGET VISIBILITY)
   quick_lint_js_check_cxx_filesystem(
     REQUIRED_LIBRARIES stdc++fs
@@ -138,4 +144,33 @@ function (quick_lint_js_warning_option_var_name WARNING_OPTION OUT_VAR_NAME)
   string(REGEX REPLACE "[-/]" _ VAR_NAME "${VAR_NAME}")
   set(VAR_NAME "QUICK_LINT_JS_HAVE_WARNING_OPTION_${VAR_NAME}")
   set("${OUT_VAR_NAME}" "${VAR_NAME}" PARENT_SCOPE)
+endfunction ()
+
+function (quick_lint_js_work_around_implicit_link_directories)
+  # HACK(strager): Work around weird CMake behaviors when mixing multiple
+  # languages (e.g. C and C++).
+  #
+  # Let's say the user asks CMake to compile C code with compiler X and C++ code
+  # with compiler Y. Let's say a CMake file says we need to link an executable
+  # which mixes C code and C++ code. CMake does the following:
+  #
+  # 1. Ask compiler X for its implicit linker flags.
+  # 2. Use compiler Y to link the executable. Use some of compiler X's implicit
+  #    linker flags.
+  #
+  # This is a problem when using compiler X's flags break compiler Y in some
+  # way. In the wild, we observed that, if compiler X is GCC 7 and compiler Y is
+  # GCC 8, CMake links the executable with GCC 8 but uses GCC 7's path to
+  # libstdc++. This means that sources are compiled with GCC 8's libstdc++ but
+  # link with GCC 7's libstdc++.
+  #
+  # Work around this by having compiler Y's flags take priority over compiler
+  # X's flags. We need to clear CMAKE_<LANG>_IMPLICIT_LINK_DIRECTORIES;
+  # otherwise, CMake ignores the link_directories command because it thinks the
+  # compiler will already include those directories.
+  #
+  # See this issue for more details:
+  # https://github.com/quick-lint/quick-lint-js/issues/9
+  link_directories(${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
+  set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "" PARENT_SCOPE)
 endfunction ()

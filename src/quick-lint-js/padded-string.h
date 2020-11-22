@@ -35,9 +35,10 @@ class padded_string {
   explicit padded_string(string8 &&);
   explicit padded_string(const char8 *);
 
-  const char8 *c_str() const noexcept { return this->data_.c_str(); }
+  const char8 *c_str() const noexcept { return this->data(); }
 
   char8 *data() noexcept { return this->data_.data(); }
+  const char8 *data() const noexcept { return this->data_.data(); }
 
   int size() const noexcept {
     return narrow_cast<int>(this->data_.size() -
@@ -54,6 +55,8 @@ class padded_string {
 
   char8 *begin() noexcept { return this->data(); }
   char8 *end() noexcept { return this->data() + this->size(); }
+
+  string8_view string_view() const noexcept;
 
   friend std::ostream &operator<<(std::ostream &, const padded_string &);
 

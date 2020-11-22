@@ -16,8 +16,22 @@
 
 #include <iostream>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  void error_collector::report(name e) {                \
+    this->errors.emplace_back(std::move(e));            \
+  }
+QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+
+#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+  error_collector::error::error(name &&data)            \
+      : kind_(kind::kind_##name), variant_##name##_(std::move(data)) {}
+QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+
 void error_collector::report_fatal_error_unimplemented_character(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
     const char8 *character) {
@@ -43,22 +57,30 @@ void error_collector::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
+#define QLJS_ERROR_TYPE(name, struct_body, format_call)                    \
+  template <>                                                              \
+  bool holds_alternative<name>(const error_collector::error &e) noexcept { \
+    return e.kind_ == error_collector::error::kind::kind_##name;           \
+  }                                                                        \
+                                                                           \
+  template <>                                                              \
+  const name &get<name>(const error_collector::error &e) noexcept {        \
+    QLJS_ASSERT(holds_alternative<name>(e));                               \
+    return e.variant_##name##_;                                            \
+  }
+QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+
 void PrintTo(const error_collector::error &e, std::ostream *out) {
-  using namespace quick_lint_js;
-
-  struct type_name_getter {
-    const char *operator()(const std::monostate &) const noexcept {
-      return "(monostate)";
-    }
-
+  switch (e.kind_) {
 #define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  const char *operator()(const name &) const noexcept { return #name; }
+  case error_collector::error::kind::kind_##name:       \
+    *out << #name;                                      \
+    return;
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-  };
-
-  *out << std::visit(type_name_getter(),
-                     static_cast<const error_collector::error_variant &>(e));
+  }
+  QLJS_UNREACHABLE();
 }
 
 #define QLJS_ERROR_TYPE(name, struct_body, format_call) \

@@ -18,10 +18,12 @@
 #define QUICK_LINT_JS_SPY_VISITOR_H
 
 #include <iosfwd>
+#include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <string_view>
 #include <vector>
 
@@ -93,6 +95,11 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_exit_function_scope");
   }
 
+  void visit_property_declaration() {
+    this->property_declarations.emplace_back(visited_property_declaration());
+    this->visits.emplace_back("visit_property_declaration");
+  }
+
   void visit_property_declaration(identifier name) {
     this->property_declarations.emplace_back(
         visited_property_declaration{string8(name.normalized_name())});
@@ -100,7 +107,7 @@ struct spy_visitor : public error_collector {
   }
 
   struct visited_property_declaration {
-    string8 name;
+    std::optional<string8> name;
 
     bool operator==(const visited_property_declaration &other) const {
       return this->name == other.name;
@@ -151,16 +158,22 @@ struct spy_visitor : public error_collector {
   };
   std::vector<visited_variable_declaration> variable_declarations;
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_export_use(identifier name) {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
-    this->visits.emplace_back("visit_variable_use");
+    this->visits.emplace_back("visit_variable_export_use");
   }
 
   void visit_variable_typeof_use(identifier name) {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_typeof_use");
+  }
+
+  void visit_variable_use(identifier name) {
+    this->variable_uses.emplace_back(
+        visited_variable_use{string8(name.normalized_name())});
+    this->visits.emplace_back("visit_variable_use");
   }
 
   struct visited_variable_use {
@@ -195,6 +208,7 @@ struct spy_visitor : public error_collector {
   };
   std::vector<visited_variable_use_and_assignment> variable_use_and_assignments;
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(spy_visitor);
 
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);

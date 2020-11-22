@@ -42,28 +42,6 @@
 #define QLJS_PARSER_UNIMPLEMENTED() \
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
-#define QLJS_CASE_BINARY_ONLY_OPERATOR      \
-  case token_type::kw_instanceof:           \
-  case token_type::ampersand:               \
-  case token_type::ampersand_ampersand:     \
-  case token_type::bang_equal:              \
-  case token_type::bang_equal_equal:        \
-  case token_type::circumflex:              \
-  case token_type::equal_equal:             \
-  case token_type::equal_equal_equal:       \
-  case token_type::greater:                 \
-  case token_type::greater_equal:           \
-  case token_type::greater_greater:         \
-  case token_type::greater_greater_greater: \
-  case token_type::less:                    \
-  case token_type::less_equal:              \
-  case token_type::less_less:               \
-  case token_type::percent:                 \
-  case token_type::pipe:                    \
-  case token_type::pipe_pipe:               \
-  case token_type::star:                    \
-  case token_type::star_star
-
 namespace quick_lint_js {
 namespace {
 vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
@@ -72,8 +50,13 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
   case token_type::identifier:
+  case token_type::kw_as:
+  case token_type::kw_from:
+  case token_type::kw_get:
   case token_type::kw_let:
-  case token_type::kw_static: {
+  case token_type::kw_set:
+  case token_type::kw_static:
+  case token_type::kw_yield: {
     expression_ptr ast = this->make_expression<expression::variable>(
         this->peek().identifier_name(), this->peek().type);
     this->skip();
@@ -300,6 +283,12 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(function, prec);
   }
 
+  // class {}
+  case token_type::kw_class: {
+    expression_ptr class_expression = this->parse_class_expression();
+    return this->parse_expression_remainder(class_expression, prec);
+  }
+
   case token_type::kw_new: {
     source_code_span operator_span = this->peek().span();
     this->skip();
@@ -391,13 +380,22 @@ next:
     if (!prec.commas) {
       break;
     }
-    source_code_span operator_span = this->peek().span();
+    source_code_span comma_span = this->peek().span();
     this->skip();
-    expression_ptr rhs = children.emplace_back(
-        this->parse_expression(precedence{.commas = false}));
-    if (rhs->kind() == expression_kind::_invalid) {
-      this->error_reporter_->report(
-          error_missing_operand_for_operator{operator_span});
+
+    if (this->peek().type == token_type::right_paren) {
+      // Probably an arrow function with a trailing comma in its parameter list:
+      // (parameters, go, here, ) => expression-or-block
+      return this->make_expression<expression::trailing_comma>(
+          this->expressions_.make_array(std::move(children)), comma_span);
+    } else {
+      // Comma expression: a, b, c
+      expression_ptr rhs = children.emplace_back(
+          this->parse_expression(precedence{.commas = false}));
+      if (rhs->kind() == expression_kind::_invalid) {
+        this->error_reporter_->report(
+            error_missing_operand_for_operator{comma_span});
+      }
     }
     goto next;
   }
@@ -443,19 +441,8 @@ next:
     goto next;
   }
 
-  case token_type::ampersand_equal:
-  case token_type::circumflex_equal:
-  case token_type::equal:
-  case token_type::greater_greater_equal:
-  case token_type::greater_greater_greater_equal:
-  case token_type::less_less_equal:
-  case token_type::minus_equal:
-  case token_type::percent_equal:
-  case token_type::pipe_equal:
-  case token_type::plus_equal:
-  case token_type::slash_equal:
-  case token_type::star_equal:
-  case token_type::star_star_equal: {
+  QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+  case token_type::equal: {
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
@@ -502,9 +489,21 @@ next:
   }
 
   case token_type::left_square: {
+    source_code_span left_square_span = this->peek().span();
     this->skip();
     expression_ptr subscript = this->parse_expression();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+    switch (this->peek().type) {
+    case token_type::right_square:
+      break;
+    case token_type::end_of_file:
+      this->error_reporter_->report(
+          error_unmatched_indexing_bracket{.left_square = left_square_span});
+      break;
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+
     children.back() = this->make_expression<expression::index>(
         children.back(), subscript, this->peek().end);
     this->skip();
@@ -839,6 +838,26 @@ expression_ptr parser::parse_object_literal() {
       source_code_span(left_curly_begin, right_curly_end));
 }
 
+expression_ptr parser::parse_class_expression() {
+  QLJS_ASSERT(this->peek().type == token_type::kw_class);
+  const char8 *span_begin = this->peek().begin;
+
+  buffering_visitor *v = this->expressions_.make_buffering_visitor();
+  this->parse_and_visit_class_heading(*v);
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+  this->skip();
+
+  this->parse_and_visit_class_body(*v);
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  const char8 *span_end = this->peek().end;
+  this->skip();
+
+  return this->make_expression<expression::_class>(
+      v, source_code_span(span_begin, span_end));
+}
+
 expression_ptr parser::parse_template(std::optional<expression_ptr> tag) {
   const char8 *template_begin = this->peek().begin;
   vector<expression_ptr> children("parse_template children");
@@ -924,6 +943,7 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
   vector<expression_ptr> parameters("arrow_function_parameters_from_lhs");
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
+  case expression_kind::trailing_comma:
     // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
     // for example.
     for (int i = 0; i < lhs->child_count(); ++i) {
@@ -932,6 +952,7 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
     break;
   case expression_kind::array:
   case expression_kind::object:
+  case expression_kind::spread:
   case expression_kind::variable:
     parameters.emplace_back(lhs);
     break;

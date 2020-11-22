@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef QUICK_LINT_JS_FILE_H
+#define QUICK_LINT_JS_FILE_H
+
+#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 
@@ -29,4 +33,8 @@ struct read_file_result {
 };
 
 read_file_result read_file(const char *path);
+
+read_file_result read_file(const char *path, platform_file_ref);
 }
+
+#endif

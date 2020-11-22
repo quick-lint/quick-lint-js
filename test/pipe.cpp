@@ -38,5 +38,20 @@ pipe_fds make_pipe() {
       .writer = posix_fd_file(fds[1]),
   };
 }
+#elif defined(_WIN32)
+pipe_fds make_pipe() {
+  HANDLE readPipe;
+  HANDLE writePipe;
+  if (!::CreatePipe(&readPipe, &writePipe, /*lpPipeAttributes=*/nullptr,
+                    /*nSize=*/0)) {
+    std::cerr << "error: failed to create pipe: "
+              << windows_handle_file::get_last_error_message() << '\n';
+    std::abort();
+  }
+  return pipe_fds{
+      .reader = windows_handle_file(readPipe),
+      .writer = windows_handle_file(writePipe),
+  };
+}
 #endif
 }

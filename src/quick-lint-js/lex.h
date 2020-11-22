@@ -324,6 +324,13 @@ class lexer {
                                            error_reporter*);
 
   void parse_binary_number();
+
+  enum class octal_kind {
+    sloppy,
+    // strict_0,
+    strict_0o,
+  };
+  void parse_octal_number(octal_kind);
   void parse_hexadecimal_number();
   char8* check_garbage_in_number_literal(char8* input);
   void parse_number();
@@ -331,7 +338,7 @@ class lexer {
   template <class Func>
   char8* parse_digits_and_underscores(Func&& is_valid_digit,
                                       char8* input) noexcept;
-
+  char8* parse_octal_digits(char8* input) noexcept;
   char8* parse_decimal_digits_and_underscores(char8* input) noexcept;
   char8* parse_hex_digits_and_underscores(char8* input) noexcept;
 
@@ -345,6 +352,7 @@ class lexer {
   bool is_eof(const char8*) noexcept;
 
   static bool is_binary_digit(char8);
+  static bool is_octal_digit(char8);
   static bool is_digit(char8);
   static bool is_hex_digit(char8);
   static bool is_identifier_character(int code_point);

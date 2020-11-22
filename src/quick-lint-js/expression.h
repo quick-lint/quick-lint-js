@@ -66,6 +66,7 @@ class expression_ptr {
 };
 
 enum class expression_kind {
+  _class,
   _invalid,
   _new,
   _template,
@@ -92,6 +93,7 @@ enum class expression_kind {
   spread,
   super,
   tagged_template_literal,
+  trailing_comma,
   unary_operator,
   variable,
 };
@@ -164,6 +166,7 @@ class expression {
  public:
   class expression_with_prefix_operator_base;
 
+  class _class;
   class _invalid;
   class _new;
   class _template;
@@ -189,6 +192,7 @@ class expression {
   class spread;
   class super;
   class tagged_template_literal;
+  class trailing_comma;
   class unary_operator;
   class variable;
 
@@ -352,6 +356,26 @@ class expression::expression_with_prefix_operator_base : public expression {
   const char8 *unary_operator_begin_;
   expression_ptr child_;
 };
+
+class expression::_class : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_class;
+
+  explicit _class(expression_arena::buffering_visitor_ptr child_visits,
+                  source_code_span span) noexcept
+      : expression(kind), child_visits_(child_visits), span_(span) {}
+
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
+    return std::exchange(this->child_visits_, nullptr);
+  }
+
+ private:
+  expression_arena::buffering_visitor_ptr child_visits_;
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::_class>);
 
 class expression::_invalid final : public expression {
  public:
@@ -974,6 +998,37 @@ class expression::tagged_template_literal final : public expression {
 static_assert(
     expression_arena::is_allocatable<expression::tagged_template_literal>);
 
+class expression::trailing_comma final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::trailing_comma;
+
+  explicit trailing_comma(expression_arena::array_ptr<expression_ptr> children,
+                          source_code_span comma_span) noexcept
+      : expression(kind), children_(children), comma_end_(comma_span.end()) {
+    QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
+  }
+
+  int child_count_impl() const noexcept { return this->children_.size(); }
+
+  expression_ptr child_impl(int index) const noexcept {
+    return this->children_[index];
+  }
+
+  source_code_span span_impl() const noexcept {
+    return source_code_span(this->children_.front()->span().begin(),
+                            this->comma_end_);
+  }
+
+  source_code_span comma_span() const noexcept {
+    return source_code_span(this->comma_end_ - 1, this->comma_end_);
+  }
+
+ private:
+  expression_arena::array_ptr<expression_ptr> children_;
+  const char8 *comma_end_;
+};
+static_assert(expression_arena::is_allocatable<expression::trailing_comma>);
+
 class expression::unary_operator final
     : public expression::expression_with_prefix_operator_base {
  public:
@@ -1022,6 +1077,7 @@ inline auto expression::with_derived(Func &&func) {
     return func(static_cast<kind &>(*this));
 
   switch (this->kind()) {
+    QLJS_EXPRESSION_CASE(_class)
     QLJS_EXPRESSION_CASE(_invalid)
     QLJS_EXPRESSION_CASE(_new)
     QLJS_EXPRESSION_CASE(_template)
@@ -1048,6 +1104,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(spread)
     QLJS_EXPRESSION_CASE(super)
     QLJS_EXPRESSION_CASE(tagged_template_literal)
+    QLJS_EXPRESSION_CASE(trailing_comma)
     QLJS_EXPRESSION_CASE(unary_operator)
     QLJS_EXPRESSION_CASE(variable)
   }

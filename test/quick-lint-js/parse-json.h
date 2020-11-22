@@ -22,6 +22,8 @@
 
 namespace quick_lint_js {
 ::Json::Value parse_json(std::stringstream &);
+bool parse_json(string8_view json, ::Json::Value *result,
+                ::Json::String *errors);
 }
 
 #endif

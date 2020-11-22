@@ -21,6 +21,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse-visitor.h>
 #include <string>
 #include <vector>
 
@@ -48,9 +49,11 @@ class linter {
   void visit_exit_class_scope();
   void visit_exit_for_scope();
   void visit_exit_function_scope();
+  void visit_property_declaration();
   void visit_property_declaration(identifier);
   void visit_variable_declaration(identifier name, variable_kind kind);
   void visit_variable_assignment(identifier name);
+  void visit_variable_export_use(identifier name);
   void visit_variable_typeof_use(identifier name);
   void visit_variable_use(identifier name);
   void visit_variable_use_and_assignment(identifier name);
@@ -126,6 +129,7 @@ class linter {
   };
 
   enum class used_variable_kind {
+    _export,
     _typeof,
     assignment,
     use,
@@ -146,6 +150,24 @@ class linter {
     used_variable_kind kind;
   };
 
+  class declared_variable_set {
+   public:
+    const declared_variable *add_variable_declaration(identifier name,
+                                                      variable_kind,
+                                                      declared_variable_scope);
+    void add_predefined_variable_declaration(const char8 *name, variable_kind);
+
+    const declared_variable *find(identifier name) const noexcept;
+
+    void clear() noexcept;
+
+    std::vector<declared_variable>::const_iterator begin() const noexcept;
+    std::vector<declared_variable>::const_iterator end() const noexcept;
+
+   private:
+    std::vector<declared_variable> variables_;
+  };
+
   // A scope tracks variable declarations and references in a lexical JavaScript
   // scope.
   //
@@ -156,35 +178,27 @@ class linter {
   // * () => {} (arrow function)
   // * for(let x of y)
   struct scope {
-    std::vector<declared_variable> declared_variables;
+    declared_variable_set declared_variables;
     std::vector<used_variable> variables_used;
     std::vector<used_variable> variables_used_in_descendant_scope;
     std::optional<declared_variable> function_expression_declaration;
 
-    const declared_variable *add_variable_declaration(identifier name,
-                                                      variable_kind,
-                                                      declared_variable_scope);
-    void add_predefined_variable_declaration(const char8 *name, variable_kind);
-
-    const declared_variable *find_declared_variable(identifier name) const
-        noexcept;
-
     void clear();
+  };
+
+  struct global_scope {
+    explicit global_scope(const declared_variable_set *declared_variables)
+        : declared_variables(*declared_variables) {}
+
+    const declared_variable_set &declared_variables;
+    std::vector<used_variable> variables_used;
+    std::vector<used_variable> variables_used_in_descendant_scope;
   };
 
   // A stack of scope objects.
   class scopes {
    public:
     explicit scopes();
-
-    // The global scope which holds properties of the globalThis object.
-    //
-    // The global scope cannot be modified lexically by user programs. Variables
-    // declared with 'let', 'class', etc. at the top level of the program are
-    // declared in the module scope, not the global scope.
-    //
-    // The global scope always exists.
-    scope &global_scope() noexcept;
 
     // The module scope which holds properties not on the globalThis object.
     //
@@ -217,6 +231,10 @@ class linter {
 
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments);
+  template <class Scope>
+  void propagate_variable_uses_to_parent_scope(
+      Scope &parent_scope, bool allow_variable_use_before_declaration,
+      bool consume_arguments);
 
   void propagate_variable_declarations_to_parent_scope();
 
@@ -230,9 +248,21 @@ class linter {
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
 
+  static linter::declared_variable_set make_global_variables();
+  const static linter::declared_variable_set *get_global_variables();
+
   scopes scopes_;
+
+  // The scope which holds properties of the globalThis object.
+  //
+  // The global scope cannot be modified lexically by user programs. Variables
+  // declared with 'let', 'class', etc. at the top level of the program are
+  // declared in the module scope, not the global scope.
+  global_scope global_scope_;
+
   error_reporter *error_reporter_;
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 }
 
 #endif

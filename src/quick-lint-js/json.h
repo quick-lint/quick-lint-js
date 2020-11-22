@@ -18,10 +18,13 @@
 #define QUICK_LINT_JS_JSON_H
 
 #include <iosfwd>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <string>
 
 namespace quick_lint_js {
+class byte_buffer;
+
 template <class Char>
 void write_json_escaped_string(std::ostream &, std::basic_string_view<Char>);
 
@@ -31,6 +34,8 @@ extern template void write_json_escaped_string<char>(
 extern template void write_json_escaped_string<char8_t>(
     std::ostream &, std::basic_string_view<char8_t>);
 #endif
+
+void write_json_escaped_string(byte_buffer &, string8_view);
 }
 
 #endif

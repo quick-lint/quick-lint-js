@@ -32,6 +32,13 @@
 #define QLJS_PARSE_VISITOR class
 #endif
 
+#if QLJS_HAVE_CXX_CONCEPTS
+#define QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(...) \
+  static_assert(::quick_lint_js::parse_visitor<__VA_ARGS__>)
+#else
+#define QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(...) static_assert(true)
+#endif
+
 namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Visitor>
@@ -48,9 +55,11 @@ concept parse_visitor = requires(Visitor v, identifier name,
   {v.visit_exit_class_scope()};
   {v.visit_exit_for_scope()};
   {v.visit_exit_function_scope()};
+  {v.visit_property_declaration()};
   {v.visit_property_declaration(name)};
   {v.visit_variable_assignment(name)};
   {v.visit_variable_declaration(name, var_kind)};
+  {v.visit_variable_export_use(name)};
   {v.visit_variable_typeof_use(name)};
   {v.visit_variable_use(name)};
 };

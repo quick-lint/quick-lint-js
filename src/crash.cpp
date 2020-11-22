@@ -59,17 +59,17 @@ core_style linux_detect_core_style() {
   posix_fd_file file(fd);
 
   std::array<char, 1> core_pattern;
-  std::optional<int> read_size =
+  file_read_result read_result =
       file.read(core_pattern.data(), core_pattern.size());
-  if (!read_size.has_value()) {
+  if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
     std::fprintf(
         stderr,
         "warning: failed to determine method to disable core dumping: %s\n",
-        file.get_last_error_message().c_str());
+        read_result.error_message->c_str());
     return core_style::unknown;
   }
 
-  if (*read_size == 0) {
+  if (read_result.at_end_of_file || read_result.bytes_read == 0) {
     // kernel.core_pattern is empty. The file name is 'core' or 'core.PID'.
     return core_style::file_path;
   } else if (core_pattern[0] == '|') {

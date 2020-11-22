@@ -19,6 +19,7 @@
 
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/parse-visitor.h>
 
 namespace quick_lint_js {
 class null_visitor {
@@ -45,11 +46,15 @@ class null_visitor {
 
   void visit_exit_function_scope() {}
 
+  void visit_property_declaration() {}
+
   void visit_property_declaration(identifier) {}
 
   void visit_variable_assignment(identifier) {}
 
   void visit_variable_declaration(identifier, variable_kind) {}
+
+  void visit_variable_export_use(identifier) {}
 
   void visit_variable_typeof_use(identifier) {}
 
@@ -57,6 +62,7 @@ class null_visitor {
 
   void visit_variable_use_and_assignment(identifier) {}
 };
+QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(null_visitor);
 }
 
 #endif

@@ -53,10 +53,12 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_exit_class_scope();
   v.visit_exit_for_scope();
   v.visit_exit_function_scope();
+  v.visit_property_declaration();
   v.visit_property_declaration(identifier_of(property_name));
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(identifier_of(variable_name),
                                variable_kind::_var);
+  v.visit_variable_export_use(identifier_of(variable_name));
   v.visit_variable_typeof_use(identifier_of(variable_name));
   v.visit_variable_use(identifier_of(variable_name));
 
@@ -75,8 +77,10 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           "visit_exit_for_scope",              //
                           "visit_exit_function_scope",         //
                           "visit_property_declaration",        //
+                          "visit_property_declaration",        //
                           "visit_variable_assignment",         //
                           "visit_variable_declaration",        //
+                          "visit_variable_export_use",         //
                           "visit_variable_typeof_use",         //
                           "visit_variable_use"));
 }

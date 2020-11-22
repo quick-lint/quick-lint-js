@@ -28,6 +28,7 @@ quick_lint_js_add_executable(
   test-assert.cpp
   test-bit.cpp
   test-buffering-visitor.cpp
+  test-byte-buffer.cpp
   test-constant-divider.cpp
   test-crash.cpp
   test-file.cpp
@@ -39,7 +40,12 @@ quick_lint_js_add_executable(
   test-lint.cpp
   test-locale.cpp
   test-location.cpp
+  test-lsp-endpoint.cpp
   test-lsp-error-reporter.cpp
+  test-lsp-message-parser.cpp
+  test-lsp-pipe-reader.cpp
+  test-lsp-pipe-writer.cpp
+  test-lsp-server.cpp
   test-math-overflow.cpp
   test-narrow-cast.cpp
   test-options.cpp
@@ -51,6 +57,7 @@ quick_lint_js_add_executable(
   test-vector.cpp
   test-vim-qflist-json-error-reporter.cpp
   test-wasm-demo-error-reporter.cpp
+  test-write-integer.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(
@@ -67,12 +74,16 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
+    <boost/container/pmr/monotonic_buffer_resource.hpp>
+    <boost/container/pmr/polymorphic_allocator.hpp>
+    <boost/container/small_vector.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>
     <json/reader.h>
     <json/value.h>
     <json/writer.h>
+    <simdjson.h>
   )
 endif ()
 

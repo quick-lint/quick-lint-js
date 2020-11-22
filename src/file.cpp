@@ -65,14 +65,7 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
-#if defined(QLJS_FILE_WINDOWS)
-using platform_file = windows_handle_file;
-#endif
-#if defined(QLJS_FILE_POSIX)
-using platform_file = posix_fd_file;
-#endif
-
-void read_file_buffered(platform_file &file, int buffer_size,
+void read_file_buffered(platform_file_ref file, int buffer_size,
                         read_file_result *out) {
   for (;;) {
     int size_before = out->content.size();
@@ -86,23 +79,24 @@ void read_file_buffered(platform_file &file, int buffer_size,
       out->content.resize(size_before + buffer_size);
     }
 
-    std::optional<int> read_size =
+    file_read_result read_result =
         file.read(&out->content.data()[size_before], buffer_size);
-    if (!read_size.has_value()) {
-      out->error = "failed to read from file: " + file.get_last_error_message();
+    if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
+      out->error = "failed to read from file: " + *read_result.error_message;
       return;
     }
-    std::optional<int> new_size = checked_add(size_before, *read_size);
+    std::optional<int> new_size =
+        checked_add(size_before, read_result.bytes_read);
     QLJS_ASSERT(new_size.has_value());
     out->content.resize(*new_size);
-    if (*read_size == 0) {
+    if (read_result.at_end_of_file) {
       // We read the entire file.
       return;
     }
   }
 }
 
-read_file_result read_file_with_expected_size(platform_file &file,
+read_file_result read_file_with_expected_size(platform_file_ref file,
                                               int file_size, int buffer_size) {
   read_file_result result;
 
@@ -113,24 +107,26 @@ read_file_result read_file_with_expected_size(platform_file &file,
   }
   result.content.resize(*size_to_read);
 
-  std::optional<int> read_size =
+  file_read_result read_result =
       file.read(result.content.data(), *size_to_read);
-  if (!read_size.has_value()) {
-    result.error = "failed to read from file: " + file.get_last_error_message();
+  if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
+    result.error = "failed to read from file: " + *read_result.error_message;
     return result;
   }
-  if (*read_size == file_size) {
+  if (read_result.bytes_read == file_size) {
     // We possibly read the entire file. Make extra sure by reading one more
     // byte.
-    std::optional<int> extra_read_size =
+    file_read_result extra_read_result =
         file.read(result.content.data() + file_size, 1);
-    if (!extra_read_size.has_value()) {
+    if (!extra_read_result.at_end_of_file &&
+        extra_read_result.error_message.has_value()) {
       result.error =
-          "failed to read from file: " + file.get_last_error_message();
+          "failed to read from file: " + *extra_read_result.error_message;
       return result;
     }
-    result.content.resize(*read_size + *extra_read_size);
-    if (*extra_read_size == 0) {
+    result.content.resize(read_result.bytes_read +
+                          extra_read_result.bytes_read);
+    if (extra_read_result.at_end_of_file) {
       // We definitely read the entire file.
       return result;
     } else {
@@ -139,15 +135,16 @@ read_file_result read_file_with_expected_size(platform_file &file,
       return result;
     }
   } else {
-    result.content.resize(*read_size);
+    result.content.resize(read_result.bytes_read);
     // We did not read the entire file. There is more data to read.
     read_file_buffered(file, buffer_size, &result);
     return result;
   }
 }
+}
 
 #if defined(QLJS_FILE_WINDOWS)
-read_file_result read_file(const char *path, windows_handle_file &file) {
+read_file_result read_file(const char *path, windows_handle_file_ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
   ::LARGE_INTEGER file_size;
@@ -180,7 +177,7 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 }
 
-read_file_result read_file(const char *path, posix_fd_file &file) {
+read_file_result read_file(const char *path, posix_fd_file_ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
@@ -199,7 +196,6 @@ read_file_result read_file(const char *path, posix_fd_file &file) {
       /*buffer_size=*/reasonable_buffer_size(s));
 }
 #endif
-}
 
 #if defined(QLJS_FILE_WINDOWS)
 read_file_result read_file(const char *path) {
@@ -217,7 +213,7 @@ read_file_result read_file(const char *path) {
                                      ": " + windows_error_message(error));
   }
   windows_handle_file file(handle);
-  return read_file(path, file);
+  return read_file(path, file.ref());
 }
 #endif
 
@@ -230,7 +226,7 @@ read_file_result read_file(const char *path) {
                                      ": " + std::strerror(error));
   }
   posix_fd_file file(fd);
-  return read_file(path, file);
+  return read_file(path, file.ref());
 }
 #endif
 }

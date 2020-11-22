@@ -104,6 +104,7 @@ class test_parser {
     case expression_kind::compound_assignment:
     case expression_kind::index:
     case expression_kind::tagged_template_literal:
+    case expression_kind::trailing_comma:
       children();
       break;
     case expression_kind::arrow_function_with_statements:
@@ -124,6 +125,7 @@ class test_parser {
       this->clean_up_expression(ast->child_1());
       this->clean_up_expression(ast->child_2());
       break;
+    case expression_kind::_class:
     case expression_kind::function:
     case expression_kind::named_function:
       visit_children();
@@ -378,6 +380,19 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   }
 }
 
+TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
+  {
+    // Arrow expressions allow trailing commas in their parenthesized parameter
+    // lists, but comma expressions do not allow trailing commas.
+    test_parser p(u8"(a, b, c,)");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "trailingcomma(var a, var b, var c)");
+    EXPECT_THAT(p.errors(), IsEmpty())
+        << "trailing comma expression emits no errors; errors are emitted "
+           "depending on the context";
+  }
+}
+
 TEST_F(test_parse_expression, parse_logical_expression) {
   for (const char8 *input : {u8"2==2", u8"2===2", u8"2!=2", u8"2!==2", u8"2>2",
                              u8"2<2", u8"2>=2", u8"2<=2", u8"2&&2", u8"2||2"}) {
@@ -546,6 +561,17 @@ TEST_F(test_parse_expression, parse_indexing_expression) {
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 5);
+  }
+}
+
+TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
+  {
+    test_parser p(u8"xs[i");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_unmatched_indexing_bracket, left_square,
+                                offsets_matcher(p.locator, 2, 3))));
   }
 }
 
@@ -1297,6 +1323,11 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression_ptr ast = this->parse_expression(u8"a => b, c");
     EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a, var b), var c)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"(a,) => b");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var a, var b)");
+  }
 }
 
 TEST_F(test_parse_expression, arrow_function_with_statements) {
@@ -1345,6 +1376,17 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
     EXPECT_EQ(summarize(ast->child(1)), "var c");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"(...args) => null");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
+    EXPECT_EQ(ast->attributes(), function_attributes::normal);
+    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
+    EXPECT_EQ(summarize(ast->child(1)), "literal");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -1403,6 +1445,31 @@ TEST_F(test_parse_expression, async_arrow_function) {
     expression_ptr ast = this->parse_expression(u8"async (x, y, z) => w");
     EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z, var w)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"async (a,) => b");
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var a, var b)");
+  }
+}
+
+TEST_F(test_parse_expression, anonymous_class) {
+  {
+    test_parser p(u8"class {}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::_class);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 8);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"class C {}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::_class);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 10);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST_F(test_parse_expression, parse_mixed_expression) {
@@ -1458,6 +1525,11 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
     expression_ptr ast = this->parse_expression(u8"x --> 0");
     EXPECT_EQ(summarize(ast), "binary(rwunarysuffix(var x), literal)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"class {} + 42");
+    EXPECT_EQ(summarize(ast), "binary(class, literal)");
+  }
 }
 
 std::string summarize(const expression &expression) {
@@ -1483,6 +1555,8 @@ std::string summarize(const expression &expression) {
     QLJS_UNREACHABLE();
   };
   switch (expression.kind()) {
+  case expression_kind::_class:
+    return "class";
   case expression_kind::_invalid:
     return "?";
   case expression_kind::_new:
@@ -1552,6 +1626,8 @@ std::string summarize(const expression &expression) {
     return "super";
   case expression_kind::tagged_template_literal:
     return "taggedtemplate(" + children() + ")";
+  case expression_kind::trailing_comma:
+    return "trailingcomma(" + children() + ")";
   case expression_kind::unary_operator:
     return "unary(" + summarize(expression.child_0()) + ")";
   case expression_kind::compound_assignment:

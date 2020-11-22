@@ -45,35 +45,120 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
-windows_handle_file::windows_handle_file(HANDLE handle) noexcept
-    : handle_(handle) {}
-
-windows_handle_file::~windows_handle_file() {
-  if (!::CloseHandle(this->handle_)) {
-    std::fprintf(stderr, "error: failed to close file\n");
-  }
+windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
+    : handle_(handle) {
+  QLJS_ASSERT(this->handle_ != nullptr);
+  QLJS_ASSERT(this->handle_ != INVALID_HANDLE_VALUE);
 }
 
-HANDLE windows_handle_file::get() noexcept { return this->handle_; }
+HANDLE windows_handle_file_ref::get() noexcept { return this->handle_; }
 
-std::optional<int> windows_handle_file::read(void *buffer,
-                                             int buffer_size) noexcept {
+file_read_result windows_handle_file_ref::read(void *buffer,
+                                               int buffer_size) noexcept {
   DWORD read_size;
   if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
                   &read_size,
                   /*lpOverlapped=*/nullptr)) {
-    return std::nullopt;
+    DWORD error = ::GetLastError();
+    return file_read_result{
+        .at_end_of_file = error == ERROR_BROKEN_PIPE,
+        .bytes_read = 0,
+        .error_message = windows_error_message(error),
+    };
   }
-  return narrow_cast<int>(read_size);
+  return file_read_result{
+      // TODO(strager): Microsoft's documentation for ReadFile claims the
+      // following:
+      //
+      // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns
+      // > TRUE on a pipe, the other end of the pipe called the WriteFile
+      // > function with nNumberOfBytesToWrite set to zero.
+      //
+      // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+      //
+      // In my experiments, I haven't been able to make ReadFile give
+      // 0-bytes-read in this case. However, given the documentation, when we
+      // get 0 bytes read, we should ask the pipe of we reached EOF.
+      .at_end_of_file = read_size == 0,
+      .bytes_read = narrow_cast<int>(read_size),
+      .error_message = std::nullopt,
+  };
 }
 
-std::string windows_handle_file::get_last_error_message() {
+std::optional<int> windows_handle_file_ref::write(const void *buffer,
+                                                  int buffer_size) noexcept {
+  DWORD write_size;
+  if (!::WriteFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
+                   &write_size,
+                   /*lpOverlapped=*/nullptr)) {
+    return std::nullopt;
+  }
+  return narrow_cast<int>(write_size);
+}
+
+std::string windows_handle_file_ref::get_last_error_message() {
   return windows_error_message(::GetLastError());
 }
+
+windows_handle_file::windows_handle_file(HANDLE handle) noexcept
+    : windows_handle_file_ref(handle) {}
+
+windows_handle_file::~windows_handle_file() {
+  if (this->handle_ != this->invalid_handle) {
+    this->close();
+  }
+}
+
+void windows_handle_file::close() {
+  if (!::CloseHandle(this->handle_)) {
+    std::fprintf(stderr, "error: failed to close file\n");
+  }
+  this->handle_ = this->invalid_handle;
+}
+
+windows_handle_file_ref windows_handle_file::ref() noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_UNISTD_H
-posix_fd_file::posix_fd_file(int fd) noexcept : fd_(fd) {
+posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
+  QLJS_ASSERT(this->fd_ != -1);
+}
+
+int posix_fd_file_ref::get() noexcept { return this->fd_; }
+
+file_read_result posix_fd_file_ref::read(void *buffer,
+                                         int buffer_size) noexcept {
+  ::ssize_t read_size =
+      ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
+  if (read_size == -1) {
+    return file_read_result{
+        .at_end_of_file = false,
+        .bytes_read = 0,
+        .error_message = this->get_last_error_message(),
+    };
+  }
+  return file_read_result{
+      .at_end_of_file = read_size == 0,
+      .bytes_read = narrow_cast<int>(read_size),
+      .error_message = std::nullopt,
+  };
+}
+
+std::optional<int> posix_fd_file_ref::write(const void *buffer,
+                                            int buffer_size) noexcept {
+  ::ssize_t written_size =
+      ::write(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
+  if (written_size == -1) {
+    return std::nullopt;
+  }
+  return narrow_cast<int>(written_size);
+}
+
+std::string posix_fd_file_ref::get_last_error_message() {
+  return std::strerror(errno);
+}
+
+posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {
   QLJS_ASSERT(fd != invalid_fd);
 }
 
@@ -81,17 +166,6 @@ posix_fd_file::~posix_fd_file() {
   if (this->fd_ != invalid_fd) {
     this->close();
   }
-}
-
-int posix_fd_file::get() noexcept { return this->fd_; }
-
-std::optional<int> posix_fd_file::read(void *buffer, int buffer_size) noexcept {
-  ::ssize_t read_size =
-      ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
-  if (read_size == -1) {
-    return std::nullopt;
-  }
-  return narrow_cast<int>(read_size);
 }
 
 void posix_fd_file::close() {
@@ -104,27 +178,7 @@ void posix_fd_file::close() {
   this->fd_ = invalid_fd;
 }
 
-std::string posix_fd_file::get_last_error_message() {
-  return std::strerror(errno);
-}
-
-posix_fd_file_ref posix_fd_file::ref() noexcept {
-  return posix_fd_file_ref(this->fd_);
-}
-
-posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
-  QLJS_ASSERT(this->fd_ != -1);
-}
-
-posix_fd_file posix_fd_file_ref::duplicate() {
-  int new_fd = ::dup(this->fd_);
-  if (new_fd == -1) {
-    std::fprintf(stderr, "fatal: failed to duplicate file descriptor: %s\n",
-                 std::strerror(errno));
-    std::abort();
-  }
-  return posix_fd_file(new_fd);
-}
+posix_fd_file_ref posix_fd_file::ref() noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H

@@ -17,6 +17,8 @@
 #include <gtest/gtest.h>
 #include <json/reader.h>
 #include <json/value.h>
+#include <memory>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/parse-json.h>
 #include <sstream>
 
@@ -31,5 +33,20 @@ namespace quick_lint_js {
   bool ok = ::Json::parseFromStream(builder, stream, &root, &errors);
   EXPECT_TRUE(ok) << errors;
   return root;
+}
+
+bool parse_json(string8_view json, ::Json::Value *result,
+                ::Json::String *errors) {
+#if QLJS_HAVE_CHAR8_T
+  const char *json_chars = reinterpret_cast<const char *>(json.data());
+#else
+  const char *json_chars = json.data();
+#endif
+  // TODO(strager): Avoid copying the JSON string.
+  ::Json::CharReaderBuilder readerBuilder;
+  readerBuilder.strictMode(&readerBuilder.settings_);
+  std::unique_ptr<::Json::CharReader> reader(readerBuilder.newCharReader());
+  bool ok = reader->parse(json_chars, &json_chars[json.size()], result, errors);
+  return ok;
 }
 }

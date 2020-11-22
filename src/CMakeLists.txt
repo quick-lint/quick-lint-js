@@ -39,6 +39,7 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
+  byte-buffer.cpp
   char8.cpp
   crash.cpp
   error.cpp
@@ -54,6 +55,9 @@ quick_lint_js_add_library(
   locale.cpp
   location.cpp
   lsp-error-reporter.cpp
+  lsp-message-parser.cpp
+  lsp-pipe-writer.cpp
+  lsp-server.cpp
   options.cpp
   padded-string.cpp
   parse.cpp
@@ -65,7 +69,19 @@ quick_lint_js_add_library(
   wasm-demo-error-reporter.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
-target_link_libraries(quick-lint-js-lib PUBLIC boost_container)
+target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+  target_precompile_headers(
+    quick-lint-js-lib
+    PUBLIC
+    <boost/container/pmr/polymorphic_allocator.hpp>
+    <boost/container/small_vector.hpp>
+    <cmath>
+    <cstring>
+    <simdjson.h>
+    <string>
+  )
+endif ()
 
 if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
   target_compile_definitions(
@@ -85,14 +101,15 @@ endif ()
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
 # invoking undefined behaviour though with our string table offset pointer
 # arithmetic? Unsure.) The bug appears to be fixed in GCC 10.1.0.
+#
 # Possibly related: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92765
+#
+# To work around the bug, apply -fno-builtin to the target. If we apply it only
+# to the source file, the flag seems to be ignored when using precompiled
+# headers.
 if (
   CMAKE_CXX_COMPILER_ID STREQUAL GNU
   AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.1.0
 )
-  set_source_files_properties(
-    lex-keyword.cpp
-    PROPERTIES
-    COMPILE_OPTIONS -fno-builtin
-  )
+  target_compile_options(quick-lint-js-lib PRIVATE -fno-builtin)
 endif ()
