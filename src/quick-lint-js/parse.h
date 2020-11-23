@@ -458,10 +458,6 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_compound_assignment_expression(expression_ptr lhs,
                                             expression_ptr rhs, Visitor &v) {
-    // bool used = false;
-    // used = this->visit_expression(lhs, v, variable_context::rhs);
-    // this->visit_expression(rhs, v, variable_context::rhs);
-    // this->maybe_visit_assignment(lhs, v, used);
     bool used = false;
     if (lhs->kind() == expression_kind::variable) {
       used = true;
