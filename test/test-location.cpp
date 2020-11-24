@@ -75,11 +75,11 @@ TEST(test_location, lf_cr_is_two_line_terminators) {
   padded_string code(u8"let x = 2;\n\rlet y = 3;");
   const char8* y = strchr(code.c_str(), u8'y');
   locator l(&code);
-  source_range x_range = l.range(source_code_span(y, y + 1));
+  source_range y_range = l.range(source_code_span(y, y + 1));
 
-  EXPECT_EQ(x_range.begin_offset(), y - code.c_str());
-  EXPECT_EQ(x_range.begin().line_number, 3);
-  EXPECT_EQ(x_range.begin().column_number, 5);
+  EXPECT_EQ(y_range.begin_offset(), y - code.c_str());
+  EXPECT_EQ(y_range.begin().line_number, 3);
+  EXPECT_EQ(y_range.begin().column_number, 5);
 }
 
 TEST(test_location, location_after_null_byte) {
