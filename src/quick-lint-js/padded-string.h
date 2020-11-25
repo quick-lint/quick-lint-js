@@ -98,6 +98,15 @@ class padded_string_view {
     return this->data_[index];
   }
 
+  string8_view string_view() const noexcept;
+
+  friend std::ostream &operator<<(std::ostream &, const padded_string_view &);
+
+  friend bool operator==(string8_view, const padded_string_view &) noexcept;
+  friend bool operator!=(string8_view, const padded_string_view &) noexcept;
+  friend bool operator==(const padded_string_view &, string8_view) noexcept;
+  friend bool operator!=(const padded_string_view &, string8_view) noexcept;
+
  private:
   char8 *data_;
   int length_;

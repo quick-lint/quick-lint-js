@@ -40,6 +40,7 @@ quick_lint_js_add_executable(
   test-lint.cpp
   test-locale.cpp
   test-location.cpp
+  test-lsp-document.cpp
   test-lsp-endpoint.cpp
   test-lsp-error-reporter.cpp
   test-lsp-location.cpp
