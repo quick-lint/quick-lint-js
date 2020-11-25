@@ -17,6 +17,7 @@
 #include <benchmark/benchmark.h>
 #include <memory>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
@@ -41,9 +42,6 @@ struct source_code_with_spans {
 };
 
 source_code_with_spans make_realisticish_code(int line_count, int span_count);
-std::vector<int> random_line_lengths(std::mt19937_64 &, int line_count);
-padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const string8 &newline);
 template <class T>
 void partial_shuffle(std::vector<T> &, std::mt19937_64 &, int rounds);
 
@@ -152,31 +150,6 @@ source_code_with_spans make_realisticish_code(int line_count, int span_count) {
   partial_shuffle(spans, rng, /*rounds=*/5);
 
   return source_code_with_spans(std::move(source), std::move(spans));
-}
-
-std::vector<int> random_line_lengths(std::mt19937_64 &rng, int line_count) {
-  // Based on jQuery 3.5.1.
-  std::normal_distribution distribution(/*mean=*/22.0, /*stddev=*/28.0);
-
-  std::vector<int> line_lengths;
-  line_lengths.reserve(narrow_cast<std::size_t>(line_count));
-  for (int i = 0; i < line_count; ++i) {
-    int columns = static_cast<int>(distribution(rng));
-    if (columns < 0) columns = 0;
-    if (columns > 99) columns = 0;
-    line_lengths.emplace_back(columns);
-  }
-  return line_lengths;
-}
-
-padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const string8 &newline) {
-  string8 source;
-  for (int line_length : line_lengths) {
-    source += string8(narrow_cast<std::size_t>(line_length), u8'x');
-    source += newline;
-  }
-  return padded_string(std::move(source));
 }
 
 template <class T>

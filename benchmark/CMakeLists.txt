@@ -25,6 +25,7 @@ function (quick_lint_js_add_benchmark_executable TARGET_NAME)
     PRIVATE
     benchmark::benchmark
     benchmark::benchmark_main
+    quick-lint-js-benchmark-support
     quick-lint-js-lib
   )
 endfunction ()
@@ -53,3 +54,7 @@ quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-translation
   benchmark-translation.cpp
 )
+
+quick_lint_js_add_library(quick-lint-js-benchmark-support generate-code.cpp)
+target_include_directories(quick-lint-js-benchmark-support PUBLIC .)
+target_link_libraries(quick-lint-js-benchmark-support PUBLIC quick-lint-js-lib)
