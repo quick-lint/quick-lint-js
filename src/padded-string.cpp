@@ -54,7 +54,7 @@ bool operator!=(string8_view x, const padded_string& y) noexcept {
 }
 
 bool operator==(const padded_string& x, string8_view y) noexcept {
-  return string8_view(x.c_str(), narrow_cast<std::size_t>(x.size())) == y;
+  return x.string_view() == y;
 }
 
 bool operator!=(const padded_string& x, string8_view y) noexcept {
@@ -62,8 +62,7 @@ bool operator!=(const padded_string& x, string8_view y) noexcept {
 }
 
 std::ostream& operator<<(std::ostream& out, const padded_string& x) {
-  out << out_string8(
-      string8_view(x.c_str(), narrow_cast<std::size_t>(x.size())));
+  out << out_string8(x.string_view());
   return out;
 }
 }
