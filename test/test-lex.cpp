@@ -178,6 +178,16 @@ TEST(test_lex, fail_lex_binary_number_no_digits) {
       });
 }
 
+TEST(test_lex, fail_lex_binary_number) {
+  check_tokens_with_errors(
+      u8"0b1.1", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_number,
+                                characters, offsets_matcher(input, 3, 5))));
+      });
+}
+
 TEST(test_lex, lex_octal_numbers_strict) {
   check_single_token(u8"000", token_type::number);
   check_single_token(u8"001", token_type::number);

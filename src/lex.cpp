@@ -759,6 +759,7 @@ char8* lexer::check_garbage_in_number_literal(char8* input) {
     switch (*input) {
     QLJS_CASE_DECIMAL_DIGIT:
     QLJS_CASE_IDENTIFIER_START:
+    case u8'.':
       input += 1;
       break;
     default:
