@@ -41,6 +41,9 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 
 namespace quick_lint_js {
 namespace {
+padded_string make_padded_string(
+    const ::simdjson::simdjson_result<::simdjson::dom::element>& string);
+
 void append_raw_json(::simdjson::dom::element& value, byte_buffer& out);
 void append_raw_json(
     const ::simdjson::simdjson_result<::simdjson::dom::element>& value,
@@ -193,7 +196,8 @@ void linting_lsp_server_handler::lint_and_get_diagnostics(
   error_reporter.finish();
 }
 
-padded_string linting_lsp_server_handler::make_padded_string(
+namespace {
+padded_string make_padded_string(
     const ::simdjson::simdjson_result<::simdjson::dom::element>& string) {
   string8_view s = make_string_view(string);
   padded_string result;
@@ -202,7 +206,6 @@ padded_string linting_lsp_server_handler::make_padded_string(
   return result;
 }
 
-namespace {
 void append_raw_json(::simdjson::dom::element& value, byte_buffer& out) {
   switch (value.type()) {
   case ::simdjson::dom::element_type::INT64: {

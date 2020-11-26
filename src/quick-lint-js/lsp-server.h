@@ -58,9 +58,6 @@ class linting_lsp_server_handler {
   void lint_and_get_diagnostics(padded_string_view code,
                                 byte_buffer& diagnostics_json);
 
-  static padded_string make_padded_string(
-      const ::simdjson::simdjson_result<::simdjson::dom::element>& string);
-
   std::vector<string8> lintable_uris_;
 };
 }
