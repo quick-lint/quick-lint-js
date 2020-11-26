@@ -166,7 +166,7 @@ std::size_t pipe_buffer_size([[maybe_unused]] platform_file_ref pipe) {
   return 65536;
 #elif defined(_WIN32)
   DWORD outBufferSize = 0;
-  EXPECT_TRUE(::GetNamedPipeInfo(pipe.get(), PIPE_CLIENT_END | PIPE_TYPE_BYTE,
+  EXPECT_TRUE(::GetNamedPipeInfo(pipe.get(), /*lpFlags=*/nullptr,
                                  &outBufferSize, /*lpInBufferSize=*/nullptr,
                                  /*lpMaxInstances=*/nullptr))
       << windows_handle_file::get_last_error_message();
