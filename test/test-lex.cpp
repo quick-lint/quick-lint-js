@@ -161,22 +161,21 @@ TEST(test_lex, lex_binary_numbers) {
   check_single_token(u8"0B010101010101010", token_type::number);
 }
 
-// TODO(mc2) binary numbers may not have decimals
-TEST(test_lex, DISABLED_fail_lex_binary_number) {
-  {
-    error_collector v;
-    padded_string input(u8"0b1.1");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    // q(🎅🏾) have another error kind for
-    // `unexpected_character_in_binary_number?
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 3, 4))));
-  }
+TEST(test_lex, fail_lex_binary_number_no_digits) {
+  check_tokens_with_errors(
+      u8"0b", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number,
+                                characters, offsets_matcher(input, 2, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0b ", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number,
+                                characters, offsets_matcher(input, 2, 2))));
+      });
 }
 
 TEST(test_lex, lex_octal_numbers_strict) {
