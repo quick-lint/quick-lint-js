@@ -261,9 +261,35 @@
       .error(QLJS_TRANSLATE("unexpected control character"), character))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_characters_in_binary_number,                            \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATE("unexpected characters in binary literal"),        \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_octal_number,                             \
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATE("unexpected characters in octal literal"),         \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_characters_in_hex_number,                               \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATE("unexpected characters in hex literal"),           \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_no_digits_in_binary_number, { source_code_span characters; },      \
+      .error(QLJS_TRANSLATE("binary number literal has no digits"),            \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_no_digits_in_hex_number, { source_code_span characters; },         \
+      .error(QLJS_TRANSLATE("hex number literal has no digits"), characters))  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_no_digits_in_octal_number, { source_code_span characters; },       \
+      .error(QLJS_TRANSLATE("octal number literal has no digits"),             \
              characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \

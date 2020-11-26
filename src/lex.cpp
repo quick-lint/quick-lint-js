@@ -747,12 +747,17 @@ const char8* lexer::end_of_previous_token() const noexcept {
   return this->last_last_token_end_;
 }
 
+template <class Error>
 char8* lexer::check_garbage_in_number_literal(char8* input) {
   char8* garbage_begin = input;
   for (;;) {
     switch (*input) {
+    // if we see a DECIMAL_DIGIT at this point it either means we're in
+    // strict mode or following another number character (such as a `.`),
+    // both of which are invalid
     QLJS_CASE_DECIMAL_DIGIT:
     QLJS_CASE_IDENTIFIER_START:
+    case u8'.':
       input += 1;
       break;
     default:
@@ -762,8 +767,8 @@ char8* lexer::check_garbage_in_number_literal(char8* input) {
 done_parsing_garbage:
   char8* garbage_end = input;
   if (garbage_end != garbage_begin) {
-    this->error_reporter_->report(error_unexpected_characters_in_number{
-        source_code_span(garbage_begin, garbage_end)});
+    this->error_reporter_->report(
+        Error{source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
   }
 
@@ -771,20 +776,31 @@ done_parsing_garbage:
 }
 
 void lexer::parse_binary_number() {
-  QLJS_ASSERT(this->is_binary_digit(this->input_[0]));
   char8* input = this->input_;
 
   while (this->is_binary_digit(*input)) {
     input += 1;
   }
 
-  this->input_ = check_garbage_in_number_literal(input);
+  if (input == this->input_) {
+    this->error_reporter_->report(error_no_digits_in_binary_number{
+        source_code_span(this->last_token_.begin, input)});
+  } else {
+    this->input_ = check_garbage_in_number_literal<
+        error_unexpected_characters_in_binary_number>(input);
+  }
 }
 
 void lexer::parse_octal_number(octal_kind kind) {
   char8* input = this->input_;
 
   input = this->parse_octal_digits(input);
+
+  if (input == this->input_) {
+    this->error_reporter_->report(error_no_digits_in_octal_number{
+        source_code_span(this->last_token_.begin, input)});
+    return;
+  }
 
   if (kind == octal_kind::sloppy && is_digit(*input)) {
     this->input_ = input;
@@ -821,30 +837,8 @@ void lexer::parse_octal_number(octal_kind kind) {
     input = this->parse_octal_digits(input);
   }
 
-  const char8* unknown_garbage_begin = input;
-
-  for (;;) {
-    switch (*input) {
-    // if we see a DECIMAL_DIGIT at this point it either means we're in
-    // strict mode or following another number character (such as a `.`),
-    // both of which are invalid
-    QLJS_CASE_DECIMAL_DIGIT:
-    QLJS_CASE_IDENTIFIER_START:
-    case u8'.':
-      ++input;
-      break;
-    default:
-      goto done_parsing_garbage;
-    }
-  }
-done_parsing_garbage:
-  char8* garbage_end = input;
-  if (garbage_end != unknown_garbage_begin) {
-    this->error_reporter_->report(error_unexpected_characters_in_octal_number{
-        source_code_span(unknown_garbage_begin, garbage_end)});
-    input = garbage_end;
-  }
-  this->input_ = input;
+  this->input_ = check_garbage_in_number_literal<
+      error_unexpected_characters_in_octal_number>(input);
 }
 
 void lexer::parse_number() {
@@ -903,12 +897,17 @@ void lexer::parse_number() {
 }
 
 void lexer::parse_hexadecimal_number() {
-  QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
   char8* input = this->input_;
 
   input = parse_hex_digits_and_underscores(input);
 
-  this->input_ = check_garbage_in_number_literal(input);
+  if (input == this->input_) {
+    this->error_reporter_->report(error_no_digits_in_hex_number{
+        source_code_span(this->last_token_.begin, input)});
+  } else {
+    this->input_ = check_garbage_in_number_literal<
+        error_unexpected_characters_in_hex_number>(input);
+  }
 }
 
 template <class Func>

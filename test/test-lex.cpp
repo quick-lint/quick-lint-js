@@ -161,22 +161,39 @@ TEST(test_lex, lex_binary_numbers) {
   check_single_token(u8"0B010101010101010", token_type::number);
 }
 
-// TODO(mc2) binary numbers may not have decimals
-TEST(test_lex, DISABLED_fail_lex_binary_number) {
-  {
-    error_collector v;
-    padded_string input(u8"0b1.1");
-    lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+TEST(test_lex, fail_lex_binary_number_no_digits) {
+  check_tokens_with_errors(
+      u8"0b", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0b;", {token_type::number, token_type::semicolon},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"[0b]",
+      {token_type::left_square, token_type::number, token_type::right_square},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 1, 3))));
+      });
+}
 
-    // q(🎅🏾) have another error kind for
-    // `unexpected_character_in_binary_number?
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_characters_in_number, characters,
-                              offsets_matcher(&input, 3, 4))));
-  }
+TEST(test_lex, fail_lex_binary_number) {
+  check_tokens_with_errors(
+      u8"0b1.1", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_binary_number,
+                                characters, offsets_matcher(input, 3, 5))));
+      });
 }
 
 TEST(test_lex, lex_octal_numbers_strict) {
@@ -194,6 +211,31 @@ TEST(test_lex, lex_octal_numbers_strict) {
 TEST(test_lex, lex_octal_numbers_lax) {
   check_single_token(u8"058", token_type::number);
   check_single_token(u8"058.9", token_type::number);
+}
+
+TEST(test_lex, fail_lex_octal_number_no_digits) {
+  check_tokens_with_errors(
+      u8"0o", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0o;", {token_type::number, token_type::semicolon},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"[0o]",
+      {token_type::left_square, token_type::number, token_type::right_square},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 1, 3))));
+      });
 }
 
 TEST(test_lex, fail_lex_octal_numbers) {
@@ -240,6 +282,41 @@ TEST(test_lex, lex_hex_numbers) {
   check_single_token(u8"0X123_4567_89AB_CDEF", token_type::number);
 }
 
+TEST(test_lex, fail_lex_hex_number_no_digits) {
+  check_tokens_with_errors(
+      u8"0x", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0x;", {token_type::number, token_type::semicolon},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"[0x]",
+      {token_type::left_square, token_type::number, token_type::right_square},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 1, 3))));
+      });
+}
+
+TEST(test_lex, fail_lex_hex_number) {
+  check_tokens_with_errors(
+      u8"0xf.f", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_hex_number,
+                                characters, offsets_matcher(input, 3, 5))));
+      });
+}
+
 TEST(test_lex, lex_number_with_trailing_garbage) {
   check_tokens_with_errors(
       u8"123abcd", {token_type::number},
@@ -267,21 +344,21 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
       u8"0b01234", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
   check_tokens_with_errors(
       u8"0b0h0lla", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 3, 8))));
       });
   check_tokens_with_errors(
       u8"0xabjjw", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_hex_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
   check_tokens_with_errors(
