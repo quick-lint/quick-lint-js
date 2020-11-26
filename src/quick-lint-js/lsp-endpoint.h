@@ -25,6 +25,8 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-message-parser.h>
 #include <simdjson.h>
+#include <tuple>
+#include <utility>
 
 #if QLJS_HAVE_CXX_CONCEPTS
 #define QLJS_LSP_ENDPOINT_HANDLER ::quick_lint_js::lsp_endpoint_handler
@@ -60,9 +62,22 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
   using message_parser = lsp_message_parser<lsp_endpoint<Handler, Remote>>;
 
  public:
-  template <class... Args>
-  explicit lsp_endpoint(Args&&... client_args)
-      : remote_(std::forward<Args>(client_args)...) {}
+  explicit lsp_endpoint() {}
+
+  template <class... HandlerArgs, class... RemoteArgs>
+  explicit lsp_endpoint(const std::tuple<HandlerArgs...>& handler_args,
+                        const std::tuple<RemoteArgs...>& remote_args)
+      : lsp_endpoint(handler_args, std::index_sequence_for<HandlerArgs...>(),
+                     remote_args, std::index_sequence_for<RemoteArgs...>()) {}
+
+  template <class... HandlerArgs, std::size_t... HandlerArgsI,
+            class... RemoteArgs, std::size_t... RemoteArgsI>
+  explicit lsp_endpoint(const std::tuple<HandlerArgs...>& handler_args,
+                        std::index_sequence<HandlerArgsI...>,
+                        const std::tuple<RemoteArgs...>& remote_args,
+                        std::index_sequence<RemoteArgsI...>)
+      : remote_(std::get<RemoteArgsI>(remote_args)...),
+        handler_(std::get<HandlerArgsI>(handler_args)...) {}
 
   using message_parser::append;
 

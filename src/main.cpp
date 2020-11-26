@@ -41,6 +41,7 @@
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
+#include <tuple>
 #include <variant>
 
 namespace quick_lint_js {
@@ -354,7 +355,7 @@ void run_lsp_server() {
   posix_fd_file_ref output_pipe(STDOUT_FILENO);
 #endif
   pipe_reader<lsp_endpoint<linting_lsp_server_handler, lsp_pipe_writer>> server(
-      input_pipe, output_pipe);
+      input_pipe, std::forward_as_tuple(), std::forward_as_tuple(output_pipe));
   server.run();
 }
 
