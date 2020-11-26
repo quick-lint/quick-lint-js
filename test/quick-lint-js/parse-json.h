@@ -19,11 +19,22 @@
 
 #include <iosfwd>
 #include <json/value.h>
+#include <simdjson.h>
+#include <string>
 
 namespace quick_lint_js {
 ::Json::Value parse_json(std::stringstream &);
+::Json::Value parse_json(const std::string &);
+bool parse_json(std::string_view json, ::Json::Value *result,
+                ::Json::String *errors);
+#if QLJS_HAVE_CHAR8_T
 bool parse_json(string8_view json, ::Json::Value *result,
                 ::Json::String *errors);
+#endif
+
+::Json::Value simdjson_to_jsoncpp(const ::simdjson::dom::element &);
+::Json::Value simdjson_to_jsoncpp(
+    ::simdjson::simdjson_result<::simdjson::dom::element> &&);
 }
 
 #endif

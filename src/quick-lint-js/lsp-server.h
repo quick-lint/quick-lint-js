@@ -18,6 +18,7 @@
 #define QUICK_LINT_JS_LSP_SERVER_H
 
 #include <cstddef>
+#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
@@ -52,6 +53,10 @@ concept lsp_linter = requires(Linter l, padded_string_view code,
 template <QLJS_LSP_LINTER Linter>
 class linting_lsp_server_handler {
  public:
+  template <class... LinterArgs>
+  explicit linting_lsp_server_handler(LinterArgs&&... linter_args)
+      : linter_(std::forward<LinterArgs>(linter_args)...) {}
+
   void handle_request(::simdjson::dom::element& request,
                       byte_buffer& response_json);
   void handle_notification(::simdjson::dom::element& request,
@@ -83,7 +88,25 @@ class lsp_javascript_linter {
                                 byte_buffer& diagnostics_json);
 };
 
+class mock_lsp_linter {
+ public:
+  using lint_and_get_diagnostics_notification_type =
+      void(padded_string_view code, ::simdjson::dom::element& text_document,
+           byte_buffer& notification_json);
+
+  /*implicit*/ mock_lsp_linter(
+      std::function<lint_and_get_diagnostics_notification_type> callback);
+
+  void lint_and_get_diagnostics_notification(
+      padded_string_view code, ::simdjson::dom::element& text_document,
+      byte_buffer& notification_json);
+
+ private:
+  std::function<lint_and_get_diagnostics_notification_type> callback_;
+};
+
 extern template class linting_lsp_server_handler<lsp_javascript_linter>;
+extern template class linting_lsp_server_handler<mock_lsp_linter>;
 }
 
 #endif

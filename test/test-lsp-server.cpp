@@ -17,11 +17,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <json/value.h>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/version.h>
+#include <simdjson.h>
+#include <tuple>
+#include <utility>
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
@@ -36,11 +41,38 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
+using endpoint = lsp_endpoint<linting_lsp_server_handler<mock_lsp_linter>,
+                              spy_lsp_endpoint_remote>;
+
+template <class LinterCallback>
+endpoint make_endpoint(LinterCallback&& linter_callback) {
+  return endpoint(
+      /*handler_args=*/std::forward_as_tuple(
+          std::forward<LinterCallback>(linter_callback)),
+      /*remote_args=*/std::forward_as_tuple());
+}
+
+endpoint make_endpoint() {
+  return make_endpoint(
+      [](padded_string_view, ::simdjson::dom::element&, byte_buffer&) {});
+}
+
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               spy_lsp_endpoint_remote>
-      server;
+  std::function<void(padded_string_view code,
+                     ::simdjson::dom::element& text_document,
+                     byte_buffer& notification_json)>
+      lint_callback;
+  std::vector<string8> lint_calls;
+
+  endpoint server = make_endpoint(
+      [this](padded_string_view code, ::simdjson::dom::element& text_document,
+             byte_buffer& notification_json) {
+        this->lint_calls.emplace_back(code.string_view());
+        if (this->lint_callback) {
+          this->lint_callback(code, text_document, notification_json);
+        }
+      });
   spy_lsp_endpoint_remote& client = server.remote();
 };
 
@@ -73,7 +105,7 @@ TEST_F(test_linting_lsp_server, initialize) {
 }
 
 // For the "id" field of a request, JSON-RPC allows numbers, strings, and null.
-TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
+TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
   struct test_case {
     string8_view id_json;
     ::Json::Value id;
@@ -92,9 +124,10 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
            test_case{u8R"("id value goes \"here\"")",
                      ::Json::Value("id value goes \"here\"")},
        }) {
-    this->client.messages.clear();
+    auto server = make_endpoint();
+    spy_lsp_endpoint_remote& client = server.remote();
 
-    this->server.append(
+    server.append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "id": )" + string8(test.id_json) +
@@ -107,8 +140,8 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
           }
         })"));
 
-    ASSERT_EQ(this->client.messages.size(), 1);
-    EXPECT_EQ(this->client.messages[0]["id"], test.id);
+    ASSERT_EQ(client.messages.size(), 1);
+    EXPECT_EQ(client.messages[0]["id"], test.id);
   }
 }
 
@@ -124,6 +157,36 @@ TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
 }
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
+  this->lint_callback = [&](padded_string_view code,
+                            ::simdjson::dom::element& text_document,
+                            byte_buffer& notification_json) {
+    EXPECT_EQ(code, u8"let x = x;");
+    EXPECT_EQ(simdjson_to_jsoncpp(text_document["uri"]), "file:///test.js");
+    EXPECT_EQ(simdjson_to_jsoncpp(text_document["version"]), 10);
+
+    notification_json.append_copy(
+        u8R"--(
+              {
+                "method":"textDocument/publishDiagnostics",
+                "params":{
+                  "uri": "file:///test.js",
+                  "version": 10,
+                  "diagnostics": [
+                    {
+                      "range": {
+                        "start": {"line": 0, "character": 8},
+                        "end": {"line": 0, "character": 9}
+                      },
+                      "severity": 1,
+                        "message": "variable used before declaration: x"
+                      }
+                  ]
+                },
+                "jsonrpc":"2.0"
+              }
+            )--");
+  };
+
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -153,6 +216,8 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
   EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
   EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
   EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
 }
 
 TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
@@ -165,12 +230,11 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
             "uri": "file:///test2.js",
             "languageId": "javascript",
             "version": 10,
-            "text": ""
+            "text": "FIRST"
           }
         }
       })"));
-  this->client.messages.clear();
-
+  this->lint_calls.clear();
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -182,19 +246,13 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
           },
           "contentChanges": [
             {
-              "text": "let x = x;"
+              "text": "SECOND"
             }
           ]
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
-  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(response["params"]["uri"], "file:///test2.js");
-  EXPECT_EQ(response["params"]["version"], 11);
-  EXPECT_EQ(response["params"]["diagnostics"].size(), 1);
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"SECOND"));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -212,8 +270,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->client.messages.clear();
-
+  this->lint_calls.clear();
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -231,7 +288,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->lint_calls, IsEmpty());
 }
 
 TEST_F(test_linting_lsp_server,
@@ -250,7 +307,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->lint_calls, IsEmpty());
 }
 
 TEST_F(test_linting_lsp_server,
@@ -278,8 +335,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->client.messages.clear();
-
+  this->lint_calls.clear();
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -310,23 +366,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 2);
-  {
-    ::Json::Value& response = this->client.messages[0];
-    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-    // LSP PublishDiagnosticsParams:
-    EXPECT_EQ(response["params"]["uri"], "file:///test.js");
-    EXPECT_EQ(response["params"]["version"], 11);
-    EXPECT_EQ(response["params"]["diagnostics"].size(), 1);
-  }
-  {
-    ::Json::Value& response = this->client.messages[1];
-    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-    // LSP PublishDiagnosticsParams:
-    EXPECT_EQ(response["params"]["uri"], "file:///test.js");
-    EXPECT_EQ(response["params"]["version"], 12);
-    EXPECT_EQ(response["params"]["diagnostics"].size(), 1);
-  }
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;", u8"let y = y;"));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -354,8 +394,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->client.messages.clear();
-
+  this->lint_calls.clear();
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -386,7 +425,47 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->lint_calls, IsEmpty());
+}
+
+TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
+  ::simdjson::dom::parser json_parser;
+  ::simdjson::error_code parse_error;
+
+  ::simdjson::dom::element text_document;
+  json_parser
+      .parse(std::string(R"--({
+        "uri": "file:///test.js",
+        "version": 10
+      })--"))
+      .tie(text_document, parse_error);
+  ASSERT_EQ(parse_error, ::simdjson::error_code::SUCCESS);
+
+  padded_string code(u8"let x = x;");
+  byte_buffer notification_json_buffer;
+
+  lsp_javascript_linter linter;
+  linter.lint_and_get_diagnostics_notification(&code, text_document,
+                                               notification_json_buffer);
+
+  std::string notification_json;
+  notification_json.resize(notification_json_buffer.size());
+  notification_json_buffer.copy_to(notification_json.data());
+
+  ::Json::Value notification = parse_json(notification_json);
+  EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
+  EXPECT_FALSE(notification.isMember("error"));
+  // LSP PublishDiagnosticsParams:
+  EXPECT_EQ(notification["params"]["uri"], "file:///test.js");
+  EXPECT_EQ(notification["params"]["version"], 10);
+  ::Json::Value& diagnostics = notification["params"]["diagnostics"];
+  EXPECT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 8);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
+  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
 }
 
 // TODO(strager): For batch requests containing multiple edits, lint and publish

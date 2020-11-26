@@ -25,6 +25,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
@@ -38,6 +39,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 #include <simdjson.h>
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace quick_lint_js {
 namespace {
@@ -205,7 +207,18 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   error_reporter.finish();
 }
 
+mock_lsp_linter::mock_lsp_linter(
+    std::function<lint_and_get_diagnostics_notification_type> callback)
+    : callback_(std::move(callback)) {}
+
+void mock_lsp_linter::lint_and_get_diagnostics_notification(
+    padded_string_view code, ::simdjson::dom::element& text_document,
+    byte_buffer& notification_json) {
+  this->callback_(code, text_document, notification_json);
+}
+
 template class linting_lsp_server_handler<lsp_javascript_linter>;
+template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
 padded_string make_padded_string(

@@ -40,54 +40,6 @@ string8 json_to_string(::Json::Value& value) {
   return to_string8(::Json::writeString(::Json::StreamWriterBuilder(), value));
 }
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-::Json::Value simdjson_to_jsoncpp(const ::simdjson::dom::element& value) {
-  switch (value.type()) {
-  case ::simdjson::dom::element_type::INT64: {
-    std::int64_t data;
-    ::simdjson::error_code error = value.get(data);
-    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
-    return ::Json::Value(data);
-  }
-
-  case ::simdjson::dom::element_type::UINT64: {
-    std::uint64_t data;
-    ::simdjson::error_code error = value.get(data);
-    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
-    return ::Json::Value(data);
-  }
-
-  case ::simdjson::dom::element_type::STRING: {
-    std::string_view data;
-    ::simdjson::error_code error = value.get(data);
-    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
-    return ::Json::Value(data.data(), data.data() + data.size());
-  }
-
-  case ::simdjson::dom::element_type::ARRAY:
-  case ::simdjson::dom::element_type::BOOL:
-  case ::simdjson::dom::element_type::DOUBLE:
-  case ::simdjson::dom::element_type::NULL_VALUE:
-  case ::simdjson::dom::element_type::OBJECT:
-    QLJS_UNIMPLEMENTED();
-    break;
-  }
-
-  QLJS_UNREACHABLE();
-}
-QLJS_WARNING_POP
-
-::Json::Value simdjson_to_jsoncpp(
-    ::simdjson::simdjson_result<::simdjson::dom::element>&& value) {
-  ::simdjson::dom::element unwrapped_value;
-  ::simdjson::error_code error = value.get(unwrapped_value);
-  if (error != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return simdjson_to_jsoncpp(unwrapped_value);
-}
-
 std::string json_get_string(
     ::simdjson::simdjson_result<::simdjson::dom::element>&& value) {
   std::string_view s = "<not found>";
