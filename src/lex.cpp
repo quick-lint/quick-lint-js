@@ -109,9 +109,9 @@
   case '9'
 
 // TODO: add more space characters.
-#define QLJS_CASE_SPACE  \
-  case ' ':              \
-  case '\t':             \
+#define QLJS_CASE_SPACE \
+  case ' ':             \
+  case '\t':            \
   case '\n'
 
 namespace quick_lint_js {
@@ -786,8 +786,8 @@ void lexer::parse_binary_number() {
 
   char8 c = *(input + 1);
   if (input == this->input_ && (this->is_space(c) || c == u8'\0')) {
-    this->error_reporter_->report(error_no_digits_in_binary_number{
-        source_code_span(input, input)});
+    this->error_reporter_->report(
+        error_no_digits_in_binary_number{source_code_span(input, input)});
   } else {
     this->input_ = check_garbage_in_number_literal(input);
   }

@@ -166,15 +166,15 @@ TEST(test_lex, fail_lex_binary_number_no_digits) {
       u8"0b", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_binary_number,
-                                characters, offsets_matcher(input, 2, 2))));
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 2, 2))));
       });
   check_tokens_with_errors(
       u8"0b ", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_binary_number,
-                                characters, offsets_matcher(input, 2, 2))));
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 2, 2))));
       });
 }
 
