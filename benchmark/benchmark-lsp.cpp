@@ -42,7 +42,9 @@ string8 make_message(string8_view content) {
 }
 
 void benchmark_lsp_document_change(::benchmark::State& state) {
-  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server;
+  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+               null_lsp_writer>
+      lsp_server;
   lsp_server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",

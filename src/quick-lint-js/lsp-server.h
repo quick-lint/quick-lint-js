@@ -28,11 +28,28 @@
 #include <simdjson.h>
 #include <vector>
 
+#if QLJS_HAVE_CXX_CONCEPTS
+#define QLJS_LSP_LINTER ::quick_lint_js::lsp_linter
+#else
+#define QLJS_LSP_LINTER class
+#endif
+
 namespace quick_lint_js {
 class byte_buffer;
 
+#if QLJS_HAVE_CXX_CONCEPTS
+template <class Linter>
+concept lsp_linter = requires(Linter l, padded_string_view code,
+                              ::simdjson::dom::element text_document,
+                              byte_buffer notification_json) {
+  {l.lint_and_get_diagnostics_notification(code, text_document,
+                                           notification_json)};
+};
+#endif
+
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
+template <QLJS_LSP_LINTER Linter>
 class linting_lsp_server_handler {
  public:
   void handle_request(::simdjson::dom::element& request,
@@ -51,15 +68,22 @@ class linting_lsp_server_handler {
   void handle_text_document_did_open_notification(
       ::simdjson::dom::element& request, byte_buffer& notification_json);
 
+  Linter linter_;
+  std::vector<string8> lintable_uris_;
+};
+
+class lsp_javascript_linter {
+ public:
   void lint_and_get_diagnostics_notification(
       padded_string_view code, ::simdjson::dom::element& text_document,
       byte_buffer& notification_json);
 
+ private:
   void lint_and_get_diagnostics(padded_string_view code,
                                 byte_buffer& diagnostics_json);
-
-  std::vector<string8> lintable_uris_;
 };
+
+extern template class linting_lsp_server_handler<lsp_javascript_linter>;
 }
 
 #endif

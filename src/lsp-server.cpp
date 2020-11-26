@@ -54,7 +54,8 @@ string8_view make_string_view(
     const ::simdjson::simdjson_result<::simdjson::dom::element>& string);
 }
 
-void linting_lsp_server_handler::handle_request(
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::handle_request(
     ::simdjson::dom::element& request, byte_buffer& response_json) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
@@ -67,7 +68,8 @@ void linting_lsp_server_handler::handle_request(
   }
 }
 
-void linting_lsp_server_handler::handle_notification(
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::handle_notification(
     ::simdjson::dom::element& request, byte_buffer& notification_json) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
@@ -88,7 +90,8 @@ void linting_lsp_server_handler::handle_notification(
   }
 }
 
-void linting_lsp_server_handler::handle_initialize_request(
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::handle_initialize_request(
     ::simdjson::dom::element& request, byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");
   append_raw_json(request["id"], response_json);
@@ -108,8 +111,10 @@ void linting_lsp_server_handler::handle_initialize_request(
   // clang-format on
 }
 
-void linting_lsp_server_handler::handle_text_document_did_change_notification(
-    ::simdjson::dom::element& request, byte_buffer& notification_json) {
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    handle_text_document_did_change_notification(
+        ::simdjson::dom::element& request, byte_buffer& notification_json) {
   ::simdjson::dom::element text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -127,12 +132,14 @@ void linting_lsp_server_handler::handle_text_document_did_change_notification(
   // entry?
   padded_string code =
       make_padded_string(request["params"]["contentChanges"].at(0)["text"]);
-  this->lint_and_get_diagnostics_notification(&code, text_document,
-                                              notification_json);
+  this->linter_.lint_and_get_diagnostics_notification(&code, text_document,
+                                                      notification_json);
 }
 
-void linting_lsp_server_handler::handle_text_document_did_close_notification(
-    ::simdjson::dom::element& request) {
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    handle_text_document_did_close_notification(
+        ::simdjson::dom::element& request) {
   auto lintable_uri_it =
       std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
                 make_string_view(request["params"]["textDocument"]["uri"]));
@@ -141,8 +148,10 @@ void linting_lsp_server_handler::handle_text_document_did_close_notification(
   }
 }
 
-void linting_lsp_server_handler::handle_text_document_did_open_notification(
-    ::simdjson::dom::element& request, byte_buffer& notification_json) {
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    handle_text_document_did_open_notification(
+        ::simdjson::dom::element& request, byte_buffer& notification_json) {
   std::string_view language_id;
   if (request["params"]["textDocument"]["languageId"].get(language_id) !=
       ::simdjson::error_code::SUCCESS) {
@@ -160,11 +169,11 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
   this->lintable_uris_.emplace_back(make_string_view(text_document["uri"]));
 
   padded_string code = make_padded_string(text_document["text"]);
-  this->lint_and_get_diagnostics_notification(&code, text_document,
-                                              notification_json);
+  this->linter_.lint_and_get_diagnostics_notification(&code, text_document,
+                                                      notification_json);
 }
 
-void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
+void lsp_javascript_linter::lint_and_get_diagnostics_notification(
     padded_string_view code, ::simdjson::dom::element& text_document,
     byte_buffer& notification_json) {
   // clang-format off
@@ -185,7 +194,7 @@ void linting_lsp_server_handler::lint_and_get_diagnostics_notification(
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
 }
 
-void linting_lsp_server_handler::lint_and_get_diagnostics(
+void lsp_javascript_linter::lint_and_get_diagnostics(
     padded_string_view code, byte_buffer& diagnostics_json) {
   lsp_error_reporter error_reporter(diagnostics_json, code);
 
@@ -195,6 +204,8 @@ void linting_lsp_server_handler::lint_and_get_diagnostics(
 
   error_reporter.finish();
 }
+
+template class linting_lsp_server_handler<lsp_javascript_linter>;
 
 namespace {
 padded_string make_padded_string(

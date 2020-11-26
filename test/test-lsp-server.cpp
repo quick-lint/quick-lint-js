@@ -38,7 +38,9 @@ string8 make_message(string8_view content) {
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  lsp_endpoint<linting_lsp_server_handler, spy_lsp_endpoint_remote> server;
+  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+               spy_lsp_endpoint_remote>
+      server;
   spy_lsp_endpoint_remote& client = server.remote();
 };
 
