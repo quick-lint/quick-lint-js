@@ -43,9 +43,6 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 
 namespace quick_lint_js {
 namespace {
-padded_string make_padded_string(
-    const ::simdjson::simdjson_result<::simdjson::dom::element>& string);
-
 void append_raw_json(::simdjson::dom::element& value, byte_buffer& out);
 void append_raw_json(
     const ::simdjson::simdjson_result<::simdjson::dom::element>& value,
@@ -122,32 +119,28 @@ void linting_lsp_server_handler<Linter>::
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  bool url_is_lintable =
-      std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
-                make_string_view(text_document["uri"])) !=
-      this->lintable_uris_.end();
+  auto document_it =
+      this->documents_.find(string8(make_string_view(text_document["uri"])));
+  bool url_is_lintable = document_it != this->documents_.end();
   if (!url_is_lintable) {
     return;
   }
+  lsp_document& document = document_it->second;
 
   // TODO(strager): What if contentChanges is empty or contains more than one
   // entry?
-  padded_string code =
-      make_padded_string(request["params"]["contentChanges"].at(0)["text"]);
-  this->linter_.lint_and_get_diagnostics_notification(&code, text_document,
-                                                      notification_json);
+  document.set_text(
+      make_string_view(request["params"]["contentChanges"].at(0)["text"]));
+  this->linter_.lint_and_get_diagnostics_notification(
+      document.string(), text_document, notification_json);
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
         ::simdjson::dom::element& request) {
-  auto lintable_uri_it =
-      std::find(this->lintable_uris_.begin(), this->lintable_uris_.end(),
-                make_string_view(request["params"]["textDocument"]["uri"]));
-  if (lintable_uri_it != this->lintable_uris_.end()) {
-    this->lintable_uris_.erase(lintable_uri_it);
-  }
+  this->documents_.erase(
+      string8(make_string_view(request["params"]["textDocument"]["uri"])));
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -168,11 +161,12 @@ void linting_lsp_server_handler<Linter>::
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  this->lintable_uris_.emplace_back(make_string_view(text_document["uri"]));
+  lsp_document& document =
+      this->documents_[string8(make_string_view(text_document["uri"]))];
 
-  padded_string code = make_padded_string(text_document["text"]);
-  this->linter_.lint_and_get_diagnostics_notification(&code, text_document,
-                                                      notification_json);
+  document.set_text(make_string_view(text_document["text"]));
+  this->linter_.lint_and_get_diagnostics_notification(
+      document.string(), text_document, notification_json);
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
@@ -221,15 +215,6 @@ template class linting_lsp_server_handler<lsp_javascript_linter>;
 template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
-padded_string make_padded_string(
-    const ::simdjson::simdjson_result<::simdjson::dom::element>& string) {
-  string8_view s = make_string_view(string);
-  padded_string result;
-  result.resize(narrow_cast<int>(s.size()));
-  std::memcpy(result.data(), s.data(), s.size());
-  return result;
-}
-
 void append_raw_json(::simdjson::dom::element& value, byte_buffer& out) {
   switch (value.type()) {
   case ::simdjson::dom::element_type::INT64: {

@@ -23,11 +23,12 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/lsp-document.h>
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <simdjson.h>
-#include <vector>
+#include <unordered_map>
 
 #if QLJS_HAVE_CXX_CONCEPTS
 #define QLJS_LSP_LINTER ::quick_lint_js::lsp_linter
@@ -74,7 +75,7 @@ class linting_lsp_server_handler {
       ::simdjson::dom::element& request, byte_buffer& notification_json);
 
   Linter linter_;
-  std::vector<string8> lintable_uris_;
+  std::unordered_map<string8, lsp_document> documents_;
 };
 
 class lsp_javascript_linter {
