@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -14,23 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set(QUICK_LINT_JS_CXX_COMPILER_OPTIONS "" CACHE STRING "")
-mark_as_advanced(QUICK_LINT_JS_CXX_COMPILER_OPTIONS)
+set -e
+set -o pipefail
+set -u
 
-function (quick_lint_js_add_executable TARGET)
-  add_executable(${ARGV})
-  target_compile_options(
-    "${TARGET}"
-    PRIVATE
-    "${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}"
-  )
-endfunction ()
+cd "$(dirname "${0}")/.."
+source tools/files.sh
 
-function (quick_lint_js_add_library TARGET)
-  add_library(${ARGV})
-  target_compile_options(
-    "${TARGET}"
-    PRIVATE
-    "${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}"
-  )
-endfunction ()
+check_file_copyright_header() {
+  local file="${1}"
+  fgrep -q 'Copyright (C)' "${file}"
+}
+
+error=0
+for file in $(find_non_vendor_files | matching '(^CMakeLists\.txt|.bt|.c|.cmake|.cpp|.gperf|.h|.js|.mjs|.nix|.po|.pot|.py|.sh|.vim|.yaml)$'); do
+  if ! check_file_copyright_header "${file}"; then
+    printf 'error: file missing copyright: %s\n' "${file}"
+    error=1
+  fi
+done
+exit "${error}"

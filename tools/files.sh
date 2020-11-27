@@ -14,23 +14,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set(QUICK_LINT_JS_CXX_COMPILER_OPTIONS "" CACHE STRING "")
-mark_as_advanced(QUICK_LINT_JS_CXX_COMPILER_OPTIONS)
+# This file is a library used by other script. Do not execute this file
+# directly.
 
-function (quick_lint_js_add_executable TARGET)
-  add_executable(${ARGV})
-  target_compile_options(
-    "${TARGET}"
-    PRIVATE
-    "${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}"
-  )
-endfunction ()
+find_non_vendor_files() {
+  # TODO(strager): Include vendor/CMakeLists.txt, etc.
+  git ls-files --cached --exclude-standard --others \
+    | { grep -v '^vendor/' || true ; } \
+    | {
+      while read path ; do
+        if [ -f "${path}" ] ; then
+          printf '%s\n' "${path}"
+        fi
+      done
+   }
+}
 
-function (quick_lint_js_add_library TARGET)
-  add_library(${ARGV})
-  target_compile_options(
-    "${TARGET}"
-    PRIVATE
-    "${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}"
-  )
-endfunction ()
+matching() {
+  local pattern="${1}"
+  grep -E "${pattern}" || true
+}

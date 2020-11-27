@@ -20,21 +20,7 @@ set -e
 set -o pipefail
 set -u
 
-find_formattable_files() {
-  git ls-files --cached --exclude-standard --others \
-    | { grep -v '^vendor/' || true ; } \
-    | {
-      while read path ; do
-        if [ -f "${path}" ] ; then
-          printf '%s\n' "${path}"
-        fi
-      done
-   }
-}
+cd "$(dirname "${0}")/.."
+source tools/files.sh
 
-matching() {
-  local pattern="${1}"
-  grep -E "${pattern}" || true
-}
-
-find_formattable_files | matching '\.(c|cpp|h)$' | xargs clang-format -i
+find_non_vendor_files | matching '\.(c|cpp|h)$' | xargs clang-format -i
