@@ -51,6 +51,8 @@ void append_raw_json(
 string8_view make_string_view(const ::simdjson::dom::element& string);
 string8_view make_string_view(
     const ::simdjson::simdjson_result<::simdjson::dom::element>& string);
+
+int get_int(const ::simdjson::simdjson_result<::simdjson::dom::element>&);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -99,7 +101,7 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
     u8R"--(,)--"
     u8R"--("result":{)--"
       u8R"--("capabilities":{)--"
-        u8R"--("textDocumentSync":{"change":1,"openClose":true})--"
+        u8R"--("textDocumentSync":{"change":2,"openClose":true})--"
       u8R"--(},)--"
       u8R"--("serverInfo":{)--"
         u8R"--("name":"quick-lint-js",)--"
@@ -127,10 +129,12 @@ void linting_lsp_server_handler<Linter>::
   }
   lsp_document& document = document_it->second;
 
-  // TODO(strager): What if contentChanges is empty or contains more than one
-  // entry?
-  document.set_text(
-      make_string_view(request["params"]["contentChanges"].at(0)["text"]));
+  ::simdjson::dom::array changes;
+  if (request["params"]["contentChanges"].get(changes) !=
+      ::simdjson::error_code::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  this->apply_document_changes(document, changes);
   this->linter_.lint_and_get_diagnostics_notification(
       document.string(), text_document, notification_json);
 }
@@ -167,6 +171,34 @@ void linting_lsp_server_handler<Linter>::
   document.set_text(make_string_view(text_document["text"]));
   this->linter_.lint_and_get_diagnostics_notification(
       document.string(), text_document, notification_json);
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::apply_document_changes(
+    lsp_document& document, ::simdjson::dom::array& changes) {
+  for (::simdjson::dom::element change : changes) {
+    string8_view change_text = make_string_view(change["text"]);
+    ::simdjson::dom::object raw_range;
+    bool is_incremental =
+        change["range"].get(raw_range) == ::simdjson::error_code::SUCCESS;
+    if (is_incremental) {
+      lsp_range range = {
+          .start =
+              {
+                  .line = get_int(raw_range["start"]["line"]),
+                  .character = get_int(raw_range["start"]["character"]),
+              },
+          .end =
+              {
+                  .line = get_int(raw_range["end"]["line"]),
+                  .character = get_int(raw_range["end"]["character"]),
+              },
+      };
+      document.replace_text(range, change_text);
+    } else {
+      document.set_text(change_text);
+    }
+  }
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
@@ -283,6 +315,18 @@ string8_view make_string_view(
     QLJS_UNIMPLEMENTED();
   }
   return make_string_view(s);
+}
+
+int get_int(
+    const ::simdjson::simdjson_result<::simdjson::dom::element>& element) {
+  std::int64_t int64;
+  if (element.get(int64) != ::simdjson::error_code::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  if (!in_range<int>(int64)) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return static_cast<int>(int64);
 }
 }
 }

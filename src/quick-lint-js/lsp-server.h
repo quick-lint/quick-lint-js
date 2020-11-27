@@ -74,6 +74,9 @@ class linting_lsp_server_handler {
   void handle_text_document_did_open_notification(
       ::simdjson::dom::element& request, byte_buffer& notification_json);
 
+  static void apply_document_changes(lsp_document& document,
+                                     ::simdjson::dom::array& changes);
+
   Linter linter_;
   std::unordered_map<string8, lsp_document> documents_;
 };

@@ -96,7 +96,7 @@ TEST_F(test_linting_lsp_server, initialize) {
   EXPECT_FALSE(response.isMember("error"));
   // LSP InitializeResult:
   EXPECT_THAT(response["result"]["capabilities"]["textDocumentSync"]["change"],
-              ::testing::AnyOf(1, 2));
+              2);
   EXPECT_EQ(response["result"]["capabilities"]["textDocumentSync"]["openClose"],
             true);
   EXPECT_EQ(response["result"]["serverInfo"]["name"], "quick-lint-js");
@@ -253,6 +253,116 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
       })"));
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"SECOND"));
+}
+
+TEST_F(test_linting_lsp_server,
+       changing_document_with_single_incremental_edit_lints) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "the quick brown fox"
+          }
+        }
+      })"));
+  this->lint_calls.clear();
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "version": 11
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 4},
+                "end": {"line": 0, "character": 9}
+              },
+              "text": "slow"
+            }
+          ]
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "version": 11
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 9},
+                "end": {"line": 0, "character": 14}
+              },
+              "text": "purple"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls,
+              ElementsAre(u8"the slow brown fox", u8"the slow purple fox"));
+}
+
+TEST_F(test_linting_lsp_server,
+       changing_document_with_multiple_incremental_edits_lints_only_once) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "the quick brown fox"
+          }
+        }
+      })"));
+  this->lint_calls.clear();
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "version": 11
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 4},
+                "end": {"line": 0, "character": 9}
+              },
+              "text": "slow"
+            },
+            {
+              "range": {
+                "start": {"line": 0, "character": 9},
+                "end": {"line": 0, "character": 14}
+              },
+              "text": "purple"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"the slow purple fox"));
 }
 
 TEST_F(test_linting_lsp_server,
