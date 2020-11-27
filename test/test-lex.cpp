@@ -205,6 +205,23 @@ TEST(test_lex, lex_octal_numbers_lax) {
   check_single_token(u8"058.9", token_type::number);
 }
 
+TEST(test_lex, fail_lex_octal_number_no_digits) {
+  check_tokens_with_errors(
+      u8"0o", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 2, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0o ", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 2, 2))));
+      });
+}
+
 TEST(test_lex, fail_lex_octal_numbers) {
   check_tokens_with_errors(
       u8"0123n", {token_type::number},

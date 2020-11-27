@@ -272,6 +272,11 @@
              characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_no_digits_in_octal_number, { source_code_span characters; },       \
+      .error(QLJS_TRANSLATE("octal number literal has no digits"),             \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_hash_character, { source_code_span where; },            \
       .error(QLJS_TRANSLATE("unexpected '#'"), where))                         \
                                                                                \

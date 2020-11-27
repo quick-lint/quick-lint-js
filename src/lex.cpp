@@ -798,6 +798,13 @@ void lexer::parse_octal_number(octal_kind kind) {
 
   input = this->parse_octal_digits(input);
 
+  char8 c = *(input + 1);
+  if (input == this->input_ && (this->is_space(c) || c == u8'\0')) {
+    this->error_reporter_->report(
+        error_no_digits_in_octal_number{source_code_span(input, input)});
+    return;
+  }
+
   if (kind == octal_kind::sloppy && is_digit(*input)) {
     this->input_ = input;
     this->parse_number();
