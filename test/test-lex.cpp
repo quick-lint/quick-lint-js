@@ -167,7 +167,7 @@ TEST(test_lex, fail_lex_binary_number_no_digits) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_binary_number, characters,
-                                offsets_matcher(input, 2, 2))));
+                                offsets_matcher(input, 0, 2))));
       });
 }
 
@@ -204,7 +204,7 @@ TEST(test_lex, fail_lex_octal_number_no_digits) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_octal_number, characters,
-                                offsets_matcher(input, 2, 2))));
+                                offsets_matcher(input, 0, 2))));
       });
 }
 
@@ -258,7 +258,7 @@ TEST(test_lex, fail_lex_hex_number_no_digits) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_hex_number, characters,
-                                offsets_matcher(input, 2, 2))));
+                                offsets_matcher(input, 0, 2))));
       });
 }
 

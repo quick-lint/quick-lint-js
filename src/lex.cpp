@@ -782,7 +782,7 @@ void lexer::parse_binary_number() {
 
   if (input == this->input_) {
     this->error_reporter_->report(
-        error_no_digits_in_binary_number{source_code_span(input, input)});
+        error_no_digits_in_binary_number{source_code_span(this->last_token_.begin, input)});
   } else {
     this->input_ = check_garbage_in_number_literal(input);
   }
@@ -795,7 +795,7 @@ void lexer::parse_octal_number(octal_kind kind) {
 
   if (input == this->input_) {
     this->error_reporter_->report(
-        error_no_digits_in_octal_number{source_code_span(input, input)});
+        error_no_digits_in_octal_number{source_code_span(this->last_token_.begin, input)});
     return;
   }
 
@@ -922,7 +922,7 @@ void lexer::parse_hexadecimal_number() {
 
   if (input == this->input_) {
     this->error_reporter_->report(
-        error_no_digits_in_hex_number{source_code_span(input, input)});
+        error_no_digits_in_hex_number{source_code_span(this->last_token_.begin, input)});
   } else {
     this->input_ = check_garbage_in_number_literal(input);
   }
