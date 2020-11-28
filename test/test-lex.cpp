@@ -176,7 +176,7 @@ TEST(test_lex, fail_lex_binary_number) {
       u8"0b1.1", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 3, 5))));
       });
 }
@@ -262,6 +262,16 @@ TEST(test_lex, fail_lex_hex_number_no_digits) {
       });
 }
 
+TEST(test_lex, fail_lex_hex_number) {
+  check_tokens_with_errors(
+      u8"0xf.f", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_characters_in_hex_number,
+                                characters, offsets_matcher(input, 3, 5))));
+      });
+}
+
 TEST(test_lex, lex_number_with_trailing_garbage) {
   check_tokens_with_errors(
       u8"123abcd", {token_type::number},
@@ -289,21 +299,21 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
       u8"0b01234", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
   check_tokens_with_errors(
       u8"0b0h0lla", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 3, 8))));
       });
   check_tokens_with_errors(
       u8"0xabjjw", {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_characters_in_number,
+                                error_unexpected_characters_in_hex_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
   check_tokens_with_errors(

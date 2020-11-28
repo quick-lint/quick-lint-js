@@ -332,6 +332,7 @@ class lexer {
   };
   void parse_octal_number(octal_kind);
   void parse_hexadecimal_number();
+  template <class Error>
   char8* check_garbage_in_number_literal(char8* input);
   void parse_number();
 
