@@ -19,6 +19,7 @@
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/unreachable.h>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -37,12 +38,25 @@ void write_json_escaped_string(std::ostream &output,
 
   for (;;) {
     auto special_character_index =
-        string.find_first_of(reinterpret_cast<const Char *>(u8"\\\""));
+        string.find_first_of(reinterpret_cast<const Char *>(u8"\\\"\n"));
     if (special_character_index == string.npos) {
       break;
     }
     write_string(string.substr(0, special_character_index));
-    output << '\\' << static_cast<char>(string[special_character_index]);
+    Char special_character = string[special_character_index];
+    switch (special_character) {
+    case u8'\\':
+      output << "\\\\";
+      break;
+    case u8'"':
+      output << "\\\"";
+      break;
+    case u8'\n':
+      output << "\\n";
+      break;
+    default:
+      QLJS_UNREACHABLE();
+    }
     string = string.substr(special_character_index + 1);
   }
   write_string(string);

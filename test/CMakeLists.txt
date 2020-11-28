@@ -35,6 +35,7 @@ quick_lint_js_add_executable(
   test-gmo.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
+  test-json.cpp
   test-lex.cpp
   test-lint-parse.cpp
   test-lint.cpp
