@@ -922,12 +922,17 @@ void lexer::parse_number() {
 }
 
 void lexer::parse_hexadecimal_number() {
-  QLJS_ASSERT(this->is_hex_digit(this->input_[0]) || this->input_[0] == '.');
   char8* input = this->input_;
 
   input = parse_hex_digits_and_underscores(input);
 
-  this->input_ = check_garbage_in_number_literal(input);
+  char8 c = *(input + 1);
+  if (input == this->input_ && (this->is_space(c) || c == u8'\0')) {
+    this->error_reporter_->report(
+        error_no_digits_in_hex_number{source_code_span(input, input)});
+  } else {
+    this->input_ = check_garbage_in_number_literal(input);
+  }
 }
 
 template <class Func>

@@ -266,6 +266,23 @@ TEST(test_lex, lex_hex_numbers) {
   check_single_token(u8"0X123_4567_89AB_CDEF", token_type::number);
 }
 
+TEST(test_lex, fail_lex_hex_number_no_digits) {
+  check_tokens_with_errors(
+      u8"0x", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 2, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0x ", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 2, 2))));
+      });
+}
+
 TEST(test_lex, lex_number_with_trailing_garbage) {
   check_tokens_with_errors(
       u8"123abcd", {token_type::number},
