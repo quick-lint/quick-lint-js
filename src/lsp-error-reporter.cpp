@@ -51,7 +51,7 @@ void lsp_error_reporter::report_fatal_error_unimplemented_character(
       /*qljs_line=*/qljs_line,
       /*qljs_function_name=*/qljs_function_name,
       /*character=*/character,
-      /*locator=*/&this->locator_,
+      /*locator=*/nullptr,
       /*out=*/std::cerr);
 }
 
@@ -64,7 +64,7 @@ void lsp_error_reporter::report_fatal_error_unimplemented_token(
       /*qljs_function_name=*/qljs_function_name,
       /*type=*/type,
       /*token_begin=*/token_begin,
-      /*locator=*/&this->locator_,
+      /*locator=*/nullptr,
       /*out=*/std::cerr);
 }
 
@@ -81,7 +81,7 @@ lsp_error_formatter lsp_error_reporter::format() {
 }
 
 lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
-                                         quick_lint_js::locator &locator)
+                                         lsp_locator &locator)
     : output_(output), locator_(locator) {}
 
 void lsp_error_formatter::write_before_message(severity sev,
@@ -91,17 +91,17 @@ void lsp_error_formatter::write_before_message(severity sev,
     return;
   }
 
-  source_range r = this->locator_.range(origin);
+  lsp_range r = this->locator_.range(origin);
   this->output_.append_copy(u8"{\"range\":{\"start\":");
   this->output_.append_copy(u8"{\"line\":");
-  this->output_.append_decimal_integer(r.begin().line_number - 1);
+  this->output_.append_decimal_integer(r.start.line);
   this->output_.append_copy(u8",\"character\":");
-  this->output_.append_decimal_integer(r.begin().column_number - 1);
+  this->output_.append_decimal_integer(r.start.character);
   this->output_.append_copy(u8"},\"end\":");
   this->output_.append_copy(u8"{\"line\":");
-  this->output_.append_decimal_integer(r.end().line_number - 1);
+  this->output_.append_decimal_integer(r.end.line);
   this->output_.append_copy(u8",\"character\":");
-  this->output_.append_decimal_integer(r.end().column_number - 1);
+  this->output_.append_decimal_integer(r.end.character);
   this->output_.append_copy(u8"}},\"severity\":1,\"message\":\"");
 }
 

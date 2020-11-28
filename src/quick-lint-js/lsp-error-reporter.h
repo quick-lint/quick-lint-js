@@ -23,6 +23,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 
@@ -51,20 +52,20 @@ class lsp_error_reporter final : public error_reporter {
   lsp_error_formatter format();
 
   byte_buffer &output_;
-  locator locator_;
+  lsp_locator locator_;
   bool need_comma_ = false;
 };
 
 class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
  public:
-  explicit lsp_error_formatter(byte_buffer &output, locator &);
+  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &);
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
   void write_after_message(severity, const source_code_span &origin);
 
  private:
   byte_buffer &output_;
-  locator &locator_;
+  lsp_locator &locator_;
 };
 }
 
