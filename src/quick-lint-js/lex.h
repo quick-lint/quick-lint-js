@@ -350,7 +350,6 @@ class lexer {
   void skip_line_comment_body();
 
   bool is_eof(const char8*) noexcept;
-  bool is_space(char8) noexcept;
 
   static bool is_binary_digit(char8);
   static bool is_octal_digit(char8);

@@ -109,10 +109,6 @@
   case '9'
 
 // TODO: add more space characters.
-#define QLJS_CASE_SPACE \
-  case ' ':             \
-  case '\t':            \
-  case '\n'
 
 namespace quick_lint_js {
 string8_view identifier::normalized_name() const noexcept {
@@ -784,8 +780,7 @@ void lexer::parse_binary_number() {
     input += 1;
   }
 
-  char8 c = *(input + 1);
-  if (input == this->input_ && (this->is_space(c) || c == u8'\0')) {
+  if (input == this->input_) {
     this->error_reporter_->report(
         error_no_digits_in_binary_number{source_code_span(input, input)});
   } else {
@@ -798,8 +793,7 @@ void lexer::parse_octal_number(octal_kind kind) {
 
   input = this->parse_octal_digits(input);
 
-  char8 c = *(input + 1);
-  if (input == this->input_ && (this->is_space(c) || c == u8'\0')) {
+  if (input == this->input_) {
     this->error_reporter_->report(
         error_no_digits_in_octal_number{source_code_span(input, input)});
     return;
@@ -926,8 +920,7 @@ void lexer::parse_hexadecimal_number() {
 
   input = parse_hex_digits_and_underscores(input);
 
-  char8 c = *(input + 1);
-  if (input == this->input_ && (this->is_space(c) || c == u8'\0')) {
+  if (input == this->input_) {
     this->error_reporter_->report(
         error_no_digits_in_hex_number{source_code_span(input, input)});
   } else {
@@ -1389,15 +1382,6 @@ void lexer::skip_line_comment_body() {
 bool lexer::is_eof(const char8* input) noexcept {
   QLJS_ASSERT(*input == u8'\0');
   return input == this->original_input_.null_terminator();
-}
-
-bool lexer::is_space(char8 c) noexcept {
-  switch (c) {
-  QLJS_CASE_SPACE:
-    return true;
-  default:
-    return false;
-  }
 }
 
 bool lexer::is_binary_digit(char8 c) { return c == u8'0' || c == u8'1'; }
