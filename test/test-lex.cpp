@@ -169,6 +169,21 @@ TEST(test_lex, fail_lex_binary_number_no_digits) {
                                 error_no_digits_in_binary_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
+  check_tokens_with_errors(
+      u8"0b;", {token_type::number, token_type::semicolon},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"[0b]",
+      {token_type::left_square, token_type::number, token_type::right_square},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 1, 3))));
+      });
 }
 
 TEST(test_lex, fail_lex_binary_number) {
@@ -205,6 +220,21 @@ TEST(test_lex, fail_lex_octal_number_no_digits) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_octal_number, characters,
                                 offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0o;", {token_type::number, token_type::semicolon},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"[0o]",
+      {token_type::left_square, token_type::number, token_type::right_square},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_octal_number, characters,
+                                offsets_matcher(input, 1, 3))));
       });
 }
 
@@ -259,6 +289,21 @@ TEST(test_lex, fail_lex_hex_number_no_digits) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_hex_number, characters,
                                 offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"0x;", {token_type::number, token_type::semicolon},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 0, 2))));
+      });
+  check_tokens_with_errors(
+      u8"[0x]",
+      {token_type::left_square, token_type::number, token_type::right_square},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 1, 3))));
       });
 }
 
