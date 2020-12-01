@@ -53,7 +53,7 @@ class lsp_locator {
   char8 *from_position(lsp_position) const noexcept;
 
  private:
-  void cache_offsets_of_lines() const;
+  void cache_offsets_of_lines();
 
   int find_line_at_offset(offset_type offset) const;
 
@@ -62,7 +62,7 @@ class lsp_locator {
   lsp_position position(int line_number, offset_type offset) const noexcept;
 
   padded_string_view input_;
-  mutable std::vector<offset_type> offset_of_lines_;
+  std::vector<offset_type> offset_of_lines_;
 };
 }
 

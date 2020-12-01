@@ -38,7 +38,9 @@ std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
   return stream;
 }
 
-lsp_locator::lsp_locator(padded_string_view input) noexcept : input_(input) {}
+lsp_locator::lsp_locator(padded_string_view input) noexcept : input_(input) {
+  this->cache_offsets_of_lines();
+}
 
 lsp_range lsp_locator::range(source_code_span span) const {
   lsp_position start = this->position(span.begin());
@@ -59,9 +61,6 @@ char8 *lsp_locator::from_position(lsp_position position) const noexcept {
     return nullptr;
   }
 
-  if (this->offset_of_lines_.empty()) {
-    this->cache_offsets_of_lines();
-  }
   int number_of_lines = narrow_cast<int>(this->offset_of_lines_.size());
   if (line >= number_of_lines) {
     return nullptr;
@@ -100,7 +99,7 @@ char8 *lsp_locator::from_position(lsp_position position) const noexcept {
   }
 }
 
-void lsp_locator::cache_offsets_of_lines() const {
+void lsp_locator::cache_offsets_of_lines() {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
@@ -123,9 +122,6 @@ void lsp_locator::cache_offsets_of_lines() const {
 }
 
 int lsp_locator::find_line_at_offset(offset_type offset) const {
-  if (this->offset_of_lines_.empty()) {
-    this->cache_offsets_of_lines();
-  }
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
