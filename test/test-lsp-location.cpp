@@ -251,5 +251,120 @@ TEST(test_lsp_location, offset_to_position_to_offset) {
     EXPECT_EQ(l.from_position(position), character) << position;
   }
 }
+
+void check_positions_against_reference_locator(lsp_locator& locator,
+                                               padded_string_view code) {
+  lsp_locator reference_locator(code);
+  for (int i = 0; i <= code.size(); ++i) {
+    const char8* c = &code[i];
+    lsp_position actual_position = locator.position(c);
+    lsp_position expected_position = reference_locator.position(c);
+    EXPECT_EQ(actual_position, expected_position) << i;
+  }
+}
+
+TEST(test_lsp_location, add_characters_within_line) {
+  padded_string original_code(u8"first line\nsecond line\nthird line");
+  padded_string updated_code(u8"first line\nsecond xxx line\nthird line");
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 7},
+          .end = {.line = 1, .character = 7},
+      },
+      u8"xxx ", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, remove_characters_within_line) {
+  padded_string original_code(u8"first line\nsecond little line\nthird line");
+  padded_string updated_code(u8"first line\nsecond line\nthird line");
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 7},
+          .end = {.line = 1, .character = 7 + 7},
+      },
+      u8"", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, add_newline_within_line) {
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
+    padded_string original_code(u8"first line\nsecond line\nlast line");
+    SCOPED_TRACE(original_code);
+    padded_string updated_code(u8"first line\nsecond" +
+                               string8(line_terminator) + u8" line\nlast line");
+    SCOPED_TRACE(updated_code);
+
+    lsp_locator locator(&original_code);
+    locator.replace_text(
+        lsp_range{
+            .start = {.line = 1, .character = 6},
+            .end = {.line = 1, .character = 6},
+        },
+        line_terminator, &updated_code);
+
+    check_positions_against_reference_locator(locator, &updated_code);
+  }
+}
+
+TEST(test_lsp_location, delete_newline) {
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
+    padded_string original_code(u8"first line\nsecond" +
+                                string8(line_terminator) + u8"line\nlast line");
+    SCOPED_TRACE(original_code);
+    padded_string updated_code(u8"first line\nsecondline\nlast line");
+    SCOPED_TRACE(updated_code);
+
+    lsp_locator locator(&original_code);
+    locator.replace_text(
+        lsp_range{
+            .start = {.line = 1, .character = 6},
+            .end = {.line = 2, .character = 0},
+        },
+        u8"", &updated_code);
+
+    check_positions_against_reference_locator(locator, &updated_code);
+  }
+}
+
+TEST(test_lsp_location, replace_newline_and_text_with_newline) {
+  padded_string original_code(
+      u8"first line\nsecond line\nthird line\nlast line");
+  padded_string updated_code(u8"first line\nsecond x\ny line\nlast line");
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 7},
+          .end = {.line = 2, .character = 5},
+      },
+      u8"x\ny", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, append_line_with_out_of_range_character) {
+  padded_string original_code(u8"first line\nsecond line\nthird line");
+  padded_string updated_code(u8"first line\nsecond line extended\nthird line");
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 100},
+          .end = {.line = 1, .character = 200},
+      },
+      u8" extended", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+// TODO(strager): How should replace_text behave when given a negative
+// character or an out of range line?
 }
 }

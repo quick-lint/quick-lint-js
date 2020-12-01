@@ -99,14 +99,57 @@ char8 *lsp_locator::from_position(lsp_position position) const noexcept {
   }
 }
 
+void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
+                               padded_string_view new_input) {
+  offset_type start_offset = narrow_cast<offset_type>(
+      this->from_position(range.start) - this->input_.data());
+  offset_type end_offset = narrow_cast<offset_type>(
+      this->from_position(range.end) - this->input_.data());
+  offset_type replacement_text_size =
+      narrow_cast<offset_type>(replacement_text.size());
+
+  this->input_ = new_input;
+  std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
+  this->offset_of_lines_.reserve(this->old_offset_of_lines_.size());
+  this->offset_of_lines_.clear();
+
+  // Offsets before replacement: do not adjust.
+  this->offset_of_lines_.insert(
+      this->offset_of_lines_.end(), this->old_offset_of_lines_.begin(),
+      this->old_offset_of_lines_.begin() + range.start.line + 1);
+
+  // Offsets within replacement: re-parse newlines.
+  this->compute_offsets_of_lines(
+      /*begin=*/&this->input_[start_offset],
+      /*end=*/&this->input_[start_offset + replacement_text_size]);
+
+  // Offsets after replacement: adjust with a fixed offset.
+  offset_type net_bytes_added =
+      replacement_text_size - (end_offset - start_offset);
+  for (auto it = this->old_offset_of_lines_.begin() + range.end.line + 1;
+       it != this->old_offset_of_lines_.end(); ++it) {
+    this->offset_of_lines_.push_back(*it + net_bytes_added);
+  }
+
+  QLJS_ASSERT(std::is_sorted(this->offset_of_lines_.begin(),
+                             this->offset_of_lines_.end()));
+}
+
 void lsp_locator::cache_offsets_of_lines() {
+  QLJS_ASSERT(this->offset_of_lines_.empty());
+
+  this->offset_of_lines_.push_back(0);
+  this->compute_offsets_of_lines(/*begin=*/this->input_.data(),
+                                 /*end=*/this->input_.null_terminator());
+}
+
+void lsp_locator::compute_offsets_of_lines(const char8 *begin,
+                                           const char8 *end) {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
   };
-  this->offset_of_lines_.push_back(0);
-  for (const char8 *c = this->input_.data();
-       c != this->input_.null_terminator();) {
+  for (const char8 *c = begin; c != end;) {
     if (*c == u8'\n' || *c == u8'\r') {
       if (c[0] == u8'\r' && c[1] == u8'\n') {
         c += 2;

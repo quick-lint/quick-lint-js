@@ -99,5 +99,29 @@ TEST(test_lsp_document, set_text_range_delete_line_including_line_terminator) {
       u8""_sv);
   EXPECT_EQ(document.string(), u8"world\n"_sv);
 }
+
+TEST(test_lsp_document, replace_text_multiple_times) {
+  lsp_document document;
+  document.set_text(u8"content\ngoes\nhere"_sv);
+  document.replace_text(
+      lsp_range{
+          .start = {.line = 0, .character = 7},
+          .end = {.line = 1, .character = 3},
+      },
+      u8"I wa"_sv);
+  document.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 0},
+          .end = {.line = 1, .character = 0},
+      },
+      u8"somew"_sv);
+  document.replace_text(
+      lsp_range{
+          .start = {.line = 0, .character = 0},
+          .end = {.line = 0, .character = 7},
+      },
+      u8""_sv);
+  EXPECT_EQ(document.string(), u8"I was\nsomewhere"_sv);
+}
 }
 }

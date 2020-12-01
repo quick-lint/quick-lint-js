@@ -24,13 +24,17 @@
 namespace quick_lint_js {
 class lsp_document {
  public:
+  explicit lsp_document();
+
   void set_text(string8_view new_text);
   void replace_text(lsp_range range, string8_view replacement_text);
 
   padded_string_view string() noexcept;
 
  private:
-  padded_string content_;
+  int active_content_buffer_ = 0;
+  padded_string content_buffers_[2];
+  lsp_locator locator_;
 };
 }
 
