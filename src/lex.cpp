@@ -108,8 +108,6 @@
   case '8':                     \
   case '9'
 
-// TODO: add more space characters.
-
 namespace quick_lint_js {
 string8_view identifier::normalized_name() const noexcept {
   const char8* begin = this->span_.begin();
