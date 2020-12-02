@@ -32,7 +32,7 @@ function! quick_lint_js_ale#parse_command_output(buffer, lines) abort
   endif
   try
     let l:data = json_decode(l:json)
-  catch /^Vim(let):E491:/
+  catch /^Vim(let):\(E491\|E474\):/
     " We possibly received partial JSON. Try to complete it.
     let l:data = json_decode(l:json.']}')
   endtry
