@@ -526,6 +526,72 @@ TEST(test_lex, lex_strings) {
                               offsets_matcher(&input, 0, 13))));
   }
 
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
+    error_collector v;
+    padded_string input(u8"'separated" + string8(line_terminator) + u8"hello'");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::string);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unclosed_string_literal, string_literal,
+                    offsets_matcher(&input, 0, 16 + line_terminator.size()))));
+  }
+
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
+    error_collector v;
+    padded_string input(u8"'separated" + string8(line_terminator) +
+                        string8(line_terminator) + u8"hello'");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::string);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::string);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_unclosed_string_literal, string_literal,
+                             offsets_matcher(&input, 0, 10)),
+            ERROR_TYPE_FIELD(
+                error_unclosed_string_literal, string_literal,
+                offsets_matcher(&input, 15 + 2 * line_terminator.size(),
+                                16 + 2 * line_terminator.size()))));
+  }
+
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
+    error_collector v;
+    padded_string input(u8"let x = 'hello" + string8(line_terminator) +
+                        u8"let y = 'world'");
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::kw_let);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::equal);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::string);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::kw_let);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::equal);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::string);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unclosed_string_literal, string_literal,
+                              offsets_matcher(&input, 8, 14))));
+  }
+
   check_tokens_with_errors(
       u8"'unterminated\\", {token_type::string},
       [](padded_string_view input, const auto& errors) {
