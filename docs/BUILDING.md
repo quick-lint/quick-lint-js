@@ -23,12 +23,46 @@ development environment and build tool:
 
 ### Linux: Ninja
 
+#### 0. Install build dependencies
+
+Before building quick-lint-js, install the following third-party dependencies:
+
+* GCC version 8.3 or newer
+* [CMake][] version 3.10 or newer
+* [Ninja][]
+
+For **Debian**, **Ubuntu**, and **Linux Mint**, run the following command to
+install all necessary dependencies:
+
+    $ sudo apt-get update && sudo apt-get install cmake g++ ninja-build
+
+For **Ubuntu 18.04 Bionic**, run the following command to install all necessary
+dependencies:
+
+    $ sudo apt-get update && sudo apt-get install cmake g++-8 ninja-build
+
+For **CentOS**, run the following command to install all necessary dependencies:
+
+    $ sudo dnf --enablerepo=powertools install cmake gcc-c++ ninja-build
+
+For **Fedora**, run the following command to install all necessary dependencies:
+
+    $ sudo dnf install cmake gcc-c++ ninja-build
+
+For **Arch Linux**, run the following command to install all necessary
+dependencies:
+
+    $ sudo pacman -Syy cmake gcc ninja
+
 #### 1. Configure with CMake
 
-Install [CMake][] and [Ninja][], then run the following command to create a
-directory called `build`:
+Run the following command to create a directory called `build`:
 
-    $ cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -S . -B build
+    $ mkdir build ; cd build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd -
+
+For Ubuntu 18.04 Bionic, instead run the following command:
+
+    $ mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd -
 
 #### 2. Build
 
@@ -53,18 +87,25 @@ Run the following command to run quick-lint-js' test suite:
 
 If you want to run the quick-lint-js program:
 
-    $ ./build/quick-lint-js
+    $ ./build/quick-lint-js --help
 
 ---
 
 ### Linux: make
 
+#### 0. Install build dependencies
+
+Before building quick-lint-js, install the following third-party dependencies:
+
+* GCC version 8.3 or newer
+* [CMake][] version 3.10 or newer
+* GNU Make
+
 #### 1. Configure with CMake
 
-Install [CMake](https://cmake.org/), then run the following command to create a
-directory called `build`:
+Run the following command to create a directory called `build`:
 
-    $ cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug -S . -B build
+    $ mkdir build ; cd build ; cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug .. ; cd -
 
 #### 2. Build
 
@@ -89,7 +130,7 @@ Run the following command to run quick-lint-js' test suite:
 
 If you want to run the quick-lint-js program:
 
-    $ ./build/quick-lint-js
+    $ ./build/quick-lint-js --help
 
 ---
 
@@ -138,17 +179,24 @@ Run the following command to run quick-lint-js' test suite:
 
 If you want to run the quick-lint-js program:
 
-    $ ./build/quick-lint-js
+    $ ./build/quick-lint-js --help
 
 ---
 
 ### Windows: Visual Studio
 
+#### 0. Install build dependencies
+
+Before building quick-lint-js, install the following third-party dependencies:
+
+* [CMake][] version 3.13 or newer
+* [Visual Studio 2019][Visual Studio] or newer
+
 #### 1. Configure with CMake
 
-Install [CMake][] and [Visual Studio 2019][Visual Studio]. Open *x64 Native
-Tools Command Prompt for VS*. Use `cd` to navigate to your quick-lint-js project
-directory. Run the following command to create a directory called `build`:
+Open *x64 Native Tools Command Prompt for VS*. Use `cd` to navigate to your
+quick-lint-js project directory. Run the following command to create a directory
+called `build`:
 
     > cmake -G "Visual Studio 16 2019" -S . -B build
 
@@ -221,7 +269,7 @@ using ninja, you use:
 After building, the binary is available as `quick-lint-js` in the build
 folder:
 
-    $ ./quick-lint-js
+    $ ./quick-lint-js --help
 
 To run the tests, execute the test binary in the build directory:
 

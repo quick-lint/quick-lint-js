@@ -1,0 +1,71 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: build and test Linux Ninja developer instructions
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+# Based on docs/BUILDING.md.
+jobs:
+  build:
+    name: ${{ matrix.toolchain.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - {docker_container: "archlinux:base", name: "Arch Linux", install_dependencies_script: "pacman -Syy --noconfirm cmake gcc ninja", extra_environment: ""}
+          - {docker_container: "centos:centos8", name: "CentOS 8", install_dependencies_script: "dnf --enablerepo=powertools install -y cmake gcc-c++ ninja-build", extra_environment: ""}
+          - {docker_container: "debian:buster", name: "Debian 10 Buster", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
+          - {docker_container: "fedora:32", name: "Fedora 32", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
+          - {docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", install_dependencies_script: "apt-get update && apt-get install -y cmake g++-8 ninja-build", extra_environment: "CC=gcc-8 CXX=g++-8"}
+          - {docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.toolchain.docker_container }}
+
+    steps:
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: 0. Install build dependencies
+        run: ${{ matrix.toolchain.install_dependencies_script }}
+
+      - name: 1. Configure with CMake
+        run: |
+          mkdir build ; cd build ; ${{ matrix.toolchain.extra_environment }} cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd -
+          if ! [ -f docs/BUILDING.md ]; then
+            printf 'error: cwd changed unexpectedly\n' >&2
+            exit 1
+          fi
+
+      - name: 2. Build
+        run: |
+          ninja -C build
+          ninja -C build quick-lint-js
+          ninja -C build quick-lint-js-test
+
+      - name: 3. Run
+        run: |
+          ./build/test/quick-lint-js-test
+          ./build/quick-lint-js --help
