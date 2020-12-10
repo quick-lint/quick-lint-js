@@ -796,15 +796,15 @@ void lexer::parse_octal_number(octal_kind kind) {
 
   input = this->parse_octal_digits(input);
 
-  if (input == this->input_) {
-    this->error_reporter_->report(error_no_digits_in_octal_number{
-        source_code_span(this->last_token_.begin, input)});
-    return;
-  }
-
   if (kind == octal_kind::sloppy && is_digit(*input)) {
     this->input_ = input;
     this->parse_number();
+    return;
+  }
+
+  if (input == this->input_) {
+    this->error_reporter_->report(error_no_digits_in_octal_number{
+        source_code_span(this->last_token_.begin, input)});
     return;
   }
 

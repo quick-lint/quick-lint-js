@@ -211,6 +211,7 @@ TEST(test_lex, lex_octal_numbers_strict) {
 TEST(test_lex, lex_octal_numbers_lax) {
   check_single_token(u8"058", token_type::number);
   check_single_token(u8"058.9", token_type::number);
+  check_single_token(u8"08", token_type::number);
 }
 
 TEST(test_lex, fail_lex_octal_number_no_digits) {
