@@ -233,6 +233,27 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
   }
 }
 
+TEST_F(test_parse_expression, keyword_variable_reference) {
+  {
+    expression_ptr ast = this->parse_expression(u8"async");
+    EXPECT_EQ(ast->kind(), expression_kind::variable);
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"async");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"async()");
+    EXPECT_EQ(ast->kind(), expression_kind::call);
+    EXPECT_EQ(ast->child_0()->kind(), expression_kind::variable);
+    EXPECT_EQ(ast->child_0()->variable_identifier().normalized_name(),
+              u8"async");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"async(a, b).c");
+    EXPECT_EQ(summarize(ast), "dot(call(var async, var a, var b), c)");
+  }
+}
+
 TEST_F(test_parse_expression, parse_regular_expression) {
   {
     test_parser p(u8"/regexp/");
@@ -1574,6 +1595,21 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
   {
     expression_ptr ast = this->parse_expression(u8"class {} + 42");
     EXPECT_EQ(summarize(ast), "binary(class, literal)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"other + async(a)");
+    EXPECT_EQ(summarize(ast), "binary(var other, call(var async, var a))");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"left + async() + right");
+    EXPECT_EQ(summarize(ast), "binary(var left, call(var async), var right)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"left + async + right");
+    EXPECT_EQ(summarize(ast), "binary(var left, var async, var right)");
   }
 }
 
