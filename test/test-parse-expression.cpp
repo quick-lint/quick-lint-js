@@ -1126,7 +1126,7 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
     }
 
     {
-      string8 code = u8"{" + keyword + u8"() {}}";
+      string8 code = u8"{set " + keyword + u8"() {}}";
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, function)");
     }
