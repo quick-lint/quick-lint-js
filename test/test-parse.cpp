@@ -1812,6 +1812,24 @@ TEST(test_parse, class_statement_with_keyword_property) {
   }
 }
 
+TEST(test_parse, class_statement_with_number_methods) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class Wat { 42.0() { } }");
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"Wat");
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // Wat
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       // 42.0
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  //
+                            "visit_exit_function_scope",        //
+                            "visit_exit_class_scope"));
+  }
+}
+
 TEST(test_parse, class_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(class C { })");

@@ -830,6 +830,8 @@ class parser {
       break;
 
     // "method"() {}
+    // 9001() {}
+    case token_type::number:
     case token_type::string:
       v.visit_property_declaration();
       this->skip();

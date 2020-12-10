@@ -34,7 +34,6 @@ TODO_JS_FILES = (
     "ES6/identifier/valid_await.js",
     "ES6/yield/*",
     "JSX/*",
-    "es2017/async/methods/*",
     "es2017/async/regular-identifier/*",
     "fixtures/ES2016/identifier/gujarati_zha.js",
     "fixtures/ES6/identifier/dakuten_handakuten.js",
