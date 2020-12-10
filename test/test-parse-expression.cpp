@@ -1099,8 +1099,7 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    // TODO(strager): Should the span start at 'get' instead?
-    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 6);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 16);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
@@ -1112,8 +1111,7 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    // TODO(strager): Should the span start at 'set' instead?
-    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 6);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 17);
     EXPECT_THAT(p.errors(), IsEmpty());
   }

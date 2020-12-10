@@ -817,7 +817,7 @@ expression_ptr parser::parse_object_literal() {
         expression_ptr key =
             this->make_expression<expression::literal>(key_span);
         this->skip();
-        parse_method_entry(key_span.begin(), key);
+        parse_method_entry(get_span.begin(), key);
         break;
       }
 
