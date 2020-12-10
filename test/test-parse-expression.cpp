@@ -1061,6 +1061,34 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 18);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p(u8"{ async func(a, b) { } }");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+    EXPECT_EQ(p.range(ast->object_entry(0).value).begin_offset(), 2);
+    EXPECT_EQ(p.range(ast->object_entry(0).value).end_offset(), 22);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{ async 'func'(a, b) { } }");
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{ async [func](a, b) { } }");
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
 }
 
 TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
@@ -1109,14 +1137,20 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
 }
 
 TEST_F(test_parse_expression, object_literal_with_keyword_key) {
-  for (string8 keyword :
-       {u8"catch", u8"class", u8"default", u8"get", u8"set", u8"try"}) {
+  for (string8 keyword : {u8"async", u8"catch", u8"class", u8"default", u8"get",
+                          u8"set", u8"try"}) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
       string8 code = u8"{" + keyword + u8": null}";
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, literal)");
+    }
+
+    {
+      string8 code = u8"{" + keyword + u8"() { }}";
+      expression_ptr ast = this->parse_expression(code.c_str());
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
     }
 
     {
@@ -1130,12 +1164,25 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, function)");
     }
+
+    {
+      string8 code = u8"{async " + keyword + u8"() {}}";
+      expression_ptr ast = this->parse_expression(code.c_str());
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
   }
 }
 
 TEST_F(test_parse_expression, object_literal_with_number_key) {
-  expression_ptr ast = this->parse_expression(u8"{1234: null}");
-  EXPECT_EQ(summarize(ast), "object(literal, literal)");
+  {
+    expression_ptr ast = this->parse_expression(u8"{1234: null}");
+    EXPECT_EQ(summarize(ast), "object(literal, literal)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{async 42() {}}");
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+  }
 }
 
 TEST_F(test_parse_expression, malformed_object_literal) {

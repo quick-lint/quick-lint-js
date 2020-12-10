@@ -704,7 +704,7 @@ expression_ptr parser::parse_object_literal() {
       QLJS_ASSERT(false);
       break;
 
-    QLJS_CASE_KEYWORD_EXCEPT_GET_AND_SET:
+    QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET:
     case token_type::identifier:
     case token_type::number:
     case token_type::string: {
@@ -747,6 +747,54 @@ expression_ptr parser::parse_object_literal() {
       case token_type::left_paren:
         parse_method_entry(key_span.begin(), key);
         break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      break;
+    }
+
+    // { async methodName() { } }
+    case token_type::kw_async: {
+      source_code_span async_span = this->peek().span();
+      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+      case token_type::number:
+      case token_type::string: {
+        source_code_span key_span = this->peek().span();
+        expression_ptr key =
+            this->make_expression<expression::literal>(key_span);
+        this->skip();
+        parse_method_entry(async_span.begin(), key);
+        break;
+      }
+
+      // { async [expr]() {} }
+      case token_type::left_square: {
+        expression_ptr key = parse_computed_property_name();
+        parse_method_entry(async_span.begin(), key);
+        break;
+      }
+
+      // { async: value }
+      case token_type::colon: {
+        this->skip();
+        expression_ptr key =
+            this->make_expression<expression::literal>(async_span);
+        entries.emplace_back(key, parse_value_expression());
+        break;
+      }
+
+      // { async() {} }
+      case token_type::left_paren: {
+        expression_ptr key =
+            this->make_expression<expression::literal>(async_span);
+        parse_method_entry(async_span.begin(), key);
+        break;
+      }
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();
