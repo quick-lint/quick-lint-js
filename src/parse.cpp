@@ -190,94 +190,8 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   case token_type::kw_async: {
     token async_token = this->peek();
-    const char8 *async_begin = async_token.begin;
     this->skip();
-
-    vector<expression_ptr> parameters(
-        "parse_expression async arrow function parameters");
-    switch (this->peek().type) {
-    case token_type::left_paren: {
-      this->skip();
-
-      if (this->peek().type == token_type::right_paren) {
-        // Arrow function: async () => expression-or-block
-      } else {
-        // Arrow function: async (parameters, go, here) =>
-        // expression-or-block
-        expression_ptr parenthesized_parameters = this->parse_expression();
-        QLJS_ASSERT(parameters.empty());
-        parameters =
-            arrow_function_parameters_from_lhs(parenthesized_parameters);
-      }
-
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-      source_code_span right_paren_span = this->peek().span();
-      this->skip();
-
-      // async as an identifier (variable reference)
-      // Function call: async(arg)
-      if (this->peek().type != token_type::equal_greater) {
-        if (!prec.binary_operators) {
-          // TODO(strager): What should we do here exactly? We already parsed
-          // the argument list. (Function calls are considered binary operators
-          // according to prec.) Everything seems okay as-is, but maybe there's
-          // an edge case I'm not thinking of.
-        }
-
-        // TODO(strager): Reduce copying of the arguments.
-        vector<expression_ptr> call_children(
-            "parse_expression async call children");
-        call_children.emplace_back(this->make_expression<expression::variable>(
-            async_token.identifier_name(), async_token.type));
-        for (std::size_t i = 0; i < parameters.size(); ++i) {
-          call_children.emplace_back(parameters.data()[i]);
-        }
-
-        expression_ptr call_ast = this->make_expression<expression::call>(
-            this->expressions_.make_array(std::move(call_children)),
-            right_paren_span);
-        if (!prec.binary_operators) {
-          return call_ast;
-        }
-        return this->parse_expression_remainder(call_ast, prec);
-      }
-      break;
-    }
-
-    // Arrow function: async parameter => expression-or-block
-    case token_type::identifier:
-    case token_type::kw_let:
-    case token_type::kw_static:
-      parameters.emplace_back(this->make_expression<expression::variable>(
-          identifier(this->peek().span()), this->peek().type));
-      this->skip();
-      break;
-
-    // async function f(parameters) { statements; }
-    case token_type::kw_function: {
-      expression_ptr function = this->parse_function_expression(
-          function_attributes::async, async_begin);
-      return this->parse_expression_remainder(function, prec);
-    }
-
-    // async as an identifier (variable reference)
-    default: {
-      expression_ptr ast = this->make_expression<expression::variable>(
-          async_token.identifier_name(), async_token.type);
-      if (!prec.binary_operators) {
-        return ast;
-      }
-      return this->parse_expression_remainder(ast, prec);
-    }
-    }
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
-    this->skip();
-
-    expression_ptr ast = this->parse_arrow_function_body(
-        function_attributes::async, async_begin,
-        this->expressions_.make_array(std::move(parameters)));
-    return this->parse_expression_remainder(ast, prec);
+    return this->parse_async_expression(async_token, prec);
   }
 
   case token_type::left_square: {
@@ -390,6 +304,96 @@ expression_ptr parser::parse_expression(precedence prec) {
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
+}
+
+expression_ptr parser::parse_async_expression(token async_token,
+                                              precedence prec) {
+  const char8 *async_begin = async_token.begin;
+
+  vector<expression_ptr> parameters(
+      "parse_expression async arrow function parameters");
+  switch (this->peek().type) {
+  case token_type::left_paren: {
+    this->skip();
+
+    if (this->peek().type == token_type::right_paren) {
+      // Arrow function: async () => expression-or-block
+    } else {
+      // Arrow function: async (parameters, go, here) =>
+      // expression-or-block
+      expression_ptr parenthesized_parameters = this->parse_expression();
+      QLJS_ASSERT(parameters.empty());
+      parameters = arrow_function_parameters_from_lhs(parenthesized_parameters);
+    }
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    source_code_span right_paren_span = this->peek().span();
+    this->skip();
+
+    // async as an identifier (variable reference)
+    // Function call: async(arg)
+    if (this->peek().type != token_type::equal_greater) {
+      if (!prec.binary_operators) {
+        // TODO(strager): What should we do here exactly? We already parsed
+        // the argument list. (Function calls are considered binary operators
+        // according to prec.) Everything seems okay as-is, but maybe there's
+        // an edge case I'm not thinking of.
+      }
+
+      // TODO(strager): Reduce copying of the arguments.
+      vector<expression_ptr> call_children(
+          "parse_expression async call children");
+      call_children.emplace_back(this->make_expression<expression::variable>(
+          async_token.identifier_name(), async_token.type));
+      for (std::size_t i = 0; i < parameters.size(); ++i) {
+        call_children.emplace_back(parameters.data()[i]);
+      }
+
+      expression_ptr call_ast = this->make_expression<expression::call>(
+          this->expressions_.make_array(std::move(call_children)),
+          right_paren_span);
+      if (!prec.binary_operators) {
+        return call_ast;
+      }
+      return this->parse_expression_remainder(call_ast, prec);
+    }
+    break;
+  }
+
+  // Arrow function: async parameter => expression-or-block
+  case token_type::identifier:
+  case token_type::kw_let:
+  case token_type::kw_static:
+    parameters.emplace_back(this->make_expression<expression::variable>(
+        identifier(this->peek().span()), this->peek().type));
+    this->skip();
+    break;
+
+  // async function f(parameters) { statements; }
+  case token_type::kw_function: {
+    expression_ptr function = this->parse_function_expression(
+        function_attributes::async, async_begin);
+    return this->parse_expression_remainder(function, prec);
+  }
+
+  // async as an identifier (variable reference)
+  default: {
+    expression_ptr ast = this->make_expression<expression::variable>(
+        async_token.identifier_name(), async_token.type);
+    if (!prec.binary_operators) {
+      return ast;
+    }
+    return this->parse_expression_remainder(ast, prec);
+  }
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+  this->skip();
+
+  expression_ptr ast = this->parse_arrow_function_body(
+      function_attributes::async, async_begin,
+      this->expressions_.make_array(std::move(parameters)));
+  return this->parse_expression_remainder(ast, prec);
 }
 
 expression_ptr parser::parse_expression_remainder(expression_ptr ast,

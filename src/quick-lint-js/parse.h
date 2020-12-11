@@ -1514,6 +1514,8 @@ class parser {
 
   expression_ptr parse_expression(precedence);
 
+  expression_ptr parse_async_expression(token async_token, precedence);
+
   expression_ptr parse_expression_remainder(expression_ptr, precedence);
 
   // Args is either of the following:
