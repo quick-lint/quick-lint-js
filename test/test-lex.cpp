@@ -537,7 +537,9 @@ TEST(test_lex, lex_strings) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unclosed_string_literal, string_literal,
-                    offsets_matcher(&input, 0, 16 + line_terminator.size()))));
+                    offsets_matcher(&input, 0,
+                                    narrow_cast<source_position::offset_type>(
+                                        input.size())))));
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
