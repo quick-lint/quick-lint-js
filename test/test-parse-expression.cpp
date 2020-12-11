@@ -1394,6 +1394,11 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression_ptr ast = this->parse_expression(u8"(a,) => b");
     EXPECT_EQ(summarize(ast), "arrowexpr(var a, var b)");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"async => value");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var async, var value)");
+  }
 }
 
 TEST_F(test_parse_expression, arrow_function_with_statements) {

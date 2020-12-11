@@ -1086,6 +1086,15 @@ TEST(test_parse, expression_statement) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"async => rhs;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_variable_declaration",  // async
+                                      "visit_enter_function_scope_body",
+                                      "visit_variable_use",  // rhs
+                                      "visit_exit_function_scope"));
+  }
 }
 
 TEST(test_parse, asi_plusplus_minusminus) {

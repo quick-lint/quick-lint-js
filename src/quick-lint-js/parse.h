@@ -542,7 +542,8 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
-    case token_type::kw_async:
+    case token_type::kw_async: {
+      token async_token = this->peek();
       this->skip();
       switch (this->peek().type) {
       // async function f() {}
@@ -550,7 +551,8 @@ class parser {
         this->parse_and_visit_function_declaration(v);
         break;
 
-      // async (x) => expressionOrStatement
+      // async (x, y) => expressionOrStatement
+      // async x => expressionOrStatement
       case token_type::identifier:
       case token_type::kw_as:
       case token_type::kw_from:
@@ -563,11 +565,20 @@ class parser {
         this->parse_and_visit_expression(v);
         break;
 
+      // async => expressionOrStatement
+      case token_type::equal_greater: {
+        expression_ptr ast =
+            this->parse_async_expression(async_token, precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
+        break;
+      }
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
       break;
+    }
 
     // let x = 42;
     case token_type::kw_const:
