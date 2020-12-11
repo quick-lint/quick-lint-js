@@ -1321,14 +1321,6 @@ TEST(test_parse, parse_new_expression) {
   }
 }
 
-TEST(test_parse, parse_await_expression) {
-  {
-    spy_visitor v = parse_and_visit_expression(u8"await myPromise");
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0].name, u8"myPromise");
-  }
-}
-
 TEST(test_parse, super_in_class) {
   {
     spy_visitor v = parse_and_visit_statement(
@@ -1445,7 +1437,7 @@ TEST(test_parse, parse_function_statement) {
   }
 }
 
-TEST(test_parse, parse_async_function) {
+TEST(test_parse, async_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"async function f() {}");
     ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -1457,6 +1449,147 @@ TEST(test_parse, parse_async_function) {
         parse_and_visit_statement(u8"async function f() { await null; }");
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"f");
+  }
+}
+
+TEST(test_parse, await_in_async_function) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"async function f() { await myPromise; }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"async () => { await myPromise; }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"(async function() { await myPromise; })");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"({ async f() { await myPromise; } })");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"class C { async f() { await myPromise; } }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"async function f() {\n"
+        u8"  function g() {}\n"
+        u8"  await myPromise;\n"
+        u8"}");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+}
+
+TEST(test_parse, use_await_in_non_async_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"await(x);");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"},  //
+                            spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"async function f() {\n"
+        u8"  function g() { await(x); }\n"
+        u8"}");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"},  //
+                            spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"function f() {\n"
+        u8"  async function g() {}\n"
+        u8"  await();\n"
+        u8"}");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"(() => {\n"
+        u8"  async () => {};\n"
+        u8"  await();\n"
+        u8"})");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(async => { await(); })");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"({ async() { await(); } })");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { async() { await(); } }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+  }
+}
+
+TEST(test_parse, declare_await_in_non_async_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"function await() { }");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_function}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let await = 42;");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_let}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"(async function() {\n"
+        u8"  (function(await) { })\n"
+        u8"})");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_parameter}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"(function() {\n"
+        u8"  async function await() { }\n"
+        u8"})");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_function}));
   }
 }
 

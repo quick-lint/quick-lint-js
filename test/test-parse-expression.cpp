@@ -66,6 +66,7 @@ class test_parser {
     return this->locator.range(ast->span());
   }
 
+  quick_lint_js::parser &parser() noexcept { return this->parser_; }
   quick_lint_js::lexer &lexer() noexcept { return this->parser_.lexer(); }
 
  private:
@@ -627,15 +628,34 @@ TEST_F(test_parse_expression, parse_parenthesized_expression) {
   }
 }
 
-TEST_F(test_parse_expression, parse_await_expression) {
+TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
   {
     test_parser p(u8"await myPromise");
+    auto guard = p.parser().enter_function(function_attributes::async);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(var myPromise)");
     EXPECT_EQ(ast->kind(), expression_kind::await);
     EXPECT_EQ(summarize(ast->child_0()), "var myPromise");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 15);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"await(x)");
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "await(var x)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
+  {
+    test_parser p(u8"await(x)");
+    auto guard = p.parser().enter_function(function_attributes::normal);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var await, var x)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }

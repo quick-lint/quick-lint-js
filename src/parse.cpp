@@ -47,8 +47,22 @@ namespace {
 vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
 }
 
+parser::function_guard parser::enter_function(function_attributes attributes) {
+  bool was_in_async_function = this->in_async_function_;
+  switch (attributes) {
+  case function_attributes::async:
+    this->in_async_function_ = true;
+    break;
+  case function_attributes::normal:
+    this->in_async_function_ = false;
+    break;
+  }
+  return function_guard(this, was_in_async_function);
+}
+
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
+  identifier:
   case token_type::identifier:
   case token_type::kw_as:
   case token_type::kw_from:
@@ -106,11 +120,17 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_template(/*tag=*/std::nullopt);
 
   case token_type::kw_await: {
-    source_code_span operator_span = this->peek().span();
-    this->skip();
-    expression_ptr child = this->parse_expression();
-    return this->parse_expression_remainder(
-        this->make_expression<expression::await>(child, operator_span), prec);
+    if (this->in_async_function_) {
+      // await is a unary operator.
+      source_code_span operator_span = this->peek().span();
+      this->skip();
+      expression_ptr child = this->parse_expression();
+      return this->parse_expression_remainder(
+          this->make_expression<expression::await>(child, operator_span), prec);
+    } else {
+      // await is an identifier.
+      goto identifier;
+    }
   }
 
   case token_type::dot_dot_dot: {
@@ -362,9 +382,14 @@ expression_ptr parser::parse_async_expression(token async_token,
 
   // Arrow function: async parameter => expression-or-block
   case token_type::identifier:
+  case token_type::kw_as:
   case token_type::kw_async:
+  case token_type::kw_from:
+  case token_type::kw_get:
   case token_type::kw_let:
+  case token_type::kw_set:
   case token_type::kw_static:
+  case token_type::kw_yield:
     parameters.emplace_back(this->make_expression<expression::variable>(
         identifier(this->peek().span()), this->peek().type));
     this->skip();
@@ -651,6 +676,7 @@ template <class... Args>
 expression_ptr parser::parse_arrow_function_body(
     function_attributes attributes, const char8 *parameter_list_begin,
     Args &&... args) {
+  function_guard guard = this->enter_function(attributes);
   if (this->peek().type == token_type::left_curly) {
     buffering_visitor *v = this->expressions_.make_buffering_visitor();
     this->parse_and_visit_statement_block_no_scope(*v);
@@ -678,7 +704,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
     this->skip();
   }
   buffering_visitor *v = this->expressions_.make_buffering_visitor();
-  this->parse_and_visit_function_parameters_and_body_no_scope(*v);
+  this->parse_and_visit_function_parameters_and_body_no_scope(*v, attributes);
   const char8 *span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
@@ -706,14 +732,13 @@ expression_ptr parser::parse_object_literal() {
     this->skip();
     return property_name;
   };
-  auto parse_method_entry = [&](const char8 *key_span_begin,
-                                expression_ptr key) -> void {
+  auto parse_method_entry = [&](const char8 *key_span_begin, expression_ptr key,
+                                function_attributes attributes) -> void {
     buffering_visitor *v = this->expressions_.make_buffering_visitor();
-    this->parse_and_visit_function_parameters_and_body_no_scope(*v);
+    this->parse_and_visit_function_parameters_and_body_no_scope(*v, attributes);
     const char8 *span_end = this->lexer_.end_of_previous_token();
     expression_ptr func = this->make_expression<expression::function>(
-        function_attributes::normal, v,
-        source_code_span(key_span_begin, span_end));
+        attributes, v, source_code_span(key_span_begin, span_end));
     entries.emplace_back(key, func);
   };
 
@@ -786,7 +811,7 @@ expression_ptr parser::parse_object_literal() {
       }
 
       case token_type::left_paren:
-        parse_method_entry(key_span.begin(), key);
+        parse_method_entry(key_span.begin(), key, function_attributes::normal);
         break;
 
       default:
@@ -801,8 +826,13 @@ expression_ptr parser::parse_object_literal() {
     case token_type::kw_async:
     case token_type::kw_get:
     case token_type::kw_set: {
+      function_attributes method_attributes =
+          this->peek().type == token_type::kw_async
+              ? function_attributes::async
+              : function_attributes::normal;
       source_code_span keyword_span = this->peek().span();
       this->skip();
+
       switch (this->peek().type) {
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
@@ -812,7 +842,7 @@ expression_ptr parser::parse_object_literal() {
         expression_ptr key =
             this->make_expression<expression::literal>(key_span);
         this->skip();
-        parse_method_entry(keyword_span.begin(), key);
+        parse_method_entry(keyword_span.begin(), key, method_attributes);
         break;
       }
 
@@ -820,7 +850,7 @@ expression_ptr parser::parse_object_literal() {
       case token_type::left_square: {
         source_code_span left_square_span = this->peek().span();
         expression_ptr key = parse_computed_property_name();
-        parse_method_entry(left_square_span.begin(), key);
+        parse_method_entry(left_square_span.begin(), key, method_attributes);
         break;
       }
 
@@ -838,7 +868,8 @@ expression_ptr parser::parse_object_literal() {
       case token_type::left_paren: {
         expression_ptr key =
             this->make_expression<expression::literal>(keyword_span);
-        parse_method_entry(keyword_span.begin(), key);
+        parse_method_entry(keyword_span.begin(), key,
+                           function_attributes::normal);
         break;
       }
 
@@ -859,7 +890,8 @@ expression_ptr parser::parse_object_literal() {
         break;
 
       case token_type::left_paren:
-        parse_method_entry(left_square_span.begin(), key);
+        parse_method_entry(left_square_span.begin(), key,
+                           function_attributes::normal);
         break;
 
       default:
@@ -981,6 +1013,14 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
       /*type=*/this->peek().type,
       /*token_begin=*/this->peek().begin);
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
+}
+
+parser::function_guard::function_guard(parser *p,
+                                       bool was_in_async_function) noexcept
+    : parser_(p), was_in_async_function_(was_in_async_function) {}
+
+parser::function_guard::~function_guard() noexcept {
+  this->parser_->in_async_function_ = this->was_in_async_function_;
 }
 
 namespace {

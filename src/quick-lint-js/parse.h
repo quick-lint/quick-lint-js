@@ -83,6 +83,9 @@ namespace quick_lint_js {
 // A parser reads JavaScript source code and calls the member functions of a
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
+ private:
+  class function_guard;
+
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
       : lexer_(input, error_reporter), error_reporter_(error_reporter) {}
@@ -93,6 +96,9 @@ class parser {
   quick_lint_js::expression_arena &expression_arena() noexcept {
     return this->expressions_;
   }
+
+  // For testing and internal use only.
+  [[nodiscard]] function_guard enter_function(function_attributes);
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_module(Visitor &v) {
@@ -548,7 +554,8 @@ class parser {
       switch (this->peek().type) {
       // async function f() {}
       case token_type::kw_function:
-        this->parse_and_visit_function_declaration(v);
+        this->parse_and_visit_function_declaration(v,
+                                                   function_attributes::async);
         break;
 
       // async (x, y) => expressionOrStatement
@@ -562,9 +569,12 @@ class parser {
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
-      case token_type::left_paren:
-        this->parse_and_visit_expression(v);
+      case token_type::left_paren: {
+        expression_ptr ast =
+            this->parse_async_expression(async_token, precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
         break;
+      }
 
       // async => expressionOrStatement
       case token_type::equal_greater: {
@@ -592,7 +602,8 @@ class parser {
 
     // function f() {}
     case token_type::kw_function:
-      this->parse_and_visit_function_declaration(v);
+      this->parse_and_visit_function_declaration(v,
+                                                 function_attributes::normal);
       break;
 
     // class C {}
@@ -623,11 +634,15 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_declaration(Visitor &v) {
+  void parse_and_visit_function_declaration(Visitor &v,
+                                            function_attributes attributes) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
     this->skip();
 
     switch (this->peek().type) {
+    case token_type::kw_await:
+      // TODO(strager): Disallow functions named 'await' in async functions.
+      [[fallthrough]];
     case token_type::identifier:
     case token_type::kw_let:
     case token_type::kw_static:
@@ -635,14 +650,14 @@ class parser {
                                    variable_kind::_function);
       this->skip();
 
-      this->parse_and_visit_function_parameters_and_body(v);
+      this->parse_and_visit_function_parameters_and_body(v, attributes);
       break;
 
     // export default function() {}
     case token_type::left_paren:
       // TODO(strager): Require name for function declarations. Functions names
       // are only optional for 'export default' and expressions.
-      this->parse_and_visit_function_parameters_and_body(v);
+      this->parse_and_visit_function_parameters_and_body(v, attributes);
       break;
 
     default:
@@ -652,14 +667,18 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_parameters_and_body(Visitor &v) {
+  void parse_and_visit_function_parameters_and_body(
+      Visitor &v, function_attributes attributes) {
     v.visit_enter_function_scope();
-    this->parse_and_visit_function_parameters_and_body_no_scope(v);
+    this->parse_and_visit_function_parameters_and_body_no_scope(v, attributes);
     v.visit_exit_function_scope();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_parameters_and_body_no_scope(Visitor &v) {
+  void parse_and_visit_function_parameters_and_body_no_scope(
+      Visitor &v, function_attributes attributes) {
+    function_guard guard = this->enter_function(attributes);
+
     if (this->peek().type != token_type::left_paren) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -677,6 +696,9 @@ class parser {
       }
 
       switch (this->peek().type) {
+      case token_type::kw_await:
+        // TODO(strager): Disallow parameters named 'await' for async functions.
+        [[fallthrough]];
       case token_type::dot_dot_dot:
       case token_type::identifier:
       case token_type::kw_as:
@@ -809,6 +831,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class_member(Visitor &v) {
     std::optional<identifier> last_ident;
+    function_attributes method_attributes = function_attributes::normal;
 
   next:
     switch (this->peek().type) {
@@ -816,6 +839,9 @@ class parser {
     case token_type::kw_async:
       last_ident = this->peek().identifier_name();
       this->skip();
+      if (this->peek().type != token_type::left_paren) {
+        method_attributes = function_attributes::async;
+      }
       goto next;
 
     // static f() {}
@@ -839,7 +865,7 @@ class parser {
     case token_type::kw_try:
       v.visit_property_declaration(this->peek().identifier_name());
       this->skip();
-      this->parse_and_visit_function_parameters_and_body(v);
+      this->parse_and_visit_function_parameters_and_body(v, method_attributes);
       break;
 
     // "method"() {}
@@ -848,7 +874,7 @@ class parser {
     case token_type::string:
       v.visit_property_declaration();
       this->skip();
-      this->parse_and_visit_function_parameters_and_body(v);
+      this->parse_and_visit_function_parameters_and_body(v, method_attributes);
       break;
 
     // [methodNameExpression]() {}
@@ -861,7 +887,7 @@ class parser {
       this->skip();
 
       v.visit_property_declaration();
-      this->parse_and_visit_function_parameters_and_body(v);
+      this->parse_and_visit_function_parameters_and_body(v, method_attributes);
       break;
 
     // async() {}
@@ -869,7 +895,8 @@ class parser {
     case token_type::left_paren:
       if (last_ident.has_value()) {
         v.visit_property_declaration(*last_ident);
-        this->parse_and_visit_function_parameters_and_body(v);
+        this->parse_and_visit_function_parameters_and_body(v,
+                                                           method_attributes);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -1375,6 +1402,9 @@ class parser {
       }
 
       switch (this->peek().type) {
+      case token_type::kw_await:
+        // TODO(strager): Disallow variables named 'await' in async functions.
+        [[fallthrough]];
       case token_type::identifier:
       case token_type::kw_let:
       case token_type::kw_static:
@@ -1563,9 +1593,25 @@ class parser {
         std::forward<Args>(args)...);
   }
 
+  class function_guard {
+   public:
+    explicit function_guard(parser *, bool was_in_async_function) noexcept;
+
+    function_guard(const function_guard &) = delete;
+    function_guard &operator=(const function_guard &) = delete;
+
+    ~function_guard() noexcept;
+
+   private:
+    parser *parser_;
+    bool was_in_async_function_;
+  };
+
   quick_lint_js::lexer lexer_;
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
+
+  bool in_async_function_ = false;
 };
 }
 
