@@ -645,6 +645,7 @@ class parser {
       // TODO(strager): Disallow functions named 'await' in async functions.
       [[fallthrough]];
     case token_type::identifier:
+    case token_type::kw_async:
     case token_type::kw_let:
     case token_type::kw_static:
       v.visit_variable_declaration(this->peek().identifier_name(),
@@ -976,6 +977,7 @@ class parser {
 
       switch (this->peek().type) {
       case token_type::identifier:
+      case token_type::kw_async:
       case token_type::kw_let:
       case token_type::kw_static:
         v.visit_variable_declaration(this->peek().identifier_name(),
@@ -1408,6 +1410,7 @@ class parser {
         // TODO(strager): Disallow variables named 'await' in async functions.
         [[fallthrough]];
       case token_type::identifier:
+      case token_type::kw_async:
       case token_type::kw_let:
       case token_type::kw_static:
       case token_type::left_curly:
