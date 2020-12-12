@@ -859,6 +859,7 @@ class parser {
 
     // method() {}
     case token_type::identifier:
+    case token_type::kw_await:
     case token_type::kw_catch:
     case token_type::kw_class:
     case token_type::kw_default:
