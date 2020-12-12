@@ -124,13 +124,74 @@ class parser {
 
     // let x = 42;
     // function f() {}
-    case token_type::kw_async:
     case token_type::kw_const:
     case token_type::kw_function:
     case token_type::kw_let:
     case token_type::kw_var:
       this->parse_and_visit_declaration(v);
       break;
+
+    // async function f() {}
+    // async = 42;
+    case token_type::kw_async: {
+      token async_token = this->peek();
+      this->skip();
+      switch (this->peek().type) {
+      // async function f() {}
+      case token_type::kw_function:
+        this->parse_and_visit_function_declaration(v,
+                                                   function_attributes::async);
+        break;
+
+      // async (x, y) => expressionOrStatement
+      // async x => expressionOrStatement
+      // async += 42;
+      QLJS_CASE_BINARY_ONLY_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      case token_type::comma:
+      case token_type::complete_template:
+      case token_type::dot:
+      case token_type::equal:
+      case token_type::identifier:
+      case token_type::incomplete_template:
+      case token_type::kw_as:
+      case token_type::kw_async:
+      case token_type::kw_await:
+      case token_type::kw_from:
+      case token_type::kw_get:
+      case token_type::kw_in:
+      case token_type::kw_let:
+      case token_type::kw_set:
+      case token_type::kw_static:
+      case token_type::kw_yield:
+      case token_type::left_paren:
+      case token_type::minus:
+      case token_type::minus_minus:
+      case token_type::plus:
+      case token_type::plus_plus:
+      case token_type::question:
+      case token_type::semicolon:
+      case token_type::slash: {
+        expression_ptr ast =
+            this->parse_async_expression(async_token, precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
+        break;
+      }
+
+      // async => expressionOrStatement
+      case token_type::equal_greater: {
+        expression_ptr ast =
+            this->parse_async_expression(async_token, precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
+        break;
+      }
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      break;
+    }
 
     // import {bananas} from "Thailand";
     // import(url).then(loaded);
@@ -494,12 +555,27 @@ class parser {
     // export default class C {}
     case token_type::kw_default:
       this->skip();
-      if (this->peek().type == token_type::kw_async ||
-          this->peek().type == token_type::kw_class ||
-          this->peek().type == token_type::kw_function) {
+      switch (this->peek().type) {
+      case token_type::kw_async: {
+        token async_token = this->peek();
+        this->skip();
+        if (this->peek().type == token_type::kw_function) {
+          this->parse_and_visit_function_declaration(
+              v, function_attributes::async);
+        } else {
+          expression_ptr ast =
+              this->parse_async_expression(async_token, precedence{});
+          this->visit_expression(ast, v, variable_context::rhs);
+        }
+        break;
+      }
+      case token_type::kw_class:
+      case token_type::kw_function:
         this->parse_and_visit_declaration(v);
-      } else {
+        break;
+      default:
         this->parse_and_visit_expression(v);
+        break;
       }
       break;
 
@@ -531,6 +607,11 @@ class parser {
 
     // export class C {}
     case token_type::kw_async:
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
+      this->parse_and_visit_function_declaration(v, function_attributes::async);
+      break;
+
     case token_type::kw_class:
     case token_type::kw_const:
     case token_type::kw_function:
@@ -548,66 +629,6 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
-    case token_type::kw_async: {
-      token async_token = this->peek();
-      this->skip();
-      switch (this->peek().type) {
-      // async function f() {}
-      case token_type::kw_function:
-        this->parse_and_visit_function_declaration(v,
-                                                   function_attributes::async);
-        break;
-
-      // async (x, y) => expressionOrStatement
-      // async x => expressionOrStatement
-      // async += 42;
-      QLJS_CASE_BINARY_ONLY_OPERATOR:
-      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
-      case token_type::comma:
-      case token_type::complete_template:
-      case token_type::dot:
-      case token_type::equal:
-      case token_type::identifier:
-      case token_type::incomplete_template:
-      case token_type::kw_as:
-      case token_type::kw_async:
-      case token_type::kw_await:
-      case token_type::kw_from:
-      case token_type::kw_get:
-      case token_type::kw_in:
-      case token_type::kw_let:
-      case token_type::kw_set:
-      case token_type::kw_static:
-      case token_type::kw_yield:
-      case token_type::left_paren:
-      case token_type::minus:
-      case token_type::minus_minus:
-      case token_type::plus:
-      case token_type::plus_plus:
-      case token_type::question:
-      case token_type::semicolon:
-      case token_type::slash: {
-        expression_ptr ast =
-            this->parse_async_expression(async_token, precedence{});
-        this->visit_expression(ast, v, variable_context::rhs);
-        break;
-      }
-
-      // async => expressionOrStatement
-      case token_type::equal_greater: {
-        expression_ptr ast =
-            this->parse_async_expression(async_token, precedence{});
-        this->visit_expression(ast, v, variable_context::rhs);
-        break;
-      }
-
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
-      break;
-    }
-
     // let x = 42;
     case token_type::kw_const:
     case token_type::kw_let:

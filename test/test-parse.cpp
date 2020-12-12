@@ -182,6 +182,16 @@ TEST(test_parse, export_default) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
                                       "visit_exit_class_scope"));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export default async (a) => b;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // a
+                                      "visit_enter_function_scope_body",
+                                      "visit_variable_use",  // b
+                                      "visit_exit_function_scope"));
+  }
 }
 
 TEST(test_parse, export_list) {
