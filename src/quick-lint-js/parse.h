@@ -563,6 +563,7 @@ class parser {
       case token_type::identifier:
       case token_type::kw_as:
       case token_type::kw_async:
+      case token_type::kw_await:
       case token_type::kw_from:
       case token_type::kw_get:
       case token_type::kw_let:
