@@ -560,17 +560,33 @@ class parser {
 
       // async (x, y) => expressionOrStatement
       // async x => expressionOrStatement
+      // async += 42;
+      QLJS_CASE_BINARY_ONLY_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      case token_type::comma:
+      case token_type::complete_template:
+      case token_type::dot:
+      case token_type::equal:
       case token_type::identifier:
+      case token_type::incomplete_template:
       case token_type::kw_as:
       case token_type::kw_async:
       case token_type::kw_await:
       case token_type::kw_from:
       case token_type::kw_get:
+      case token_type::kw_in:
       case token_type::kw_let:
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
-      case token_type::left_paren: {
+      case token_type::left_paren:
+      case token_type::minus:
+      case token_type::minus_minus:
+      case token_type::plus:
+      case token_type::plus_plus:
+      case token_type::question:
+      case token_type::semicolon:
+      case token_type::slash: {
         expression_ptr ast =
             this->parse_async_expression(async_token, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
