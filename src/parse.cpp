@@ -362,6 +362,7 @@ expression_ptr parser::parse_async_expression(token async_token,
 
   // Arrow function: async parameter => expression-or-block
   case token_type::identifier:
+  case token_type::kw_async:
   case token_type::kw_let:
   case token_type::kw_static:
     parameters.emplace_back(this->make_expression<expression::variable>(
