@@ -145,6 +145,7 @@ class parser {
 
       // async (x, y) => expressionOrStatement
       // async x => expressionOrStatement
+      // async => expressionOrStatement
       // async += 42;
       QLJS_CASE_BINARY_ONLY_OPERATOR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
@@ -152,6 +153,7 @@ class parser {
       case token_type::complete_template:
       case token_type::dot:
       case token_type::equal:
+      case token_type::equal_greater:
       case token_type::identifier:
       case token_type::incomplete_template:
       case token_type::kw_as:
@@ -172,14 +174,6 @@ class parser {
       case token_type::question:
       case token_type::semicolon:
       case token_type::slash: {
-        expression_ptr ast =
-            this->parse_async_expression(async_token, precedence{});
-        this->visit_expression(ast, v, variable_context::rhs);
-        break;
-      }
-
-      // async => expressionOrStatement
-      case token_type::equal_greater: {
         expression_ptr ast =
             this->parse_async_expression(async_token, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
