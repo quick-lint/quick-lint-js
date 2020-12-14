@@ -32,7 +32,6 @@ TODO_JS_FILES = (
     "ES6/arrow-function/migrated_0013.js",
     "ES6/for-of/let-of-of.js",
     "ES6/generator/*",
-    "ES6/identifier/valid_await.js",
     "ES6/yield/*",
     "JSX/*",
     "es2017/async/regular-identifier/generator-name-async.js",
@@ -49,7 +48,6 @@ TODO_JS_FILES = (
     "fixtures/ES6/identifier/weierstrass.js",
     "fixtures/ES6/identifier/weierstrass_weierstrass.js",
     "fixtures/expression/primary/array/migrated_0007.js",
-    "literal/string/migrated_0017.js",
     "multiline_string_literal.js",
 )
 
