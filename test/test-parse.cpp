@@ -2788,6 +2788,14 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
                   ElementsAre(spy_visitor::visited_variable_use{name},
                               spy_visitor::visited_variable_use{u8"other"}));
     }
+
+    {
+      string8 code = name + u8": while (go());";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code);
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{u8"go"}));
+    }
   }
 }
 

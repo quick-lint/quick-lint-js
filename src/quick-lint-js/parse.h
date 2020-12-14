@@ -122,14 +122,30 @@ class parser {
       this->skip();
       break;
 
-    // let x = 42;
+    // var x = 42;
     // function f() {}
     case token_type::kw_const:
     case token_type::kw_function:
-    case token_type::kw_let:
     case token_type::kw_var:
       this->parse_and_visit_declaration(v);
       break;
+
+    // let x = 42;
+    // let: while (true) {}
+    case token_type::kw_let: {
+      token let_token = this->peek();
+      this->skip();
+      if (this->peek().type == token_type::colon) {
+        // Labelled statement.
+        this->skip();
+        goto parse_statement;
+      } else {
+        this->parse_and_visit_let_bindings(v, let_token,
+                                           /*allow_in_operator=*/true);
+        this->consume_semicolon();
+      }
+      break;
+    }
 
     // async function f() {}
     // async = 42;
@@ -179,6 +195,11 @@ class parser {
         this->visit_expression(ast, v, variable_context::rhs);
         break;
       }
+
+      // Labelled statement.
+      case token_type::colon:
+        this->skip();
+        goto parse_statement;
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();
@@ -623,7 +644,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_declaration(Visitor &v) {
     switch (this->peek().type) {
-    // let x = 42;
+    // var x = 42;
     case token_type::kw_const:
     case token_type::kw_let:
     case token_type::kw_var: {

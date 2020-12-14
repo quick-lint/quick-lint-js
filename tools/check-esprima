@@ -36,7 +36,6 @@ TODO_JS_FILES = (
     "ES6/yield/*",
     "JSX/*",
     "es2017/async/regular-identifier/generator-name-async.js",
-    "es2017/async/regular-identifier/label-async.js",
     "es2017/async/regular-identifier/proto-identifier-shorthand-with-async.js",
     "es2017/async/regular-identifier/static-generator-name-async.js",
     "fixtures/ES2016/identifier/gujarati_zha.js",
