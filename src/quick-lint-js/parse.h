@@ -626,11 +626,14 @@ class parser {
     // let x = 42;
     case token_type::kw_const:
     case token_type::kw_let:
-    case token_type::kw_var:
-      this->parse_and_visit_let_bindings(v, this->peek().type,
+    case token_type::kw_var: {
+      token declaring_token = this->peek();
+      this->skip();
+      this->parse_and_visit_let_bindings(v, declaring_token,
                                          /*allow_in_operator=*/true);
       this->consume_semicolon();
       break;
+    }
 
     // function f() {}
     case token_type::kw_function:
@@ -1102,9 +1105,11 @@ class parser {
       entered_for_scope = true;
       [[fallthrough]];
     case token_type::kw_var: {
+      token declaring_token = this->peek();
       token_type variable_token = this->peek().type;
+      this->skip();
       buffering_visitor lhs;
-      this->parse_and_visit_let_bindings(lhs, this->peek().type,
+      this->parse_and_visit_let_bindings(lhs, declaring_token,
                                          /*allow_in_operator=*/false);
       switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
@@ -1396,10 +1401,10 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v, token_type declaring_token,
+  void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
                                     bool allow_in_operator) {
     variable_kind declaration_kind;
-    switch (declaring_token) {
+    switch (declaring_token.type) {
     case token_type::kw_const:
       declaration_kind = variable_kind::_const;
       break;
@@ -1414,17 +1419,18 @@ class parser {
       declaration_kind = variable_kind::_let;
       break;
     }
-    this->parse_and_visit_let_bindings(v, declaration_kind,
+    this->parse_and_visit_let_bindings(v, declaring_token, declaration_kind,
                                        /*allow_in_operator=*/allow_in_operator);
   }
 
+  // declaring_token is the const/let/var token.
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v, variable_kind declaration_kind,
+  void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
+                                    variable_kind declaration_kind,
                                     bool allow_in_operator) {
-    source_code_span let_span = this->peek().span();
-    identifier let_identifier = this->peek().identifier_name();
-    token_type let_token_type = this->peek().type;
-    this->skip();
+    source_code_span let_span = declaring_token.span();
+    identifier let_identifier = declaring_token.identifier_name();
+    token_type let_token_type = declaring_token.type;
     bool first_binding = true;
     for (;;) {
       std::optional<source_code_span> comma_span = std::nullopt;
