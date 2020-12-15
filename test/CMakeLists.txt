@@ -24,6 +24,15 @@ quick_lint_js_add_executable(
   error-matcher.cpp
   parse-json.cpp
   pipe.cpp
+  quick-lint-js/array.h
+  quick-lint-js/characters.h
+  quick-lint-js/error-collector.h
+  quick-lint-js/error-matcher.h
+  quick-lint-js/parse-json.h
+  quick-lint-js/pipe.h
+  quick-lint-js/spy-lsp-endpoint-remote.h
+  quick-lint-js/spy-lsp-message-parser.h
+  quick-lint-js/spy-visitor.h
   spy-visitor.cpp
   test-assert.cpp
   test-bit.cpp

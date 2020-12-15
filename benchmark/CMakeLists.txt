@@ -59,6 +59,10 @@ quick_lint_js_add_benchmark_executable(
   benchmark-translation.cpp
 )
 
-quick_lint_js_add_library(quick-lint-js-benchmark-support generate-code.cpp)
+quick_lint_js_add_library(
+  quick-lint-js-benchmark-support
+  generate-code.cpp
+  quick-lint-js/generate-code.h
+)
 target_include_directories(quick-lint-js-benchmark-support PUBLIC .)
 target_link_libraries(quick-lint-js-benchmark-support PUBLIC quick-lint-js-lib)

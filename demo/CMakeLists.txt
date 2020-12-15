@@ -20,6 +20,7 @@ include(QuickLintJSTarget)
 if (EMSCRIPTEN)
   quick_lint_js_add_executable(
     quick-lint-js-wasm-demo
+    quick-lint-js/wasm-demo.h
     wasm-demo.cpp
   )
   target_include_directories(quick-lint-js-wasm-demo PRIVATE .)
