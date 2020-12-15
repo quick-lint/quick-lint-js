@@ -63,6 +63,58 @@ quick_lint_js_add_library(
   options.cpp
   padded-string.cpp
   parse.cpp
+  quick-lint-js/assert.h
+  quick-lint-js/bit.h
+  quick-lint-js/buffering-visitor.h
+  quick-lint-js/byte-buffer.h
+  quick-lint-js/char8.h
+  quick-lint-js/constant-divider.h
+  quick-lint-js/cpp.h
+  quick-lint-js/crash.h
+  quick-lint-js/error-formatter.h
+  quick-lint-js/error-tape.h
+  quick-lint-js/error.h
+  quick-lint-js/expression.h
+  quick-lint-js/feature.h
+  quick-lint-js/file-handle.h
+  quick-lint-js/file.h
+  quick-lint-js/force-inline.h
+  quick-lint-js/gmo.h
+  quick-lint-js/have.h
+  quick-lint-js/integer.h
+  quick-lint-js/json.h
+  quick-lint-js/language.h
+  quick-lint-js/lex.h
+  quick-lint-js/lint.h
+  quick-lint-js/locale.h
+  quick-lint-js/location.h
+  quick-lint-js/lsp-document.h
+  quick-lint-js/lsp-endpoint.h
+  quick-lint-js/lsp-error-reporter.h
+  quick-lint-js/lsp-location.h
+  quick-lint-js/lsp-message-parser.h
+  quick-lint-js/lsp-pipe-writer.h
+  quick-lint-js/lsp-server.h
+  quick-lint-js/math-overflow.h
+  quick-lint-js/narrow-cast.h
+  quick-lint-js/null-visitor.h
+  quick-lint-js/optional.h
+  quick-lint-js/options.h
+  quick-lint-js/padded-string.h
+  quick-lint-js/parse-visitor.h
+  quick-lint-js/parse.h
+  quick-lint-js/pipe-reader.h
+  quick-lint-js/simd.h
+  quick-lint-js/std-filesystem.h
+  quick-lint-js/text-error-reporter.h
+  quick-lint-js/translation-data.h
+  quick-lint-js/translation.h
+  quick-lint-js/unreachable.h
+  quick-lint-js/vector.h
+  quick-lint-js/version.h
+  quick-lint-js/vim-qflist-json-error-reporter.h
+  quick-lint-js/warning.h
+  quick-lint-js/wasm-demo-error-reporter.h
   text-error-reporter.cpp
   translation-data.cpp
   translation.cpp
