@@ -1686,6 +1686,42 @@ TEST(test_parse, use_yield_in_non_generator_function) {
   }
 }
 
+TEST(test_parse, declare_yield_in_non_generator_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"function yield() { }");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"yield", variable_kind::_function}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let yield = 42;");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"yield", variable_kind::_let}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"(async function() {\n"
+        u8"  (function(yield) { })\n"
+        u8"})");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"yield", variable_kind::_parameter}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"(function() {\n"
+        u8"  function* yield() { }\n"
+        u8"})");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"yield", variable_kind::_function}));
+  }
+}
+
 TEST(test_parse, parse_function_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(function() {});");

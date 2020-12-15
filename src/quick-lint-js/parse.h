@@ -700,7 +700,9 @@ class parser {
 
     switch (this->peek().type) {
     case token_type::kw_await:
-      // TODO(strager): Disallow functions named 'await' in async functions.
+    case token_type::kw_yield:
+      // TODO(strager): Disallow functions named 'await' in async functions, or
+      // functions named 'yield' in generator functions.
       [[fallthrough]];
     case token_type::identifier:
     case token_type::kw_async:
@@ -1474,7 +1476,9 @@ class parser {
 
       switch (this->peek().type) {
       case token_type::kw_await:
-        // TODO(strager): Disallow variables named 'await' in async functions.
+      case token_type::kw_yield:
+        // TODO(strager): Disallow variables named 'await' in async functions,
+        // or variables named 'yield' in generator functions.
         [[fallthrough]];
       case token_type::identifier:
       case token_type::kw_async:
