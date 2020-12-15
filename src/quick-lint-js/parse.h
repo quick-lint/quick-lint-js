@@ -479,7 +479,7 @@ class parser {
     case expression_kind::await:
     case expression_kind::spread:
     case expression_kind::unary_operator:
-    case expression_kind::yield:
+    case expression_kind::yield_one:
       this->visit_expression(ast->child_0(), v, context);
       break;
     case expression_kind::conditional:

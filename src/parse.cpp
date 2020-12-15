@@ -163,7 +163,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       default: {
         expression_ptr child = this->parse_expression();
         return this->parse_expression_remainder(
-            this->make_expression<expression::yield>(child, operator_span),
+            this->make_expression<expression::yield_one>(child, operator_span),
             prec);
       }
       }

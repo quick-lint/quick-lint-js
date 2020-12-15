@@ -96,8 +96,8 @@ enum class expression_kind {
   trailing_comma,
   unary_operator,
   variable,
-  yield,
   yield_none,
+  yield_one,
 };
 
 struct object_property_value_pair {
@@ -197,8 +197,8 @@ class expression {
   class trailing_comma;
   class unary_operator;
   class variable;
-  class yield;
   class yield_none;
+  class yield_one;
 
   expression_kind kind() const noexcept { return this->kind_; }
 
@@ -1072,17 +1072,6 @@ class expression::variable final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
 
-class expression::yield final
-    : public expression::expression_with_prefix_operator_base {
- public:
-  static constexpr expression_kind kind = expression_kind::yield;
-
-  explicit yield(expression_ptr child, source_code_span operator_span) noexcept
-      : expression::expression_with_prefix_operator_base(kind, child,
-                                                         operator_span) {}
-};
-static_assert(expression_arena::is_allocatable<expression::yield>);
-
 class expression::yield_none final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::yield_none;
@@ -1096,6 +1085,18 @@ class expression::yield_none final : public expression {
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::yield_none>);
+
+class expression::yield_one final
+    : public expression::expression_with_prefix_operator_base {
+ public:
+  static constexpr expression_kind kind = expression_kind::yield_one;
+
+  explicit yield_one(expression_ptr child,
+                     source_code_span operator_span) noexcept
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
+};
+static_assert(expression_arena::is_allocatable<expression::yield_one>);
 
 template <class Func>
 inline auto expression::with_derived(Func &&func) {
@@ -1136,8 +1137,8 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(trailing_comma)
     QLJS_EXPRESSION_CASE(unary_operator)
     QLJS_EXPRESSION_CASE(variable)
-    QLJS_EXPRESSION_CASE(yield)
     QLJS_EXPRESSION_CASE(yield_none)
+    QLJS_EXPRESSION_CASE(yield_one)
   }
   QLJS_UNREACHABLE();
 

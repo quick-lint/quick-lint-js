@@ -120,7 +120,7 @@ class test_parser {
     case expression_kind::rw_unary_suffix:
     case expression_kind::spread:
     case expression_kind::unary_operator:
-    case expression_kind::yield:
+    case expression_kind::yield_one:
       this->clean_up_expression(ast->child_0());
       break;
     case expression_kind::conditional:
@@ -736,7 +736,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yield(var v)");
-    EXPECT_EQ(ast->kind(), expression_kind::yield);
+    EXPECT_EQ(ast->kind(), expression_kind::yield_one);
     EXPECT_EQ(summarize(ast->child_0()), "var v");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 7);
@@ -1899,10 +1899,10 @@ std::string summarize(const expression &expression) {
                         expression.variable_identifier().normalized_name());
   case expression_kind::binary_operator:
     return "binary(" + children() + ")";
-  case expression_kind::yield:
-    return "yield(" + summarize(expression.child_0()) + ")";
   case expression_kind::yield_none:
     return "yieldnone";
+  case expression_kind::yield_one:
+    return "yield(" + summarize(expression.child_0()) + ")";
   }
   QLJS_UNREACHABLE();
 }
