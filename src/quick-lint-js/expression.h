@@ -97,6 +97,7 @@ enum class expression_kind {
   unary_operator,
   variable,
   yield,
+  yield_none,
 };
 
 struct object_property_value_pair {
@@ -197,6 +198,7 @@ class expression {
   class unary_operator;
   class variable;
   class yield;
+  class yield_none;
 
   expression_kind kind() const noexcept { return this->kind_; }
 
@@ -1081,6 +1083,20 @@ class expression::yield final
 };
 static_assert(expression_arena::is_allocatable<expression::yield>);
 
+class expression::yield_none final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::yield_none;
+
+  explicit yield_none(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::yield_none>);
+
 template <class Func>
 inline auto expression::with_derived(Func &&func) {
   using compound_assignment = assignment;
@@ -1121,6 +1137,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(unary_operator)
     QLJS_EXPRESSION_CASE(variable)
     QLJS_EXPRESSION_CASE(yield)
+    QLJS_EXPRESSION_CASE(yield_none)
   }
   QLJS_UNREACHABLE();
 

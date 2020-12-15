@@ -94,6 +94,7 @@ class test_parser {
     case expression_kind::new_target:
     case expression_kind::super:
     case expression_kind::variable:
+    case expression_kind::yield_none:
       break;
     case expression_kind::_new:
     case expression_kind::_template:
@@ -158,11 +159,15 @@ class test_parser {
 class test_parse_expression : public ::testing::Test {
  protected:
   expression_ptr parse_expression(const char8 *input) {
-    test_parser &p = this->parsers_.emplace_back(input);
+    test_parser &p = this->make_parser(input);
 
     expression_ptr ast = p.parse_expression();
     EXPECT_THAT(p.errors(), IsEmpty());
     return ast;
+  }
+
+  test_parser &make_parser(const char8 *input) {
+    return this->parsers_.emplace_back(input);
   }
 
  private:
@@ -658,6 +663,70 @@ TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var await, var x)");
     EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST_F(test_parse_expression,
+       yield_nullary_operator_inside_generator_functions) {
+  auto parse_expression_in_generator =
+      [this](const char8 *code) -> expression_ptr {
+    test_parser &p = this->make_parser(code);
+    auto guard = p.parser().enter_function(function_attributes::generator);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_THAT(p.errors(), IsEmpty());
+    return ast;
+  };
+
+  {
+    test_parser p(u8"yield");
+    auto guard = p.parser().enter_function(function_attributes::generator);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "yieldnone");
+    EXPECT_EQ(ast->kind(), expression_kind::yield_none);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 5);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"(yield)");
+    EXPECT_EQ(summarize(ast), "yieldnone");
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"[yield]");
+    EXPECT_EQ(summarize(ast), "array(yieldnone)");
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"f(yield, 42)");
+    EXPECT_EQ(summarize(ast), "call(var f, yieldnone, literal)");
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"yield ? a : b");
+    EXPECT_EQ(summarize(ast), "cond(yieldnone, var a, var b)");
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"yield in stuff");
+    EXPECT_EQ(summarize(ast), "binary(yieldnone, var stuff)");
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"yield;");
+    EXPECT_EQ(summarize(ast), "yieldnone");
+  }
+
+  {
+    // '}' is the end of a function's body, for example.
+    expression_ptr ast = parse_expression_in_generator(u8"yield }");
+    EXPECT_EQ(summarize(ast), "yieldnone");
+  }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"a ? yield : b");
+    EXPECT_EQ(summarize(ast), "cond(var a, yieldnone, var b)");
   }
 }
 
@@ -1832,6 +1901,8 @@ std::string summarize(const expression &expression) {
     return "binary(" + children() + ")";
   case expression_kind::yield:
     return "yield(" + summarize(expression.child_0()) + ")";
+  case expression_kind::yield_none:
+    return "yieldnone";
   }
   QLJS_UNREACHABLE();
 }

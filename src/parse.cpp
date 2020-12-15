@@ -145,14 +145,32 @@ expression_ptr parser::parse_expression(precedence prec) {
       // yield is a unary operator.
       source_code_span operator_span = this->peek().span();
       this->skip();
-      expression_ptr child = this->parse_expression();
-      return this->parse_expression_remainder(
-          this->make_expression<expression::yield>(child, operator_span), prec);
+      switch (this->peek().type) {
+      case token_type::colon:
+      case token_type::comma:
+      case token_type::end_of_file:
+      case token_type::right_curly:
+      case token_type::right_paren:
+      case token_type::right_square:
+      case token_type::semicolon:
+        return this->make_expression<expression::yield_none>(operator_span);
+
+      case token_type::kw_in:
+      case token_type::question:
+        return this->parse_expression_remainder(
+            this->make_expression<expression::yield_none>(operator_span), prec);
+
+      default: {
+        expression_ptr child = this->parse_expression();
+        return this->parse_expression_remainder(
+            this->make_expression<expression::yield>(child, operator_span),
+            prec);
+      }
+      }
     } else {
       // yield is an identifier.
       goto identifier;
     }
-    QLJS_UNIMPLEMENTED();
   }
 
   case token_type::dot_dot_dot: {

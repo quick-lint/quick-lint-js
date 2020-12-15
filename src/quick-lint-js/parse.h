@@ -414,6 +414,7 @@ class parser {
     case expression_kind::literal:
     case expression_kind::new_target:
     case expression_kind::super:
+    case expression_kind::yield_none:
       break;
     case expression_kind::_new:
     case expression_kind::_template:
