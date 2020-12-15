@@ -1130,6 +1130,30 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
   }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{ *func(a, b) { } }");
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{ *'func'(a, b) { } }");
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{ *[func](a, b) { } }");
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
 }
 
 TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
@@ -1209,6 +1233,12 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, function)");
     }
+
+    {
+      string8 code = u8"{*" + keyword + u8"() {}}";
+      expression_ptr ast = this->parse_expression(code.c_str());
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
   }
 }
 
@@ -1220,6 +1250,11 @@ TEST_F(test_parse_expression, object_literal_with_number_key) {
 
   {
     expression_ptr ast = this->parse_expression(u8"{async 42() {}}");
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"{*42() {}}");
     EXPECT_EQ(summarize(ast), "object(literal, function)");
   }
 }
@@ -1346,6 +1381,23 @@ TEST_F(test_parse_expression, async_function_expression) {
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 20);
     EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST_F(test_parse_expression, generator_function_expression) {
+  {
+    test_parser p(u8"function*(){}");
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::function);
+    EXPECT_EQ(ast->attributes(), function_attributes::generator);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 13);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"function* f(){}");
+    EXPECT_EQ(summarize(ast), "function f");
   }
 }
 
@@ -1657,6 +1709,8 @@ std::string summarize(const expression &expression) {
       return "";
     case function_attributes::async:
       return "async";
+    case function_attributes::generator:
+      return "generator";
     }
     QLJS_UNREACHABLE();
   };

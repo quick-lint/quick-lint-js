@@ -694,6 +694,7 @@ class parser {
                                             function_attributes attributes) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
     this->skip();
+    attributes = this->parse_generator_star(attributes);
 
     switch (this->peek().type) {
     case token_type::kw_await:
@@ -904,6 +905,12 @@ class parser {
     // static f() {}
     case token_type::kw_static:
       last_ident = this->peek().identifier_name();
+      this->skip();
+      goto next;
+
+    // *g() {}
+    case token_type::star:
+      // TODO(strager): Set function_attributes::generator.
       this->skip();
       goto next;
 
@@ -1640,6 +1647,8 @@ class parser {
   expression_ptr parse_class_expression();
 
   expression_ptr parse_template(std::optional<expression_ptr> tag);
+
+  function_attributes parse_generator_star(function_attributes);
 
   void consume_semicolon();
 

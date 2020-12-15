@@ -23,6 +23,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 
@@ -53,6 +54,7 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   case function_attributes::async:
     this->in_async_function_ = true;
     break;
+  case function_attributes::generator:
   case function_attributes::normal:
     this->in_async_function_ = false;
     break;
@@ -696,6 +698,8 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
                                                  const char8 *span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   this->skip();
+  attributes = this->parse_generator_star(attributes);
+
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   std::optional<identifier> function_name = std::nullopt;
@@ -901,6 +905,40 @@ expression_ptr parser::parse_object_literal() {
       break;
     }
 
+    // *generatorMethod() {}
+    case token_type::star: {
+      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+      case token_type::number:
+      case token_type::string: {
+        source_code_span method_name_span = this->peek().span();
+        expression_ptr method_name =
+            this->make_expression<expression::literal>(method_name_span);
+        this->skip();
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+        parse_method_entry(method_name_span.begin(), method_name,
+                           function_attributes::generator);
+        break;
+      }
+
+      case token_type::left_square: {
+        source_code_span left_square_span = this->peek().span();
+        expression_ptr key = parse_computed_property_name();
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+        parse_method_entry(left_square_span.begin(), key,
+                           function_attributes::generator);
+        break;
+      }
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      break;
+    }
+
     case token_type::dot_dot_dot:
       entries.emplace_back(parse_value_expression());
       break;
@@ -979,6 +1017,27 @@ expression_ptr parser::parse_template(std::optional<expression_ptr> tag) {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+  }
+}
+
+function_attributes parser::parse_generator_star(
+    function_attributes original_attributes) {
+  bool is_generator = this->peek().type == token_type::star;
+  if (is_generator) {
+    this->skip();
+    switch (original_attributes) {
+    case function_attributes::async:
+      QLJS_UNIMPLEMENTED();
+      break;
+    case function_attributes::generator:
+      QLJS_ASSERT(false);
+      return function_attributes::generator;
+    case function_attributes::normal:
+      return function_attributes::generator;
+    }
+    QLJS_UNREACHABLE();
+  } else {
+    return original_attributes;
   }
 }
 

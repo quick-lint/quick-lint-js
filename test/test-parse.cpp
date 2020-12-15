@@ -1467,6 +1467,15 @@ TEST(test_parse, async_function_statement) {
   }
 }
 
+TEST(test_parse, generator_function_statement) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"function* f() {}");
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"f", variable_kind::_function}));
+  }
+}
+
 TEST(test_parse, await_in_async_function) {
   {
     spy_visitor v =
@@ -1903,6 +1912,12 @@ TEST(test_parse, class_statement_with_methods) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(u8"class C { *m() { } }");
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"m"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"class C { get length() { } }");
     EXPECT_THAT(
         v.property_declarations,
@@ -1952,6 +1967,14 @@ TEST(test_parse, class_statement_with_keyword_property) {
                           u8"default", u8"get", u8"set", u8"static", u8"try"}) {
     {
       string8 code = u8"class C { " + keyword + u8"(){} }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      ASSERT_EQ(v.property_declarations.size(), 1);
+      EXPECT_EQ(v.property_declarations[0].name, keyword);
+    }
+
+    {
+      string8 code = u8"class C { *" + keyword + u8"(){} }";
       SCOPED_TRACE(out_string8(code));
       spy_visitor v = parse_and_visit_statement(code.c_str());
       ASSERT_EQ(v.property_declarations.size(), 1);
