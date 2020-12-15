@@ -230,6 +230,7 @@ class parser {
     case token_type::kw_true:
     case token_type::kw_typeof:
     case token_type::kw_void:
+    case token_type::kw_yield:
     case token_type::left_paren:
     case token_type::left_square:
     case token_type::minus:
@@ -477,6 +478,7 @@ class parser {
     case expression_kind::await:
     case expression_kind::spread:
     case expression_kind::unary_operator:
+    case expression_kind::yield:
       this->visit_expression(ast->child_0(), v, context);
       break;
     case expression_kind::conditional:
@@ -910,7 +912,7 @@ class parser {
 
     // *g() {}
     case token_type::star:
-      // TODO(strager): Set function_attributes::generator.
+      method_attributes = function_attributes::generator;
       this->skip();
       goto next;
 
@@ -1667,7 +1669,8 @@ class parser {
 
   class function_guard {
    public:
-    explicit function_guard(parser *, bool was_in_async_function) noexcept;
+    explicit function_guard(parser *, bool was_in_async_function,
+                            bool was_in_generator_function) noexcept;
 
     function_guard(const function_guard &) = delete;
     function_guard &operator=(const function_guard &) = delete;
@@ -1677,6 +1680,7 @@ class parser {
    private:
     parser *parser_;
     bool was_in_async_function_;
+    bool was_in_generator_function_;
   };
 
   quick_lint_js::lexer lexer_;
@@ -1684,6 +1688,7 @@ class parser {
   quick_lint_js::expression_arena expressions_;
 
   bool in_async_function_ = false;
+  bool in_generator_function_ = false;
 };
 }
 

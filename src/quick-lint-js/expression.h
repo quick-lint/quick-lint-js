@@ -96,6 +96,7 @@ enum class expression_kind {
   trailing_comma,
   unary_operator,
   variable,
+  yield,
 };
 
 struct object_property_value_pair {
@@ -195,6 +196,7 @@ class expression {
   class trailing_comma;
   class unary_operator;
   class variable;
+  class yield;
 
   expression_kind kind() const noexcept { return this->kind_; }
 
@@ -1068,6 +1070,17 @@ class expression::variable final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
 
+class expression::yield final
+    : public expression::expression_with_prefix_operator_base {
+ public:
+  static constexpr expression_kind kind = expression_kind::yield;
+
+  explicit yield(expression_ptr child, source_code_span operator_span) noexcept
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
+};
+static_assert(expression_arena::is_allocatable<expression::yield>);
+
 template <class Func>
 inline auto expression::with_derived(Func &&func) {
   using compound_assignment = assignment;
@@ -1107,6 +1120,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(trailing_comma)
     QLJS_EXPRESSION_CASE(unary_operator)
     QLJS_EXPRESSION_CASE(variable)
+    QLJS_EXPRESSION_CASE(yield)
   }
   QLJS_UNREACHABLE();
 

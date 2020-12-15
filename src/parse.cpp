@@ -50,16 +50,22 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_async_function = this->in_async_function_;
+  bool was_in_generator_function = this->in_generator_function_;
   switch (attributes) {
   case function_attributes::async:
     this->in_async_function_ = true;
+    this->in_generator_function_ = false;
     break;
   case function_attributes::generator:
+    this->in_async_function_ = false;
+    this->in_generator_function_ = true;
+    break;
   case function_attributes::normal:
     this->in_async_function_ = false;
+    this->in_generator_function_ = false;
     break;
   }
-  return function_guard(this, was_in_async_function);
+  return function_guard(this, was_in_async_function, was_in_generator_function);
 }
 
 expression_ptr parser::parse_expression(precedence prec) {
@@ -71,8 +77,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::kw_get:
   case token_type::kw_let:
   case token_type::kw_set:
-  case token_type::kw_static:
-  case token_type::kw_yield: {
+  case token_type::kw_static: {
     expression_ptr ast = this->make_expression<expression::variable>(
         this->peek().identifier_name(), this->peek().type);
     this->skip();
@@ -133,6 +138,21 @@ expression_ptr parser::parse_expression(precedence prec) {
       // await is an identifier.
       goto identifier;
     }
+  }
+
+  case token_type::kw_yield: {
+    if (this->in_generator_function_) {
+      // yield is a unary operator.
+      source_code_span operator_span = this->peek().span();
+      this->skip();
+      expression_ptr child = this->parse_expression();
+      return this->parse_expression_remainder(
+          this->make_expression<expression::yield>(child, operator_span), prec);
+    } else {
+      // yield is an identifier.
+      goto identifier;
+    }
+    QLJS_UNIMPLEMENTED();
   }
 
   case token_type::dot_dot_dot: {
@@ -1075,12 +1095,15 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
 
-parser::function_guard::function_guard(parser *p,
-                                       bool was_in_async_function) noexcept
-    : parser_(p), was_in_async_function_(was_in_async_function) {}
+parser::function_guard::function_guard(parser *p, bool was_in_async_function,
+                                       bool was_in_generator_function) noexcept
+    : parser_(p),
+      was_in_async_function_(was_in_async_function),
+      was_in_generator_function_(was_in_generator_function) {}
 
 parser::function_guard::~function_guard() noexcept {
   this->parser_->in_async_function_ = this->was_in_async_function_;
+  this->parser_->in_generator_function_ = this->was_in_generator_function_;
 }
 
 namespace {

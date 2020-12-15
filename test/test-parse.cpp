@@ -1617,6 +1617,75 @@ TEST(test_parse, declare_await_in_non_async_function) {
   }
 }
 
+TEST(test_parse, yield_in_generator_function) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"function *f() { yield myValue; }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"(function*() { yield myValue; })");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"({ *f() { yield myValue; } })");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { *f() { yield myValue; } }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"function* f() {\n"
+        u8"  function g() {}\n"
+        u8"  yield myValue;\n"
+        u8"}");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+}
+
+TEST(test_parse, use_yield_in_non_generator_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"yield(x);");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"yield"},  //
+                            spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"function* f() {\n"
+        u8"  function g() { yield(x); }\n"
+        u8"}");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"yield"},  //
+                            spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"function f() {\n"
+        u8"  function* g() {}\n"
+        u8"  yield();\n"
+        u8"}");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"yield"}));
+  }
+}
+
 TEST(test_parse, parse_function_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(function() {});");
