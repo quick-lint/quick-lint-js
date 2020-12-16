@@ -1048,6 +1048,7 @@ class parser {
       case token_type::kw_async:
       case token_type::kw_let:
       case token_type::kw_static:
+      case token_type::kw_yield:
         v.visit_variable_declaration(this->peek().identifier_name(),
                                      variable_kind::_catch);
         this->skip();

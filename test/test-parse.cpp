@@ -2692,8 +2692,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
   }
 }
 
-TEST(test_parse, variables_can_be_named_async_or_let) {
-  for (string8 name : {u8"async", u8"let"}) {
+TEST(test_parse, variables_can_be_named_async_or_let_or_yield) {
+  for (string8 name : {u8"async", u8"let", u8"yield"}) {
     SCOPED_TRACE(out_string8(name));
 
     {
