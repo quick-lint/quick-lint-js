@@ -120,6 +120,7 @@ class test_parser {
     case expression_kind::rw_unary_suffix:
     case expression_kind::spread:
     case expression_kind::unary_operator:
+    case expression_kind::yield_many:
     case expression_kind::yield_one:
       this->clean_up_expression(ast->child_0());
       break;
@@ -752,12 +753,35 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
   }
 }
 
+TEST_F(test_parse_expression,
+       yield_many_unary_operator_inside_generator_functions) {
+  {
+    test_parser p(u8"yield *other");
+    auto guard = p.parser().enter_function(function_attributes::generator);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "yieldmany(var other)");
+    EXPECT_EQ(ast->kind(), expression_kind::yield_many);
+    EXPECT_EQ(summarize(ast->child_0()), "var other");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 12);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST_F(test_parse_expression, yield_variable_name_outside_generator_functions) {
   {
     test_parser p(u8"yield(x)");
     auto guard = p.parser().enter_function(function_attributes::normal);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var yield, var x)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"yield*other");
+    auto guard = p.parser().enter_function(function_attributes::normal);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var yield, var other)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -1899,6 +1923,8 @@ std::string summarize(const expression &expression) {
                         expression.variable_identifier().normalized_name());
   case expression_kind::binary_operator:
     return "binary(" + children() + ")";
+  case expression_kind::yield_many:
+    return "yieldmany(" + summarize(expression.child_0()) + ")";
   case expression_kind::yield_none:
     return "yieldnone";
   case expression_kind::yield_one:

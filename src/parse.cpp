@@ -160,6 +160,14 @@ expression_ptr parser::parse_expression(precedence prec) {
         return this->parse_expression_remainder(
             this->make_expression<expression::yield_none>(operator_span), prec);
 
+      case token_type::star: {
+        this->skip();
+        expression_ptr child = this->parse_expression();
+        return this->parse_expression_remainder(
+            this->make_expression<expression::yield_many>(child, operator_span),
+            prec);
+      }
+
       default: {
         expression_ptr child = this->parse_expression();
         return this->parse_expression_remainder(

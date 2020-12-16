@@ -96,6 +96,7 @@ enum class expression_kind {
   trailing_comma,
   unary_operator,
   variable,
+  yield_many,
   yield_none,
   yield_one,
 };
@@ -197,6 +198,7 @@ class expression {
   class trailing_comma;
   class unary_operator;
   class variable;
+  class yield_many;
   class yield_none;
   class yield_one;
 
@@ -1072,6 +1074,18 @@ class expression::variable final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
 
+class expression::yield_many final
+    : public expression::expression_with_prefix_operator_base {
+ public:
+  static constexpr expression_kind kind = expression_kind::yield_many;
+
+  explicit yield_many(expression_ptr child,
+                      source_code_span yield_operator_span) noexcept
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         yield_operator_span) {}
+};
+static_assert(expression_arena::is_allocatable<expression::yield_many>);
+
 class expression::yield_none final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::yield_none;
@@ -1137,6 +1151,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(trailing_comma)
     QLJS_EXPRESSION_CASE(unary_operator)
     QLJS_EXPRESSION_CASE(variable)
+    QLJS_EXPRESSION_CASE(yield_many)
     QLJS_EXPRESSION_CASE(yield_none)
     QLJS_EXPRESSION_CASE(yield_one)
   }
