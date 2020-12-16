@@ -1082,7 +1082,9 @@ TEST(test_lex, lex_identifier_with_out_of_range_escaped_character) {
                         error_escaped_code_point_in_identifier_out_of_range,
                         escape_sequence, offsets_matcher(input, 6, 25))));
       });
+}
 
+TEST(test_lex, lex_identifier_with_disallowed_character) {
   check_single_token_with_errors(
       u8"illegal\\u0020", u8"illegal\\u0020",
       [](padded_string_view input, const auto& errors) {
@@ -1099,6 +1101,33 @@ TEST(test_lex, lex_identifier_with_out_of_range_escaped_character) {
                         error_escaped_character_disallowed_in_identifiers,
                         escape_sequence, offsets_matcher(input, 7, 15))));
       });
+  check_single_token_with_errors(
+      u8"\\u{20}illegal", u8"\\u{20}illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 0, 6))));
+      });
+}
+
+TEST(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
+  // Identifiers cannot start with a digit.
+  check_single_token_with_errors(
+      u8"\\u{30}illegal", u8"\\u{30}illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 0, 6))));
+      });
+}
+
+TEST(
+    test_lex,
+    lex_identifier_with_disallowed_escaped_initial_character_as_subsequent_character) {
+  // Identifiers can contain a digit.
+  check_single_token(u8"legal\\u{30}", u8"legal0");
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {

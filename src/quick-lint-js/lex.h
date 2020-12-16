@@ -347,7 +347,8 @@ class lexer {
   char8* parse_hex_digits_and_underscores(char8* input) noexcept;
 
   parsed_identifier parse_identifier(char8*);
-  parsed_identifier parse_identifier_slow(char8*);
+  parsed_identifier parse_identifier_slow(char8* input,
+                                          char8* identifier_begin);
 
   void skip_whitespace();
   void skip_block_comment();
@@ -359,6 +360,7 @@ class lexer {
   static bool is_octal_digit(char8);
   static bool is_digit(char8);
   static bool is_hex_digit(char8);
+  static bool is_initial_identifier_character(int code_point);
   static bool is_identifier_character(int code_point);
 
   static int newline_character_size(const char8*);

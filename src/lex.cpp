@@ -992,6 +992,7 @@ char8* lexer::parse_hex_digits_and_underscores(char8* input) noexcept {
 }
 
 lexer::parsed_identifier lexer::parse_identifier(char8* input) {
+  char8* identifier_begin = input;
   QLJS_ASSERT(this->is_identifier_character(*input));
 
 #if QLJS_HAVE_X86_SSE2
@@ -1054,7 +1055,8 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
   } while (is_all_identifier_characters);
 
   if (*input == u8'\\') {
-    return this->parse_identifier_slow(input);
+    return this->parse_identifier_slow(input,
+                                       /*identifier_begin=*/identifier_begin);
   } else {
     QLJS_ASSERT(!is_identifier_character(input[0]));
     return parsed_identifier{
@@ -1065,7 +1067,8 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
   }
 }
 
-lexer::parsed_identifier lexer::parse_identifier_slow(char8* input) {
+lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
+                                                      char8* identifier_begin) {
   char8* end = input;
   std::vector<source_code_span> escape_sequences;
 
@@ -1126,6 +1129,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input) {
       }
       code_point_hex_end = input;
     }
+    bool is_initial_identifier_character =
+        escape_sequence_begin == identifier_begin;
 
     int code_point;
     from_chars_result parse_result = from_chars_hex(
@@ -1139,7 +1144,9 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input) {
           error_escaped_code_point_in_identifier_out_of_range{
               .escape_sequence = get_escape_span()});
       end = std::copy(escape_sequence_begin, input, end);
-    } else if (!this->is_identifier_character(code_point)) {
+    } else if (!(is_initial_identifier_character
+                     ? this->is_initial_identifier_character(code_point)
+                     : this->is_identifier_character(code_point))) {
       this->error_reporter_->report(
           error_escaped_character_disallowed_in_identifiers{
               .escape_sequence = get_escape_span()});
@@ -1427,6 +1434,16 @@ bool lexer::is_hex_digit(char8 c) {
   case 'E':
   case 'F':
     return true;
+  default:
+    return false;
+  }
+}
+
+bool lexer::is_initial_identifier_character(int code_point) {
+  switch (code_point) {
+  QLJS_CASE_IDENTIFIER_START:
+    return true;
+  // TODO(strager): Support non-ASCII code points.
   default:
     return false;
   }
