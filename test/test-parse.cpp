@@ -2726,6 +2726,19 @@ TEST(test_parse, variables_can_be_named_async_or_let_or_yield) {
 
     {
       spy_visitor v =
+          parse_and_visit_statement(u8"(function " + name + u8"() {})");
+      EXPECT_THAT(
+          v.visits,
+          ElementsAre("visit_enter_named_function_scope",  // (name) (function)
+                      "visit_enter_function_scope_body",
+                      "visit_exit_function_scope"));
+      EXPECT_THAT(
+          v.enter_named_function_scopes,
+          ElementsAre(spy_visitor::visited_enter_named_function_scope{name}));
+    }
+
+    {
+      spy_visitor v =
           parse_and_visit_statement(u8"try { } catch (" + name + u8") { }");
       EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
                                         "visit_exit_block_scope",

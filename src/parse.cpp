@@ -750,9 +750,16 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   std::optional<identifier> function_name = std::nullopt;
   QLJS_WARNING_POP
-  if (this->peek().type == token_type::identifier) {
+  switch (this->peek().type) {
+  case token_type::identifier:
+  case token_type::kw_async:
+  case token_type::kw_let:
+  case token_type::kw_yield:
     function_name = this->peek().identifier_name();
     this->skip();
+    break;
+  default:
+    break;
   }
   buffering_visitor *v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_function_parameters_and_body_no_scope(*v, attributes);
