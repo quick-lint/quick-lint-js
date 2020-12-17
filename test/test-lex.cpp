@@ -1126,12 +1126,37 @@ TEST(test_lex, lex_identifier_with_disallowed_character) {
                         error_escaped_character_disallowed_in_identifiers,
                         escape_sequence, offsets_matcher(input, 0, 6))));
       });
+  check_single_token_with_errors(
+      u8"illegal\\u{10ffff}", u8"illegal\\u{10ffff}",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 7, 17))));
+      });
+  check_single_token_with_errors(
+      u8"\\u{10ffff}illegal", u8"\\u{10ffff}illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 0, 10))));
+      });
 }
 
 TEST(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
   // Identifiers cannot start with a digit.
   check_single_token_with_errors(
       u8"\\u{30}illegal", u8"\\u{30}illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 0, 6))));
+      });
+
+  check_single_token_with_errors(
+      u8"\\u0816illegal", u8"\\u0816illegal",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(

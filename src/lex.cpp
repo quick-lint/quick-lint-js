@@ -110,6 +110,21 @@
   case '9'
 
 namespace quick_lint_js {
+namespace {
+bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
+                              char32_t code_point) {
+  constexpr int bits_per_byte = 8;
+  constexpr char32_t max_code_point = U'\U0010ffff';
+
+  QLJS_ASSERT(code_point <= max_code_point);
+  if (code_point >= table_size * bits_per_byte) {
+    return false;
+  }
+  return table[code_point / bits_per_byte] &
+         (1 << (code_point % bits_per_byte));
+}
+}
+
 string8_view identifier::normalized_name() const noexcept {
   const char8* begin = this->span_.begin();
   return string8_view(begin,
@@ -1440,24 +1455,21 @@ bool lexer::is_hex_digit(char8 c) {
 }
 
 bool lexer::is_initial_identifier_character(int code_point) {
-  switch (code_point) {
-  QLJS_CASE_IDENTIFIER_START:
-    return true;
-  default:
-    // TODO(strager): Add table of disallowed non-ASCII code points.
-    return code_point >= 0x80;
-  }
+  // TODO(strager): Avoid cast.
+  return look_up_in_unicode_table(identifier_start_table,
+                                  identifier_start_table_size,
+                                  narrow_cast<char32_t>(code_point));
 }
 
 bool lexer::is_identifier_character(int code_point) {
-  switch (code_point) {
-  QLJS_CASE_IDENTIFIER_START:
-  QLJS_CASE_DECIMAL_DIGIT:
+  // TODO(strager): Move this check into callers.
+  if (code_point == U'\\') {
     return true;
-  default:
-    // TODO(strager): Add table of disallowed non-ASCII code points.
-    return code_point >= 0x80;
   }
+  // TODO(strager): Avoid cast.
+  return look_up_in_unicode_table(identifier_part_table,
+                                  identifier_part_table_size,
+                                  narrow_cast<char32_t>(code_point));
 }
 
 int lexer::newline_character_size(const char8* input) {

@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
@@ -289,6 +290,12 @@ class lexer {
   // Do not call this after calling insert_semicolon, unless skip has been
   // called after.
   const char8* end_of_previous_token() const noexcept;
+
+  static constexpr std::size_t identifier_start_table_size = 0x5f44;
+  static std::uint8_t identifier_start_table[];
+
+  static constexpr std::size_t identifier_part_table_size = 0x1c03e;
+  static std::uint8_t identifier_part_table[];
 
  private:
   struct parsed_template_body {
