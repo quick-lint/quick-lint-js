@@ -29,6 +29,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/simd.h>
+#include <quick-lint-js/utf-8.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
 
@@ -1058,7 +1059,6 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
     return this->parse_identifier_slow(input,
                                        /*identifier_begin=*/identifier_begin);
   } else {
-    QLJS_ASSERT(!is_identifier_character(input[0]));
     return parsed_identifier{
         .end = input,
         .after = input,
@@ -1152,8 +1152,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
               .escape_sequence = get_escape_span()});
       end = std::copy(escape_sequence_begin, input, end);
     } else {
-      // TODO(strager): Support non-ASCII identifier characters.
-      *end++ = narrow_cast<char8>(code_point);
+      // TODO(strager): Avoid cast.
+      end = encode_utf_8(narrow_cast<char32_t>(code_point), end);
       escape_sequences.emplace_back(escape_sequence_begin, input);
     }
   };
@@ -1443,9 +1443,9 @@ bool lexer::is_initial_identifier_character(int code_point) {
   switch (code_point) {
   QLJS_CASE_IDENTIFIER_START:
     return true;
-  // TODO(strager): Support non-ASCII code points.
   default:
-    return false;
+    // TODO(strager): Add table of disallowed non-ASCII code points.
+    return code_point >= 0x80;
   }
 }
 
@@ -1454,9 +1454,9 @@ bool lexer::is_identifier_character(int code_point) {
   QLJS_CASE_IDENTIFIER_START:
   QLJS_CASE_DECIMAL_DIGIT:
     return true;
-  // TODO(strager): Support non-ASCII code points.
   default:
-    return false;
+    // TODO(strager): Add table of disallowed non-ASCII code points.
+    return code_point >= 0x80;
   }
 }
 

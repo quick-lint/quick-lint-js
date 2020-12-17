@@ -902,7 +902,7 @@ TEST(test_lex, lex_identifiers) {
   check_single_token(u8"digits0123456789", u8"digits0123456789");
 }
 
-TEST(test_lex, lex_identifier_with_escape_sequence) {
+TEST(test_lex, ascii_identifier_with_escape_sequence) {
   check_single_token(u8"\\u0061", u8"a");
   check_single_token(u8"\\u0041", u8"A");
   check_single_token(u8"\\u004E", u8"N");
@@ -923,7 +923,24 @@ TEST(test_lex, lex_identifier_with_escape_sequence) {
   check_single_token(u8"\\u0077\\u0061\\u0074", u8"wat");
   check_single_token(u8"\\u{77}\\u{61}\\u{74}", u8"wat");
 
-  // TODO(strager): Support code points above U+007F.
+  // _ and $ are in IdentifierStart, even though they aren't in UnicodeIDStart.
+  check_single_token(u8"\\u{5f}wakka", u8"_wakka");
+  check_single_token(u8"\\u{24}wakka", u8"$wakka");
+
+  // $, ZWNJ, ZWJ in IdentifierPart, even though they aren't in
+  // UnicodeIDContinue.
+  check_single_token(u8"wakka\\u{24}", u8"wakka$");
+  check_single_token(u8"wak\\u200cka", u8"wak\u200cka");
+  check_single_token(u8"wak\\u200dka", u8"wak\u200dka");
+}
+
+TEST(test_lex, non_ascii_identifier_with_escape_sequence) {
+  check_single_token(u8"\\u{013337}", u8"\U00013337");
+
+  check_single_token(u8"\\u{b5}", u8"\u00b5");         // 2 UTF-8 bytes
+  check_single_token(u8"a\\u{816}", u8"a\u0816");      // 3 UTF-8 bytes
+  check_single_token(u8"a\\u0816", u8"a\u0816");       // 3 UTF-8 bytes
+  check_single_token(u8"\\u{1e93f}", u8"\U0001e93f");  // 4 UTF-8 bytes
 }
 
 TEST(test_lex, identifier_with_escape_sequences_source_code_span_is_in_place) {
@@ -1128,6 +1145,8 @@ TEST(
     lex_identifier_with_disallowed_escaped_initial_character_as_subsequent_character) {
   // Identifiers can contain a digit.
   check_single_token(u8"legal\\u{30}", u8"legal0");
+
+  check_single_token(u8"legal\\u0816", u8"legal\u0816");
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {
