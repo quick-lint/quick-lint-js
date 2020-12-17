@@ -68,6 +68,7 @@ quick_lint_js_add_executable(
   test-text-error-reporter.cpp
   test-translation.cpp
   test-utf-8.cpp
+  test-utf-16.cpp
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
