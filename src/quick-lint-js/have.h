@@ -257,4 +257,17 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE)
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_FILE) && __has_builtin(__builtin_FUNCTION) && \
+    __has_builtin(__builtin_LINE)
+#define QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE 1
+#else
+#define QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE 0
+#endif
+#else
+#define QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE 0
+#endif
+#endif
+
 #endif

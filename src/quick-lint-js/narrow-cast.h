@@ -19,6 +19,7 @@
 
 #include <limits>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/have.h>
 #include <type_traits>
 
 namespace quick_lint_js {
@@ -80,8 +81,26 @@ constexpr bool in_range([[maybe_unused]] In x) noexcept {
 }
 
 template <class Out, class In>
-Out narrow_cast(In x) noexcept {
-  QLJS_ASSERT(in_range<Out>(x));
+Out narrow_cast(In x
+#if !(defined(NDEBUG) && NDEBUG) && QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE
+                ,
+                const char* caller_file = __builtin_FILE(),
+                unsigned caller_line = __builtin_LINE(),
+                const char* caller_func = __builtin_FUNCTION()
+#endif
+                    ) noexcept {
+#if !(defined(NDEBUG) && NDEBUG)
+  if (!in_range<Out>(x)) {
+    report_assertion_failure(
+#if QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE
+        caller_file, static_cast<int>(caller_line), caller_func,
+#else
+        __FILE__, __LINE__, __func__,
+#endif
+        "number not in range");
+    QLJS_ASSERT_TRAP();
+  }
+#endif
   return static_cast<Out>(x);
 }
 }
