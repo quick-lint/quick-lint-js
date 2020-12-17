@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/characters.h>
 #include <quick-lint-js/gtest-char8.h>
 #include <quick-lint-js/utf-8.h>
 

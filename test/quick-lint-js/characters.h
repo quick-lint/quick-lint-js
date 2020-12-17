@@ -18,32 +18,9 @@
 #define QUICK_LINT_JS_CHARACTERS_H
 
 #include <array>
-#include <cstddef>
 #include <quick-lint-js/array.h>
-#include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 
 namespace quick_lint_js {
-inline constexpr string8_view operator""_sv(const char8* string,
-                                            std::size_t length) noexcept {
-  return string8_view(string, length);
-}
-
-template <class T, std::size_t LHSSize, std::size_t RHSSize>
-inline constexpr std::array<T, LHSSize + RHSSize> concat(
-    const std::array<T, LHSSize>& lhs, const std::array<T, RHSSize>& rhs) {
-  std::array<T, LHSSize + RHSSize> result;
-  auto it = result.begin();
-  for (const auto& value : lhs) {
-    *it++ = value;
-  }
-  for (const auto& value : rhs) {
-    *it++ = value;
-  }
-  QLJS_ASSERT(it == result.end());
-  return result;
-}
-
 inline constexpr std::array line_terminators_except_ls_ps =
     make_array(u8"\n"_sv, u8"\r"_sv, u8"\r\n"_sv);
 

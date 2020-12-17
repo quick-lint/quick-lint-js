@@ -18,6 +18,8 @@
 #define QUICK_LINT_JS_ARRAY_H
 
 #include <array>
+#include <cstddef>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
 
@@ -32,6 +34,21 @@ inline constexpr auto make_array(Args&&... items) {
 }
 
 QLJS_WARNING_POP
+
+template <class T, std::size_t LHSSize, std::size_t RHSSize>
+inline constexpr std::array<T, LHSSize + RHSSize> concat(
+    const std::array<T, LHSSize>& lhs, const std::array<T, RHSSize>& rhs) {
+  std::array<T, LHSSize + RHSSize> result;
+  auto it = result.begin();
+  for (const auto& value : lhs) {
+    *it++ = value;
+  }
+  for (const auto& value : rhs) {
+    *it++ = value;
+  }
+  QLJS_ASSERT(it == result.end());
+  return result;
+}
 }
 
 #endif

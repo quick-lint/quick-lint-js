@@ -59,6 +59,11 @@ std::size_t strlen(const char8 *);
 const char8 *strchr(const char8 *haystack, char8 needle);
 const char8 *strstr(const char8 *haystack, const char8 *needle);
 std::size_t strspn(const char8 *haystack, const char8 *needles);
+
+inline constexpr string8_view operator""_sv(const char8 *string,
+                                            std::size_t length) noexcept {
+  return string8_view(string, length);
+}
 }
 
 namespace testing::internal {

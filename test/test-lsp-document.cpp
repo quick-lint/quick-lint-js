@@ -16,7 +16,6 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/characters.h>
 #include <quick-lint-js/lsp-document.h>
 #include <quick-lint-js/lsp-location.h>
 
