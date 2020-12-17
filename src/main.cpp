@@ -36,6 +36,7 @@
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/utf-16.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
@@ -104,6 +105,8 @@ class any_error_reporter {
   tape_variant tape_;
 };
 
+[[noreturn]] void handle_options(quick_lint_js::options o);
+
 void process_file(padded_string_view input, error_reporter *,
                   bool print_parser_visits);
 
@@ -114,24 +117,41 @@ void print_version_information();
 }
 }
 
+#if defined(_WIN32)
+int wmain(int argc, wchar_t **wargv) {
+  quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
+  quick_lint_js::initialize_translations_from_environment();
+
+  quick_lint_js::mbargv m(argc, wargv);
+  quick_lint_js::options o = quick_lint_js::parse_options(m.size(), m.data());
+  quick_lint_js::handle_options(o);
+}
+#else
 int main(int argc, char **argv) {
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
   quick_lint_js::initialize_translations_from_environment();
 
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
+  quick_lint_js::handle_options(o);
+}
+#endif
+
+namespace quick_lint_js {
+namespace {
+void handle_options(quick_lint_js::options o) {
   if (o.help) {
     quick_lint_js::print_help_message();
-    return EXIT_SUCCESS;
+    std::exit(EXIT_SUCCESS);
   }
   if (o.version) {
     quick_lint_js::print_version_information();
-    return 0;
+    std::exit(EXIT_SUCCESS);
   }
   if (!o.error_unrecognized_options.empty()) {
     for (const auto &option : o.error_unrecognized_options) {
       std::cerr << "error: unrecognized option: " << option << '\n';
     }
-    return EXIT_FAILURE;
+    std::exit(EXIT_FAILURE);
   }
   if (o.lsp_server) {
     quick_lint_js::run_lsp_server();
@@ -139,11 +159,11 @@ int main(int argc, char **argv) {
       std::cerr << "warning: ignoring files given on command line in "
                    "--lsp-server mode\n";
     }
-    return 0;
+    std::exit(EXIT_SUCCESS);
   }
   if (o.files_to_lint.empty()) {
     std::cerr << "error: expected file name\n";
-    return EXIT_FAILURE;
+    std::exit(EXIT_FAILURE);
   }
 
   quick_lint_js::any_error_reporter reporter =
@@ -159,14 +179,12 @@ int main(int argc, char **argv) {
   reporter.finish();
 
   if (reporter.get_error() == true) {
-    return EXIT_FAILURE;
+    std::exit(EXIT_FAILURE);
   }
 
-  return EXIT_SUCCESS;
+  std::exit(EXIT_SUCCESS);
 }
 
-namespace quick_lint_js {
-namespace {
 class debug_visitor {
  public:
   void visit_end_of_module() { std::cerr << "end of module\n"; }

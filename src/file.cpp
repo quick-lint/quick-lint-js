@@ -28,6 +28,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/utf-16.h>
 #include <string>
 
 #if QLJS_HAVE_FCNTL_H
@@ -199,9 +200,15 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
 
 #if defined(QLJS_FILE_WINDOWS)
 read_file_result read_file(const char *path) {
-  // TODO(strager): Use CreateFileW.
-  HANDLE handle = ::CreateFileA(
-      path, /*dwDesiredAccess=*/GENERIC_READ,
+  std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
+  if (!wpath) {
+    DWORD error = ::GetLastError();
+    return read_file_result::failure(std::string("failed to convert ") + path +
+                                     " to wstring\n" +
+                                     windows_error_message(error));
+  }
+  HANDLE handle = ::CreateFileW(
+      wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
       /*dwShareMode=*/FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
       /*lpSecurityAttributes=*/nullptr,
       /*dwCreationDisposition=*/OPEN_EXISTING,
