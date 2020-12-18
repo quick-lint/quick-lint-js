@@ -449,91 +449,9 @@ retry:
     break;
 
   case '"':
-  case '\'': {
-    char8 opening_quote = this->input_[0];
-
-    char8* c = &this->input_[1];
-    for (;;) {
-      switch (static_cast<unsigned char>(*c)) {
-      case '\0':
-        if (this->is_eof(c)) {
-          this->error_reporter_->report(error_unclosed_string_literal{
-              source_code_span(&this->input_[0], c)});
-          goto done;
-        } else {
-          ++c;
-          break;
-        }
-
-      case '\n':
-      case '\r': {
-        char8* matching_quote = nullptr;
-        char8* current_c = c;
-        if (current_c[0] == '\r' && current_c[1] == '\n') {
-          current_c += 2;
-        } else {
-          current_c += 1;
-        }
-        for (;;) {
-          if (*current_c == opening_quote) {
-            if (matching_quote) {
-              break;
-            }
-            matching_quote = current_c;
-            ++current_c;
-          } else if (*current_c == '\r' || *current_c == '\n' ||
-                     (*current_c == '\0' && this->is_eof(current_c))) {
-            if (matching_quote) {
-              c = matching_quote + 1;
-            }
-            break;
-          } else {
-            ++current_c;
-          }
-        }
-        this->error_reporter_->report(error_unclosed_string_literal{
-            source_code_span(&this->input_[0], c)});
-        goto done;
-      }
-
-      case '\\':
-        ++c;
-        switch (*c) {
-        case '\0':
-          if (this->is_eof(c)) {
-            this->error_reporter_->report(error_unclosed_string_literal{
-                source_code_span(&this->input_[0], c)});
-            goto done;
-          } else {
-            ++c;
-            break;
-          }
-        default:
-          ++c;
-          break;
-        }
-        break;
-
-      case '"':
-      case '\'':
-        if (*c == opening_quote) {
-          ++c;
-          goto done;
-        }
-        ++c;
-        break;
-
-      default:
-        ++c;
-        break;
-      }
-    }
-  done:
-    this->last_token_.type = token_type::string;
-    this->input_ = c;
-    this->last_token_.end = this->input_;
+  case '\'':
+    this->parse_string_literal();
     break;
-  }
 
   case '`': {
     this->input_ += 1;
@@ -621,6 +539,91 @@ retry:
     QLJS_CRASH_DISALLOWING_CORE_DUMP();
     break;
   }
+}
+
+void lexer::parse_string_literal() noexcept {
+  char8 opening_quote = this->input_[0];
+
+  char8* c = &this->input_[1];
+  for (;;) {
+    switch (static_cast<unsigned char>(*c)) {
+    case '\0':
+      if (this->is_eof(c)) {
+        this->error_reporter_->report(error_unclosed_string_literal{
+            source_code_span(&this->input_[0], c)});
+        goto done;
+      } else {
+        ++c;
+        break;
+      }
+
+    case '\n':
+    case '\r': {
+      char8* matching_quote = nullptr;
+      char8* current_c = c;
+      if (current_c[0] == '\r' && current_c[1] == '\n') {
+        current_c += 2;
+      } else {
+        current_c += 1;
+      }
+      for (;;) {
+        if (*current_c == opening_quote) {
+          if (matching_quote) {
+            break;
+          }
+          matching_quote = current_c;
+          ++current_c;
+        } else if (*current_c == '\r' || *current_c == '\n' ||
+                   (*current_c == '\0' && this->is_eof(current_c))) {
+          if (matching_quote) {
+            c = matching_quote + 1;
+          }
+          break;
+        } else {
+          ++current_c;
+        }
+      }
+      this->error_reporter_->report(
+          error_unclosed_string_literal{source_code_span(&this->input_[0], c)});
+      goto done;
+    }
+
+    case '\\':
+      ++c;
+      switch (*c) {
+      case '\0':
+        if (this->is_eof(c)) {
+          this->error_reporter_->report(error_unclosed_string_literal{
+              source_code_span(&this->input_[0], c)});
+          goto done;
+        } else {
+          ++c;
+          break;
+        }
+      default:
+        ++c;
+        break;
+      }
+      break;
+
+    case '"':
+    case '\'':
+      if (*c == opening_quote) {
+        ++c;
+        goto done;
+      }
+      ++c;
+      break;
+
+    default:
+      ++c;
+      break;
+    }
+  }
+done:
+  this->last_token_.type = token_type::string;
+  this->input_ = c;
+  this->last_token_.end = this->input_;
 }
 
 void lexer::skip_in_template(const char8* template_begin) {
