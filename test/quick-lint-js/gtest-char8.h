@@ -17,16 +17,27 @@
 #ifndef QUICK_LINT_JS_GTEST_CHAR8_H
 #define QUICK_LINT_JS_GTEST_CHAR8_H
 
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <quick-lint-js/have.h>
 
 namespace testing::internal {
+template <>
+void PrintTo(const char32_t &, std::ostream *);
+
 #if QLJS_HAVE_CHAR8_T
 template <>
 void PrintTo(const std::basic_string<char8_t> &, std::ostream *);
 template <>
 void PrintTo(const std::basic_string_view<char8_t> &, std::ostream *);
+#endif
 
+template <>
+inline void PrintTo(const char32_t &c, std::ostream *out) {
+  PrintTo(static_cast<std::uint_least32_t>(c), out);
+}
+
+#if QLJS_HAVE_CHAR8_T
 template <>
 inline void PrintTo(const std::basic_string<char8_t> &s, std::ostream *out) {
   PrintTo(std::basic_string_view<char8_t>(s), out);

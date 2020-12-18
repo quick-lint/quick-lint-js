@@ -16,6 +16,7 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/gtest-char8.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/warning.h>
 #include <system_error>
@@ -26,7 +27,7 @@ namespace quick_lint_js {
 namespace {
 TEST(test_integer_from_chars_hexadecimal, common_integers) {
   {
-    int number;
+    char32_t number;
     const char *input = "0";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -36,7 +37,7 @@ TEST(test_integer_from_chars_hexadecimal, common_integers) {
   }
 
   {
-    int number;
+    char32_t number;
     const char *input = "1234";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -46,7 +47,7 @@ TEST(test_integer_from_chars_hexadecimal, common_integers) {
   }
 
   {
-    int number;
+    char32_t number;
     const char *input = "abcd";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -56,7 +57,7 @@ TEST(test_integer_from_chars_hexadecimal, common_integers) {
   }
 
   {
-    int number;
+    char32_t number;
     const char *input = "ABCD";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -64,46 +65,48 @@ TEST(test_integer_from_chars_hexadecimal, common_integers) {
     EXPECT_EQ(result.ptr, input + std::strlen(input));
     EXPECT_EQ(result.ec, std::errc{0});
   }
+}
 
+TEST(test_integer_from_chars_hexadecimal, negative_integers_are_disallowed) {
   {
-    int number;
+    char32_t number = 42;
     const char *input = "-1234";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
-    EXPECT_EQ(number, -0x1234);
-    EXPECT_EQ(result.ptr, input + std::strlen(input));
-    EXPECT_EQ(result.ec, std::errc{0});
+    EXPECT_EQ(result.ptr, input);
+    EXPECT_EQ(result.ec, std::errc::invalid_argument);
+    EXPECT_EQ(number, 42) << "number should be unmodified";
   }
 }
 
 TEST(test_integer_from_chars_hexadecimal, minimum_integer) {
-  static_assert(std::numeric_limits<int>::min() == -2147483648LL);
-  int number;
-  const char *input = "-80000000";
+  static_assert(std::numeric_limits<char32_t>::min() == 0);
+  char32_t number;
+  const char *input = "0";
   from_chars_result result =
       from_chars_hex(input, input + std::strlen(input), number);
-  EXPECT_EQ(number, -2147483648LL);
+  EXPECT_EQ(number, 0);
   EXPECT_EQ(result.ptr, input + std::strlen(input));
   EXPECT_EQ(result.ec, std::errc{0});
 }
 
 TEST(test_integer_from_chars_hexadecimal, maximum_integer) {
-  static_assert(std::numeric_limits<int>::max() == 2147483647);
-  int number;
-  const char *input = "7fffffff";
+  static_assert(std::numeric_limits<char32_t>::max() == 4294967295LL);
+  char32_t number;
+  const char *input = "ffffffff";
   from_chars_result result =
       from_chars_hex(input, input + std::strlen(input), number);
-  EXPECT_EQ(number, 2147483647);
+  EXPECT_EQ(number, 4294967295LL);
   EXPECT_EQ(result.ptr, input + std::strlen(input));
   EXPECT_EQ(result.ec, std::errc{0});
 }
 
 TEST(test_integer_from_chars_hexadecimal, over_maximum_integer) {
-  static_assert(std::numeric_limits<int>::max() < 2147483648LL);
+  static_assert(std::numeric_limits<char32_t>::max() < 4294967296LL);
 
   {
-    int number = 42;
-    const char *input = "80000000";
+    char32_t number = 42;
+    const char *input = "100000000";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
     EXPECT_EQ(result.ptr, input + std::strlen(input));
@@ -112,7 +115,7 @@ TEST(test_integer_from_chars_hexadecimal, over_maximum_integer) {
   }
 
   {
-    int number = 42;
+    char32_t number = 42;
     const char *input = "fffffffffffffffffff";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -125,7 +128,7 @@ TEST(test_integer_from_chars_hexadecimal, over_maximum_integer) {
 TEST(test_integer_from_chars_hexadecimal,
      extra_characters_after_are_not_parsed) {
   {
-    int number;
+    char32_t number;
     const char *input = "1234efgh";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -135,7 +138,7 @@ TEST(test_integer_from_chars_hexadecimal,
   }
 
   {
-    int number;
+    char32_t number;
     const char *input = "123   ";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -147,7 +150,7 @@ TEST(test_integer_from_chars_hexadecimal,
 
 TEST(test_integer_from_chars_hexadecimal, extra_characters_before) {
   {
-    int number = 42;
+    char32_t number = 42;
     const char *input = "  123";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -157,7 +160,7 @@ TEST(test_integer_from_chars_hexadecimal, extra_characters_before) {
   }
 
   {
-    int number = 42;
+    char32_t number = 42;
     const char *input = "--123";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -167,7 +170,7 @@ TEST(test_integer_from_chars_hexadecimal, extra_characters_before) {
   }
 
   {
-    int number = 42;
+    char32_t number = 42;
     const char *input = "+123";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -179,7 +182,7 @@ TEST(test_integer_from_chars_hexadecimal, extra_characters_before) {
 
 TEST(test_integer_from_chars_hexadecimal, radix_prefix_is_not_special) {
   {
-    int number;
+    char32_t number;
     const char *input = "0x123a";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -189,7 +192,7 @@ TEST(test_integer_from_chars_hexadecimal, radix_prefix_is_not_special) {
   }
 
   {
-    int number;
+    char32_t number;
     const char *input = "0X123a";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -199,7 +202,7 @@ TEST(test_integer_from_chars_hexadecimal, radix_prefix_is_not_special) {
   }
 
   {
-    int number;
+    char32_t number;
     const char *input = "0777";
     from_chars_result result =
         from_chars_hex(input, input + std::strlen(input), number);
@@ -210,7 +213,7 @@ TEST(test_integer_from_chars_hexadecimal, radix_prefix_is_not_special) {
 }
 
 TEST(test_integer_from_chars_hexadecimal, empty_input_string_is_unrecognized) {
-  int number = 42;
+  char32_t number = 42;
   const char *input = "";
   from_chars_result result = from_chars_hex(input, input, number);
   EXPECT_EQ(result.ptr, input);
@@ -220,7 +223,7 @@ TEST(test_integer_from_chars_hexadecimal, empty_input_string_is_unrecognized) {
 
 TEST(test_integer_from_chars_hexadecimal,
      minus_sign_without_digits_is_unrecognized) {
-  int number = 42;
+  char32_t number = 42;
   const char *input = "- 1";
   from_chars_result result = from_chars_hex(input, input, number);
   EXPECT_EQ(result.ptr, input);

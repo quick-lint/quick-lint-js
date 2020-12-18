@@ -16,6 +16,7 @@
 
 #include <cerrno>
 #include <cinttypes>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/char8.h>
@@ -40,9 +41,15 @@ from_chars_result from_chars(const char *begin, const char *end, int &value) {
 }
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 int &value) {
+                                 char32_t &value) {
+  using underlying_type = std::uint_least32_t;
+  static_assert(sizeof(char32_t) == sizeof(underlying_type));
+  underlying_type parsed_value;
   std::from_chars_result result =
-      std::from_chars(begin, end, value, /*base=*/16);
+      std::from_chars(begin, end, parsed_value, /*base=*/16);
+  if (result.ec == std::errc{}) {
+    value = static_cast<char32_t>(parsed_value);
+  }
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
 
@@ -83,11 +90,9 @@ from_chars_result from_chars(const char *begin, const char *end, int &value) {
 }
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
-                                 int &value) {
+                                 char32_t &value) {
   std::string buffer(begin, end);
-  if (!((buffer.size() >= 1 && is_hexadecimal_digit(buffer[0])) ||
-        (buffer.size() >= 2 && buffer[0] == '-' &&
-         is_hexadecimal_digit(buffer[1])))) {
+  if (!(buffer.size() >= 1 && is_hexadecimal_digit(buffer[0]))) {
     return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
   }
   if (buffer.size() >= 1 && (buffer[1] == 'x' || buffer[1] == 'X')) {
@@ -98,10 +103,10 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   errno = 0;
   long long_value = std::strtol(buffer.c_str(), &endptr, /*base=*/16);
   const char *ptr = (endptr - buffer.c_str()) + begin;
-  if (errno == ERANGE || !in_range<int>(long_value)) {
+  if (errno == ERANGE || !in_range<char32_t>(long_value)) {
     return from_chars_result{.ptr = ptr, .ec = std::errc::result_out_of_range};
   }
-  value = static_cast<int>(long_value);
+  value = static_cast<char32_t>(long_value);
   return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
 }
 

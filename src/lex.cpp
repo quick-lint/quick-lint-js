@@ -749,7 +749,9 @@ next:
 
   case '/': {
     ++c;
-    if (this->is_identifier_character(*c)) {
+    // TODO(strager): is_identifier_character is the wrong function to call
+    // here.
+    if (this->is_identifier_character(static_cast<char32_t>(*c))) {
       parsed_identifier ident = this->parse_identifier(c);
       c = ident.after;
       for (const source_code_span& escape_sequence : ident.escape_sequences) {
@@ -1009,7 +1011,8 @@ char8* lexer::parse_hex_digits_and_underscores(char8* input) noexcept {
 
 lexer::parsed_identifier lexer::parse_identifier(char8* input) {
   char8* identifier_begin = input;
-  QLJS_ASSERT(this->is_identifier_character(*input));
+  // TODO(strager): is_identifier_character is the wrong function to call here.
+  QLJS_ASSERT(this->is_identifier_character(static_cast<char32_t>(*input)));
 
 #if QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
@@ -1063,7 +1066,9 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
     int identifier_character_count = count_identifier_characters(chars);
 
     for (int i = 0; i < identifier_character_count; ++i) {
-      QLJS_ASSERT(is_identifier_character(input[i]));
+      QLJS_ASSERT(input[i] >= 0);
+      QLJS_ASSERT(input[i] < 0x80);
+      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])));
     }
     input += identifier_character_count;
 
@@ -1147,7 +1152,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
     bool is_initial_identifier_character =
         escape_sequence_begin == identifier_begin;
 
-    int code_point;
+    char32_t code_point;
     from_chars_result parse_result = from_chars_hex(
         reinterpret_cast<const char*>(code_point_hex_begin),
         reinterpret_cast<const char*>(code_point_hex_end), code_point);
@@ -1167,13 +1172,13 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
               .escape_sequence = get_escape_span()});
       end = std::copy(escape_sequence_begin, input, end);
     } else {
-      // TODO(strager): Avoid cast.
-      end = encode_utf_8(narrow_cast<char32_t>(code_point), end);
+      end = encode_utf_8(code_point, end);
       escape_sequences.emplace_back(escape_sequence_begin, input);
     }
   };
 
-  while (is_identifier_character(*input)) {
+  // TODO(strager): is_identifier_character is the wrong function to call here.
+  while (is_identifier_character(static_cast<char32_t>(*input))) {
     if (*input == u8'\\') {
       if (input[1] == u8'u') {
         parse_unicode_escape();
@@ -1454,22 +1459,18 @@ bool lexer::is_hex_digit(char8 c) {
   }
 }
 
-bool lexer::is_initial_identifier_character(int code_point) {
-  // TODO(strager): Avoid cast.
+bool lexer::is_initial_identifier_character(char32_t code_point) {
   return look_up_in_unicode_table(identifier_start_table,
-                                  identifier_start_table_size,
-                                  narrow_cast<char32_t>(code_point));
+                                  identifier_start_table_size, code_point);
 }
 
-bool lexer::is_identifier_character(int code_point) {
+bool lexer::is_identifier_character(char32_t code_point) {
   // TODO(strager): Move this check into callers.
   if (code_point == U'\\') {
     return true;
   }
-  // TODO(strager): Avoid cast.
   return look_up_in_unicode_table(identifier_part_table,
-                                  identifier_part_table_size,
-                                  narrow_cast<char32_t>(code_point));
+                                  identifier_part_table_size, code_point);
 }
 
 int lexer::newline_character_size(const char8* input) {
