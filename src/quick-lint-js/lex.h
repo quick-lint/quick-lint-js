@@ -329,7 +329,7 @@ class lexer {
 
   void parse_current_token();
 
-  void parse_string_literal() noexcept;
+  char8* parse_string_literal() noexcept;
 
   parsed_template_body parse_template_body(char8* input,
                                            const char8* template_begin,

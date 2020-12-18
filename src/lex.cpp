@@ -450,7 +450,9 @@ retry:
 
   case '"':
   case '\'':
-    this->parse_string_literal();
+    this->input_ = this->parse_string_literal();
+    this->last_token_.type = token_type::string;
+    this->last_token_.end = this->input_;
     break;
 
   case '`': {
@@ -541,7 +543,7 @@ retry:
   }
 }
 
-void lexer::parse_string_literal() noexcept {
+char8* lexer::parse_string_literal() noexcept {
   char8 opening_quote = this->input_[0];
 
   char8* c = &this->input_[1];
@@ -551,7 +553,7 @@ void lexer::parse_string_literal() noexcept {
       if (this->is_eof(c)) {
         this->error_reporter_->report(error_unclosed_string_literal{
             source_code_span(&this->input_[0], c)});
-        goto done;
+        return c;
       } else {
         ++c;
         break;
@@ -585,7 +587,7 @@ void lexer::parse_string_literal() noexcept {
       }
       this->error_reporter_->report(
           error_unclosed_string_literal{source_code_span(&this->input_[0], c)});
-      goto done;
+      return c;
     }
 
     case '\\':
@@ -595,7 +597,7 @@ void lexer::parse_string_literal() noexcept {
         if (this->is_eof(c)) {
           this->error_reporter_->report(error_unclosed_string_literal{
               source_code_span(&this->input_[0], c)});
-          goto done;
+          return c;
         } else {
           ++c;
           break;
@@ -610,7 +612,7 @@ void lexer::parse_string_literal() noexcept {
     case '\'':
       if (*c == opening_quote) {
         ++c;
-        goto done;
+        return c;
       }
       ++c;
       break;
@@ -620,10 +622,6 @@ void lexer::parse_string_literal() noexcept {
       break;
     }
   }
-done:
-  this->last_token_.type = token_type::string;
-  this->input_ = c;
-  this->last_token_.end = this->input_;
 }
 
 void lexer::skip_in_template(const char8* template_begin) {
