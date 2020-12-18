@@ -49,6 +49,10 @@ void check_single_token(const char8* input,
 void check_single_token(const string8& input,
                         string8_view expected_identifier_name);
 void check_single_token_with_errors(
+    string8_view input, string8_view expected_identifier_name,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&));
+void check_single_token_with_errors(
     const char8* input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&));
@@ -934,6 +938,14 @@ TEST(test_lex, ascii_identifier_with_escape_sequence) {
   check_single_token(u8"wak\\u200dka", u8"wak\u200dka");
 }
 
+TEST(test_lex, non_ascii_identifier) {
+  check_single_token(u8"\U00013337", u8"\U00013337");
+
+  check_single_token(u8"\u00b5", u8"\u00b5");          // 2 UTF-8 bytes
+  check_single_token(u8"a\u0816", u8"a\u0816");        // 3 UTF-8 bytes
+  check_single_token(u8"\U0001e93f", u8"\U0001e93f");  // 4 UTF-8 bytes
+}
+
 TEST(test_lex, non_ascii_identifier_with_escape_sequence) {
   check_single_token(u8"\\u{013337}", u8"\U00013337");
 
@@ -1101,7 +1113,36 @@ TEST(test_lex, lex_identifier_with_out_of_range_escaped_character) {
       });
 }
 
-TEST(test_lex, lex_identifier_with_disallowed_character) {
+TEST(test_lex, lex_identifier_with_out_of_range_utf_8_sequence) {
+  // TODO(strager): Should we treat the invalid sequence as part of the
+  // identifier? Or should we treat it as whitespace?
+  // f4 90 80 80 is U+110000
+  check_single_token_with_errors(
+      "too\xf4\x90\x80\x80\x62ig"_s8v, "too\xf4\x90\x80\x80\x62ig"_s8v,
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_invalid_utf_8_sequence, sequence,
+                                offsets_matcher(input, 3, 7))));
+      });
+}
+
+TEST(test_lex, lex_identifier_with_malformed_utf_8_sequence) {
+  // TODO(strager): Should we treat the invalid sequence as part of the
+  // identifier? Or should we treat it as whitespace?
+  check_single_token_with_errors(
+      "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
+      "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(error_invalid_utf_8_sequence, sequence,
+                                         offsets_matcher(input, 7, 12)),
+                        ERROR_TYPE_FIELD(error_invalid_utf_8_sequence, sequence,
+                                         offsets_matcher(input, 16, 18))));
+      });
+}
+
+TEST(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
   check_single_token_with_errors(
       u8"illegal\\u0020", u8"illegal\\u0020",
       [](padded_string_view input, const auto& errors) {
@@ -1144,6 +1185,28 @@ TEST(test_lex, lex_identifier_with_disallowed_character) {
       });
 }
 
+TEST(test_lex, lex_identifier_with_disallowed_non_ascii_character) {
+  // TODO(strager): Should we treat the disallowed character as part of the
+  // identifier anyway? Or should we treat it as whitespace?
+  check_single_token_with_errors(
+      u8"illegal\U0010ffff", u8"illegal\U0010ffff",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(
+                error_character_disallowed_in_identifiers, character,
+                offsets_matcher(input, 7, 7 + strlen(u8"\U0010ffff")))));
+      });
+  check_single_token_with_errors(
+      u8"\U0010ffffillegal", u8"\U0010ffffillegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_character_disallowed_in_identifiers, character,
+                        offsets_matcher(input, 0, strlen(u8"\U0010ffff")))));
+      });
+}
+
 TEST(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
   // Identifiers cannot start with a digit.
   check_single_token_with_errors(
@@ -1165,13 +1228,26 @@ TEST(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
       });
 }
 
-TEST(
-    test_lex,
-    lex_identifier_with_disallowed_escaped_initial_character_as_subsequent_character) {
+TEST(test_lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
+  // TODO(strager): Should we treat the disallowed character as part of the
+  // identifier anyway? Or should we treat it as whitespace?
+  check_single_token_with_errors(
+      u8"\u0816illegal", u8"\u0816illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_character_disallowed_in_identifiers,
+                                character, offsets_matcher(input, 0, 3))));
+      });
+}
+
+TEST(test_lex,
+     lex_identifier_with_disallowed_initial_character_as_subsequent_character) {
   // Identifiers can contain a digit.
+  check_single_token(u8"legal0", u8"legal0");
   check_single_token(u8"legal\\u{30}", u8"legal0");
 
   check_single_token(u8"legal\\u0816", u8"legal\u0816");
+  check_single_token(u8"legal\u0816", u8"legal\u0816");
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {
@@ -1355,10 +1431,19 @@ TEST(test_lex, lex_whitespace) {
            u8"\ufeff",  // 0xef 0xbb 0xbf Zero Width No-Break Space (BOM,
                         // ZWNBSP)
        }) {
-    string8 input = string8(u8"a") + whitespace + u8"b";
-    SCOPED_TRACE(out_string8(input));
-    check_tokens(input.c_str(),
-                 {token_type::identifier, token_type::identifier});
+    {
+      string8 input = string8(u8"a") + whitespace + u8"b";
+      SCOPED_TRACE(out_string8(input));
+      check_tokens(input.c_str(),
+                   {token_type::identifier, token_type::identifier});
+    }
+
+    {
+      string8 input =
+          string8(whitespace) + u8"10" + whitespace + u8"'hi'" + whitespace;
+      SCOPED_TRACE(out_string8(input));
+      check_tokens(input.c_str(), {token_type::number, token_type::string});
+    }
   }
 }
 
@@ -1574,10 +1659,10 @@ void check_single_token(const string8& input,
 }
 
 void check_single_token_with_errors(
-    const char8* input, string8_view expected_identifier_name,
+    string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&)) {
-  padded_string code(input);
+  padded_string code(input.data());  // TODO(strager): Allow null bytes.
   error_collector errors;
   lexer l(&code, &errors);
 
@@ -1588,6 +1673,14 @@ void check_single_token_with_errors(
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
   check_errors(&code, errors.errors);
+}
+
+void check_single_token_with_errors(
+    const char8* input, string8_view expected_identifier_name,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&)) {
+  check_single_token_with_errors(string8_view(input), expected_identifier_name,
+                                 check_errors);
 }
 
 void check_tokens(const char8* input,

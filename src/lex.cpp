@@ -217,6 +217,17 @@ retry:
     break;
   }
 
+  // Non-ASCII or control character.
+  default: {
+    parsed_identifier ident =
+        this->parse_identifier_slow(this->input_, this->input_);
+    this->input_ = ident.after;
+    this->last_token_.normalized_identifier_end = ident.end;
+    this->last_token_.end = ident.after;
+    this->last_token_.type = token_type::identifier;
+    break;
+  }
+
   case '(':
   case ')':
   case ',':
@@ -531,15 +542,6 @@ retry:
     this->skip_whitespace();
     goto retry;
   }
-
-  default:
-    this->error_reporter_->report_fatal_error_unimplemented_character(
-        /*qljs_file_name=*/__FILE__,
-        /*qljs_line=*/__LINE__,
-        /*qljs_function_name=*/__func__,
-        /*character=*/this->input_);
-    QLJS_CRASH_DISALLOWING_CORE_DUMP();
-    break;
   }
 }
 
@@ -1068,7 +1070,7 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
 
     for (int i = 0; i < identifier_character_count; ++i) {
       QLJS_ASSERT(input[i] >= 0);
-      QLJS_ASSERT(input[i] < 0x80);
+      QLJS_ASSERT(this->is_ascii_character(input[i]));
       QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])));
     }
     input += identifier_character_count;
@@ -1076,7 +1078,7 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
     is_all_identifier_characters = identifier_character_count == chars.size;
   } while (is_all_identifier_characters);
 
-  if (*input == u8'\\') {
+  if (*input == u8'\\' || !this->is_ascii_character(*input)) {
     return this->parse_identifier_slow(input,
                                        /*identifier_begin=*/identifier_begin);
   } else {
@@ -1178,8 +1180,30 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
     }
   };
 
-  // TODO(strager): is_identifier_character is the wrong function to call here.
-  while (is_identifier_character(static_cast<char32_t>(*input))) {
+  for (;;) {
+    decode_utf_8_result decode_result =
+        decode_utf_8(input, this->original_input_.null_terminator());
+    if (decode_result.size == 0) {
+      QLJS_ASSERT(this->is_eof(input));
+      break;
+    }
+    if (!decode_result.ok) {
+      char8* errors_begin = input;
+      input += decode_result.size;
+      for (;;) {
+        decode_result =
+            decode_utf_8(input, this->original_input_.null_terminator());
+        if (decode_result.ok || decode_result.size == 0) {
+          break;
+        }
+        input += decode_result.size;
+      }
+      this->error_reporter_->report(error_invalid_utf_8_sequence{
+          .sequence = source_code_span(errors_begin, input)});
+      end = std::copy(errors_begin, input, end);
+      continue;
+    }
+
     if (*input == u8'\\') {
       if (input[1] == u8'u') {
         parse_unicode_escape();
@@ -1192,7 +1216,34 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
         end = std::copy(backslash_begin, backslash_end, end);
       }
     } else {
-      *end++ = *input++;
+      QLJS_ASSERT(decode_result.size >= 1);
+      char8* character_begin = input;
+      char8* character_end = input + decode_result.size;
+      char32_t code_point = decode_result.code_point;
+
+      bool is_initial_identifier_character =
+          character_begin == identifier_begin;
+      bool is_legal_character =
+          is_initial_identifier_character
+              ? this->is_initial_identifier_character(code_point)
+              : this->is_identifier_character(code_point);
+      if (!is_legal_character) {
+        if (this->is_ascii_character(code_point) ||
+            this->is_non_ascii_whitespace_character(code_point)) {
+          break;
+        } else {
+          this->error_reporter_->report(
+              error_character_disallowed_in_identifiers{
+                  .character =
+                      source_code_span(character_begin, character_end)});
+          // Allow non-ASCII characters in the identifier. Otherwise, we'd try
+          // parsing the invalid character as an identifier character again,
+          // causing an infinite loop.
+        }
+      }
+
+      end = std::copy(character_begin, character_end, end);
+      input = character_end;
     }
   }
 
@@ -1472,6 +1523,46 @@ bool lexer::is_identifier_character(char32_t code_point) {
   }
   return look_up_in_unicode_table(identifier_part_table,
                                   identifier_part_table_size, code_point);
+}
+
+bool lexer::is_non_ascii_whitespace_character(char32_t code_point) {
+  QLJS_ASSERT(code_point >= 0x80);
+  static constexpr char16_t non_ascii_whitespace_code_points[] = {
+      u'\u00a0',  // 0xc2 0xa0      No-Break Space (NBSP)
+      u'\u1680',  // 0xe1 0x9a 0x80 Ogham Space Mark
+      u'\u2000',  // 0xe2 0x80 0x80 En Quad
+      u'\u2001',  // 0xe2 0x80 0x81 Em Quad
+      u'\u2002',  // 0xe2 0x80 0x82 En Space
+      u'\u2003',  // 0xe2 0x80 0x83 Em Space
+      u'\u2004',  // 0xe2 0x80 0x84 Three-Per-Em Space
+      u'\u2005',  // 0xe2 0x80 0x85 Four-Per-Em Space
+      u'\u2006',  // 0xe2 0x80 0x86 Six-Per-Em Space
+      u'\u2007',  // 0xe2 0x80 0x87 Figure Space
+      u'\u2008',  // 0xe2 0x80 0x88 Punctuation Space
+      u'\u2009',  // 0xe2 0x80 0x89 Thin Space
+      u'\u200a',  // 0xe2 0x80 0x8a Hair Space
+      u'\u2028',  // 0xe2 0x80 0xa8 Line Separator
+      u'\u2029',  // 0xe2 0x80 0xa9 Paragraph Separator
+      u'\u202f',  // 0xe2 0x80 0xaf Narrow No-Break Space (NNBSP)
+      u'\u205f',  // 0xe2 0x81 0x9f Medium Mathematical Space (MMSP)
+      u'\u3000',  // 0xe3 0x80 0x80 Ideographic Space
+      u'\ufeff',  // 0xef 0xbb 0xbf Zero Width No-Break Space (BOM, ZWNBSP)
+  };
+  if (code_point >= 0x10000) {
+    return false;
+  } else {
+    return std::binary_search(std::begin(non_ascii_whitespace_code_points),
+                              std::end(non_ascii_whitespace_code_points),
+                              narrow_cast<char16_t>(code_point));
+  }
+}
+
+bool lexer::is_ascii_character(char8 code_unit) {
+  return static_cast<unsigned char>(code_unit) < 0x80;
+}
+
+bool lexer::is_ascii_character(char32_t code_point) {
+  return code_point < 0x80;
 }
 
 int lexer::newline_character_size(const char8* input) {

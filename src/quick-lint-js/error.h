@@ -102,6 +102,12 @@
       .error(QLJS_TRANSLATE("cannot import 'let'"), import_name))              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_character_disallowed_in_identifiers,                               \
+      { source_code_span character; },                                         \
+      .error(QLJS_TRANSLATE("character is not allowed in identifiers"),        \
+             character))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_escaped_character_disallowed_in_identifiers,                       \
       { source_code_span escape_sequence; },                                   \
       .error(                                                                  \
@@ -141,6 +147,10 @@
       error_invalid_lone_literal_in_object_literal,                            \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATE("invalid lone literal in object literal"), where)) \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_invalid_utf_8_sequence, { source_code_span sequence; },            \
+      .error(QLJS_TRANSLATE("invalid UTF-8 sequence"), sequence))              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_keywords_cannot_contain_escape_sequences,                          \

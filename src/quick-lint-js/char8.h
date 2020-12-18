@@ -64,6 +64,18 @@ inline constexpr string8_view operator""_sv(const char8 *string,
                                             std::size_t length) noexcept {
   return string8_view(string, length);
 }
+
+#if QLJS_HAVE_CHAR8_T
+inline string8_view operator""_s8v(const char *string,
+                                   std::size_t length) noexcept {
+  return string8_view(reinterpret_cast<const char8 *>(string), length);
+}
+#else
+inline string8_view operator""_s8v(const char *string,
+                                   std::size_t length) noexcept {
+  return string8_view(string, length);
+}
+#endif
 }
 
 namespace testing::internal {

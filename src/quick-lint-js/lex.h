@@ -371,6 +371,9 @@ class lexer {
   static bool is_hex_digit(char8);
   static bool is_initial_identifier_character(char32_t code_point);
   static bool is_identifier_character(char32_t code_point);
+  static bool is_non_ascii_whitespace_character(char32_t code_point);
+  static bool is_ascii_character(char8 code_unit);
+  static bool is_ascii_character(char32_t code_point);
 
   static int newline_character_size(const char8*);
 
