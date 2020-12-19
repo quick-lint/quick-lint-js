@@ -41,38 +41,32 @@ using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
-void check_single_token(const char8* input, token_type expected_token_type);
+void check_single_token(string8_view input, token_type expected_token_type);
 void check_single_token(padded_string_view input,
                         token_type expected_token_type);
-void check_single_token(const char8* input,
-                        string8_view expected_identifier_name);
-void check_single_token(const string8& input,
+void check_single_token(string8_view input,
                         string8_view expected_identifier_name);
 void check_single_token_with_errors(
     string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&));
-void check_single_token_with_errors(
-    const char8* input, string8_view expected_identifier_name,
-    void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&));
-void check_tokens(const char8* input,
+void check_tokens(string8_view input,
                   std::initializer_list<token_type> expected_token_types);
 void check_tokens_with_errors(
-    const char8* input, std::initializer_list<token_type> expected_token_types,
+    string8_view input, std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&));
 
 TEST(test_lex, lex_block_comments) {
-  check_single_token(u8"/* */ hello", u8"hello");
-  check_single_token(u8"/*/ comment */ hi", u8"hi");
-  check_single_token(u8"/* comment /*/ hi", u8"hi");
-  check_single_token(u8"/* not /* nested */ ident", u8"ident");
-  check_single_token(u8"/**/", token_type::end_of_file);
+  check_single_token(u8"/* */ hello"_sv, u8"hello");
+  check_single_token(u8"/*/ comment */ hi"_sv, u8"hi");
+  check_single_token(u8"/* comment /*/ hi"_sv, u8"hi");
+  check_single_token(u8"/* not /* nested */ ident"_sv, u8"ident");
+  check_single_token(u8"/**/"_sv, token_type::end_of_file);
 
   {
     error_collector v;
-    padded_string input(u8"hello /* unterminated comment ");
+    padded_string input(u8"hello /* unterminated comment "_sv);
     lexer l(&input, &v);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -84,13 +78,13 @@ TEST(test_lex, lex_block_comments) {
 }
 
 TEST(test_lex, lex_line_comments) {
-  check_single_token(u8"// hello", token_type::end_of_file);
+  check_single_token(u8"// hello"_sv, token_type::end_of_file);
   for (string8_view line_terminator : line_terminators) {
     check_single_token(u8"// hello" + string8(line_terminator) + u8"world",
                        u8"world");
   }
-  check_single_token(u8"// hello\n// world", token_type::end_of_file);
-  check_tokens(u8"hello//*/\n \n \nworld",
+  check_single_token(u8"// hello\n// world"_sv, token_type::end_of_file);
+  check_tokens(u8"hello//*/\n \n \nworld"_sv,
                {token_type::identifier, token_type::identifier});
 }
 
@@ -105,14 +99,14 @@ TEST(test_lex, lex_line_comments_with_control_characters) {
 }
 
 TEST(test_lex, lex_html_open_comments) {
-  check_single_token(u8"<!-- --> hello", token_type::end_of_file);
+  check_single_token(u8"<!-- --> hello"_sv, token_type::end_of_file);
   for (string8_view line_terminator : line_terminators) {
     check_single_token(u8"<!-- hello" + string8(line_terminator) + u8"world",
                        u8"world");
   }
-  check_single_token(u8"<!-- hello\n<!-- world", token_type::end_of_file);
-  check_single_token(u8"<!--// hello", token_type::end_of_file);
-  check_tokens(u8"hello<!--->\n \n \nworld",
+  check_single_token(u8"<!-- hello\n<!-- world"_sv, token_type::end_of_file);
+  check_single_token(u8"<!--// hello"_sv, token_type::end_of_file);
+  check_tokens(u8"hello<!--->\n \n \nworld"_sv,
                {token_type::identifier, token_type::identifier});
   for (string8_view control_character :
        control_characters_except_line_terminators) {
@@ -122,66 +116,66 @@ TEST(test_lex, lex_html_open_comments) {
     check_single_token(&input, token_type::number);
   }
 
-  check_tokens(u8"hello<!world", {token_type::identifier, token_type::less,
-                                  token_type::bang, token_type::identifier});
-  check_tokens(u8"hello<!-world",
+  check_tokens(u8"hello<!world"_sv, {token_type::identifier, token_type::less,
+                                     token_type::bang, token_type::identifier});
+  check_tokens(u8"hello<!-world"_sv,
                {token_type::identifier, token_type::less, token_type::bang,
                 token_type::minus, token_type::identifier});
 }
 
 TEST(test_lex, lex_numbers) {
-  check_single_token(u8"0", token_type::number);
-  check_single_token(u8"2", token_type::number);
-  check_single_token(u8"42", token_type::number);
-  check_single_token(u8"12.34", token_type::number);
-  check_single_token(u8".34", token_type::number);
+  check_single_token(u8"0"_sv, token_type::number);
+  check_single_token(u8"2"_sv, token_type::number);
+  check_single_token(u8"42"_sv, token_type::number);
+  check_single_token(u8"12.34"_sv, token_type::number);
+  check_single_token(u8".34"_sv, token_type::number);
 
-  check_single_token(u8"1e3", token_type::number);
-  check_single_token(u8".1e3", token_type::number);
-  check_single_token(u8"1.e3", token_type::number);
-  check_single_token(u8"1.0e3", token_type::number);
-  check_single_token(u8"1e-3", token_type::number);
-  check_single_token(u8"1e+3", token_type::number);
-  check_single_token(u8"1E+3", token_type::number);
-  check_single_token(u8"1E123_233_22", token_type::number);
+  check_single_token(u8"1e3"_sv, token_type::number);
+  check_single_token(u8".1e3"_sv, token_type::number);
+  check_single_token(u8"1.e3"_sv, token_type::number);
+  check_single_token(u8"1.0e3"_sv, token_type::number);
+  check_single_token(u8"1e-3"_sv, token_type::number);
+  check_single_token(u8"1e+3"_sv, token_type::number);
+  check_single_token(u8"1E+3"_sv, token_type::number);
+  check_single_token(u8"1E123_233_22"_sv, token_type::number);
 
-  check_single_token(u8"0n", token_type::number);
-  check_single_token(u8"123456789n", token_type::number);
+  check_single_token(u8"0n"_sv, token_type::number);
+  check_single_token(u8"123456789n"_sv, token_type::number);
 
-  check_single_token(u8"123_123_123", token_type::number);
-  check_single_token(u8"123.123_123", token_type::number);
+  check_single_token(u8"123_123_123"_sv, token_type::number);
+  check_single_token(u8"123.123_123"_sv, token_type::number);
 
-  check_tokens(u8"123. 456", {token_type::number, token_type::number});
+  check_tokens(u8"123. 456"_sv, {token_type::number, token_type::number});
 
-  check_tokens(u8"1.2.3", {token_type::number, token_type::number});
-  check_tokens(u8".2.3", {token_type::number, token_type::number});
-  check_single_token(u8"0.3", token_type::number);
+  check_tokens(u8"1.2.3"_sv, {token_type::number, token_type::number});
+  check_tokens(u8".2.3"_sv, {token_type::number, token_type::number});
+  check_single_token(u8"0.3"_sv, token_type::number);
 }
 
 TEST(test_lex, lex_binary_numbers) {
-  check_single_token(u8"0b0", token_type::number);
-  check_single_token(u8"0b1", token_type::number);
-  check_single_token(u8"0b010101010101010", token_type::number);
-  check_single_token(u8"0B010101010101010", token_type::number);
+  check_single_token(u8"0b0"_sv, token_type::number);
+  check_single_token(u8"0b1"_sv, token_type::number);
+  check_single_token(u8"0b010101010101010"_sv, token_type::number);
+  check_single_token(u8"0B010101010101010"_sv, token_type::number);
 }
 
 TEST(test_lex, fail_lex_binary_number_no_digits) {
   check_tokens_with_errors(
-      u8"0b", {token_type::number},
+      u8"0b"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_binary_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
   check_tokens_with_errors(
-      u8"0b;", {token_type::number, token_type::semicolon},
+      u8"0b;"_sv, {token_type::number, token_type::semicolon},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_binary_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
   check_tokens_with_errors(
-      u8"[0b]",
+      u8"[0b]"_sv,
       {token_type::left_square, token_type::number, token_type::right_square},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -192,7 +186,7 @@ TEST(test_lex, fail_lex_binary_number_no_digits) {
 
 TEST(test_lex, fail_lex_binary_number) {
   check_tokens_with_errors(
-      u8"0b1.1", {token_type::number},
+      u8"0b1.1"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_binary_number,
@@ -201,40 +195,40 @@ TEST(test_lex, fail_lex_binary_number) {
 }
 
 TEST(test_lex, lex_octal_numbers_strict) {
-  check_single_token(u8"000", token_type::number);
-  check_single_token(u8"001", token_type::number);
-  check_single_token(u8"00010101010101010", token_type::number);
-  check_single_token(u8"051", token_type::number);
-  check_single_token(u8"0o51", token_type::number);
-  check_single_token(u8"0o0", token_type::number);
-  check_single_token(u8"0o0n", token_type::number);
-  check_single_token(u8"0o01", token_type::number);
-  check_single_token(u8"0o123n", token_type::number);
+  check_single_token(u8"000"_sv, token_type::number);
+  check_single_token(u8"001"_sv, token_type::number);
+  check_single_token(u8"00010101010101010"_sv, token_type::number);
+  check_single_token(u8"051"_sv, token_type::number);
+  check_single_token(u8"0o51"_sv, token_type::number);
+  check_single_token(u8"0o0"_sv, token_type::number);
+  check_single_token(u8"0o0n"_sv, token_type::number);
+  check_single_token(u8"0o01"_sv, token_type::number);
+  check_single_token(u8"0o123n"_sv, token_type::number);
 }
 
 TEST(test_lex, lex_octal_numbers_lax) {
-  check_single_token(u8"058", token_type::number);
-  check_single_token(u8"058.9", token_type::number);
-  check_single_token(u8"08", token_type::number);
+  check_single_token(u8"058"_sv, token_type::number);
+  check_single_token(u8"058.9"_sv, token_type::number);
+  check_single_token(u8"08"_sv, token_type::number);
 }
 
 TEST(test_lex, fail_lex_octal_number_no_digits) {
   check_tokens_with_errors(
-      u8"0o", {token_type::number},
+      u8"0o"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_octal_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
   check_tokens_with_errors(
-      u8"0o;", {token_type::number, token_type::semicolon},
+      u8"0o;"_sv, {token_type::number, token_type::semicolon},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_octal_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
   check_tokens_with_errors(
-      u8"[0o]",
+      u8"[0o]"_sv,
       {token_type::left_square, token_type::number, token_type::right_square},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -245,7 +239,7 @@ TEST(test_lex, fail_lex_octal_number_no_digits) {
 
 TEST(test_lex, fail_lex_octal_numbers) {
   check_tokens_with_errors(
-      u8"0123n", {token_type::number},
+      u8"0123n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_octal_literal_may_not_be_big_int,
@@ -253,7 +247,7 @@ TEST(test_lex, fail_lex_octal_numbers) {
       });
 
   check_tokens_with_errors(
-      u8"0o58", {token_type::number},
+      u8"0o58"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_octal_number,
@@ -261,7 +255,7 @@ TEST(test_lex, fail_lex_octal_numbers) {
       });
 
   check_tokens_with_errors(
-      u8"0o58.2", {token_type::number},
+      u8"0o58.2"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_octal_number,
@@ -269,7 +263,7 @@ TEST(test_lex, fail_lex_octal_numbers) {
       });
 
   check_tokens_with_errors(
-      u8"052.2", {token_type::number},
+      u8"052.2"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_octal_literal_may_not_have_decimal,
@@ -281,29 +275,29 @@ TEST(test_lex, fail_lex_octal_numbers) {
 // tests to fail in strict mode
 
 TEST(test_lex, lex_hex_numbers) {
-  check_single_token(u8"0x0", token_type::number);
-  check_single_token(u8"0x123456789abcdef", token_type::number);
-  check_single_token(u8"0X123456789ABCDEF", token_type::number);
-  check_single_token(u8"0X123_4567_89AB_CDEF", token_type::number);
+  check_single_token(u8"0x0"_sv, token_type::number);
+  check_single_token(u8"0x123456789abcdef"_sv, token_type::number);
+  check_single_token(u8"0X123456789ABCDEF"_sv, token_type::number);
+  check_single_token(u8"0X123_4567_89AB_CDEF"_sv, token_type::number);
 }
 
 TEST(test_lex, fail_lex_hex_number_no_digits) {
   check_tokens_with_errors(
-      u8"0x", {token_type::number},
+      u8"0x"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_hex_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
   check_tokens_with_errors(
-      u8"0x;", {token_type::number, token_type::semicolon},
+      u8"0x;"_sv, {token_type::number, token_type::semicolon},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_hex_number, characters,
                                 offsets_matcher(input, 0, 2))));
       });
   check_tokens_with_errors(
-      u8"[0x]",
+      u8"[0x]"_sv,
       {token_type::left_square, token_type::number, token_type::right_square},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -314,7 +308,7 @@ TEST(test_lex, fail_lex_hex_number_no_digits) {
 
 TEST(test_lex, fail_lex_hex_number) {
   check_tokens_with_errors(
-      u8"0xf.f", {token_type::number},
+      u8"0xf.f"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_hex_number,
@@ -324,21 +318,21 @@ TEST(test_lex, fail_lex_hex_number) {
 
 TEST(test_lex, lex_number_with_trailing_garbage) {
   check_tokens_with_errors(
-      u8"123abcd", {token_type::number},
+      u8"123abcd"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_number,
                                 characters, offsets_matcher(input, 3, 7))));
       });
   check_tokens_with_errors(
-      u8"123e f", {token_type::number, token_type::identifier},
+      u8"123e f"_sv, {token_type::number, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_number,
                                 characters, offsets_matcher(input, 3, 4))));
       });
   check_tokens_with_errors(
-      u8"123e-f",
+      u8"123e-f"_sv,
       {token_type::number, token_type::minus, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -346,35 +340,35 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
                                 characters, offsets_matcher(input, 3, 4))));
       });
   check_tokens_with_errors(
-      u8"0b01234", {token_type::number},
+      u8"0b01234"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
   check_tokens_with_errors(
-      u8"0b0h0lla", {token_type::number},
+      u8"0b0h0lla"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_binary_number,
                                 characters, offsets_matcher(input, 3, 8))));
       });
   check_tokens_with_errors(
-      u8"0xabjjw", {token_type::number},
+      u8"0xabjjw"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_hex_number,
                                 characters, offsets_matcher(input, 4, 7))));
       });
   check_tokens_with_errors(
-      u8"0o69", {token_type::number},
+      u8"0o69"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_characters_in_octal_number,
                                 characters, offsets_matcher(input, 3, 4))));
       });
   check_tokens_with_errors(
-      u8"0123n", {token_type::number},
+      u8"0123n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_octal_literal_may_not_be_big_int,
@@ -384,14 +378,14 @@ TEST(test_lex, lex_number_with_trailing_garbage) {
 
 TEST(test_lex, lex_invalid_big_int_number) {
   check_tokens_with_errors(
-      u8"12.34n", {token_type::number},
+      u8"12.34n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_big_int_literal_contains_decimal_point,
                                 where, offsets_matcher(input, 0, 6))));
       });
   check_tokens_with_errors(
-      u8"1e3n", {token_type::number},
+      u8"1e3n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_big_int_literal_contains_exponent, where,
@@ -400,7 +394,7 @@ TEST(test_lex, lex_invalid_big_int_number) {
 
   // Only complain about the decimal point, not the leading 0 digit.
   check_tokens_with_errors(
-      u8"0.1n", {token_type::number},
+      u8"0.1n"_sv, {token_type::number},
       [](padded_string_view, const auto& errors) {
         EXPECT_THAT(
             errors,
@@ -410,7 +404,7 @@ TEST(test_lex, lex_invalid_big_int_number) {
 
   // Complain about both the decimal point and the leading 0 digit.
   check_tokens_with_errors(
-      u8"01.2n", {token_type::number},
+      u8"01.2n"_sv, {token_type::number},
       [](padded_string_view, const auto& errors) {
         EXPECT_THAT(
             errors,
@@ -421,7 +415,7 @@ TEST(test_lex, lex_invalid_big_int_number) {
 
   // Complain about everything. What a disaster.
   check_tokens_with_errors(
-      u8"01.2e+3n", {token_type::number},
+      u8"01.2e+3n"_sv, {token_type::number},
       [](padded_string_view, const auto& errors) {
         EXPECT_THAT(
             errors,
@@ -434,7 +428,7 @@ TEST(test_lex, lex_invalid_big_int_number) {
 
 TEST(test_lex, lex_number_with_double_underscore) {
   check_tokens_with_errors(
-      u8"123__000", {token_type::number},
+      u8"123__000"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
@@ -445,7 +439,7 @@ TEST(test_lex, lex_number_with_double_underscore) {
 
 TEST(test_lex, lex_number_with_many_underscores) {
   check_tokens_with_errors(
-      u8"123_____000", {token_type::number},
+      u8"123_____000"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
@@ -457,7 +451,7 @@ TEST(test_lex, lex_number_with_many_underscores) {
 TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
   {
     error_collector v;
-    padded_string input(u8"123__45___6");
+    padded_string input(u8"123__45___6"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
     EXPECT_EQ(*l.peek().begin, '1');
@@ -477,7 +471,7 @@ TEST(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
 
 TEST(test_lex, lex_number_with_trailing_underscore) {
   check_tokens_with_errors(
-      u8"123456_", {token_type::number},
+      u8"123456_"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
@@ -488,7 +482,7 @@ TEST(test_lex, lex_number_with_trailing_underscore) {
 
 TEST(test_lex, lex_number_with_trailing_underscores) {
   check_tokens_with_errors(
-      u8"123456___", {token_type::number},
+      u8"123456___"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
@@ -504,7 +498,7 @@ TEST(test_lex, lex_strings) {
   check_single_token(u8R"('hello\'world')", token_type::string);
   check_single_token(u8R"('hello"world')", token_type::string);
   check_single_token(u8R"("hello'world")", token_type::string);
-  check_single_token(u8"'hello\\\nworld'", token_type::string);
+  check_single_token(u8"'hello\\\nworld'"_sv, token_type::string);
   check_single_token(u8"\"hello\\\nworld\"", token_type::string);
 
   check_tokens_with_errors(
@@ -599,7 +593,7 @@ TEST(test_lex, lex_strings) {
   }
 
   check_tokens_with_errors(
-      u8"'unterminated\\", {token_type::string},
+      u8"'unterminated\\"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unclosed_string_literal, string_literal,
@@ -638,10 +632,10 @@ TEST(test_lex, lex_string_with_ascii_control_characters) {
 }
 
 TEST(test_lex, lex_templates) {
-  check_tokens(u8"``", {token_type::complete_template});
-  check_tokens(u8"`hello`", {token_type::complete_template});
-  check_tokens(u8"`hello$world`", {token_type::complete_template});
-  check_tokens(u8"`hello{world`", {token_type::complete_template});
+  check_tokens(u8"``"_sv, {token_type::complete_template});
+  check_tokens(u8"`hello`"_sv, {token_type::complete_template});
+  check_tokens(u8"`hello$world`"_sv, {token_type::complete_template});
+  check_tokens(u8"`hello{world`"_sv, {token_type::complete_template});
   check_tokens(u8R"(`hello\`world`)", {token_type::complete_template});
   check_tokens(u8R"(`hello$\{world`)", {token_type::complete_template});
   check_tokens(u8R"(`hello\${world`)", {token_type::complete_template});
@@ -649,10 +643,10 @@ TEST(test_lex, lex_templates) {
       u8R"(`hello
 world`)",
       {token_type::complete_template});
-  check_tokens(u8"`hello\\\nworld`", {token_type::complete_template});
+  check_tokens(u8"`hello\\\nworld`"_sv, {token_type::complete_template});
 
   {
-    padded_string code(u8"`hello${42}`");
+    padded_string code(u8"`hello${42}`"_sv);
     lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), u8"`hello${");
@@ -669,7 +663,7 @@ world`)",
   }
 
   {
-    padded_string code(u8"`${42}world`");
+    padded_string code(u8"`${42}world`"_sv);
     lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), u8"`${");
@@ -686,7 +680,7 @@ world`)",
   }
 
   {
-    padded_string code(u8"`${left}${right}`");
+    padded_string code(u8"`${left}${right}`"_sv);
     lexer l(&code, &null_error_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char8* template_begin = l.peek().begin;
@@ -707,7 +701,7 @@ world`)",
   }
 
   check_tokens_with_errors(
-      u8"`unterminated", {token_type::complete_template},
+      u8"`unterminated"_sv, {token_type::complete_template},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unclosed_template, incomplete_template,
@@ -716,7 +710,7 @@ world`)",
 
   {
     error_collector v;
-    padded_string input(u8"`${un}terminated");
+    padded_string input(u8"`${un}terminated"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char8* template_begin = l.peek().begin;
@@ -735,7 +729,7 @@ world`)",
   }
 
   check_tokens_with_errors(
-      u8"`unterminated\\", {token_type::complete_template},
+      u8"`unterminated\\"_sv, {token_type::complete_template},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_unclosed_template, incomplete_template,
@@ -763,7 +757,7 @@ TEST(test_lex, lex_template_literal_with_ascii_control_characters) {
 }
 
 TEST(test_lex, lex_regular_expression_literals) {
-  auto check_regexp = [](const char8* raw_code) {
+  auto check_regexp = [](string8_view raw_code) {
     padded_string code(raw_code);
     SCOPED_TRACE(code);
     lexer l(&code, &null_error_reporter::instance);
@@ -777,14 +771,14 @@ TEST(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   };
 
-  check_regexp(u8"/ /");
-  check_regexp(u8R"(/hello\/world/)");
-  check_regexp(u8"/re/g");
-  check_regexp(u8R"(/[/]/)");
-  check_regexp(u8R"(/[\]/]/)");
-  check_regexp(u8"/=/");
+  check_regexp(u8"/ /"_sv);
+  check_regexp(u8R"(/hello\/world/)"_sv);
+  check_regexp(u8"/re/g"_sv);
+  check_regexp(u8R"(/[/]/)"_sv);
+  check_regexp(u8R"(/[\]/]/)"_sv);
+  check_regexp(u8"/=/"_sv);
 
-  for (const char8* raw_code : {u8"/end_of_file", u8R"(/eof\)"}) {
+  for (string8_view raw_code : {u8"/end_of_file"_sv, u8R"(/eof\)"_sv}) {
     padded_string code(raw_code);
     SCOPED_TRACE(code);
     error_collector v;
@@ -812,7 +806,7 @@ TEST(test_lex, lex_regular_expression_literals) {
 }
 
 TEST(test_lex, lex_regular_expression_literal_with_digit_flag) {
-  padded_string input(u8"/cellular/3g");
+  padded_string input(u8"/cellular/3g"_sv);
 
   lexer l(&input, &null_error_reporter::instance);
   EXPECT_EQ(l.peek().type, token_type::slash);
@@ -828,7 +822,7 @@ TEST(test_lex, lex_regular_expression_literal_with_digit_flag) {
 
 TEST(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
   error_collector errors;
-  padded_string input(u8"/hello/\\u{67}i");
+  padded_string input(u8"/hello/\\u{67}i"_sv);
 
   lexer l(&input, &errors);
   l.reparse_as_regexp();
@@ -846,7 +840,7 @@ TEST(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
 
 TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
-    padded_string code(u8"\n/ /");
+    padded_string code(u8"\n/ /"_sv);
     lexer l(&code, &null_error_reporter::instance);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
@@ -854,7 +848,7 @@ TEST(test_lex, lex_regular_expression_literals_preserves_leading_newline_flag) {
   }
 
   {
-    padded_string code(u8"/ /");
+    padded_string code(u8"/ /"_sv);
     lexer l(&code, &null_error_reporter::instance);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
@@ -895,68 +889,68 @@ TEST(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
 }
 
 TEST(test_lex, lex_identifiers) {
-  check_single_token(u8"i", token_type::identifier);
-  check_single_token(u8"_", token_type::identifier);
-  check_single_token(u8"$", token_type::identifier);
-  check_single_token(u8"id", u8"id");
-  check_single_token(u8"id ", u8"id");
-  check_single_token(u8"this_is_an_identifier", u8"this_is_an_identifier");
-  check_single_token(u8"MixedCaseIsAllowed", u8"MixedCaseIsAllowed");
-  check_single_token(u8"ident$with$dollars", u8"ident$with$dollars");
-  check_single_token(u8"digits0123456789", u8"digits0123456789");
+  check_single_token(u8"i"_sv, token_type::identifier);
+  check_single_token(u8"_"_sv, token_type::identifier);
+  check_single_token(u8"$"_sv, token_type::identifier);
+  check_single_token(u8"id"_sv, u8"id");
+  check_single_token(u8"id "_sv, u8"id");
+  check_single_token(u8"this_is_an_identifier"_sv, u8"this_is_an_identifier");
+  check_single_token(u8"MixedCaseIsAllowed"_sv, u8"MixedCaseIsAllowed");
+  check_single_token(u8"ident$with$dollars"_sv, u8"ident$with$dollars");
+  check_single_token(u8"digits0123456789"_sv, u8"digits0123456789");
 }
 
 TEST(test_lex, ascii_identifier_with_escape_sequence) {
-  check_single_token(u8"\\u0061", u8"a");
-  check_single_token(u8"\\u0041", u8"A");
-  check_single_token(u8"\\u004E", u8"N");
-  check_single_token(u8"\\u004e", u8"N");
+  check_single_token(u8"\\u0061"_sv, u8"a");
+  check_single_token(u8"\\u0041"_sv, u8"A");
+  check_single_token(u8"\\u004E"_sv, u8"N");
+  check_single_token(u8"\\u004e"_sv, u8"N");
 
-  check_single_token(u8"\\u{41}", u8"A");
-  check_single_token(u8"\\u{0041}", u8"A");
-  check_single_token(u8"\\u{00000000000000000000041}", u8"A");
-  check_single_token(u8"\\u{004E}", u8"N");
-  check_single_token(u8"\\u{004e}", u8"N");
+  check_single_token(u8"\\u{41}"_sv, u8"A");
+  check_single_token(u8"\\u{0041}"_sv, u8"A");
+  check_single_token(u8"\\u{00000000000000000000041}"_sv, u8"A");
+  check_single_token(u8"\\u{004E}"_sv, u8"N");
+  check_single_token(u8"\\u{004e}"_sv, u8"N");
 
-  check_single_token(u8"hell\\u006f", u8"hello");
-  check_single_token(u8"\\u0068ello", u8"hello");
-  check_single_token(u8"w\\u0061t", u8"wat");
+  check_single_token(u8"hell\\u006f"_sv, u8"hello");
+  check_single_token(u8"\\u0068ello"_sv, u8"hello");
+  check_single_token(u8"w\\u0061t"_sv, u8"wat");
 
-  check_single_token(u8"hel\\u006c0", u8"hell0");
+  check_single_token(u8"hel\\u006c0"_sv, u8"hell0");
 
-  check_single_token(u8"\\u0077\\u0061\\u0074", u8"wat");
-  check_single_token(u8"\\u{77}\\u{61}\\u{74}", u8"wat");
+  check_single_token(u8"\\u0077\\u0061\\u0074"_sv, u8"wat");
+  check_single_token(u8"\\u{77}\\u{61}\\u{74}"_sv, u8"wat");
 
   // _ and $ are in IdentifierStart, even though they aren't in UnicodeIDStart.
-  check_single_token(u8"\\u{5f}wakka", u8"_wakka");
-  check_single_token(u8"\\u{24}wakka", u8"$wakka");
+  check_single_token(u8"\\u{5f}wakka"_sv, u8"_wakka");
+  check_single_token(u8"\\u{24}wakka"_sv, u8"$wakka");
 
   // $, ZWNJ, ZWJ in IdentifierPart, even though they aren't in
   // UnicodeIDContinue.
-  check_single_token(u8"wakka\\u{24}", u8"wakka$");
-  check_single_token(u8"wak\\u200cka", u8"wak\u200cka");
-  check_single_token(u8"wak\\u200dka", u8"wak\u200dka");
+  check_single_token(u8"wakka\\u{24}"_sv, u8"wakka$");
+  check_single_token(u8"wak\\u200cka"_sv, u8"wak\u200cka");
+  check_single_token(u8"wak\\u200dka"_sv, u8"wak\u200dka");
 }
 
 TEST(test_lex, non_ascii_identifier) {
-  check_single_token(u8"\U00013337", u8"\U00013337");
+  check_single_token(u8"\U00013337"_sv, u8"\U00013337");
 
-  check_single_token(u8"\u00b5", u8"\u00b5");          // 2 UTF-8 bytes
-  check_single_token(u8"a\u0816", u8"a\u0816");        // 3 UTF-8 bytes
-  check_single_token(u8"\U0001e93f", u8"\U0001e93f");  // 4 UTF-8 bytes
+  check_single_token(u8"\u00b5"_sv, u8"\u00b5");          // 2 UTF-8 bytes
+  check_single_token(u8"a\u0816"_sv, u8"a\u0816");        // 3 UTF-8 bytes
+  check_single_token(u8"\U0001e93f"_sv, u8"\U0001e93f");  // 4 UTF-8 bytes
 }
 
 TEST(test_lex, non_ascii_identifier_with_escape_sequence) {
-  check_single_token(u8"\\u{013337}", u8"\U00013337");
+  check_single_token(u8"\\u{013337}"_sv, u8"\U00013337");
 
-  check_single_token(u8"\\u{b5}", u8"\u00b5");         // 2 UTF-8 bytes
-  check_single_token(u8"a\\u{816}", u8"a\u0816");      // 3 UTF-8 bytes
-  check_single_token(u8"a\\u0816", u8"a\u0816");       // 3 UTF-8 bytes
-  check_single_token(u8"\\u{1e93f}", u8"\U0001e93f");  // 4 UTF-8 bytes
+  check_single_token(u8"\\u{b5}"_sv, u8"\u00b5");         // 2 UTF-8 bytes
+  check_single_token(u8"a\\u{816}"_sv, u8"a\u0816");      // 3 UTF-8 bytes
+  check_single_token(u8"a\\u0816"_sv, u8"a\u0816");       // 3 UTF-8 bytes
+  check_single_token(u8"\\u{1e93f}"_sv, u8"\U0001e93f");  // 4 UTF-8 bytes
 }
 
 TEST(test_lex, identifier_with_escape_sequences_source_code_span_is_in_place) {
-  padded_string input(u8"\\u{77}a\\u{74}");
+  padded_string input(u8"\\u{77}a\\u{74}"_sv);
   lexer l(&input, &null_error_reporter::instance);
   source_code_span span = l.peek().identifier_name().span();
   EXPECT_EQ(span.begin(), &input[0]);
@@ -964,7 +958,7 @@ TEST(test_lex, identifier_with_escape_sequences_source_code_span_is_in_place) {
 }
 
 TEST(test_lex, lex_identifier_with_escape_sequences_change_input) {
-  padded_string input(u8"hell\\u{6F} = \\u{77}orld;");
+  padded_string input(u8"hell\\u{6F} = \\u{77}orld;"_sv);
 
   lexer l(&input, &null_error_reporter::instance);
   while (l.peek().type != token_type::end_of_file) {
@@ -987,7 +981,7 @@ TEST(test_lex, lex_identifier_with_malformed_escape_sequence) {
                         escape_sequence, offsets_matcher(input, 4, 8))));
       });
   check_tokens_with_errors(
-      u8"are\\uf riendly", {token_type::identifier, token_type::identifier},
+      u8"are\\uf riendly"_sv, {token_type::identifier, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
@@ -1009,7 +1003,7 @@ TEST(test_lex, lex_identifier_with_malformed_escape_sequence) {
                                 backslash, offsets_matcher(input, 5, 6))));
       });
   check_tokens_with_errors(
-      u8"hello\\u}world",
+      u8"hello\\u}world"_sv,
       {token_type::identifier, token_type::right_curly, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
@@ -1018,7 +1012,7 @@ TEST(test_lex, lex_identifier_with_malformed_escape_sequence) {
                         escape_sequence, offsets_matcher(input, 5, 8))));
       });
   check_tokens_with_errors(
-      u8"negative\\u-0041",
+      u8"negative\\u-0041"_sv,
       {token_type::identifier, token_type::minus, token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
@@ -1243,67 +1237,67 @@ TEST(test_lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
 TEST(test_lex,
      lex_identifier_with_disallowed_initial_character_as_subsequent_character) {
   // Identifiers can contain a digit.
-  check_single_token(u8"legal0", u8"legal0");
-  check_single_token(u8"legal\\u{30}", u8"legal0");
+  check_single_token(u8"legal0"_sv, u8"legal0");
+  check_single_token(u8"legal\\u{30}"_sv, u8"legal0");
 
-  check_single_token(u8"legal\\u0816", u8"legal\u0816");
-  check_single_token(u8"legal\u0816", u8"legal\u0816");
+  check_single_token(u8"legal\\u0816"_sv, u8"legal\u0816");
+  check_single_token(u8"legal\u0816"_sv, u8"legal\u0816");
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {
-  check_single_token(u8"ifelse", token_type::identifier);
-  check_single_token(u8"IF", token_type::identifier);
+  check_single_token(u8"ifelse"_sv, token_type::identifier);
+  check_single_token(u8"IF"_sv, token_type::identifier);
 }
 
 TEST(test_lex, lex_keywords) {
-  check_single_token(u8"as", token_type::kw_as);
-  check_single_token(u8"async", token_type::kw_async);
-  check_single_token(u8"await", token_type::kw_await);
-  check_single_token(u8"break", token_type::kw_break);
-  check_single_token(u8"case", token_type::kw_case);
-  check_single_token(u8"catch", token_type::kw_catch);
-  check_single_token(u8"class", token_type::kw_class);
-  check_single_token(u8"const", token_type::kw_const);
-  check_single_token(u8"continue", token_type::kw_continue);
-  check_single_token(u8"debugger", token_type::kw_debugger);
-  check_single_token(u8"default", token_type::kw_default);
-  check_single_token(u8"delete", token_type::kw_delete);
-  check_single_token(u8"do", token_type::kw_do);
-  check_single_token(u8"else", token_type::kw_else);
-  check_single_token(u8"export", token_type::kw_export);
-  check_single_token(u8"extends", token_type::kw_extends);
-  check_single_token(u8"false", token_type::kw_false);
-  check_single_token(u8"finally", token_type::kw_finally);
-  check_single_token(u8"for", token_type::kw_for);
-  check_single_token(u8"from", token_type::kw_from);
-  check_single_token(u8"function", token_type::kw_function);
-  check_single_token(u8"if", token_type::kw_if);
-  check_single_token(u8"import", token_type::kw_import);
-  check_single_token(u8"in", token_type::kw_in);
-  check_single_token(u8"instanceof", token_type::kw_instanceof);
-  check_single_token(u8"let", token_type::kw_let);
-  check_single_token(u8"new", token_type::kw_new);
-  check_single_token(u8"null", token_type::kw_null);
-  check_single_token(u8"of", token_type::kw_of);
-  check_single_token(u8"return", token_type::kw_return);
-  check_single_token(u8"static", token_type::kw_static);
-  check_single_token(u8"super", token_type::kw_super);
-  check_single_token(u8"switch", token_type::kw_switch);
-  check_single_token(u8"this", token_type::kw_this);
-  check_single_token(u8"throw", token_type::kw_throw);
-  check_single_token(u8"true", token_type::kw_true);
-  check_single_token(u8"try", token_type::kw_try);
-  check_single_token(u8"typeof", token_type::kw_typeof);
-  check_single_token(u8"var", token_type::kw_var);
-  check_single_token(u8"void", token_type::kw_void);
-  check_single_token(u8"while", token_type::kw_while);
-  check_single_token(u8"with", token_type::kw_with);
-  check_single_token(u8"yield", token_type::kw_yield);
+  check_single_token(u8"as"_sv, token_type::kw_as);
+  check_single_token(u8"async"_sv, token_type::kw_async);
+  check_single_token(u8"await"_sv, token_type::kw_await);
+  check_single_token(u8"break"_sv, token_type::kw_break);
+  check_single_token(u8"case"_sv, token_type::kw_case);
+  check_single_token(u8"catch"_sv, token_type::kw_catch);
+  check_single_token(u8"class"_sv, token_type::kw_class);
+  check_single_token(u8"const"_sv, token_type::kw_const);
+  check_single_token(u8"continue"_sv, token_type::kw_continue);
+  check_single_token(u8"debugger"_sv, token_type::kw_debugger);
+  check_single_token(u8"default"_sv, token_type::kw_default);
+  check_single_token(u8"delete"_sv, token_type::kw_delete);
+  check_single_token(u8"do"_sv, token_type::kw_do);
+  check_single_token(u8"else"_sv, token_type::kw_else);
+  check_single_token(u8"export"_sv, token_type::kw_export);
+  check_single_token(u8"extends"_sv, token_type::kw_extends);
+  check_single_token(u8"false"_sv, token_type::kw_false);
+  check_single_token(u8"finally"_sv, token_type::kw_finally);
+  check_single_token(u8"for"_sv, token_type::kw_for);
+  check_single_token(u8"from"_sv, token_type::kw_from);
+  check_single_token(u8"function"_sv, token_type::kw_function);
+  check_single_token(u8"if"_sv, token_type::kw_if);
+  check_single_token(u8"import"_sv, token_type::kw_import);
+  check_single_token(u8"in"_sv, token_type::kw_in);
+  check_single_token(u8"instanceof"_sv, token_type::kw_instanceof);
+  check_single_token(u8"let"_sv, token_type::kw_let);
+  check_single_token(u8"new"_sv, token_type::kw_new);
+  check_single_token(u8"null"_sv, token_type::kw_null);
+  check_single_token(u8"of"_sv, token_type::kw_of);
+  check_single_token(u8"return"_sv, token_type::kw_return);
+  check_single_token(u8"static"_sv, token_type::kw_static);
+  check_single_token(u8"super"_sv, token_type::kw_super);
+  check_single_token(u8"switch"_sv, token_type::kw_switch);
+  check_single_token(u8"this"_sv, token_type::kw_this);
+  check_single_token(u8"throw"_sv, token_type::kw_throw);
+  check_single_token(u8"true"_sv, token_type::kw_true);
+  check_single_token(u8"try"_sv, token_type::kw_try);
+  check_single_token(u8"typeof"_sv, token_type::kw_typeof);
+  check_single_token(u8"var"_sv, token_type::kw_var);
+  check_single_token(u8"void"_sv, token_type::kw_void);
+  check_single_token(u8"while"_sv, token_type::kw_while);
+  check_single_token(u8"with"_sv, token_type::kw_with);
+  check_single_token(u8"yield"_sv, token_type::kw_yield);
 }
 
 TEST(test_lex, lex_contextual_keywords) {
   // TODO(strager): Move some assertions from lex_keywords into here.
-  check_single_token(u8"get", token_type::kw_get);
+  check_single_token(u8"get"_sv, token_type::kw_get);
 }
 
 TEST(test_lex, lex_keywords_cannot_contain_escape_sequences) {
@@ -1329,76 +1323,78 @@ TEST(test_lex, lex_keywords_cannot_contain_escape_sequences) {
 }
 
 TEST(test_lex, lex_single_character_symbols) {
-  check_single_token(u8"+", token_type::plus);
-  check_single_token(u8"-", token_type::minus);
-  check_single_token(u8"*", token_type::star);
-  check_single_token(u8"/", token_type::slash);
-  check_single_token(u8"<", token_type::less);
-  check_single_token(u8">", token_type::greater);
-  check_single_token(u8"=", token_type::equal);
-  check_single_token(u8"&", token_type::ampersand);
-  check_single_token(u8"^", token_type::circumflex);
-  check_single_token(u8"!", token_type::bang);
-  check_single_token(u8".", token_type::dot);
-  check_single_token(u8",", token_type::comma);
-  check_single_token(u8"~", token_type::tilde);
-  check_single_token(u8"%", token_type::percent);
-  check_single_token(u8"(", token_type::left_paren);
-  check_single_token(u8")", token_type::right_paren);
-  check_single_token(u8"[", token_type::left_square);
-  check_single_token(u8"]", token_type::right_square);
-  check_single_token(u8"{", token_type::left_curly);
-  check_single_token(u8"}", token_type::right_curly);
-  check_single_token(u8":", token_type::colon);
-  check_single_token(u8";", token_type::semicolon);
-  check_single_token(u8"?", token_type::question);
-  check_single_token(u8"|", token_type::pipe);
+  check_single_token(u8"+"_sv, token_type::plus);
+  check_single_token(u8"-"_sv, token_type::minus);
+  check_single_token(u8"*"_sv, token_type::star);
+  check_single_token(u8"/"_sv, token_type::slash);
+  check_single_token(u8"<"_sv, token_type::less);
+  check_single_token(u8">"_sv, token_type::greater);
+  check_single_token(u8"="_sv, token_type::equal);
+  check_single_token(u8"&"_sv, token_type::ampersand);
+  check_single_token(u8"^"_sv, token_type::circumflex);
+  check_single_token(u8"!"_sv, token_type::bang);
+  check_single_token(u8"."_sv, token_type::dot);
+  check_single_token(u8","_sv, token_type::comma);
+  check_single_token(u8"~"_sv, token_type::tilde);
+  check_single_token(u8"%"_sv, token_type::percent);
+  check_single_token(u8"("_sv, token_type::left_paren);
+  check_single_token(u8")"_sv, token_type::right_paren);
+  check_single_token(u8"["_sv, token_type::left_square);
+  check_single_token(u8"]"_sv, token_type::right_square);
+  check_single_token(u8"{"_sv, token_type::left_curly);
+  check_single_token(u8"}"_sv, token_type::right_curly);
+  check_single_token(u8":"_sv, token_type::colon);
+  check_single_token(u8";"_sv, token_type::semicolon);
+  check_single_token(u8"?"_sv, token_type::question);
+  check_single_token(u8"|"_sv, token_type::pipe);
 }
 
 TEST(test_lex, lex_multi_character_symbols) {
-  check_single_token(u8"<=", token_type::less_equal);
-  check_single_token(u8">=", token_type::greater_equal);
-  check_single_token(u8"==", token_type::equal_equal);
-  check_single_token(u8"===", token_type::equal_equal_equal);
-  check_single_token(u8"!=", token_type::bang_equal);
-  check_single_token(u8"!==", token_type::bang_equal_equal);
-  check_single_token(u8"**", token_type::star_star);
-  check_single_token(u8"++", token_type::plus_plus);
-  check_single_token(u8"--", token_type::minus_minus);
-  check_single_token(u8"<<", token_type::less_less);
-  check_single_token(u8">>", token_type::greater_greater);
-  check_single_token(u8">>>", token_type::greater_greater_greater);
-  check_single_token(u8"&&", token_type::ampersand_ampersand);
-  check_single_token(u8"||", token_type::pipe_pipe);
-  check_single_token(u8"+=", token_type::plus_equal);
-  check_single_token(u8"-=", token_type::minus_equal);
-  check_single_token(u8"*=", token_type::star_equal);
-  check_single_token(u8"/=", token_type::slash_equal);
-  check_single_token(u8"%=", token_type::percent_equal);
-  check_single_token(u8"**=", token_type::star_star_equal);
-  check_single_token(u8"&=", token_type::ampersand_equal);
-  check_single_token(u8"^=", token_type::circumflex_equal);
-  check_single_token(u8"|=", token_type::pipe_equal);
-  check_single_token(u8"<<=", token_type::less_less_equal);
-  check_single_token(u8">>=", token_type::greater_greater_equal);
-  check_single_token(u8">>>=", token_type::greater_greater_greater_equal);
-  check_single_token(u8"=>", token_type::equal_greater);
-  check_single_token(u8"...", token_type::dot_dot_dot);
+  check_single_token(u8"<="_sv, token_type::less_equal);
+  check_single_token(u8">="_sv, token_type::greater_equal);
+  check_single_token(u8"=="_sv, token_type::equal_equal);
+  check_single_token(u8"==="_sv, token_type::equal_equal_equal);
+  check_single_token(u8"!="_sv, token_type::bang_equal);
+  check_single_token(u8"!=="_sv, token_type::bang_equal_equal);
+  check_single_token(u8"**"_sv, token_type::star_star);
+  check_single_token(u8"++"_sv, token_type::plus_plus);
+  check_single_token(u8"--"_sv, token_type::minus_minus);
+  check_single_token(u8"<<"_sv, token_type::less_less);
+  check_single_token(u8">>"_sv, token_type::greater_greater);
+  check_single_token(u8">>>"_sv, token_type::greater_greater_greater);
+  check_single_token(u8"&&"_sv, token_type::ampersand_ampersand);
+  check_single_token(u8"||"_sv, token_type::pipe_pipe);
+  check_single_token(u8"+="_sv, token_type::plus_equal);
+  check_single_token(u8"-="_sv, token_type::minus_equal);
+  check_single_token(u8"*="_sv, token_type::star_equal);
+  check_single_token(u8"/="_sv, token_type::slash_equal);
+  check_single_token(u8"%="_sv, token_type::percent_equal);
+  check_single_token(u8"**="_sv, token_type::star_star_equal);
+  check_single_token(u8"&="_sv, token_type::ampersand_equal);
+  check_single_token(u8"^="_sv, token_type::circumflex_equal);
+  check_single_token(u8"|="_sv, token_type::pipe_equal);
+  check_single_token(u8"<<="_sv, token_type::less_less_equal);
+  check_single_token(u8">>="_sv, token_type::greater_greater_equal);
+  check_single_token(u8">>>="_sv, token_type::greater_greater_greater_equal);
+  check_single_token(u8"=>"_sv, token_type::equal_greater);
+  check_single_token(u8"..."_sv, token_type::dot_dot_dot);
 }
 
 TEST(test_lex, lex_adjacent_symbols) {
-  check_tokens(u8"{}", {token_type::left_curly, token_type::right_curly});
-  check_tokens(u8"[]", {token_type::left_square, token_type::right_square});
-  check_tokens(u8"/!", {token_type::slash, token_type::bang});
-  check_tokens(u8"*==", {token_type::star_equal, token_type::equal});
-  check_tokens(u8"||=", {token_type::pipe_pipe, token_type::equal});
-  check_tokens(u8"^>>", {token_type::circumflex, token_type::greater_greater});
+  check_tokens(u8"{}"_sv, {token_type::left_curly, token_type::right_curly});
+  check_tokens(u8"[]"_sv, {token_type::left_square, token_type::right_square});
+  check_tokens(u8"/!"_sv, {token_type::slash, token_type::bang});
+  check_tokens(u8"*=="_sv, {token_type::star_equal, token_type::equal});
+  check_tokens(u8"||="_sv, {token_type::pipe_pipe, token_type::equal});
+  check_tokens(u8"^>>"_sv,
+               {token_type::circumflex, token_type::greater_greater});
 }
 
 TEST(test_lex, lex_symbols_separated_by_whitespace) {
-  check_tokens(u8"{ }", {token_type::left_curly, token_type::right_curly});
-  check_tokens(u8"< =", {token_type::less, token_type::equal});
-  check_tokens(u8". . .", {token_type::dot, token_type::dot, token_type::dot});
+  check_tokens(u8"{ }"_sv, {token_type::left_curly, token_type::right_curly});
+  check_tokens(u8"< ="_sv, {token_type::less, token_type::equal});
+  check_tokens(u8". . ."_sv,
+               {token_type::dot, token_type::dot, token_type::dot});
 }
 
 TEST(test_lex, lex_whitespace) {
@@ -1448,15 +1444,15 @@ TEST(test_lex, lex_whitespace) {
 }
 
 TEST(test_lex, lex_shebang) {
-  check_single_token(u8"#!/usr/bin/env node\nhello", token_type::identifier);
-  check_single_token(u8"#!ignored\n123", token_type::number);
+  check_single_token(u8"#!/usr/bin/env node\nhello"_sv, token_type::identifier);
+  check_single_token(u8"#!ignored\n123"_sv, token_type::number);
 }
 
 TEST(test_lex, lex_not_shebang) {
   // Whitespace must not appear between '#' and '!'.
   {
     error_collector v;
-    padded_string input(u8"# !notashebang");
+    padded_string input(u8"# !notashebang"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
@@ -1468,7 +1464,7 @@ TEST(test_lex, lex_not_shebang) {
   // '#!' must be on the first line.
   {
     error_collector v;
-    padded_string input(u8"\n#!notashebang\n");
+    padded_string input(u8"\n#!notashebang\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
@@ -1480,7 +1476,7 @@ TEST(test_lex, lex_not_shebang) {
   // Whitespace must not appear before '#!'.
   {
     error_collector v;
-    padded_string input(u8"  #!notashebang\n");
+    padded_string input(u8"  #!notashebang\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
@@ -1493,7 +1489,7 @@ TEST(test_lex, lex_not_shebang) {
 TEST(test_lex, lex_invalid_common_characters_are_disallowed) {
   {
     error_collector v;
-    padded_string input(u8"hello @ world");
+    padded_string input(u8"hello @ world"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();
@@ -1560,7 +1556,7 @@ TEST(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
 }
 
 TEST(test_lex, lex_token_notes_leading_newline_after_comment) {
-  padded_string code(u8"a /* comment */\nb");
+  padded_string code(u8"a /* comment */\nb"_sv);
   lexer l(&code, &null_error_reporter::instance);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a
   l.skip();
@@ -1568,7 +1564,7 @@ TEST(test_lex, lex_token_notes_leading_newline_after_comment) {
 }
 
 TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
-  padded_string code(u8"hello\nworld");
+  padded_string code(u8"hello\nworld"_sv);
   lexer l(&code, &null_error_reporter::instance);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -1596,7 +1592,7 @@ TEST(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
 }
 
 TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
-  padded_string code(u8"{ x }");
+  padded_string code(u8"{ x }"_sv);
   error_collector errors;
   lexer l(&code, &errors);
 
@@ -1628,7 +1624,7 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   EXPECT_THAT(errors.errors, IsEmpty());
 }
 
-void check_single_token(const char8* input, token_type expected_token_type) {
+void check_single_token(string8_view input, token_type expected_token_type) {
   padded_string code(input);
   check_single_token(&code, expected_token_type);
 }
@@ -1645,7 +1641,7 @@ void check_single_token(padded_string_view input,
   EXPECT_THAT(errors.errors, IsEmpty());
 }
 
-void check_single_token(const char8* input,
+void check_single_token(string8_view input,
                         string8_view expected_identifier_name) {
   check_single_token_with_errors(input, expected_identifier_name,
                                  [](padded_string_view, const auto& errors) {
@@ -1653,16 +1649,11 @@ void check_single_token(const char8* input,
                                  });
 }
 
-void check_single_token(const string8& input,
-                        string8_view expected_identifier_name) {
-  return check_single_token(input.c_str(), expected_identifier_name);
-}
-
 void check_single_token_with_errors(
     string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&)) {
-  padded_string code(input.data());  // TODO(strager): Allow null bytes.
+  padded_string code(input);
   error_collector errors;
   lexer l(&code, &errors);
 
@@ -1675,15 +1666,7 @@ void check_single_token_with_errors(
   check_errors(&code, errors.errors);
 }
 
-void check_single_token_with_errors(
-    const char8* input, string8_view expected_identifier_name,
-    void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&)) {
-  check_single_token_with_errors(string8_view(input), expected_identifier_name,
-                                 check_errors);
-}
-
-void check_tokens(const char8* input,
+void check_tokens(string8_view input,
                   std::initializer_list<token_type> expected_token_types) {
   check_tokens_with_errors(input, expected_token_types,
                            [](padded_string_view, const auto& errors) {
@@ -1692,7 +1675,7 @@ void check_tokens(const char8* input,
 }
 
 void check_tokens_with_errors(
-    const char8* input, std::initializer_list<token_type> expected_token_types,
+    string8_view input, std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&)) {
   padded_string code(input);

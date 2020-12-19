@@ -25,7 +25,8 @@
 namespace quick_lint_js {
 const wasm_demo_error_reporter::error *
 quick_lint_js_parse_and_lint_for_wasm_demo(const char8 *raw_input) {
-  padded_string input(raw_input);
+  // TODO(strager): Allow null characters.
+  padded_string input(string8_view{raw_input});
   std::unique_ptr<wasm_demo_error_reporter> error_reporter =
       std::make_unique<wasm_demo_error_reporter>(&input);
   parser p(&input, error_reporter.get());

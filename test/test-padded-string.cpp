@@ -47,7 +47,7 @@ TEST(test_padded_string, size_excludes_padding_bytes) {
 }
 
 TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
-  padded_string s(u8"hello");
+  padded_string s(u8"hello"_sv);
 
   s.resize(10);
 
@@ -57,7 +57,7 @@ TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
 }
 
 TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
-  padded_string s(u8"helloworld");
+  padded_string s(u8"helloworld"_sv);
 
   s.resize(5);
 
@@ -71,7 +71,7 @@ TEST(test_padded_string, comparing_with_string_view_excludes_padding_bytes) {
 }
 
 TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
-  padded_string s(u8"hello");
+  padded_string s(u8"hello"_sv);
   std::ostringstream stream;
   stream << "BEFORE" << s << "AFTER";
   EXPECT_EQ(stream.str(), "BEFOREhelloAFTER");

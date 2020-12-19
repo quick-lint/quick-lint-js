@@ -30,7 +30,7 @@
 namespace quick_lint_js {
 namespace {
 TEST(test_lsp_location, ranges_on_first_line) {
-  padded_string code(u8"let x = 2;");
+  padded_string code(u8"let x = 2;"_sv);
   lsp_locator l(&code);
   lsp_range x_range = l.range(source_code_span(&code[4], &code[5]));
 
@@ -83,14 +83,14 @@ TEST(test_lsp_location, ls_and_ps_are_not_treated_as_newline_characters) {
 }
 
 TEST(test_lsp_location, lf_cr_is_two_line_terminators) {
-  padded_string code(u8"let x = 2;\n\rlet y = 3;");
+  padded_string code(u8"let x = 2;\n\rlet y = 3;"_sv);
   const char8* y = strchr(code.c_str(), u8'y');
   lsp_locator l(&code);
   EXPECT_EQ(l.position(y).line, 2);
 }
 
 TEST(test_lsp_location, location_after_null_byte) {
-  padded_string code(string8(u8"hello\0beautiful\nworld"_sv));
+  padded_string code(u8"hello\0beautiful\nworld"_sv);
   const char8* r = &code[18];
   ASSERT_EQ(*r, u8'r');
 
@@ -102,7 +102,7 @@ TEST(test_lsp_location, location_after_null_byte) {
 }
 
 TEST(test_lsp_location, position_backwards) {
-  padded_string code(u8"ab\nc\n\nd\nefg\nh");
+  padded_string code(u8"ab\nc\n\nd\nefg\nh"_sv);
 
   std::vector<lsp_position> expected_positions;
   {
@@ -125,42 +125,42 @@ TEST(test_lsp_location, position_backwards) {
 }
 
 TEST(test_lsp_location, offset_from_first_line_position) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* o = l.from_position(lsp_position{.line = 0, .character = 4});
   EXPECT_EQ(o, &code[4]);
 }
 
 TEST(test_lsp_location, offset_from_second_line_position) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* r = l.from_position(lsp_position{.line = 1, .character = 2});
   EXPECT_EQ(r, &code[8]);
 }
 
 TEST(test_lsp_location, offset_from_out_of_range_line) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* c = l.from_position(lsp_position{.line = 2, .character = 2});
   EXPECT_EQ(c, nullptr);
 }
 
 TEST(test_lsp_location, offset_from_beginning_of_line) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* w = l.from_position(lsp_position{.line = 1, .character = 0});
   EXPECT_EQ(w, &code[6]);
 }
 
 TEST(test_lsp_location, offset_from_end_of_line) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* terminator = l.from_position(lsp_position{.line = 0, .character = 5});
   EXPECT_EQ(terminator, &code[5]);
 }
 
 TEST(test_lsp_location, offset_from_empty_line) {
-  padded_string code(string8(u8"hello\n\nworld"_sv));
+  padded_string code(u8"hello\n\nworld"_sv);
   lsp_locator l(&code);
   for (int character : {0, 1, 2, 3, 4}) {
     SCOPED_TRACE(character);
@@ -193,7 +193,7 @@ TEST(test_lsp_location,
 }
 
 TEST(test_lsp_location, offset_from_end_of_last_line) {
-  padded_string code(string8(u8"hello"_sv));
+  padded_string code(u8"hello"_sv);
   lsp_locator l(&code);
   for (int character : {5, 6, 10}) {
     SCOPED_TRACE(character);
@@ -204,7 +204,7 @@ TEST(test_lsp_location, offset_from_end_of_last_line) {
 }
 
 TEST(test_lsp_location, offset_of_inside_cr_lf_gives_beginning_of_cr_lf) {
-  padded_string code(string8(u8"hello\r\nworld"_sv));
+  padded_string code(u8"hello\r\nworld"_sv);
   lsp_locator l(&code);
   char8* terminator = l.from_position(lsp_position{
       .line = 0, .character = narrow_cast<int>(strlen(u8"hello\r"))});
@@ -212,7 +212,7 @@ TEST(test_lsp_location, offset_of_inside_cr_lf_gives_beginning_of_cr_lf) {
 }
 
 TEST(test_lsp_location, offset_from_empty_input) {
-  padded_string code(string8(u8""_sv));
+  padded_string code(u8""_sv);
   lsp_locator l(&code);
   for (int character : {0, 1, 10}) {
     SCOPED_TRACE(character);
@@ -223,21 +223,21 @@ TEST(test_lsp_location, offset_from_empty_input) {
 }
 
 TEST(test_lsp_location, offset_from_negative_line) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* c = l.from_position(lsp_position{.line = -2, .character = 0});
   EXPECT_EQ(c, nullptr);
 }
 
 TEST(test_lsp_location, offset_from_negative_character) {
-  padded_string code(string8(u8"hello\nworld"_sv));
+  padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   char8* c = l.from_position(lsp_position{.line = 1, .character = -2});
   EXPECT_EQ(c, nullptr);
 }
 
 TEST(test_lsp_location, offset_to_position_to_offset) {
-  padded_string code(u8"hello\nworld\rthird\r\nfourth\n\n\nlast");
+  padded_string code(u8"hello\nworld\rthird\r\nfourth\n\n\nlast"_sv);
   lsp_locator l(&code);
   for (int i = 0; i < code.size(); ++i) {
     SCOPED_TRACE(i);
@@ -264,8 +264,8 @@ void check_positions_against_reference_locator(lsp_locator& locator,
 }
 
 TEST(test_lsp_location, add_characters_within_line) {
-  padded_string original_code(u8"first line\nsecond line\nthird line");
-  padded_string updated_code(u8"first line\nsecond xxx line\nthird line");
+  padded_string original_code(u8"first line\nsecond line\nthird line"_sv);
+  padded_string updated_code(u8"first line\nsecond xxx line\nthird line"_sv);
 
   lsp_locator locator(&original_code);
   locator.replace_text(
@@ -279,8 +279,9 @@ TEST(test_lsp_location, add_characters_within_line) {
 }
 
 TEST(test_lsp_location, remove_characters_within_line) {
-  padded_string original_code(u8"first line\nsecond little line\nthird line");
-  padded_string updated_code(u8"first line\nsecond line\nthird line");
+  padded_string original_code(
+      u8"first line\nsecond little line\nthird line"_sv);
+  padded_string updated_code(u8"first line\nsecond line\nthird line"_sv);
 
   lsp_locator locator(&original_code);
   locator.replace_text(
@@ -295,7 +296,7 @@ TEST(test_lsp_location, remove_characters_within_line) {
 
 TEST(test_lsp_location, add_newline_within_line) {
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    padded_string original_code(u8"first line\nsecond line\nlast line");
+    padded_string original_code(u8"first line\nsecond line\nlast line"_sv);
     SCOPED_TRACE(original_code);
     padded_string updated_code(u8"first line\nsecond" +
                                string8(line_terminator) + u8" line\nlast line");
@@ -318,7 +319,7 @@ TEST(test_lsp_location, delete_newline) {
     padded_string original_code(u8"first line\nsecond" +
                                 string8(line_terminator) + u8"line\nlast line");
     SCOPED_TRACE(original_code);
-    padded_string updated_code(u8"first line\nsecondline\nlast line");
+    padded_string updated_code(u8"first line\nsecondline\nlast line"_sv);
     SCOPED_TRACE(updated_code);
 
     lsp_locator locator(&original_code);
@@ -335,8 +336,8 @@ TEST(test_lsp_location, delete_newline) {
 
 TEST(test_lsp_location, replace_newline_and_text_with_newline) {
   padded_string original_code(
-      u8"first line\nsecond line\nthird line\nlast line");
-  padded_string updated_code(u8"first line\nsecond x\ny line\nlast line");
+      u8"first line\nsecond line\nthird line\nlast line"_sv);
+  padded_string updated_code(u8"first line\nsecond x\ny line\nlast line"_sv);
 
   lsp_locator locator(&original_code);
   locator.replace_text(
@@ -350,8 +351,9 @@ TEST(test_lsp_location, replace_newline_and_text_with_newline) {
 }
 
 TEST(test_lsp_location, append_line_with_out_of_range_character) {
-  padded_string original_code(u8"first line\nsecond line\nthird line");
-  padded_string updated_code(u8"first line\nsecond line extended\nthird line");
+  padded_string original_code(u8"first line\nsecond line\nthird line"_sv);
+  padded_string updated_code(
+      u8"first line\nsecond line extended\nthird line"_sv);
 
   lsp_locator locator(&original_code);
   locator.replace_text(

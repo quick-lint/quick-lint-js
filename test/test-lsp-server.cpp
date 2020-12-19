@@ -551,7 +551,7 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
       .tie(text_document, parse_error);
   ASSERT_EQ(parse_error, ::simdjson::error_code::SUCCESS);
 
-  padded_string code(u8"let x = x;");
+  padded_string code(u8"let x = x;"_sv);
   byte_buffer notification_json_buffer;
 
   lsp_javascript_linter linter;

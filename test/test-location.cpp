@@ -27,7 +27,7 @@
 namespace quick_lint_js {
 namespace {
 TEST(test_location, ranges_on_first_line) {
-  padded_string code(u8"let x = 2;");
+  padded_string code(u8"let x = 2;"_sv);
   locator l(&code);
   source_range x_range = l.range(source_code_span(&code[4], &code[5]));
 
@@ -72,7 +72,7 @@ TEST(test_location, first_character_on_line_has_column_1) {
 }
 
 TEST(test_location, lf_cr_is_two_line_terminators) {
-  padded_string code(u8"let x = 2;\n\rlet y = 3;");
+  padded_string code(u8"let x = 2;\n\rlet y = 3;"_sv);
   const char8* y = strchr(code.c_str(), u8'y');
   locator l(&code);
   source_range y_range = l.range(source_code_span(y, y + 1));
@@ -96,7 +96,7 @@ TEST(test_location, location_after_null_byte) {
 }
 
 TEST(test_location, position_backwards) {
-  padded_string code(u8"ab\nc\n\nd\nefg\nh");
+  padded_string code(u8"ab\nc\n\nd\nefg\nh"_sv);
 
   std::vector<source_position> expected_positions;
   {

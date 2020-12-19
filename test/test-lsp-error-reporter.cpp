@@ -53,7 +53,7 @@ class test_lsp_error_reporter : public ::testing::Test {
 };
 
 TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
-  padded_string input(u8"12.34n");
+  padded_string input(u8"12.34n"_sv);
   source_code_span number_span(&input[0], &input[6]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n");
 
@@ -72,7 +72,7 @@ TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
 }
 
 TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
-  padded_string input(u8"x=0;let x;");
+  padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[0], &input[1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x");
   source_code_span declaration_span(&input[8], &input[9]);
@@ -97,7 +97,7 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
 }
 
 TEST_F(test_lsp_error_reporter, multiple_errors) {
-  padded_string input(u8"abc");
+  padded_string input(u8"abc"_sv);
   source_code_span a_span(&input[0], &input[1]);
   source_code_span b_span(&input[1], &input[2]);
   source_code_span c_span(&input[2], &input[3]);

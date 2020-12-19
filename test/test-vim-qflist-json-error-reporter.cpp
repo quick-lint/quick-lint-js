@@ -57,7 +57,7 @@ class test_vim_qflist_json_error_reporter : public ::testing::Test {
 
 TEST_F(test_vim_qflist_json_error_reporter,
        big_int_literal_contains_decimal_point) {
-  padded_string input(u8"12.34n");
+  padded_string input(u8"12.34n"_sv);
   source_code_span number_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n");
 
@@ -77,7 +77,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
 TEST_F(test_vim_qflist_json_error_reporter,
        big_int_literal_contains_leading_zero) {
-  padded_string input(u8"080085n");
+  padded_string input(u8"080085n"_sv);
   source_code_span number_span(&input[1 - 1], &input[7 + 1 - 1]);
   ASSERT_EQ(number_span.string_view(), u8"080085n");
 
@@ -97,7 +97,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
 TEST_F(test_vim_qflist_json_error_reporter,
        assignment_before_variable_declaration) {
-  padded_string input(u8"x=0;let x;");
+  padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x");
   source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
@@ -120,7 +120,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, big_int_literal_contains_exponent) {
-  padded_string input(u8"9e9n");
+  padded_string input(u8"9e9n"_sv);
   source_code_span number_span(&input[1 - 1], &input[4 + 1 - 1]);
   ASSERT_EQ(number_span.string_view(), u8"9e9n");
 
@@ -139,7 +139,7 @@ TEST_F(test_vim_qflist_json_error_reporter, big_int_literal_contains_exponent) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
-  padded_string input(u8"abc");
+  padded_string input(u8"abc"_sv);
   source_code_span a_span(&input[0], &input[1]);
   source_code_span b_span(&input[1], &input[2]);
   source_code_span c_span(&input[2], &input[3]);
@@ -160,7 +160,7 @@ TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
 
 TEST_F(test_vim_qflist_json_error_reporter,
        errors_have_buffer_number_if_requested) {
-  padded_string input(u8"");
+  padded_string input(u8""_sv);
   source_code_span span(&input[0], &input[0]);
 
   vim_qflist_json_error_reporter reporter =
@@ -176,7 +176,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
 TEST_F(test_vim_qflist_json_error_reporter,
        errors_have_file_name_if_requested) {
-  padded_string input(u8"");
+  padded_string input(u8""_sv);
   source_code_span span(&input[0], &input[0]);
 
   for (const char *file_name : {"hello.js", "file\\name\\with\\backslashes.js",
@@ -198,7 +198,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 
 TEST_F(test_vim_qflist_json_error_reporter,
        errors_have_file_name_and_buffer_number_if_requested) {
-  padded_string input(u8"");
+  padded_string input(u8""_sv);
   source_code_span span(&input[0], &input[0]);
 
   vim_qflist_json_error_reporter reporter = this->make_reporter();
@@ -215,17 +215,17 @@ TEST_F(test_vim_qflist_json_error_reporter,
 TEST_F(test_vim_qflist_json_error_reporter, change_source) {
   vim_qflist_json_error_reporter reporter = this->make_reporter();
 
-  padded_string input_1(u8"aaaaaaaa");
+  padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js", /*vim_bufnr=*/1);
   reporter.report(error_assignment_to_const_global_variable{
       identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1]))});
 
-  padded_string input_2(u8"bbbbbbbb");
+  padded_string input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
   reporter.report(error_assignment_to_const_global_variable{
       identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
 
-  padded_string input_3(u8"cccccccc");
+  padded_string input_3(u8"cccccccc"_sv);
   reporter.set_source(&input_3, /*vim_bufnr=*/2);
   reporter.report(error_assignment_to_const_global_variable{
       identifier(source_code_span(&input_3[6 - 1], &input_3[6 - 1]))});
@@ -250,7 +250,7 @@ TEST_F(test_vim_qflist_json_error_reporter, change_source) {
 
 TEST_F(test_vim_qflist_json_error_reporter,
        assignment_to_const_global_variable) {
-  padded_string input(u8"to Infinity and beyond");
+  padded_string input(u8"to Infinity and beyond"_sv);
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
 
@@ -271,7 +271,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, assignment_to_const_variable) {
-  padded_string input(u8"const x=0;x=1;");
+  padded_string input(u8"const x=0;x=1;"_sv);
   source_code_span x_declaration_span(&input[7 - 1], &input[7 + 1 - 1]);
   ASSERT_EQ(x_declaration_span.string_view(), u8"x");
   source_code_span x_assignment_span(&input[11 - 1], &input[11 + 1 - 1]);
@@ -295,7 +295,7 @@ TEST_F(test_vim_qflist_json_error_reporter, assignment_to_const_variable) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, assignment_to_undeclared_variable) {
-  padded_string input(u8"uhoh=true;");
+  padded_string input(u8"uhoh=true;"_sv);
   source_code_span uhoh_span(&input[1 - 1], &input[4 + 1 - 1]);
   ASSERT_EQ(uhoh_span.string_view(), u8"uhoh");
 
@@ -315,7 +315,7 @@ TEST_F(test_vim_qflist_json_error_reporter, assignment_to_undeclared_variable) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, invalid_binding_in_let_statement) {
-  padded_string input(u8"let 2 = 3;");
+  padded_string input(u8"let 2 = 3;"_sv);
   source_code_span two_span(&input[5 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(two_span.string_view(), u8"2");
 
@@ -335,7 +335,7 @@ TEST_F(test_vim_qflist_json_error_reporter, invalid_binding_in_let_statement) {
 
 TEST_F(test_vim_qflist_json_error_reporter,
        invalid_expression_left_of_assignment) {
-  padded_string input(u8"2 = 3;");
+  padded_string input(u8"2 = 3;"_sv);
   source_code_span two_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(two_span.string_view(), u8"2");
 
@@ -354,7 +354,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, let_with_no_bindings) {
-  padded_string input(u8"let;");
+  padded_string input(u8"let;"_sv);
   source_code_span let_span(&input[1 - 1], &input[3 + 1 - 1]);
   ASSERT_EQ(let_span.string_view(), u8"let");
 
@@ -374,7 +374,7 @@ TEST_F(test_vim_qflist_json_error_reporter, let_with_no_bindings) {
 
 TEST_F(test_vim_qflist_json_error_reporter,
        missing_comma_between_object_literal_entries) {
-  padded_string input(u8"{k v}");
+  padded_string input(u8"{k v}"_sv);
   source_code_span plus_span(&input[3 - 1], &input[3 - 1]);
   ASSERT_EQ(plus_span.string_view(), u8"")
       << "span should be empty because the inserted comma does not exist "
@@ -396,7 +396,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, missing_operand_for_operator) {
-  padded_string input(u8"2 + ");
+  padded_string input(u8"2 + "_sv);
   source_code_span plus_span(&input[3 - 1], &input[3 + 1 - 1]);
   ASSERT_EQ(plus_span.string_view(), u8"+");
 
@@ -416,7 +416,7 @@ TEST_F(test_vim_qflist_json_error_reporter, missing_operand_for_operator) {
 
 TEST_F(test_vim_qflist_json_error_reporter,
        missing_semicolon_after_expression) {
-  padded_string input(u8"a() b()");
+  padded_string input(u8"a() b()"_sv);
   source_code_span inserted_semicolon_span(&input[4 - 1], &input[4 - 1]);
   ASSERT_EQ(inserted_semicolon_span.string_view(), u8"")
       << "span should be empty because the inserted semicolon does not exist "
@@ -438,7 +438,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_global_variable) {
-  padded_string input(u8"let require");
+  padded_string input(u8"let require"_sv);
   source_code_span declaration_span(&input[5 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(declaration_span.string_view(), u8"require");
 
@@ -458,7 +458,7 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_global_variable) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
-  padded_string input(u8"let myvar; let myvar;");
+  padded_string input(u8"let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
   source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
@@ -480,7 +480,7 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, stray_comma_in_let_statement) {
-  padded_string input(u8"let x , , y");
+  padded_string input(u8"let x , , y"_sv);
   source_code_span comma_span(&input[9 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(comma_span.string_view(), u8",");
 
@@ -499,7 +499,7 @@ TEST_F(test_vim_qflist_json_error_reporter, stray_comma_in_let_statement) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unclosed_block_comment) {
-  padded_string input(u8"/* hello");
+  padded_string input(u8"/* hello"_sv);
   source_code_span comment_span(&input[1 - 1], &input[8 + 1 - 1]);
   ASSERT_EQ(comment_span.string_view(), input);
 
@@ -518,7 +518,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_block_comment) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unclosed_regexp_literal) {
-  padded_string input(u8"/hello");
+  padded_string input(u8"/hello"_sv);
   source_code_span regexp_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(regexp_span.string_view(), input);
 
@@ -537,7 +537,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_regexp_literal) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unclosed_string_literal) {
-  padded_string input(u8"'hello");
+  padded_string input(u8"'hello"_sv);
   source_code_span string_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(string_span.string_view(), input);
 
@@ -556,7 +556,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_string_literal) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unclosed_template) {
-  padded_string input(u8"`hello");
+  padded_string input(u8"`hello"_sv);
   source_code_span string_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(string_span.string_view(), input);
 
@@ -575,7 +575,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unclosed_template) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unexpected_characters_in_number) {
-  padded_string input(u8"123loveme");
+  padded_string input(u8"123loveme"_sv);
   source_code_span garbage_span(&input[4 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(garbage_span.string_view(), u8"loveme");
 
@@ -594,7 +594,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_characters_in_number) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
-  padded_string input(u8"#");
+  padded_string input(u8"#"_sv);
   source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#");
 
@@ -613,7 +613,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unexpected_identifier) {
-  padded_string input(u8"let x y");
+  padded_string input(u8"let x y"_sv);
   source_code_span y_span(&input[7 - 1], &input[7 + 1 - 1]);
   ASSERT_EQ(y_span.string_view(), u8"y");
 
@@ -632,7 +632,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_identifier) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unmatched_parenthesis) {
-  padded_string input(u8"x)");
+  padded_string input(u8"x)"_sv);
   source_code_span paren_span(&input[2 - 1], &input[2 + 1 - 1]);
   ASSERT_EQ(paren_span.string_view(), u8")");
 
@@ -651,7 +651,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unmatched_parenthesis) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
-  padded_string input(u8"myvar;");
+  padded_string input(u8"myvar;"_sv);
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
@@ -670,7 +670,7 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
-  padded_string input(u8"myvar; let myvar;");
+  padded_string input(u8"myvar; let myvar;"_sv);
   source_code_span use_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(use_span.string_view(), u8"myvar");
   source_code_span declaration_span(&input[12 - 1], &input[16 + 1 - 1]);
@@ -692,7 +692,7 @@ TEST_F(test_vim_qflist_json_error_reporter, variable_used_before_declaration) {
 }
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
-  padded_string code(u8"hello world");
+  padded_string code(u8"hello world"_sv);
   quick_lint_js::locator locator(&code);
 
   std::stringstream stream;
@@ -710,7 +710,7 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
 }
 
 TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
-  padded_string code(u8"hello world");
+  padded_string code(u8"hello world"_sv);
   quick_lint_js::locator locator(&code);
 
   std::stringstream stream;
@@ -729,7 +729,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
 }
 
 TEST(test_vim_qflist_json_error_formatter, message_with_zero_placeholder) {
-  padded_string code(u8"hello world");
+  padded_string code(u8"hello world"_sv);
   quick_lint_js::locator locator(&code);
 
   std::stringstream stream;
@@ -744,7 +744,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_zero_placeholder) {
 
 TEST(test_vim_qflist_json_error_formatter,
      message_with_extra_identifier_placeholder) {
-  padded_string code(u8"hello world");
+  padded_string code(u8"hello world"_sv);
   quick_lint_js::locator locator(&code);
 
   std::stringstream stream;
@@ -760,7 +760,7 @@ TEST(test_vim_qflist_json_error_formatter,
 
 TEST(test_vim_qflist_json_error_formatter,
      message_with_multiple_span_placeholders) {
-  padded_string code(u8"let me = be(free);");
+  padded_string code(u8"let me = be(free);"_sv);
   quick_lint_js::locator locator(&code);
   source_code_span let_span(&code[0], &code[3]);
   ASSERT_EQ(let_span.string_view(), u8"let");

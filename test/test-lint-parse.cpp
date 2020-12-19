@@ -31,7 +31,7 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
-  padded_string input(u8"let x = y, y = x;");
+  padded_string input(u8"let x = y, y = x;"_sv);
   error_collector v;
   linter l(&v);
   parser p(&input, &v);
@@ -47,7 +47,7 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
 TEST(
     test_lint,
     variables_with_different_escape_sequences_are_equivalent_after_normalization) {
-  padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;");
+  padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;"_sv);
   error_collector v;
 
   linter l(&v);
@@ -59,7 +59,7 @@ TEST(
 
 TEST(test_lint,
      errors_for_variables_with_escape_sequences_cover_entire_variable_name) {
-  padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)");
+  padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)"_sv);
   error_collector v;
 
   linter l(&v);
@@ -74,7 +74,7 @@ TEST(test_lint,
 }
 
 TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
-  padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })");
+  padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })"_sv);
   error_collector v;
 
   linter l(&v);

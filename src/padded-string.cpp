@@ -31,7 +31,7 @@ padded_string::padded_string(string8&& string) : data_(std::move(string)) {
   this->data_.append(narrow_cast<unsigned>(this->null_bytes_to_add), '\0');
 }
 
-padded_string::padded_string(const char8* string)
+padded_string::padded_string(string8_view string)
     : padded_string(string8(string)) {}
 
 void padded_string::resize(int new_size) {
