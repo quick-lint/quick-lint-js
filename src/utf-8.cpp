@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
@@ -49,8 +50,7 @@ decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
     return (byte & 0b1100'0000) == 0b1000'0000;
   };
   const std::uint8_t* c = reinterpret_cast<const std::uint8_t*>(input.data());
-  std::ptrdiff_t available_bytes = input.size();
-  if (available_bytes == 0) {
+  if (input.size() == 0) {
     return decode_utf_8_result{
         .size = 0,
         .code_point = 0,
@@ -65,8 +65,9 @@ decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
     };
   } else if ((c[0] & 0b1110'0000) == 0b1100'0000) {
     // 2-byte sequence (0xc0..0xdf).
+    static_assert(padded_string::padding_size >= 1);
     bool byte_0_ok = c[0] >= 0xc2;
-    bool byte_1_ok = available_bytes >= 2 && is_continuation_byte(c[1]);
+    bool byte_1_ok = is_continuation_byte(c[1]);
     if (byte_0_ok && byte_1_ok) {
       return decode_utf_8_result{
           .size = 2,
@@ -83,11 +84,11 @@ decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
     }
   } else if ((c[0] & 0b1111'0000) == 0b1110'0000) {
     // 3-byte sequence (0xe0..0xef).
-    bool byte_1_ok = available_bytes >= 2 &&
-                     (c[0] == 0xe0 ? 0xa0 <= c[1] && c[1] <= 0xbf
+    static_assert(padded_string::padding_size >= 2);
+    bool byte_1_ok = (c[0] == 0xe0 ? 0xa0 <= c[1] && c[1] <= 0xbf
                                    : c[0] == 0xed ? 0x80 <= c[1] && c[1] <= 0x9f
                                                   : is_continuation_byte(c[1]));
-    bool byte_2_ok = available_bytes >= 3 && is_continuation_byte(c[2]);
+    bool byte_2_ok = is_continuation_byte(c[2]);
     if (byte_1_ok && byte_2_ok) {
       return decode_utf_8_result{
           .size = 3,
@@ -105,13 +106,13 @@ decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
     }
   } else if ((c[0] & 0b1111'1000) == 0b1111'0000) {
     // 4-byte sequence (0xf0..0xf7).
+    static_assert(padded_string::padding_size >= 3);
     bool byte_0_ok = c[0] <= 0xf4;
-    bool byte_1_ok = available_bytes >= 2 &&
-                     (c[0] == 0xf0 ? 0x90 <= c[1] && c[1] <= 0xbf
+    bool byte_1_ok = (c[0] == 0xf0 ? 0x90 <= c[1] && c[1] <= 0xbf
                                    : c[0] == 0xf4 ? 0x80 <= c[1] && c[1] <= 0x8f
                                                   : is_continuation_byte(c[1]));
-    bool byte_2_ok = available_bytes >= 3 && is_continuation_byte(c[2]);
-    bool byte_3_ok = available_bytes >= 4 && is_continuation_byte(c[3]);
+    bool byte_2_ok = is_continuation_byte(c[2]);
+    bool byte_3_ok = is_continuation_byte(c[3]);
     if (byte_0_ok && byte_1_ok && byte_2_ok && byte_3_ok) {
       return decode_utf_8_result{
           .size = 4,
