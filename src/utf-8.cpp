@@ -44,13 +44,12 @@ char8* encode_utf_8(char32_t code_point, char8* out) {
 }
 
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
-decode_utf_8_result decode_utf_8(const char8* begin,
-                                 const char8* end) noexcept {
+decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
   auto is_continuation_byte = [](std::uint8_t byte) noexcept -> bool {
     return (byte & 0b1100'0000) == 0b1000'0000;
   };
-  const std::uint8_t* c = reinterpret_cast<const std::uint8_t*>(begin);
-  std::ptrdiff_t available_bytes = end - begin;
+  const std::uint8_t* c = reinterpret_cast<const std::uint8_t*>(input.data());
+  std::ptrdiff_t available_bytes = input.size();
   if (available_bytes == 0) {
     return decode_utf_8_result{
         .size = 0,

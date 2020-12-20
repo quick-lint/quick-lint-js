@@ -57,6 +57,10 @@ class padded_string {
   char8 *begin() noexcept { return this->data(); }
   char8 *end() noexcept { return this->data() + this->size(); }
 
+  const char8 *null_terminator() const noexcept {
+    return this->data() + this->size();
+  }
+
   string8_view string_view() const noexcept;
 
   friend std::ostream &operator<<(std::ostream &, const padded_string &);
@@ -78,6 +82,9 @@ class padded_string_view {
  public:
   /*implicit*/ padded_string_view(padded_string *string)
       : data_(string->data()), length_(string->size()) {}
+
+  explicit padded_string_view(char8 *begin, const char8 *null_terminator)
+      : data_(begin), length_(narrow_cast<int>(null_terminator - begin)) {}
 
   padded_string_view(const padded_string_view &) noexcept = default;
   padded_string_view &operator=(const padded_string_view &) noexcept = default;

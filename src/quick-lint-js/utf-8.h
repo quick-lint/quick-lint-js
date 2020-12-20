@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
 char8* encode_utf_8(char32_t code_point, char8* out);
@@ -29,7 +30,7 @@ struct decode_utf_8_result {
   bool ok;
 };
 
-decode_utf_8_result decode_utf_8(const char8*, const char8* end) noexcept;
+decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
 }
 
 #endif

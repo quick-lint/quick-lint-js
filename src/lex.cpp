@@ -1181,8 +1181,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
   };
 
   for (;;) {
-    decode_utf_8_result decode_result =
-        decode_utf_8(input, this->original_input_.null_terminator());
+    decode_utf_8_result decode_result = decode_utf_8(
+        padded_string_view(input, this->original_input_.null_terminator()));
     if (decode_result.size == 0) {
       QLJS_ASSERT(this->is_eof(input));
       break;
@@ -1191,8 +1191,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
       char8* errors_begin = input;
       input += decode_result.size;
       for (;;) {
-        decode_result =
-            decode_utf_8(input, this->original_input_.null_terminator());
+        decode_result = decode_utf_8(
+            padded_string_view(input, this->original_input_.null_terminator()));
         if (decode_result.ok || decode_result.size == 0) {
           break;
         }
