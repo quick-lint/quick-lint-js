@@ -42,9 +42,6 @@ using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
-void check_single_token(string8_view input, token_type expected_token_type);
-void check_single_token(padded_string_view input,
-                        token_type expected_token_type);
 void check_single_token(string8_view input,
                         string8_view expected_identifier_name);
 void check_single_token_with_errors(
@@ -53,8 +50,15 @@ void check_single_token_with_errors(
                          const std::vector<error_collector::error>&));
 void check_tokens(string8_view input,
                   std::initializer_list<token_type> expected_token_types);
+void check_tokens(padded_string_view input,
+                  std::initializer_list<token_type> expected_token_types);
 void check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&));
+void check_tokens_with_errors(
+    padded_string_view input,
+    std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&));
 std::vector<token> lex_to_eof(padded_string_view, error_collector&);
@@ -98,7 +102,7 @@ TEST(test_lex, lex_line_comments_with_control_characters) {
     padded_string input(u8"// hello " + string8(control_character) +
                         u8" world\n42.0");
     SCOPED_TRACE(input);
-    check_single_token(&input, token_type::number);
+    check_tokens(&input, {token_type::number});
   }
 }
 
@@ -117,7 +121,7 @@ TEST(test_lex, lex_html_open_comments) {
     padded_string input(u8"<!-- hello " + string8(control_character) +
                         u8" world\n42.0");
     SCOPED_TRACE(input);
-    check_single_token(&input, token_type::number);
+    check_tokens(&input, {token_type::number});
   }
 
   check_tokens(u8"hello<!world"_sv, {token_type::identifier, token_type::less,
@@ -128,39 +132,39 @@ TEST(test_lex, lex_html_open_comments) {
 }
 
 TEST(test_lex, lex_numbers) {
-  check_single_token(u8"0"_sv, token_type::number);
-  check_single_token(u8"2"_sv, token_type::number);
-  check_single_token(u8"42"_sv, token_type::number);
-  check_single_token(u8"12.34"_sv, token_type::number);
-  check_single_token(u8".34"_sv, token_type::number);
+  check_tokens(u8"0"_sv, {token_type::number});
+  check_tokens(u8"2"_sv, {token_type::number});
+  check_tokens(u8"42"_sv, {token_type::number});
+  check_tokens(u8"12.34"_sv, {token_type::number});
+  check_tokens(u8".34"_sv, {token_type::number});
 
-  check_single_token(u8"1e3"_sv, token_type::number);
-  check_single_token(u8".1e3"_sv, token_type::number);
-  check_single_token(u8"1.e3"_sv, token_type::number);
-  check_single_token(u8"1.0e3"_sv, token_type::number);
-  check_single_token(u8"1e-3"_sv, token_type::number);
-  check_single_token(u8"1e+3"_sv, token_type::number);
-  check_single_token(u8"1E+3"_sv, token_type::number);
-  check_single_token(u8"1E123_233_22"_sv, token_type::number);
+  check_tokens(u8"1e3"_sv, {token_type::number});
+  check_tokens(u8".1e3"_sv, {token_type::number});
+  check_tokens(u8"1.e3"_sv, {token_type::number});
+  check_tokens(u8"1.0e3"_sv, {token_type::number});
+  check_tokens(u8"1e-3"_sv, {token_type::number});
+  check_tokens(u8"1e+3"_sv, {token_type::number});
+  check_tokens(u8"1E+3"_sv, {token_type::number});
+  check_tokens(u8"1E123_233_22"_sv, {token_type::number});
 
-  check_single_token(u8"0n"_sv, token_type::number);
-  check_single_token(u8"123456789n"_sv, token_type::number);
+  check_tokens(u8"0n"_sv, {token_type::number});
+  check_tokens(u8"123456789n"_sv, {token_type::number});
 
-  check_single_token(u8"123_123_123"_sv, token_type::number);
-  check_single_token(u8"123.123_123"_sv, token_type::number);
+  check_tokens(u8"123_123_123"_sv, {token_type::number});
+  check_tokens(u8"123.123_123"_sv, {token_type::number});
 
   check_tokens(u8"123. 456"_sv, {token_type::number, token_type::number});
 
   check_tokens(u8"1.2.3"_sv, {token_type::number, token_type::number});
   check_tokens(u8".2.3"_sv, {token_type::number, token_type::number});
-  check_single_token(u8"0.3"_sv, token_type::number);
+  check_tokens(u8"0.3"_sv, {token_type::number});
 }
 
 TEST(test_lex, lex_binary_numbers) {
-  check_single_token(u8"0b0"_sv, token_type::number);
-  check_single_token(u8"0b1"_sv, token_type::number);
-  check_single_token(u8"0b010101010101010"_sv, token_type::number);
-  check_single_token(u8"0B010101010101010"_sv, token_type::number);
+  check_tokens(u8"0b0"_sv, {token_type::number});
+  check_tokens(u8"0b1"_sv, {token_type::number});
+  check_tokens(u8"0b010101010101010"_sv, {token_type::number});
+  check_tokens(u8"0B010101010101010"_sv, {token_type::number});
 }
 
 TEST(test_lex, fail_lex_binary_number_no_digits) {
@@ -199,21 +203,21 @@ TEST(test_lex, fail_lex_binary_number) {
 }
 
 TEST(test_lex, lex_octal_numbers_strict) {
-  check_single_token(u8"000"_sv, token_type::number);
-  check_single_token(u8"001"_sv, token_type::number);
-  check_single_token(u8"00010101010101010"_sv, token_type::number);
-  check_single_token(u8"051"_sv, token_type::number);
-  check_single_token(u8"0o51"_sv, token_type::number);
-  check_single_token(u8"0o0"_sv, token_type::number);
-  check_single_token(u8"0o0n"_sv, token_type::number);
-  check_single_token(u8"0o01"_sv, token_type::number);
-  check_single_token(u8"0o123n"_sv, token_type::number);
+  check_tokens(u8"000"_sv, {token_type::number});
+  check_tokens(u8"001"_sv, {token_type::number});
+  check_tokens(u8"00010101010101010"_sv, {token_type::number});
+  check_tokens(u8"051"_sv, {token_type::number});
+  check_tokens(u8"0o51"_sv, {token_type::number});
+  check_tokens(u8"0o0"_sv, {token_type::number});
+  check_tokens(u8"0o0n"_sv, {token_type::number});
+  check_tokens(u8"0o01"_sv, {token_type::number});
+  check_tokens(u8"0o123n"_sv, {token_type::number});
 }
 
 TEST(test_lex, lex_octal_numbers_lax) {
-  check_single_token(u8"058"_sv, token_type::number);
-  check_single_token(u8"058.9"_sv, token_type::number);
-  check_single_token(u8"08"_sv, token_type::number);
+  check_tokens(u8"058"_sv, {token_type::number});
+  check_tokens(u8"058.9"_sv, {token_type::number});
+  check_tokens(u8"08"_sv, {token_type::number});
 }
 
 TEST(test_lex, fail_lex_octal_number_no_digits) {
@@ -279,10 +283,10 @@ TEST(test_lex, fail_lex_octal_numbers) {
 // tests to fail in strict mode
 
 TEST(test_lex, lex_hex_numbers) {
-  check_single_token(u8"0x0"_sv, token_type::number);
-  check_single_token(u8"0x123456789abcdef"_sv, token_type::number);
-  check_single_token(u8"0X123456789ABCDEF"_sv, token_type::number);
-  check_single_token(u8"0X123_4567_89AB_CDEF"_sv, token_type::number);
+  check_tokens(u8"0x0"_sv, {token_type::number});
+  check_tokens(u8"0x123456789abcdef"_sv, {token_type::number});
+  check_tokens(u8"0X123456789ABCDEF"_sv, {token_type::number});
+  check_tokens(u8"0X123_4567_89AB_CDEF"_sv, {token_type::number});
 }
 
 TEST(test_lex, fail_lex_hex_number_no_digits) {
@@ -496,14 +500,14 @@ TEST(test_lex, lex_number_with_trailing_underscores) {
 }
 
 TEST(test_lex, lex_strings) {
-  check_single_token(u8R"('hello')", token_type::string);
-  check_single_token(u8R"("hello")", token_type::string);
-  check_single_token(u8R"("hello\"world")", token_type::string);
-  check_single_token(u8R"('hello\'world')", token_type::string);
-  check_single_token(u8R"('hello"world')", token_type::string);
-  check_single_token(u8R"("hello'world")", token_type::string);
-  check_single_token(u8"'hello\\\nworld'"_sv, token_type::string);
-  check_single_token(u8"\"hello\\\nworld\"", token_type::string);
+  check_tokens(u8R"('hello')", {token_type::string});
+  check_tokens(u8R"("hello")", {token_type::string});
+  check_tokens(u8R"("hello\"world")", {token_type::string});
+  check_tokens(u8R"('hello\'world')", {token_type::string});
+  check_tokens(u8R"('hello"world')", {token_type::string});
+  check_tokens(u8R"("hello'world")", {token_type::string});
+  check_tokens(u8"'hello\\\nworld'"_sv, {token_type::string});
+  check_tokens(u8"\"hello\\\nworld\"", {token_type::string});
 
   check_tokens_with_errors(
       u8R"("unterminated)", {token_type::string},
@@ -624,14 +628,14 @@ TEST(test_lex, lex_string_with_ascii_control_characters) {
        concat(control_characters_except_line_terminators, ls_and_ps)) {
     padded_string input(u8"'hello" + string8(control_character) + u8"world'");
     SCOPED_TRACE(input);
-    check_single_token(&input, token_type::string);
+    check_tokens(&input, {token_type::string});
   }
 
   for (string8_view control_character :
        control_characters_except_line_terminators) {
     padded_string input(u8"'hello\\" + string8(control_character) + u8"world'");
     SCOPED_TRACE(input);
-    check_single_token(&input, token_type::string);
+    check_tokens(&input, {token_type::string});
   }
 }
 
@@ -749,14 +753,14 @@ TEST(test_lex, lex_template_literal_with_ascii_control_characters) {
        concat(control_characters_except_line_terminators, line_terminators)) {
     padded_string input(u8"`hello" + string8(control_character) + u8"world`");
     SCOPED_TRACE(input);
-    check_single_token(&input, token_type::complete_template);
+    check_tokens(&input, {token_type::complete_template});
   }
 
   for (string8_view control_character :
        control_characters_except_line_terminators) {
     padded_string input(u8"`hello\\" + string8(control_character) + u8"world`");
     SCOPED_TRACE(input);
-    check_single_token(&input, token_type::complete_template);
+    check_tokens(&input, {token_type::complete_template});
   }
 }
 
@@ -893,9 +897,9 @@ TEST(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
 }
 
 TEST(test_lex, lex_identifiers) {
-  check_single_token(u8"i"_sv, token_type::identifier);
-  check_single_token(u8"_"_sv, token_type::identifier);
-  check_single_token(u8"$"_sv, token_type::identifier);
+  check_tokens(u8"i"_sv, {token_type::identifier});
+  check_tokens(u8"_"_sv, {token_type::identifier});
+  check_tokens(u8"$"_sv, {token_type::identifier});
   check_single_token(u8"id"_sv, u8"id");
   check_single_token(u8"id "_sv, u8"id");
   check_single_token(u8"this_is_an_identifier"_sv, u8"this_is_an_identifier");
@@ -1249,59 +1253,59 @@ TEST(test_lex,
 }
 
 TEST(test_lex, lex_identifiers_which_look_like_keywords) {
-  check_single_token(u8"ifelse"_sv, token_type::identifier);
-  check_single_token(u8"IF"_sv, token_type::identifier);
+  check_tokens(u8"ifelse"_sv, {token_type::identifier});
+  check_tokens(u8"IF"_sv, {token_type::identifier});
 }
 
 TEST(test_lex, lex_keywords) {
-  check_single_token(u8"as"_sv, token_type::kw_as);
-  check_single_token(u8"async"_sv, token_type::kw_async);
-  check_single_token(u8"await"_sv, token_type::kw_await);
-  check_single_token(u8"break"_sv, token_type::kw_break);
-  check_single_token(u8"case"_sv, token_type::kw_case);
-  check_single_token(u8"catch"_sv, token_type::kw_catch);
-  check_single_token(u8"class"_sv, token_type::kw_class);
-  check_single_token(u8"const"_sv, token_type::kw_const);
-  check_single_token(u8"continue"_sv, token_type::kw_continue);
-  check_single_token(u8"debugger"_sv, token_type::kw_debugger);
-  check_single_token(u8"default"_sv, token_type::kw_default);
-  check_single_token(u8"delete"_sv, token_type::kw_delete);
-  check_single_token(u8"do"_sv, token_type::kw_do);
-  check_single_token(u8"else"_sv, token_type::kw_else);
-  check_single_token(u8"export"_sv, token_type::kw_export);
-  check_single_token(u8"extends"_sv, token_type::kw_extends);
-  check_single_token(u8"false"_sv, token_type::kw_false);
-  check_single_token(u8"finally"_sv, token_type::kw_finally);
-  check_single_token(u8"for"_sv, token_type::kw_for);
-  check_single_token(u8"from"_sv, token_type::kw_from);
-  check_single_token(u8"function"_sv, token_type::kw_function);
-  check_single_token(u8"if"_sv, token_type::kw_if);
-  check_single_token(u8"import"_sv, token_type::kw_import);
-  check_single_token(u8"in"_sv, token_type::kw_in);
-  check_single_token(u8"instanceof"_sv, token_type::kw_instanceof);
-  check_single_token(u8"let"_sv, token_type::kw_let);
-  check_single_token(u8"new"_sv, token_type::kw_new);
-  check_single_token(u8"null"_sv, token_type::kw_null);
-  check_single_token(u8"of"_sv, token_type::kw_of);
-  check_single_token(u8"return"_sv, token_type::kw_return);
-  check_single_token(u8"static"_sv, token_type::kw_static);
-  check_single_token(u8"super"_sv, token_type::kw_super);
-  check_single_token(u8"switch"_sv, token_type::kw_switch);
-  check_single_token(u8"this"_sv, token_type::kw_this);
-  check_single_token(u8"throw"_sv, token_type::kw_throw);
-  check_single_token(u8"true"_sv, token_type::kw_true);
-  check_single_token(u8"try"_sv, token_type::kw_try);
-  check_single_token(u8"typeof"_sv, token_type::kw_typeof);
-  check_single_token(u8"var"_sv, token_type::kw_var);
-  check_single_token(u8"void"_sv, token_type::kw_void);
-  check_single_token(u8"while"_sv, token_type::kw_while);
-  check_single_token(u8"with"_sv, token_type::kw_with);
-  check_single_token(u8"yield"_sv, token_type::kw_yield);
+  check_tokens(u8"as"_sv, {token_type::kw_as});
+  check_tokens(u8"async"_sv, {token_type::kw_async});
+  check_tokens(u8"await"_sv, {token_type::kw_await});
+  check_tokens(u8"break"_sv, {token_type::kw_break});
+  check_tokens(u8"case"_sv, {token_type::kw_case});
+  check_tokens(u8"catch"_sv, {token_type::kw_catch});
+  check_tokens(u8"class"_sv, {token_type::kw_class});
+  check_tokens(u8"const"_sv, {token_type::kw_const});
+  check_tokens(u8"continue"_sv, {token_type::kw_continue});
+  check_tokens(u8"debugger"_sv, {token_type::kw_debugger});
+  check_tokens(u8"default"_sv, {token_type::kw_default});
+  check_tokens(u8"delete"_sv, {token_type::kw_delete});
+  check_tokens(u8"do"_sv, {token_type::kw_do});
+  check_tokens(u8"else"_sv, {token_type::kw_else});
+  check_tokens(u8"export"_sv, {token_type::kw_export});
+  check_tokens(u8"extends"_sv, {token_type::kw_extends});
+  check_tokens(u8"false"_sv, {token_type::kw_false});
+  check_tokens(u8"finally"_sv, {token_type::kw_finally});
+  check_tokens(u8"for"_sv, {token_type::kw_for});
+  check_tokens(u8"from"_sv, {token_type::kw_from});
+  check_tokens(u8"function"_sv, {token_type::kw_function});
+  check_tokens(u8"if"_sv, {token_type::kw_if});
+  check_tokens(u8"import"_sv, {token_type::kw_import});
+  check_tokens(u8"in"_sv, {token_type::kw_in});
+  check_tokens(u8"instanceof"_sv, {token_type::kw_instanceof});
+  check_tokens(u8"let"_sv, {token_type::kw_let});
+  check_tokens(u8"new"_sv, {token_type::kw_new});
+  check_tokens(u8"null"_sv, {token_type::kw_null});
+  check_tokens(u8"of"_sv, {token_type::kw_of});
+  check_tokens(u8"return"_sv, {token_type::kw_return});
+  check_tokens(u8"static"_sv, {token_type::kw_static});
+  check_tokens(u8"super"_sv, {token_type::kw_super});
+  check_tokens(u8"switch"_sv, {token_type::kw_switch});
+  check_tokens(u8"this"_sv, {token_type::kw_this});
+  check_tokens(u8"throw"_sv, {token_type::kw_throw});
+  check_tokens(u8"true"_sv, {token_type::kw_true});
+  check_tokens(u8"try"_sv, {token_type::kw_try});
+  check_tokens(u8"typeof"_sv, {token_type::kw_typeof});
+  check_tokens(u8"var"_sv, {token_type::kw_var});
+  check_tokens(u8"void"_sv, {token_type::kw_void});
+  check_tokens(u8"while"_sv, {token_type::kw_while});
+  check_tokens(u8"with"_sv, {token_type::kw_with});
+  check_tokens(u8"yield"_sv, {token_type::kw_yield});
 }
 
 TEST(test_lex, lex_contextual_keywords) {
   // TODO(strager): Move some assertions from lex_keywords into here.
-  check_single_token(u8"get"_sv, token_type::kw_get);
+  check_tokens(u8"get"_sv, {token_type::kw_get});
 }
 
 TEST(test_lex, lex_keywords_cannot_contain_escape_sequences) {
@@ -1327,61 +1331,61 @@ TEST(test_lex, lex_keywords_cannot_contain_escape_sequences) {
 }
 
 TEST(test_lex, lex_single_character_symbols) {
-  check_single_token(u8"+"_sv, token_type::plus);
-  check_single_token(u8"-"_sv, token_type::minus);
-  check_single_token(u8"*"_sv, token_type::star);
-  check_single_token(u8"/"_sv, token_type::slash);
-  check_single_token(u8"<"_sv, token_type::less);
-  check_single_token(u8">"_sv, token_type::greater);
-  check_single_token(u8"="_sv, token_type::equal);
-  check_single_token(u8"&"_sv, token_type::ampersand);
-  check_single_token(u8"^"_sv, token_type::circumflex);
-  check_single_token(u8"!"_sv, token_type::bang);
-  check_single_token(u8"."_sv, token_type::dot);
-  check_single_token(u8","_sv, token_type::comma);
-  check_single_token(u8"~"_sv, token_type::tilde);
-  check_single_token(u8"%"_sv, token_type::percent);
-  check_single_token(u8"("_sv, token_type::left_paren);
-  check_single_token(u8")"_sv, token_type::right_paren);
-  check_single_token(u8"["_sv, token_type::left_square);
-  check_single_token(u8"]"_sv, token_type::right_square);
-  check_single_token(u8"{"_sv, token_type::left_curly);
-  check_single_token(u8"}"_sv, token_type::right_curly);
-  check_single_token(u8":"_sv, token_type::colon);
-  check_single_token(u8";"_sv, token_type::semicolon);
-  check_single_token(u8"?"_sv, token_type::question);
-  check_single_token(u8"|"_sv, token_type::pipe);
+  check_tokens(u8"+"_sv, {token_type::plus});
+  check_tokens(u8"-"_sv, {token_type::minus});
+  check_tokens(u8"*"_sv, {token_type::star});
+  check_tokens(u8"/"_sv, {token_type::slash});
+  check_tokens(u8"<"_sv, {token_type::less});
+  check_tokens(u8">"_sv, {token_type::greater});
+  check_tokens(u8"="_sv, {token_type::equal});
+  check_tokens(u8"&"_sv, {token_type::ampersand});
+  check_tokens(u8"^"_sv, {token_type::circumflex});
+  check_tokens(u8"!"_sv, {token_type::bang});
+  check_tokens(u8"."_sv, {token_type::dot});
+  check_tokens(u8","_sv, {token_type::comma});
+  check_tokens(u8"~"_sv, {token_type::tilde});
+  check_tokens(u8"%"_sv, {token_type::percent});
+  check_tokens(u8"("_sv, {token_type::left_paren});
+  check_tokens(u8")"_sv, {token_type::right_paren});
+  check_tokens(u8"["_sv, {token_type::left_square});
+  check_tokens(u8"]"_sv, {token_type::right_square});
+  check_tokens(u8"{"_sv, {token_type::left_curly});
+  check_tokens(u8"}"_sv, {token_type::right_curly});
+  check_tokens(u8":"_sv, {token_type::colon});
+  check_tokens(u8";"_sv, {token_type::semicolon});
+  check_tokens(u8"?"_sv, {token_type::question});
+  check_tokens(u8"|"_sv, {token_type::pipe});
 }
 
 TEST(test_lex, lex_multi_character_symbols) {
-  check_single_token(u8"<="_sv, token_type::less_equal);
-  check_single_token(u8">="_sv, token_type::greater_equal);
-  check_single_token(u8"=="_sv, token_type::equal_equal);
-  check_single_token(u8"==="_sv, token_type::equal_equal_equal);
-  check_single_token(u8"!="_sv, token_type::bang_equal);
-  check_single_token(u8"!=="_sv, token_type::bang_equal_equal);
-  check_single_token(u8"**"_sv, token_type::star_star);
-  check_single_token(u8"++"_sv, token_type::plus_plus);
-  check_single_token(u8"--"_sv, token_type::minus_minus);
-  check_single_token(u8"<<"_sv, token_type::less_less);
-  check_single_token(u8">>"_sv, token_type::greater_greater);
-  check_single_token(u8">>>"_sv, token_type::greater_greater_greater);
-  check_single_token(u8"&&"_sv, token_type::ampersand_ampersand);
-  check_single_token(u8"||"_sv, token_type::pipe_pipe);
-  check_single_token(u8"+="_sv, token_type::plus_equal);
-  check_single_token(u8"-="_sv, token_type::minus_equal);
-  check_single_token(u8"*="_sv, token_type::star_equal);
-  check_single_token(u8"/="_sv, token_type::slash_equal);
-  check_single_token(u8"%="_sv, token_type::percent_equal);
-  check_single_token(u8"**="_sv, token_type::star_star_equal);
-  check_single_token(u8"&="_sv, token_type::ampersand_equal);
-  check_single_token(u8"^="_sv, token_type::circumflex_equal);
-  check_single_token(u8"|="_sv, token_type::pipe_equal);
-  check_single_token(u8"<<="_sv, token_type::less_less_equal);
-  check_single_token(u8">>="_sv, token_type::greater_greater_equal);
-  check_single_token(u8">>>="_sv, token_type::greater_greater_greater_equal);
-  check_single_token(u8"=>"_sv, token_type::equal_greater);
-  check_single_token(u8"..."_sv, token_type::dot_dot_dot);
+  check_tokens(u8"<="_sv, {token_type::less_equal});
+  check_tokens(u8">="_sv, {token_type::greater_equal});
+  check_tokens(u8"=="_sv, {token_type::equal_equal});
+  check_tokens(u8"==="_sv, {token_type::equal_equal_equal});
+  check_tokens(u8"!="_sv, {token_type::bang_equal});
+  check_tokens(u8"!=="_sv, {token_type::bang_equal_equal});
+  check_tokens(u8"**"_sv, {token_type::star_star});
+  check_tokens(u8"++"_sv, {token_type::plus_plus});
+  check_tokens(u8"--"_sv, {token_type::minus_minus});
+  check_tokens(u8"<<"_sv, {token_type::less_less});
+  check_tokens(u8">>"_sv, {token_type::greater_greater});
+  check_tokens(u8">>>"_sv, {token_type::greater_greater_greater});
+  check_tokens(u8"&&"_sv, {token_type::ampersand_ampersand});
+  check_tokens(u8"||"_sv, {token_type::pipe_pipe});
+  check_tokens(u8"+="_sv, {token_type::plus_equal});
+  check_tokens(u8"-="_sv, {token_type::minus_equal});
+  check_tokens(u8"*="_sv, {token_type::star_equal});
+  check_tokens(u8"/="_sv, {token_type::slash_equal});
+  check_tokens(u8"%="_sv, {token_type::percent_equal});
+  check_tokens(u8"**="_sv, {token_type::star_star_equal});
+  check_tokens(u8"&="_sv, {token_type::ampersand_equal});
+  check_tokens(u8"^="_sv, {token_type::circumflex_equal});
+  check_tokens(u8"|="_sv, {token_type::pipe_equal});
+  check_tokens(u8"<<="_sv, {token_type::less_less_equal});
+  check_tokens(u8">>="_sv, {token_type::greater_greater_equal});
+  check_tokens(u8">>>="_sv, {token_type::greater_greater_greater_equal});
+  check_tokens(u8"=>"_sv, {token_type::equal_greater});
+  check_tokens(u8"..."_sv, {token_type::dot_dot_dot});
 }
 
 TEST(test_lex, lex_adjacent_symbols) {
@@ -1448,8 +1452,8 @@ TEST(test_lex, lex_whitespace) {
 }
 
 TEST(test_lex, lex_shebang) {
-  check_single_token(u8"#!/usr/bin/env node\nhello"_sv, token_type::identifier);
-  check_single_token(u8"#!ignored\n123"_sv, token_type::number);
+  check_tokens(u8"#!/usr/bin/env node\nhello"_sv, {token_type::identifier});
+  check_tokens(u8"#!ignored\n123"_sv, {token_type::number});
 }
 
 TEST(test_lex, lex_not_shebang) {
@@ -1628,23 +1632,6 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   EXPECT_THAT(errors.errors, IsEmpty());
 }
 
-void check_single_token(string8_view input, token_type expected_token_type) {
-  padded_string code(input);
-  check_single_token(&code, expected_token_type);
-}
-
-void check_single_token(padded_string_view input,
-                        token_type expected_token_type) {
-  std::vector<token> lexed_tokens = lex_to_eof(input);
-
-  std::vector<token_type> lexed_token_types;
-  for (const token& t : lexed_tokens) {
-    lexed_token_types.push_back(t.type);
-  }
-
-  EXPECT_THAT(lexed_token_types, ElementsAre(expected_token_type));
-}
-
 void check_single_token(string8_view input,
                         string8_view expected_identifier_name) {
   check_single_token_with_errors(input, expected_identifier_name,
@@ -1679,13 +1666,29 @@ void check_tokens(string8_view input,
                            });
 }
 
+void check_tokens(padded_string_view input,
+                  std::initializer_list<token_type> expected_token_types) {
+  check_tokens_with_errors(input, expected_token_types,
+                           [](padded_string_view, const auto& errors) {
+                             EXPECT_THAT(errors, IsEmpty());
+                           });
+}
+
 void check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
                          const std::vector<error_collector::error>&)) {
   padded_string code(input);
+  return check_tokens_with_errors(&code, expected_token_types, check_errors);
+}
+
+void check_tokens_with_errors(
+    padded_string_view input,
+    std::initializer_list<token_type> expected_token_types,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<error_collector::error>&)) {
   error_collector errors;
-  std::vector<token> lexed_tokens = lex_to_eof(&code, errors);
+  std::vector<token> lexed_tokens = lex_to_eof(input, errors);
 
   std::vector<token_type> lexed_token_types;
   for (const token& t : lexed_tokens) {
@@ -1694,7 +1697,7 @@ void check_tokens_with_errors(
 
   EXPECT_THAT(lexed_token_types,
               ::testing::ElementsAreArray(expected_token_types));
-  check_errors(&code, errors.errors);
+  check_errors(input, errors.errors);
 }
 
 std::vector<token> lex_to_eof(padded_string_view input) {
