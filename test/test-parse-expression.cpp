@@ -1369,6 +1369,31 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, function)");
     }
+
+    {
+      string8 code = u8"{" + keyword + u8"}";
+      expression_ptr ast = this->parse_expression(code.c_str());
+      EXPECT_EQ(ast->kind(), expression_kind::object);
+      EXPECT_EQ(ast->object_entry_count(), 1);
+      EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+      EXPECT_EQ(ast->object_entry(0).value->kind(), expression_kind::variable);
+      EXPECT_EQ(
+          ast->object_entry(0).value->variable_identifier().normalized_name(),
+          keyword);
+    }
+
+    {
+      string8 code = u8"{" + keyword + u8", other}";
+      expression_ptr ast = this->parse_expression(code.c_str());
+      EXPECT_EQ(ast->kind(), expression_kind::object);
+      EXPECT_EQ(ast->object_entry_count(), 2);
+      EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+      EXPECT_EQ(ast->object_entry(0).value->kind(), expression_kind::variable);
+      EXPECT_EQ(
+          ast->object_entry(0).value->variable_identifier().normalized_name(),
+          keyword);
+      EXPECT_EQ(summarize(ast->object_entry(1).value), "var other");
+    }
   }
 }
 

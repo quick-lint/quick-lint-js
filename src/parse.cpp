@@ -892,6 +892,7 @@ expression_ptr parser::parse_object_literal() {
               ? function_attributes::async
               : function_attributes::normal;
       source_code_span keyword_span = this->peek().span();
+      token_type keyword_type = this->peek().type;
       this->skip();
 
       switch (this->peek().type) {
@@ -931,6 +932,17 @@ expression_ptr parser::parse_object_literal() {
             this->make_expression<expression::literal>(keyword_span);
         parse_method_entry(keyword_span.begin(), key,
                            function_attributes::normal);
+        break;
+      }
+
+      // { get }
+      case token_type::comma:
+      case token_type::right_curly: {
+        expression_ptr key =
+            this->make_expression<expression::literal>(keyword_span);
+        expression_ptr value = this->make_expression<expression::variable>(
+            identifier(keyword_span), keyword_type);
+        entries.emplace_back(key, value);
         break;
       }
 
