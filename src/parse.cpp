@@ -76,6 +76,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_let:
+  case token_type::kw_of:
   case token_type::kw_set:
   case token_type::kw_static: {
     expression_ptr ast = this->make_expression<expression::variable>(
@@ -436,6 +437,7 @@ expression_ptr parser::parse_async_expression(token async_token,
   case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_let:
+  case token_type::kw_of:
   case token_type::kw_set:
   case token_type::kw_static:
   case token_type::kw_yield:
@@ -754,6 +756,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   case token_type::identifier:
   case token_type::kw_async:
   case token_type::kw_let:
+  case token_type::kw_of:
   case token_type::kw_yield:
     function_name = this->peek().identifier_name();
     this->skip();

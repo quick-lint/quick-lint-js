@@ -28,7 +28,6 @@ import unittest
 
 
 TODO_JS_FILES = (
-    "ES6/for-of/let-of-of.js",
     "JSX/*",
     "es2017/async/regular-identifier/proto-identifier-shorthand-with-async.js",
     "multiline_string_literal.js",

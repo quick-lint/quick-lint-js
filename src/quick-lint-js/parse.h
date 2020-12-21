@@ -709,6 +709,7 @@ class parser {
     case token_type::identifier:
     case token_type::kw_async:
     case token_type::kw_let:
+    case token_type::kw_of:
     case token_type::kw_static:
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_function);
@@ -770,6 +771,7 @@ class parser {
       case token_type::kw_from:
       case token_type::kw_get:
       case token_type::kw_let:
+      case token_type::kw_of:
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
@@ -1047,6 +1049,7 @@ class parser {
       case token_type::identifier:
       case token_type::kw_async:
       case token_type::kw_let:
+      case token_type::kw_of:
       case token_type::kw_static:
       case token_type::kw_yield:
         v.visit_variable_declaration(this->peek().identifier_name(),
@@ -1486,6 +1489,7 @@ class parser {
       case token_type::identifier:
       case token_type::kw_async:
       case token_type::kw_let:
+      case token_type::kw_of:
       case token_type::kw_static:
       case token_type::left_curly:
       case token_type::left_square:
