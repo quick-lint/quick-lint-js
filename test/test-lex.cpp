@@ -29,6 +29,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/source-location.h>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -40,30 +41,54 @@ using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::VariantWith;
 
+// Like EXPECT_THAT, but using the 'caller' variable for source locations.
+#define EXPECT_THAT_AT_CALLER(value, matcher)                                 \
+  GTEST_PRED_FORMAT1_(                                                        \
+      ::testing::internal::MakePredicateFormatterFromMatcher(matcher), value, \
+      ADD_FAILURE_AT_CALLER)
+
+// Like EXPECT_EQ, but using the 'caller' variable for source locations.
+#define EXPECT_EQ_AT_CALLER(lhs, rhs)                                   \
+  GTEST_PRED_FORMAT2_(::testing::internal::EqHelper::Compare, lhs, rhs, \
+                      ADD_FAILURE_AT_CALLER)
+
+#define ADD_FAILURE_AT_CALLER(message)                                    \
+  GTEST_MESSAGE_AT_((caller.valid() ? caller.file_name() : __FILE__),     \
+                    (caller.valid() ? caller.line() : __LINE__), message, \
+                    ::testing::TestPartResult::kNonFatalFailure)
+
 namespace quick_lint_js {
 namespace {
 void check_single_token(string8_view input,
-                        string8_view expected_identifier_name);
+                        string8_view expected_identifier_name,
+                        source_location = source_location::current());
 void check_single_token_with_errors(
     string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&));
+                         const std::vector<error_collector::error>&),
+    source_location = source_location::current());
 void check_tokens(string8_view input,
-                  std::initializer_list<token_type> expected_token_types);
+                  std::initializer_list<token_type> expected_token_types,
+                  source_location = source_location::current());
 void check_tokens(padded_string_view input,
-                  std::initializer_list<token_type> expected_token_types);
+                  std::initializer_list<token_type> expected_token_types,
+                  source_location = source_location::current());
 void check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&));
+                         const std::vector<error_collector::error>&),
+    source_location = source_location::current());
 void check_tokens_with_errors(
     padded_string_view input,
     std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&));
+                         const std::vector<error_collector::error>&),
+    source_location = source_location::current());
 std::vector<token> lex_to_eof(padded_string_view, error_collector&);
-std::vector<token> lex_to_eof(padded_string_view);
-std::vector<token> lex_to_eof(string8_view);
+std::vector<token> lex_to_eof(padded_string_view,
+                              source_location = source_location::current());
+std::vector<token> lex_to_eof(string8_view,
+                              source_location = source_location::current());
 
 TEST(test_lex, lex_block_comments) {
   check_single_token(u8"/* */ hello"_sv, u8"hello");
@@ -1633,60 +1658,80 @@ TEST(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
 }
 
 void check_single_token(string8_view input,
-                        string8_view expected_identifier_name) {
-  check_single_token_with_errors(input, expected_identifier_name,
-                                 [](padded_string_view, const auto& errors) {
-                                   EXPECT_THAT(errors, IsEmpty());
-                                 });
+                        string8_view expected_identifier_name,
+                        source_location local_caller) {
+  static source_location caller;
+  caller = local_caller;
+  check_single_token_with_errors(
+      input, expected_identifier_name,
+      [](padded_string_view, const auto& errors) {
+        EXPECT_THAT_AT_CALLER(errors, IsEmpty());
+      },
+      caller);
 }
 
 void check_single_token_with_errors(
     string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&)) {
+                         const std::vector<error_collector::error>&),
+    source_location caller) {
   padded_string code(input);
   error_collector errors;
   std::vector<token> lexed_tokens = lex_to_eof(&code, errors);
 
-  EXPECT_THAT(lexed_tokens, ElementsAre(::testing::Field(
-                                "type", &token::type, token_type::identifier)));
+  EXPECT_THAT_AT_CALLER(lexed_tokens,
+                        ElementsAre(::testing::Field("type", &token::type,
+                                                     token_type::identifier)));
   if (lexed_tokens.size() == 1 &&
       lexed_tokens[0].type == token_type::identifier) {
-    EXPECT_EQ(lexed_tokens[0].identifier_name().normalized_name(),
-              expected_identifier_name);
+    EXPECT_EQ_AT_CALLER(lexed_tokens[0].identifier_name().normalized_name(),
+                        expected_identifier_name);
   }
   check_errors(&code, errors.errors);
 }
 
 void check_tokens(string8_view input,
-                  std::initializer_list<token_type> expected_token_types) {
-  check_tokens_with_errors(input, expected_token_types,
-                           [](padded_string_view, const auto& errors) {
-                             EXPECT_THAT(errors, IsEmpty());
-                           });
+                  std::initializer_list<token_type> expected_token_types,
+                  source_location local_caller) {
+  static source_location caller;
+  caller = local_caller;
+  check_tokens_with_errors(
+      input, expected_token_types,
+      [](padded_string_view, const auto& errors) {
+        EXPECT_THAT_AT_CALLER(errors, IsEmpty());
+      },
+      caller);
 }
 
 void check_tokens(padded_string_view input,
-                  std::initializer_list<token_type> expected_token_types) {
-  check_tokens_with_errors(input, expected_token_types,
-                           [](padded_string_view, const auto& errors) {
-                             EXPECT_THAT(errors, IsEmpty());
-                           });
+                  std::initializer_list<token_type> expected_token_types,
+                  source_location local_caller) {
+  static source_location caller;
+  caller = local_caller;
+  check_tokens_with_errors(
+      input, expected_token_types,
+      [](padded_string_view, const auto& errors) {
+        EXPECT_THAT_AT_CALLER(errors, IsEmpty());
+      },
+      caller);
 }
 
 void check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&)) {
+                         const std::vector<error_collector::error>&),
+    source_location caller) {
   padded_string code(input);
-  return check_tokens_with_errors(&code, expected_token_types, check_errors);
+  return check_tokens_with_errors(&code, expected_token_types, check_errors,
+                                  caller);
 }
 
 void check_tokens_with_errors(
     padded_string_view input,
     std::initializer_list<token_type> expected_token_types,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&)) {
+                         const std::vector<error_collector::error>&),
+    source_location caller) {
   error_collector errors;
   std::vector<token> lexed_tokens = lex_to_eof(input, errors);
 
@@ -1695,15 +1740,16 @@ void check_tokens_with_errors(
     lexed_token_types.push_back(t.type);
   }
 
-  EXPECT_THAT(lexed_token_types,
-              ::testing::ElementsAreArray(expected_token_types));
+  EXPECT_THAT_AT_CALLER(lexed_token_types,
+                        ::testing::ElementsAreArray(expected_token_types));
   check_errors(input, errors.errors);
 }
 
-std::vector<token> lex_to_eof(padded_string_view input) {
+std::vector<token> lex_to_eof(padded_string_view input,
+                              source_location caller) {
   error_collector errors;
   std::vector<token> tokens = lex_to_eof(input, errors);
-  EXPECT_THAT(errors.errors, IsEmpty());
+  EXPECT_THAT_AT_CALLER(errors.errors, IsEmpty());
   return tokens;
 }
 
@@ -1718,9 +1764,9 @@ std::vector<token> lex_to_eof(padded_string_view input,
   return tokens;
 }
 
-std::vector<token> lex_to_eof(string8_view input) {
+std::vector<token> lex_to_eof(string8_view input, source_location caller) {
   padded_string real_input(input);
-  return lex_to_eof(&real_input);
+  return lex_to_eof(&real_input, caller);
 }
 }
 }
