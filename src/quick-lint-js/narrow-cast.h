@@ -20,6 +20,7 @@
 #include <limits>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/source-location.h>
 #include <type_traits>
 
 namespace quick_lint_js {
@@ -82,22 +83,21 @@ constexpr bool in_range([[maybe_unused]] In x) noexcept {
 
 template <class Out, class In>
 Out narrow_cast(In x
-#if !(defined(NDEBUG) && NDEBUG) && QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE
+#if !(defined(NDEBUG) && NDEBUG)
                 ,
-                const char* caller_file = __builtin_FILE(),
-                unsigned caller_line = __builtin_LINE(),
-                const char* caller_func = __builtin_FUNCTION()
+                source_location caller = source_location::current()
 #endif
                     ) noexcept {
 #if !(defined(NDEBUG) && NDEBUG)
   if (!in_range<Out>(x)) {
-    report_assertion_failure(
-#if QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE
-        caller_file, static_cast<int>(caller_line), caller_func,
-#else
-        __FILE__, __LINE__, __func__,
-#endif
-        "number not in range");
+    if constexpr (source_location::valid()) {
+      report_assertion_failure(caller.file_name(),
+                               static_cast<int>(caller.line()),
+                               caller.function_name(), "number not in range");
+    } else {
+      report_assertion_failure(__FILE__, __LINE__, __func__,
+                               "number not in range");
+    }
     QLJS_ASSERT_TRAP();
   }
 #endif

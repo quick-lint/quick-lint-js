@@ -31,19 +31,24 @@ class source_location {
 
   static source_location current(
       const char* file_name = __builtin_FILE(),
+      const char* function_name = __builtin_FUNCTION(),
       std::uint_least32_t line = __builtin_LINE()) noexcept {
-    return source_location(file_name, line);
+    return source_location(file_name, function_name, line);
   }
 
   constexpr const char* file_name() const noexcept { return this->file_name_; }
+  constexpr const char* function_name() const noexcept {
+    return this->function_name_;
+  }
   constexpr std::uint_least32_t line() const noexcept { return this->line_; }
 
  private:
-  explicit source_location(const char* file_name,
+  explicit source_location(const char* file_name, const char* function_name,
                            std::uint_least32_t line) noexcept
-      : file_name_(file_name), line_(line) {}
+      : file_name_(file_name), function_name_(function_name), line_(line) {}
 
   const char* file_name_ = nullptr;
+  const char* function_name_ = nullptr;
   std::uint_least32_t line_ = 0;
 };
 #else
@@ -56,6 +61,7 @@ class source_location {
   static source_location current() noexcept { return source_location(); }
 
   constexpr const char* file_name() const noexcept { return nullptr; }
+  constexpr const char* function_name() const noexcept { return nullptr; }
   constexpr std::uint_least32_t line() const noexcept { return 0; }
 };
 #endif
