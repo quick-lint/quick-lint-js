@@ -82,7 +82,9 @@ class padded_string {
 class padded_string_view {
  public:
   /*implicit*/ padded_string_view(const padded_string *string)
-      : data_(string->data()), length_(string->size()) {}
+      : data_(string->data()), length_(string->size()) {
+    QLJS_ASSERT(*this->null_terminator() == u8'\0');
+  }
 
   explicit padded_string_view(const char8 *begin, const char8 *null_terminator)
       : data_(begin), length_(narrow_cast<int>(null_terminator - begin)) {}
