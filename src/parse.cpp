@@ -668,7 +668,7 @@ next:
   case token_type::equal_greater: {
     this->skip();
     if (children.size() != 1) {
-      QLJS_ASSERT(false && "Not yet implemented");
+      QLJS_UNIMPLEMENTED();
     }
     expression_ptr lhs = children.back();
     children.back() = this->parse_arrow_function_body(
@@ -1174,7 +1174,7 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
     parameters.emplace_back(lhs);
     break;
   default:
-    QLJS_ASSERT(false && "Not yet implemented");
+    QLJS_UNIMPLEMENTED();
     break;
   }
   return parameters;

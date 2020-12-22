@@ -1620,7 +1620,7 @@ class parser {
       this->visit_binding_element(ast->child_0(), v, declaration_kind);
       break;
     default:
-      QLJS_ASSERT(false && "Not yet implemented");
+      QLJS_UNIMPLEMENTED();
       break;
     }
   }

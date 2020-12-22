@@ -390,7 +390,7 @@ class expression::_invalid final : public expression {
   explicit _invalid() noexcept : expression(kind) {}
 
   source_code_span span_impl() const noexcept {
-    QLJS_ASSERT(false && "Not yet implemented");
+    QLJS_UNIMPLEMENTED();
     QLJS_UNREACHABLE();
   }
 };
