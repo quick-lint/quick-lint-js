@@ -57,7 +57,7 @@ source_position locator::position(const char8 *source) const noexcept {
   return this->position(line_number, offset);
 }
 
-void locator::cache_offsets_of_lines() const {
+[[gnu::noinline]] void locator::cache_offsets_of_lines() const {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(narrow_cast<source_position::offset_type>(
         beginning_of_line - this->input_.data()));
