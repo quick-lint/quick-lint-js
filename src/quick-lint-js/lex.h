@@ -17,12 +17,14 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
+#include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 
 #define QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET \
@@ -200,13 +202,24 @@ class identifier {
  public:
   // For tests only.
   explicit identifier(source_code_span span) noexcept
-      : span_(span), normalized_end_(span.end()) {}
+      : span_begin_(span.begin()),
+        normalized_begin_(this->span_begin_),
+        span_size_(narrow_cast<int>(span.end() - span.begin())),
+        normalized_size_(this->span_size_) {}
+
+  explicit identifier(source_code_span span, string8_view normalized) noexcept
+      : span_begin_(span.begin()),
+        normalized_begin_(normalized.data()),
+        span_size_(narrow_cast<int>(span.end() - span.begin())),
+        normalized_size_(narrow_cast<int>(normalized.size())) {}
 
   explicit identifier(source_code_span span,
-                      const char8* normalized_end) noexcept
-      : span_(span), normalized_end_(normalized_end) {}
+                      const char8* normalized) noexcept = delete;
 
-  source_code_span span() const noexcept { return this->span_; }
+  source_code_span span() const noexcept {
+    return source_code_span(this->span_begin_,
+                            this->span_begin_ + this->span_size_);
+  }
 
   // normalized_name returns the variable's name with escape sequences resolved.
   //
@@ -216,11 +229,16 @@ class identifier {
   // The returned pointers might not reside within the source code string. In
   // other words, the normalized name might be heap-allocated. Call span()
   // instead if you want pointers within the source code input.
-  string8_view normalized_name() const noexcept;
+  string8_view normalized_name() const noexcept {
+    return string8_view(this->normalized_begin_,
+                        narrow_cast<std::size_t>(this->normalized_size_));
+  }
 
  private:
-  source_code_span span_;
-  const char8* normalized_end_;
+  const char8* span_begin_;
+  const char8* normalized_begin_;
+  int span_size_;
+  int normalized_size_;
 };
 
 struct token {
@@ -235,7 +253,9 @@ struct token {
   bool has_leading_newline;
 
   // Used only if this is a keyword token or an identifier token.
-  const char8* normalized_identifier_end;
+  // If the token contains no escape sequences, .normalized_identifier is
+  // equivalent to string8_view(.begin, .end).
+  string8_view normalized_identifier;
 };
 
 // A lexer reads JavaScript source code one token at a time.
@@ -305,24 +325,25 @@ class lexer {
 
   // The result of parsing an identifier.
   //
-  // Normally, .end == .after. However, if an identifier's source code is
-  // changed, .end and .after might be different. Say we are parsing the
-  // identifier starting with 'w' in the following example:
+  // Typically, .normalized is default-constructed. However, if an identifier
+  // contains escape squences, then .normalized points to a heap-allocated
+  // null-terminated string of the unescaped identifier.
   //
-  // Original input: log(w\u{61}t)
-  // Modified input: log(wat     )
-  //                        ^    ^
-  //                      end    after
+  // Say we are parsing the identifier starting with 'w' in the following
+  // example:
   //
-  // In this case, .end points to the character following the rewritten
-  // identifier, and .after points to the character following the original
-  // identifier.
+  // Input: log(w\u{61}t)
+  //                    ^
+  //                    .end
+  //
+  // In this case, .end points to the ')' character which follows the
+  // identifier, and .normalized points to a heap-allocated string u8"wat".
   //
   // Invariant:
-  // if (escape_sequences.empty()) end == after;
+  // if (escape_sequences.empty()) normalized.data() == nullptr;
   struct parsed_identifier {
-    char8* end;    // End of the identifier.
     char8* after;  // Where to continue parsing.
+    string8_view normalized;
 
     std::vector<source_code_span> escape_sequences;
   };
@@ -384,6 +405,8 @@ class lexer {
   char8* input_;
   error_reporter* error_reporter_;
   padded_string_view original_input_;
+
+  boost::container::pmr::monotonic_buffer_resource memory_;
 };
 }
 

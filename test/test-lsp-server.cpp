@@ -578,6 +578,73 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
 }
 
+TEST(test_lsp_javascript_linter, linting_does_not_desync) {
+  // In the past, quick-lint-js' parser mutated the document. This caused
+  // LSP-induced changes to edit the mutated document, desyncing the server from
+  // the client. This test triggers what used to cause document mutation
+  // (an identifier with an escape sequence), and makes sure desyncing doesn't
+  // happen.
+
+  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+               spy_lsp_endpoint_remote>
+      server;
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "let \\u{79}; x;"
+          }
+        }
+      })"));
+
+  {
+    ASSERT_EQ(server.remote().messages.size(), 1);
+    ::Json::Value& response = server.remote().messages[0];
+    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    // LSP PublishDiagnosticsParams:
+    ::Json::Value& diagnostics = response["params"]["diagnostics"];
+    EXPECT_EQ(diagnostics.size(), 1) << "'x' should be undeclared";
+  }
+
+  server.remote().messages.clear();
+
+  // Change "\u{79}" ("y") to "\u{78}" ("x").
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test2.js",
+            "version": 11
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 8},
+                "end": {"line": 0, "character": 9}
+              },
+              "text": "8"
+            }
+          ]
+        }
+      })"));
+
+  {
+    ASSERT_EQ(server.remote().messages.size(), 1);
+    ::Json::Value& response = server.remote().messages[0];
+    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    // LSP PublishDiagnosticsParams:
+    ::Json::Value& diagnostics = response["params"]["diagnostics"];
+    EXPECT_EQ(diagnostics.size(), 0) << "'x' should be declared";
+  }
+}
+
 // TODO(strager): For batch requests containing multiple edits, lint and publish
 // diagnostics only once.
 }

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <algorithm>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstdint>
 #include <cstring>
 #include <iterator>
@@ -125,12 +126,6 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
 }
 }
 
-string8_view identifier::normalized_name() const noexcept {
-  const char8* begin = this->span_.begin();
-  return string8_view(begin,
-                      narrow_cast<std::size_t>(this->normalized_end_ - begin));
-}
-
 identifier token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
@@ -140,7 +135,8 @@ identifier token::identifier_name() const noexcept {
     QLJS_ASSERT(false);
     break;
   }
-  return identifier(this->span(), this->normalized_identifier_end);
+  return identifier(this->span(),
+                    /*normalized=*/this->normalized_identifier);
 }
 
 source_code_span token::span() const noexcept {
@@ -198,12 +194,9 @@ retry:
   QLJS_CASE_IDENTIFIER_START : {
     parsed_identifier ident = this->parse_identifier(this->input_);
     this->input_ = ident.after;
-    this->last_token_.normalized_identifier_end = ident.end;
+    this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
-    this->last_token_.type = this->identifier_token_type(string8_view(
-        this->last_token_.begin,
-        narrow_cast<std::size_t>(this->last_token_.normalized_identifier_end -
-                                 this->last_token_.begin)));
+    this->last_token_.type = this->identifier_token_type(ident.normalized);
     if (!ident.escape_sequences.empty() &&
         this->last_token_.type != token_type::identifier) {
       // Escape sequences in identifiers prevent it from becoming a keyword.
@@ -222,7 +215,7 @@ retry:
     parsed_identifier ident =
         this->parse_identifier_slow(this->input_, this->input_);
     this->input_ = ident.after;
-    this->last_token_.normalized_identifier_end = ident.end;
+    this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
     this->last_token_.type = token_type::identifier;
     break;
@@ -1083,8 +1076,10 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
                                        /*identifier_begin=*/identifier_begin);
   } else {
     return parsed_identifier{
-        .end = input,
         .after = input,
+        .normalized =
+            string8_view(identifier_begin,
+                         narrow_cast<std::size_t>(input - identifier_begin)),
         .escape_sequences = {},
     };
   }
@@ -1092,7 +1087,16 @@ lexer::parsed_identifier lexer::parse_identifier(char8* input) {
 
 lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
                                                       char8* identifier_begin) {
-  char8* end = input;
+  using lexer_string8 =
+      std::basic_string<char8, std::char_traits<char8>,
+                        boost::container::pmr::polymorphic_allocator<char8>>;
+  boost::container::pmr::polymorphic_allocator<lexer_string8> allocator(
+      &this->memory_);
+  lexer_string8* normalized = allocator.allocate(1);
+  normalized = new (normalized) lexer_string8(
+      identifier_begin, input,
+      boost::container::pmr::polymorphic_allocator<char8>(&this->memory_));
+
   std::vector<source_code_span> escape_sequences;
 
   auto parse_unicode_escape = [&]() {
@@ -1112,7 +1116,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
           this->error_reporter_->report(
               error_unclosed_identifier_escape_sequence{.escape_sequence =
                                                             get_escape_span()});
-          end = std::copy(escape_sequence_begin, input, end);
+          normalized->append(escape_sequence_begin, input);
           return;
         }
         if (!this->is_hex_digit(*input)) {
@@ -1126,7 +1130,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
         this->error_reporter_->report(
             error_expected_hex_digits_in_unicode_escape{.escape_sequence =
                                                             get_escape_span()});
-        end = std::copy(escape_sequence_begin, input, end);
+        normalized->append(escape_sequence_begin, input);
         return;
       }
     } else {
@@ -1137,7 +1141,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
           this->error_reporter_->report(
               error_unclosed_identifier_escape_sequence{.escape_sequence =
                                                             get_escape_span()});
-          end = std::copy(escape_sequence_begin, input, end);
+          normalized->append(escape_sequence_begin, input);
           return;
         }
         if (!this->is_hex_digit(*input)) {
@@ -1145,7 +1149,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
               error_expected_hex_digits_in_unicode_escape{
                   .escape_sequence =
                       source_code_span(escape_sequence_begin, input + 1)});
-          end = std::copy(escape_sequence_begin, input, end);
+          normalized->append(escape_sequence_begin, input);
           return;
         }
         ++input;
@@ -1166,16 +1170,19 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
       this->error_reporter_->report(
           error_escaped_code_point_in_identifier_out_of_range{
               .escape_sequence = get_escape_span()});
-      end = std::copy(escape_sequence_begin, input, end);
+      normalized->append(escape_sequence_begin, input);
     } else if (!(is_initial_identifier_character
                      ? this->is_initial_identifier_character(code_point)
                      : this->is_identifier_character(code_point))) {
       this->error_reporter_->report(
           error_escaped_character_disallowed_in_identifiers{
               .escape_sequence = get_escape_span()});
-      end = std::copy(escape_sequence_begin, input, end);
+      normalized->append(escape_sequence_begin, input);
     } else {
-      end = encode_utf_8(code_point, end);
+      normalized->append(4, u8'\0');
+      char8* end =
+          encode_utf_8(code_point, &normalized->data()[normalized->size() - 4]);
+      normalized->resize(narrow_cast<std::size_t>(end - normalized->data()));
       escape_sequences.emplace_back(escape_sequence_begin, input);
     }
   };
@@ -1200,7 +1207,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
       }
       this->error_reporter_->report(error_invalid_utf_8_sequence{
           .sequence = source_code_span(errors_begin, input)});
-      end = std::copy(errors_begin, input, end);
+      normalized->append(errors_begin, input);
       continue;
     }
 
@@ -1213,7 +1220,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
         char8* backslash_end = input;
         this->error_reporter_->report(error_unexpected_backslash_in_identifier{
             .backslash = source_code_span(backslash_begin, backslash_end)});
-        end = std::copy(backslash_begin, backslash_end, end);
+        normalized->append(backslash_begin, backslash_end);
       }
     } else {
       QLJS_ASSERT(decode_result.size >= 1);
@@ -1242,17 +1249,14 @@ lexer::parsed_identifier lexer::parse_identifier_slow(char8* input,
         }
       }
 
-      end = std::copy(character_begin, character_end, end);
+      normalized->append(character_begin, character_end);
       input = character_end;
     }
   }
 
-  // Make the source code readable when debugging.
-  std::fill(end, input, u8' ');
-
   return parsed_identifier{
-      .end = end,
       .after = input,
+      .normalized = string8_view(*normalized),
       .escape_sequences = std::move(escape_sequences),
   };
 }

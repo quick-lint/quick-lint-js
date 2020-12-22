@@ -1008,7 +1008,9 @@ TEST_F(test_lex,
   EXPECT_EQ(span.end(), &input[input.size()]);
 }
 
-TEST_F(test_lex, lex_identifier_with_escape_sequences_change_input) {
+// TODO(strager): Delete this test when padded_string_view disallows mutation of
+// the padded_string.
+TEST_F(test_lex, lex_identifier_with_escape_sequences_does_not_change_input) {
   padded_string input(u8"hell\\u{6F} = \\u{77}orld;"_sv);
 
   lexer l(&input, &null_error_reporter::instance);
@@ -1017,9 +1019,7 @@ TEST_F(test_lex, lex_identifier_with_escape_sequences_change_input) {
     l.skip();
   }
 
-  EXPECT_THAT(input, u8"hello      = world     ;")
-      << "lexing should replace escape sequences with their character, and put "
-         "trailing spaces after the identifier";
+  EXPECT_THAT(input, u8"hell\\u{6F} = \\u{77}orld;");
 }
 
 TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
