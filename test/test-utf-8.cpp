@@ -96,7 +96,7 @@ TEST(test_utf_8_encode, non_standard_four_byte_output_extremes) {
 
 namespace {
 decode_utf_8_result decode_utf_8(const padded_string& code_units) noexcept {
-  return quick_lint_js::decode_utf_8(const_cast<padded_string*>(&code_units));
+  return quick_lint_js::decode_utf_8(&code_units);
 }
 
 #if QLJS_HAVE_CHAR8_T
