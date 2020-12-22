@@ -78,7 +78,7 @@ void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_character(
       /*qljs_line=*/qljs_line,
       /*qljs_function_name=*/qljs_function_name,
       /*character=*/character,
-      /*locator=*/get(this->locator_),
+      /*locator=*/nullptr,
       /*out=*/std::cerr);
 }
 
@@ -91,7 +91,7 @@ void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
       /*qljs_function_name=*/qljs_function_name,
       /*type=*/type,
       /*token_begin=*/token_begin,
-      /*locator=*/get(this->locator_),
+      /*locator=*/nullptr,
       /*out=*/std::cerr);
 }
 
@@ -111,7 +111,7 @@ vim_qflist_json_error_formatter vim_qflist_json_error_reporter::format() {
 }
 
 vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
-    std::ostream &output, quick_lint_js::locator &locator,
+    std::ostream &output, quick_lint_js::vim_locator &locator,
     std::string_view file_name, std::string_view bufnr)
     : output_(output),
       locator_(locator),
@@ -125,14 +125,11 @@ void vim_qflist_json_error_formatter::write_before_message(
     return;
   }
 
-  source_range r = this->locator_.range(origin);
-  auto end_column_number = origin.begin() == origin.end()
-                               ? r.begin().column_number
-                               : (r.end().column_number - 1);
-  this->output_ << "{\"col\": " << r.begin().column_number
-                << ", \"lnum\": " << r.begin().line_number
-                << ", \"end_col\": " << end_column_number
-                << ", \"end_lnum\": " << r.end().line_number
+  vim_source_range r = this->locator_.range(origin);
+  auto end_col = origin.begin() == origin.end() ? r.begin.col : (r.end.col - 1);
+  this->output_ << "{\"col\": " << r.begin.col << ", \"lnum\": " << r.begin.lnum
+                << ", \"end_col\": " << end_col
+                << ", \"end_lnum\": " << r.end.lnum
                 << ", \"vcol\": 0, \"text\": \"";
 }
 

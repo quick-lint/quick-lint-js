@@ -114,6 +114,7 @@ quick_lint_js_add_library(
   quick-lint-js/utf-8.h
   quick-lint-js/vector.h
   quick-lint-js/version.h
+  quick-lint-js/vim-location.h
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/wasm-demo-error-reporter.h
@@ -122,6 +123,7 @@ quick_lint_js_add_library(
   translation.cpp
   utf-8.cpp
   vector.cpp
+  vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   wasm-demo-error-reporter.cpp
 )

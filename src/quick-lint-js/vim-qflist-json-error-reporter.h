@@ -24,6 +24,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/vim-location.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -58,7 +59,7 @@ class vim_qflist_json_error_reporter final : public error_reporter {
   vim_qflist_json_error_formatter format();
 
   std::ostream &output_;
-  std::optional<locator> locator_;
+  std::optional<vim_locator> locator_;
   std::string bufnr_;
   std::string file_name_;
   bool need_comma_ = false;
@@ -68,7 +69,7 @@ class vim_qflist_json_error_formatter
     : public error_formatter<vim_qflist_json_error_formatter> {
  public:
   explicit vim_qflist_json_error_formatter(std::ostream &output,
-                                           quick_lint_js::locator &locator,
+                                           quick_lint_js::vim_locator &locator,
                                            std::string_view file_name,
                                            std::string_view bufnr);
   void write_before_message(severity, const source_code_span &origin);
@@ -77,7 +78,7 @@ class vim_qflist_json_error_formatter
 
  private:
   std::ostream &output_;
-  quick_lint_js::locator &locator_;
+  quick_lint_js::vim_locator &locator_;
   std::string_view file_name_;
   std::string_view bufnr_;
 };

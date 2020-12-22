@@ -26,6 +26,7 @@
 #include <vector>
 
 // TODO(strager): Also benchmark lsp_locator.
+// TODO(strager): Also benchmark vim_locator.
 
 namespace quick_lint_js {
 namespace {
