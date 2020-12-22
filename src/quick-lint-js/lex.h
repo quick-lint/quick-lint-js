@@ -320,7 +320,7 @@ class lexer {
  private:
   struct parsed_template_body {
     token_type type;
-    char8* end;
+    const char8* end;
   };
 
   // The result of parsing an identifier.
@@ -342,7 +342,7 @@ class lexer {
   // Invariant:
   // if (escape_sequences.empty()) normalized.data() == nullptr;
   struct parsed_identifier {
-    char8* after;  // Where to continue parsing.
+    const char8* after;  // Where to continue parsing.
     string8_view normalized;
 
     std::vector<source_code_span> escape_sequences;
@@ -350,9 +350,9 @@ class lexer {
 
   void parse_current_token();
 
-  char8* parse_string_literal() noexcept;
+  const char8* parse_string_literal() noexcept;
 
-  parsed_template_body parse_template_body(char8* input,
+  parsed_template_body parse_template_body(const char8* input,
                                            const char8* template_begin,
                                            error_reporter*);
 
@@ -366,19 +366,20 @@ class lexer {
   void parse_octal_number(octal_kind);
   void parse_hexadecimal_number();
   template <class Error>
-  char8* check_garbage_in_number_literal(char8* input);
+  const char8* check_garbage_in_number_literal(const char8* input);
   void parse_number();
 
   template <class Func>
-  char8* parse_digits_and_underscores(Func&& is_valid_digit,
-                                      char8* input) noexcept;
-  char8* parse_octal_digits(char8* input) noexcept;
-  char8* parse_decimal_digits_and_underscores(char8* input) noexcept;
-  char8* parse_hex_digits_and_underscores(char8* input) noexcept;
+  const char8* parse_digits_and_underscores(Func&& is_valid_digit,
+                                            const char8* input) noexcept;
+  const char8* parse_octal_digits(const char8* input) noexcept;
+  const char8* parse_decimal_digits_and_underscores(
+      const char8* input) noexcept;
+  const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;
 
-  parsed_identifier parse_identifier(char8*);
-  parsed_identifier parse_identifier_slow(char8* input,
-                                          char8* identifier_begin);
+  parsed_identifier parse_identifier(const char8*);
+  parsed_identifier parse_identifier_slow(const char8* input,
+                                          const char8* identifier_begin);
 
   void skip_whitespace();
   void skip_block_comment();
@@ -401,8 +402,8 @@ class lexer {
   static token_type identifier_token_type(string8_view) noexcept;
 
   token last_token_;
-  char8* last_last_token_end_;
-  char8* input_;
+  const char8* last_last_token_end_;
+  const char8* input_;
   error_reporter* error_reporter_;
   padded_string_view original_input_;
 

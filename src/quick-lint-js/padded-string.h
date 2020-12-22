@@ -57,6 +57,9 @@ class padded_string {
   char8 *begin() noexcept { return this->data(); }
   char8 *end() noexcept { return this->data() + this->size(); }
 
+  const char8 *cbegin() const noexcept { return this->data(); }
+  const char8 *cend() const noexcept { return this->data() + this->size(); }
+
   const char8 *null_terminator() const noexcept {
     return this->data() + this->size();
   }
@@ -76,14 +79,12 @@ class padded_string {
   string8 data_;
 };
 
-// Important: Unlike std::string_view, padded_string_view allows write access to
-// the underlying string.
 class padded_string_view {
  public:
-  /*implicit*/ padded_string_view(padded_string *string)
+  /*implicit*/ padded_string_view(const padded_string *string)
       : data_(string->data()), length_(string->size()) {}
 
-  explicit padded_string_view(char8 *begin, const char8 *null_terminator)
+  explicit padded_string_view(const char8 *begin, const char8 *null_terminator)
       : data_(begin), length_(narrow_cast<int>(null_terminator - begin)) {}
 
   padded_string_view(const padded_string_view &) noexcept = default;
@@ -92,7 +93,7 @@ class padded_string_view {
   padded_string_view(padded_string_view &&) noexcept = default;
   padded_string_view &operator=(padded_string_view &&) noexcept = default;
 
-  char8 *data() const noexcept { return this->data_; }
+  const char8 *data() const noexcept { return this->data_; }
 
   int size() const noexcept { return this->length_; }
 
@@ -100,7 +101,7 @@ class padded_string_view {
     return this->data_ + this->length_;
   }
 
-  char8 &operator[](int index) const noexcept {
+  const char8 &operator[](int index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index <= this->size());
     return this->data_[index];
@@ -116,7 +117,7 @@ class padded_string_view {
   friend bool operator!=(const padded_string_view &, string8_view) noexcept;
 
  private:
-  char8 *data_;
+  const char8 *data_;
   int length_;
 };
 }

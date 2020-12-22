@@ -50,7 +50,7 @@ class lsp_locator {
   lsp_range range(source_code_span) const;
   lsp_position position(const char8 *) const noexcept;
 
-  char8 *from_position(lsp_position) const noexcept;
+  const char8 *from_position(lsp_position) const noexcept;
 
   void replace_text(lsp_range, string8_view replacement_text,
                     padded_string_view new_input);

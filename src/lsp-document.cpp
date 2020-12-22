@@ -42,16 +42,16 @@ void lsp_document::replace_text(lsp_range range,
   padded_string& new_content =
       this->content_buffers_[1 - this->active_content_buffer_];
 
-  char8* start = this->locator_.from_position(range.start);
-  char8* end = this->locator_.from_position(range.end);
+  const char8* start = this->locator_.from_position(range.start);
+  const char8* end = this->locator_.from_position(range.end);
 
   new_content.resize(narrow_cast<int>(
       (start - old_content.begin()) +
       narrow_cast<int>(replacement_text.size()) + (old_content.end() - end)));
   char8* out = new_content.data();
-  out = std::copy(old_content.begin(), start, out);
+  out = std::copy(old_content.cbegin(), start, out);
   out = std::copy(replacement_text.begin(), replacement_text.end(), out);
-  out = std::copy(end, old_content.end(), out);
+  out = std::copy(end, old_content.cend(), out);
   QLJS_ASSERT(out == new_content.end());
 
   this->locator_.replace_text(range, replacement_text, &new_content);

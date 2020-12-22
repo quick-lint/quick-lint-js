@@ -127,35 +127,36 @@ TEST(test_lsp_location, position_backwards) {
 TEST(test_lsp_location, offset_from_first_line_position) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* o = l.from_position(lsp_position{.line = 0, .character = 4});
+  const char8* o = l.from_position(lsp_position{.line = 0, .character = 4});
   EXPECT_EQ(o, &code[4]);
 }
 
 TEST(test_lsp_location, offset_from_second_line_position) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* r = l.from_position(lsp_position{.line = 1, .character = 2});
+  const char8* r = l.from_position(lsp_position{.line = 1, .character = 2});
   EXPECT_EQ(r, &code[8]);
 }
 
 TEST(test_lsp_location, offset_from_out_of_range_line) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* c = l.from_position(lsp_position{.line = 2, .character = 2});
+  const char8* c = l.from_position(lsp_position{.line = 2, .character = 2});
   EXPECT_EQ(c, nullptr);
 }
 
 TEST(test_lsp_location, offset_from_beginning_of_line) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* w = l.from_position(lsp_position{.line = 1, .character = 0});
+  const char8* w = l.from_position(lsp_position{.line = 1, .character = 0});
   EXPECT_EQ(w, &code[6]);
 }
 
 TEST(test_lsp_location, offset_from_end_of_line) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* terminator = l.from_position(lsp_position{.line = 0, .character = 5});
+  const char8* terminator =
+      l.from_position(lsp_position{.line = 0, .character = 5});
   EXPECT_EQ(terminator, &code[5]);
 }
 
@@ -164,7 +165,7 @@ TEST(test_lsp_location, offset_from_empty_line) {
   lsp_locator l(&code);
   for (int character : {0, 1, 2, 3, 4}) {
     SCOPED_TRACE(character);
-    char8* terminator =
+    const char8* terminator =
         l.from_position(lsp_position{.line = 1, .character = character});
     EXPECT_EQ(terminator, &code[6]);
   }
@@ -175,7 +176,7 @@ TEST(test_lsp_location, offset_from_last_character_in_line) {
     padded_string code(u8"hello" + string8(line_terminator) + u8"world");
     SCOPED_TRACE(code);
     lsp_locator l(&code);
-    char8* o = l.from_position(lsp_position{.line = 0, .character = 4});
+    const char8* o = l.from_position(lsp_position{.line = 0, .character = 4});
     EXPECT_EQ(o, &code[4]);
   }
 }
@@ -186,7 +187,7 @@ TEST(test_lsp_location,
     padded_string code(u8"hello" + string8(line_terminator) + u8"world");
     SCOPED_TRACE(code);
     lsp_locator l(&code);
-    char8* terminator =
+    const char8* terminator =
         l.from_position(lsp_position{.line = 0, .character = 6});
     EXPECT_EQ(terminator, &code[5]);
   }
@@ -197,7 +198,7 @@ TEST(test_lsp_location, offset_from_end_of_last_line) {
   lsp_locator l(&code);
   for (int character : {5, 6, 10}) {
     SCOPED_TRACE(character);
-    char8* terminator =
+    const char8* terminator =
         l.from_position(lsp_position{.line = 0, .character = character});
     EXPECT_EQ(terminator, &code[5]);
   }
@@ -206,7 +207,7 @@ TEST(test_lsp_location, offset_from_end_of_last_line) {
 TEST(test_lsp_location, offset_of_inside_cr_lf_gives_beginning_of_cr_lf) {
   padded_string code(u8"hello\r\nworld"_sv);
   lsp_locator l(&code);
-  char8* terminator = l.from_position(lsp_position{
+  const char8* terminator = l.from_position(lsp_position{
       .line = 0, .character = narrow_cast<int>(strlen(u8"hello\r"))});
   EXPECT_EQ(terminator, &code[narrow_cast<int>(strlen(u8"hello"))]);
 }
@@ -216,7 +217,7 @@ TEST(test_lsp_location, offset_from_empty_input) {
   lsp_locator l(&code);
   for (int character : {0, 1, 10}) {
     SCOPED_TRACE(character);
-    char8* terminator =
+    const char8* terminator =
         l.from_position(lsp_position{.line = 0, .character = character});
     EXPECT_EQ(terminator, &code[0]);
   }
@@ -225,14 +226,14 @@ TEST(test_lsp_location, offset_from_empty_input) {
 TEST(test_lsp_location, offset_from_negative_line) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* c = l.from_position(lsp_position{.line = -2, .character = 0});
+  const char8* c = l.from_position(lsp_position{.line = -2, .character = 0});
   EXPECT_EQ(c, nullptr);
 }
 
 TEST(test_lsp_location, offset_from_negative_character) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
-  char8* c = l.from_position(lsp_position{.line = 1, .character = -2});
+  const char8* c = l.from_position(lsp_position{.line = 1, .character = -2});
   EXPECT_EQ(c, nullptr);
 }
 

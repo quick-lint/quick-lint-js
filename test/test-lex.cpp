@@ -1008,20 +1008,6 @@ TEST_F(test_lex,
   EXPECT_EQ(span.end(), &input[input.size()]);
 }
 
-// TODO(strager): Delete this test when padded_string_view disallows mutation of
-// the padded_string.
-TEST_F(test_lex, lex_identifier_with_escape_sequences_does_not_change_input) {
-  padded_string input(u8"hell\\u{6F} = \\u{77}orld;"_sv);
-
-  lexer l(&input, &null_error_reporter::instance);
-  while (l.peek().type != token_type::end_of_file) {
-    printf("toked\n");
-    l.skip();
-  }
-
-  EXPECT_THAT(input, u8"hell\\u{6F} = \\u{77}orld;");
-}
-
 TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
   this->check_single_token_with_errors(
       u8" are\\ufriendly ", u8"are\\ufriendly",

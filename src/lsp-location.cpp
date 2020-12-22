@@ -71,7 +71,7 @@ lsp_position lsp_locator::position(const char8 *source) const noexcept {
   return this->position(line_number, offset);
 }
 
-char8 *lsp_locator::from_position(lsp_position position) const noexcept {
+const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
   int line = position.line;
   int character = position.character;
   if (line < 0 || character < 0) {
