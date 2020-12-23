@@ -117,5 +117,31 @@ TEST(test_location, position_backwards) {
 
   EXPECT_EQ(actual_positions, expected_positions);
 }
+
+TEST(test_location, position_after_multi_byte_character) {
+  {
+    // U+2603 has three UTF-8 code units: e2 98 83
+    padded_string code(u8"\u2603 x"_sv);
+    const char8* x = strchr(code.c_str(), u8'x');
+    locator l(&code);
+    EXPECT_EQ(l.position(x).column_number, 5);
+  }
+
+  {
+    // U+1f496 has four UTF-8 code units: f0 9f 92 96
+    padded_string code(u8"\U0001f496 x"_sv);
+    const char8* x = strchr(code.c_str(), u8'x');
+    locator l(&code);
+    EXPECT_EQ(l.position(x).column_number, 6);
+  }
+}
+
+TEST(test_location, position_within_multi_byte_character) {
+  // U+2603 has three UTF-8 code units: e2 98 83
+  padded_string code(u8"\u2603"_sv);
+  locator l(&code);
+  EXPECT_EQ(l.position(code.c_str() + 1).column_number, 2);
+  EXPECT_EQ(l.position(code.c_str() + 2).column_number, 3);
+}
 }
 }
