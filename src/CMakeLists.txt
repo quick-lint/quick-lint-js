@@ -41,6 +41,7 @@ quick_lint_js_add_library(
   assert.cpp
   byte-buffer.cpp
   char8.cpp
+  cli-location.cpp
   crash.cpp
   error.cpp
   file-handle.cpp
@@ -69,6 +70,7 @@ quick_lint_js_add_library(
   quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.h
   quick-lint-js/char8.h
+  quick-lint-js/cli-location.h
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h

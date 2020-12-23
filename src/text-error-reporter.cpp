@@ -16,6 +16,7 @@
 
 #include <ostream>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>

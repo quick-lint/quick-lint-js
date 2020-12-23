@@ -18,11 +18,11 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>

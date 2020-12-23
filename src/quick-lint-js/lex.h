@@ -26,6 +26,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <vector>
 
 #define QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET \
   case ::quick_lint_js::token_type::kw_as:             \

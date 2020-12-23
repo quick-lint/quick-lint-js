@@ -31,16 +31,16 @@ function (quick_lint_js_add_benchmark_executable TARGET_NAME)
 endfunction ()
 
 quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-cli-location
+  benchmark-cli-location.cpp
+)
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lex
   benchmark-lex.cpp
 )
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lint
   benchmark-lint.cpp
-)
-quick_lint_js_add_benchmark_executable(
-  quick-lint-js-benchmark-location
-  benchmark-location.cpp
 )
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lsp

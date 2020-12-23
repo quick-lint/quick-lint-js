@@ -20,6 +20,7 @@
 #include <iosfwd>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>

@@ -18,6 +18,7 @@
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <iostream>
 #include <memory>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
