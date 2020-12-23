@@ -27,7 +27,7 @@
 namespace quick_lint_js {
 namespace {
 constexpr int lsp_error_severity = 1;
-constexpr int lsp_warning_severity = 2;
+//constexpr int lsp_warning_severity = 2;
 
 class test_lsp_error_reporter : public ::testing::Test {
  protected:
