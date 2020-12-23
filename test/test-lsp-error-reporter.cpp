@@ -27,7 +27,7 @@
 namespace quick_lint_js {
 namespace {
 constexpr int lsp_error_severity = 1;
-//constexpr int lsp_warning_severity = 2;
+constexpr int lsp_warning_severity = 2;
 
 class test_lsp_error_reporter : public ::testing::Test {
  protected:
@@ -95,6 +95,27 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
   EXPECT_EQ(diagnostics[0]["message"],
             "variable assigned before its declaration");
   // TODO(strager): Show the declaration as relatedInformation.
+}
+
+TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {
+  padded_string input(u8"x=5;"_sv);
+  source_code_span assignment_span(&input[0], &input[1]);
+  ASSERT_EQ(assignment_span.string_view(), u8"x");
+
+  lsp_error_reporter reporter = this->make_reporter(&input);
+  reporter.report(error_assignment_to_undeclared_variable{
+      .assignment = identifier(assignment_span)});
+  reporter.finish();
+
+  ::Json::Value diagnostics = this->parse_json();
+  ASSERT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 1);
+  EXPECT_EQ(diagnostics[0]["severity"], lsp_warning_severity);
+  EXPECT_EQ(diagnostics[0]["message"],
+            "assignment to undeclared variable");
 }
 
 TEST_F(test_lsp_error_reporter, multiple_errors) {
