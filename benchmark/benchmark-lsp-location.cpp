@@ -51,12 +51,12 @@ void benchmark_from_position_scale_of_long_line(::benchmark::State &state) {
 BENCHMARK(benchmark_from_position_scale_of_long_line);
 
 void benchmark_location_scale_of_empty_lines(::benchmark::State &state) {
-  int line_length = 10'000;
-  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
+  int line_count = 10'000;
+  padded_string lines(string8(narrow_cast<std::size_t>(line_count), u8'\n'));
   for (auto _ : state) {
-    lsp_locator l(&line);
-    for (int i = 0; i < line_length; ++i) {
-      lsp_position p = l.position(&line[i]);
+    lsp_locator l(&lines);
+    for (int i = 0; i < line_count; ++i) {
+      lsp_position p = l.position(&lines[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
