@@ -387,4 +387,236 @@ TEST(test_utf_8_decode, surrogate_sequences_are_an_error_for_each_code_unit) {
     }
   }
 }
+
+TEST(test_advance_lsp_characters_in_utf_8, empty_string) {
+  string8_view s = u8""_sv;
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 0), s.data());
+}
+
+TEST(test_advance_lsp_characters_in_utf_8, out_of_bounds_gives_end_of_string) {
+  {
+    string8_view s = u8""_sv;
+    EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 1), s.data() + s.size());
+  }
+
+  {
+    string8_view s = u8"hello"_sv;
+    EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 5), s.data() + s.size());
+  }
+
+  {
+    string8_view s = u8"hello"_sv;
+    EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 500), s.data() + s.size());
+  }
+
+  {
+    string8_view s = u8"hello\u2306world"_sv;
+    EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 11), s.data() + s.size());
+  }
+
+  {
+    string8_view s = u8"hello\u2306world"_sv;
+    EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 12), s.data() + s.size());
+  }
+
+  {
+    string8_view s = u8"hello\u2306world"_sv;
+    EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 500), s.data() + s.size());
+  }
+}
+
+TEST(test_advance_lsp_characters_in_utf_8, ascii) {
+  string8_view s = u8"hello"_sv;
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 0), &s[0]);  // h
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 1), &s[1]);  // e
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 2), &s[2]);  // l
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 3), &s[3]);  // l
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 4), &s[4]);  // o
+}
+
+TEST(test_advance_lsp_characters_in_utf_8, two_byte_character) {
+  string8_view s = u8"\u0101\u0202x"_sv;
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 0), &s[0]);  // \u0101
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 1), &s[2]);  // \u0202
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 2), &s[4]);  // x
+}
+
+TEST(test_advance_lsp_characters_in_utf_8, three_byte_character) {
+  string8_view s = u8"\u0808\ufefex"_sv;
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 0), &s[0]);  // \u0808
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 1), &s[3]);  // \ufefe
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 2), &s[6]);  // x
+}
+
+TEST(test_advance_lsp_characters_in_utf_8, four_byte_character) {
+  // Characters with four UTF-8 code units have two UTF-16 code units.
+  string8_view s = u8"\U00010000\U0010ffffx"_sv;
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 0), &s[0]);  // \U00010000
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 2), &s[4]);  // \U0010ffff
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 4), &s[8]);  // x
+}
+
+TEST(test_advance_lsp_characters_in_utf_8, middle_of_four_byte_character) {
+  // Characters with four UTF-8 code units have two UTF-16 code units.
+  string8_view s = u8"\U00010000\U0010ffffx"_sv;
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 1), &s[0]);  // \U00010000
+  EXPECT_EQ(advance_lsp_characters_in_utf_8(s, 3), &s[4]);  // \U0010ffff
+}
+
+TEST(test_advance_lsp_characters_in_utf_8,
+     invalid_utf_8_is_one_character_per_byte) {
+  for (string8_view input : {
+           // Surrogate sequences:
+           "\xed\xa0\x80"_s8v,  // U+D800
+           "\xed\xad\xbf"_s8v,  // U+DB7F
+           "\xed\xae\x80"_s8v,  // U+DB80
+           "\xed\xaf\xbf"_s8v,  // U+DBFF
+           "\xed\xb0\x80"_s8v,  // U+DC00
+           "\xed\xbe\x80"_s8v,  // U+DF80
+           "\xed\xbf\xbf"_s8v,  // U+DFFF
+
+           // Overlong sequences:
+           "\xc0\x80"_s8v,                  // U+0000
+           "\xe0\x80\x80"_s8v,              // U+0000
+           "\xf0\x80\x80\x80"_s8v,          // U+0000
+           "\xf8\x80\x80\x80\x80"_s8v,      // U+0000
+           "\xfc\x80\x80\x80\x80\x80"_s8v,  // U+0000
+
+           "\xc0\xaf"_s8v,                  // U+002F
+           "\xe0\x80\xaf"_s8v,              // U+002F
+           "\xf0\x80\x80\xaf"_s8v,          // U+002F
+           "\xf8\x80\x80\x80\xaf"_s8v,      // U+002F
+           "\xfc\x80\x80\x80\x80\xaf"_s8v,  // U+002F
+
+           "\xc1\xbf"_s8v,                  // U+007F
+           "\xe0\x9f\xbf"_s8v,              // U+07FF
+           "\xf0\x8f\xbf\xbf"_s8v,          // U+FFFF
+           "\xf8\x87\xbf\xbf\xbf"_s8v,      // U+001FFFFF
+           "\xfc\x83\xbf\xbf\xbf\xbf"_s8v,  // U+03FFFFFF
+
+           // Incomplete sequences:
+           "\xf0\x90\x8d"_s8v,
+           "\xf0\x90\x8d?????"_s8v,
+           "\xf0\x90"_s8v,
+           "\xf0\x90?"_s8v,
+           "\xf0\x90??????"_s8v,
+           "\xf0"_s8v,
+           "\xf0?"_s8v,
+           "\xf0??"_s8v,
+           "\xf0????????"_s8v,
+       }) {
+    SCOPED_TRACE(out_string8(input));
+    for (std::size_t i = 0; i < input.size(); ++i) {
+      SCOPED_TRACE(i);
+      EXPECT_EQ(advance_lsp_characters_in_utf_8(input, narrow_cast<int>(i)),
+                &input[i]);
+    }
+  }
+}
+
+namespace {
+std::ptrdiff_t count_lsp_characters_in_utf_8(
+    padded_string_view utf_8) noexcept {
+  return quick_lint_js::count_lsp_characters_in_utf_8(utf_8, utf_8.size());
+}
+
+std::ptrdiff_t count_lsp_characters_in_utf_8(
+    const padded_string& utf_8) noexcept {
+  return count_lsp_characters_in_utf_8(&utf_8);
+}
+
+std::ptrdiff_t count_lsp_characters_in_utf_8(const padded_string& utf_8,
+                                             int offset) noexcept {
+  return quick_lint_js::count_lsp_characters_in_utf_8(&utf_8, offset);
+}
+}
+
+TEST(test_count_lsp_characters_in_utf_8, empty_string) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8""_padded), 0);
+}
+
+TEST(test_count_lsp_characters_in_utf_8, ascii_characters_count_as_one) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"abcdef"_padded), 6);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     non_ascii_basic_multilingual_plane_characters_count_as_one) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u2306"_padded), 1);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     supplementary_plane_characters_count_as_two) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded), 2);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     middle_of_single_character_is_not_counted) {
+  // U+0100 has two UTF-8 code units.
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u0100"_padded, 1), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"x\u0100y"_padded, 2), 1);
+
+  // U+2306 has three UTF-8 code units.
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u2306"_padded, 1), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u2306"_padded, 2), 0);
+
+  // U+1F430 has four UTF-8 code units.
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded, 1), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded, 2), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded, 3), 0);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     invalid_surrogate_sequences_count_as_one_per_byte) {
+  for (padded_string input : {
+           "\xed\xa0\x80"_padded,  // U+D800
+           "\xed\xad\xbf"_padded,  // U+DB7F
+           "\xed\xae\x80"_padded,  // U+DB80
+           "\xed\xaf\xbf"_padded,  // U+DBFF
+           "\xed\xb0\x80"_padded,  // U+DC00
+           "\xed\xbe\x80"_padded,  // U+DF80
+           "\xed\xbf\xbf"_padded,  // U+DFFF
+       }) {
+    SCOPED_TRACE(input);
+    EXPECT_EQ(count_lsp_characters_in_utf_8(input, input.size()), input.size());
+  }
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     overlong_sequences_count_as_one_per_byte) {
+  for (padded_string input : {
+           "\xc0\x80"_padded,                  // U+0000
+           "\xe0\x80\x80"_padded,              // U+0000
+           "\xf0\x80\x80\x80"_padded,          // U+0000
+           "\xf8\x80\x80\x80\x80"_padded,      // U+0000
+           "\xfc\x80\x80\x80\x80\x80"_padded,  // U+0000
+
+           "\xc0\xaf"_padded,                  // U+002F
+           "\xe0\x80\xaf"_padded,              // U+002F
+           "\xf0\x80\x80\xaf"_padded,          // U+002F
+           "\xf8\x80\x80\x80\xaf"_padded,      // U+002F
+           "\xfc\x80\x80\x80\x80\xaf"_padded,  // U+002F
+
+           "\xc1\xbf"_padded,                  // U+007F
+           "\xe0\x9f\xbf"_padded,              // U+07FF
+           "\xf0\x8f\xbf\xbf"_padded,          // U+FFFF
+           "\xf8\x87\xbf\xbf\xbf"_padded,      // U+001FFFFF
+           "\xfc\x83\xbf\xbf\xbf\xbf"_padded,  // U+03FFFFFF
+       }) {
+    SCOPED_TRACE(input);
+    EXPECT_EQ(count_lsp_characters_in_utf_8(input, input.size()), input.size());
+  }
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     incomplete_sequences_count_as_one_per_byte) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90\x8d"_padded), 3);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90\x8d?????"_padded), 8);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90"_padded), 2);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90?"_padded), 3);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90??????"_padded), 8);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0"_padded), 1);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0?"_padded), 2);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0??"_padded), 3);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0????????"_padded), 9);
+}
 }

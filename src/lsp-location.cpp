@@ -23,6 +23,7 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
 namespace {
@@ -85,33 +86,54 @@ const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
 
   offset_type line_begin_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line)];
+  bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line)];
   bool is_last_line = line == number_of_lines - 1;
   if (is_last_line) {
     offset_type line_length = this->input_.size() - line_begin_offset;
-    if (character > line_length) {
-      return &this->input_[this->input_.size()];
+    if (line_is_ascii) {
+      if (character > line_length) {
+        return &this->input_[this->input_.size()];
+      } else {
+        return &this->input_[line_begin_offset + character];
+      }
     } else {
-      return &this->input_[line_begin_offset + character];
+      string8_view line_string(&this->input_[line_begin_offset],
+                               narrow_cast<std::size_t>(line_length));
+      return advance_lsp_characters_in_utf_8(line_string, character);
     }
   } else {
     offset_type line_end_offset =
         this->offset_of_lines_[narrow_cast<std::size_t>(line + 1)];
     offset_type line_length_including_terminator =
         line_end_offset - line_begin_offset;
-    bool character_is_out_of_bounds =
-        character >= line_length_including_terminator - 1;
-    if (character_is_out_of_bounds) {
-      if (line_length_including_terminator >= 2 &&
-          this->input_[line_end_offset - 2] == u8'\r' &&
-          this->input_[line_end_offset - 1] == u8'\n') {
-        // Return the "\r\n".
-        return &this->input_[line_end_offset - 2];
+    if (line_is_ascii) {
+      bool character_is_out_of_bounds =
+          character >= line_length_including_terminator - 1;
+      if (character_is_out_of_bounds) {
+        if (line_length_including_terminator >= 2 &&
+            this->input_[line_end_offset - 2] == u8'\r' &&
+            this->input_[line_end_offset - 1] == u8'\n') {
+          // Return the "\r\n".
+          return &this->input_[line_end_offset - 2];
+        } else {
+          // Return the "\n" or the "\r".
+          return &this->input_[line_end_offset - 1];
+        }
       } else {
-        // Return the "\n" or the "\r".
-        return &this->input_[line_end_offset - 1];
+        return &this->input_[line_begin_offset + character];
       }
     } else {
-      return &this->input_[line_begin_offset + character];
+      offset_type line_terminator_length =
+          line_length_including_terminator >= 2 &&
+                  this->input_[line_end_offset - 2] == u8'\r' &&
+                  this->input_[line_end_offset - 1] == u8'\n'
+              ? 2
+              : 1;
+      offset_type line_length =
+          line_length_including_terminator - line_terminator_length;
+      string8_view line_string(&this->input_[line_begin_offset],
+                               narrow_cast<std::size_t>(line_length));
+      return advance_lsp_characters_in_utf_8(line_string, character);
     }
   }
 }
@@ -127,18 +149,28 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
 
   this->input_ = new_input;
   std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
+  std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
   this->offset_of_lines_.reserve(this->old_offset_of_lines_.size());
   this->offset_of_lines_.clear();
+  this->line_is_ascii_.reserve(this->old_line_is_ascii_.size());
+  this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
   this->offset_of_lines_.insert(
       this->offset_of_lines_.end(), this->old_offset_of_lines_.begin(),
       this->old_offset_of_lines_.begin() + range.start.line + 1);
+  this->line_is_ascii_.insert(
+      this->line_is_ascii_.end(), this->old_line_is_ascii_.begin(),
+      this->old_line_is_ascii_.begin() + range.start.line + 1);
 
   // Offsets within replacement: re-parse newlines.
+  bool last_line_of_replacement_is_ascii;
   this->compute_offsets_of_lines(
       /*begin=*/&this->input_[start_offset],
-      /*end=*/&this->input_[start_offset + replacement_text_size]);
+      /*end=*/&this->input_[start_offset + replacement_text_size],
+      /*out_last_line_is_ascii=*/&last_line_of_replacement_is_ascii);
+  this->line_is_ascii_.back() =
+      this->line_is_ascii_.back() && last_line_of_replacement_is_ascii;
 
   // Offsets after replacement: adjust with a fixed offset.
   offset_type net_bytes_added =
@@ -149,38 +181,59 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
                         [&](offset_type offset) -> offset_type {
                           return offset + net_bytes_added;
                         });
+  this->line_is_ascii_.insert(
+      this->line_is_ascii_.end(),
+      this->old_line_is_ascii_.begin() + range.end.line + 1,
+      this->old_line_is_ascii_.end());
 
   QLJS_ASSERT(std::is_sorted(this->offset_of_lines_.begin(),
                              this->offset_of_lines_.end()));
+  QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
 }
 
 void lsp_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
+  QLJS_ASSERT(this->line_is_ascii_.empty());
 
   this->offset_of_lines_.push_back(0);
-  this->compute_offsets_of_lines(/*begin=*/this->input_.data(),
-                                 /*end=*/this->input_.null_terminator());
+  bool last_line_is_ascii;
+  this->compute_offsets_of_lines(
+      /*begin=*/this->input_.data(),
+      /*end=*/this->input_.null_terminator(),
+      /*out_last_line_is_ascii=*/&last_line_is_ascii);
+  this->line_is_ascii_.push_back(last_line_is_ascii);
 }
 
-void lsp_locator::compute_offsets_of_lines(const char8 *begin,
-                                           const char8 *end) {
+void lsp_locator::compute_offsets_of_lines(const char8 *begin, const char8 *end,
+                                           bool *out_last_line_is_ascii) {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
   };
+  std::uint8_t flags = 0;
+  auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
+  auto add_end_of_line = [&]() -> void {
+    this->line_is_ascii_.push_back(is_line_ascii());
+    flags = 0;
+  };
+
   for (const char8 *c = begin; c != end;) {
+    flags |= static_cast<std::uint8_t>(*c);
     if (*c == u8'\n' || *c == u8'\r') {
       if (c[0] == u8'\r' && c[1] == u8'\n') {
         c += 2;
+        add_end_of_line();
         add_beginning_of_line(c);
       } else {
         c += 1;
+        add_end_of_line();
         add_beginning_of_line(c);
       }
     } else {
       c += 1;
     }
   }
+  *out_last_line_is_ascii = is_line_ascii();
 }
 
 int lsp_locator::find_line_at_offset(offset_type offset) const {
@@ -200,7 +253,18 @@ lsp_position lsp_locator::position(int line_number, offset_type offset) const
     noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
-  int column_number = narrow_cast<int>(offset - beginning_of_line_offset);
-  return lsp_position{.line = line_number, .character = column_number};
+  bool line_is_ascii =
+      this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
+
+  int character;
+  if (line_is_ascii) {
+    character = narrow_cast<int>(offset - beginning_of_line_offset);
+  } else {
+    character = narrow_cast<int>(count_lsp_characters_in_utf_8(
+        this->input_.substr(beginning_of_line_offset),
+        offset - beginning_of_line_offset));
+  }
+
+  return lsp_position{.line = line_number, .character = character};
 }
 }

@@ -31,6 +31,11 @@ struct decode_utf_8_result {
 };
 
 decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
+
+const char8* advance_lsp_characters_in_utf_8(string8_view,
+                                             int character_count) noexcept;
+std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
+                                             int offset) noexcept;
 }
 
 #endif

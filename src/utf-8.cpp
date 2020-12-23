@@ -17,6 +17,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
@@ -44,8 +45,12 @@ char8* encode_utf_8(char32_t code_point, char8* out) {
   return out;
 }
 
+namespace {
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wattributes")
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
-decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
+[[gnu::always_inline]] decode_utf_8_result
+    decode_utf_8_inline(padded_string_view input) noexcept {
   auto is_continuation_byte = [](std::uint8_t byte) noexcept -> bool {
     return (byte & 0b1100'0000) == 0b1000'0000;
   };
@@ -138,5 +143,76 @@ decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
         .ok = false,
     };
   }
+}
+QLJS_WARNING_POP
+}
+
+decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
+  return decode_utf_8_inline(input);
+}
+
+const char8* advance_lsp_characters_in_utf_8(string8_view utf_8,
+                                             int character_count) noexcept {
+  const char8* c = utf_8.data();
+  const char8* end = c + utf_8.size();
+  if (narrow_cast<std::size_t>(character_count) >= utf_8.size()) {
+    return end;
+  }
+
+  // TODO(strager): Avoid this copy!
+  padded_string utf_8_copy(utf_8);
+  c = utf_8_copy.data();
+  end = utf_8_copy.null_terminator();
+
+  int characters = 0;
+  while (characters < character_count && c != end) {
+    decode_utf_8_result result =
+        decode_utf_8_inline(padded_string_view(c, end));
+    if (result.ok && result.code_point >= 0x10000) {
+      // Count non-BMP characters as two characters.
+      if (characters + 1 >= character_count) {
+        // Middle of implied UTF-16 surrogate pair. Stop at the beginning of
+        // the character. We can't reasonably return the middle of the
+        // character; there is no valid middle of a UTF-8 character.
+        break;
+      }
+      c += result.size;
+      characters += 2;
+    } else if (result.ok) {
+      c += result.size;
+      characters += 1;
+    } else {
+      // Count invalid sequences as one character per byte.
+      c += 1;
+      characters += 1;
+    }
+  }
+
+  return utf_8.data() + (c - utf_8_copy.data());
+}
+
+std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view utf_8,
+                                             int offset) noexcept {
+  const char8* c = utf_8.data();
+  const char8* end = utf_8.null_terminator();
+  const char8* stop = c + offset;
+  std::ptrdiff_t count = 0;
+  while (c < stop) {
+    decode_utf_8_result result = decode_utf_8(padded_string_view(c, end));
+    if (c + result.size > stop) {
+      break;
+    }
+    c += result.size;
+    if (result.ok) {
+      if (result.code_point >= 0x10000) {
+        count += 2;
+      } else {
+        count += 1;
+      }
+    } else {
+      count += result.size;
+    }
+  }
+  return count;
 }
 }

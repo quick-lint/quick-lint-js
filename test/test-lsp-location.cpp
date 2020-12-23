@@ -124,6 +124,31 @@ TEST(test_lsp_location, position_backwards) {
   EXPECT_EQ(actual_positions, expected_positions);
 }
 
+TEST(test_lsp_location, position_after_multi_byte_character) {
+  // U+2603 has three UTF-8 code units: e2 98 83
+  // U+2603 has one UTF-16 code unit: 2603
+  padded_string code(u8"\u2603 x"_sv);
+  const char8* x = strchr(code.c_str(), u8'x');
+  lsp_locator l(&code);
+  EXPECT_EQ(l.position(x).character, 2);
+}
+
+TEST(test_lsp_location, position_after_wide_multi_byte_character) {
+  // U+1f496 has four UTF-8 code units: f0 9f 92 96
+  // U+1f496 has two UTF-16 code units: D83D DC96
+  padded_string code(u8"\U0001f496 x"_sv);
+  const char8* x = strchr(code.c_str(), u8'x');
+  lsp_locator l(&code);
+  EXPECT_EQ(l.position(x).character, 3);
+}
+
+TEST(test_lsp_location, position_after_incomplete_utf_8_character) {
+  padded_string code("x\xf0\x9f\x92y"_s8v);
+  const char8* y = strchr(code.c_str(), u8'y');
+  lsp_locator l(&code);
+  EXPECT_EQ(l.position(y).character, 4);
+}
+
 TEST(test_lsp_location, offset_from_first_line_position) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
@@ -193,6 +218,20 @@ TEST(test_lsp_location,
   }
 }
 
+TEST(
+    test_lsp_location,
+    offset_from_beyond_end_of_line_containing_non_ascii_refers_to_line_terminator) {
+  for (string8_view line_terminator : line_terminators_except_ls_ps) {
+    padded_string code(u8"hello \u2603!" + string8(line_terminator) +
+                       u8"world");
+    SCOPED_TRACE(code);
+    lsp_locator l(&code);
+    const char8* terminator =
+        l.from_position(lsp_position{.line = 0, .character = 9});
+    EXPECT_EQ(terminator, strchr(code.c_str(), u8'!') + 1);
+  }
+}
+
 TEST(test_lsp_location, offset_from_end_of_last_line) {
   padded_string code(u8"hello"_sv);
   lsp_locator l(&code);
@@ -201,6 +240,17 @@ TEST(test_lsp_location, offset_from_end_of_last_line) {
     const char8* terminator =
         l.from_position(lsp_position{.line = 0, .character = character});
     EXPECT_EQ(terminator, &code[5]);
+  }
+}
+
+TEST(test_lsp_location, offset_from_end_of_last_line_containing_non_ascii) {
+  padded_string code(u8"hello \u2603!"_sv);
+  lsp_locator l(&code);
+  for (int character : {8, 9, 15}) {
+    SCOPED_TRACE(character);
+    const char8* terminator =
+        l.from_position(lsp_position{.line = 0, .character = character});
+    EXPECT_EQ(terminator, code.null_terminator());
   }
 }
 
@@ -235,6 +285,33 @@ TEST(test_lsp_location, offset_from_negative_character) {
   lsp_locator l(&code);
   const char8* c = l.from_position(lsp_position{.line = 1, .character = -2});
   EXPECT_EQ(c, nullptr);
+}
+
+TEST(test_lsp_location, offset_after_multi_byte_character) {
+  // U+2603 has three UTF-8 code units: e2 98 83
+  // U+2603 has one UTF-16 code unit: 2603
+  padded_string code(u8"\u2603 x"_sv);
+  lsp_locator l(&code);
+  const char8* x = l.from_position(lsp_position{.line = 0, .character = 2});
+  EXPECT_EQ(x, strchr(code.c_str(), u8'x'));
+}
+
+TEST(test_lsp_location, offset_after_wide_multi_byte_character) {
+  // U+1f496 has four UTF-8 code units: f0 9f 92 96
+  // U+1f496 has two UTF-16 code units: D83D DC96
+  padded_string code(u8"\U0001f496 x"_sv);
+  lsp_locator l(&code);
+  const char8* x = l.from_position(lsp_position{.line = 0, .character = 3});
+  EXPECT_EQ(x, strchr(code.c_str(), u8'x'));
+}
+
+TEST(test_lsp_location, offset_after_multi_byte_character_on_middle_line) {
+  // U+2603 has three UTF-8 code units: e2 98 83
+  // U+2603 has one UTF-16 code unit: 2603
+  padded_string code(u8"A\u2603a\nB\u2603b\nC\u2603c"_sv);
+  lsp_locator l(&code);
+  const char8* b = l.from_position(lsp_position{.line = 1, .character = 2});
+  EXPECT_EQ(b, strchr(code.c_str(), u8'b'));
 }
 
 TEST(test_lsp_location, offset_to_position_to_offset) {
@@ -363,6 +440,21 @@ TEST(test_lsp_location, append_line_with_out_of_range_character) {
           .end = {.line = 1, .character = 200},
       },
       u8" extended", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, change_ascii_line_into_non_ascii_line) {
+  padded_string original_code(u8"first\nsecond\nthird"_sv);
+  padded_string updated_code(u8"first\nse\u00e7ond\nthird"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 2},
+          .end = {.line = 1, .character = 3},
+      },
+      u8"\u00e7", &updated_code);
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
