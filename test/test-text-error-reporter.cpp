@@ -111,7 +111,7 @@ TEST_F(test_text_error_reporter, assignment_to_undeclared_variable) {
   this->make_reporter(&input).report(
       error_assignment_to_undeclared_variable{identifier(uhoh_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: assignment to undeclared variable\n");
+            "FILE:1:1: warning: assignment to undeclared variable\n");
 }
 
 TEST_F(test_text_error_reporter, big_int_literal_contains_decimal_point) {
@@ -326,7 +326,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
   this->make_reporter(&input).report(
       error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: use of undeclared variable: myvar\n");
+            "FILE:1:1: warning: use of undeclared variable: myvar\n");
 }
 
 TEST_F(test_text_error_reporter, variable_used_before_declaration) {

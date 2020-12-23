@@ -102,7 +102,10 @@ void lsp_error_formatter::write_before_message(severity sev,
   this->output_.append_decimal_integer(r.end.line);
   this->output_.append_copy(u8",\"character\":");
   this->output_.append_decimal_integer(r.end.character);
-  this->output_.append_copy(u8"}},\"severity\":1,\"message\":\"");
+  if (sev == severity::error)
+    this->output_.append_copy(u8"}},\"severity\":1,\"message\":\"");
+  else if(sev == severity::warning)
+    this->output_.append_copy(u8"}},\"severity\":2,\"message\":\"");
 }
 
 void lsp_error_formatter::write_message_part(severity sev,

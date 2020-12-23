@@ -59,9 +59,16 @@ class error_formatter {
   // void write_after_message(severity, const source_code_span &origin);
 
   enum class severity {
+    warning,
     error,
     note,
   };
+
+  template <class... Args>
+  error_formatter &warning(const char8 *message, Args... parameters) {
+    this->add(severity::warning, message, std::forward<Args>(parameters)...);
+    return *this;
+  }
 
   template <class... Args>
   error_formatter &error(const char8 *message, Args... parameters) {

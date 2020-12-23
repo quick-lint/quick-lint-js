@@ -81,6 +81,9 @@ void text_error_formatter::write_before_message(
   this->output_ << this->file_path_ << ":" << p.line_number << ":"
                 << p.column_number << ": ";
   switch (sev) {
+  case severity::warning:
+    this->output_ << "warning: ";
+    break;
   case severity::error:
     this->output_ << "error: ";
     break;
