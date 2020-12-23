@@ -39,6 +39,7 @@ quick_lint_js_add_executable(
   test-bit.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
+  test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
   test-file.cpp
@@ -50,7 +51,6 @@ quick_lint_js_add_executable(
   test-lint-parse.cpp
   test-lint.cpp
   test-locale.cpp
-  test-location.cpp
   test-lsp-document.cpp
   test-lsp-endpoint.cpp
   test-lsp-error-reporter.cpp

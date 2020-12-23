@@ -17,6 +17,7 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
@@ -345,7 +346,7 @@ TEST_F(test_text_error_reporter, variable_used_before_declaration) {
 
 TEST(test_text_error_formatter, single_span_simple_message) {
   padded_string code(u8"hello world"_sv);
-  quick_lint_js::locator locator(&code);
+  cli_locator locator(&code);
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
@@ -357,7 +358,7 @@ TEST(test_text_error_formatter, single_span_simple_message) {
 
 TEST(test_text_error_formatter, message_with_note) {
   padded_string code(u8"hello world"_sv);
-  quick_lint_js::locator locator(&code);
+  cli_locator locator(&code);
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
@@ -371,7 +372,7 @@ TEST(test_text_error_formatter, message_with_note) {
 
 TEST(test_text_error_formatter, message_with_zero_placeholder) {
   padded_string code(u8"hello world"_sv);
-  quick_lint_js::locator locator(&code);
+  cli_locator locator(&code);
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
@@ -383,7 +384,7 @@ TEST(test_text_error_formatter, message_with_zero_placeholder) {
 
 TEST(test_text_error_formatter, message_with_extra_identifier_placeholder) {
   padded_string code(u8"hello world"_sv);
-  quick_lint_js::locator locator(&code);
+  cli_locator locator(&code);
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
@@ -396,7 +397,7 @@ TEST(test_text_error_formatter, message_with_extra_identifier_placeholder) {
 
 TEST(test_text_error_formatter, message_with_multiple_span_placeholders) {
   padded_string code(u8"let me = be(free);"_sv);
-  quick_lint_js::locator locator(&code);
+  cli_locator locator(&code);
   source_code_span let_span(&code[0], &code[3]);
   ASSERT_EQ(let_span.string_view(), u8"let");
   source_code_span me_span(&code[4], &code[6]);

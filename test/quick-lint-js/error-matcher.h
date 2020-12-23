@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 #include <memory>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
@@ -45,12 +46,12 @@ namespace quick_lint_js {
 class offsets_matcher {
  public:
   explicit offsets_matcher(padded_string_view input,
-                           source_position::offset_type begin_offset,
-                           source_position::offset_type end_offset);
+                           cli_source_position::offset_type begin_offset,
+                           cli_source_position::offset_type end_offset);
 
-  explicit offsets_matcher(const quick_lint_js::locator &locator,
-                           source_position::offset_type begin_offset,
-                           source_position::offset_type end_offset);
+  explicit offsets_matcher(const cli_locator &locator,
+                           cli_source_position::offset_type begin_offset,
+                           cli_source_position::offset_type end_offset);
 
   offsets_matcher(const offsets_matcher &) = delete;
   offsets_matcher &operator=(const offsets_matcher &) = delete;

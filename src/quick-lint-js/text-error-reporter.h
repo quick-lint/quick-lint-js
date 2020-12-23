@@ -20,6 +20,7 @@
 #include <iosfwd>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
@@ -51,14 +52,14 @@ class text_error_reporter final : public error_reporter {
   text_error_formatter format();
 
   std::ostream &output_;
-  std::optional<locator> locator_;
+  std::optional<cli_locator> locator_;
   const char *file_path_;
 };
 
 class text_error_formatter : public error_formatter<text_error_formatter> {
  public:
   explicit text_error_formatter(std::ostream &output, const char *file_path,
-                                quick_lint_js::locator &locator);
+                                cli_locator &locator);
 
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
@@ -67,7 +68,7 @@ class text_error_formatter : public error_formatter<text_error_formatter> {
  private:
   std::ostream &output_;
   const char *file_path_;
-  locator &locator_;
+  cli_locator &locator_;
 };
 }
 

@@ -17,6 +17,7 @@
 #include <benchmark/benchmark.h>
 #include <memory>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -50,9 +51,9 @@ void benchmark_location_scale_of_long_line(::benchmark::State &state) {
   int line_length = 10'000;
   padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'x'));
   for (auto _ : state) {
-    locator l(&line);
+    cli_locator l(&line);
     for (int i = 0; i < line_length; ++i) {
-      source_position p = l.position(&line[i]);
+      cli_source_position p = l.position(&line[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
@@ -63,9 +64,9 @@ void benchmark_location_scale_of_empty_lines(::benchmark::State &state) {
   int line_length = 10'000;
   padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
   for (auto _ : state) {
-    locator l(&line);
+    cli_locator l(&line);
     for (int i = 0; i < line_length; ++i) {
-      source_position p = l.position(&line[i]);
+      cli_source_position p = l.position(&line[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
@@ -77,10 +78,10 @@ void benchmark_range_scale_of_empty_lines(::benchmark::State &state) {
   int span_length = 5;
   padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
   for (auto _ : state) {
-    locator l(&line);
+    cli_locator l(&line);
     for (int i = 0; i < line_length - span_length; i += span_length) {
       source_code_span span(&line[i], &line[i + span_length]);
-      source_range r = l.range(span);
+      cli_source_range r = l.range(span);
       ::benchmark::DoNotOptimize(r);
     }
   }
@@ -94,9 +95,9 @@ void benchmark_location_realisticish(::benchmark::State &state) {
       /*line_count=*/line_count, /*span_count=*/span_count);
 
   for (auto _ : state) {
-    locator l(code.source.get());
+    cli_locator l(code.source.get());
     for (const source_code_span &span : code.spans) {
-      source_range r = l.range(span);
+      cli_source_range r = l.range(span);
       ::benchmark::DoNotOptimize(r);
     }
   }

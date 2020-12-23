@@ -18,10 +18,10 @@
 #include <gtest/gtest.h>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
@@ -62,7 +62,7 @@ class test_parser {
     return this->errors_.errors;
   }
 
-  source_range range(expression_ptr ast) {
+  cli_source_range range(expression_ptr ast) {
     return this->locator.range(ast->span());
   }
 
@@ -149,7 +149,7 @@ class test_parser {
   padded_string code_;
 
  public:
-  quick_lint_js::locator locator;
+  cli_locator locator;
 
  private:
   error_collector errors_;

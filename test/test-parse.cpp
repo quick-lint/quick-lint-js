@@ -18,11 +18,11 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
@@ -1185,7 +1185,7 @@ TEST(test_parse, asi_for_statement_at_newline) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"},
                             spy_visitor::visited_variable_use{u8"console"}));
-    source_position::offset_type end_of_first_expression =
+    cli_source_position::offset_type end_of_first_expression =
         strlen(u8"console.log('hello')");
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_semicolon_after_expression, where,
@@ -2692,7 +2692,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                     u8"x", variable_kind::_let}));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
-    source_position::offset_type end_of_let_statement = strlen(u8"let x = 2");
+    cli_source_position::offset_type end_of_let_statement =
+        strlen(u8"let x = 2");
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_semicolon_after_expression, where,
                               offsets_matcher(&code, end_of_let_statement,
@@ -2707,7 +2708,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_const}));
-    source_position::offset_type end_of_const_statement = strlen(u8"const x");
+    cli_source_position::offset_type end_of_const_statement =
+        strlen(u8"const x");
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_semicolon_after_expression, where,
                               offsets_matcher(&code, end_of_const_statement,

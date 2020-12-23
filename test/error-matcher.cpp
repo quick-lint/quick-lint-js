@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gmock/gmock.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -22,20 +23,20 @@
 
 namespace quick_lint_js {
 struct offsets_matcher::state {
-  std::variant<const quick_lint_js::locator *, padded_string_view> locator;
-  source_position::offset_type begin_offset;
-  source_position::offset_type end_offset;
+  std::variant<const cli_locator *, padded_string_view> locator;
+  cli_source_position::offset_type begin_offset;
+  cli_source_position::offset_type end_offset;
 
-  source_range range(source_code_span span) const {
+  cli_source_range range(source_code_span span) const {
     struct range_impl {
       const source_code_span &span;
 
-      source_range operator()(const quick_lint_js::locator *locator) const {
+      cli_source_range operator()(const cli_locator *locator) const {
         return locator->range(this->span);
       }
 
-      source_range operator()(padded_string_view input) const {
-        return quick_lint_js::locator(input).range(this->span);
+      cli_source_range operator()(padded_string_view input) const {
+        return cli_locator(input).range(this->span);
       }
     };
     return std::visit(range_impl{span}, this->locator);
@@ -59,7 +60,7 @@ class offsets_matcher::span_impl
 
   bool MatchAndExplain(const source_code_span &span,
                        testing::MatchResultListener *listener) const override {
-    source_range range = this->state_.range(span);
+    cli_source_range range = this->state_.range(span);
     bool result = range.begin_offset() == this->state_.begin_offset &&
                   range.end_offset() == this->state_.end_offset;
     *listener << "whose begin-end offset (" << range.begin_offset() << '-'
@@ -96,15 +97,15 @@ class offsets_matcher::identifier_impl
 };
 
 offsets_matcher::offsets_matcher(padded_string_view input,
-                                 source_position::offset_type begin_offset,
-                                 source_position::offset_type end_offset)
+                                 cli_source_position::offset_type begin_offset,
+                                 cli_source_position::offset_type end_offset)
     : state_(new state{.locator = input,
                        .begin_offset = begin_offset,
                        .end_offset = end_offset}) {}
 
-offsets_matcher::offsets_matcher(const quick_lint_js::locator &locator,
-                                 source_position::offset_type begin_offset,
-                                 source_position::offset_type end_offset)
+offsets_matcher::offsets_matcher(const cli_locator &locator,
+                                 cli_source_position::offset_type begin_offset,
+                                 cli_source_position::offset_type end_offset)
     : state_(new state{.locator = &locator,
                        .begin_offset = begin_offset,
                        .end_offset = end_offset}) {}
