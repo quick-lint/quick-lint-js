@@ -62,7 +62,7 @@ class test_parser {
     return this->errors_.errors;
   }
 
-  source_range range(expression_ptr ast) {
+  cli_source_range range(expression_ptr ast) {
     return this->locator.range(ast->span());
   }
 
@@ -149,7 +149,7 @@ class test_parser {
   padded_string code_;
 
  public:
-  quick_lint_js::locator locator;
+  cli_locator locator;
 
  private:
   error_collector errors_;

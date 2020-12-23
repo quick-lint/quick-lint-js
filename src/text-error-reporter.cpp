@@ -71,13 +71,13 @@ text_error_formatter text_error_reporter::format() {
 
 text_error_formatter::text_error_formatter(std::ostream &output,
                                            const char *file_path,
-                                           quick_lint_js::locator &locator)
+                                           cli_locator &locator)
     : output_(output), file_path_(file_path), locator_(locator) {}
 
 void text_error_formatter::write_before_message(
     severity sev, const source_code_span &origin) {
-  source_range r = this->locator_.range(origin);
-  source_position p = r.begin();
+  cli_source_range r = this->locator_.range(origin);
+  cli_source_position p = r.begin();
   this->output_ << this->file_path_ << ":" << p.line_number << ":"
                 << p.column_number << ": ";
   switch (sev) {

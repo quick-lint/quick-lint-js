@@ -45,12 +45,12 @@ namespace quick_lint_js {
 class offsets_matcher {
  public:
   explicit offsets_matcher(padded_string_view input,
-                           source_position::offset_type begin_offset,
-                           source_position::offset_type end_offset);
+                           cli_source_position::offset_type begin_offset,
+                           cli_source_position::offset_type end_offset);
 
-  explicit offsets_matcher(const quick_lint_js::locator &locator,
-                           source_position::offset_type begin_offset,
-                           source_position::offset_type end_offset);
+  explicit offsets_matcher(const cli_locator &locator,
+                           cli_source_position::offset_type begin_offset,
+                           cli_source_position::offset_type end_offset);
 
   offsets_matcher(const offsets_matcher &) = delete;
   offsets_matcher &operator=(const offsets_matcher &) = delete;

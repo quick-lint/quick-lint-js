@@ -357,10 +357,11 @@ class error_reporter {
 
   static void write_fatal_error_unimplemented_character(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      const char8 *character, const locator *, std::ostream &);
+      const char8 *character, const cli_locator *, std::ostream &);
   static void write_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      token_type, const char8 *token_begin, const locator *, std::ostream &);
+      token_type, const char8 *token_begin, const cli_locator *,
+      std::ostream &);
 };
 
 class null_error_reporter : public error_reporter {
