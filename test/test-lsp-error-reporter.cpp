@@ -114,8 +114,7 @@ TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {
   EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
   EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 1);
   EXPECT_EQ(diagnostics[0]["severity"], lsp_warning_severity);
-  EXPECT_EQ(diagnostics[0]["message"],
-            "assignment to undeclared variable");
+  EXPECT_EQ(diagnostics[0]["message"], "assignment to undeclared variable");
 }
 
 TEST_F(test_lsp_error_reporter, multiple_errors) {

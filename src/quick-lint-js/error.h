@@ -65,8 +65,8 @@
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_undeclared_variable, { identifier assignment; },     \
-      .warning(QLJS_TRANSLATE(                                                 \
-                  "assignment to undeclared variable"), assignment))           \
+      .warning(QLJS_TRANSLATE("assignment to undeclared variable"),            \
+               assignment))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point,                            \
