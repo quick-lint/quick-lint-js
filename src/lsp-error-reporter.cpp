@@ -97,10 +97,7 @@ void lsp_error_formatter::write_before_message(severity sev,
   case severity::warning:
     severity_value = 2;
     break;
-  default:
-    // TODO: handel undifined serverity case.
-    return;
-  }
+  }  // TODO: handel undifined serverity case.
 
   lsp_range r = this->locator_.range(origin);
   this->output_.append_copy(u8"{\"range\":{\"start\":");
