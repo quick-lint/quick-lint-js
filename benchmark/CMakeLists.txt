@@ -63,6 +63,10 @@ quick_lint_js_add_benchmark_executable(
   benchmark-translation.cpp
 )
 quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-utf-8
+  benchmark-utf-8.cpp
+)
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-vim-location
   benchmark-vim-location.cpp
 )
