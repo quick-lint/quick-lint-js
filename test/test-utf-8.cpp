@@ -618,5 +618,8 @@ TEST(test_count_lsp_characters_in_utf_8,
   EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0?"_padded), 2);
   EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0??"_padded), 3);
   EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0????????"_padded), 9);
+
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90"_padded, 1), 1);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90??"_padded, 1), 1);
 }
 }

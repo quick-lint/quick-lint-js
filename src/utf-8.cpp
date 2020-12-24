@@ -199,18 +199,19 @@ std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view utf_8,
   std::ptrdiff_t count = 0;
   while (c < stop) {
     decode_utf_8_result result = decode_utf_8(padded_string_view(c, end));
-    if (c + result.size > stop) {
-      break;
-    }
-    c += result.size;
     if (result.ok) {
+      if (c + result.size > stop) {
+        break;
+      }
+      c += result.size;
       if (result.code_point >= 0x10000) {
         count += 2;
       } else {
         count += 1;
       }
     } else {
-      count += result.size;
+      c += 1;
+      count += 1;
     }
   }
   return count;
