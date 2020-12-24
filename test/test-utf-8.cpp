@@ -231,6 +231,7 @@ TEST(test_utf_8_decode, two_byte_character_with_trailing_continuation_bytes) {
 
 TEST(test_utf_8_decode, three_byte_character) {
   EXPECT_DECODE_UTF_8_SINGLE_CODE_POINT("\xe0\xa4\xb9"_padded, U'\u0939');
+  EXPECT_DECODE_UTF_8_SINGLE_CODE_POINT("\xe1\x9a\x80"_padded, U'\u1680');
   EXPECT_DECODE_UTF_8_SINGLE_CODE_POINT("\xe2\x82\xac"_padded, U'\u20ac');
   EXPECT_DECODE_UTF_8_SINGLE_CODE_POINT("\xed\x95\x9c"_padded, U'\ud55c');
 }
@@ -323,6 +324,12 @@ TEST(test_utf_8_decode, truncated_four_byte_character) {
 
   {
     decode_utf_8_result result = decode_utf_8("\xf0????????"_padded);
+    EXPECT_EQ(result.size, 1);
+    EXPECT_FALSE(result.ok);
+  }
+
+  {
+    decode_utf_8_result result = decode_utf_8("\xf4"_padded);
     EXPECT_EQ(result.size, 1);
     EXPECT_FALSE(result.ok);
   }

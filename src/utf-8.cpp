@@ -16,6 +16,7 @@
 
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-8.h>
 #include <quick-lint-js/warning.h>
 
@@ -51,50 +52,163 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 [[gnu::always_inline]] decode_utf_8_result
     decode_utf_8_inline(padded_string_view input) noexcept {
-  auto is_continuation_byte = [](std::uint8_t byte) noexcept -> bool {
-    return (byte & 0b1100'0000) == 0b1000'0000;
+  enum byte_class : signed char {
+    A = 0, // 0x00..0x7f
+    B, // 0x80..0x8f
+    C, // 0xc2..0xdf
+    D, // 0xe0
+    E, // 0xa0..0xbf
+    F, // 0xe1..0xec,0xee..0xef
+    G, // 0xed
+    H, // 0x90..0x9f
+    I, // 0xf0
+    J, // 0xf1..0xf3
+    K, // 0xf4
+    L, // 0xc0..0xc1,0xf5..0xff
   };
+  static constexpr byte_class byte_to_class[256/*@@@*/] = {
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x00..0x0f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x10..0x1f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x20..0x2f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x30..0x3f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x40..0x4f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x50..0x5f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x60..0x6f
+    A,A,A,A,A,A,A,A,A,A,A,A,A,A,A,A, // 0x70..0x7f
+    B,B,B,B,B,B,B,B,B,B,B,B,B,B,B,B, // 0x80..0x8f
+    H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H, // 0x90..0x9f
+    E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E, // 0xa0..0xaf
+    E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E, // 0xb0..0xbf
+    L,L,C,C,C,C,C,C,C,C,C,C,C,C,C,C, // 0xc0..0xcf
+    C,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C, // 0xd0..0xdf
+    D,F,F,F,F,F,F,F,F,F,F,F,F,G,F,F, // 0xe0..0xef
+    I,J,J,J,K,L,L,L,L,L,L,L,L,L,L,L, // 0xf0..0xff
+  };
+
+  enum class state : signed char {
+    er3 = -7,
+    er2 = -6,
+    er1 = -5,
+    ok4 = -4,
+    ok3 = -3,
+    ok2 = -2,
+    ok1 = -1,
+    initial = 0,
+
+    // U+0080..U+07FF
+    c, // 0xc2..0xdf [1 pending]
+
+    // U+0800..U+0FFF
+    d, // 0xe0 [2 pending]
+    de, // 0xe0 0xa0..0xbf [1 pending]
+
+    // U+1000..U+CFFF
+    // U+E000..U+FFFF
+    f, // 0xe1..0xec,0xee..0xef [2 pending]
+    ff = de, // 0xe1..0xec 0x80..0xbf [1 pending]
+
+    // U+D000..U+D7FF
+    g = f + 1, // 0xed [2 pending]
+    gg = de, // 0xed 0x80..0x9f [1 pending]
+
+    // U+10000..U+3FFFF
+    i = g + 1, // 0xf0 [3 pending]
+    ii, // 0xf0 0x90..0xbf [2 pending]
+    iii, // 0xf0 0x90..0xbf 0x80..0xbf [1 pending]
+
+    // U+40000..U+FFFFF
+    j, // 0xf1..0xf3 [3 pending]
+    jj = ii, // 0xf1..0xf3 0x80..0xbf [2 pending]
+
+    // U+100000..U+10FFFF
+    k = j + 1, // 0xf4 [3 pending]
+    kk = ii, // 0xf4 0x80..0x8f [2 pending]
+  };
+
+  static constexpr state state_transitions[][12] = {
+    // initial     c           d           de          f           g           i           ii          iii         j           k
+      {state::ok1, state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // A 0x00..0x7f
+      {state::er1, state::ok2, state::er1, state::ok3, state::ff,  state::gg,  state::er1, state::iii, state::ok4, state::jj,  state::kk }, // B 0x80..0x8f
+      {state::c,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // C 0xc2..0xdf
+      {state::d,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // D 0xe0
+      {state::er1, state::ok2, state::de,  state::ok3, state::ff,  state::er1, state::ii,  state::iii, state::ok4, state::jj,  state::er1}, // E 0xa0..0xbf
+      {state::f,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // F 0xe1..0xec
+      {state::g,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // G 0xed
+      {state::er1, state::ok2, state::er1, state::ok3, state::ff,  state::gg,  state::ii,  state::iii, state::ok4, state::jj,  state::er1}, // H 0x90..0x9f
+      {state::i,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // I 0xf0
+      {state::j,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // J 0xf1..0xf3
+      {state::k,   state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // K 0xf4
+      {state::er1, state::er1, state::er1, state::er2, state::er1, state::er1, state::er1, state::er2, state::er3, state::er1, state::er1}, // L 0xc0..0xc1,0xf5..0xff
+  };
+  static auto is_end_state = [](state s) -> bool {
+    return static_cast<signed char>(s) < 0;
+  };
+
   const std::uint8_t* c = reinterpret_cast<const std::uint8_t*>(input.data());
+  // @@@ fold this into the state machine.
   if (input.size() == 0) {
     return decode_utf_8_result{
         .size = 0,
         .code_point = 0,
         .ok = false,
     };
-  } else if (c[0] <= 0x7f) {
-    // 1-byte sequence (0x00..0x7f, i.e. ASCII).
-    return decode_utf_8_result{
-        .size = 1,
-        .code_point = *c,
-        .ok = true,
-    };
-  } else if ((c[0] & 0b1110'0000) == 0b1100'0000) {
-    // 2-byte sequence (0xc0..0xdf).
-    static_assert(padded_string::padding_size >= 1);
-    bool byte_0_ok = c[0] >= 0xc2;
-    bool byte_1_ok = is_continuation_byte(c[1]);
-    if (byte_0_ok && byte_1_ok) {
+  }
+
+  const std::uint8_t* cc = c; // @@@ rename
+  state current_state = state::initial;
+  for (;;) {
+    current_state = state_transitions[byte_to_class[*cc]][static_cast<signed char>(current_state)];
+    if (is_end_state(current_state)) {
+      break;
+    }
+    ++cc;
+  }
+  switch (current_state) {
+    case state::initial:
+    case state::c:
+    case state::i:
+    case state::k:
+    case state::j:
+    case state::ii:
+    case state::iii:
+    case state::f:
+    case state::g:
+    case state::d:
+    case state::de:
+      QLJS_UNREACHABLE();
+      break;
+    case state::er1:
+      return decode_utf_8_result{
+          .size = 1,
+          .code_point = 0,
+          .ok = false,
+      };
+    case state::er2:
+      return decode_utf_8_result{
+          .size = 2,
+          .code_point = 0,
+          .ok = false,
+      };
+    case state::er3:
+      return decode_utf_8_result{
+          .size = 3,
+          .code_point = 0,
+          .ok = false,
+      };
+    case state::ok1:
+      return decode_utf_8_result{
+          .size = 1,
+          .code_point = *c,
+          .ok = true,
+      };
+    case state::ok2:
       return decode_utf_8_result{
           .size = 2,
           .code_point =
               (char32_t(c[0] & 0b0001'1111) << 6) | (c[1] & 0b0011'1111),
           .ok = true,
       };
-    } else {
-      return decode_utf_8_result{
-          .size = 1,
-          .code_point = 0,
-          .ok = false,
-      };
-    }
-  } else if ((c[0] & 0b1111'0000) == 0b1110'0000) {
-    // 3-byte sequence (0xe0..0xef).
-    static_assert(padded_string::padding_size >= 2);
-    bool byte_1_ok = (c[0] == 0xe0 ? 0xa0 <= c[1] && c[1] <= 0xbf
-                                   : c[0] == 0xed ? 0x80 <= c[1] && c[1] <= 0x9f
-                                                  : is_continuation_byte(c[1]));
-    bool byte_2_ok = is_continuation_byte(c[2]);
-    if (byte_1_ok && byte_2_ok) {
+    case state::ok3:
       return decode_utf_8_result{
           .size = 3,
           .code_point = (char32_t(c[0] & 0b0000'1111) << 12) |
@@ -102,23 +216,7 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
                         (c[2] & 0b0011'1111),
           .ok = true,
       };
-    } else {
-      return decode_utf_8_result{
-          .size = byte_1_ok ? 2 : 1,
-          .code_point = 0,
-          .ok = false,
-      };
-    }
-  } else if ((c[0] & 0b1111'1000) == 0b1111'0000) {
-    // 4-byte sequence (0xf0..0xf7).
-    static_assert(padded_string::padding_size >= 3);
-    bool byte_0_ok = c[0] <= 0xf4;
-    bool byte_1_ok = (c[0] == 0xf0 ? 0x90 <= c[1] && c[1] <= 0xbf
-                                   : c[0] == 0xf4 ? 0x80 <= c[1] && c[1] <= 0x8f
-                                                  : is_continuation_byte(c[1]));
-    bool byte_2_ok = is_continuation_byte(c[2]);
-    bool byte_3_ok = is_continuation_byte(c[3]);
-    if (byte_0_ok && byte_1_ok && byte_2_ok && byte_3_ok) {
+    case state::ok4:
       return decode_utf_8_result{
           .size = 4,
           .code_point = (char32_t(c[0] & 0b0000'0111) << 18) |
@@ -127,22 +225,8 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
                         (c[3] & 0b0011'1111),
           .ok = true,
       };
-    } else {
-      return decode_utf_8_result{
-          .size = byte_0_ok && byte_1_ok ? byte_2_ok ? 3 : 2 : 1,
-          .code_point = 0,
-          .ok = false,
-      };
-    }
-  } else {
-    // Continuation byte (0x80..0xbf), or 5-byte or longer sequence
-    // (0xf8..0xff).
-    return decode_utf_8_result{
-        .size = 1,
-        .code_point = 0,
-        .ok = false,
-    };
   }
+  QLJS_UNREACHABLE();
 }
 QLJS_WARNING_POP
 }
