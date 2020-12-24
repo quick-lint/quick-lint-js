@@ -86,8 +86,19 @@ lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
 
 void lsp_error_formatter::write_before_message(severity sev,
                                                const source_code_span &origin) {
-  if (sev == severity::note) {
+  int severity_value{};
+  switch (sev) {
+  case severity::note:
     // Don't write notes. Only write the main message.
+    return;
+  case severity::error:
+    severity_value = 1;
+    break;
+  case severity::warning:
+    severity_value = 2;
+    break;
+  default:
+    // TODO: handel undifined serverity case.
     return;
   }
 
@@ -102,10 +113,9 @@ void lsp_error_formatter::write_before_message(severity sev,
   this->output_.append_decimal_integer(r.end.line);
   this->output_.append_copy(u8",\"character\":");
   this->output_.append_decimal_integer(r.end.character);
-  if (sev == severity::error)
-    this->output_.append_copy(u8"}},\"severity\":1,\"message\":\"");
-  else if(sev == severity::warning)
-    this->output_.append_copy(u8"}},\"severity\":2,\"message\":\"");
+  this->output_.append_copy(u8"}},\"severity\":");
+  this->output_.append_decimal_integer(severity_value);
+  this->output_.append_copy(u8",\"message\":\"");
 }
 
 void lsp_error_formatter::write_message_part(severity sev,
