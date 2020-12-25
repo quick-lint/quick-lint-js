@@ -49,9 +49,7 @@ function deactivate() {
 exports.deactivate = deactivate;
 
 function getQuickLintJSExecutablePath() {
-  let path = vscode.workspace.getConfiguration(
-    clientID
-  )["executablePath"];
+  let path = vscode.workspace.getConfiguration(clientID)["executablePath"];
   let pathIsEmpty = /^\s*$/.test(path);
   return pathIsEmpty ? "quick-lint-js" : path;
 }
