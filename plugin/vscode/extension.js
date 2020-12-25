@@ -22,8 +22,10 @@ let { LanguageClient } = require("vscode-languageclient");
 let clientID = "quick-lint-js";
 
 let client = null;
+let toDispose = [];
 
-async function startServerAsync() {
+async function startOrRestartServerAsync() {
+  await stopServerIfStartedAsync();
   client = new LanguageClient(
     clientID,
     "quick-lint-js",
@@ -40,17 +42,39 @@ async function startServerAsync() {
 
 async function stopServerIfStartedAsync() {
   if (client !== null) {
-    await client.stop();
+    try {
+      await client.stop();
+    } catch (error) {
+      if (client.needsStop()) {
+        throw error;
+      } else {
+        // Stopping failed, but the server stopped anyway.
+        logError(error);
+      }
+    }
   }
 }
 
 async function activateAsync(context) {
-  await startServerAsync();
+  toDispose.push(
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      logAsyncErrors(async () => {
+        if (event.affectsConfiguration(`${clientID}.executablePath`)) {
+          await startOrRestartServerAsync();
+        }
+      });
+    })
+  );
+
+  await startOrRestartServerAsync();
 }
 exports.activate = activateAsync;
 
 async function deactivateAsync() {
   await stopServerIfStartedAsync();
+  for (let disposable of toDispose) {
+    await disposable.dispose();
+  }
 }
 exports.deactivate = deactivateAsync;
 
@@ -58,4 +82,23 @@ function getQuickLintJSExecutablePath() {
   let path = vscode.workspace.getConfiguration(clientID)["executablePath"];
   let pathIsEmpty = /^\s*$/.test(path);
   return pathIsEmpty ? "quick-lint-js" : path;
+}
+
+function logAsyncErrors(promise) {
+  if (typeof promise === "function") {
+    promise = promise();
+  }
+  return promise.catch((error) => {
+    debugger;
+    logError(error);
+    return Promise.reject(error);
+  });
+}
+
+function logError(error) {
+  if (error && error.stack) {
+    console.error("quick-lint-js error:", error.stack);
+  } else {
+    console.error("quick-lint-js error:", error);
+  }
 }
