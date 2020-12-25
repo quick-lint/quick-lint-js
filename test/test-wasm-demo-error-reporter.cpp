@@ -37,6 +37,19 @@ TEST(test_wasm_demo_error_reporter, big_int_literal_contains_decimal_point) {
   EXPECT_EQ(errors[1].message, nullptr);
 }
 
+TEST(test_wasm_demo_error_reporter, error_after_non_ascii_characters) {
+  padded_string input(u8"\u2603 12.34n"_sv);
+  source_code_span number_span(&input[4], &input[4 + 6]);
+  ASSERT_EQ(number_span.string_view(), u8"12.34n");
+
+  wasm_demo_error_reporter reporter(&input);
+  reporter.report(error_big_int_literal_contains_decimal_point{number_span});
+
+  const wasm_demo_error_reporter::error *errors = reporter.get_errors();
+  EXPECT_EQ(errors[0].begin_offset, 2);
+  EXPECT_EQ(errors[0].end_offset, 2 + 6);
+}
+
 TEST(test_wasm_demo_error_reporter, multiple_errors) {
   padded_string input(u8"abc"_sv);
   source_code_span a_span(&input[0], &input[1]);

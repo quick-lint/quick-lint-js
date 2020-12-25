@@ -24,6 +24,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/wasm-demo-location.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -58,6 +59,7 @@ class wasm_demo_error_reporter final : public error_reporter {
   char8 *allocate_c_string(string8_view);
 
   std::vector<error> errors_;
+  wasm_demo_locator locator_;
   const char8 *input_;
   boost::container::pmr::monotonic_buffer_resource string_memory_;
 

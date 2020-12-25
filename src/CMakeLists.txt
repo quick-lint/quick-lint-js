@@ -121,6 +121,7 @@ quick_lint_js_add_library(
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/wasm-demo-error-reporter.h
+  quick-lint-js/wasm-demo-location.h
   text-error-reporter.cpp
   translation-data.cpp
   translation.cpp
@@ -130,6 +131,7 @@ quick_lint_js_add_library(
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   wasm-demo-error-reporter.cpp
+  wasm-demo-location.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
