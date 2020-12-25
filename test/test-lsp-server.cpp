@@ -576,6 +576,7 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
   EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
   EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
+  EXPECT_EQ(diagnostics[0]["source"], "quick-lint-js");
 }
 
 TEST(test_lsp_javascript_linter, linting_does_not_desync) {
