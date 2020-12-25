@@ -15,9 +15,9 @@
       "type": "object",
       "title": "quick-lint-js",
       "properties": {
-        "quick-lint-js.exe-path": {
+        "quick-lint-js.executablePath": {
           "type": "string",
-          "description": "Path to the quick-lint-js executable.",
+          "description": "Path to the quick-lint-js executable.\n\nIf empty, \"quick-lint-js\" or \"quick-lint-js.exe\" is searched for according to the PATH environment variable.",
           "scope": "machine-overridable"
         },
         "quick-lint-js.trace.server": {
