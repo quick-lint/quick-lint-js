@@ -215,6 +215,16 @@ TEST_F(test_linting_lsp_server,
 }
 #endif
 
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#dollarRequests
+TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "$/someNotification"
+      })"));
+  EXPECT_THAT(this->client.messages, IsEmpty());
+}
+
 TEST_F(test_linting_lsp_server, opening_document_lints) {
   this->lint_callback = [&](padded_string_view code,
                             ::simdjson::dom::element& text_document,

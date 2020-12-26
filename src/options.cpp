@@ -22,6 +22,7 @@
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 #include <string_view>
 #include <vector>
@@ -33,10 +34,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-bool starts_with(std::string_view haystack, std::string_view needle) noexcept {
-  return haystack.substr(0, needle.size()) == needle;
-}
-
 class arg_parser {
  public:
   explicit arg_parser(int argc, char** argv) noexcept

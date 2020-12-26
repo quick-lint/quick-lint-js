@@ -36,6 +36,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/quick-exit.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
@@ -92,6 +93,8 @@ void linting_lsp_server_handler<Linter>::handle_notification(
     // Do nothing.
   } else if (method == "exit") {
     quick_exit(this->shutdown_requested_ ? 0 : 1);
+  } else if (starts_with(method, "$/")) {
+    // Do nothing.
   } else {
     QLJS_UNIMPLEMENTED();
   }
