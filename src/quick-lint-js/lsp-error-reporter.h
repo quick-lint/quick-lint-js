@@ -48,7 +48,7 @@ class lsp_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  void begin_error();
+  lsp_error_formatter begin_error();
   lsp_error_formatter format();
 
   byte_buffer &output_;

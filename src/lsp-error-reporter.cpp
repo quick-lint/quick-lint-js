@@ -37,8 +37,7 @@ void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"); }
 
 #define QLJS_ERROR_TYPE(name, struct_body, format_call) \
   void lsp_error_reporter::report(name e) {             \
-    this->begin_error();                                \
-    format_error(e, this->format());                    \
+    format_error(e, this->begin_error());               \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -68,11 +67,12 @@ void lsp_error_reporter::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-void lsp_error_reporter::begin_error() {
+lsp_error_formatter lsp_error_reporter::begin_error() {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n");
   }
   this->need_comma_ = true;
+  return this->format();
 }
 
 lsp_error_formatter lsp_error_reporter::format() {

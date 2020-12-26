@@ -55,7 +55,7 @@ class vim_qflist_json_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  void begin_error();
+  vim_qflist_json_error_formatter begin_error();
   vim_qflist_json_error_formatter format();
 
   std::ostream &output_;

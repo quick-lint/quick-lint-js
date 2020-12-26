@@ -64,8 +64,7 @@ void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 
 #define QLJS_ERROR_TYPE(name, struct_body, format_call) \
   void vim_qflist_json_error_reporter::report(name e) { \
-    this->begin_error();                                \
-    format_error(e, this->format());                    \
+    format_error(e, this->begin_error());               \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -95,11 +94,12 @@ void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-void vim_qflist_json_error_reporter::begin_error() {
+vim_qflist_json_error_formatter vim_qflist_json_error_reporter::begin_error() {
   if (this->need_comma_) {
     this->output_ << ",\n";
   }
   this->need_comma_ = true;
+  return this->format();
 }
 
 vim_qflist_json_error_formatter vim_qflist_json_error_reporter::format() {
