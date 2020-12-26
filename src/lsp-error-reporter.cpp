@@ -112,7 +112,7 @@ void lsp_error_formatter::write_before_message(severity sev,
   this->output_.append_decimal_integer(r.end.character);
   this->output_.append_copy(u8"}},\"severity\":");
   this->output_.append_copy(severity_type);
-  this->output_.append_copy(u8"\"source\":\"quick-lint-js\",");
+  this->output_.append_copy(u8",\"source\":\"quick-lint-js\"");
   this->output_.append_copy(u8",\"message\":\"");
 }
 
