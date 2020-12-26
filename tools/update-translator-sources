@@ -32,7 +32,7 @@ update_template_file() {
   printf 'updating: %s\n' "${pot_file}"
 
   pot_temp_file="$(mktemp)"
-  xgettext --keyword=QLJS_TRANSLATE --output="${pot_temp_file}" --force-po --add-location=file --msgid-bugs-address=strager.nds@gmail.com src/quick-lint-js/error.h
+  xgettext --keyword=QLJS_TRANSLATABLE --keyword=QLJS_TRANSLATE --output="${pot_temp_file}" --force-po --add-location=file --msgid-bugs-address=strager.nds@gmail.com src/quick-lint-js/error.h
   sed -i -e 's/charset=CHARSET/charset=UTF-8/g' "${pot_temp_file}"
 
   mkdir -p po

@@ -704,7 +704,8 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
                                   /*bufnr=*/std::string_view())
-      .error(u8"something happened", source_code_span(&code[0], &code[5]))
+      .error("something happened"_gmo_message,
+             source_code_span(&code[0], &code[5]))
       .end();
 
   ::Json::Value object = parse_json(stream);
@@ -722,8 +723,9 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
                                   /*bufnr=*/std::string_view())
-      .error(u8"something happened", source_code_span(&code[0], &code[5]))
-      .note(u8"see here", source_code_span(&code[6], &code[11]))
+      .error("something happened"_gmo_message,
+             source_code_span(&code[0], &code[5]))
+      .note("see here"_gmo_message, source_code_span(&code[6], &code[11]))
       .end();
 
   ::Json::Value object = parse_json(stream);
@@ -741,7 +743,8 @@ TEST(test_vim_qflist_json_error_formatter, message_with_zero_placeholder) {
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
                                   /*bufnr=*/std::string_view())
-      .error(u8"this {0} looks fishy", source_code_span(&code[0], &code[5]))
+      .error("this {0} looks fishy"_gmo_message,
+             source_code_span(&code[0], &code[5]))
       .end();
 
   ::Json::Value object = parse_json(stream);
@@ -756,7 +759,8 @@ TEST(test_vim_qflist_json_error_formatter,
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
                                   /*bufnr=*/std::string_view())
-      .error(u8"this {1} looks fishy", source_code_span(&code[0], &code[5]),
+      .error("this {1} looks fishy"_gmo_message,
+             source_code_span(&code[0], &code[5]),
              identifier(source_code_span(&code[6], &code[11])))
       .end();
 
@@ -778,7 +782,7 @@ TEST(test_vim_qflist_json_error_formatter,
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
                                   /*bufnr=*/std::string_view())
-      .error(u8"free {1} and {0} {1} {2}", let_span, me_span, be_span)
+      .error("free {1} and {0} {1} {2}"_gmo_message, let_span, me_span, be_span)
       .end();
 
   ::Json::Value object = parse_json(stream);

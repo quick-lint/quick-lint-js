@@ -23,7 +23,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/gmo.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <utility>
 
@@ -65,19 +67,19 @@ class error_formatter {
   };
 
   template <class... Args>
-  error_formatter &warning(const char8 *message, Args... parameters) {
+  error_formatter &warning(const gmo_message &message, Args... parameters) {
     this->add(severity::warning, message, std::forward<Args>(parameters)...);
     return *this;
   }
 
   template <class... Args>
-  error_formatter &error(const char8 *message, Args... parameters) {
+  error_formatter &error(const gmo_message &message, Args... parameters) {
     this->add(severity::error, message, std::forward<Args>(parameters)...);
     return *this;
   }
 
   template <class... Args>
-  error_formatter &note(const char8 *message, Args &&... parameters) {
+  error_formatter &note(const gmo_message &message, Args &&... parameters) {
     this->add(severity::note, message, std::forward<Args>(parameters)...);
     return *this;
   }
@@ -86,13 +88,13 @@ class error_formatter {
 
  private:
   template <class... Args>
-  void add(severity sev, const char8 *message, Args &&... parameters) {
+  void add(severity sev, const gmo_message &message, Args &&... parameters) {
     static_assert(sizeof...(Args) > 0,
                   "at least origin span must be specified");
     this->add(sev, message, {this->to_span(std::forward<Args>(parameters))...});
   }
 
-  void add(severity, const char8 *message,
+  void add(severity, const gmo_message &message,
            std::initializer_list<source_code_span> parameters);
 
   static const source_code_span &to_span(const source_code_span &span) {
@@ -104,11 +106,10 @@ class error_formatter {
 
 template <class Derived>
 inline void error_formatter<Derived>::add(
-    severity sev, const char8 *message,
+    severity sev, const gmo_message &message,
     std::initializer_list<source_code_span> parameters) {
   static constexpr auto npos = string8_view::npos;
   using string8_pos = string8_view::size_type;
-  QLJS_ASSERT(message);
   QLJS_ASSERT(!std::empty(parameters));
 
   Derived *self = static_cast<Derived *>(this);
@@ -116,7 +117,7 @@ inline void error_formatter<Derived>::add(
   const source_code_span &origin_span = *parameters.begin();
   self->write_before_message(sev, origin_span);
 
-  string8_view remaining_message(message);
+  string8_view remaining_message(translate(message));
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
     self->write_message_part(sev,

@@ -350,7 +350,8 @@ TEST(test_text_error_formatter, single_span_simple_message) {
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
-      .error(u8"something happened", source_code_span(&code[0], &code[5]))
+      .error("something happened"_gmo_message,
+             source_code_span(&code[0], &code[5]))
       .end();
 
   EXPECT_EQ(stream.str(), "FILE:1:1: error: something happened\n");
@@ -362,8 +363,9 @@ TEST(test_text_error_formatter, message_with_note) {
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
-      .error(u8"something happened", source_code_span(&code[0], &code[5]))
-      .note(u8"see here", source_code_span(&code[6], &code[11]))
+      .error("something happened"_gmo_message,
+             source_code_span(&code[0], &code[5]))
+      .note("see here"_gmo_message, source_code_span(&code[6], &code[11]))
       .end();
 
   EXPECT_EQ(stream.str(),
@@ -376,7 +378,8 @@ TEST(test_text_error_formatter, message_with_zero_placeholder) {
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
-      .error(u8"this {0} looks fishy", source_code_span(&code[0], &code[5]))
+      .error("this {0} looks fishy"_gmo_message,
+             source_code_span(&code[0], &code[5]))
       .end();
 
   EXPECT_EQ(stream.str(), "FILE:1:1: error: this hello looks fishy\n");
@@ -388,7 +391,8 @@ TEST(test_text_error_formatter, message_with_extra_identifier_placeholder) {
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
-      .error(u8"this {1} looks fishy", source_code_span(&code[0], &code[5]),
+      .error("this {1} looks fishy"_gmo_message,
+             source_code_span(&code[0], &code[5]),
              identifier(source_code_span(&code[6], &code[11])))
       .end();
 
@@ -407,7 +411,7 @@ TEST(test_text_error_formatter, message_with_multiple_span_placeholders) {
 
   std::ostringstream stream;
   text_error_formatter(stream, "FILE", locator)
-      .error(u8"free {1} and {0} {1} {2}", let_span, me_span, be_span)
+      .error("free {1} and {0} {1} {2}"_gmo_message, let_span, me_span, be_span)
       .end();
 
   EXPECT_EQ(stream.str(), "FILE:1:1: error: free me and let me be\n");

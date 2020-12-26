@@ -27,6 +27,8 @@
 #define QLJS_TRANSLATE(...) \
   (::quick_lint_js::translate(__VA_ARGS__##_gmo_message))
 
+#define QLJS_TRANSLATABLE(...) (__VA_ARGS__##_gmo_message)
+
 namespace quick_lint_js {
 const char8* translate(const gmo_message&);
 
