@@ -16,9 +16,9 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 
@@ -28,37 +28,63 @@ void benchmark_location_scale_of_long_line(::benchmark::State &state) {
   int line_length = 10'000;
   padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'x'));
   for (auto _ : state) {
-    cli_locator l(&line);
+    lsp_locator l(&line);
     for (int i = 0; i < line_length; ++i) {
-      cli_source_position p = l.position(&line[i]);
+      lsp_position p = l.position(&line[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
 }
 BENCHMARK(benchmark_location_scale_of_long_line);
 
+void benchmark_from_position_scale_of_long_line(::benchmark::State &state) {
+  int line_length = 10'000;
+  padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'x'));
+  for (auto _ : state) {
+    lsp_locator l(&line);
+    for (int i = 0; i < line_length; ++i) {
+      const char8 *c = l.from_position(lsp_position{.line = 0, .character = i});
+      ::benchmark::DoNotOptimize(c);
+    }
+  }
+}
+BENCHMARK(benchmark_from_position_scale_of_long_line);
+
 void benchmark_location_scale_of_empty_lines(::benchmark::State &state) {
   int line_count = 10'000;
   padded_string lines(string8(narrow_cast<std::size_t>(line_count), u8'\n'));
   for (auto _ : state) {
-    cli_locator l(&lines);
+    lsp_locator l(&lines);
     for (int i = 0; i < line_count; ++i) {
-      cli_source_position p = l.position(&lines[i]);
+      lsp_position p = l.position(&lines[i]);
       ::benchmark::DoNotOptimize(p);
     }
   }
 }
 BENCHMARK(benchmark_location_scale_of_empty_lines);
 
+void benchmark_from_position_scale_of_empty_lines(::benchmark::State &state) {
+  int line_count = 10'000;
+  padded_string lines(string8(narrow_cast<std::size_t>(line_count), u8'\n'));
+  for (auto _ : state) {
+    lsp_locator l(&lines);
+    for (int i = 0; i < line_count; ++i) {
+      const char8 *c = l.from_position({.line = i, .character = 0});
+      ::benchmark::DoNotOptimize(c);
+    }
+  }
+}
+BENCHMARK(benchmark_from_position_scale_of_empty_lines);
+
 void benchmark_range_scale_of_empty_lines(::benchmark::State &state) {
   int line_length = 10'000;
   int span_length = 5;
   padded_string line(string8(narrow_cast<std::size_t>(line_length), u8'\n'));
   for (auto _ : state) {
-    cli_locator l(&line);
+    lsp_locator l(&line);
     for (int i = 0; i < line_length - span_length; i += span_length) {
       source_code_span span(&line[i], &line[i + span_length]);
-      cli_source_range r = l.range(span);
+      lsp_range r = l.range(span);
       ::benchmark::DoNotOptimize(r);
     }
   }
@@ -72,13 +98,39 @@ void benchmark_location_realisticish(::benchmark::State &state) {
       /*line_count=*/line_count, /*span_count=*/span_count);
 
   for (auto _ : state) {
-    cli_locator l(code.source.get());
+    lsp_locator l(code.source.get());
     for (const source_code_span &span : code.spans) {
-      cli_source_range r = l.range(span);
+      lsp_range r = l.range(span);
       ::benchmark::DoNotOptimize(r);
     }
   }
 }
 BENCHMARK(benchmark_location_realisticish)->Arg(1)->Arg(50);
+
+void benchmark_from_position_realisticish(::benchmark::State &state) {
+  int line_count = 10'000;
+  int span_count = narrow_cast<int>(state.range(0));
+  source_code_with_spans code = make_realisticish_code(
+      /*line_count=*/line_count, /*span_count=*/span_count);
+
+  std::vector<lsp_position> positions;
+  {
+    lsp_locator l(code.source.get());
+    for (const source_code_span &span : code.spans) {
+      lsp_range r = l.range(span);
+      positions.push_back(r.start);
+      positions.push_back(r.end);
+    }
+  }
+
+  for (auto _ : state) {
+    lsp_locator l(code.source.get());
+    for (const lsp_position &position : positions) {
+      const char8 *c = l.from_position(position);
+      ::benchmark::DoNotOptimize(c);
+    }
+  }
+}
+BENCHMARK(benchmark_from_position_realisticish)->Arg(1)->Arg(50);
 }  // namespace
 }  // namespace quick_lint_js

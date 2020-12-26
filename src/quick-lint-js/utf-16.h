@@ -14,28 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_UTF_8_H
-#define QUICK_LINT_JS_UTF_8_H
+#ifndef QUICK_LINT_JS_UTF_16_H
+#define QUICK_LINT_JS_UTF_16_H
 
-#include <cstddef>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/padded-string.h>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+#if defined(_WIN32)
+class mbargv {
+ public:
+  explicit mbargv(int argc, wchar_t **wargv);
+  mbargv(const mbargv &) = delete;
+  mbargv &operator=(const mbargv &) = delete;
+  ~mbargv();
+  char **data();
+  int size();
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
+ private:
+  void wargv_to_mbargv(int argc, wchar_t **wargv);
+  char *warg_to_mbarg(wchar_t *warg);
+  void conversion_failed(wchar_t *warg);
+
+  std::vector<char *> mbargv_;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-
-const char8* advance_lsp_characters_in_utf_8(string8_view,
-                                             int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+std::optional<std::wstring> mbstring_to_wstring(const char *mbstring);
+#endif
 }
-
 #endif

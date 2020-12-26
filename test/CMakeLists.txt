@@ -67,11 +67,13 @@ quick_lint_js_add_executable(
   test-parse.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
+  test-utf-16.cpp
   test-utf-8.cpp
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
   test-wasm-demo-error-reporter.cpp
+  test-wasm-demo-location.cpp
   test-write-integer.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)

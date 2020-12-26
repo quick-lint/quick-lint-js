@@ -109,6 +109,10 @@ class padded_string_view {
     return this->data_[index];
   }
 
+  padded_string_view substr(int offset) const noexcept {
+    return padded_string_view(this->data() + offset, this->null_terminator());
+  }
+
   string8_view string_view() const noexcept;
 
   friend std::ostream &operator<<(std::ostream &, const padded_string_view &);

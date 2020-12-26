@@ -30,7 +30,7 @@
 
 namespace quick_lint_js {
 wasm_demo_error_reporter::wasm_demo_error_reporter(padded_string_view input)
-    : input_(input.data()) {}
+    : locator_(input), input_(input.data()) {}
 
 #define QLJS_ERROR_TYPE(name, struct_body, format_call) \
   void wasm_demo_error_reporter::report(name e) {       \
@@ -114,10 +114,9 @@ void wasm_demo_error_formatter::write_after_message(
     return;
   }
   wasm_demo_error_reporter::error &e = this->reporter_->errors_.emplace_back();
-  e.begin_offset =
-      narrow_cast<std::uint32_t>(origin.begin() - this->reporter_->input_);
-  e.end_offset =
-      narrow_cast<std::uint32_t>(origin.end() - this->reporter_->input_);
+  wasm_demo_source_range r = this->reporter_->locator_.range(origin);
+  e.begin_offset = r.begin;
+  e.end_offset = r.end;
   e.message = this->reporter_->allocate_c_string(this->current_message_);
 }
 }

@@ -113,6 +113,7 @@ quick_lint_js_add_library(
   quick-lint-js/translation-data.h
   quick-lint-js/translation.h
   quick-lint-js/unreachable.h
+  quick-lint-js/utf-16.h
   quick-lint-js/utf-8.h
   quick-lint-js/vector.h
   quick-lint-js/version.h
@@ -120,14 +121,17 @@ quick_lint_js_add_library(
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/wasm-demo-error-reporter.h
+  quick-lint-js/wasm-demo-location.h
   text-error-reporter.cpp
   translation-data.cpp
   translation.cpp
+  utf-16.cpp
   utf-8.cpp
   vector.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   wasm-demo-error-reporter.cpp
+  wasm-demo-location.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)

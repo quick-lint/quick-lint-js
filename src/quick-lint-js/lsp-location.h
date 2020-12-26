@@ -57,7 +57,8 @@ class lsp_locator {
 
  private:
   void cache_offsets_of_lines();
-  void compute_offsets_of_lines(const char8 *begin, const char8 *end);
+  void compute_offsets_of_lines(const char8 *begin, const char8 *end,
+                                bool *out_last_line_is_ascii);
 
   int find_line_at_offset(offset_type offset) const;
 
@@ -67,10 +68,12 @@ class lsp_locator {
 
   padded_string_view input_;
   std::vector<offset_type> offset_of_lines_;
+  std::vector<unsigned char> line_is_ascii_;
 
-  // old_offset_of_lines_ is used for double buffering of offset_of_lines_. This
-  // reduces allocations.
+  // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
+  // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
   std::vector<offset_type> old_offset_of_lines_;
+  std::vector<unsigned char> old_line_is_ascii_;
 };
 }
 

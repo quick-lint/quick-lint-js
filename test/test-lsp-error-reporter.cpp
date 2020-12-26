@@ -70,6 +70,7 @@ TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
   EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 6);
   EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
   EXPECT_EQ(diagnostics[0]["message"], "BigInt literal contains decimal point");
+  EXPECT_EQ(diagnostics[0]["source"], "quick-lint-js");
 }
 
 TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
@@ -94,6 +95,7 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
   EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
   EXPECT_EQ(diagnostics[0]["message"],
             "variable assigned before its declaration");
+  EXPECT_EQ(diagnostics[0]["source"], "quick-lint-js");
   // TODO(strager): Show the declaration as relatedInformation.
 }
 

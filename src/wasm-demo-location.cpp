@@ -14,28 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_UTF_8_H
-#define QUICK_LINT_JS_UTF_8_H
-
-#include <cstddef>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/wasm-demo-location.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+wasm_demo_locator::wasm_demo_locator(padded_string_view input) noexcept
+    : input_(input) {}
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
-};
-
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-
-const char8* advance_lsp_characters_in_utf_8(string8_view,
-                                             int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+wasm_demo_source_range wasm_demo_locator::range(source_code_span span) const {
+  return wasm_demo_source_range{
+      .begin = this->position(span.begin()),
+      .end = this->position(span.end()),
+  };
 }
 
-#endif
+wasm_demo_source_offset wasm_demo_locator::position(const char8* c) const
+    noexcept {
+  int byte_offset = narrow_cast<int>(c - this->input_.data());
+  return narrow_cast<wasm_demo_source_offset>(
+      count_lsp_characters_in_utf_8(this->input_, byte_offset));
+}
+}

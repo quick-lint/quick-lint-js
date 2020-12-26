@@ -23,7 +23,7 @@ let clientID = "quick-lint-js";
 
 let client = null;
 
-function activate(context) {
+async function startServerAsync() {
   client = new LanguageClient(
     clientID,
     "quick-lint-js",
@@ -37,21 +37,25 @@ function activate(context) {
   );
   client.start();
 }
-exports.activate = activate;
 
-function deactivate() {
-  if (client === null) {
-    return undefined;
-  } else {
-    return client.stop();
+async function stopServerIfStartedAsync() {
+  if (client !== null) {
+    await client.stop();
   }
 }
-exports.deactivate = deactivate;
+
+async function activateAsync(context) {
+  await startServerAsync();
+}
+exports.activate = activateAsync;
+
+async function deactivateAsync() {
+  await stopServerIfStartedAsync();
+}
+exports.deactivate = deactivateAsync;
 
 function getQuickLintJSExecutablePath() {
-  let path = vscode.workspace.getConfiguration(
-    clientID
-  )["exe-path"];
+  let path = vscode.workspace.getConfiguration(clientID)["executablePath"];
   let pathIsEmpty = /^\s*$/.test(path);
   return pathIsEmpty ? "quick-lint-js" : path;
 }

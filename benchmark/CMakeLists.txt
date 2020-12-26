@@ -51,12 +51,24 @@ quick_lint_js_add_benchmark_executable(
   benchmark-lsp-document.cpp
 )
 quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-lsp-location
+  benchmark-lsp-location.cpp
+)
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-parse
   benchmark-parse.cpp
 )
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-translation
   benchmark-translation.cpp
+)
+quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-utf-8
+  benchmark-utf-8.cpp
+)
+quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-vim-location
+  benchmark-vim-location.cpp
 )
 
 quick_lint_js_add_library(

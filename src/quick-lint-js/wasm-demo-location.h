@@ -14,28 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_UTF_8_H
-#define QUICK_LINT_JS_UTF_8_H
+#ifndef QUICK_LINT_JS_WASM_DEMO_LOCATION_H
+#define QUICK_LINT_JS_WASM_DEMO_LOCATION_H
 
-#include <cstddef>
+#include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+class source_code_span;
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
+using wasm_demo_source_offset = std::uint32_t;
+
+struct wasm_demo_source_range {
+  wasm_demo_source_offset begin;
+  wasm_demo_source_offset end;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
+class wasm_demo_locator {
+ public:
+  explicit wasm_demo_locator(padded_string_view input) noexcept;
 
-const char8* advance_lsp_characters_in_utf_8(string8_view,
-                                             int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+  wasm_demo_source_range range(source_code_span) const;
+  wasm_demo_source_offset position(const char8*) const noexcept;
+
+ private:
+  padded_string_view input_;
+};
 }
 
 #endif
