@@ -120,25 +120,25 @@ vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
 
 void vim_qflist_json_error_formatter::write_before_message(
     severity sev, const source_code_span &origin) {
-  std::string_view severity_value{};
+  std::string_view severity_type;
   switch (sev) {
+  case severity::error:
+    severity_type = "E";
+    break;
   case severity::note:
     // Don't write notes. Only write the main message.
     return;
-  case severity::error:
-    severity_value = "E";
-    break;
   case severity::warning:
-    severity_value = "W";
+    severity_type = "W";
     break;
-  }  // TODO: handel undifined serverity case.
+  }
 
   vim_source_range r = this->locator_.range(origin);
   auto end_col = origin.begin() == origin.end() ? r.begin.col : (r.end.col - 1);
   this->output_ << "{\"col\": " << r.begin.col << ", \"lnum\": " << r.begin.lnum
                 << ", \"end_col\": " << end_col
                 << ", \"end_lnum\": " << r.end.lnum << ", \"type\": \""
-                << severity_value << "\", \"vcol\": 0, \"text\": \"";
+                << severity_type << "\", \"vcol\": 0, \"text\": \"";
 }
 
 void vim_qflist_json_error_formatter::write_message_part(severity sev,
