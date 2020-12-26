@@ -64,6 +64,8 @@ void linting_lsp_server_handler<Linter>::handle_request(
   }
   if (method == "initialize") {
     this->handle_initialize_request(request, response_json);
+  } else if (method == "shutdown") {
+    this->handle_shutdown_request(request, response_json);
   } else {
     QLJS_UNIMPLEMENTED();
   }
@@ -110,6 +112,14 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
     u8R"--(},)--"
     u8R"--("jsonrpc":"2.0"})--");
   // clang-format on
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::handle_shutdown_request(
+    ::simdjson::dom::element& request, byte_buffer& response_json) {
+  response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--");
+  append_raw_json(request["id"], response_json);
+  response_json.append_copy(u8R"--(,"result":null})--");
 }
 
 template <QLJS_LSP_LINTER Linter>

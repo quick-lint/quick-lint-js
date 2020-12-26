@@ -156,6 +156,22 @@ TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
   EXPECT_THAT(this->client.messages, IsEmpty());
 }
 
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#shutdown
+TEST_F(test_linting_lsp_server, shutdown) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "id": 10,
+        "method": "shutdown"
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::Json::Value& response = this->client.messages[0];
+  EXPECT_EQ(response["id"], 10);
+  EXPECT_FALSE(response.isMember("error"));
+  EXPECT_EQ(response["result"], ::Json::Value::nullSingleton());
+}
+
 TEST_F(test_linting_lsp_server, opening_document_lints) {
   this->lint_callback = [&](padded_string_view code,
                             ::simdjson::dom::element& text_document,

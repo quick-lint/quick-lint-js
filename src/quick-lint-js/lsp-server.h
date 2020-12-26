@@ -66,6 +66,8 @@ class linting_lsp_server_handler {
  private:
   void handle_initialize_request(::simdjson::dom::element& request,
                                  byte_buffer& response_json);
+  void handle_shutdown_request(::simdjson::dom::element& request,
+                               byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
       ::simdjson::dom::element& request, byte_buffer& notification_json);
