@@ -56,7 +56,9 @@ std::ostream &operator<<(std::ostream &out,
   return out;
 }
 
+#if QLJS_FEATURE_VECTOR_PROFILING
 vector_instrumentation vector_instrumentation::instance;
+#endif
 
 void vector_instrumentation::clear() { this->entries_.clear(); }
 
@@ -167,6 +169,7 @@ void vector_instrumentation::add_entry(std::uintptr_t object_id,
 }
 
 void vector_instrumentation::register_dump_on_exit_if_requested() {
+#if QLJS_FEATURE_VECTOR_PROFILING
   const char *dump_vectors_value = std::getenv("QLJS_DUMP_VECTORS");
   bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
@@ -176,5 +179,6 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
                                        /*maximum_line_length=*/80);
     });
   }
+#endif
 }
 }

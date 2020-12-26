@@ -50,7 +50,9 @@ class vector_instrumentation {
     friend std::ostream &operator<<(std::ostream &, const entry &);
   };
 
+#if QLJS_FEATURE_VECTOR_PROFILING
   static vector_instrumentation instance;
+#endif
 
   void clear();
   std::vector<entry> entries() const;
