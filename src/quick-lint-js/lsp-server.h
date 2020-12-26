@@ -81,6 +81,7 @@ class linting_lsp_server_handler {
 
   Linter linter_;
   std::unordered_map<string8, lsp_document> documents_;
+  bool shutdown_requested_ = false;
 };
 
 class lsp_javascript_linter {

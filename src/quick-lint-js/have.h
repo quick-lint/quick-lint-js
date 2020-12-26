@@ -270,4 +270,20 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_STD_QUICK_EXIT)
+#if defined(__linux__) || defined(_WIN32)
+#define QLJS_HAVE_STD_QUICK_EXIT 1
+#else
+#define QLJS_HAVE_STD_QUICK_EXIT 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_QUICK_EXIT)
+#if defined(__EMSCRIPTEN__)
+#define QLJS_HAVE_QUICK_EXIT 1
+#else
+#define QLJS_HAVE_QUICK_EXIT 0
+#endif
+#endif
+
 #endif

@@ -24,9 +24,12 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/version.h>
+#include <quick-lint-js/warning.h>
 #include <simdjson.h>
 #include <tuple>
 #include <utility>
+
+QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
@@ -171,6 +174,46 @@ TEST_F(test_linting_lsp_server, shutdown) {
   EXPECT_FALSE(response.isMember("error"));
   EXPECT_EQ(response["result"], ::Json::Value::nullSingleton());
 }
+
+#if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#exit
+TEST_F(test_linting_lsp_server,
+       exit_without_shutdown_quits_program_with_exit_code_1) {
+  auto send_exit = [this]() {
+    this->server.append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "method": "exit"
+        })"));
+    std::exit(99);  // Shouldn't happen.
+  };
+  EXPECT_EXIT({ send_exit(); }, ::testing::ExitedWithCode(1), "");
+}
+#endif
+
+#if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#exit
+TEST_F(test_linting_lsp_server,
+       exit_with_shutdown_quits_program_with_exit_code_0) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "id": 10,
+        "method": "shutdown"
+      })"));
+  this->client.messages.clear();
+
+  auto send_exit = [this]() {
+    this->server.append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "method": "exit"
+        })"));
+    std::exit(99);  // Shouldn't happen.
+  };
+  EXPECT_EXIT({ send_exit(); }, ::testing::ExitedWithCode(0), "");
+}
+#endif
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
   this->lint_callback = [&](padded_string_view code,

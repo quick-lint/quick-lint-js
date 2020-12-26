@@ -24,6 +24,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <quick-lint-js/assert.h>
@@ -34,6 +35,7 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/quick-exit.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
@@ -88,6 +90,8 @@ void linting_lsp_server_handler<Linter>::handle_notification(
     this->handle_text_document_did_close_notification(request);
   } else if (method == "initialized") {
     // Do nothing.
+  } else if (method == "exit") {
+    quick_exit(this->shutdown_requested_ ? 0 : 1);
   } else {
     QLJS_UNIMPLEMENTED();
   }
@@ -117,6 +121,7 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_shutdown_request(
     ::simdjson::dom::element& request, byte_buffer& response_json) {
+  this->shutdown_requested_ = true;
   response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--");
   append_raw_json(request["id"], response_json);
   response_json.append_copy(u8R"--(,"result":null})--");
