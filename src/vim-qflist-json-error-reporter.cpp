@@ -120,7 +120,7 @@ vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
 
 void vim_qflist_json_error_formatter::write_before_message(
     severity sev, const source_code_span &origin) {
-  std::string_view severity_type;
+  std::string_view severity_type{};
   switch (sev) {
   case severity::error:
     severity_type = "E";

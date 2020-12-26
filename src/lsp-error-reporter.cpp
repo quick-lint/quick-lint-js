@@ -86,7 +86,7 @@ lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
 
 void lsp_error_formatter::write_before_message(severity sev,
                                                const source_code_span &origin) {
-  char8 severity_type;
+  char8 severity_type{};
   switch (sev) {
   case severity::error:
     severity_type = u8'1';
