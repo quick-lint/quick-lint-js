@@ -59,9 +59,9 @@ class error_formatter {
   // void write_after_message(severity, const source_code_span &origin);
 
   enum class severity {
-    warning,
     error,
     note,
+    warning,
   };
 
   template <class... Args>
