@@ -35,6 +35,11 @@ void byte_buffer::append_copy(string8_view data) {
   std::memcpy(out, data.data(), data.size());
 }
 
+void byte_buffer::append_copy(char8 data) {
+  void* out = this->append(1);
+  std::memcpy(out, &data, 1);
+}
+
 byte_buffer::size_type byte_buffer::size() const noexcept {
   size_type total_size = 0;
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;

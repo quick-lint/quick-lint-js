@@ -88,6 +88,9 @@ void text_error_formatter::write_before_message(
   case severity::note:
     this->output_ << "note: ";
     break;
+  case severity::warning:
+    this->output_ << "warning: ";
+    break;
   }
 }
 

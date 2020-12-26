@@ -86,9 +86,17 @@ lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
 
 void lsp_error_formatter::write_before_message(severity sev,
                                                const source_code_span &origin) {
-  if (sev == severity::note) {
+  char8 severity_type{};
+  switch (sev) {
+  case severity::error:
+    severity_type = u8'1';
+    break;
+  case severity::note:
     // Don't write notes. Only write the main message.
     return;
+  case severity::warning:
+    severity_type = u8'2';
+    break;
   }
 
   lsp_range r = this->locator_.range(origin);
@@ -102,10 +110,10 @@ void lsp_error_formatter::write_before_message(severity sev,
   this->output_.append_decimal_integer(r.end.line);
   this->output_.append_copy(u8",\"character\":");
   this->output_.append_decimal_integer(r.end.character);
-  this->output_.append_copy(
-      u8"}},\"severity\":1,"
-      u8"\"source\":\"quick-lint-js\","
-      u8"\"message\":\"");
+  this->output_.append_copy(u8"}},\"severity\":");
+  this->output_.append_copy(severity_type);
+  this->output_.append_copy(u8",\"source\":\"quick-lint-js\"");
+  this->output_.append_copy(u8",\"message\":\"");
 }
 
 void lsp_error_formatter::write_message_part(severity sev,
