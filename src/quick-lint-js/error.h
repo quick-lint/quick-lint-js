@@ -182,7 +182,8 @@
   QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_trailing_underscores,                      \
       { source_code_span underscores; },                                       \
-      .error(u8"number literal contains trailing underscore(s)", underscores)) \
+      .error(QLJS_TRANSLATE("number literal contains trailing underscore(s)"), \
+             underscores))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_octal_literal_may_not_have_exponent,                               \
