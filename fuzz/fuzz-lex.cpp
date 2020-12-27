@@ -21,26 +21,8 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/null-visitor.h>
 
-namespace quick_lint_js {
-namespace {
-bool is_ascii(const std::uint8_t *data, std::size_t size) {
-  for (std::size_t i = 0; i < size; ++i) {
-    if ((data[i] & 0x80) != 0) {
-      return false;
-    }
-  }
-  return true;
-}
-}
-}
-
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
-  if (!quick_lint_js::is_ascii(data, size)) {
-    // TODO(strager): Allow non-ASCII when the lexer handles UTF-8 correctly.
-    return 0;
-  }
-
   quick_lint_js::padded_string source(quick_lint_js::string8(
       reinterpret_cast<const quick_lint_js::char8 *>(data), size));
   quick_lint_js::lexer l(&source,
