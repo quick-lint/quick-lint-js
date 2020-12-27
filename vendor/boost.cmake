@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+include(CheckCXXCompilerFlag)
 include(QuickLintJSCompiler)
 
 set(BUILD_TESTING FALSE)
@@ -53,3 +54,14 @@ foreach (BOOST_PROJECT IN LISTS BOOST_PROJECTS)
     -Wno-missing-include-dirs
   )
 endforeach ()
+
+# Allow the entire project to be compiled with -fno-rtti. Boost uses
+# dynamic_cast which requires RTTI, so forcefully enable RTTI for Boost.
+check_cxx_compiler_flag(-frtti QUICK_LINT_JS_HAVE_FRTTI)
+if (QUICK_LINT_JS_HAVE_FRTTI)
+  target_compile_options(
+    boost_container
+    PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:-frtti>
+  )
+endif ()
