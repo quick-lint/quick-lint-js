@@ -91,7 +91,11 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
         .parse(reinterpret_cast<const char*>(message.data()), message.size())
         .tie(request, parse_error);
     if (parse_error != ::simdjson::error_code::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
+      byte_buffer error_json;
+      error_json.append_copy(
+          u8R"({"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}})");
+      this->remote_.send_message(error_json);
+      return;
     }
 
     byte_buffer response_json;

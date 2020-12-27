@@ -245,5 +245,30 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
   EXPECT_EQ(remote.messages[1]["method"], "testreply");
   EXPECT_EQ(remote.messages[1]["params"], "testparams");
 }
+
+// https://www.jsonrpc.org/specification#error_object
+TEST(test_lsp_endpoint, malformed_json) {
+  struct mock_lsp_server_handler {
+    void handle_request(::simdjson::dom::element&, byte_buffer&) {
+      ADD_FAILURE() << "handle_request should not be called";
+    }
+
+    void handle_notification(::simdjson::dom::element&, byte_buffer&) {
+      ADD_FAILURE() << "handle_notification should not be called";
+    }
+  };
+  lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
+  spy_lsp_endpoint_remote& remote = server.remote();
+
+  server.append(make_message(u8"{ malformed json! }"));
+
+  ASSERT_EQ(remote.messages.size(), 1);
+  EXPECT_EQ(remote.messages[0]["jsonrpc"], "2.0");
+  EXPECT_EQ(remote.messages[0]["id"], ::Json::Value::nullSingleton());
+  EXPECT_FALSE(remote.messages[0].isMember("result"));
+  ASSERT_TRUE(remote.messages[0].isMember("error"));
+  EXPECT_EQ(remote.messages[0]["error"]["code"], -32700);
+  EXPECT_EQ(remote.messages[0]["error"]["message"], "Parse error");
+}
 }
 }
