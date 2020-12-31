@@ -53,7 +53,7 @@ jobs:
 
       - name: 1. Configure with CMake
         run: |
-          mkdir build ; cd build ; ${{ matrix.toolchain.extra_environment }} cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd -
+          mkdir build ; cd build ; ${{ matrix.toolchain.extra_environment }} cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
           if ! [ -f docs/BUILDING.md ]; then
             printf 'error: cwd changed unexpectedly\n' >&2
             exit 1

@@ -58,11 +58,11 @@ dependencies:
 
 Run the following command to create a directory called `build`:
 
-    $ mkdir build ; cd build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd -
+    $ mkdir build ; cd build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
 
 For Ubuntu 18.04 Bionic, instead run the following command:
 
-    $ mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd -
+    $ mkdir build ; cd build ; CC=gcc-8 CXX=g++-8 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
 
 #### 2. Build
 
@@ -105,7 +105,7 @@ Before building quick-lint-js, install the following third-party dependencies:
 
 Run the following command to create a directory called `build`:
 
-    $ mkdir build ; cd build ; cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug .. ; cd -
+    $ mkdir build ; cd build ; cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug .. ; cd "$OLDPWD"
 
 #### 2. Build
 
