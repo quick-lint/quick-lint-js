@@ -61,4 +61,6 @@ void lsp_document::replace_text(lsp_range range,
 padded_string_view lsp_document::string() noexcept {
   return &this->content_buffers_[this->active_content_buffer_];
 }
+
+const lsp_locator& lsp_document::locator() noexcept { return this->locator_; }
 }

@@ -72,6 +72,8 @@ quick_lint_js_add_executable(
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
+  test-vscode-error-reporter.cpp
+  test-vscode.cpp
   test-wasm-demo-error-reporter.cpp
   test-wasm-demo-location.cpp
   test-write-integer.cpp

@@ -81,7 +81,11 @@ core_style linux_detect_core_style() {
 #endif
 }
 
-#if QLJS_HAVE_SETRLIMIT
+#if defined(__EMSCRIPTEN__)
+void disable_core_dumping() {
+  // Do nothing.
+}
+#elif QLJS_HAVE_SETRLIMIT
 void disable_core_dumping() {
   int rc;
 

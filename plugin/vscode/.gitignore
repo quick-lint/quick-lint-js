@@ -1,0 +1,5 @@
+/.vscode-test/
+/build-emscripten/
+/dist/
+/node_modules/
+/vscode-quick-lint-js-*.vsix

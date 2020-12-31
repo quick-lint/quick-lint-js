@@ -14,29 +14,5 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_LSP_DOCUMENT_H
-#define QUICK_LINT_JS_LSP_DOCUMENT_H
-
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/lsp-location.h>
-#include <quick-lint-js/padded-string.h>
-
-namespace quick_lint_js {
-class lsp_document {
- public:
-  explicit lsp_document();
-
-  void set_text(string8_view new_text);
-  void replace_text(lsp_range range, string8_view replacement_text);
-
-  padded_string_view string() noexcept;
-  const lsp_locator& locator() noexcept;
-
- private:
-  int active_content_buffer_ = 0;
-  padded_string content_buffers_[2];
-  lsp_locator locator_;
-};
-}
-
-#endif
+// This file is intentionally empty. It is needed to make CMake's add_library
+// function happy.

@@ -15,26 +15,27 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
-project(quick-lint-js)
+include(QuickLintJSTarget)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if (EMSCRIPTEN)
+  quick_lint_js_add_executable(quick-lint-js-vscode empty.cpp)
+  target_link_libraries(
+    quick-lint-js-vscode
+    PRIVATE
+    quick-lint-js-lib
+    "-sEXPORTED_FUNCTIONS='[\"_qljs_vscode_create_parser\",\"_qljs_vscode_destroy_parser\",\"_qljs_vscode_replace_text\",\"_qljs_vscode_lint\",\"_malloc\",\"_free\"]'"
+    -sASSERTIONS=0
+    -sSTANDALONE_WASM=1
+    --no-entry
+  )
+  set_target_properties(quick-lint-js-vscode PROPERTIES SUFFIX .wasm)
 
-include(QuickLintJSCompiler)
-
-quick_lint_js_set_cxx_standard()
-quick_lint_js_enable_char8_t_if_supported()
-quick_lint_js_configure_exception_handling()
-quick_lint_js_work_around_implicit_link_directories()
-
-add_subdirectory(vendor)
-
-add_subdirectory(benchmark)
-add_subdirectory(demo)
-add_subdirectory(fuzz)
-add_subdirectory(plugin/vscode)
-add_subdirectory(src)
-add_subdirectory(tools)
-include(CTest)
-if (BUILD_TESTING)
-  add_subdirectory(test)
+  set(VSCODE_DIST_DIR dist)
+  install(
+    TARGETS quick-lint-js-vscode
+    RUNTIME
+    COMPONENT vscode
+    EXCLUDE_FROM_ALL
+    DESTINATION "${VSCODE_DIST_DIR}"
+  )
 endif ()

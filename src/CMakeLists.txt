@@ -121,6 +121,8 @@ quick_lint_js_add_library(
   quick-lint-js/version.h
   quick-lint-js/vim-location.h
   quick-lint-js/vim-qflist-json-error-reporter.h
+  quick-lint-js/vscode-error-reporter.h
+  quick-lint-js/vscode.h
   quick-lint-js/warning.h
   quick-lint-js/wasm-demo-error-reporter.h
   quick-lint-js/wasm-demo-location.h
@@ -132,6 +134,8 @@ quick_lint_js_add_library(
   vector.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
+  vscode-error-reporter.cpp
+  vscode.cpp
   wasm-demo-error-reporter.cpp
   wasm-demo-location.cpp
 )

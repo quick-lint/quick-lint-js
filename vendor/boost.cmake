@@ -65,3 +65,17 @@ if (QUICK_LINT_JS_HAVE_FRTTI)
     $<$<COMPILE_LANGUAGE:CXX>:-frtti>
   )
 endif ()
+
+if (EMSCRIPTEN)
+  # HACK(strager): In STANDALONE_WASM mode, emscripten generates calls to
+  # clock_time_get, originating from Boost. As of Node.js version v12.20.0, such
+  # calls require Node to be run with --experimental-wasm-bigint. Without this
+  # flag, clock_time_get calls fail with the following message:
+  #
+  # > Error: TypeError: wasm function signature contains illegal type
+  #
+  # Our Visual Studio Code plugin cannot enable this Node.js flag itself. Work
+  # around emscripten's code gen by avoiding the call to clock_time_get in
+  # Boost's dlmalloc.
+  target_compile_definitions(boost_container PRIVATE LACKS_TIME_H)
+endif ()
