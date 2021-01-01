@@ -10,6 +10,6 @@ To build the extension, run the following commands:
     $ yarn
     $ npx vsce package
 
-This will create a file called `vscode-quick-lint-js-0.1.0.vsix`.
+This will create a file called `vscode-quick-lint-js-lsp-0.1.0.vsix`.
 
 [VisualStudioCode]: https://code.visualstudio.com/

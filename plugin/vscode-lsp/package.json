@@ -1,5 +1,5 @@
 {
-  "name": "vscode-quick-lint-js",
+  "name": "vscode-quick-lint-js-lsp",
   "description": "Find JavaScript bugs with quick-lint-js (Visual Studio Code extension)",
   "publisher": "quick-lint",
   "version": "0.1.0",
@@ -13,7 +13,7 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "quick-lint-js",
+      "title": "quick-lint-js-lsp",
       "properties": {
         "quick-lint-js.executablePath": {
           "type": "string",

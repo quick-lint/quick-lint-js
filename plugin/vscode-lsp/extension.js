@@ -19,7 +19,7 @@
 let vscode = require("vscode");
 let { LanguageClient } = require("vscode-languageclient");
 
-let clientID = "quick-lint-js";
+let clientID = "quick-lint-js-lsp";
 
 let client = null;
 let toDispose = [];
@@ -28,7 +28,7 @@ async function startOrRestartServerAsync() {
   await stopServerIfStartedAsync();
   client = new LanguageClient(
     clientID,
-    "quick-lint-js",
+    "quick-lint-js-lsp",
     {
       command: getQuickLintJSExecutablePath(),
       args: ["--lsp-server"],
@@ -97,8 +97,8 @@ function logAsyncErrors(promise) {
 
 function logError(error) {
   if (error && error.stack) {
-    console.error("quick-lint-js error:", error.stack);
+    console.error("quick-lint-js-lsp error:", error.stack);
   } else {
-    console.error("quick-lint-js error:", error);
+    console.error("quick-lint-js-lsp error:", error);
   }
 }
