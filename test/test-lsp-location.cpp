@@ -459,6 +459,68 @@ TEST(test_lsp_location, change_ascii_line_into_non_ascii_line) {
   check_positions_against_reference_locator(locator, &updated_code);
 }
 
+TEST(test_lsp_location, split_ascii_line_into_non_ascii_line_and_ascii_line) {
+  padded_string original_code(u8"first\nsecond\nthird"_sv);
+  padded_string updated_code(u8"first\nse\u00e7\nond\nthird"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 2},
+          .end = {.line = 1, .character = 3},
+      },
+      u8"\u00e7\n", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, split_ascii_line_into_ascii_line_and_non_ascii_line) {
+  padded_string original_code(u8"first\nsecond\nthird"_sv);
+  padded_string updated_code(u8"first\nse\n\u00e7ond\nthird"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 2},
+          .end = {.line = 1, .character = 3},
+      },
+      u8"\n\u00e7", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location,
+     split_non_ascii_line_into_ascii_line_and_non_ascii_line) {
+  padded_string original_code(u8"first\nse\u00e7ond\nthird"_sv);
+  padded_string updated_code(u8"first\nse\n\u00e7ond\nthird"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 2},
+          .end = {.line = 1, .character = 2},
+      },
+      u8"\n", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location,
+     split_non_ascii_line_into_non_ascii_line_and_ascii_line) {
+  padded_string original_code(u8"first\nse\u00e7ond\nthird"_sv);
+  padded_string updated_code(u8"first\nse\u00e7\nond\nthird"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 3},
+          .end = {.line = 1, .character = 3},
+      },
+      u8"\n", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
 // TODO(strager): How should replace_text behave when given a negative
 // character or an out of range line?
 }

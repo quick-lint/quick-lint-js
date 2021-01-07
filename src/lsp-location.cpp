@@ -147,6 +147,9 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
   offset_type replacement_text_size =
       narrow_cast<offset_type>(replacement_text.size());
 
+  std::size_t start_line = narrow_cast<std::size_t>(range.start.line);
+  std::size_t end_line = narrow_cast<std::size_t>(range.end.line);
+
   this->input_ = new_input;
   std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
   std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
@@ -161,7 +164,7 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
       this->old_offset_of_lines_.begin() + range.start.line + 1);
   this->line_is_ascii_.insert(
       this->line_is_ascii_.end(), this->old_line_is_ascii_.begin(),
-      this->old_line_is_ascii_.begin() + range.start.line + 1);
+      this->old_line_is_ascii_.begin() + range.start.line);
 
   // Offsets within replacement: re-parse newlines.
   bool last_line_of_replacement_is_ascii;
@@ -169,8 +172,12 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
       /*begin=*/&this->input_[start_offset],
       /*end=*/&this->input_[start_offset + replacement_text_size],
       /*out_last_line_is_ascii=*/&last_line_of_replacement_is_ascii);
-  this->line_is_ascii_.back() =
-      this->line_is_ascii_.back() && last_line_of_replacement_is_ascii;
+  if (this->line_is_ascii_.size() > start_line) {
+    this->line_is_ascii_[start_line] = this->line_is_ascii_[start_line] &&
+                                       this->old_line_is_ascii_[start_line];
+  }
+  this->line_is_ascii_.push_back(last_line_of_replacement_is_ascii &&
+                                 this->old_line_is_ascii_[end_line]);
 
   // Offsets after replacement: adjust with a fixed offset.
   offset_type net_bytes_added =
