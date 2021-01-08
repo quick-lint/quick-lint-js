@@ -1,0 +1,72 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: build and test VS Code extension
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    name: extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mymindstorm/setup-emsdk@v7
+        with:
+          version: 2.0.4
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: C++ configure
+        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: C++ build
+        run: emmake make -C build quick-lint-js-vscode
+      - name: C++ install
+        run: emmake cmake --install build --component vscode --prefix plugin/vscode
+
+      - name: JS configure
+        run: cd plugin/vscode && yarn
+      - name: JS test
+        run: |
+          DISPLAY=:1
+          export DISPLAY
+
+          type Xvfb  # Ensure Xvfb is installed.
+          Xvfb "${DISPLAY}" -screen 0 1024x768x24 &
+          sleep 0.1  # Wait for Xvfb to start.
+          printf 'Started Xvfb\n' >&2
+
+          cd plugin/vscode
+          yarn test
+          kill %1
+          wait || :
+
+      - name: create extension
+        run: cd plugin/vscode && npx vsce package
+
+      - name: upload build
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: plugin-vscode-${{ github.sha }}
+          path: plugin/vscode/*.vsix
