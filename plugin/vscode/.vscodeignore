@@ -1,0 +1,6 @@
+**/*
+
+!dist/quick-lint-js-vscode.wasm
+!extension.js
+!package.json
+!quick-lint-js.js
