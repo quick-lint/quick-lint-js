@@ -81,7 +81,7 @@ const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
 
   int number_of_lines = narrow_cast<int>(this->offset_of_lines_.size());
   if (line >= number_of_lines) {
-    return nullptr;
+    return this->input_.null_terminator();
   }
 
   offset_type line_begin_offset =
@@ -147,8 +147,10 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
   offset_type replacement_text_size =
       narrow_cast<offset_type>(replacement_text.size());
 
+  QLJS_ASSERT(!this->offset_of_lines_.empty());
   std::size_t start_line = narrow_cast<std::size_t>(range.start.line);
-  std::size_t end_line = narrow_cast<std::size_t>(range.end.line);
+  std::size_t end_line = std::min(this->offset_of_lines_.size() - 1,
+                                  narrow_cast<std::size_t>(range.end.line));
 
   this->input_ = new_input;
   std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
@@ -182,16 +184,17 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
   // Offsets after replacement: adjust with a fixed offset.
   offset_type net_bytes_added =
       replacement_text_size - (end_offset - start_offset);
-  insert_back_transform(this->old_offset_of_lines_.begin() + range.end.line + 1,
+  insert_back_transform(this->old_offset_of_lines_.begin() +
+                            narrow_cast<std::ptrdiff_t>(end_line) + 1,
                         this->old_offset_of_lines_.end(),
                         this->offset_of_lines_,
                         [&](offset_type offset) -> offset_type {
                           return offset + net_bytes_added;
                         });
-  this->line_is_ascii_.insert(
-      this->line_is_ascii_.end(),
-      this->old_line_is_ascii_.begin() + range.end.line + 1,
-      this->old_line_is_ascii_.end());
+  this->line_is_ascii_.insert(this->line_is_ascii_.end(),
+                              this->old_line_is_ascii_.begin() +
+                                  narrow_cast<std::ptrdiff_t>(end_line) + 1,
+                              this->old_line_is_ascii_.end());
 
   QLJS_ASSERT(std::is_sorted(this->offset_of_lines_.begin(),
                              this->offset_of_lines_.end()));

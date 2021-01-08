@@ -163,11 +163,11 @@ TEST(test_lsp_location, offset_from_second_line_position) {
   EXPECT_EQ(r, &code[8]);
 }
 
-TEST(test_lsp_location, offset_from_out_of_range_line) {
+TEST(test_lsp_location, offset_from_out_of_range_line_is_end_of_file) {
   padded_string code(u8"hello\nworld"_sv);
   lsp_locator l(&code);
   const char8* c = l.from_position(lsp_position{.line = 2, .character = 2});
-  EXPECT_EQ(c, nullptr);
+  EXPECT_EQ(c, code.null_terminator());
 }
 
 TEST(test_lsp_location, offset_from_beginning_of_line) {
@@ -440,6 +440,21 @@ TEST(test_lsp_location, append_line_with_out_of_range_character) {
           .end = {.line = 1, .character = 200},
       },
       u8" extended", &updated_code);
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, replace_line_with_out_of_range_line) {
+  padded_string original_code(u8"first line\nsecond line\nthird line"_sv);
+  padded_string updated_code(u8"first line\nsecond line\nlast line"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 2, .character = 0},
+          .end = {.line = 3, .character = 0},
+      },
+      u8"last line", &updated_code);
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
