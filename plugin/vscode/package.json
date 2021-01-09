@@ -3,6 +3,10 @@
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
   "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "categories": [
+    "Linters"
+  ],
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -19,6 +23,13 @@
       "title": "quick-lint-js",
       "properties": {}
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quick-lint/quick-lint-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quick-lint/quick-lint-js/issues"
   },
   "scripts": {
     "fmt": "prettier --write '*.js' 'test/*.js' 'test/mock/*.js' '*.json' '.vscode/*.json'",

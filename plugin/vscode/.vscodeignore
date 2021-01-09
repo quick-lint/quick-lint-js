@@ -1,5 +1,7 @@
 **/*
 
+!LICENSE
+!README.md
 !dist/quick-lint-js-vscode.wasm
 !extension.js
 !package.json

@@ -62,7 +62,7 @@ jobs:
           wait || :
 
       - name: create extension
-        run: cd plugin/vscode && npx vsce package
+        run: cd plugin/vscode && npx vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
       - name: upload build
         uses: actions/upload-artifact@v2
