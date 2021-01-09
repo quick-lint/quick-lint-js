@@ -1,6 +1,6 @@
 {
-  "name": "vscode-quick-lint-js",
-  "description": "Find JavaScript bugs with quick-lint-js (Visual Studio Code extension)",
+  "name": "quick-lint-js",
+  "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
   "version": "0.1.0",
   "engines": {

@@ -486,9 +486,7 @@ async function pollAsync(callback) {
 async function runAsync() {
   // vscode-test activated the extension for us. We want tests to be activate and
   // deactivate the extension at will.
-  let extension = vscode.extensions.getExtension(
-    "quick-lint.vscode-quick-lint-js"
-  );
+  let extension = vscode.extensions.getExtension("quick-lint.quick-lint-js");
   await extension.activate();
   await qljsExtension.deactivate();
 

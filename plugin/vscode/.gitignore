@@ -2,4 +2,4 @@
 /build-emscripten/
 /dist/
 /node_modules/
-/vscode-quick-lint-js-*.vsix
+/quick-lint-js-*.vsix
