@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-name: deploy web demo
+name: deploy website
 on:
   workflow_dispatch:
     inputs:
@@ -30,7 +30,7 @@ jobs:
       - name: check out
         uses: actions/checkout@v1
 
-      - name: download build
+      - name: download demo build
         uses: dawidd6/action-download-artifact@v2
         with:
           commit: ${{ github.event.inputs.build_commit_id }}
