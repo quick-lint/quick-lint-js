@@ -2,6 +2,20 @@
 
 quick-lint-js finds bugs in JavaScript programs.
 
+**Warning**: This is pre-release software. quick-lint-js is under active
+development and is unstable. Use at your own risk.
+
+This extension finds bugs in your JavaScript code.
+
+quick-lint-js finds many bugs, including:
+
+* Using a variable which does not exist
+* Assigning to a `const` variable
+* Using `await` in a non-`async` function
+* Syntax errors
+
+![Demonstration of quick-lint-js in Visual Studio Code](plugin/vscode/demo.webp)
+
 ## Building
 
 ### Without CMake (macOS and Linux only)
