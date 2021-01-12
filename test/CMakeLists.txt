@@ -88,7 +88,6 @@ target_link_libraries(
   jsoncpp_static
   quick-lint-js-lib
 )
-quick_lint_js_use_cxx_filesystem(quick-lint-js-test PRIVATE)
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-test

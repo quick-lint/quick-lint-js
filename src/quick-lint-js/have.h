@@ -99,25 +99,12 @@
 #endif
 #endif
 
-#if defined(QLJS_HAVE_FILESYSTEM_HEADER) && QLJS_HAVE_FILESYSTEM_HEADER
-#elif defined(__has_include)
-#if __has_include(<filesystem>)
-#define QLJS_HAVE_FILESYSTEM_HEADER 1
+#if !defined(QLJS_HAVE_STD_FILESYSTEM)
+#if defined(_WIN32)
+#define QLJS_HAVE_STD_FILESYSTEM 1
+#else
+#define QLJS_HAVE_STD_FILESYSTEM 0
 #endif
-#endif
-#if !defined(QLJS_HAVE_FILESYSTEM_HEADER)
-#define QLJS_HAVE_FILESYSTEM_HEADER 0
-#endif
-
-#if defined(QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER) && \
-    QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER
-#elif defined(__has_include)
-#if __has_include(<experimental/filesystem>)
-#define QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER 1
-#endif
-#endif
-#if !defined(QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER)
-#define QLJS_HAVE_EXPERIMENTAL_FILESYSTEM_HEADER 0
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -284,6 +271,15 @@
 #else
 #define QLJS_HAVE_QUICK_EXIT 0
 #endif
+#endif
+
+#if !defined(QLJS_HAVE_FTS_H) && defined(__has_include)
+#if __has_include(<fts.h>)
+#define QLJS_HAVE_FTS_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_FTS_H)
+#define QLJS_HAVE_FTS_H 0
 #endif
 
 #endif

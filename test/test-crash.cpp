@@ -19,7 +19,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/crash.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/std-filesystem.h>
 #include <quick-lint-js/warning.h>
 
 #if QLJS_HAVE_UNAME
@@ -28,6 +27,14 @@
 
 #if QLJS_HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+#include <Windows.h>
 #endif
 
 #if defined(__SANITIZE_ADDRESS__)
@@ -63,11 +70,21 @@ bool is_windows_subsystem_for_linux() {
 #endif
 }
 
+#if QLJS_HAVE_UNISTD_H
+bool file_exists(const char* path) { return ::access(path, F_OK) == 0; }
+#elif QLJS_HAVE_WINDOWS_H
+bool file_exists(const char* path) {
+  return ::GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
+}
+#else
+#error "Unknown platform"
+#endif
+
 bool is_windows_subsystem_for_linux_v1() {
   if (!is_windows_subsystem_for_linux()) {
     return false;
   }
-  bool is_wsl_2 = filesystem::exists("/run/WSL");
+  bool is_wsl_2 = file_exists("/run/WSL");
   return !is_wsl_2;
 }
 
