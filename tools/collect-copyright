@@ -412,6 +412,9 @@ def parse_vendor_readme_txt(txt: str) -> typing.List[VendorReadmeProject]:
 
 
 def warn(message: str) -> None:
+    if os.environ.get("QLJS_COLLECT_COPYRIGHT_NO_WARNINGS", ""):
+        print(f"{__file__}: fatal: {message}", file=sys.stderr)
+        exit(1)
     print(f"{__file__}: warning: {message}", file=sys.stderr)
 
 

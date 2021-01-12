@@ -1,0 +1,107 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: build static
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    name: ${{ matrix.toolchain.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+    runs-on: ${{ matrix.toolchain.runs_on }}
+    env:
+      CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
+      CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
+      CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
+      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.toolchain.LDFLAGS }}
+      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.toolchain.LDFLAGS }}
+      QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
+
+    steps:
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: configure apt sources
+        run: |
+          sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | sudo tee /etc/apt/sources.list.d/quick-lint-js-sources.list
+          sudo apt-get update
+
+      - name: upgrade dependencies
+        run: |
+          # HACK(strager): Avoid error when collecting copyright information:
+          # E: Can not find version '2.27-3ubuntu1.3' of package 'glibc'
+          sudo apt-get install libc6
+
+      - name: configure
+        run: |
+          env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
+          cmake -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}" -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}" -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=NO -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -S . -B build
+        shell: bash
+      - name: build
+        run: cmake --build build --config Release -- quick-lint-js quick-lint-js-licenses
+      - name: install
+        run: cmake --install build --prefix usr
+
+      - name: upload build
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
+          path: usr/
+
+  test:
+    name: test on ${{ matrix.os.name }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux"}
+          - {docker_container: "centos:centos7", name: "CentOS 7", archive_name: "linux"}
+          - {docker_container: "centos:centos8", name: "CentOS 8", archive_name: "linux"}
+          - {docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux"}
+          - {docker_container: "debian:jessie", name: "Debian 8 Jessie", archive_name: "linux"}
+          - {docker_container: "debian:stretch", name: "Debian 9 Stretch", archive_name: "linux"}
+          - {docker_container: "fedora:31", name: "Fedora 31", archive_name: "linux"}
+          - {docker_container: "fedora:32", name: "Fedora 32", archive_name: "linux"}
+          - {docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", archive_name: "linux"}
+          - {docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", archive_name: "linux"}
+          - {docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", archive_name: "linux"}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.os.docker_container }}
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-${{ matrix.os.archive_name }}-${{ github.sha }}
+      - name: fix permissions
+        run: chmod +x ./bin/quick-lint-js
+      - name: test
+        run: LD_BIND_NOW=1 ./bin/quick-lint-js --version
