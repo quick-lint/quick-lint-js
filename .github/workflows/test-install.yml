@@ -34,11 +34,16 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: configure sources.list
+
       - name: configure
         run: cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DBUILD_TESTING=OFF -S . -B .
       - name: build
         run: cmake --build . --config Debug
       - name: install
         run: sudo cmake --install . --config Debug
-      - name: test
+
+      - name: test executable
         run: cd / && quick-lint-js --help
+      - name: test copyright
+        run: grep GPL /usr/local/share/doc/quick-lint-js/copyright

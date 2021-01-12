@@ -23,16 +23,18 @@ software used by quick-lint-js (and quick-lint-js' own copyright and license).
 """
 
 import argparse
+import os
 import pathlib
 import re
 import subprocess
+import sys
 import typing
 import unittest
 
 archive_to_vendor_project = {
-    "src/libquick-lint-js-lib.a": None,
-    "vendor/boost/libs/container/libboost_container.a": "boost",
-    "vendor/simdjson/src/libsimdjson.a": "simdjson",
+    "libboost_container.a": "boost",
+    "libquick-lint-js-lib.a": None,
+    "libsimdjson.a": "simdjson",
 }
 
 
@@ -102,7 +104,7 @@ def dump_from_vendor(
 ) -> None:
     for archive in sorted(archives):
         try:
-            vendor_project_name = archive_to_vendor_project[archive]
+            vendor_project_name = archive_to_vendor_project[pathlib.Path(archive).name]
         except KeyError:
             raise Exception(f"could not find source for archive: {archive}") from None
         if vendor_project_name is None:
@@ -136,32 +138,62 @@ Copyright information for libc6-dev:amd64:
         )
 
 
+def detect_system_package_manager():
+    if os.environ.get("NIX_STORE", ""):
+        warn("Nix not well supported")
+        return Nix()
+
+    try:
+        subprocess.check_output(["rpm", "--query", "glibc"])
+        return RedHat()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    try:
+        subprocess.check_output(["dpkg-query", "--list", "libc6"])
+        return Debian()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    raise Exception("Could not detect system package manager")
+
+
 def dump_from_system_archives(linked_system_archives: typing.List[str]) -> None:
-    package_names = set(dpkg_packages_for_installed_files(linked_system_archives))
-    installed_packages = get_installed_debian_packages(package_names)
+    if not linked_system_archives:
+        return
+
+    system_package_manager = detect_system_package_manager()
+    installed_packages = system_package_manager.packages_for_installed_files(
+        linked_system_archives
+    )
     source_package_names = set(p.source for p in installed_packages)
 
     for source_package_name in sorted(source_package_names):
         print(f"## {source_package_name}\n")
 
-        for installed_package in sorted(installed_packages):
-            if installed_package.source == source_package_name:
-                print(
-                    f"Version {installed_package.version} of package {installed_package.name} is statically linked into quick-lint-js.\n"
-                )
+        relevant_installed_packages = [
+            p for p in sorted(installed_packages) if p.source == source_package_name
+        ]
+
+        for p in relevant_installed_packages:
+            print(
+                f"Version {p.version} of package {p.name} is statically linked into quick-lint-js.\n"
+            )
 
         print(f"Source code for {source_package_name} is available at:")
-        source_uris = get_package_apt_source_uri(
-            name=installed_package.name, version=installed_package.version
-        )
-        for source_uri in sorted(source_uris):
-            print(f"* {source_uri.uri}")
+        source_uris = []
+        for p in relevant_installed_packages:
+            source_uris.extend(p.source_uris)
+        if source_uris:
+            for source_uri in sorted(set(source_uris)):
+                print(f"* {source_uri}")
+        else:
+            print(f"* (location unknown!)")
 
-        for installed_package in sorted(installed_packages):
-            if installed_package.source == source_package_name:
-                print(f"\nCopyright information for {installed_package.name}:")
-                copyright = get_dpkg_copyright(installed_package.name)
-                print(markdown_block_quote(copyright))
+        for p in relevant_installed_packages:
+            print(f"\nCopyright information for {p.name}:")
+            copyright = system_package_manager.get_copyright(p)
+            print(markdown_block_quote(copyright))
 
         print(f"")
 
@@ -170,27 +202,165 @@ def markdown_block_quote(text: str) -> str:
     return "> " + text.strip("\n").replace("\n", "\n> ")
 
 
-def get_dpkg_copyright(package_name: str) -> str:
-    package_name = package_name.split(":")[0]  # HACK: Strip architecture.
-    return (pathlib.Path("/usr/share/doc") / package_name / "copyright").read_text()
+class Debian:
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        source: str
+        version: str
+        source_uris: typing.Tuple[str, ...]
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        package_names = self._dpkg_packages_for_installed_files(files)
+        packages = self._get_installed_debian_packages(set(package_names))
+        packages = [
+            p._replace(
+                source_uris=tuple(
+                    self._get_package_apt_source_uri(name=p.source, version=p.version)
+                )
+            )
+            for p in packages
+        ]
+        return packages
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        package_name = package.name.split(":")[0]  # HACK: Strip architecture.
+        return (pathlib.Path("/usr/share/doc") / package_name / "copyright").read_text()
+
+    @staticmethod
+    def _dpkg_packages_for_installed_files(
+        files: typing.Iterable[str],
+    ) -> typing.List[str]:
+        process = subprocess.run(
+            ["dpkg-query", "--search", "--"] + list(files),
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        packages = []
+        for line in process.stdout.splitlines():
+            match = re.match(f"^(?P<package>\S+): (?P<file>.*)$", line)
+            if match is not None:
+                packages.append(match.group("package"))
+        return packages
+
+    @classmethod
+    def _get_installed_debian_packages(
+        cls,
+        package_names: typing.Iterable[str],
+    ) -> typing.List[InstalledPackage]:
+        process = subprocess.run(
+            [
+                "dpkg-query",
+                "--show",
+                "--showformat=${binary:Package}\\t${Source}\\t${Version}\\t${db:Status-Status}\\n",
+                "--",
+            ]
+            + list(package_names),
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        packages = []
+        for line in process.stdout.splitlines():
+            parts = line.split("\t")
+            if parts[3] == "installed":
+                packages.append(
+                    cls.InstalledPackage(
+                        name=parts[0], source=parts[1], version=parts[2], source_uris=()
+                    )
+                )
+        return packages
+
+    @classmethod
+    def _get_package_apt_source_uri(cls, name: str, version: str) -> typing.List[str]:
+        process = subprocess.run(
+            ["apt-get", "source", "--print-uris", "-qq", "--", f"{name}={version}"],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        if process.returncode == 100:
+            warn(f"failed to get source URIs for package {name}")
+            return []
+        process.check_returncode()
+        return cls._parse_apt_get_source_uris(process.stdout)
+
+    @staticmethod
+    def _parse_apt_get_source_uris(raw: str) -> typing.List[str]:
+        source_uris = []
+        for line in raw.splitlines():
+            match = re.match(r"^'(?P<uri>.*)' .*$", line)
+            if match is not None:
+                source_uris.append(match.group("uri"))
+        return source_uris
 
 
-def dpkg_packages_for_installed_files(
-    files: typing.Iterable[str],
-) -> typing.Sequence[str]:
-    process = subprocess.run(
-        ["dpkg-query", "--search", "--no-pager", "--"] + list(files),
-        stdout=subprocess.PIPE,
-        encoding="utf-8",
-    )
-    process.check_returncode()
+class Nix:
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[None]:
+        # TODO(strager)
+        return []
 
-    packages = []
-    for line in process.stdout.splitlines():
-        match = re.match(f"^(?P<package>\S+): (?P<file>.*)$", line)
-        if match is not None:
-            packages.append(match.group("package"))
-    return packages
+
+class RedHat:
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        source: str
+        version: str
+        source_uris: typing.Tuple[str, ...]
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        package_names = [self._rpm_package_for_installed_file(f) for f in files]
+        packages = [self._get_rpm_package(name) for name in set(package_names)]
+        return packages
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        raw_text = (
+            pathlib.Path("/usr/share/licenses") / package.source / "LICENSES"
+        ).read_text()
+        return raw_text.replace("\x0C", "\n---\n")
+
+    @staticmethod
+    def _rpm_package_for_installed_file(file_path: str) -> str:
+        process = subprocess.run(
+            ["rpm", "--query", "--whatprovides", "--", file_path],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+        return process.stdout.rstrip("\n")
+
+    @classmethod
+    def _get_rpm_package(cls, package_name: str) -> InstalledPackage:
+        source_rpm_info = subprocess.check_output(
+            [
+                "dnf",
+                "--quiet",
+                "repoquery",
+                "--qf",
+                "%{name}\\t%{version}-%{release}\\t%{source_name}",
+                "--",
+                package_name,
+            ],
+            encoding="utf-8",
+        ).rstrip("\n")
+        [name, version, source_name] = source_rpm_info.split("\t")
+        source_rpm_url = subprocess.check_output(
+            ["dnf", "--quiet", "repoquery", "--srpm", "--location", "--", package_name],
+            encoding="utf-8",
+        ).rstrip("\n")
+        return cls.InstalledPackage(
+            name=name,
+            version=version,
+            source=source_name,
+            source_uris=(source_rpm_url,),
+        )
 
 
 class LinkMap(typing.NamedTuple):
@@ -219,61 +389,6 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
     return LinkMap(linked_archives=linked_archives)
 
 
-class InstalledDebianPackage(typing.NamedTuple):
-    name: str
-    source: str
-    version: str
-
-
-def get_installed_debian_packages(
-    package_names: typing.Iterable[str],
-) -> typing.List[InstalledDebianPackage]:
-    process = subprocess.run(
-        [
-            "dpkg-query",
-            "--show",
-            "--showformat=${binary:Package}\\t${Source}\\t${Version}\\t${db:Status-Status}\\n",
-            "--",
-        ]
-        + list(package_names),
-        stdout=subprocess.PIPE,
-        encoding="utf-8",
-    )
-    process.check_returncode()
-
-    packages = []
-    for line in process.stdout.splitlines():
-        parts = line.split("\t")
-        if parts[3] == "installed":
-            packages.append(
-                InstalledDebianPackage(name=parts[0], source=parts[1], version=parts[2])
-            )
-    return packages
-
-
-class AptSourceURI(typing.NamedTuple):
-    uri: str
-
-
-def parse_apt_get_source_uris(raw: str) -> typing.List[AptSourceURI]:
-    source_uris = []
-    for line in raw.splitlines():
-        match = re.match(r"^'(?P<uri>.*)' .*$", line)
-        if match is not None:
-            source_uris.append(AptSourceURI(uri=match.group("uri")))
-    return source_uris
-
-
-def get_package_apt_source_uri(name: str, version: str) -> typing.List[AptSourceURI]:
-    process = subprocess.run(
-        ["apt-get", "source", "--print-uris", "-qq", "--", f"{name}={version}"],
-        stdout=subprocess.PIPE,
-        encoding="utf-8",
-    )
-    process.check_returncode()
-    return parse_apt_get_source_uris(process.stdout)
-
-
 class VendorReadmeProject(typing.NamedTuple):
     project_name: str
     properties: typing.Dict[str, str]
@@ -294,6 +409,10 @@ def parse_vendor_readme_txt(txt: str) -> typing.List[VendorReadmeProject]:
         if match is not None and projects:
             projects[-1].properties[match.group("key")] = match.group("value")
     return projects
+
+
+def warn(message: str) -> None:
+    print(f"{__file__}: warning: {message}", file=sys.stderr)
 
 
 class TestGNULinkMap(unittest.TestCase):
@@ -360,9 +479,9 @@ Need to get 18.2 MB of source archives.
 'http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.31.orig.tar.xz' glibc_2.31.orig.tar.xz 17317924 SHA512:2ff56628fe935cacbdf1825534f15d45cb87a159cbdb2e6a981590eeb6174ed4b3ff7041519cdecbd4f624ac20b745e2dd9614c420dd3ea186b8f36bc4c2453c
 'http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.31-0ubuntu9.1.debian.tar.xz' glibc_2.31-0ubuntu9.1.debian.tar.xz 844816 SHA512:bca1857b031eda2d170256b97829c6b8a38493c66858a041e6f0143bf26c376c207e72d499ef1be07a83667419d55284407bae518511a702171eac58c6f31d62
 """
-        source_uris = parse_apt_get_source_uris(output)
+        source_uris = Debian._parse_apt_get_source_uris(output)
         self.assertEqual(
-            [source_uri.uri for source_uri in source_uris],
+            source_uris,
             [
                 "http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.31-0ubuntu9.1.dsc",
                 "http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.31.orig.tar.xz",
@@ -376,9 +495,9 @@ Need to get 18.2 MB of source archives.
 'http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-9/gcc-9_9.3.0.orig.tar.gz' gcc-9_9.3.0.orig.tar.gz 90490748 SHA512:cebaa27b0ac7485e72f0d7b07e6ef08cd544bf551bc080ee00175cbe319ea8b0592ff54d55633bb189e481f9ba489d513205cf2310e4b5211869a021432ee31f
 'http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-9/gcc-9_9.3.0-17ubuntu1~20.04.debian.tar.xz' gcc-9_9.3.0-17ubuntu1~20.04.debian.tar.xz 763792 SHA512:f696a3d92edbadb7cfb29494b68ec00fa9b278ab7657e45933cf2e7564e6a524ac41edde14449114a2e06ad0c1f56473d998687aeb2f98f18c431727d4254d21
 """
-        source_uris = parse_apt_get_source_uris(output)
+        source_uris = Debian._parse_apt_get_source_uris(output)
         self.assertEqual(
-            [source_uri.uri for source_uri in source_uris],
+            source_uris,
             [
                 "http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-9/gcc-9_9.3.0-17ubuntu1~20.04.dsc",
                 "http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-9/gcc-9_9.3.0.orig.tar.gz",

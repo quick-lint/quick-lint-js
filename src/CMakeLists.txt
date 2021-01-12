@@ -183,3 +183,39 @@ if (
 )
   target_compile_options(quick-lint-js-lib PRIVATE -fno-builtin)
 endif ()
+
+find_package(PythonInterp 3)
+
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+  if (PYTHONINTERP_FOUND)
+    target_link_libraries(
+      quick-lint-js
+      PRIVATE
+      "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
+    )
+    add_custom_command(
+      OUTPUT quick-lint-js-licenses.txt
+      COMMAND
+        "${PYTHON_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../tools/collect-copyright"
+        --elf-linkmap
+        "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
+        >quick-lint-js-licenses.txt
+      DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/../tools/collect-copyright"
+        quick-lint-js
+    )
+    add_custom_target(
+      quick-lint-js-licenses
+      ALL
+      DEPENDS quick-lint-js-licenses.txt
+    )
+    install(
+      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
+      DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+      RENAME copyright
+    )
+  else ()
+    message(WARNING "Python interpreter not found. Not generating copyright file.")
+  endif ()
+endif ()
