@@ -184,19 +184,36 @@ endif ()
 
 find_package(PythonInterp 3)
 
-if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(LICENSE_LINKMAP_TYPE macho)
+elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
+  set(LICENSE_LINKMAP_TYPE elf)
+else ()
+  set(LICENSE_LINKMAP_TYPE)
+endif ()
+if (LICENSE_LINKMAP_TYPE)
   if (PYTHONINTERP_FOUND)
-    target_link_libraries(
-      quick-lint-js
-      PRIVATE
-      "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
-    )
+    if (LICENSE_LINKMAP_TYPE STREQUAL elf)
+      target_link_libraries(
+        quick-lint-js
+        PRIVATE
+        "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
+      )
+    endif ()
+    if (LICENSE_LINKMAP_TYPE STREQUAL macho)
+      target_link_libraries(
+        quick-lint-js
+        PRIVATE
+        "-Wl,-map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
+      )
+    endif ()
+
     add_custom_command(
       OUTPUT quick-lint-js-licenses.txt
       COMMAND
         "${PYTHON_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/../tools/collect-copyright"
-        --elf-linkmap
+        --linkmap
         "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
         >quick-lint-js-licenses.txt
       DEPENDS
