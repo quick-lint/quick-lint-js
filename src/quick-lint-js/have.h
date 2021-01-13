@@ -257,22 +257,6 @@
 #endif
 #endif
 
-#if !defined(QLJS_HAVE_STD_QUICK_EXIT)
-#if defined(__linux__) || defined(_WIN32)
-#define QLJS_HAVE_STD_QUICK_EXIT 1
-#else
-#define QLJS_HAVE_STD_QUICK_EXIT 0
-#endif
-#endif
-
-#if !defined(QLJS_HAVE_QUICK_EXIT)
-#if defined(__EMSCRIPTEN__)
-#define QLJS_HAVE_QUICK_EXIT 1
-#else
-#define QLJS_HAVE_QUICK_EXIT 0
-#endif
-#endif
-
 #if !defined(QLJS_HAVE_FTS_H) && defined(__has_include)
 #if __has_include(<fts.h>)
 #define QLJS_HAVE_FTS_H 1

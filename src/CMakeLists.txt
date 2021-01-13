@@ -65,7 +65,6 @@ quick_lint_js_add_library(
   options.cpp
   padded-string.cpp
   parse.cpp
-  quick-exit.cpp
   quick-lint-js/assert.h
   quick-lint-js/bit.h
   quick-lint-js/buffering-visitor.h
@@ -108,7 +107,6 @@ quick_lint_js_add_library(
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-reader.h
-  quick-lint-js/quick-exit.h
   quick-lint-js/simd.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
