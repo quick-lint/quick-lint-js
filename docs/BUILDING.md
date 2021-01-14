@@ -239,7 +239,7 @@ The derivations in `dist/` contain the necessary dependencies to build
 quick-lint-js using cmake and ninja. We can use `nix-shell` to download those
 dependencies and make them available for development.
 
-    $ nix-shell dist/shell.nix
+    $ nix-shell dist/nix/shell.nix
 
 While it seems this does not do anything, you will be dropped in a shell that
 has the build tools available necessary to build quick-lint-js. Once you exit

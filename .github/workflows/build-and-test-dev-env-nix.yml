@@ -44,7 +44,7 @@ jobs:
       # all commands be executed in the context of the shell.
       - name: configure, build, test, and run in nix-shell
         run: > 
-          nix-shell dist/shell.nix --command
+          nix-shell dist/nix/shell.nix --command
           "cmakeConfigurePhase &&
           ninjaBuildPhase &&
           ./test/quick-lint-js-test &&

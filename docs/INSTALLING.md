@@ -29,7 +29,7 @@ not necessary.
 
 Use `nix-env -i` to build and install the binary all in one go:
 
-    $ nix-env -f dist -i
+    $ nix-env -f dist/nix -i
 
 Now the binary is available in your user path:
 
