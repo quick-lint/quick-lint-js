@@ -1,0 +1,22 @@
+{
+  "name": "quick-lint-js",
+  "description": "Find bugs in your JavaScript code",
+  "version": "0.1.1-a",
+  "bin": {
+    "quick-lint-js": "quick-lint-js.exe"
+  },
+  "scripts": {
+    "preinstall": "node preinstall.js"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "author": {
+    "name": "strager",
+    "email": "strager.nds@gmail.com",
+    "url": "https://strager.net/"
+  },
+  "license": "GPL-3.0-or-later"
+}
