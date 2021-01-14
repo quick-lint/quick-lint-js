@@ -29,6 +29,7 @@ jobs:
         toolchain:
           - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
           - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     env:
       CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
@@ -37,6 +38,7 @@ jobs:
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
       CMAKE_C_FLAGS: ${{ matrix.toolchain.CFLAGS }}
       CMAKE_EXE_LINKER_FLAGS: ${{ matrix.toolchain.LDFLAGS }}
+      CMAKE_EXTRA_FLAGS: ${{ matrix.toolchain.CMAKE_FLAGS }}
       CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.toolchain.LDFLAGS }}
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
 
@@ -66,10 +68,10 @@ jobs:
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake -DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}" -DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}" -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -S . -B build
+          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
       - name: build
-        run: cmake --build build --config Release -- quick-lint-js quick-lint-js-licenses
+        run: cmake --build build --config Release --target quick-lint-js quick-lint-js-licenses
       - name: install
         run: cmake --install build --prefix usr
 
@@ -87,18 +89,19 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - {runs_on: macos-10.15, name: "macOS 10.15", archive_name: "macos"}
-          - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "centos:centos7", name: "CentOS 7", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "centos:centos8", name: "CentOS 8", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:jessie", name: "Debian 8 Jessie", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "fedora:31", name: "Fedora 31", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "fedora:32", name: "Fedora 32", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", archive_name: "linux"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", archive_name: "linux"}
+          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", exe_file: "bin/quick-lint-js.exe"}
+          - {runs_on: macos-10.15, name: "macOS 10.15", archive_name: "macos", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "centos:centos7", name: "CentOS 7", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "centos:centos8", name: "CentOS 8", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "debian:jessie", name: "Debian 8 Jessie", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "fedora:31", name: "Fedora 31", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "fedora:32", name: "Fedora 32", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", archive_name: "linux", exe_file: "bin/quick-lint-js"}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
 
@@ -112,12 +115,16 @@ jobs:
           cat /etc/os-release || :
           cat /etc/system-release || :
           sw_vers || :
+          systeminfo || :
           uname -a || :
+        shell: bash
 
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-${{ matrix.os.archive_name }}-${{ github.sha }}
       - name: fix permissions
-        run: chmod +x ./bin/quick-lint-js
+        if: ${{ matrix.os.archive_name != 'windows' }}
+        run: chmod +x ${{ matrix.os.exe_file }}
       - name: test
-        run: DYLD_BIND_AT_LAUNCH=1 LD_BIND_NOW=1 ./bin/quick-lint-js --version
+        run: DYLD_BIND_AT_LAUNCH=1 LD_BIND_NOW=1 ${{ matrix.os.exe_file }} --version
+        shell: bash

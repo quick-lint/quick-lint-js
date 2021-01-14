@@ -188,6 +188,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(LICENSE_LINKMAP_TYPE macho)
 elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(LICENSE_LINKMAP_TYPE elf)
+elseif (CMAKE_SYSTEM_NAME STREQUAL Windows AND MSVC)
+  set(LICENSE_LINKMAP_TYPE pe)
 else ()
   set(LICENSE_LINKMAP_TYPE)
 endif ()
@@ -205,6 +207,13 @@ if (LICENSE_LINKMAP_TYPE)
         quick-lint-js
         PRIVATE
         "-Wl,-map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
+      )
+    endif ()
+    if (LICENSE_LINKMAP_TYPE STREQUAL pe)
+      target_link_libraries(
+        quick-lint-js
+        PRIVATE
+        "-MAP:${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
       )
     endif ()
 
