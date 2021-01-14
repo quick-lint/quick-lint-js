@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstddef>
+#include <cstdlib>
+#include <iostream>
+#include <optional>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
+#include <string>
+#include <vector>
 
 #if defined(_WIN32)
 #include <Windows.h>
