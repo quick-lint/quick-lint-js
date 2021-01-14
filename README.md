@@ -15,6 +15,7 @@ quick-lint-js finds many bugs, including:
 * Syntax errors
 
 ![Demonstration of quick-lint-js in Visual Studio Code](plugin/vscode/demo.webp)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fquick-lint%2Fquick-lint-js.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fquick-lint%2Fquick-lint-js?ref=badge_shield)
 
 ## Building
 
@@ -46,3 +47,7 @@ development.
     your code.
   * **No configuration**. quick-lint-js works out-of-the-box. You don't need
     configuration files to tell quick-lint-js what buggy code looks like.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fquick-lint%2Fquick-lint-js.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fquick-lint%2Fquick-lint-js?ref=badge_large)
