@@ -1,0 +1,8 @@
+/quick-lint-js-*/
+/quick-lint-js-dbgsym*.ddeb
+/quick-lint-js_*.buildinfo
+/quick-lint-js_*.changes
+/quick-lint-js_*.deb
+/quick-lint-js_*.debian.tar.xz
+/quick-lint-js_*.dsc
+/quick-lint-js_*.orig.tar.gz

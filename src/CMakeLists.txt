@@ -182,7 +182,7 @@ if (
   target_compile_options(quick-lint-js-lib PRIVATE -fno-builtin)
 endif ()
 
-find_package(PythonInterp 3)
+find_package(PythonInterp 3.6)
 
 if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(LICENSE_LINKMAP_TYPE macho)

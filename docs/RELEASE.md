@@ -3,6 +3,9 @@
 Follow the following steps to release a new version of quick-lint-js:
 
 1. Update version number. Change these files containing version numbers:
+   * dist/debian/README.md
+   * dist/debian/build.sh
+   * dist/debian/debian/changelog
    * dist/nix/quick-lint-js.nix
    * dist/npm/BUILDING.md
    * dist/npm/package.json

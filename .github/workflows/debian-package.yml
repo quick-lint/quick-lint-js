@@ -1,0 +1,97 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: Debian package
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build-deb:
+    name: build .deb
+    runs-on: ubuntu-latest
+    container: ubuntu:16.04
+    steps:
+      - name: install build dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y apt-transport-https curl software-properties-common
+
+          curl 'https://apt.kitware.com/keys/kitware-archive-latest.asc' | apt-key add -
+          apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'
+          add-apt-repository -y ppa:git-core/ppa
+          add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          apt-get update
+
+          apt-get install -y cmake debhelper dpkg-dev gcc-9 g++-9 git lintian nodejs
+
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: build
+        run: ./dist/debian/build.sh
+
+      - name: upload build
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-deb-${{ github.sha }}
+          path: |
+            dist/debian/quick-lint-js-dbgsym_*
+            dist/debian/quick-lint-js_*
+
+  test-deb:
+    name: test on ${{ matrix.os.name }}
+    needs: build-deb
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster"}
+          - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch"}
+          - {runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ matrix.os.docker_container }}
+
+    steps:
+      - name: OS information
+        run: |
+          exec 2>&1
+          set -x
+
+          cat /etc/lsb-release || :
+          cat /etc/os-release || :
+          cat /etc/system-release || :
+          uname -a || :
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-deb-${{ github.sha }}
+      - name: install
+        run: dpkg -i quick-lint-js_*.deb
+      - name: test
+        run: quick-lint-js --version

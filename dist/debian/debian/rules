@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+export CC = gcc-9
+export CXX = g++-9
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@ --parallel

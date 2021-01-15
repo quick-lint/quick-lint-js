@@ -1,0 +1,15 @@
+Source: quick-lint-js
+Section: devel
+Priority: optional
+Maintainer: Matthew "strager" Glazar <strager.nds@gmail.com>
+Build-Depends: debhelper (>= 9), cmake (>= 3.10), gcc-9, g++-9
+Standards-Version: 4.5.1.0
+Homepage: https://quick-lint-js.com/
+Vcs-Browser: https://github.com/quick-lint/quick-lint-js
+Vcs-Git: https://github.com/quick-lint/quick-lint-js.git
+
+Package: quick-lint-js
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: JavaScript linter
+ quick-lint-js finds bugs in your JavaScript code.
