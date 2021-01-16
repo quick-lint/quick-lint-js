@@ -108,10 +108,10 @@ def main():
     instr_results = generic_processor(code_instr, out_instr.decode('utf-8'))
     repo = git.Repo(search_parent_directories=True)
     useful_bench_info = {
-            "Operating System:": platform.platform(),
-            "Platform Uname:": platform.uname(),
-            "Binary Size:": int(os.path.getsize(sys.argv[1])),
-            "Git Commit:": repo.head.object.hexsha,
+            "Operating System": platform.platform(),
+            "Platform Uname": platform.uname(),
+            "Binary Size": int(os.path.getsize(sys.argv[1])),
+            "Git Commit": repo.head.object.hexsha,
     }
     cachegrind_result_dict = {
             "I_ref": int(remove_comma(cachegrind_results[0].strip())),
@@ -129,11 +129,11 @@ def main():
             "LL_miss_rate": percent_to_float(float(remove_percent(cachegrind_results[12].strip()))),
     }
     memcheck_result_dict = {
-            "HEAP total usage at exit:": int(split_space_into_token(remove_comma(memcheck_results[1]))[0]),
-            "HEAP total usage:": int(split_space_into_token(remove_comma(memcheck_results[2]))[4])
+            "HEAP total usage at exit": int(split_space_into_token(remove_comma(memcheck_results[1]))[0]),
+            "HEAP total usage": int(split_space_into_token(remove_comma(memcheck_results[2]))[4])
     }
     instruction_result_dict = {
-            "Instruction reads:": int(remove_comma(instr_results[2]))
+            "Instruction reads": int(remove_comma(instr_results[2]))
     }
     metrics_dict = cachegrind_result_dict;
     metrics_dict.update(memcheck_result_dict)
