@@ -20,6 +20,8 @@ if (POLICY CMP0091)
 endif ()
 project(quick-lint-js)
 
+option(QUICK_LINT_JS_ENABLE_BENCHMARKS "Build microbenchmark programs" OFF)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(QuickLintJSCompiler)
@@ -33,7 +35,9 @@ find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 
 add_subdirectory(vendor)
 
-add_subdirectory(benchmark)
+if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
+  add_subdirectory(benchmark)
+endif ()
 add_subdirectory(fuzz)
 add_subdirectory(plugin/vim)
 add_subdirectory(plugin/vscode)

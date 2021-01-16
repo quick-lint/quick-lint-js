@@ -16,7 +16,9 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-include(benchmark.cmake)
+if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
+  include(benchmark.cmake)
+endif ()
 include(boost.cmake)
 include(googletest.cmake)
 include(jsoncpp.cmake)
