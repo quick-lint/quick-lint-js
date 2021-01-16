@@ -4,9 +4,11 @@ import sys
 import json
 from time import gmtime, strftime
 import platform
+import git
+
 
 if(len(sys.argv) != 2):
-    print("Usage: ./precise_benchmarks.py <PROCESS NAME>")
+    print("Usage: ./precise_benchmarks.py <ABS PATH TO PROCESS>")
     exit(1);
 
 def run(cmd):
@@ -57,11 +59,37 @@ def cachegrind_processor(code, out):
 
 def create_json_from_dict(result_dict, file_name):
     with open(file_name, "w") as json_dump_file:
-        json.dump(result_dict, json_dump_file, sort_keys=True, indent=4)
+        json.dump(result_dict, json_dump_file, sort_keys=False, indent=4)
+
+def memcheck_processor(code, out):
+    memcheck_linesplit = []
+    for line in out.splitlines():
+        memcheck_linesplit.append(line)
+    memcheck_split = memcheck_linesplit[-15:] 
+    memcheck_results = []
+    for index, values in enumerate(memcheck_split):
+        token_index = get_colon_index(memcheck_split[index])
+        if token_index > 0:
+            token_value = memcheck_split[index][token_index:].strip()
+            preprocessed_token_value = preprocess_brackets(token_value)
+            memcheck_results.append(preprocessed_token_value)
+    return memcheck_results
+
 
 def main():
-    code, out, err = run(["valgrind", "--tool=cachegrind", sys.argv[1]])
-    cachegrind_results = cachegrind_processor(code, out.decode('utf-8'))
+    code_cache, out_cache, err = run(["valgrind", "--tool=cachegrind", sys.argv[1]])
+    cachegrind_results = cachegrind_processor(code_cache, out_cache.decode('utf-8'))
+    code_mem, out_mem, err = run(["valgrind", "--tool=memcheck", sys.argv[1]])
+    memcheck_results = memcheck_processor(code_mem, out_mem.decode('utf-8'))
+    repo = git.Repo(search_parent_directories=True)
+    useful_bench_info = {
+            "Operating System:": platform.platform(),
+            "Platform Uname:": platform.uname(),
+            "Platform Processor:": platform.processor(),
+            "System Type:": platform.system(),
+            "Binary Size:": f"{os.path.getsize(sys.argv[1])} bytes",
+            "Git Commit:": repo.head.object.hexsha,
+    }
     cachegrind_result_dict = {
             "I_ref": cachegrind_results[0],
             "I1_misses": cachegrind_results[1],
@@ -77,8 +105,16 @@ def main():
             "LL_misses": cachegrind_results[11],
             "LL_miss_rate": cachegrind_results[12],
     }
+    memcheck_result_dict = {
+            "HEAP total usage at exit:": memcheck_results[1],
+            "HEAP total usage:": memcheck_results[2]
+    }
+    final_dict_dump = useful_bench_info
+    final_dict_dump.update(cachegrind_result_dict)
+    final_dict_dump.update(memcheck_result_dict)
     output_file_name = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-    create_json_from_dict(cachegrind_result_dict, output_file_name)
+    create_json_from_dict(final_dict_dump, output_file_name)
     
 if __name__ == "__main__":
     main()
+    os.system("rm -f cachegrind.out*")
