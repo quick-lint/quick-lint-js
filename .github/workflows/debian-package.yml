@@ -59,6 +59,7 @@ jobs:
           name: quick-lint-js-deb-${{ github.sha }}
           path: |
             dist/debian/quick-lint-js-dbgsym_*
+            dist/debian/quick-lint-js-vim_*
             dist/debian/quick-lint-js_*
 
   test-deb:
@@ -88,10 +89,19 @@ jobs:
           cat /etc/system-release || :
           uname -a || :
 
+      - name: update apt
+        run: apt-get update
+
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-deb-${{ github.sha }}
-      - name: install
+
+      - name: install quick-lint-js
         run: dpkg -i quick-lint-js_*.deb
-      - name: test
+      - name: test quick-lint-js
         run: quick-lint-js --version
+
+      - name: install quick-lint-js-vim dependencies
+        run: DEBIAN_FRONTEND=noninteractive apt-get install -y vim vim-addon-manager
+      - name: install quick-lint-js-vim
+        run: dpkg -i quick-lint-js-vim_*.deb

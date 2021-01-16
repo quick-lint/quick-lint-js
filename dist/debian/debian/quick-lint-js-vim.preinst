@@ -1,0 +1,28 @@
+#!/bin/sh
+# preinst script for quick-lint-js-vim
+#
+# see: dh_installdeb(1)
+
+set -e
+
+case "$1" in
+    install|upgrade)
+        case "$(vim-addon-manager --query --system-wide status quick-lint-js)" in
+            *installed)
+                vim-addon-manager --system-wide remove quick-lint-js
+            ;;
+        esac
+    ;;
+
+    abort-upgrade)
+    ;;
+
+    *)
+        echo "preinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

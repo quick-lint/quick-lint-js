@@ -1,0 +1,24 @@
+#!/bin/sh
+# prerm script for quick-lint-js-vim
+#
+# see: dh_installdeb(1)
+
+set -e
+
+case "$1" in
+    deconfigure|remove|upgrade)
+        vim-addon-manager --system-wide remove quick-lint-js
+    ;;
+
+    failed-upgrade)
+    ;;
+
+    *)
+        echo "prerm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -35,6 +35,7 @@ add_subdirectory(vendor)
 
 add_subdirectory(benchmark)
 add_subdirectory(fuzz)
+add_subdirectory(plugin/vim)
 add_subdirectory(plugin/vscode)
 add_subdirectory(src)
 add_subdirectory(tools)

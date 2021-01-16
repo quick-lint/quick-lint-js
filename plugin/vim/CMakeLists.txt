@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -16,25 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set -e
-set -u
-set -x
+cmake_minimum_required(VERSION 3.10)
+include(GNUInstallDirs)
 
-cd "$(dirname "${0}")/../.."
-
-DEB_BUILD_OPTIONS="parallel=$(nproc)"
-export DEB_BUILD_OPTIONS
-
-git archive --format tar.gz --prefix quick-lint-js-0.1.0/ --output dist/debian/quick-lint-js_0.1.0.orig.tar.gz HEAD
-
-cd dist/debian/
-rm -rf quick-lint-js-0.1.0/
-tar xzf quick-lint-js_0.1.0.orig.tar.gz
-cp -a debian quick-lint-js-0.1.0/debian
-
-cd quick-lint-js-0.1.0/
-dpkg-buildpackage -rfakeroot -uc -us
-
-cd ../
-lintian quick-lint-js_0.1.0-1_amd64.deb
-lintian quick-lint-js-vim_0.1.0-1_all.deb
+install(
+  FILES quick-lint-js.vim/autoload/quick_lint_js_ale.vim
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/addons/autoload"
+)
+install(
+  FILES quick-lint-js.vim/ale_linters/javascript/quick_lint_js.vim
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/addons/ale_linters/javascript"
+)
+install(
+  FILES quick-lint-js.yaml
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/registry"
+)
