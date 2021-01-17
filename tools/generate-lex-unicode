@@ -23,6 +23,7 @@ import unicodedata
 
 BITS_PER_BYTE = 8
 
+
 def main() -> None:
     test_is_id_start()
     test_is_id_continue()
@@ -31,12 +32,13 @@ def main() -> None:
     test_dump_bit_table()
     test_rstrip_tuple()
 
-    max_code_point = 0x10ffff
+    max_code_point = 0x10FFFF
 
     output_path = pathlib.Path(__file__).parent / ".." / "src" / "lex-unicode.cpp"
     print(f"Creating {output_path} ...")
     with open(output_path, "wb") as output:
-        output.write(b"""\
+        output.write(
+            b"""\
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -61,25 +63,40 @@ def main() -> None:
 // clang-format off
 
 namespace quick_lint_js {
-""")
+"""
+        )
 
         output.write(b"std::uint8_t lexer::identifier_start_table[] = {\n")
-        bits = tuple(is_js_identifier_start(code_point) for code_point in range(max_code_point + 1))
+        bits = tuple(
+            is_js_identifier_start(code_point)
+            for code_point in range(max_code_point + 1)
+        )
         bits = rstrip_tuple(bits, 0)
         dump_bit_table_to_file(bits, output, indentation=b"  ")
-        print(f"identifier_start_table_size = {(len(bits) + BITS_PER_BYTE - 1) // BITS_PER_BYTE:#x}")
+        print(
+            f"identifier_start_table_size = {(len(bits) + BITS_PER_BYTE - 1) // BITS_PER_BYTE:#x}"
+        )
         output.write(b"\n};\n")
-        output.write(b"static_assert(lexer::identifier_start_table_size == sizeof(lexer::identifier_start_table));\n")
+        output.write(
+            b"static_assert(lexer::identifier_start_table_size == sizeof(lexer::identifier_start_table));\n"
+        )
 
         output.write(b"\n")
 
         output.write(b"std::uint8_t lexer::identifier_part_table[] = {\n")
-        bits = tuple(is_js_identifier_part(code_point) for code_point in range(max_code_point + 1))
+        bits = tuple(
+            is_js_identifier_part(code_point)
+            for code_point in range(max_code_point + 1)
+        )
         bits = rstrip_tuple(bits, 0)
         dump_bit_table_to_file(bits, output, indentation=b"  ")
-        print(f"identifier_part_table_size = {(len(bits) + BITS_PER_BYTE - 1) // BITS_PER_BYTE:#x}")
+        print(
+            f"identifier_part_table_size = {(len(bits) + BITS_PER_BYTE - 1) // BITS_PER_BYTE:#x}"
+        )
         output.write(b"\n};\n")
-        output.write(b"static_assert(lexer::identifier_part_table_size == sizeof(lexer::identifier_part_table));\n")
+        output.write(
+            b"static_assert(lexer::identifier_part_table_size == sizeof(lexer::identifier_part_table));\n"
+        )
 
         output.write(b"}\n")
 
@@ -139,7 +156,14 @@ PATTERN_WHITE_SPACE_CODE_POINTS = frozenset(
 # Other_ID_Start
 # https://www.unicode.org/Public/11.0.0/ucd/PropList.txt
 OTHER_ID_START_CODE_POINTS = frozenset(
-    (0x1885, 0x1886, 0x2118, 0x212E, 0x309B, 0x309C,)
+    (
+        0x1885,
+        0x1886,
+        0x2118,
+        0x212E,
+        0x309B,
+        0x309C,
+    )
 )
 
 # Other_ID_Continue
@@ -477,10 +501,11 @@ PATTERN_SYNTAX_CODE_POINTS = frozenset(
 )
 # fmt: on
 
+
 def rstrip_tuple(things: typing.Tuple, element_to_strip) -> typing.Tuple:
     for i in range(len(things) - 1, 0, -1):
         if things[i] != element_to_strip:
-            return things[:i+1]
+            return things[: i + 1]
     return things
 
 
@@ -742,7 +767,9 @@ def test_is_js_identifier_part() -> None:
     assert not is_js_identifier_part(0x202C)  # POP DIRECTIONAL FORMATTING (Cf)
 
 
-def dump_bit_table_to_file(bits: typing.Sequence[bool], file, indentation: bytes = b"") -> None:
+def dump_bit_table_to_file(
+    bits: typing.Sequence[bool], file, indentation: bytes = b""
+) -> None:
     bytes_written_on_line = 0
     for byte_index in range(0, len(bits), BITS_PER_BYTE):
         byte = 0
@@ -763,7 +790,9 @@ def dump_bit_table_to_file(bits: typing.Sequence[bool], file, indentation: bytes
         bytes_written_on_line += 1
 
 
-def dump_bit_table_to_bytes(bits: typing.Sequence[bool], indentation: bytes = b"") -> bytes:
+def dump_bit_table_to_bytes(
+    bits: typing.Sequence[bool], indentation: bytes = b""
+) -> bytes:
     file = io.BytesIO()
     dump_bit_table_to_file(bits, file, indentation=indentation)
     return file.getvalue()
@@ -780,7 +809,18 @@ def test_dump_bit_table() -> None:
     # fmt: on
 
     # Dumping zero-pads missing bits:
-    assert dump_bit_table_to_bytes((1, 0, 1, 0, 1,)) == b"0x15,"
+    assert (
+        dump_bit_table_to_bytes(
+            (
+                1,
+                0,
+                1,
+                0,
+                1,
+            )
+        )
+        == b"0x15,"
+    )
 
     # Dumping should line break after 8 bytes:
     # fmt: off
