@@ -25,6 +25,15 @@ BITS_PER_BYTE = 8
 
 
 def main() -> None:
+    python_unicodedata_version = [
+        int(part) for part in unicodedata.unidata_version.split(".")
+    ]
+    assert python_unicodedata_version >= [
+        13,
+        0,
+        0,
+    ], f"Unicode version {unicodedata.unidata_version} is too old. Python is probably too old. Upgrade Python."
+
     test_is_id_start()
     test_is_id_continue()
     test_is_js_identifier_start()
@@ -518,6 +527,7 @@ def test_is_id_start() -> None:
     assert is_id_start(
         0x1F88
     )  # GREEK CAPITAL LETTER ALPHA WITH PSILI AND PROSGEGRAMMENI (Lt)
+    assert is_id_start(0x08BE)  # ARABIC LETTER PEH WITH SMALL V (Lo)
 
     # Nl
     assert is_id_start(0x2160)  # ROMAN NUMERAL ONE (Nl)

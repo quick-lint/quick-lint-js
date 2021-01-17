@@ -312,7 +312,7 @@ class lexer {
   // called after.
   const char8* end_of_previous_token() const noexcept;
 
-  static constexpr std::size_t identifier_start_table_size = 0x5f44;
+  static constexpr std::size_t identifier_start_table_size = 0x626a;
   static std::uint8_t identifier_start_table[];
 
   static constexpr std::size_t identifier_part_table_size = 0x1c03e;
