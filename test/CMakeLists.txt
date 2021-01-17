@@ -131,3 +131,33 @@ if (
     COMPILE_OPTIONS -fno-sanitize=null
   )
 endif ()
+
+find_package(ICU COMPONENTS uc)
+if (ICU_FOUND)
+  quick_lint_js_add_executable(
+    quick-lint-js-test-lex-unicode
+    test-lex-unicode.cpp
+  )
+  target_link_libraries(
+    quick-lint-js-test-lex-unicode
+    PRIVATE
+    ICU::uc
+    gmock
+    gmock_main
+    gtest
+    quick-lint-js-lib
+  )
+  if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+    target_precompile_headers(
+      quick-lint-js-test-lex-unicode
+      PRIVATE
+      <gmock/gmock.h>
+      <gtest/gtest.h>
+    )
+  endif ()
+
+  add_test(
+    NAME quick-lint-js-test-lex-unicode
+    COMMAND quick-lint-js-test-lex-unicode
+  )
+endif ()
