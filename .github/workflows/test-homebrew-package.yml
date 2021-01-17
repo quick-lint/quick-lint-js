@@ -1,0 +1,52 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: Homebrew package
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  homebrew:
+    name: ${{ matrix.toolchain.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - {runs_on: macos-10.15, name: "macOS 10.15"}
+    runs-on: ${{ matrix.toolchain.runs_on }}
+    env:
+      HOMEBREW_NO_ANALYTICS: 1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+    steps:
+      - name: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - name: checkout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: brew tap
+        run: brew tap quick-lint/quick-lint-js .
+      - name: brew install
+        run: brew install --HEAD quick-lint-js
+      - name: test
+        run: quick-lint-js --version

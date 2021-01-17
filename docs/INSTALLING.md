@@ -9,7 +9,27 @@ offer pre-built binaries so quick-lint-js needs to be installed from source.
 Depending on how you want to build quick-lint-js, the installation instructions
 might differ.
 
+* [macOS: Homebrew](#macos-homebrew)
 * [macOS and Linux: nix](#macos-and-linux-nix)
+
+---
+
+### macOS: Homebrew
+
+Install the [Homebrew package manager][Homebrew] if you have not already done
+so.
+
+Add quick-lint-js' tap:
+
+    $ brew tap quick-lint/quick-lint-js https://github.com/quick-lint/quick-lint-js.git
+
+Install quick-lint-js:
+
+    $ brew install --HEAD quick-lint-js
+
+Now the binary is available in your user path:
+
+    $ quick-lint-js --help
 
 ---
 
@@ -41,4 +61,5 @@ Use `nix-env -e` to uninstall a previously installed binary from your user env:
 
     $ nix-env -e quick-lint-js
 
+[Homebrew]: https://brew.sh/
 [Nix]: https://nixos.org/features.html
