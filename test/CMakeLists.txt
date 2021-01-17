@@ -119,7 +119,7 @@ quick_lint_js_add_warning_options_if_supported(
   /wd26812 # Prefer 'enum class' over 'enum'
 )
 
-# HACK(strager): UndefinedBehaviorSanitizer is buggy on Linunx x86_64 with GCC
+# HACK(strager): UndefinedBehaviorSanitizer is buggy on Linux x86_64 with GCC
 # 8.4.0. Disable some UBSAN checks to avoid false positives.
 if (
   CMAKE_CXX_COMPILER_ID STREQUAL GNU
