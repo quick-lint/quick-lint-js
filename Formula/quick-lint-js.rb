@@ -17,7 +17,7 @@
 class QuickLintJs < Formula
   desc "Find bugs in your JavaScript code"
   homepage "https://quick-lint-js.com/"
-  head "https://github.com/quick-lint/quick-lint-js.git", :branch => "staging"
+  head "https://github.com/quick-lint/quick-lint-js.git", :branch => "master"
   license "GPL-3.0-or-later"
 
   depends_on "cmake" => :build
