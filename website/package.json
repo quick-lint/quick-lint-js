@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "fmt": "prettier --write '**/*.html' '**/*.mjs'",
+    "fmt": "prettier --write '**/*.css' '**/*.html' '**/*.mjs'",
     "test": "node --experimental-modules demo/test.mjs"
   },
   "devDependencies": {

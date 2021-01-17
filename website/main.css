@@ -1,0 +1,72 @@
+/*
+ * quick-lint-js finds bugs in JavaScript programs.
+ * Copyright (C) 2020  Matthew Glazar
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+body {
+  font-family: sans-serif;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 45rem;
+}
+
+figure {
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin-top: 1rem;
+}
+
+header nav {
+  margin-top: 1rem;
+  text-align: right;
+}
+header nav > ul {
+  margin: 0;
+  padding: 0;
+}
+header nav li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+header nav li > a {
+  padding: 0;
+}
+
+header {
+  display: grid;
+  grid-template:
+    "title nav"
+    "tag-line nav";
+}
+header > h1 {
+  grid-area: title;
+}
+header > .tag-line {
+  grid-area: tag-line;
+}
+header > nav {
+  grid-area: nav;
+}
+
+footer,
+h2 {
+  border-top: 1px solid #ccc;
+  padding-top: 1rem;
+}
