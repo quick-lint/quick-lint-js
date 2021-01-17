@@ -70,3 +70,8 @@ h2 {
   border-top: 1px solid #ccc;
   padding-top: 1rem;
 }
+
+main > h2:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
