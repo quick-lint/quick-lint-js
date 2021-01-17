@@ -55,6 +55,9 @@ licenses. See license.html for details.
       .install-comparison td.bad {
         background-color: #ffdddd;
       }
+      .install-comparison td.meh {
+        background-color: #ffeecc;
+      }
       .install-comparison td.os {
         padding: 0;
         width: 1.5em;
@@ -62,6 +65,10 @@ licenses. See license.html for details.
 
       .install-comparison colgroup:not(:first-child) col:first-child {
         border-left-width: 1px;
+      }
+
+      .install-comparison .footnote-marker {
+        position: absolute;
       }
 
       .install-logo,
@@ -180,7 +187,15 @@ licenses. See license.html for details.
               </td>
 
               <td class="good"><span aria-label="installed">✅</span></td>
-              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="meh">
+                <span aria-label="installed">✅</span
+                ><span
+                  aria-label="not installed globally"
+                  title="not installed globally"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
               <td class="bad"><span aria-label="not installed">❌</span></td>
               <td class="bad"><span aria-label="not installed">❌</span></td>
             </tr>
@@ -394,6 +409,13 @@ licenses. See license.html for details.
             </tr>
           </tbody>
         </table>
+        <figcaption>
+          <p>
+            <span aria-labeled-by="footnote-lsp-not-global">*</span> The LSP
+            server is not installed globally with this installation method, so
+            some editors might not be able to access it.
+          </p>
+        </figcaption>
       </figure>
 
       <article id="npm">
