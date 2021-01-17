@@ -117,14 +117,14 @@ static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, {chunk_index
 
         assert len(chunk_data_to_index) <= max_chunk_index
 
-        output.write(b"std::uint8_t lexer::unicode_tables_chunks[] = {\n")
+        output.write(b"const std::uint8_t lexer::unicode_tables_chunks[] = {\n")
         dump_bit_table_to_file(all_chunks, output, indentation=b"  ")
         print(f"unicode_tables_chunks_size = {len(all_chunks):}")
         output.write(b"\n};\n\n")
 
         def dump_chunk_indexes_table(name: str, data: typing.Tuple[bool, ...]) -> None:
             output.write(
-                f"lexer::unicode_table_chunk_index_type lexer::{name}[] = {{\n".encode(
+                f"const lexer::unicode_table_chunk_index_type lexer::{name}[] = {{\n".encode(
                     "utf-8"
                 )
             )
