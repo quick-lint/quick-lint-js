@@ -43,6 +43,11 @@ def main() -> None:
 
     max_code_point = 0x10FFFF
 
+    chunk_size = 256  # Arbitrary. Found to produce the smallest tables.
+
+    chunk_index_type = "std::uint8_t"
+    max_chunk_index = (1 << 8) - 1
+
     output_path = pathlib.Path(__file__).parent / ".." / "src" / "lex-unicode.cpp"
     print(f"Creating {output_path} ...")
     with open(output_path, "wb") as output:
@@ -75,37 +80,72 @@ namespace quick_lint_js {
 """
         )
 
-        output.write(b"std::uint8_t lexer::identifier_start_table[] = {\n")
-        bits = tuple(
+        output.write(
+            f"""\
+static_assert(lexer::unicode_table_chunk_size == {chunk_size});
+static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, {chunk_index_type}>);
+
+""".encode(
+                "utf-8"
+            )
+        )
+
+        identifier_start_data = tuple(
             is_js_identifier_start(code_point)
             for code_point in range(max_code_point + 1)
         )
-        bits = rstrip_tuple(bits, 0)
-        dump_bit_table_to_file(bits, output, indentation=b"  ")
-        print(
-            f"identifier_start_table_size = {(len(bits) + BITS_PER_BYTE - 1) // BITS_PER_BYTE:#x}"
-        )
-        output.write(b"\n};\n")
-        output.write(
-            b"static_assert(lexer::identifier_start_table_size == sizeof(lexer::identifier_start_table));\n"
-        )
-
-        output.write(b"\n")
-
-        output.write(b"std::uint8_t lexer::identifier_part_table[] = {\n")
-        bits = tuple(
+        identifier_part_data = tuple(
             is_js_identifier_part(code_point)
             for code_point in range(max_code_point + 1)
         )
-        bits = rstrip_tuple(bits, 0)
-        dump_bit_table_to_file(bits, output, indentation=b"  ")
-        print(
-            f"identifier_part_table_size = {(len(bits) + BITS_PER_BYTE - 1) // BITS_PER_BYTE:#x}"
+
+        chunk_data_to_index: typing.Dict[typing.Tuple[bool, ...], int] = {}
+        all_chunks: typing.List[bool] = []
+
+        def see_chunk(chunk_data: typing.Tuple[bool, ...]) -> None:
+            chunk_index = chunk_data_to_index.get(chunk_data)
+            if chunk_index is None:
+                chunk_index = len(chunk_data_to_index)
+                chunk_data_to_index[chunk_data] = chunk_index
+                all_chunks.extend(chunk_data)
+            return chunk_index
+
+        for data in (identifier_start_data, identifier_part_data):
+            for c in chunk(data, chunk_size):
+                see_chunk(c)
+        zeros_chunk_index = see_chunk((False,) * chunk_size)
+
+        assert len(chunk_data_to_index) <= max_chunk_index
+
+        output.write(b"std::uint8_t lexer::unicode_tables_chunks[] = {\n")
+        dump_bit_table_to_file(all_chunks, output, indentation=b"  ")
+        print(f"unicode_tables_chunks_size = {len(all_chunks):}")
+        output.write(b"\n};\n\n")
+
+        def dump_chunk_indexes_table(name: str, data: typing.Tuple[bool, ...]) -> None:
+            output.write(
+                f"lexer::unicode_table_chunk_index_type lexer::{name}[] = {{\n".encode(
+                    "utf-8"
+                )
+            )
+            chunk_indexes = tuple(
+                chunk_data_to_index[c] for c in chunk(data, chunk_size)
+            )
+            chunk_indexes = rstrip_tuple(chunk_indexes, zeros_chunk_index)
+            dump_integer_table_to_file(chunk_indexes, file=output, indentation=b"  ")
+            print(f"{name}_size = {len(chunk_indexes)}")
+            output.write(b"\n};\n")
+            output.write(
+                f"static_assert(lexer::{name}_size == sizeof(lexer::{name}));\n".encode(
+                    "utf-8"
+                )
+            )
+
+        dump_chunk_indexes_table(
+            "identifier_start_chunk_indexes", identifier_start_data
         )
-        output.write(b"\n};\n")
-        output.write(
-            b"static_assert(lexer::identifier_part_table_size == sizeof(lexer::identifier_part_table));\n"
-        )
+        output.write(b"\n")
+        dump_chunk_indexes_table("identifier_part_chunk_indexes", identifier_part_data)
 
         output.write(b"}\n")
 
@@ -777,10 +817,15 @@ def test_is_js_identifier_part() -> None:
     assert not is_js_identifier_part(0x202C)  # POP DIRECTIONAL FORMATTING (Cf)
 
 
+def chunk(items: typing.Sequence, chunk_size: int) -> typing.Iterable[typing.Sequence]:
+    for i in range(0, len(items), chunk_size):
+        yield items[i : i + chunk_size]
+
+
 def dump_bit_table_to_file(
     bits: typing.Sequence[bool], file, indentation: bytes = b""
 ) -> None:
-    bytes_written_on_line = 0
+    bytes = []
     for byte_index in range(0, len(bits), BITS_PER_BYTE):
         byte = 0
         for bit_in_byte in range(BITS_PER_BYTE):
@@ -789,15 +834,33 @@ def dump_bit_table_to_file(
             except IndexError:
                 bit = 0
             byte |= bit << bit_in_byte
-        if bytes_written_on_line >= 8:
+        bytes.append(byte)
+
+    dump_integer_table_to_file(
+        bytes,
+        file=file,
+        indentation=indentation,
+    )
+
+
+def dump_integer_table_to_file(
+    integers: typing.Iterable[int],
+    file,
+    format: str = "#04x",
+    integers_per_line: int = 8,
+    indentation: bytes = b"",
+) -> None:
+    integers_written_on_line = 0
+    for integer in integers:
+        if integers_written_on_line >= integers_per_line:
             file.write(b"\n")
-            bytes_written_on_line = 0
-        if bytes_written_on_line > 0:
+            integers_written_on_line = 0
+        if integers_written_on_line > 0:
             file.write(b" ")
         else:
             file.write(indentation)
-        file.write(f"0x{byte:02x},".encode())
-        bytes_written_on_line += 1
+        file.write(f"{integer:{format}},".encode())
+        integers_written_on_line += 1
 
 
 def dump_bit_table_to_bytes(

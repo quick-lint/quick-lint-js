@@ -312,11 +312,16 @@ class lexer {
   // called after.
   const char8* end_of_previous_token() const noexcept;
 
-  static constexpr std::size_t identifier_start_table_size = 0x626a;
-  static std::uint8_t identifier_start_table[];
+  static constexpr std::size_t unicode_table_chunk_size = 256;
+  static constexpr std::size_t unicode_tables_chunks_size = 46848;
+  static std::uint8_t unicode_tables_chunks[];
 
-  static constexpr std::size_t identifier_part_table_size = 0x1c03e;
-  static std::uint8_t identifier_part_table[];
+  using unicode_table_chunk_index_type = std::uint8_t;
+  static constexpr std::size_t identifier_start_chunk_indexes_size = 788;
+  static unicode_table_chunk_index_type identifier_start_chunk_indexes[];
+
+  static constexpr std::size_t identifier_part_chunk_indexes_size = 3586;
+  static unicode_table_chunk_index_type identifier_part_chunk_indexes[];
 
  private:
   struct parsed_template_body {

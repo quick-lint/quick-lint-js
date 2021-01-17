@@ -116,13 +116,22 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
                               char32_t code_point) {
   constexpr int bits_per_byte = 8;
   constexpr char32_t max_code_point = U'\U0010ffff';
+  constexpr std::size_t bits_per_chunk = lexer::unicode_table_chunk_size;
+  constexpr std::size_t bytes_per_chunk = bits_per_chunk / bits_per_byte;
+  using chunk_index_type = lexer::unicode_table_chunk_index_type;
 
   QLJS_ASSERT(code_point <= max_code_point);
-  if (code_point >= table_size * bits_per_byte) {
+  std::size_t chunk_index_index = code_point / bits_per_chunk;
+  if (chunk_index_index >= table_size / sizeof(chunk_index_type)) {
     return false;
   }
-  return table[code_point / bits_per_byte] &
-         (1 << (code_point % bits_per_byte));
+  chunk_index_type chunk_index = table[chunk_index_index];
+
+  const std::uint8_t* chunk =
+      &lexer::unicode_tables_chunks[chunk_index * bytes_per_chunk];
+  std::size_t bit_in_chunk = code_point % bits_per_chunk;
+  return chunk[bit_in_chunk / bits_per_byte] &
+         (1 << (bit_in_chunk % bits_per_byte));
 }
 }
 
@@ -1522,8 +1531,9 @@ bool lexer::is_hex_digit(char8 c) {
 }
 
 bool lexer::is_initial_identifier_character(char32_t code_point) {
-  return look_up_in_unicode_table(identifier_start_table,
-                                  identifier_start_table_size, code_point);
+  return look_up_in_unicode_table(identifier_start_chunk_indexes,
+                                  identifier_start_chunk_indexes_size,
+                                  code_point);
 }
 
 bool lexer::is_identifier_character(char32_t code_point) {
@@ -1531,8 +1541,9 @@ bool lexer::is_identifier_character(char32_t code_point) {
   if (code_point == U'\\') {
     return true;
   }
-  return look_up_in_unicode_table(identifier_part_table,
-                                  identifier_part_table_size, code_point);
+  return look_up_in_unicode_table(identifier_part_chunk_indexes,
+                                  identifier_part_chunk_indexes_size,
+                                  code_point);
 }
 
 bool lexer::is_non_ascii_whitespace_character(char32_t code_point) {
