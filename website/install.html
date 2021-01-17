@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!--
+Other files may have different copyright and may be licensed under different
+licenses. See license.html for details.
+-->
+<html>
+  <head>
+    <title>quick-lint-js installation</title>
+    <meta charset="utf-8" />
+    <link href="main.css" rel="stylesheet" />
+    <style>
+      .install-comparison table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .install-comparison col,
+      .install-comparison td,
+      .install-comparison th {
+        border-color: #888888;
+        border-style: solid;
+        border-width: 0;
+      }
+      .install-comparison td,
+      .install-comparison th {
+        padding: 0.5em 1em;
+        text-align: center;
+      }
+      .install-comparison th:first-child {
+        text-align: right;
+      }
+      .install-comparison tbody td,
+      .install-comparison tbody th {
+        border-top-width: 1px;
+      }
+      .install-comparison td.good {
+        background-color: #ddffdd;
+      }
+      .install-comparison td.bad {
+        background-color: #ffdddd;
+      }
+      .install-comparison td.os {
+        padding: 0;
+        width: 1.5em;
+      }
+
+      .install-comparison colgroup:not(:first-child) col:first-child {
+        border-left-width: 1px;
+      }
+
+      .install-logo,
+      .os-logo {
+        height: 1.2em;
+        vertical-align: text-bottom;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><a href=".">quick-lint-js</a></h1>
+      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+      <nav>
+        <ul>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Install quick-lint-js</h2>
+
+      <figure class="install-comparison">
+        <table>
+          <colgroup>
+            <col />
+          </colgroup>
+          <colgroup>
+            <col />
+            <col />
+            <col />
+          </colgroup>
+          <colgroup>
+            <col />
+            <col />
+            <col />
+            <col />
+          </colgroup>
+
+          <thead>
+            <tr>
+              <th>Install method</th>
+
+              <th colspan="3">Operating systems</th>
+
+              <th>
+                <img
+                  class="install-logo"
+                  src="gnome-terminal.svg"
+                  alt=""
+                  aria-labeled-by="install-artifact-cli"
+                /><br /><span id="install-artifact-cli">CLI</span>
+              </th>
+              <th>LSP server</th>
+              <th>
+                <img
+                  class="install-logo"
+                  src="vscode.png"
+                  alt=""
+                  aria-labeled-by="install-artifact-vscode"
+                /><br /><span id="install-artifact-vscode"
+                  >VS&nbsp;Code<br />extension</span
+                >
+              </th>
+              <th>
+                <img
+                  class="install-logo"
+                  src="vim.gif"
+                  alt=""
+                  aria-labeled-by="install-artifact-vim"
+                /><br /><span id="install-artifact-vim">Vim<br />plugin</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>
+                <img
+                  class="install-logo"
+                  src="npm.svg"
+                  alt=""
+                  aria-labeled-by="install-method-npm"
+                />&nbsp;<span id="install-method-npm">npm</span>
+              </th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="windows.svg"
+                  alt="Windows"
+                  title="Windows"
+                />
+              </td>
+
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+            </tr>
+
+            <tr>
+              <th>
+                <img
+                  class="install-logo"
+                  src="homebrew.svg"
+                  alt=""
+                  aria-labeled-by="install-method-homebrew"
+                />&nbsp;<span id="install-method-homebrew">Homebrew</span>
+              </th>
+
+              <td class="os"></td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os"></td>
+
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+            </tr>
+
+            <tr>
+              <th>
+                <img
+                  class="install-logo"
+                  src="debian.png"
+                  alt=""
+                  aria-labeled-by="install-method-debian"
+                />&nbsp;<span id="install-method-debian">Debian</span><br /><img
+                  class="install-logo"
+                  src="ubuntu.svg"
+                  alt=""
+                  aria-labeled-by="install-method-ubuntu"
+                />&nbsp;<span id="install-method-ubuntu">Ubuntu</span>
+              </th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os"></td>
+              <td class="os"></td>
+
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+            </tr>
+
+            <tr>
+              <th>
+                <img
+                  class="install-logo"
+                  src="nix.svg"
+                  alt=""
+                  aria-labeled-by="install-method-nix"
+                />&nbsp;<span id="install-method-nix">Nix</span>
+              </th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os"></td>
+
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+            </tr>
+
+            <tr>
+              <th>
+                <img
+                  class="install-logo"
+                  src="vscode.png"
+                  alt=""
+                  aria-labeled-by="install-method-vscode"
+                />&nbsp;<span id="install-method-vscode"
+                  >VS&nbsp;Code<br />marketplace</span
+                >
+              </th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="windows.svg"
+                  alt="Windows"
+                  title="Windows"
+                />
+              </td>
+
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+            </tr>
+
+            <tr>
+              <th>Manual (pre-built)</th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="windows.svg"
+                  alt="Windows"
+                  title="Windows"
+                />
+              </td>
+
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+            </tr>
+
+            <tr>
+              <th>Manual (source)</th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="windows.svg"
+                  alt="Windows"
+                  title="Windows"
+                />
+              </td>
+
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="good"><span aria-label="installed">✅</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </figure>
+    </main>
+
+    <footer>
+      <nav>
+        <ul>
+          <li><a href=".">quick-lint-js home page</a></li>
+          <li><a href="demo/">try quick-lint-js in your browser</a></li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+          <li><a href="license.html">copyright and license information</a></li>
+        </ul>
+      </nav>
+    </footer>
+  </body>
+</html>
