@@ -121,3 +121,19 @@ function (quick_lint_js_work_around_implicit_link_directories)
   link_directories(${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
   set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "" PARENT_SCOPE)
 endfunction ()
+
+function (quick_lint_js_have_charconv OUT_VAR)
+  check_cxx_source_compiles(
+    "#include <charconv>
+    int main() {
+      char out[10];
+      int value = 42;
+      (void)std::to_chars(out, out + 10, value);
+      return 0;
+    }" QUICK_LINT_JS_HAVE_CHARCONV_AND_STD_TO_CHARS)
+  set(
+    "${OUT_VAR}"
+    "${QUICK_LINT_JS_HAVE_CHARCONV_AND_STD_TO_CHARS}"
+    PARENT_SCOPE
+  )
+endfunction ()

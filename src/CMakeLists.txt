@@ -165,6 +165,15 @@ else ()
   )
 endif ()
 
+quick_lint_js_have_charconv(QUICK_LINT_JS_HAVE_CHARCONV)
+if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_CHARCONV_HEADER=0
+  )
+endif ()
+
 # HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
 # invoking undefined behaviour though with our string table offset pointer
