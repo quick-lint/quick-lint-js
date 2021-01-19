@@ -64,9 +64,18 @@ jobs:
       - name: create extension
         run: cd plugin/vscode && npx vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
-      - name: upload build
+      - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: plugin-vscode-${{ github.sha }}
           path: plugin/vscode/*.vsix
+      - name: upload build to long-term storage
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: plugin/vscode/*.vsix
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/vscode/
+          user: ${{ secrets.artifacts_user }}

@@ -49,9 +49,18 @@ jobs:
       - name: JS test
         run: cd website/demo && yarn test
 
-      - name: upload build
+      - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: web-demo-dist-${{ github.sha }}
           path: website/demo/dist/
+      - name: upload build to long-term storage
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: website/demo/dist/*
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/website-demo/
+          user: ${{ secrets.artifacts_user }}

@@ -52,15 +52,27 @@ jobs:
       - name: build
         run: ./dist/debian/build.sh
 
-      - name: upload build
+      - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: quick-lint-js-deb-${{ github.sha }}
           path: |
-            dist/debian/quick-lint-js-dbgsym_*
+            dist/debian/quick-lint-js-dbgsym_*  # FIXME(strager): This matches nothing!
             dist/debian/quick-lint-js-vim_*
             dist/debian/quick-lint-js_*
+      - name: upload build to long-term storage
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: |
+            dist/debian/quick-lint-js-vim_*
+            dist/debian/quick-lint-js_*
+          # dist/debian/quick-lint-js-dbgsym_*  # FIXME(strager): This matches nothing!
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/debian/
+          user: ${{ secrets.artifacts_user }}
 
   test-deb:
     name: test on ${{ matrix.os.name }}

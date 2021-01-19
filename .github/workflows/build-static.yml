@@ -75,12 +75,28 @@ jobs:
       - name: install
         run: cmake --install build --prefix usr
 
-      - name: upload build
+      - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
           path: usr/
+      - name: bundle build for long-term storage
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: papeloto/action-zip@v1
+        with:
+          dest: ${{ matrix.toolchain.archive_name }}.zip
+          files: usr/
+          recursive: true
+      - name: upload build to long-term storage
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: ${{ matrix.toolchain.archive_name }}.zip
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/manual/
+          user: ${{ secrets.artifacts_user }}
 
   test:
     name: test on ${{ matrix.os.name }}
@@ -159,12 +175,21 @@ jobs:
       - name: package
         run: npm pack ./dist/npm
 
-      - name: upload package
+      - name: upload package to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: quick-lint-js-npm-${{ github.sha }}
           path: quick-lint-js-*.tgz
+      - name: upload package to long-term storage
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: quick-lint-js-*.tgz
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/npm/
+          user: ${{ secrets.artifacts_user }}
 
   test-npm-package:
     name: test npm package on ${{ matrix.os.name }}
