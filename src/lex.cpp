@@ -1080,9 +1080,7 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
     for (int i = 0; i < identifier_character_count; ++i) {
       QLJS_ASSERT(input[i] >= 0);
       QLJS_ASSERT(this->is_ascii_character(input[i]));
-      // TODO(strager): Is the check for '\\' correct?
-      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])) ||
-                  *input == u8'\\');
+      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])));
     }
     input += identifier_character_count;
 
