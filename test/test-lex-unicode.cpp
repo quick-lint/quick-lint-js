@@ -80,7 +80,6 @@ TEST(test_lex_unicode, is_identifier_character) {
   for (char32_t c = 0; c <= max_code_point; ++c) {
     bool expected =
         c == U'$' ||       //
-        c == U'\\' ||      //
         c == U'\u200c' ||  //
         c == U'\u200d' ||
         ::u_hasBinaryProperty(narrow_cast<::UChar32>(c), UCHAR_ID_CONTINUE);

@@ -757,7 +757,9 @@ next:
     ++c;
     // TODO(strager): is_identifier_character is the wrong function to call
     // here.
-    if (this->is_identifier_character(static_cast<char32_t>(*c))) {
+    // TODO(strager): Is the check for '\\' correct?
+    if (this->is_identifier_character(static_cast<char32_t>(*c)) ||
+        *c == u8'\\') {
       parsed_identifier ident = this->parse_identifier(c);
       c = ident.after;
       for (const source_code_span& escape_sequence : ident.escape_sequences) {
@@ -1020,7 +1022,9 @@ const char8* lexer::parse_hex_digits_and_underscores(
 lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
   const char8* identifier_begin = input;
   // TODO(strager): is_identifier_character is the wrong function to call here.
-  QLJS_ASSERT(this->is_identifier_character(static_cast<char32_t>(*input)));
+  // TODO(strager): Is the check for '\\' correct?
+  QLJS_ASSERT(this->is_identifier_character(static_cast<char32_t>(*input)) ||
+              *input == u8'\\');
 
 #if QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
@@ -1076,7 +1080,9 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
     for (int i = 0; i < identifier_character_count; ++i) {
       QLJS_ASSERT(input[i] >= 0);
       QLJS_ASSERT(this->is_ascii_character(input[i]));
-      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])));
+      // TODO(strager): Is the check for '\\' correct?
+      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])) ||
+                  *input == u8'\\');
     }
     input += identifier_character_count;
 
@@ -1187,7 +1193,9 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       normalized->append(escape_sequence_begin, input);
     } else if (!(is_initial_identifier_character
                      ? this->is_initial_identifier_character(code_point)
-                     : this->is_identifier_character(code_point))) {
+                     // TODO(strager): Is the check for '\\' correct?
+                     : this->is_identifier_character(code_point) ||
+                           code_point == U'\\')) {
       this->error_reporter_->report(
           error_escaped_character_disallowed_in_identifiers{
               .escape_sequence = get_escape_span()});
@@ -1247,7 +1255,9 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       bool is_legal_character =
           is_initial_identifier_character
               ? this->is_initial_identifier_character(code_point)
-              : this->is_identifier_character(code_point);
+              // TODO(strager): Is the check for '\\' correct?
+              : this->is_identifier_character(code_point) ||
+                    code_point == U'\\';
       if (!is_legal_character) {
         if (this->is_ascii_character(code_point) ||
             this->is_non_ascii_whitespace_character(code_point)) {
@@ -1537,10 +1547,6 @@ bool lexer::is_initial_identifier_character(char32_t code_point) {
 }
 
 bool lexer::is_identifier_character(char32_t code_point) {
-  // TODO(strager): Move this check into callers.
-  if (code_point == U'\\') {
-    return true;
-  }
   return look_up_in_unicode_table(identifier_part_chunk_indexes,
                                   identifier_part_chunk_indexes_size,
                                   code_point);
