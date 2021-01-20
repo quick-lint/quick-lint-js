@@ -37,4 +37,5 @@ dpkg-buildpackage -rfakeroot -uc -us
 
 cd ../
 lintian quick-lint-js_0.1.0-1_amd64.deb
+lintian quick-lint-js-dbgsym_0.1.0-1_amd64.deb
 lintian quick-lint-js-vim_0.1.0-1_all.deb

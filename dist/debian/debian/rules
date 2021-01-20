@@ -7,3 +7,6 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
 	dh $@ --parallel
+
+override_dh_strip:
+	dh_strip $@ --dbg-package=quick-lint-js-dbgsym

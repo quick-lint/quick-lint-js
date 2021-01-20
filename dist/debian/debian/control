@@ -14,6 +14,12 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: JavaScript linter
  quick-lint-js finds bugs in your JavaScript code.
 
+Package: quick-lint-js-dbgsym
+Architecture: any
+Depends: ${misc:Depends}, quick-lint-js
+Description: debug symbols for quick-lint-js (JavaScript linter)
+ quick-lint-js finds bugs in your JavaScript code.
+
 Package: quick-lint-js-vim
 Architecture: all
 Depends: ${misc:Depends}, quick-lint-js, vim, vim-addon-manager
