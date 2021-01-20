@@ -27,9 +27,9 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
-          - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
+          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", archive_extension: ".tar.gz", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", archive_extension: ".tar.gz", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", archive_extension: ".zip", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     env:
       CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
@@ -75,25 +75,31 @@ jobs:
       - name: install
         run: cmake --install build --prefix usr
 
+      - name: bundle build into .tar.gz
+        if: ${{ matrix.toolchain.archive_extension == '.tar.gz' }}
+        run: |
+          mv usr /tmp/quick-lint-js
+          tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C /tmp/ quick-lint-js
+      - name: bundle build into .zip
+        if: ${{ matrix.toolchain.archive_extension == '.zip' }}
+        uses: papeloto/action-zip@v1
+        with:
+          dest: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
+          files: usr/
+          recursive: true
+
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
-          path: usr/
-      - name: bundle build for long-term storage
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-        uses: papeloto/action-zip@v1
-        with:
-          dest: ${{ matrix.toolchain.archive_name }}.zip
-          files: usr/
-          recursive: true
+          path: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
-          local-file-globs: ${{ matrix.toolchain.archive_name }}.zip
+          local-file-globs: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/manual/
           user: ${{ secrets.artifacts_user }}
@@ -138,11 +144,16 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-${{ matrix.os.archive_name }}-${{ github.sha }}
-      - name: fix permissions
+      - name: unpack .zip build
+        if: ${{ matrix.os.archive_name == 'windows' }}
+        run: Expand-Archive -LiteralPath ${{ matrix.os.archive_name }}.zip -DestinationPath quick-lint-js
+        shell: powershell
+      - name: unpack .tar.gz build
         if: ${{ matrix.os.archive_name != 'windows' }}
-        run: chmod +x ${{ matrix.os.exe_file }}
+        run: tar xf ${{ matrix.os.archive_name }}.tar.gz
+
       - name: test
-        run: DYLD_BIND_AT_LAUNCH=1 LD_BIND_NOW=1 ${{ matrix.os.exe_file }} --version
+        run: DYLD_BIND_AT_LAUNCH=1 LD_BIND_NOW=1 quick-lint-js/${{ matrix.os.exe_file }} --version
         shell: bash
 
   package-npm:
@@ -162,15 +173,27 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-linux-${{ github.sha }}
-          path: dist/npm/linux/
+          path: ./
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-macos-${{ github.sha }}
-          path: dist/npm/macos/
+          path: ./
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
-          path: dist/npm/windows/
+          path: ./
+      - name: extract downloaded archives
+        run: |
+          set -x
+
+          tar xf linux.tar.gz
+          mv quick-lint-js dist/npm/linux
+
+          tar xf macos.tar.gz
+          mv quick-lint-js dist/npm/macos
+
+          mkdir dist/npm/windows
+          unzip windows.zip -d dist/npm/windows/
 
       - name: package
         run: npm pack ./dist/npm
