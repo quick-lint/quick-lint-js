@@ -1216,6 +1216,24 @@ TEST_F(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
                         error_escaped_character_disallowed_in_identifiers,
                         escape_sequence, offsets_matcher(input, 0, 10))));
       });
+
+  // U+005c is \ (backslash)
+  this->check_single_token_with_errors(
+      u8"\\u{5c}u0061illegal", u8"\\u{5c}u0061illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 0, 6))));
+      });
+  this->check_single_token_with_errors(
+      u8"illegal\\u{5c}u0061", u8"illegal\\u{5c}u0061",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_character_disallowed_in_identifiers,
+                        escape_sequence, offsets_matcher(input, 7, 7 + 6))));
+      });
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_character) {

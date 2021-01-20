@@ -1193,9 +1193,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       normalized->append(escape_sequence_begin, input);
     } else if (!(is_initial_identifier_character
                      ? this->is_initial_identifier_character(code_point)
-                     // TODO(strager): Is the check for '\\' correct?
-                     : this->is_identifier_character(code_point) ||
-                           code_point == U'\\')) {
+                     : this->is_identifier_character(code_point))) {
       this->error_reporter_->report(
           error_escaped_character_disallowed_in_identifiers{
               .escape_sequence = get_escape_span()});
