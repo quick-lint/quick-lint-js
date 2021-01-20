@@ -1253,9 +1253,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       bool is_legal_character =
           is_initial_identifier_character
               ? this->is_initial_identifier_character(code_point)
-              // TODO(strager): Is the check for '\\' correct?
-              : this->is_identifier_character(code_point) ||
-                    code_point == U'\\';
+              : this->is_identifier_character(code_point);
       if (!is_legal_character) {
         if (this->is_ascii_character(code_point) ||
             this->is_non_ascii_whitespace_character(code_point)) {
