@@ -341,7 +341,7 @@ licenses. See license.html for details.
             </tr>
 
             <tr>
-              <th>Manual (pre-built)</th>
+              <th><a href="#manual">Manual (pre-built)</a></th>
 
               <td class="os">
                 <img
@@ -371,6 +371,40 @@ licenses. See license.html for details.
               <td class="good"><span aria-label="installed">✅</span></td>
               <td class="good"><span aria-label="installed">✅</span></td>
               <td class="good"><span aria-label="installed">✅</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+            </tr>
+
+            <tr>
+              <th><a href="#manual-vim">Manual (Vim&nbsp;plugin)</a></th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="macos.svg"
+                  alt="macOS"
+                  title="macOS"
+                />
+              </td>
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="windows.svg"
+                  alt="Windows"
+                  title="Windows"
+                />
+              </td>
+
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
+              <td class="bad"><span aria-label="not installed">❌</span></td>
               <td class="good"><span aria-label="installed">✅</span></td>
             </tr>
 
@@ -603,6 +637,331 @@ $ <kbd>quick-lint-js.cmd --help</kbd></code></pre>
           Alternatively, open Visual Studio Code, open the Extensions panel, and
           search for <kbd>quick-lint-js</kbd>.
         </p>
+      </article>
+
+      <article id="manual">
+        <h2>Manual (pre-built)</h2>
+        <p>
+          Supported operating systems:
+          <img
+            class="os-logo"
+            src="linux.svg"
+            alt="GNU/Linux"
+            title="GNU/Linux"
+          />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
+          <img
+            class="os-logo"
+            src="windows.svg"
+            alt="Windows"
+            title="Windows"
+          />
+        </p>
+
+        <ul>
+          <li>
+            <a href="#manual-cli"
+              ><img
+                class="install-logo"
+                src="gnome-terminal.svg"
+                alt=""
+              />&nbsp;CLI and LSP server</a
+            >
+          </li>
+          <li>
+            <a href="#manual-vscode"
+              ><img class="install-logo" src="vscode.png" alt="" />&nbsp;Visual
+              Studio Code extension</a
+            >
+          </li>
+        </ul>
+
+        <h3 id="manual-cli">
+          <img class="install-logo" src="gnome-terminal.svg" alt="" />&nbsp;CLI
+          and LSP server
+        </h3>
+        <ol>
+          <li>
+            Download the latest release of quick-lint-js for your platform:
+            <!-- TODO(strager): Create a /releases/ directory. -->
+            <!-- TODO(strager): Include installation instructions within the archive. -->
+            <ul>
+              <li>
+                <a
+                  href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/manual/linux.tar.gz"
+                  >Linux</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/manual/macos.tar.gz"
+                  >macOS</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/manual/windows.zip"
+                  >Windows</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li>Extract the downloaded archive.</li>
+          <li>
+            Copy the extracted
+            <code>quick-lint-js/bin/quick-lint-js</code> (Linux or macOS) or
+            <code>bin\quick-lint-js.exe</code> (Windows) file into a directory
+            in your <code>PATH</code>.
+            <p>
+              For example, copy it into the <code>/usr/local/bin</code> (Linux
+              or macOS) or <code>C:\Windows\System32\</code> (Windows)
+              directory.
+            </p>
+          </li>
+          <li>
+            Open a terminal or PowerShell window or Command Prompt window. Type
+            <kbd>quick-lint-js --version</kbd> and press enter to verify the
+            installation succeeded.
+          </li>
+        </ol>
+
+        <h3 id="manual-vscode">
+          <img class="install-logo" src="vscode.png" alt="" />&nbsp;Visual
+          Studio Code extension
+        </h3>
+        <p>
+          quick-lint-js has a Visual Studio Code extension. To install it
+          manually (without the marketplace):
+        </p>
+        <ol>
+          <li>
+            <a
+              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vscode/quick-lint-js-0.1.0.vsix"
+              >Download the latest release of the quick-lint-js extension.</a
+            >
+          </li>
+          <li>Open Visual Studio Code.</li>
+          <li>Open the Extensions panel.</li>
+          <li>
+            Click the "..." icon to open the
+            <span>Views and More Actions...</span> menu.
+          </li>
+          <li>Choose <span>Install from VSIX...</span>.</li>
+          <li>
+            Select the download <code>quick-lint-js-0.1.0.vsix</code> file.
+          </li>
+        </ol>
+        <p>
+          The extension is self-contained. You do not need to also install the
+          quick-lint-js CLI or LSP server.
+        </p>
+      </article>
+
+      <article id="manual-vim">
+        <h2>
+          <img class="install-logo" src="vim.gif" alt="" />&nbsp;Vim plugin
+        </h2>
+        <p>
+          Supported operating systems:
+          <img
+            class="os-logo"
+            src="linux.svg"
+            alt="GNU/Linux"
+            title="GNU/Linux"
+          />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
+          <img
+            class="os-logo"
+            src="windows.svg"
+            alt="Windows"
+            title="Windows"
+          />
+        </p>
+
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>
+            Install the quick-lint-js CLI using one of the following methods:
+            <ul>
+              <!-- TODO(strager): Make the Vim plugin recognize installed npm packages. -->
+              <li>
+                <a href="#homebrew">
+                  <img
+                    class="os-logo"
+                    src="macos.svg"
+                    alt="macOS"
+                    title="macOS"
+                  />
+                  Homebrew</a
+                >
+              </li>
+
+              <li>
+                <a href="#manual-cli"
+                  ><img
+                    class="os-logo"
+                    src="linux.svg"
+                    alt="GNU/Linux"
+                    title="GNU/Linux"
+                  />
+                  <img
+                    class="os-logo"
+                    src="macos.svg"
+                    alt="macOS"
+                    title="macOS"
+                  />
+                  <img
+                    class="os-logo"
+                    src="windows.svg"
+                    alt="Windows"
+                    title="Windows"
+                  />
+                  Manual (pre-built)</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            Install and configure one of the following Vim plugins:
+            <ul>
+              <li>
+                <a href="https://github.com/dense-analysis/ale"
+                  >ALE - Asynchronous Lint Engine</a
+                >
+                v2.1.1 or newer, or version v3.0.0 or newer
+              </li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>Installation</h3>
+        <p>Install this plugin with your favorite Vim packaging system:</p>
+        <ul>
+          <li>
+            <a href="#manual-vim-package">Vim package</a> (built into Vim 8.0
+            and newer)
+          </li>
+          <li><a href="#manual-vim-pathogen">Pathogen</a></li>
+          <li><a href="#manual-vim-vim-plug">Vim-Plug</a></li>
+          <li><a href="#manual-vim-vundle">Vundle</a></li>
+        </ul>
+
+        <h4 id="manual-vim-package">Install as a Vim package</h4>
+        <p>This option requires Vim 8.0 or newer.</p>
+
+        <h5>
+          <img class="os-logo" src="linux.svg" alt="" />&nbsp;Linux and
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS
+        </h5>
+        <ol>
+          <!-- TODO(strager): Create a /releases/ directory. -->
+          <li>
+            <a
+              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vim/quick-lint-js-vim.zip"
+              >Download the quick-lint-js Vim plugin.</a
+            >
+          </li>
+          <li>
+            Add <code style="vim">packloadall</code> to your
+            <code>~/.vimrc</code> file if not already present.
+          </li>
+          <li>
+            Create the directory <code>~/.vim/pack/external/start/</code>.
+          </li>
+          <li>
+            Copy the extracted
+            <code>quick-lint-js.vim</code> directory into the
+            <code>~/.vim/pack/external/start/</code> directory.
+          </li>
+          <li>Restart Vim.</li>
+        </ol>
+
+        <h5><img class="os-logo" src="windows.svg" alt="" />&nbsp;Windows</h5>
+        <ol>
+          <!-- TODO(strager): Create a /releases/ directory. -->
+          <li>
+            <a
+              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vim/quick-lint-js-vim.zip"
+              >Download the quick-lint-js Vim plugin.</a
+            >
+          </li>
+          <li>
+            Add <code style="vim">packloadall</code> to your
+            <code>%USERPROFILE%\_vimrc</code> file (or
+            <code>%USERPROFILE%\vimfiles\vimrc</code>) if not already present.
+          </li>
+          <li>
+            Create the directory
+            <code>%USERPROFILE%\vimfiles\pack\external\start\</code>.
+          </li>
+          <li>
+            Copy the extracted <code>quick-lint-js.vim</code> directory into the
+            <code>%USERPROFILE%\vimfiles\pack\external\start\</code> directory.
+          </li>
+          <li>Restart Vim.</li>
+        </ol>
+
+        <h4 id="manual-vim-pathogen">Install with Pathogen</h4>
+        <p>
+          This option requires
+          <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
+        </p>
+        <p />
+        <h5>
+          <img class="os-logo" src="linux.svg" alt="" />&nbsp;Linux and
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS
+        </h5>
+        <ol>
+          <!-- TODO(strager): Create a /releases/ directory. -->
+          <li>
+            <a
+              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vim/quick-lint-js-vim.zip"
+              >Download the quick-lint-js Vim plugin.</a
+            >
+          </li>
+          <li>
+            Copy the <code>quick-lint-js.vim</code> directory into
+            <code>~/.vim/bundle/</code> directory.
+          </li>
+          <li>Restart Vim.</li>
+        </ol>
+
+        <h4 id="manual-vim-vim-plug">Install with Vim-Plug</h4>
+        <p>
+          This option requires
+          <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
+        </p>
+        <ol>
+          <li>
+            Add the following line to your <code>vimrc</code> file between
+            <code class="vim">call&nbsp;plug#begin(...)</code> and
+            <code class="vim">call&nbsp;plug#end()</code>:
+            <blockquote>
+              <pre><code class="vim">Plug 'strager/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+            </blockquote>
+          </li>
+          <li>Restart Vim.</li>
+          <li>In Vim, run <code class="vim">:PlugInstall</code>.</li>
+        </ol>
+
+        <h4 id="manual-vim-vundle">Install with Vundle</h4>
+        <p>
+          This option requires
+          <a href="https://github.com/VundleVim/Vundle.vim">Vundle</a>.
+        </p>
+        <ol>
+          <li>
+            Add the following line to your <code>vimrc</code> file between
+            <code class="vim">call&nbsp;vundle#begin(...)</code> and
+            <code class="vim">call&nbsp;vundle#end()</code>:
+            <blockquote>
+              <pre><code class="vim">Plugin 'strager/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+            </blockquote>
+          </li>
+          <li>Restart Vim.</li>
+          <li>In Vim, run <code class="vim">:PluginInstall</code>.</li>
+        </ol>
       </article>
     </main>
 
