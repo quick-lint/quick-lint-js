@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+set -e
+set -u
+
+ssh_args=()
+ssh_host=github-ci@45.33.43.217
+remote_releases_root=/var/www/c.quick-lint-js.com/releases
+remote_debian_root=/var/www/c.quick-lint-js.com/debian
+apt_suite=experimental
+
+clean_up() {
+  if [ -e "${ssh_control_socket:-}" ]; then
+    ssh "${ssh_args[@]}" -O exit "${ssh_host}"
+  fi
+
+  if [ -n "${temp_dir:-}" ]; then
+    rm -r "${temp_dir}"
+  fi
+}
+trap clean_up EXIT
+
+cd "$(dirname "${0}")"
+temp_dir="$(mktemp -d)"
+
+main() {
+  # Speed up repeated SSH/SCP commands by reusing a single TCP connection to the
+  # server.
+  ssh_control_socket="${temp_dir}/ssh-control.socket"
+  ssh_args=(
+    -o ControlMaster=auto
+    -o ControlPath="${ssh_control_socket}"
+    -o ControlPersist=yes
+    "${ssh_args[@]}"
+  )
+
+  copy_releases_to_debian_pool
+  create_unsigned_apt_metadata_files
+  sign_apt_metadata_files
+}
+
+copy_releases_to_debian_pool() {
+  printf 'Populating Debian pool from releases ...\n' >&2
+
+  ssh "${ssh_args[@]}" "${ssh_host}" -- sh -s "${remote_releases_root}" "${remote_debian_root}" <<'EOF'
+    set -e
+    set -u
+    releases_root="${1}"
+    debian_root="${2}"
+    mkdir -p "${debian_root}/pool/"
+    for release_path in "${releases_root}"/*; do
+      release="$(basename "${release_path}")"
+      rsync -a "${release_path}/debian/" "${debian_root}/pool/${release}/"
+    done
+EOF
+}
+
+create_unsigned_apt_metadata_files() {
+  printf 'Creating unsigned apt metadata files on server ...\n' >&2
+
+  scp -q "${ssh_args[@]}" apt-ftparchive.conf "${ssh_host}:${remote_debian_root}/apt-ftparchive.conf"
+  ssh "${ssh_args[@]}" "${ssh_host}" -- sh -s "${remote_debian_root}" "${apt_suite}" <<'EOF'
+    set -e
+    set -u
+    debian_root="${1}"
+    apt_suite="${2}"
+    cd "${debian_root}"
+    mkdir -p "dists/${apt_suite}/main/binary-amd64/"
+    mkdir -p "dists/${apt_suite}/main/source/"
+    apt-ftparchive --quiet generate apt-ftparchive.conf
+    apt-ftparchive --quiet release --config-file apt-ftparchive.conf "dists/${apt_suite}" >"dists/${apt_suite}/Release"
+EOF
+}
+
+sign_apt_metadata_files() {
+  printf 'Signing apt metadata files ...\n' >&2
+
+  scp -q "${ssh_args[@]}" "${ssh_host}:${remote_debian_root}/dists/${apt_suite}/Release" "${temp_dir}/Release"
+  gpg --batch --yes --clear-sign --output "${temp_dir}/InRelease" "${temp_dir}/Release"
+  gpg --batch --yes --armor --detach-sign --output "${temp_dir}/Release.gpg" "${temp_dir}/Release"
+  scp -q "${ssh_args[@]}" "${temp_dir}/InRelease" "${temp_dir}/Release.gpg" "${ssh_host}:${remote_debian_root}/dists/${apt_suite}/"
+}
+
+main

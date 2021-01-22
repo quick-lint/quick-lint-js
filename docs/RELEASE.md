@@ -40,6 +40,7 @@ Follow the following steps to release a new version of quick-lint-js:
      `npx vsce publish --packagePath ./quick-lint-js-*.vsix`
    * With the quick-lint-js-npm-COMMIT artifact:
      `npm publish ./quick-lint-js-*.tgz`
+   * Run the `dist/debian/sync-releases-to-apt` script.
 
 10. Publish the website:
    1. Visit https://github.com/quick-lint/quick-lint-js/actions?query=workflow%3A%22deploy+website%22
