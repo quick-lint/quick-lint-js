@@ -2325,6 +2325,62 @@ TEST(test_parse, if_with_else) {
   }
 }
 
+TEST(test_parse, if_without_parens) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if cond { body; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // body
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_parentheses_around_if_condition, condition,
+                    offsets_matcher(&code, strlen(u8"if "),
+                                    // TODO(#139): End the error at the 'd'.
+                                    strlen(u8"if cond ")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (cond { body; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // body
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_expected_parenthesis_around_if_condition,  //
+                    where,
+                    // TODO(#139): Place the error immediately after the 'd'.
+                    offsets_matcher(&code, strlen(u8"if (cond "),
+                                    strlen(u8"if (cond ")),  //
+                    token, u8')')));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if cond) { body; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // body
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_expected_parenthesis_around_if_condition,  //
+                    where,
+                    offsets_matcher(&code, strlen(u8"if "),
+                                    strlen(u8"if ")),  //
+                    token, u8'(')));
+  }
+}
+
 TEST(test_parse, do_while) {
   {
     spy_visitor v = parse_and_visit_statement(u8"do { a; } while (b)"_sv);

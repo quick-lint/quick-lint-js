@@ -137,6 +137,19 @@ TEST_F(test_text_error_reporter, big_int_literal_contains_exponent) {
             "FILE:1:1: error: BigInt literal contains exponent\n");
 }
 
+TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
+  padded_string input(u8"if cond) {}"_sv);
+  source_code_span parenthesis_span(&input[4 - 1], &input[4 - 1]);
+
+  this->make_reporter(&input).report(
+      error_expected_parenthesis_around_if_condition{
+          .where = parenthesis_span,
+          .token = '(',
+      });
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:4: error: if statement is missing '(' around condition\n");
+}
+
 TEST_F(test_text_error_reporter, invalid_binding_in_let_statement) {
   padded_string input(u8"let 2 = 3;"_sv);
   source_code_span two_span(&input[5 - 1], &input[5 + 1 - 1]);

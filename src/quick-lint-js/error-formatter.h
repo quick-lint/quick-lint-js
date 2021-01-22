@@ -105,6 +105,8 @@ class error_formatter {
 
   static source_code_span to_span(identifier ident) { return ident.span(); }
 
+  static string8_view to_string_view(string8_view s) { return s; }
+
   static string8_view to_string_view(const source_code_span &span) {
     return span.string_view();
   }

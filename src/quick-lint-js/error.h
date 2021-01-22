@@ -135,6 +135,23 @@
              escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_parentheses_around_if_condition,                          \
+      { source_code_span condition; },                                         \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "if statement needs parentheses around condition"),           \
+             condition))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_parenthesis_around_if_condition,                          \
+      {                                                                        \
+        source_code_span where;                                                \
+        char8 token;                                                           \
+      },                                                                       \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("if statement is missing '{1}' around condition"), \
+          where, string8_view(&token, 1)))                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, { source_code_span where; },     \
       .error(QLJS_TRANSLATABLE("invalid binding in let statement"), where))    \
                                                                                \

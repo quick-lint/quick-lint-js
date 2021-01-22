@@ -1262,13 +1262,41 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_if);
     this->skip();
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
-    this->skip();
+    bool have_condition_left_paren =
+        this->peek().type == token_type::left_paren;
+    if (have_condition_left_paren) {
+      this->skip();
+    }
+    const char8 *condition_begin = this->peek().begin;
 
     this->parse_and_visit_expression(v);
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-    this->skip();
+    const char8 *condition_end =
+        this->peek()
+            .begin;  // TODO(#139): Use the end of the previous token instead.
+    bool have_condition_right_paren =
+        this->peek().type == token_type::right_paren;
+    if (have_condition_right_paren) {
+      this->skip();
+    }
+
+    if (!have_condition_left_paren && !have_condition_right_paren) {
+      this->error_reporter_->report(
+          error_expected_parentheses_around_if_condition{
+              .condition = source_code_span(condition_begin, condition_end)});
+    } else if (!have_condition_right_paren) {
+      this->error_reporter_->report(
+          error_expected_parenthesis_around_if_condition{
+              .where = source_code_span(condition_end, condition_end),
+              .token = ')',
+          });
+    } else if (!have_condition_left_paren) {
+      this->error_reporter_->report(
+          error_expected_parenthesis_around_if_condition{
+              .where = source_code_span(condition_begin, condition_begin),
+              .token = '(',
+          });
+    }
 
     this->parse_and_visit_statement(v);
 
