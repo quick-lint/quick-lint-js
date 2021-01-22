@@ -87,34 +87,43 @@ class error_formatter {
   void end() {}
 
  private:
-  template <class... Args>
-  void add(severity sev, const gmo_message &message, Args &&... parameters) {
-    static_assert(sizeof...(Args) > 0,
-                  "at least origin span must be specified");
-    this->add(sev, message, {this->to_span(std::forward<Args>(parameters))...});
+  template <class Origin, class... Args>
+  void add(severity sev, const gmo_message &message, const Origin &origin,
+           Args &&... parameters) {
+    this->add(sev, message, this->to_span(origin),
+              {this->to_string_view(origin),
+               this->to_string_view(std::forward<Args>(parameters))...});
   }
 
   void add(severity, const gmo_message &message,
-           std::initializer_list<source_code_span> parameters);
+           const source_code_span &origin_span,
+           std::initializer_list<string8_view> parameters);
 
   static const source_code_span &to_span(const source_code_span &span) {
     return span;
   }
 
   static source_code_span to_span(identifier ident) { return ident.span(); }
+
+  static string8_view to_string_view(const source_code_span &span) {
+    return span.string_view();
+  }
+
+  static string8_view to_string_view(identifier ident) {
+    return ident.span().string_view();
+  }
 };
 
 template <class Derived>
 inline void error_formatter<Derived>::add(
     severity sev, const gmo_message &message,
-    std::initializer_list<source_code_span> parameters) {
+    const source_code_span &origin_span,
+    std::initializer_list<string8_view> parameters) {
   static constexpr auto npos = string8_view::npos;
   using string8_pos = string8_view::size_type;
-  QLJS_ASSERT(!std::empty(parameters));
 
   Derived *self = static_cast<Derived *>(this);
 
-  const source_code_span &origin_span = *parameters.begin();
   self->write_before_message(sev, origin_span);
 
   string8_view remaining_message(translate(message));
@@ -141,7 +150,7 @@ inline void error_formatter<Derived>::add(
       QLJS_UNREACHABLE();
     }
 
-    self->write_message_part(sev, (parameters.begin() + index)->string_view());
+    self->write_message_part(sev, *(parameters.begin() + index));
     remaining_message = remaining_message.substr(right_curly_index + 1);
   }
   self->write_message_part(sev, remaining_message);
