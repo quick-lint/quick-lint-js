@@ -56,7 +56,7 @@ jobs:
           name: web-demo-dist-${{ github.sha }}
           path: website/demo/dist/
       - name: upload build to long-term storage
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}

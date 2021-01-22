@@ -95,7 +95,7 @@ jobs:
           name: quick-lint-js-${{ matrix.toolchain.archive_name }}-${{ github.sha }}
           path: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
       - name: upload build to long-term storage
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
@@ -205,7 +205,7 @@ jobs:
           name: quick-lint-js-npm-${{ github.sha }}
           path: quick-lint-js-*.tgz
       - name: upload package to long-term storage
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
