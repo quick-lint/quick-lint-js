@@ -33,6 +33,7 @@
 using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using ::testing::UnorderedElementsAre;
 using ::testing::VariantWith;
 
 namespace quick_lint_js {
@@ -2378,6 +2379,29 @@ TEST(test_parse, if_without_parens) {
                     offsets_matcher(&code, strlen(u8"if "),
                                     strlen(u8"if ")),  //
                     token, u8'(')));
+  }
+}
+
+TEST(test_parse, utter_garbage) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if :\nkjaslkjd;kjaslkjd"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // kjaslkjd
+                                      "visit_variable_use"));  // kjaslkjd
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_expected_parentheses_around_if_condition, condition,
+                offsets_matcher(&code, strlen(u8"if "),
+                                // TODO(#139): End the error at the ':'.
+                                strlen(u8"if :\n"))),
+            ERROR_TYPE_FIELD(
+                error_unexpected_token, token,
+                offsets_matcher(&code, strlen(u8"if "), strlen(u8"if :")))));
   }
 }
 

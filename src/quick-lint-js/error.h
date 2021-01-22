@@ -336,6 +336,12 @@
       error_unexpected_identifier, { source_code_span where; },                \
       .error(QLJS_TRANSLATABLE("unexpected identifier"), where))               \
                                                                                \
+  /* NOTE(strager): Try not to use this error. Find or make a more descriptive \
+     and helpful error instead. */                                             \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_token, { source_code_span token; },                     \
+      .error(QLJS_TRANSLATABLE("unexpected token"), token))                    \
+                                                                               \
   QLJS_ERROR_TYPE(                                                             \
       error_unmatched_indexing_bracket, { source_code_span left_square; },     \
       .error(QLJS_TRANSLATABLE("unmatched indexing bracket"), left_square))    \

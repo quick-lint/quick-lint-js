@@ -369,6 +369,13 @@ expression_ptr parser::parse_expression(precedence prec) {
         error_missing_operand_for_operator{this->peek().span()});
     return this->parse_expression_remainder(ast, prec);
   }
+
+  case token_type::colon: {
+    this->error_reporter_->report(error_unexpected_token{this->peek().span()});
+    this->skip();
+    return this->make_expression<expression::_invalid>();
+  }
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
