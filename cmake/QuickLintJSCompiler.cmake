@@ -25,9 +25,38 @@ function (quick_lint_js_check_designated_initializers OUT)
 endfunction ()
 
 function (quick_lint_js_enable_char8_t_if_supported)
-  check_cxx_compiler_flag(-fchar8_t QUICK_LINT_JS_HAVE_FCHAR8_T)
-  if (QUICK_LINT_JS_HAVE_FCHAR8_T)
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fchar8_t>)
+  check_cxx_compiler_flag(-fchar8_t QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
+  if (QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
+    check_cxx_source_compiles(
+      "#include <cstdio>
+      #include <typeinfo>
+      int main() {
+        std::puts(typeid(char).name());
+        return 0;
+      }" QUICK_LINT_JS_HAVE_TYPEID)
+    if (QUICK_LINT_JS_HAVE_TYPEID)
+      set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -fchar8_t")
+      # On some compilers, -fchar8_t appears to work, unless typeid is used.
+      # Avoid -fchar8_t on these broken compilers.
+      check_cxx_source_compiles(
+        "#include <cstdio>
+        #include <typeinfo>
+        int main() {
+          std::puts(typeid(char8_t).name());
+          return 0;
+        }" QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
+    else ()
+      set(QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T TRUE)
+    endif ()
+
+    if (QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
+      add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fchar8_t>)
+    else ()
+      check_cxx_compiler_flag(-fno-char8_t QUICK_LINT_JS_HAVE_FNO_CHAR8_T_FLAG)
+      if (QUICK_LINT_JS_HAVE_FNO_CHAR8_T_FLAG)
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fno-char8_t>)
+      endif ()
+    endif ()
   endif ()
 endfunction ()
 
