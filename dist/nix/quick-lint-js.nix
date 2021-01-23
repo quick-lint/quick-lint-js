@@ -32,7 +32,7 @@ mkDerivation {
   # FIXME as soon as we introduce version numbers.
   version = "0";
 
-  src = ../.;
+  src = ../../.;
   unpackPhase = null;
 
   nativeBuildInputs = with pkgs; [ cmake ninja ];
