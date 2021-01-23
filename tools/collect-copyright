@@ -68,6 +68,12 @@ def main() -> None:
         required=True,
     )
     parser.add_argument(
+        "--cross-compiling-emscripten",
+        action="store_true",
+        default=False,
+        help="Don't assume system package manager manages the standard library",
+    )
+    parser.add_argument(
         "--vendor-readme",
         required=False,
         default=str(pathlib.Path(__file__).parent / ".." / "vendor" / "README.txt"),
@@ -94,6 +100,7 @@ Parts of quick-lint-js might be distributed under different licenses:
         link_map_file=pathlib.Path(args.linkmap),
         vendor_projects=vendor_projects,
         vendor_directory=vendor_readme_file.parent,
+        is_cross_compiling_emscripten=args.cross_compiling_emscripten,
     )
 
 
@@ -101,6 +108,7 @@ def dump_from_linkmap(
     link_map_file: pathlib.Path,
     vendor_projects: typing.List["VendorReadmeProject"],
     vendor_directory: pathlib.Path,
+    is_cross_compiling_emscripten: bool,
 ) -> None:
     link_map = parse_link_map(link_map_file.read_text())
     linked_system_archives = [
@@ -116,7 +124,10 @@ def dump_from_linkmap(
         vendor_projects=vendor_projects,
         vendor_directory=vendor_directory,
     )
-    dump_from_system_archives(linked_system_archives)
+    dump_from_system_archives(
+        linked_system_archives,
+        is_cross_compiling_emscripten=is_cross_compiling_emscripten,
+    )
 
 
 def dump_from_vendor(
@@ -160,7 +171,12 @@ Copyright information for libc6-dev:amd64:
         )
 
 
-def detect_system_package_manager(files: typing.Iterable[str]):
+def detect_system_package_manager(
+    files: typing.Iterable[str], is_cross_compiling_emscripten: bool
+):
+    if is_cross_compiling_emscripten:
+        return Emscripten()
+
     if os.environ.get("NIX_STORE", ""):
         warn("Nix not well supported")
         return Nix()
@@ -189,11 +205,16 @@ def detect_system_package_manager(files: typing.Iterable[str]):
     raise Exception("Could not detect system package manager")
 
 
-def dump_from_system_archives(linked_system_archives: typing.List[str]) -> None:
+def dump_from_system_archives(
+    linked_system_archives: typing.List[str], is_cross_compiling_emscripten: bool
+) -> None:
     if not linked_system_archives:
         return
 
-    system_package_manager = detect_system_package_manager(linked_system_archives)
+    system_package_manager = detect_system_package_manager(
+        linked_system_archives,
+        is_cross_compiling_emscripten=is_cross_compiling_emscripten,
+    )
     installed_packages = system_package_manager.packages_for_installed_files(
         linked_system_archives
     )
@@ -430,6 +451,125 @@ class Nix:
         return []
 
 
+class Emscripten:
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        source: str
+        version: str
+        source_uris: typing.Tuple[str, ...]
+        root: pathlib.Path
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        archive_to_source_package = {
+            "libc++-except.a": "emscripten libc++",
+            "libc++-mt-except.a": "emscripten libc++",
+            "libc++-mt-noexcept.a": "emscripten libc++",
+            "libc++-mt.a": "emscripten libc++",
+            "libc++-noexcept.a": "emscripten libc++",
+            "libc++.a": "emscripten libc++",
+            "libc++abi-except.a": "emscripten libc++abi",
+            "libc++abi-mt-except.a": "emscripten libc++abi",
+            "libc++abi-mt-noexcept.a": "emscripten libc++abi",
+            "libc++abi-mt.a": "emscripten libc++abi",
+            "libc++abi-noexcept.a": "emscripten libc++abi",
+            "libc++abi.a": "emscripten libc++abi",
+            "libc-asan.a": "emscripten libc (musl)",
+            "libc-mt-asan.a": "emscripten libc (musl)",
+            "libc-mt.a": "emscripten libc (musl)",
+            "libc.a": "emscripten libc (musl)",
+            "libc_rt_wasm-asan.a": "emscripten libc (musl)",
+            "libc_rt_wasm.a": "emscripten libc (musl)",
+            "libcompiler_rt-mt.a": "emscripten compiler-rt",
+            "libcompiler_rt.a": "emscripten compiler-rt",
+            "libdlmalloc-debug-noerrno-tracing.a": "emscripten",
+            "libdlmalloc-debug-noerrno.a": "emscripten",
+            "libdlmalloc-debug-tracing.a": "emscripten",
+            "libdlmalloc-debug.a": "emscripten",
+            "libdlmalloc-mt-debug-noerrno-tracing.a": "emscripten",
+            "libdlmalloc-mt-debug-noerrno.a": "emscripten",
+            "libdlmalloc-mt-debug-tracing.a": "emscripten",
+            "libdlmalloc-mt-debug.a": "emscripten",
+            "libdlmalloc-mt-noerrno-tracing.a": "emscripten",
+            "libdlmalloc-mt-noerrno.a": "emscripten",
+            "libdlmalloc-mt-tracing.a": "emscripten",
+            "libdlmalloc-mt.a": "emscripten",
+            "libdlmalloc-noerrno-tracing.a": "emscripten",
+            "libdlmalloc-noerrno.a": "emscripten",
+            "libdlmalloc-tracing.a": "emscripten",
+            "libdlmalloc.a": "emscripten",
+            "libpthread_stub.a": "emscripten",
+            "libstandalonewasm-memgrow.a": "emscripten",
+            "libstandalonewasm.a": "emscripten",
+        }
+
+        known_files = [
+            file
+            for file in files
+            if pathlib.Path(file).name in archive_to_source_package
+        ]
+        unknown_files = sorted(set(files) - set(known_files))
+        if unknown_files:
+            warn(
+                f"files not recognized to be part of emscripten: {' '.join(unknown_files)}"
+            )
+        if not known_files:
+            return []
+
+        version_file = find_file_in_ancestors(
+            path=pathlib.Path(known_files[0]).parent, name="emscripten-version.txt"
+        )
+        if version_file is None:
+            raise Exception(
+                f"Could not find emscripten-version.txt in {known_files[0]}"
+            )
+        emscripten_root = version_file.parent
+        version = json.loads(version_file.read_text())
+        git_revision = (
+            (emscripten_root / "emscripten-revision.txt").read_text().rstrip("\n")
+        )
+        full_version = f"emscripten-{version} ({git_revision})"
+
+        source_package_names = {"emscripten"} | {
+            archive_to_source_package[pathlib.Path(file).name] for file in known_files
+        }
+        return [
+            self.InstalledPackage(
+                name=name,
+                source=name,
+                version=full_version,
+                source_uris=[
+                    f"https://github.com/emscripten-core/emscripten/tree/{git_revision}"
+                ],
+                root=emscripten_root,
+            )
+            for name in source_package_names
+        ]
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        source_package_to_license_path = {
+            "emscripten compiler-rt": "system/lib/compiler-rt/LICENSE.TXT",
+            "emscripten libc (musl)": "system/lib/libc/musl/COPYRIGHT",
+            "emscripten libc++": "system/lib/libcxx/LICENSE.TXT",
+            "emscripten libc++abi": "system/lib/libcxxabi/LICENSE.TXT",
+            "emscripten": "LICENSE",
+        }
+        return (
+            package.root / source_package_to_license_path[package.source]
+        ).read_text()
+
+
+def find_file_in_ancestors(
+    path: pathlib.Path, name: str
+) -> typing.Optional[pathlib.Path]:
+    for ancestor in (path,) + tuple(path.parents):
+        p = ancestor / name
+        if p.exists():
+            return p
+    return None
+
+
 class RedHat:
     class InstalledPackage(typing.NamedTuple):
         name: str
@@ -523,6 +663,12 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
                 )
                 if match is not None:
                     linked_archives.add(match.group("archive") + ".lib")
+                match = re.match(
+                    r"^(?P<archive>\S+\.a)\((?P<member>[^/]+\.o)\)$",
+                    line,
+                )
+                if match is not None:
+                    linked_archives.add(match.group("archive"))
     return LinkMap(linked_archives=linked_archives)
 
 
@@ -664,6 +810,26 @@ class TestMicrosoftLinkMap(unittest.TestCase):
         self.assertEqual(
             link_map.linked_archives,
             {"libucrt.lib", "simdjson.lib", "quick-lint-js-lib.lib"},
+        )
+
+
+class TestLLVMWebAssemblyTrace(unittest.TestCase):
+    def test_small_trace_file(self) -> None:
+        raw_link_map = """\
+plugin/vscode/CMakeFiles/quick-lint-js-vscode.dir/empty.cpp.o
+/home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/crt1_reactor.o
+src/libquick-lint-js-lib.a(vscode.cpp.o)
+/home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/libc++-noexcept.a(new.o)
+/home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/libstandalonewasm.a(standalone.o)
+"""
+        link_map = parse_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {
+                "src/libquick-lint-js-lib.a",
+                "/home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/libc++-noexcept.a",
+                "/home/strager/tmp/Projects/emsdk/upstream/emscripten/cache/wasm/libstandalonewasm.a",
+            },
         )
 
 

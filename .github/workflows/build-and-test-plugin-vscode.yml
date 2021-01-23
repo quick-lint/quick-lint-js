@@ -24,6 +24,8 @@ jobs:
   build:
     name: extension
     runs-on: ubuntu-latest
+    env:
+      QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
       - uses: mymindstorm/setup-emsdk@v7
         with:
@@ -37,10 +39,16 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: install build dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+
       - name: C++ configure
-        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
       - name: C++ build
-        run: emmake make -C build quick-lint-js-vscode
+        run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
         run: emmake cmake --install build --component vscode --prefix plugin/vscode
 

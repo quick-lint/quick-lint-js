@@ -2,6 +2,7 @@
 
 !LICENSE
 !README.md
+!dist/copyright.txt
 !dist/quick-lint-js-vscode.wasm
 !extension.js
 !package.json
