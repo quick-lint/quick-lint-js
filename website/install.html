@@ -231,17 +231,20 @@ licenses. See license.html for details.
 
             <tr>
               <th>
-                <img
-                  class="install-logo"
-                  src="debian.png"
-                  alt=""
-                  aria-labeled-by="install-method-debian"
-                />&nbsp;<span id="install-method-debian">Debian</span><br /><img
-                  class="install-logo"
-                  src="ubuntu.svg"
-                  alt=""
-                  aria-labeled-by="install-method-ubuntu"
-                />&nbsp;<span id="install-method-ubuntu">Ubuntu</span>
+                <a href="#debian"
+                  ><img
+                    class="install-logo"
+                    src="debian.png"
+                    alt=""
+                    aria-labeled-by="install-method-debian"
+                  />&nbsp;<span id="install-method-debian">Debian</span
+                  ><br /><img
+                    class="install-logo"
+                    src="ubuntu.svg"
+                    alt=""
+                    aria-labeled-by="install-method-ubuntu"
+                  />&nbsp;<span id="install-method-ubuntu">Ubuntu</span></a
+                >
               </th>
 
               <td class="os">
@@ -597,6 +600,40 @@ $ <kbd>quick-lint-js.cmd --help</kbd></code></pre>
         </p>
         <blockquote>
           <pre><code>$ <kbd>quick-lint-js --help</kbd></code></pre>
+        </blockquote>
+      </article>
+
+      <article id="debian">
+        <h2>
+          <img class="install-logo" src="debian.png" alt="" />&nbsp;Debian and
+          <img class="install-logo" src="ubuntu.svg" alt="" />&nbsp;Ubuntu
+        </h2>
+        <p>
+          Supported operating systems:
+          <img
+            class="os-logo"
+            src="linux.svg"
+            alt="GNU/Linux"
+            title="GNU/Linux"
+          />
+        </p>
+
+        <p>Open a terminal, and run the following commands:</p>
+        <blockquote>
+          <pre><code>$ <kbd>curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -</kbd>
+$ <kbd>sudo apt-get update</kbd>
+
+# <img class="install-logo" src="gnome-terminal.svg" alt="" /> CLI and LSP server
+$ <kbd>sudo apt-get install quick-lint-js</kbd>
+
+# <img class="install-logo" src="vim.gif" alt="" /> Vim plugin
+$ <kbd>sudo apt-get install quick-lint-js-vim</kbd></code></pre>
+        </blockquote>
+
+        <p>Verify that quick-lint-js is installed:</p>
+        <blockquote>
+          <pre><code>$ <kbd>quick-lint-js --version</kbd>
+quick-lint-js version 0.1.0</code></pre>
         </blockquote>
       </article>
 
