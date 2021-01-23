@@ -40,7 +40,7 @@ jobs:
           nix_path: nixpkgs=channel:nixpkgs-unstable
 
       - name: install
-        run: nix-env -f dist/nix -i
+        run: nix-env -f . -i
 
       - name: test executable
         run: cd / && quick-lint-js --help

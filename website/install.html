@@ -290,12 +290,14 @@ licenses. See license.html for details.
 
             <tr>
               <th>
-                <img
-                  class="install-logo"
-                  src="nix.svg"
-                  alt=""
-                  aria-labeled-by="install-method-nix"
-                />&nbsp;<span id="install-method-nix">Nix</span>
+                <a href="#nix"
+                  ><img
+                    class="install-logo"
+                    src="nix.svg"
+                    alt=""
+                    aria-labeled-by="install-method-nix"
+                  />&nbsp;<span id="install-method-nix">Nix</span></a
+                >
               </th>
 
               <td class="os">
@@ -518,7 +520,11 @@ licenses. See license.html for details.
                 />&nbsp;Ubuntu</a
               >
             </li>
-            <li><img class="install-logo" src="nix.svg" alt="" />&nbsp;Nix</li>
+            <li>
+              <a href="#nix"
+                ><img class="install-logo" src="nix.svg" alt="" />&nbsp;Nix</a
+              >
+            </li>
             <li><a href="#manual">Manual (pre-built)</a></li>
           </ul>
         </div>
@@ -542,12 +548,9 @@ licenses. See license.html for details.
               >
             </li>
             <li>
-              <img
-                class="install-logo"
-                src="nix.svg"
-                alt=""
-                aria-labeled-by="install-method-nix"
-              />&nbsp;<span id="install-method-nix">Nix</span>
+              <a href="#nix"
+                ><img class="install-logo" src="nix.svg" alt="" />&nbsp;Nix</a
+              >
             </li>
             <li><a href="#manual">Manual (pre-built)</a></li>
           </ul>
@@ -807,6 +810,40 @@ $ <kbd>sudo apt-get install quick-lint-js-vim</kbd></code></pre>
         </blockquote>
 
         <p>Verify that quick-lint-js is installed:</p>
+        <blockquote>
+          <pre><code>$ <kbd>quick-lint-js --version</kbd>
+quick-lint-js version 0.1.0</code></pre>
+        </blockquote>
+      </article>
+
+      <article id="nix">
+        <h2><img class="install-logo" src="nix.svg" alt="" />&nbsp;Nix</h2>
+        <p>
+          Supported operating systems:
+          <img
+            class="os-logo"
+            src="linux.svg"
+            alt="GNU/Linux"
+            title="GNU/Linux"
+          />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
+        </p>
+
+        <p>
+          In order to install quick-lint-js' Nix package, you must first install
+          <a href="https://nixos.org/download.html#nix-quick-install">Nix</a> or
+          NixOS.
+        </p>
+
+        <p>Open a terminal, and run the following command:</p>
+        <blockquote>
+          <pre><code>$ <kbd>nix-env -f https://github.com/quick-lint/quick-lint-js/archive/master.tar.gz -iA quick-lint-js</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          Now the CLI, called <code>quick-lint-js</code>, is available in your
+          user profile:
+        </p>
         <blockquote>
           <pre><code>$ <kbd>quick-lint-js --version</kbd>
 quick-lint-js version 0.1.0</code></pre>
