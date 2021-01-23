@@ -76,6 +76,30 @@ licenses. See license.html for details.
         height: 1.2em;
         vertical-align: text-bottom;
       }
+
+      .os-column-table {
+        display: grid;
+        grid-template-areas: "linux macos windows";
+      }
+      .os-column-table h3 {
+        margin-top: 0;
+      }
+
+      .os-column-table > * {
+        border-left: 1px solid #ccc;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .os-column-table > .linux {
+        border-left-color: transparent;
+        grid-area: linux;
+      }
+      .os-column-table > .macos {
+        grid-area: macos;
+      }
+      .os-column-table > .windows {
+        grid-area: windows;
+      }
     </style>
   </head>
   <body>
@@ -454,6 +478,158 @@ licenses. See license.html for details.
           </p>
         </figcaption>
       </figure>
+
+      <h2 id="install-cli">
+        <img class="install-logo" src="gnome-terminal.svg" alt="" />&nbsp;CLI
+        and LSP server
+      </h2>
+      <p>Install the quick-lint-js CLI, which includes the LSP server:</p>
+      <div class="os-column-table">
+        <div class="linux">
+          <h3>
+            <img
+              class="os-logo"
+              src="linux.svg"
+              alt=""
+              title=""
+            />&nbsp;GNU/Linux
+          </h3>
+          <ul>
+            <li>
+              <a href="#npm"
+                ><img class="install-logo" src="npm.svg" alt="" />&nbsp;npm</a
+              >
+            </li>
+            <li>
+              <a href="#debian"
+                ><img
+                  class="install-logo"
+                  src="debian.svg"
+                  alt=""
+                />&nbsp;Debian</a
+              >
+            </li>
+            <li>
+              <a href="#debian"
+                ><img
+                  class="install-logo"
+                  src="ubuntu.svg"
+                  alt=""
+                />&nbsp;Ubuntu</a
+              >
+            </li>
+            <li><img class="install-logo" src="nix.svg" alt="" />&nbsp;Nix</li>
+            <li><a href="#manual">Manual (pre-built)</a></li>
+          </ul>
+        </div>
+        <div class="macos">
+          <h3>
+            <img class="os-logo" src="macos.svg" alt="" title="" />&nbsp;macOS
+          </h3>
+          <ul>
+            <li>
+              <a href="#npm"
+                ><img class="install-logo" src="npm.svg" alt="" />&nbsp;npm</a
+              >
+            </li>
+            <li>
+              <a href="#homebrew"
+                ><img
+                  class="install-logo"
+                  src="homebrew.svg"
+                  alt=""
+                />&nbsp;Homebrew</a
+              >
+            </li>
+            <li>
+              <img
+                class="install-logo"
+                src="nix.svg"
+                alt=""
+                aria-labeled-by="install-method-nix"
+              />&nbsp;<span id="install-method-nix">Nix</span>
+            </li>
+            <li><a href="#manual">Manual (pre-built)</a></li>
+          </ul>
+        </div>
+        <div class="windows">
+          <h3>
+            <img
+              class="os-logo"
+              src="windows.svg"
+              alt=""
+              title=""
+            />&nbsp;Windows
+          </h3>
+          <ul>
+            <li>
+              <a href="#npm"
+                ><img class="install-logo" src="npm.svg" alt="" />&nbsp;npm</a
+              >
+            </li>
+            <li><a href="#manual">Manual (pre-built)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="install-vim">
+        <img class="install-logo" src="vim.gif" alt="" />&nbsp;Vim plugin
+      </h2>
+      <p>Install the quick-lint-js Vim plugin:</p>
+      <div class="os-column-table">
+        <div class="linux">
+          <h3>
+            <img
+              class="os-logo"
+              src="linux.svg"
+              alt=""
+              title=""
+            />&nbsp;GNU/Linux
+          </h3>
+          <ul>
+            <li>
+              <a href="#debian"
+                ><img
+                  class="install-logo"
+                  src="debian.svg"
+                  alt=""
+                />&nbsp;Debian</a
+              >
+            </li>
+            <li>
+              <a href="#debian"
+                ><img
+                  class="install-logo"
+                  src="ubuntu.svg"
+                  alt=""
+                />&nbsp;Ubuntu</a
+              >
+            </li>
+            <li><a href="#manual-vim">Manual</a></li>
+          </ul>
+        </div>
+        <div class="macos">
+          <h3>
+            <img class="os-logo" src="macos.svg" alt="" title="" />&nbsp;macOS
+          </h3>
+          <ul>
+            <li><a href="#manual-vim">Manual</a></li>
+          </ul>
+        </div>
+        <div class="windows">
+          <h3>
+            <img
+              class="os-logo"
+              src="windows.svg"
+              alt=""
+              title=""
+            />&nbsp;Windows
+          </h3>
+          <ul>
+            <li><a href="#manual-vim">Manual</a></li>
+          </ul>
+        </div>
+      </div>
 
       <article id="npm">
         <h2><img class="install-logo" src="npm.svg" alt="" />&nbsp;npm</h2>
