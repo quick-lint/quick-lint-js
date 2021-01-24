@@ -157,7 +157,9 @@
 #endif
 
 #if !defined(QLJS_HAVE_CHARCONV_HEADER) && defined(__has_include)
-#if __has_include(<charconv>)
+// std::to_chars on libc++ version 7.0.0 is buggy on macOS x86_64.
+#if __has_include(<charconv>) && \
+    !(defined(_LIBCPP_VERSION) && _LIBCPP_VERSION <= 7000)
 #define QLJS_HAVE_CHARCONV_HEADER 1
 #endif
 #endif
