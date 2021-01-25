@@ -10,7 +10,7 @@ and [Node.js][], then run the following commands:
 
     $ cd plugin/vscode/  # Navigate to this directory.
     $ emcmake cmake -S ../.. -B build-emscripten -G Ninja -DCMAKE_BUILD_TYPE=Release
-    $ emmake ninja -C build-emscripten quick-lint-js-vscode
+    $ emmake ninja -C build-emscripten quick-lint-js-vscode quick-lint-js-vscode-licenses
     $ emmake cmake --install build-emscripten --component vscode --prefix .
 
 Then, run the following command to create `quick-lint-js-0.1.0.vsix`:
