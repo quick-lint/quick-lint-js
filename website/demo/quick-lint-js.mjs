@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// For additional copyright information, see the following files:
+// * dist/copyright.txt
+
 // TODO(strager): Make this configurable.
 // For build instructions, see demo/README.md.
 let WASM_DEMO_JS_MODULE_PATH = "./dist/quick-lint-js-wasm-demo.js";

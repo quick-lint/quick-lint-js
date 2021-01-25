@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
+include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
 if (EMSCRIPTEN)
@@ -48,4 +49,18 @@ if (EMSCRIPTEN)
     DESTINATION "${WASM_DEMO_DIST_DIR}"
     COMPONENT wasm-demo
   )
+
+  quick_lint_js_collect_copyright(
+    quick-lint-js-wasm-demo-licenses
+    TARGET quick-lint-js-wasm-demo
+    OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-wasm-demo-licenses.txt"
+  )
+  if (TARGET quick-lint-js-wasm-demo-licenses)
+    install(
+      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-wasm-demo-licenses.txt"
+      DESTINATION "${WASM_DEMO_DIST_DIR}"
+      RENAME copyright.txt
+      COMPONENT wasm-demo
+    )
+  endif ()
 endif ()

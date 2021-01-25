@@ -5,7 +5,7 @@ To build the demo, install the [emscripten SDK][emscripten-sdk] and
 
     $ cd website/demo  # Navigate to this directory.
     $ emcmake cmake -S ../.. -B build-emscripten -G Ninja -DCMAKE_BUILD_TYPE=Release
-    $ emmake ninja -C build-emscripten quick-lint-js-wasm-demo
+    $ emmake ninja -C build-emscripten quick-lint-js-wasm-demo quick-lint-js-wasm-demo-licenses
     $ emmake cmake --install build-emscripten --component wasm-demo --prefix .
 
 To run the demo on your own machine, execute the build instructions above, then
