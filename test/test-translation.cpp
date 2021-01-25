@@ -53,7 +53,7 @@ class basic_text_error_reporter final : public error_reporter {
  public:
   explicit basic_text_error_reporter() = default;
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void report(name e) override { format_error(e, this->format()); }
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

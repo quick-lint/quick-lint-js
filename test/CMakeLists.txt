@@ -42,6 +42,7 @@ quick_lint_js_add_executable(
   test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
+  test-error.cpp
   test-file.cpp
   test-gmo.cpp
   test-integer-decimal.cpp

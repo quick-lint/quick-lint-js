@@ -19,15 +19,15 @@
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  void error_collector::report(name e) {                \
-    this->errors.emplace_back(std::move(e));            \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  void error_collector::report(name e) {                      \
+    this->errors.emplace_back(std::move(e));                  \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  error_collector::error::error(name &&data)            \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  error_collector::error::error(name &&data)                  \
       : kind_(kind::kind_##name), variant_##name##_(std::move(data)) {}
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -57,7 +57,7 @@ void error_collector::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call)                    \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)              \
   template <>                                                              \
   bool holds_alternative<name>(const error_collector::error &e) noexcept { \
     return e.kind_ == error_collector::error::kind::kind_##name;           \
@@ -73,9 +73,9 @@ QLJS_X_ERROR_TYPES
 
 void PrintTo(const error_collector::error &e, std::ostream *out) {
   switch (e.kind_) {
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  case error_collector::error::kind::kind_##name:       \
-    *out << #name;                                      \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  case error_collector::error::kind::kind_##name:             \
+    *out << #name;                                            \
     return;
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -83,7 +83,7 @@ void PrintTo(const error_collector::error &e, std::ostream *out) {
   QLJS_UNREACHABLE();
 }
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void PrintTo(const name &, std::ostream *out) { *out << #name; }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

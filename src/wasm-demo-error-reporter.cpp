@@ -32,9 +32,9 @@ namespace quick_lint_js {
 wasm_demo_error_reporter::wasm_demo_error_reporter(padded_string_view input)
     : locator_(input), input_(input.data()) {}
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  void wasm_demo_error_reporter::report(name e) {       \
-    format_error(e, this->format());                    \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  void wasm_demo_error_reporter::report(name e) {             \
+    format_error(e, this->format());                          \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

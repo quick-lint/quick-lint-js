@@ -41,7 +41,8 @@ class vscode_error_reporter final : public error_reporter {
 
   const qljs_vscode_diagnostic *get_diagnostics();
 
-#define QLJS_ERROR_TYPE(name, struct_body, format) void report(name) override;
+#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
+  void report(name) override;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 

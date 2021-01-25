@@ -27,7 +27,7 @@
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void report(name e) override;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -42,7 +42,8 @@ struct error_collector : public error_reporter {
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {
    public:
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) explicit error(name &&);
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  explicit error(name &&);
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
@@ -56,14 +57,15 @@ struct error_collector : public error_reporter {
 
    private:
     enum class kind {
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) kind_##name,
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) kind_##name,
       QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
     };
 
     kind kind_;
     union {
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) name variant_##name##_;
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  name variant_##name##_;
       QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
     };
@@ -80,7 +82,7 @@ bool holds_alternative(const error_collector::error &) noexcept;
 
 void PrintTo(const error_collector::error &, std::ostream *);
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void PrintTo(const name &, std::ostream *);
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

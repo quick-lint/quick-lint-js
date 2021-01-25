@@ -43,9 +43,9 @@ void vscode_error_reporter::reset() {
   // TODO(strager): Release allocated string memory.
 }
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  void vscode_error_reporter::report(name e) {          \
-    format_error(e, this->format());                    \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  void vscode_error_reporter::report(name e) {                \
+    format_error(e, this->format());                          \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

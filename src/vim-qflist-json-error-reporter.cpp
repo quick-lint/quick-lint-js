@@ -62,9 +62,9 @@ void vim_qflist_json_error_reporter::set_source(padded_string_view input,
 
 void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
-  void vim_qflist_json_error_reporter::report(name e) { \
-    format_error(e, this->begin_error());               \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  void vim_qflist_json_error_reporter::report(name e) {       \
+    format_error(e, this->begin_error());                     \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

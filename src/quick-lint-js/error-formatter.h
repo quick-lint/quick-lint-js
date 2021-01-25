@@ -33,13 +33,13 @@ namespace quick_lint_js {
 template <class Error>
 struct error_formatter_detail;
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call)     \
-  template <>                                               \
-  struct error_formatter_detail<name> : public name {       \
-    template <class Formatter>                              \
-    void format(Formatter &&formatter) const {              \
-      std::forward<Formatter>(formatter) format_call.end(); \
-    }                                                       \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  template <>                                                 \
+  struct error_formatter_detail<name> : public name {         \
+    template <class Formatter>                                \
+    void format(Formatter &&formatter) const {                \
+      std::forward<Formatter>(formatter) format_call.end();   \
+    }                                                         \
   };
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

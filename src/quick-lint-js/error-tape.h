@@ -33,10 +33,10 @@ class error_tape final : public error_reporter {
 
   void set_error(void) { this->error_ = true; }
 
-#define QLJS_ERROR_TYPE(name, struct_body, format) \
-  void report(name e) override final {             \
-    set_error();                                   \
-    reporter_.report(e);                           \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
+  void report(name e) override final {                   \
+    set_error();                                         \
+    reporter_.report(e);                                 \
   }
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

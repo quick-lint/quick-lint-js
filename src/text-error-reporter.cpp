@@ -32,7 +32,7 @@ void text_error_reporter::set_source(padded_string_view input,
   this->file_path_ = file_path;
 }
 
-#define QLJS_ERROR_TYPE(name, struct_body, format_call) \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void text_error_reporter::report(name e) { format_error(e, this->format()); }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
