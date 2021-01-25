@@ -17,6 +17,7 @@
 cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 include(QuickLintJSCompiler)
+include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
 option(
@@ -191,64 +192,15 @@ if (
   target_compile_options(quick-lint-js-lib PRIVATE -fno-builtin)
 endif ()
 
-find_package(PythonInterp 3.6)
-
-if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  set(LICENSE_LINKMAP_TYPE macho)
-elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
-  set(LICENSE_LINKMAP_TYPE elf)
-elseif (CMAKE_SYSTEM_NAME STREQUAL Windows AND MSVC)
-  set(LICENSE_LINKMAP_TYPE pe)
-else ()
-  set(LICENSE_LINKMAP_TYPE)
-endif ()
-if (LICENSE_LINKMAP_TYPE)
-  if (PYTHONINTERP_FOUND)
-    if (LICENSE_LINKMAP_TYPE STREQUAL elf)
-      target_link_libraries(
-        quick-lint-js
-        PRIVATE
-        "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
-      )
-    endif ()
-    if (LICENSE_LINKMAP_TYPE STREQUAL macho)
-      target_link_libraries(
-        quick-lint-js
-        PRIVATE
-        "-Wl,-map,${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
-      )
-    endif ()
-    if (LICENSE_LINKMAP_TYPE STREQUAL pe)
-      target_link_libraries(
-        quick-lint-js
-        PRIVATE
-        "-MAP:${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
-      )
-    endif ()
-
-    add_custom_command(
-      OUTPUT quick-lint-js-licenses.txt
-      COMMAND
-        "${PYTHON_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../tools/collect-copyright"
-        --linkmap
-        "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.linkmap"
-        >quick-lint-js-licenses.txt
-      DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/../tools/collect-copyright"
-        quick-lint-js
-    )
-    add_custom_target(
-      quick-lint-js-licenses
-      ALL
-      DEPENDS quick-lint-js-licenses.txt
-    )
-    install(
-      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
-      DESTINATION "${CMAKE_INSTALL_DOCDIR}"
-      RENAME copyright
-    )
-  else ()
-    message(WARNING "Python interpreter not found. Not generating copyright file.")
-  endif ()
+quick_lint_js_collect_copyright(
+  quick-lint-js-licenses
+  TARGET quick-lint-js
+  OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
+)
+if (TARGET quick-lint-js-licenses)
+  install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
+    DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+    RENAME copyright
+  )
 endif ()

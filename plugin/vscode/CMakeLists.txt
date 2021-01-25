@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.10)
+include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
 if (EMSCRIPTEN)
@@ -39,42 +40,12 @@ if (EMSCRIPTEN)
     DESTINATION "${VSCODE_DIST_DIR}"
   )
 
-  set(ERROR_MESSAGE_SEVERITY WARNING)
-  if ($ENV{QLJS_COLLECT_COPYRIGHT_NO_WARNINGS})
-    set(ERROR_MESSAGE_SEVERITY FATAL_ERROR)
-  endif ()
-  find_package(PythonInterp 3.6)
-  if (NOT PYTHONINTERP_FOUND)
-    message("${ERROR_MESSAGE_SEVERITY}" "Python interpreter not found. Not generating copyright file.")
-  elseif (NOT CMAKE_GENERATOR STREQUAL Ninja)
-    message("${ERROR_MESSAGE_SEVERITY}" "${CMAKE_GENERATOR} not supported. Not generating copyright file.")
-  else ()
-    target_link_libraries(
-      quick-lint-js-vscode
-      PRIVATE
-      # HACK(strager): Redirect --trace output to a file. Doesn't work with the
-      # Unix Makefiles generator, but does work with the Ninja generator.
-      "-Wl,--trace >${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-vscode.trace"
-    )
-
-    add_custom_command(
-      OUTPUT quick-lint-js-vscode-licenses.txt
-      COMMAND
-        "${PYTHON_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/collect-copyright"
-        --cross-compiling-emscripten
-        --linkmap
-        "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-vscode.trace"
-        >quick-lint-js-vscode-licenses.txt
-      DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/collect-copyright"
-        quick-lint-js-vscode
-    )
-    add_custom_target(
-      quick-lint-js-vscode-licenses
-      ALL
-      DEPENDS quick-lint-js-vscode-licenses.txt
-    )
+  quick_lint_js_collect_copyright(
+    quick-lint-js-vscode-licenses
+    TARGET quick-lint-js-vscode
+    OUTPUT_FILE quick-lint-js-vscode-licenses.txt
+  )
+  if (TARGET quick-lint-js-vscode-licenses)
     install(
       FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-vscode-licenses.txt"
       COMPONENT vscode
