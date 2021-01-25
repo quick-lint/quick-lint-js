@@ -49,8 +49,8 @@ class lsp_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  lsp_error_formatter begin_error();
-  lsp_error_formatter format();
+  lsp_error_formatter begin_error(const char *code);
+  lsp_error_formatter format(const char *code);
 
   byte_buffer &output_;
   lsp_locator locator_;
@@ -59,7 +59,8 @@ class lsp_error_reporter final : public error_reporter {
 
 class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
  public:
-  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &);
+  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &,
+                               const char *code);
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
   void write_after_message(severity, const source_code_span &origin);
@@ -67,6 +68,7 @@ class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
  private:
   byte_buffer &output_;
   lsp_locator &locator_;
+  const char *code_;
 };
 }
 

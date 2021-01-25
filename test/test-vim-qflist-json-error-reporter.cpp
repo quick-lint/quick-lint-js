@@ -77,6 +77,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(qflist[0]["end_col"], 1);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["nr"], "E001");
   EXPECT_EQ(qflist[0]["type"], "E");
   EXPECT_EQ(qflist[0]["text"], "variable assigned before its declaration");
 }
@@ -209,6 +210,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(qflist[0]["end_col"], 11);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["nr"], "E002");
   EXPECT_EQ(qflist[0]["type"], "E");
   EXPECT_EQ(qflist[0]["text"], "assignment to const global variable");
   EXPECT_EQ(qflist[0]["vcol"], 0);
@@ -233,6 +235,7 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
   EXPECT_EQ(qflist[0]["end_col"], 20);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["nr"], "E034");
   EXPECT_EQ(qflist[0]["type"], "E");
   EXPECT_EQ(qflist[0]["text"], "redeclaration of variable: myvar");
 }
@@ -253,6 +256,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
   EXPECT_EQ(qflist[0]["end_col"], 1);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
+  EXPECT_EQ(qflist[0]["nr"], "E052");
   EXPECT_EQ(qflist[0]["type"], "E");
   EXPECT_EQ(qflist[0]["text"], "unexpected '#'");
 }
@@ -273,8 +277,9 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
   EXPECT_EQ(qflist[0]["end_col"], 5);
   EXPECT_EQ(qflist[0]["end_lnum"], 1);
   EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["type"], "W");
+  EXPECT_EQ(qflist[0]["nr"], "E057");
   EXPECT_EQ(qflist[0]["text"], "use of undeclared variable: myvar");
+  EXPECT_EQ(qflist[0]["type"], "W");
 }
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
@@ -283,7 +288,7 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
 
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view())
+                                  /*bufnr=*/std::string_view(), "E999")
       .error("something happened"_gmo_message,
              source_code_span(&code[0], &code[5]))
       .end();
@@ -302,7 +307,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
 
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view())
+                                  /*bufnr=*/std::string_view(), "E999")
       .error("something happened"_gmo_message,
              source_code_span(&code[0], &code[5]))
       .note("see here"_gmo_message, source_code_span(&code[6], &code[11]))
@@ -322,7 +327,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_zero_placeholder) {
 
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view())
+                                  /*bufnr=*/std::string_view(), "E888")
       .error("this {0} looks fishy"_gmo_message,
              source_code_span(&code[0], &code[5]))
       .end();
@@ -338,7 +343,7 @@ TEST(test_vim_qflist_json_error_formatter,
 
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view())
+                                  /*bufnr=*/std::string_view(), "E888")
       .error("this {1} looks fishy"_gmo_message,
              source_code_span(&code[0], &code[5]),
              identifier(source_code_span(&code[6], &code[11])))
@@ -361,7 +366,7 @@ TEST(test_vim_qflist_json_error_formatter,
 
   std::stringstream stream;
   vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view())
+                                  /*bufnr=*/std::string_view(), "E999")
       .error("free {1} and {0} {1} {2}"_gmo_message, let_span, me_span, be_span)
       .end();
 

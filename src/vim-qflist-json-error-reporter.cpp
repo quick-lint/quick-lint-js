@@ -64,7 +64,7 @@ void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void vim_qflist_json_error_reporter::report(name e) {       \
-    format_error(e, this->begin_error());                     \
+    format_error(e, this->begin_error(code));                 \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -94,29 +94,33 @@ void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-vim_qflist_json_error_formatter vim_qflist_json_error_reporter::begin_error() {
+vim_qflist_json_error_formatter vim_qflist_json_error_reporter::begin_error(
+    const char *code) {
   if (this->need_comma_) {
     this->output_ << ",\n";
   }
   this->need_comma_ = true;
-  return this->format();
+  return this->format(code);
 }
 
-vim_qflist_json_error_formatter vim_qflist_json_error_reporter::format() {
+vim_qflist_json_error_formatter vim_qflist_json_error_reporter::format(
+    const char *code) {
   QLJS_ASSERT(this->locator_.has_value());
   return vim_qflist_json_error_formatter(/*output=*/this->output_,
                                          /*locator=*/*this->locator_,
                                          /*file_name=*/this->file_name_,
-                                         /*bufnr=*/this->bufnr_);
+                                         /*bufnr=*/this->bufnr_,
+                                         /*code=*/code);
 }
 
 vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
     std::ostream &output, quick_lint_js::vim_locator &locator,
-    std::string_view file_name, std::string_view bufnr)
+    std::string_view file_name, std::string_view bufnr, const char *code)
     : output_(output),
       locator_(locator),
       file_name_(file_name),
-      bufnr_(bufnr) {}
+      bufnr_(bufnr),
+      code_(code) {}
 
 void vim_qflist_json_error_formatter::write_before_message(
     severity sev, const source_code_span &origin) {
@@ -138,7 +142,8 @@ void vim_qflist_json_error_formatter::write_before_message(
   this->output_ << "{\"col\": " << r.begin.col << ", \"lnum\": " << r.begin.lnum
                 << ", \"end_col\": " << end_col
                 << ", \"end_lnum\": " << r.end.lnum << ", \"type\": \""
-                << severity_type << "\", \"vcol\": 0, \"text\": \"";
+                << severity_type << "\", \"nr\": \"" << this->code_
+                << "\", \"vcol\": 0, \"text\": \"";
 }
 
 void vim_qflist_json_error_formatter::write_message_part(severity sev,

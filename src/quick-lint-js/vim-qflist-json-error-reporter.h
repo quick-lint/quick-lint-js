@@ -56,8 +56,8 @@ class vim_qflist_json_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  vim_qflist_json_error_formatter begin_error();
-  vim_qflist_json_error_formatter format();
+  vim_qflist_json_error_formatter begin_error(const char *code);
+  vim_qflist_json_error_formatter format(const char *code);
 
   std::ostream &output_;
   std::optional<vim_locator> locator_;
@@ -72,7 +72,8 @@ class vim_qflist_json_error_formatter
   explicit vim_qflist_json_error_formatter(std::ostream &output,
                                            quick_lint_js::vim_locator &locator,
                                            std::string_view file_name,
-                                           std::string_view bufnr);
+                                           std::string_view bufnr,
+                                           const char *code);
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
   void write_after_message(severity, const source_code_span &origin);
@@ -82,6 +83,7 @@ class vim_qflist_json_error_formatter
   quick_lint_js::vim_locator &locator_;
   std::string_view file_name_;
   std::string_view bufnr_;
+  const char *code_;
 };
 }
 

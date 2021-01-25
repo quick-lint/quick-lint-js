@@ -57,9 +57,10 @@ TEST_F(test_text_error_reporter, change_source) {
   reporter.report(error_assignment_to_const_global_variable{
       identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
 
-  EXPECT_EQ(this->get_output(),
-            "hello.js:1:4: error: assignment to const global variable\n"
-            "world.js:1:5: error: assignment to const global variable\n");
+  EXPECT_EQ(
+      this->get_output(),
+      "hello.js:1:4: error: assignment to const global variable [E002]\n"
+      "world.js:1:5: error: assignment to const global variable [E002]\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
@@ -74,8 +75,8 @@ TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
           .assignment = identifier(assignment_span),
           .declaration = identifier(declaration_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: variable assigned before its declaration\n"
-            "FILE:1:9: note: variable declared here\n");
+            "FILE:1:1: error: variable assigned before its declaration [E001]\n"
+            "FILE:1:9: note: variable declared here [E001]\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
@@ -86,7 +87,7 @@ TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   this->make_reporter(&input).report(
       error_assignment_to_const_global_variable{identifier(infinity_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: assignment to const global variable\n");
+            "FILE:1:4: error: assignment to const global variable [E002]\n");
 }
 
 TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
@@ -98,8 +99,9 @@ TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
           .where = parenthesis_span,
           .token = '(',
       });
-  EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: if statement is missing '(' around condition\n");
+  EXPECT_EQ(
+      this->get_output(),
+      "FILE:1:4: error: if statement is missing '(' around condition [E018]\n");
 }
 
 TEST_F(test_text_error_reporter, redeclaration_of_variable) {
@@ -112,8 +114,8 @@ TEST_F(test_text_error_reporter, redeclaration_of_variable) {
   this->make_reporter(&input).report(error_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:16: error: redeclaration of variable: myvar\n"
-            "FILE:1:5: note: variable already declared here\n");
+            "FILE:1:16: error: redeclaration of variable: myvar [E034]\n"
+            "FILE:1:5: note: variable already declared here [E034]\n");
 }
 
 TEST_F(test_text_error_reporter, unexpected_hash_character) {
@@ -123,7 +125,7 @@ TEST_F(test_text_error_reporter, unexpected_hash_character) {
 
   this->make_reporter(&input).report(
       error_unexpected_hash_character{hash_span});
-  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#'\n");
+  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#' [E052]\n");
 }
 
 TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
@@ -134,7 +136,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
   this->make_reporter(&input).report(
       error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: warning: use of undeclared variable: myvar\n");
+            "FILE:1:1: warning: use of undeclared variable: myvar [E057]\n");
 }
 
 TEST(test_text_error_formatter, single_span_simple_message) {
@@ -142,12 +144,12 @@ TEST(test_text_error_formatter, single_span_simple_message) {
   cli_locator locator(&code);
 
   std::ostringstream stream;
-  text_error_formatter(stream, "FILE", locator)
+  text_error_formatter(stream, "FILE", locator, "E999")
       .error("something happened"_gmo_message,
              source_code_span(&code[0], &code[5]))
       .end();
 
-  EXPECT_EQ(stream.str(), "FILE:1:1: error: something happened\n");
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: something happened [E999]\n");
 }
 
 TEST(test_text_error_formatter, message_with_note) {
@@ -155,14 +157,15 @@ TEST(test_text_error_formatter, message_with_note) {
   cli_locator locator(&code);
 
   std::ostringstream stream;
-  text_error_formatter(stream, "FILE", locator)
+  text_error_formatter(stream, "FILE", locator, "E999")
       .error("something happened"_gmo_message,
              source_code_span(&code[0], &code[5]))
       .note("see here"_gmo_message, source_code_span(&code[6], &code[11]))
       .end();
 
   EXPECT_EQ(stream.str(),
-            "FILE:1:1: error: something happened\nFILE:1:7: note: see here\n");
+            "FILE:1:1: error: something happened [E999]\nFILE:1:7: note: see "
+            "here [E999]\n");
 }
 
 TEST(test_text_error_formatter, message_with_zero_placeholder) {
@@ -170,12 +173,12 @@ TEST(test_text_error_formatter, message_with_zero_placeholder) {
   cli_locator locator(&code);
 
   std::ostringstream stream;
-  text_error_formatter(stream, "FILE", locator)
+  text_error_formatter(stream, "FILE", locator, "E888")
       .error("this {0} looks fishy"_gmo_message,
              source_code_span(&code[0], &code[5]))
       .end();
 
-  EXPECT_EQ(stream.str(), "FILE:1:1: error: this hello looks fishy\n");
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: this hello looks fishy [E888]\n");
 }
 
 TEST(test_text_error_formatter, message_with_extra_identifier_placeholder) {
@@ -183,13 +186,13 @@ TEST(test_text_error_formatter, message_with_extra_identifier_placeholder) {
   cli_locator locator(&code);
 
   std::ostringstream stream;
-  text_error_formatter(stream, "FILE", locator)
+  text_error_formatter(stream, "FILE", locator, "E888")
       .error("this {1} looks fishy"_gmo_message,
              source_code_span(&code[0], &code[5]),
              identifier(source_code_span(&code[6], &code[11])))
       .end();
 
-  EXPECT_EQ(stream.str(), "FILE:1:1: error: this world looks fishy\n");
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: this world looks fishy [E888]\n");
 }
 
 TEST(test_text_error_formatter, message_with_multiple_span_placeholders) {
@@ -203,11 +206,11 @@ TEST(test_text_error_formatter, message_with_multiple_span_placeholders) {
   ASSERT_EQ(be_span.string_view(), u8"be");
 
   std::ostringstream stream;
-  text_error_formatter(stream, "FILE", locator)
+  text_error_formatter(stream, "FILE", locator, "E999")
       .error("free {1} and {0} {1} {2}"_gmo_message, let_span, me_span, be_span)
       .end();
 
-  EXPECT_EQ(stream.str(), "FILE:1:1: error: free me and let me be\n");
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: free me and let me be [E999]\n");
 }
 }
 }

@@ -24,7 +24,10 @@
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
 #include <string>
+
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
 lsp_error_reporter::lsp_error_reporter(byte_buffer &output,
@@ -37,7 +40,7 @@ void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"); }
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void lsp_error_reporter::report(name e) {                   \
-    format_error(e, this->begin_error());                     \
+    format_error(e, this->begin_error(code));                 \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -67,22 +70,23 @@ void lsp_error_reporter::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-lsp_error_formatter lsp_error_reporter::begin_error() {
+lsp_error_formatter lsp_error_reporter::begin_error(const char *code) {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n");
   }
   this->need_comma_ = true;
-  return this->format();
+  return this->format(code);
 }
 
-lsp_error_formatter lsp_error_reporter::format() {
+lsp_error_formatter lsp_error_reporter::format(const char *code) {
   return lsp_error_formatter(/*output=*/this->output_,
-                             /*locator=*/this->locator_);
+                             /*locator=*/this->locator_,
+                             /*code=*/code);
 }
 
 lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
-                                         lsp_locator &locator)
-    : output_(output), locator_(locator) {}
+                                         lsp_locator &locator, const char *code)
+    : output_(output), locator_(locator), code_(code) {}
 
 void lsp_error_formatter::write_before_message(severity sev,
                                                const source_code_span &origin) {
@@ -112,7 +116,9 @@ void lsp_error_formatter::write_before_message(severity sev,
   this->output_.append_decimal_integer(r.end.character);
   this->output_.append_copy(u8"}},\"severity\":");
   this->output_.append_copy(severity_type);
-  this->output_.append_copy(u8",\"source\":\"quick-lint-js\"");
+  this->output_.append_copy(u8",\"code\":\"");
+  this->output_.append_copy(reinterpret_cast<const char8 *>(this->code_));
+  this->output_.append_copy(u8"\",\"source\":\"quick-lint-js\"");
   this->output_.append_copy(u8",\"message\":\"");
 }
 

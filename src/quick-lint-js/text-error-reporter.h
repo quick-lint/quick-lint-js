@@ -50,7 +50,7 @@ class text_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  text_error_formatter format();
+  text_error_formatter format(const char *code);
 
   std::ostream &output_;
   std::optional<cli_locator> locator_;
@@ -60,7 +60,7 @@ class text_error_reporter final : public error_reporter {
 class text_error_formatter : public error_formatter<text_error_formatter> {
  public:
   explicit text_error_formatter(std::ostream &output, const char *file_path,
-                                cli_locator &locator);
+                                cli_locator &locator, const char *code);
 
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
@@ -70,6 +70,7 @@ class text_error_formatter : public error_formatter<text_error_formatter> {
   std::ostream &output_;
   const char *file_path_;
   cli_locator &locator_;
+  const char *code_;
 };
 }
 
