@@ -255,6 +255,7 @@ let tests = {
     addCleanup,
   }) => {
     let xRedeclarationDiagnostic = {
+      code: "E034",
       message: "redeclaration of variable: x",
       severity: vscode.DiagnosticSeverity.Error,
       source: "quick-lint-js",
@@ -264,6 +265,7 @@ let tests = {
       endCharacter: "let x;let x".length,
     };
     let yRedeclarationDiagnostic = {
+      code: "E034",
       message: "redeclaration of variable: y",
       severity: vscode.DiagnosticSeverity.Error,
       source: "quick-lint-js",
@@ -575,6 +577,7 @@ function injectFaults(faultCallback, { addCleanup }) {
 function normalizeDiagnostics(vscodeDiagnostics) {
   vscodeDiagnostics = vscodeDiagnostics || [];
   return vscodeDiagnostics.map((diag) => ({
+    code: typeof diag.code === "object" ? diag.code.value : diag.code,
     message: diag.message,
     source: diag.source,
     severity: diag.severity,

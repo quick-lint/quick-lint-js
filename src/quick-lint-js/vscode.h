@@ -41,6 +41,7 @@ void qljs_vscode_replace_text(qljs_vscode_parser*, int start_line,
 
 struct qljs_vscode_diagnostic {
   const char* message;
+  const char* code;
   qljs_vscode_severity severity;
   int start_line;
   int start_character;

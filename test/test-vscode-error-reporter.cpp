@@ -39,6 +39,7 @@ TEST(test_vscode_error_reporter, big_int_literal_contains_decimal_point) {
   EXPECT_EQ(errors[0].end_line, 0);
   EXPECT_EQ(errors[0].end_character, 6);
   EXPECT_STREQ(errors[0].message, "BigInt literal contains decimal point");
+  EXPECT_STREQ(errors[0].code, "E005");
   EXPECT_EQ(errors[1].message, nullptr);
 }
 

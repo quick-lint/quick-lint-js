@@ -326,6 +326,7 @@ class DocumentLinter {
       diag.message,
       vsCodeSeverity
     );
+    vsCodeDiag.code = diag.code;
     vsCodeDiag.source = "quick-lint-js";
     return vsCodeDiag;
   }

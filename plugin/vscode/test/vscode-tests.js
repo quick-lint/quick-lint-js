@@ -67,6 +67,7 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
         let helloDiags = normalizeDiagnostics(helloURI);
         assert.deepStrictEqual(helloDiags, [
           {
+            code: "E034",
             message: "redeclaration of variable: x",
             severity: vscode.DiagnosticSeverity.Error,
             source: "quick-lint-js",
@@ -181,6 +182,7 @@ tests = {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, [
         {
+          code: "E034",
           message: "redeclaration of variable: x",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
@@ -426,6 +428,7 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
     vscodeDiagnostics = vscodeDiagnosticsOrURI;
   }
   return vscodeDiagnostics.map((diag) => ({
+    code: diag.code,
     message: diag.message,
     source: diag.source,
     severity: diag.severity,

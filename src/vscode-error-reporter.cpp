@@ -45,7 +45,7 @@ void vscode_error_reporter::reset() {
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   void vscode_error_reporter::report(name e) {                \
-    format_error(e, this->format());                          \
+    format_error(e, this->format(code));                      \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -82,8 +82,8 @@ void vscode_error_reporter::report_fatal_error_unimplemented_token(
       /*out=*/std::cerr);
 }
 
-vscode_error_formatter vscode_error_reporter::format() {
-  return vscode_error_formatter(this);
+vscode_error_formatter vscode_error_reporter::format(const char *code) {
+  return vscode_error_formatter(this, /*code=*/code);
 }
 
 char8 *vscode_error_reporter::allocate_c_string(string8_view string) {
@@ -95,8 +95,9 @@ char8 *vscode_error_reporter::allocate_c_string(string8_view string) {
   return result;
 }
 
-vscode_error_formatter::vscode_error_formatter(vscode_error_reporter *reporter)
-    : reporter_(reporter) {}
+vscode_error_formatter::vscode_error_formatter(vscode_error_reporter *reporter,
+                                               const char *code)
+    : reporter_(reporter), code_(code) {}
 
 void vscode_error_formatter::write_before_message(severity sev,
                                                   const source_code_span &) {
@@ -136,6 +137,7 @@ void vscode_error_formatter::write_after_message(
   diag.start_character = r.start.character;
   diag.end_line = r.end.line;
   diag.end_character = r.end.character;
+  diag.code = this->code_;
   diag.message = reinterpret_cast<const char *>(
       this->reporter_->allocate_c_string(this->current_message_));
   diag.severity = diag_severity;

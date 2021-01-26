@@ -54,7 +54,7 @@ class vscode_error_reporter final : public error_reporter {
       token_type, const char8 *token_begin) override;
 
  private:
-  vscode_error_formatter format();
+  vscode_error_formatter format(const char *code);
 
   char8 *allocate_c_string(string8_view);
 
@@ -68,7 +68,8 @@ class vscode_error_reporter final : public error_reporter {
 
 class vscode_error_formatter : public error_formatter<vscode_error_formatter> {
  public:
-  explicit vscode_error_formatter(vscode_error_reporter *reporter);
+  explicit vscode_error_formatter(vscode_error_reporter *reporter,
+                                  const char *code);
 
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
@@ -76,6 +77,7 @@ class vscode_error_formatter : public error_formatter<vscode_error_formatter> {
 
  private:
   vscode_error_reporter *reporter_;
+  const char *code_;
   string8 current_message_;
 };
 }

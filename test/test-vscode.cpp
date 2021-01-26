@@ -37,8 +37,10 @@ TEST(test_vscode, lint_error_after_text_insertion) {
   const qljs_vscode_diagnostic* diagnostics = qljs_vscode_lint(p);
   EXPECT_NE(diagnostics[0].message, nullptr);
   EXPECT_EQ(diagnostics[1].message, nullptr);
+  EXPECT_EQ(diagnostics[1].code, nullptr);
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
+  EXPECT_STREQ(diagnostics[0].code, "E034");
   EXPECT_EQ(diagnostics[0].start_line, 0);
   EXPECT_EQ(diagnostics[0].start_character, strlen(u8"let x;let "));
   EXPECT_EQ(diagnostics[0].end_line, 0);
@@ -64,8 +66,10 @@ TEST(test_vscode, lint_new_error_after_second_text_insertion) {
   diagnostics = qljs_vscode_lint(p);
   EXPECT_NE(diagnostics[0].message, nullptr);
   EXPECT_EQ(diagnostics[1].message, nullptr);
+  EXPECT_EQ(diagnostics[1].code, nullptr);
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
+  EXPECT_STREQ(diagnostics[0].code, "E034");
   EXPECT_EQ(diagnostics[0].start_line, 0);
   EXPECT_EQ(diagnostics[0].start_character, strlen(u8"let x;let "));
   EXPECT_EQ(diagnostics[0].end_line, 0);
@@ -83,8 +87,11 @@ TEST(test_vscode, diagnostic_severity) {
                            strlen(document_text));
   const qljs_vscode_diagnostic* diagnostics = qljs_vscode_lint(p);
   EXPECT_NE(diagnostics[0].message, nullptr);
+  EXPECT_NE(diagnostics[0].code, nullptr);
   EXPECT_NE(diagnostics[1].message, nullptr);
+  EXPECT_NE(diagnostics[1].code, nullptr);
   EXPECT_EQ(diagnostics[2].message, nullptr);
+  EXPECT_EQ(diagnostics[2].code, nullptr);
 
   EXPECT_EQ(diagnostics[0].severity, qljs_vscode_severity_error);
   EXPECT_EQ(diagnostics[1].severity, qljs_vscode_severity_warning);

@@ -186,6 +186,7 @@ class Parser {
     );
     // struct qljs_vscode_diagnostic {
     //   const char* message;
+    //   const char* code;
     //   qljs_vscode_severity severity;
     //   int start_line;
     //   int start_character;
@@ -194,14 +195,15 @@ class Parser {
     // };
     let ERROR = {
       message: 0,
-      severity: 1,
-      start_line: 2,
-      start_character: 3,
-      end_line: 4,
-      end_character: 5,
+      code: 1,
+      severity: 2,
+      start_line: 3,
+      start_character: 4,
+      end_line: 5,
+      end_character: 6,
 
-      _ptr_size: 6,
-      _u32_size: 6,
+      _ptr_size: 7,
+      _u32_size: 7,
     };
     let diagnostics = [];
     for (let i = 0; ; ++i) {
@@ -209,7 +211,9 @@ class Parser {
       if (messagePtr === 0) {
         break;
       }
+      let codePtr = rawDiagnosticsPtr[i * ERROR._ptr_size + ERROR.code];
       diagnostics.push({
+        code: decodeUTF8CString(new Uint8Array(this._process._heap, codePtr)),
         message: decodeUTF8CString(
           new Uint8Array(this._process._heap, messagePtr)
         ),
