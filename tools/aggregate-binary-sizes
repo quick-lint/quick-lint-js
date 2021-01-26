@@ -1,0 +1,224 @@
+#!/usr/bin/env python3
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import argparse
+import collections
+import json
+import pathlib
+import subprocess
+import sys
+import typing
+import unittest
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("builds_directory")
+    args = parser.parse_args()
+
+    builds_directory = pathlib.Path(args.builds_directory)
+    git_commits = get_git_commits()
+    all_builds = [
+        json.loads(build_sizes_file.read_text())
+        for build_sizes_file in builds_directory.glob("*/build-sizes.json")
+    ]
+    series = group_build_sizes(builds=all_builds, git_rev_list=git_commits)
+    json.dump(series, sys.stdout, indent=2)
+
+
+def get_git_commits() -> typing.List[str]:
+    return subprocess.check_output(
+        ["git", "rev-list", "--reverse", "--topo-order", "HEAD"],
+        cwd=pathlib.Path(__file__).parent,
+        encoding="utf-8",
+    ).splitlines()
+
+
+class TestGroupBuildSizes(unittest.TestCase):
+    def test_group_basic_builds(self) -> None:
+        builds = [
+            {
+                "readme": {"Git-Commit": "1"},
+                "sizes": [
+                    {"name": ["program.exe"], "type": "exe", "size": 42},
+                    {"name": ["lib.js"], "type": "file", "size": 100},
+                ],
+            },
+            {
+                "readme": {"Git-Commit": "2"},
+                "sizes": [
+                    {"name": ["program.exe"], "type": "exe", "size": 44},
+                    {"name": ["lib.js"], "type": "file", "size": 100},
+                ],
+            },
+        ]
+        git_rev_list = ["1", "2"]
+
+        grouped_builds = group_build_sizes(builds, git_rev_list=git_rev_list)
+        self.assertEqual(
+            grouped_builds,
+            [
+                {
+                    "name": ["lib.js"],
+                    "type": "file",
+                    "sizes": [
+                        {"commit": "1", "size": 100},
+                        {"commit": "2", "size": 100},
+                    ],
+                },
+                {
+                    "name": ["program.exe"],
+                    "type": "exe",
+                    "sizes": [
+                        {"commit": "1", "size": 42},
+                        {"commit": "2", "size": 44},
+                    ],
+                },
+            ],
+        )
+
+    def test_commit_with_missing_build_has_null_size(self) -> None:
+        builds = [
+            {
+                "readme": {"Git-Commit": "1"},
+                "sizes": [
+                    {"name": ["lib.js"], "type": "file", "size": 100},
+                ],
+            },
+            {
+                "readme": {"Git-Commit": "2"},
+                "sizes": [
+                    {"name": ["program.exe"], "type": "exe", "size": 42},
+                    {"name": ["lib.js"], "type": "file", "size": 100},
+                ],
+            },
+        ]
+        git_rev_list = ["1", "2"]
+
+        grouped_builds = group_build_sizes(builds, git_rev_list=git_rev_list)
+        self.assertEqual(
+            grouped_builds,
+            [
+                {
+                    "name": ["lib.js"],
+                    "type": "file",
+                    "sizes": [
+                        {"commit": "1", "size": 100},
+                        {"commit": "2", "size": 100},
+                    ],
+                },
+                {
+                    "name": ["program.exe"],
+                    "type": "exe",
+                    "sizes": [
+                        {"commit": "1", "size": None},
+                        {"commit": "2", "size": 42},
+                    ],
+                },
+            ],
+        )
+
+    def test_commit_with_no_build_has_no_entry(self) -> None:
+        builds = [
+            {
+                "readme": {"Git-Commit": "1"},
+                "sizes": [
+                    {"name": ["lib.js"], "type": "file", "size": 100},
+                ],
+            },
+            {
+                "readme": {"Git-Commit": "3"},
+                "sizes": [
+                    {"name": ["lib.js"], "type": "file", "size": 100},
+                ],
+            },
+        ]
+        git_rev_list = ["0", "1", "2", "3", "4"]
+
+        grouped_builds = group_build_sizes(builds, git_rev_list=git_rev_list)
+        self.assertEqual(
+            grouped_builds,
+            [
+                {
+                    "name": ["lib.js"],
+                    "type": "file",
+                    "sizes": [
+                        {"commit": "1", "size": 100},
+                        {"commit": "3", "size": 100},
+                    ],
+                },
+            ],
+        )
+
+
+def group_build_sizes(
+    builds: typing.List, git_rev_list: typing.List[str]
+) -> typing.List:
+    def builds_for_commit(commit: str):
+        result = []
+        for build in builds:
+            readme = build.get("readme")
+            if readme is None:
+                continue
+            if readme.get("Git-Commit") == commit:
+                result.append(build)
+        return result
+
+    class SeriesKey(typing.NamedTuple):
+        name: typing.Tuple[str, ...]
+        type: str
+
+    def series_key_for_sample(sample) -> SeriesKey:
+        return SeriesKey(name=tuple(sample["name"]), type=sample["type"])
+
+    all_series_keys = set()
+    for build in builds:
+        for sample in build["sizes"]:
+            all_series_keys.add(series_key_for_sample(sample))
+
+    series: typing.Mapping[SeriesKey, typing.List] = collections.defaultdict(list)
+
+    for git_commit in git_rev_list:
+        for build in builds_for_commit(git_commit):
+            size_by_series_key = {
+                series_key_for_sample(sample): sample["size"]
+                for sample in build["sizes"]
+            }
+            for series_key in all_series_keys:
+                series[series_key].append(
+                    {
+                        "commit": git_commit,
+                        "size": size_by_series_key.get(series_key, None),
+                    }
+                )
+
+    return sorted(
+        [
+            {
+                "name": list(key.name),
+                "type": key.type,
+                "sizes": value,
+            }
+            for (key, value) in series.items()
+        ],
+        key=lambda series: series["name"],
+    )
+
+
+if __name__ == "__main__":
+    main()

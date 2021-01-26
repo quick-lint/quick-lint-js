@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<html>
+  <head>
+    <title>quick-lint-js build sizes</title>
+    <meta charset="utf-8" />
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="index.js"></script>
+    <style>
+      .binary-size-chart {
+        height: 500px;
+      }
+
+      p.error {
+        color: #c00;
+      }
+
+      #instructions {
+        display: none;
+      }
+      body.error #instructions {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>quick-lint-js build sizes</h1>
+
+    <article id="instructions">
+      <p id="load-error" class="error"></p>
+      <p>Generate <code>data.json</code> by following these instructions:</p>
+      <ol>
+        <li>
+          Install LLVM, ensuring you have the <code>llvm-size</code> command.
+        </li>
+        <li>
+          Mount c.quick-lint-js.com using sshfs:
+          <blockquote>
+            <pre><code>$ <kbd>mkdir c.quick-lint-js.com/</kbd>
+$ <kbd>sshfs github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/ c.quick-lint-js.com/</kbd></code></pre>
+          </blockquote>
+        </li>
+        <li>
+          Generate missing <code>build-sizes.json</code> files:
+          <blockquote>
+            <pre><code>$ <kbd>for b in c.quick-lint-js.com/builds/*; do if [ -f "${b}/build-sizes.json" ]; then continue ; fi ; (cd "${b}" ; ./tools/collect-binary-sizes . &gt;build-sizes.json) ; done</kbd></code></pre>
+          </blockquote>
+        </li>
+
+        <li>
+          Create <code>data.json</code>:
+          <blockquote>
+            <pre><code>$ <kbd>./tools/aggregate-binary-sizes c.quick-lint-js.com/builds/ &gt;website/build-sizes/data.json</kbd></code></pre>
+          </blockquote>
+        </li>
+      </ol>
+    </article>
+
+    <ul id="chart-index"></ul>
+  </body>
+</html>
