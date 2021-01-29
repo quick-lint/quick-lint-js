@@ -38,7 +38,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: C++ configure
-        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -fno-rtti -fno-exceptions -flto'
       - name: C++ build
         run: emmake make -C build quick-lint-js-wasm-demo
       - name: C++ install
