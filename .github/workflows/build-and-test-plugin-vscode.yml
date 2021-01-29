@@ -46,7 +46,7 @@ jobs:
           sudo apt-get install -y ninja-build
 
       - name: C++ configure
-        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-O3 -flto' -DCMAKE_CXX_FLAGS='-O3 -fno-rtti -fno-exceptions -flto'
       - name: C++ build
         run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
