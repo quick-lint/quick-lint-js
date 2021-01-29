@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <iostream>
 #include <ostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -22,7 +23,8 @@
 namespace quick_lint_js {
 void error_reporter::write_fatal_error_unimplemented_character(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-    const char8 *character, const cli_locator *locator, std::ostream &out) {
+    const char8 *character, const cli_locator *locator) {
+  std::ostream &out = std::cerr;
   out << qljs_file_name << ":" << qljs_line
       << ": fatal: character not implemented in " << qljs_function_name << ": "
       << static_cast<char>(*character);
@@ -36,8 +38,8 @@ void error_reporter::write_fatal_error_unimplemented_character(
 
 void error_reporter::write_fatal_error_unimplemented_token(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-    token_type type, const char8 *token_begin, const cli_locator *locator,
-    std::ostream &out) {
+    token_type type, const char8 *token_begin, const cli_locator *locator) {
+  std::ostream &out = std::cerr;
   out << qljs_file_name << ":" << qljs_line
       << ": fatal: token not implemented in " << qljs_function_name << ": "
       << type;

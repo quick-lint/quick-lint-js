@@ -65,8 +65,7 @@ void vscode_error_reporter::report_fatal_error_unimplemented_character(
       /*qljs_line=*/qljs_line,
       /*qljs_function_name=*/qljs_function_name,
       /*character=*/character,
-      /*locator=*/nullptr,
-      /*out=*/std::cerr);
+      /*locator=*/nullptr);
 }
 
 void vscode_error_reporter::report_fatal_error_unimplemented_token(
@@ -78,8 +77,7 @@ void vscode_error_reporter::report_fatal_error_unimplemented_token(
       /*qljs_function_name=*/qljs_function_name,
       /*type=*/type,
       /*token_begin=*/token_begin,
-      /*locator=*/nullptr,
-      /*out=*/std::cerr);
+      /*locator=*/nullptr);
 }
 
 vscode_error_formatter vscode_error_reporter::format(const char *code) {

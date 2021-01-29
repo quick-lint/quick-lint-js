@@ -47,8 +47,7 @@ void text_error_reporter::report_fatal_error_unimplemented_character(
       /*qljs_line=*/qljs_line,
       /*qljs_function_name=*/qljs_function_name,
       /*character=*/character,
-      /*locator=*/get(this->locator_),
-      /*out=*/this->output_);
+      /*locator=*/get(this->locator_));
 }
 
 void text_error_reporter::report_fatal_error_unimplemented_token(
@@ -60,8 +59,7 @@ void text_error_reporter::report_fatal_error_unimplemented_token(
       /*qljs_function_name=*/qljs_function_name,
       /*type=*/type,
       /*token_begin=*/token_begin,
-      /*locator=*/get(this->locator_),
-      /*out=*/this->output_);
+      /*locator=*/get(this->locator_));
 }
 
 text_error_formatter text_error_reporter::format(const char *code) {
