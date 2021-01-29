@@ -197,6 +197,7 @@ enum class token_type {
   star_star_equal,
 };
 
+const char* to_string(token_type);
 std::ostream& operator<<(std::ostream&, token_type);
 
 class identifier {

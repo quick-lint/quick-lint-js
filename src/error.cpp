@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <ostream>
+#include <cstdio>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error.h>
@@ -24,30 +23,27 @@ namespace quick_lint_js {
 void error_reporter::write_fatal_error_unimplemented_character(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
     const char8 *character, const cli_locator *locator) {
-  std::ostream &out = std::cerr;
-  out << qljs_file_name << ":" << qljs_line
-      << ": fatal: character not implemented in " << qljs_function_name << ": "
-      << static_cast<char>(*character);
+  std::fprintf(stderr, "%s:%d: fatal: character not implemented in %s: %c",
+               qljs_file_name, qljs_line, qljs_function_name,
+               static_cast<char>(*character));
   if (locator) {
     cli_source_position token_position = locator->position(character);
-    out << " on line " << token_position.line_number << " column "
-        << token_position.column_number;
+    std::fprintf(stderr, " on line %d column %d", token_position.line_number,
+                 token_position.column_number);
   }
-  out << '\n';
+  std::fprintf(stderr, "\n");
 }
 
 void error_reporter::write_fatal_error_unimplemented_token(
     const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
     token_type type, const char8 *token_begin, const cli_locator *locator) {
-  std::ostream &out = std::cerr;
-  out << qljs_file_name << ":" << qljs_line
-      << ": fatal: token not implemented in " << qljs_function_name << ": "
-      << type;
+  std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
+               qljs_file_name, qljs_line, qljs_function_name, to_string(type));
   if (locator) {
     cli_source_position token_position = locator->position(token_begin);
-    out << " on line " << token_position.line_number << " column "
-        << token_position.column_number;
+    std::fprintf(stderr, " on line %d column %d", token_position.line_number,
+                 token_position.column_number);
   }
-  out << '\n';
+  std::fprintf(stderr, "\n");
 }
 }

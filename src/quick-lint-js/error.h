@@ -17,7 +17,6 @@
 #ifndef QUICK_LINT_JS_ERROR_H
 #define QUICK_LINT_JS_ERROR_H
 
-#include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/language.h>

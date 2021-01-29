@@ -1601,7 +1601,6 @@ int lexer::newline_character_size(const char8* input) {
   return 0;
 }
 
-namespace {
 const char* to_string(token_type type) {
 #define QLJS_CASE(t)  \
   case token_type::t: \
@@ -1713,7 +1712,6 @@ const char* to_string(token_type type) {
     QLJS_CASE(tilde)
   }
   return "???";
-}
 }
 
 std::ostream& operator<<(std::ostream& out, token_type type) {
