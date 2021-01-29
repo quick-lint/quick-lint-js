@@ -112,6 +112,17 @@ licenses. See license.html for details.
         width: 1.2em;
         vertical-align: text-bottom;
       }
+
+    @media (prefers-color-scheme: dark) {
+      a:link {color:#268BD2;}
+      a:visited {color:#6C71C4;}
+      body {background-color:  #002B36; color: white;}
+      td {color:black;}
+    }
+    @media (prefers-color-scheme: light) {
+      body {background:#fff; color: #333; }
+    }
+
     </style>
   </head>
   <body>
@@ -260,7 +271,7 @@ licenses. See license.html for details.
                   aria-label="planned"
                   title="planned"
                   class="footnote-marker"
-                  >&nbsp;<a
+                  >&nbsp;<a 
                     href="https://old.reddit.com/r/javascript/comments/j4zj3c/rslint_an_extremely_fast_javascript_linter/g7r46mp/?context=1"
                     >*</a
                   ></span
@@ -351,10 +362,10 @@ licenses. See license.html for details.
             <tr>
               <th>editor integration</th>
               <td class="good quick-lint-js">
-                <a
+                <a 
                   href="https://github.com/quick-lint/quick-lint-js/tree/master/plugin/vim"
                   >Vim</a
-                ><br /><a
+                ><br /><a 
                   href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
                   >VS Code</a
                 ><br />LSP
@@ -373,14 +384,14 @@ licenses. See license.html for details.
                   aria-label="planned"
                   title="planned"
                   class="footnote-marker"
-                  >&nbsp;<a
+                  >&nbsp;<a 
                     href="https://old.reddit.com/r/rust/comments/j4z1ud/rslint_an_extremely_fast_and_user_friendly/g7oka27/?context=1"
                     >*</a
                   ></span
                 >
               </td>
               <td class="meh">
-                <a
+                <a 
                   href="https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno"
                   >VS Code</a
                 >
@@ -396,7 +407,7 @@ licenses. See license.html for details.
                 <a href="https://jshint.com/docs/options/">some</a>
               </td>
               <td class="meh">
-                <a
+                <a 
                   href="https://rdambrosio016.github.io/RSLint/rules/index.html"
                   >some</a
                 >
