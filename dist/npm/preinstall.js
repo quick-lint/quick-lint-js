@@ -35,5 +35,9 @@ if (typeof platformExecutable === "undefined") {
 fs.copyFileSync(
   path.join(__dirname, platformExecutable),
   path.join(__dirname, "quick-lint-js.exe"),
-  fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE
+  fs.constants.COPYFILE_FICLONE
+);
+fs.chmodSync(
+  path.join(__dirname, "quick-lint-js.exe"),
+  0o755,
 );

@@ -215,7 +215,7 @@ jobs:
           user: ${{ secrets.artifacts_user }}
 
   test-npm-package:
-    name: test npm package on ${{ matrix.os.name }}
+    name: test npm package on ${{ matrix.os.name }} with ${{ matrix.manager.name }}
     needs: package-npm
     strategy:
       fail-fast: false
@@ -224,6 +224,10 @@ jobs:
           - {runs_on: windows-latest, name: "Windows", test_cmd: true}
           - {runs_on: macos-10.15, name: "macOS 10.15"}
           - {runs_on: ubuntu-latest, name: "Ubuntu", global_install_command_prefix: "sudo"}
+        manager:
+          - {name: "npm", install_command: "npm install", global: false}
+          - {name: "npm (--global)", install_command: "npm install --global --unsafe-perm", global: true}
+          - {name: "Yarn", install_command: "yarn add", global: false}
     runs-on: ${{ matrix.os.runs_on }}
 
     steps:
@@ -232,19 +236,23 @@ jobs:
           name: quick-lint-js-npm-${{ github.sha }}
 
       - name: install globally
-        run: ${{ matrix.os.global_install_command_prefix }} npm install --global --unsafe-perm ./quick-lint-js-*.tgz
+        if: ${{ matrix.manager.global }}
+        run: ${{ matrix.os.global_install_command_prefix }} ${{ matrix.manager.install_command }} ./quick-lint-js-*.tgz
         shell: bash
       - name: test globally
+        if: ${{ matrix.manager.global }}
         run: quick-lint-js --version
 
       - name: install locally
+        if: ${{ !matrix.manager.global }}
         run: |
           echo '{}' >package.json
-          npm install ./quick-lint-js-*.tgz
+          ${{ matrix.manager.install_command }} ./quick-lint-js-*.tgz
         shell: bash
       - name: test locally
+        if: ${{ !matrix.manager.global }}
         run: ./node_modules/.bin/quick-lint-js --version
         shell: bash
       - name: test locally (.cmd)
-        if: ${{ matrix.os.test_cmd }}
+        if: ${{ !matrix.manager.global && matrix.os.test_cmd }}
         run: node_modules/.bin/quick-lint-js.cmd --version

@@ -1,0 +1,4 @@
+This file gets overwritten by preinstall.js.
+
+Without this file, Yarn does not always create a symlink to quick-lint-js.exe
+upon installation.
