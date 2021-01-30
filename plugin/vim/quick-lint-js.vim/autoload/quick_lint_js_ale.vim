@@ -22,7 +22,9 @@ function! quick_lint_js_ale#get_command(buffer_number) abort
 endfunction
 
 function! quick_lint_js_ale#get_executable(buffer_number) abort
-  return ale#Var(a:buffer_number, 'javascript_quick_lint_js_executable')
+  return ale#node#FindExecutable(a:buffer_number, 'javascript_quick_lint_js', [
+    \ 'node_modules/.bin/quick-lint-js',
+  \ ])
 endfunction
 
 function! quick_lint_js_ale#parse_command_output(buffer, lines) abort
