@@ -353,9 +353,19 @@ class parser {
       break;
 
     // break;
+    // continue label;
     case token_type::kw_break:
     case token_type::kw_continue:
       this->skip();
+      switch (this->peek().type) {
+      // TODO(strager): Are contextual keywords allowed as labels?
+      case token_type::identifier:
+        // Loop label.
+        this->skip();
+        break;
+      default:
+        break;
+      }
       this->consume_semicolon();
       break;
 

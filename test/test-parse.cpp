@@ -2716,11 +2716,25 @@ TEST(test_parse, break_statement) {
     spy_visitor v = parse_and_visit_statement(u8"break;"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
+
+  // TODO(strager): Are contextual keywords allowed as labels?
+  // TODO(#72): Visit the label.
+  {
+    spy_visitor v = parse_and_visit_statement(u8"break label;"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
 }
 
 TEST(test_parse, continue_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"continue;"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  // TODO(strager): Are contextual keywords allowed as labels?
+  // TODO(#72): Visit the label.
+  {
+    spy_visitor v = parse_and_visit_statement(u8"continue label;"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
