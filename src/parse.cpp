@@ -713,6 +713,7 @@ next:
   case token_type::kw_export:
   case token_type::kw_for:
   case token_type::kw_from:
+  case token_type::kw_function:
   case token_type::kw_if:
   case token_type::kw_let:
   case token_type::kw_of:
