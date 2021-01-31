@@ -739,7 +739,7 @@ next:
         goto next;
 
       case u8'\\':
-        if (c[1] == u8']') {
+        if (c[1] == u8']' || c[1] == u8'\\') {
           c += 2;
         } else {
           c += 1;
