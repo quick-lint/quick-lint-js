@@ -1333,11 +1333,16 @@ class parser {
     this->skip();
 
     switch (this->peek().type) {
+    // import let from "module";
+    case token_type::kw_let:
+      this->error_reporter_->report(
+          error_cannot_import_let{.import_name = this->peek().span()});
+      [[fallthrough]];
     // import fs from "fs";
     case token_type::identifier:
-    case token_type::kw_let:
-      this->parse_and_visit_binding_element(v, variable_kind::_import,
-                                            /*allow_in_operator=*/true);
+      v.visit_variable_declaration(this->peek().identifier_name(),
+                                   variable_kind::_import);
+      this->skip();
       if (this->peek().type == token_type::comma) {
         this->skip();
         switch (this->peek().type) {
@@ -1649,14 +1654,11 @@ class parser {
            declaration_kind == variable_kind::_import ||
            declaration_kind == variable_kind::_let) &&
           ast->variable_identifier_token_type() == token_type::kw_let) {
-        if (declaration_kind == variable_kind::_import) {
-          this->error_reporter_->report(
-              error_cannot_import_let{.import_name = ident.span()});
-        } else {
-          this->error_reporter_->report(
-              error_cannot_declare_variable_named_let_with_let{
-                  .name = ident.span()});
-        }
+        // If this is an import, we would emit error_cannot_import_let instead.
+        QLJS_ASSERT(declaration_kind != variable_kind::_import);
+        this->error_reporter_->report(
+            error_cannot_declare_variable_named_let_with_let{.name =
+                                                                 ident.span()});
       }
       v.visit_variable_declaration(ident, declaration_kind);
       break;
