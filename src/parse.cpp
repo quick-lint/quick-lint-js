@@ -729,6 +729,7 @@ next:
   case token_type::right_paren:
   case token_type::right_square:
   case token_type::semicolon:
+  case token_type::string:
   semicolon:
     break;
 
