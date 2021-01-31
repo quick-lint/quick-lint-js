@@ -2882,6 +2882,14 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_EQ(v.variable_uses[1].name, name);
     }
 
+    {
+      spy_visitor v = parse_and_visit_statement(name + u8".method();");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_use"));  // (name)
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{name}));
+    }
+
     for (string8 code : {
              u8"(async " + name + u8" => null)",
              u8"(async (" + name + u8") => null)",

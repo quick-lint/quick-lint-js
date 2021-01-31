@@ -222,8 +222,11 @@ class parser {
     case token_type::kw_await:
     case token_type::kw_delete:
     case token_type::kw_false:
+    case token_type::kw_get:
     case token_type::kw_new:
     case token_type::kw_null:
+    case token_type::kw_of:
+    case token_type::kw_set:
     case token_type::kw_static:
     case token_type::kw_super:
     case token_type::kw_this:
