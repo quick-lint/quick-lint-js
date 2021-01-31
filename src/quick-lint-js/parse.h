@@ -219,6 +219,7 @@ class parser {
     case token_type::bang:
     case token_type::complete_template:
     case token_type::incomplete_template:
+    case token_type::kw_as:
     case token_type::kw_await:
     case token_type::kw_delete:
     case token_type::kw_false:
@@ -721,6 +722,7 @@ class parser {
       // functions named 'yield' in generator functions.
       [[fallthrough]];
     case token_type::identifier:
+    case token_type::kw_as:
     case token_type::kw_async:
     case token_type::kw_from:
     case token_type::kw_get:
@@ -1064,6 +1066,7 @@ class parser {
 
         switch (this->peek().type) {
         case token_type::identifier:
+        case token_type::kw_as:
         case token_type::kw_async:
         case token_type::kw_from:
         case token_type::kw_get:
@@ -1542,6 +1545,7 @@ class parser {
         // or variables named 'yield' in generator functions.
         [[fallthrough]];
       case token_type::identifier:
+      case token_type::kw_as:
       case token_type::kw_async:
       case token_type::kw_from:
       case token_type::kw_get:
