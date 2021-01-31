@@ -763,6 +763,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   switch (this->peek().type) {
   case token_type::identifier:
   case token_type::kw_async:
+  case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_let:
   case token_type::kw_of:

@@ -222,6 +222,7 @@ class parser {
     case token_type::kw_await:
     case token_type::kw_delete:
     case token_type::kw_false:
+    case token_type::kw_from:
     case token_type::kw_get:
     case token_type::kw_new:
     case token_type::kw_null:
@@ -721,6 +722,7 @@ class parser {
       [[fallthrough]];
     case token_type::identifier:
     case token_type::kw_async:
+    case token_type::kw_from:
     case token_type::kw_get:
     case token_type::kw_let:
     case token_type::kw_of:
@@ -1063,6 +1065,7 @@ class parser {
       switch (this->peek().type) {
       case token_type::identifier:
       case token_type::kw_async:
+      case token_type::kw_from:
       case token_type::kw_get:
       case token_type::kw_let:
       case token_type::kw_of:
@@ -1533,6 +1536,7 @@ class parser {
         [[fallthrough]];
       case token_type::identifier:
       case token_type::kw_async:
+      case token_type::kw_from:
       case token_type::kw_get:
       case token_type::kw_let:
       case token_type::kw_of:
