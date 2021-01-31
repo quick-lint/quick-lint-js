@@ -35,6 +35,7 @@ std::ostream& operator<<(std::ostream&, variable_kind);
 
 enum class function_attributes {
   async,
+  async_generator,
   generator,
   normal,
 };

@@ -56,6 +56,10 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
     this->in_async_function_ = true;
     this->in_generator_function_ = false;
     break;
+  case function_attributes::async_generator:
+    this->in_async_function_ = true;
+    this->in_generator_function_ = true;
+    break;
   case function_attributes::generator:
     this->in_async_function_ = false;
     this->in_generator_function_ = true;
@@ -1106,8 +1110,10 @@ function_attributes parser::parse_generator_star(
     this->skip();
     switch (original_attributes) {
     case function_attributes::async:
-      QLJS_UNIMPLEMENTED();
-      break;
+      return function_attributes::async_generator;
+    case function_attributes::async_generator:
+      QLJS_ASSERT(false);
+      return function_attributes::async_generator;
     case function_attributes::generator:
       QLJS_ASSERT(false);
       return function_attributes::generator;

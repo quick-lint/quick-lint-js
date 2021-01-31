@@ -1556,6 +1556,23 @@ TEST_F(test_parse_expression, generator_function_expression) {
   }
 }
 
+TEST_F(test_parse_expression, async_generator_function_expression) {
+  {
+    test_parser p(u8"async function*(){}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::function);
+    EXPECT_EQ(ast->attributes(), function_attributes::async_generator);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 19);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    expression_ptr ast = this->parse_expression(u8"async function* f(){}"_sv);
+    EXPECT_EQ(summarize(ast), "function f");
+  }
+}
+
 TEST_F(test_parse_expression, arrow_function_with_expression) {
   {
     test_parser p(u8"() => a"_sv);
@@ -1866,6 +1883,8 @@ std::string summarize(const expression &expression) {
       return "";
     case function_attributes::async:
       return "async";
+    case function_attributes::async_generator:
+      return "asyncgenerator";
     case function_attributes::generator:
       return "generator";
     }
