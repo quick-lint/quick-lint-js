@@ -2953,6 +2953,33 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
   }
 }
 
+TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
+  for (string8 name : {u8"async"}) {
+    SCOPED_TRACE(out_string8(name));
+
+    {
+      spy_visitor v = parse_and_visit_statement(u8"import { " + name +
+                                                u8" } from 'other';");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+    }
+
+    {
+      spy_visitor v =
+          parse_and_visit_statement(u8"import " + name + u8" from 'other';");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+    }
+
+    {
+      spy_visitor v = parse_and_visit_statement(u8"import * as " + name +
+                                                u8" from 'other';");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+    }
+  }
+}
+
 TEST(test_parse, statement_beginning_with_async_or_let) {
   for (string8 name : {u8"async", u8"let"}) {
     SCOPED_TRACE(out_string8(name));

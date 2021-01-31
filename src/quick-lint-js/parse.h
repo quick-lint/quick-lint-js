@@ -1340,6 +1340,7 @@ class parser {
       [[fallthrough]];
     // import fs from "fs";
     case token_type::identifier:
+    case token_type::kw_async:
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_import);
       this->skip();
@@ -1425,6 +1426,7 @@ class parser {
           .import_name = this->peek().identifier_name().span()});
       [[fallthrough]];
     case token_type::identifier:
+    case token_type::kw_async:
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_import);
       this->skip();
