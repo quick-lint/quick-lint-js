@@ -2422,6 +2422,26 @@ TEST(test_parse, do_while) {
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"do do {a;} while(b) while(c);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // a
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use",       // b
+                                      "visit_variable_use"));     // c
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"do do {a;} while(b); while(c);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // a
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use",       // b
+                                      "visit_variable_use"));     // c
+  }
 }
 
 TEST(test_parse, c_style_for_loop) {

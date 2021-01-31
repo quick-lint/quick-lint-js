@@ -1122,6 +1122,10 @@ class parser {
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->skip();
+
+    if (this->peek().type == token_type::semicolon) {
+      this->skip();
+    }
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
