@@ -710,6 +710,7 @@ next:
   case token_type::kw_const:
   case token_type::kw_debugger:
   case token_type::kw_do:
+  case token_type::kw_export:
   case token_type::kw_for:
   case token_type::kw_from:
   case token_type::kw_if:
