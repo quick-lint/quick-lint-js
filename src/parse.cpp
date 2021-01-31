@@ -743,6 +743,7 @@ next:
   case token_type::kw_return:
   case token_type::kw_switch:
   case token_type::kw_this:
+  case token_type::kw_throw:
   case token_type::kw_try:
   case token_type::kw_var:
   case token_type::kw_while:
