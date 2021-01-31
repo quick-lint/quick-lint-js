@@ -35,7 +35,23 @@ import typing
 import unittest
 
 
-TODO_TEST_FILES = ()
+TODO_TEST_FILES = (
+    "javascriptcore/stress/dont-crash-on-stack-overflow-when-parsing-default-constructor.js",
+    "javascriptcore/stress/known-cell-type-check-should-allow-empty-value-to-flow-through.js",
+    "v8/test262/local-tests/test/language/expressions/class/fields-*.js",
+    "v8/test262/local-tests/test/language/statements/class/fields-*.js",
+    # TODO(strager): Implement non-standard features.
+    "assignment-target-type/*coalesce*.case",
+    "assignment-target-type/*logical-and-assignment*.case",
+    "assignment-target-type/*logical-or-assignment*.case",
+    "assignment-target-type/import.meta.case",
+    "assignment-target-type/optionalexpression.case",
+    # TODO(#153): Parse V8 %BuiltInFunctions
+    "v8/mjsunit/*.js",
+    "v8/mjsunit/*/*.js",
+    "v8/mjsunit/*/*/*.js",
+    "v8/test262/detachArrayBuffer.js",
+)
 
 
 def main() -> None:
