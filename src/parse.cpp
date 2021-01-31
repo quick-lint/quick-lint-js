@@ -721,6 +721,7 @@ next:
   case token_type::kw_switch:
   case token_type::kw_var:
   case token_type::kw_while:
+  case token_type::kw_with:
   case token_type::left_curly:
   case token_type::right_curly:
   case token_type::right_paren:
