@@ -1058,38 +1058,38 @@ class parser {
     if (this->peek().type == token_type::kw_catch) {
       this->skip();
 
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
-      this->skip();
       v.visit_enter_block_scope();
-
-      switch (this->peek().type) {
-      case token_type::identifier:
-      case token_type::kw_async:
-      case token_type::kw_from:
-      case token_type::kw_get:
-      case token_type::kw_let:
-      case token_type::kw_of:
-      case token_type::kw_set:
-      case token_type::kw_static:
-      case token_type::kw_yield:
-        v.visit_variable_declaration(this->peek().identifier_name(),
-                                     variable_kind::_catch);
+      if (this->peek().type == token_type::left_paren) {
         this->skip();
-        break;
 
-      case token_type::left_curly:
-      case token_type::left_square:
-        this->parse_and_visit_binding_element(v, variable_kind::_catch,
-                                              /*allow_in_operator=*/false);
-        break;
+        switch (this->peek().type) {
+        case token_type::identifier:
+        case token_type::kw_async:
+        case token_type::kw_from:
+        case token_type::kw_get:
+        case token_type::kw_let:
+        case token_type::kw_of:
+        case token_type::kw_set:
+        case token_type::kw_static:
+        case token_type::kw_yield:
+          v.visit_variable_declaration(this->peek().identifier_name(),
+                                       variable_kind::_catch);
+          this->skip();
+          break;
 
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
+        case token_type::left_curly:
+        case token_type::left_square:
+          this->parse_and_visit_binding_element(v, variable_kind::_catch,
+                                                /*allow_in_operator=*/false);
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+        this->skip();
       }
-
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-      this->skip();
-
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
     }

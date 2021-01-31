@@ -2220,6 +2220,15 @@ TEST(test_parse, parse_and_visit_try) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(u8"try {} catch {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // try
+                                      "visit_exit_block_scope",    // try
+                                      "visit_enter_block_scope",   // catch
+                                      "visit_exit_block_scope"));  // catch
+    EXPECT_THAT(v.variable_declarations, IsEmpty());
+  }
+
+  {
     spy_visitor v =
         parse_and_visit_statement(u8"try {} catch (e) {} finally {}"_sv);
 
