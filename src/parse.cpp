@@ -727,6 +727,7 @@ next:
   case token_type::kw_await:
   case token_type::kw_const:
   case token_type::kw_debugger:
+  case token_type::kw_delete:
   case token_type::kw_do:
   case token_type::kw_else:
   case token_type::kw_export:
