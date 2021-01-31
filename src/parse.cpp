@@ -720,6 +720,7 @@ next:
   case token_type::kw_of:
   case token_type::kw_return:
   case token_type::kw_switch:
+  case token_type::kw_this:
   case token_type::kw_var:
   case token_type::kw_while:
   case token_type::kw_with:
