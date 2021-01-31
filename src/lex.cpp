@@ -700,7 +700,7 @@ void lexer::reparse_as_regexp() {
 
   const char8* c = &this->input_[1];
 next:
-  switch (*c) {
+  switch (static_cast<unsigned char>(*c)) {
   case '\0':
     if (this->is_eof(c)) {
       this->error_reporter_->report(error_unclosed_regexp_literal{
@@ -733,7 +733,7 @@ next:
   case '[':
     ++c;
     for (;;) {
-      switch (*c) {
+      switch (static_cast<unsigned char>(*c)) {
       case u8']':
       case u8'\0':
         goto next;
@@ -746,6 +746,13 @@ next:
         }
         break;
 
+      case u8'\n':
+      case u8'\r':
+      case 0xe2:
+        if (this->newline_character_size(c) != 0) {
+          goto next;
+        }
+        [[fallthrough]];
       default:
         ++c;
         break;
@@ -771,6 +778,15 @@ next:
     break;
   }
 
+  case u8'\n':
+  case u8'\r':
+  case 0xe2:
+    if (this->newline_character_size(c) != 0) {
+      this->error_reporter_->report(error_unclosed_regexp_literal{
+          source_code_span(this->last_token_.begin, c)});
+      break;
+    }
+    [[fallthrough]];
   default:
     ++c;
     goto next;

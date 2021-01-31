@@ -850,6 +850,50 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
   }
 
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"/first_line" + string8(line_terminator) +
+                       u8"second_line/");
+    SCOPED_TRACE(code);
+    error_collector v;
+    lexer l(&code, &v);
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_EQ(l.peek().begin, &code[0]);
+    EXPECT_EQ(l.peek().end, code.data() + strlen(u8"/first_line"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unclosed_regexp_literal, regexp_literal,
+                    offsets_matcher(&code, 0, strlen(u8"/first_line")))));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second_line");
+  }
+
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"/first[line" + string8(line_terminator) +
+                       u8"second]line/");
+    SCOPED_TRACE(code);
+    error_collector v;
+    lexer l(&code, &v);
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_EQ(l.peek().begin, &code[0]);
+    EXPECT_EQ(l.peek().end, code.data() + strlen(u8"/first[line"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unclosed_regexp_literal, regexp_literal,
+                    offsets_matcher(&code, 0, strlen(u8"/first[line")))));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second");
+  }
+
   // TODO(strager): Report invalid escape sequences.
 
   // TODO(strager): Report invalid characters and mismatched brackets.
