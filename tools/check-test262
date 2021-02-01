@@ -44,18 +44,19 @@ def main() -> None:
     args = arg_parser.parse_args()
 
     quick_lint_js_executable = pathlib.Path(args.quick_lint_js_exe)
-    test262_fixture_directory = pathlib.Path(args.test262_directory)
+    test262_fixture_directory = pathlib.Path(args.test262_directory).resolve()
 
-    test_files = sorted(
-        itertools.chain(
-            test262_fixture_directory.glob("**/*.case"),
-            test262_fixture_directory.glob("**/*.js"),
-        )
-    )
+    test_files = []
+    for root, dirs, files in os.walk(test262_fixture_directory):
+        root = pathlib.Path(root)
+        for file in files:
+            if file.endswith(".case") or file.endswith(".js"):
+                test_file = root / file
+                if should_check_test_file(test_file):
+                    test_files.append(test_file)
+    test_files = sorted(test_files)
+
     for test_file in test_files:
-        test_file = test_file.resolve()
-        if not should_check_test_file(test_file):
-            continue
         lint_result = run_quick_lint_js(
             quick_lint_js_executable=quick_lint_js_executable, js_file=test_file
         )
