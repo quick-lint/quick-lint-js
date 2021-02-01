@@ -1529,6 +1529,16 @@ TEST(test_parse, await_in_async_function) {
   }
 }
 
+TEST(test_parse, await_asi_in_async_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"async function f() { await a\nawait b }"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"a"},  //
+                            spy_visitor::visited_variable_use{u8"b"}));
+  }
+}
+
 TEST(test_parse, use_await_in_non_async_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"await(x);"_sv);

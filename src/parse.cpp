@@ -707,6 +707,7 @@ next:
   case token_type::colon:
   case token_type::end_of_file:
   case token_type::identifier:
+  case token_type::kw_await:
   case token_type::kw_const:
   case token_type::kw_debugger:
   case token_type::kw_do:
