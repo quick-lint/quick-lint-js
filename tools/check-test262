@@ -24,10 +24,11 @@ https://github.com/tc39/test262
 import argparse
 import itertools
 import json
+import multiprocessing.dummy
 import os
 import pathlib
 import pipes
-from qljs_external_test_suite import match_path, run_quick_lint_js
+from qljs_external_test_suite import LintResult, match_path, run_quick_lint_js
 import subprocess
 import sys
 import typing
@@ -56,13 +57,16 @@ def main() -> None:
                     test_files.append(test_file)
     test_files = sorted(test_files)
 
-    for test_file in test_files:
-        lint_result = run_quick_lint_js(
+    def lint_file(test_file: pathlib.Path) -> LintResult:
+        return run_quick_lint_js(
             quick_lint_js_executable=quick_lint_js_executable, js_file=test_file
         )
-        if lint_result.crashed:
-            lint_result.dump()
-            exit(1)
+
+    with multiprocessing.dummy.Pool() as pool:
+        for lint_result in pool.imap(lint_file, test_files):
+            if lint_result.crashed:
+                lint_result.dump()
+                exit(1)
 
 
 def should_check_test_file(test_file: pathlib.Path) -> bool:
