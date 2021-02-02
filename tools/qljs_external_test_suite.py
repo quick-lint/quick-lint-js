@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import sys
+import fnmatch
 import pathlib
 import pipes
 import subprocess
+import sys
 import typing
 import unittest
 
@@ -160,10 +161,19 @@ class TestMatchPath(unittest.TestCase):
 
 def match_path(pattern: str, path) -> bool:
     Path = path.__class__
-    pattern_parts = Path(pattern).parts
-    subpath = Path(*path.parts[-len(pattern_parts) :])
-    return subpath.match(pattern)
+    try:
+        pattern_parts = _pattern_cache[(Path, pattern)]
+    except KeyError:
+        pattern_parts = Path(pattern).parts
+        _pattern_cache[(Path, pattern)] = pattern_parts
 
+    return all(
+        fnmatch.fnmatchcase(part, pattern)
+        for (pattern, part) in zip(pattern_parts, path.parts[-len(pattern_parts) :])
+    )
+
+
+_pattern_cache = {}
 
 if __name__ == "__main__":
     unittest.main()
