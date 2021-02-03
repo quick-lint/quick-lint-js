@@ -649,6 +649,15 @@ TEST_F(test_lex, lex_strings) {
                                 offsets_matcher(input, 0, 14))));
       });
 
+  // TODO (angel): this throws error_unexpected_backslash_in_identifier
+  this->check_single_token_with_errors(
+      u8"\\x1", u8"\\x1",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                      error_invalid_hex_escape_sequence, escape_sequence,
+                      offsets_matcher(input, 0, 3))));
+      });
   // TODO(strager): Report invalid hex escape sequences. For example:
   //
   // "hello\x1qworld"

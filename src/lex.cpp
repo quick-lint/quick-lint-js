@@ -606,6 +606,10 @@ const char8* lexer::parse_string_literal() noexcept {
           ++c;
           break;
         }
+      case 'x':
+        // TODO (angel): do stuff here to identify invalid hex escape sequences?
+        // use parse_hexadecimal_number?
+        break;
       default:
         ++c;
         break;
