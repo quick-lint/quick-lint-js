@@ -651,12 +651,26 @@ TEST_F(test_lex, lex_strings) {
 
   // TODO (angel): add more tests
   this->check_tokens_with_errors(
-      u8"'\\x1'", {token_type::string},
+      u8"'\\x1 \\xff \\xg '", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 1, 5)),
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 10, 13)))
+                    );
+      });
+
+  this->check_tokens_with_errors(
+      u8"'test \\xg test'", {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
                       error_invalid_hex_escape_sequence, escape_sequence,
-                      offsets_matcher(input, 1, 5))));
+                      offsets_matcher(input, 6, 9))));
       });
 
   // TODO(strager): Report invalid unicode escape sequences. For example:
