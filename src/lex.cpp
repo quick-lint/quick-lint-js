@@ -594,7 +594,8 @@ const char8* lexer::parse_string_literal() noexcept {
       return c;
     }
 
-    case '\\':
+    case '\\': {
+      const char8* escape_sequence_start = c;
       ++c;
       switch (*c) {
       case '\0':
@@ -611,7 +612,7 @@ const char8* lexer::parse_string_literal() noexcept {
           ++c;
           if (!is_hex_digit(*c)) {
             this->error_reporter_->report(error_invalid_hex_escape_sequence{
-                source_code_span(c-2-i, c+1)});
+                source_code_span(escape_sequence_start, c+1)});
             break;
           }
         }
@@ -621,6 +622,7 @@ const char8* lexer::parse_string_literal() noexcept {
         break;
       }
       break;
+    }
 
     case '"':
     case '\'':
