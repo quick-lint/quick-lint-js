@@ -649,9 +649,10 @@ TEST_F(test_lex, lex_strings) {
                                 offsets_matcher(input, 0, 14))));
       });
 
-  // TODO (angel): this throws error_unexpected_backslash_in_identifier
-  this->check_single_token_with_errors(
-      u8"\\x1", u8"\\x1",
+  // TODO (angel): report error_invalid_hex_escape_sequence
+  // currently reports nothing
+  this->check_tokens_with_errors(
+      u8"'\\x1'", {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
