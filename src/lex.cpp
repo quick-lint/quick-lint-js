@@ -611,7 +611,7 @@ const char8* lexer::parse_string_literal() noexcept {
           ++c;
           if (!is_hex_digit(*c)) {
             this->error_reporter_->report(error_invalid_hex_escape_sequence{
-                source_code_span(&this->input_[2], c)});
+                source_code_span(c-2-i, c+1)});
             break;
           }
         }
