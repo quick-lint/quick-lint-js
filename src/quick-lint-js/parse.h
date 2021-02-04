@@ -122,10 +122,14 @@ class parser {
       this->skip();
       break;
 
-    // var x = 42;
     // function f() {}
-    case token_type::kw_const:
     case token_type::kw_function:
+      this->parse_and_visit_function_declaration(v, function_attributes::normal,
+                                                 /*require_name=*/true);
+      break;
+
+    // var x = 42;
+    case token_type::kw_const:
     case token_type::kw_var:
       this->parse_and_visit_declaration(v);
       break;
@@ -156,7 +160,8 @@ class parser {
       // async function f() {}
       case token_type::kw_function:
         this->parse_and_visit_function_declaration(v,
-                                                   function_attributes::async);
+                                                   function_attributes::async,
+                                                   /*require_name=*/true);
         break;
 
       // async (x, y) => expressionOrStatement
@@ -594,8 +599,9 @@ class parser {
         token async_token = this->peek();
         this->skip();
         if (this->peek().type == token_type::kw_function) {
-          this->parse_and_visit_function_declaration(
-              v, function_attributes::async);
+          this->parse_and_visit_function_declaration(v,
+                                                     function_attributes::async,
+                                                     /*require_name=*/false);
         } else {
           expression_ptr ast =
               this->parse_async_expression(async_token, precedence{});
@@ -643,7 +649,8 @@ class parser {
     case token_type::kw_async:
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
-      this->parse_and_visit_function_declaration(v, function_attributes::async);
+      this->parse_and_visit_function_declaration(v, function_attributes::async,
+                                                 /*require_name=*/false);
       break;
 
     case token_type::kw_class:
@@ -677,8 +684,8 @@ class parser {
 
     // function f() {}
     case token_type::kw_function:
-      this->parse_and_visit_function_declaration(v,
-                                                 function_attributes::normal);
+      this->parse_and_visit_function_declaration(v, function_attributes::normal,
+                                                 /*require_name=*/false);
       break;
 
     // class C {}
@@ -710,8 +717,10 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_declaration(Visitor &v,
-                                            function_attributes attributes) {
+                                            function_attributes attributes,
+                                            bool require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
+    const char8 *function_token_begin = this->peek().begin;
     this->skip();
     attributes = this->parse_generator_star(attributes);
 
@@ -739,8 +748,11 @@ class parser {
 
     // export default function() {}
     case token_type::left_paren:
-      // TODO(strager): Require name for function declarations. Functions names
-      // are only optional for 'export default' and expressions.
+      if (require_name) {
+        this->error_reporter_->report(error_missing_name_in_function_statement{
+            .where = source_code_span(function_token_begin, this->peek().end),
+        });
+      }
       this->parse_and_visit_function_parameters_and_body(v, attributes);
       break;
 
