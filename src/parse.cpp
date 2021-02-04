@@ -849,6 +849,16 @@ expression_ptr parser::parse_object_literal() {
       QLJS_PARSER_UNIMPLEMENTED();
     }
     switch (this->peek().type) {
+    case token_type::complete_template:
+    case token_type::incomplete_template:
+      this->skip();
+      if (this->peek().type == token_type::colon) {
+        const char8 *backtick_location = this->lexer_.end_of_previous_token();
+        this->error_reporter_->report(error_unexpected_template_string{
+            source_code_span(backtick_location, backtick_location)});
+        this->skip();
+        break;
+      }
     case token_type::comma:
     case token_type::end_of_file:
     case token_type::right_curly:

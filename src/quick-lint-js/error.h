@@ -380,6 +380,14 @@
       },                                                                       \
       .error(QLJS_TRANSLATABLE("variable used before declaration: {0}"), use)  \
           .note(QLJS_TRANSLATABLE("variable declared here"), declaration))     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_template_string, "E061",                                \
+      { source_code_span where; },                                             \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("cannot use template string as key in object"),    \
+          where))                                                              \
+                                                                               \
   /* END */
 
 namespace quick_lint_js {
