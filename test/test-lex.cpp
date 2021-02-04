@@ -548,6 +548,8 @@ TEST_F(test_lex, lex_strings) {
   this->check_tokens(u8R"("hello'world")", {token_type::string});
   this->check_tokens(u8"'hello\\\nworld'"_sv, {token_type::string});
   this->check_tokens(u8"\"hello\\\nworld\"", {token_type::string});
+  this->check_tokens(u8"'hello\\x0aworld'", {token_type::string});
+  this->check_tokens(u8"'\\x68\\x65\\x6c\\x6C\\x6f'", {token_type::string});
 
   this->check_tokens_with_errors(
       u8R"("unterminated)", {token_type::string},
@@ -649,7 +651,63 @@ TEST_F(test_lex, lex_strings) {
                                 offsets_matcher(input, 0, 14))));
       });
 
-  // TODO (angel): add more tests
+  this->check_tokens_with_errors(
+      u8"'\\x", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 1, 4)),
+                      ERROR_TYPE_FIELD(
+                        error_unclosed_string_literal, string_literal,
+                        offsets_matcher(input, 0, 3))
+                    )
+        );
+      });
+
+  this->check_tokens_with_errors(
+      u8"'\\x1", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 1, 5)),
+                      ERROR_TYPE_FIELD(
+                        error_unclosed_string_literal, string_literal,
+                        offsets_matcher(input, 0, 4))
+                    )
+        );
+      });
+
+  this->check_tokens_with_errors(
+      u8"'\\x'", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 1, 4))
+                    )
+        );
+      });
+
+  this->check_tokens_with_errors(
+      u8"'\\x\\xyz'", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 1, 4)),
+                      ERROR_TYPE_FIELD(
+                        error_invalid_hex_escape_sequence, escape_sequence,
+                        offsets_matcher(input, 3, 6))
+                    )
+        );
+      });
+
   this->check_tokens_with_errors(
       u8"'\\x1 \\xff \\xg '", {token_type::string},
       [](padded_string_view input, const auto& errors) {
@@ -660,8 +718,9 @@ TEST_F(test_lex, lex_strings) {
                         offsets_matcher(input, 1, 5)),
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 10, 13)))
-                    );
+                        offsets_matcher(input, 10, 13))
+                    )
+        );
       });
 
   // TODO(strager): Report invalid unicode escape sequences. For example:
