@@ -607,8 +607,14 @@ const char8* lexer::parse_string_literal() noexcept {
           break;
         }
       case 'x':
-        // TODO (angel): do stuff here to identify invalid hex escape sequences?
-        // use parse_hexadecimal_number?
+        for (int i = 0; i < 2; ++i) {
+          ++c;
+          if (!is_hex_digit(*c)) {
+            this->error_reporter_->report(error_invalid_hex_escape_sequence{
+                source_code_span(&this->input_[2], c)});
+            break;
+          }
+        }
         break;
       default:
         ++c;
