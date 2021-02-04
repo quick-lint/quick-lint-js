@@ -656,7 +656,7 @@ TEST_F(test_lex, lex_strings) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
                       error_invalid_hex_escape_sequence, escape_sequence,
-                      offsets_matcher(input, 2, 4))));
+                      offsets_matcher(input, 1, 5))));
       });
 
   // TODO(strager): Report invalid unicode escape sequences. For example:
