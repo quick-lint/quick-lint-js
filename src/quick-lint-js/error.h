@@ -201,6 +201,15 @@
       .error(QLJS_TRANSLATABLE("missing name in function statement"), where))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_name_or_parentheses_for_function, "E062",                  \
+      {                                                                        \
+        source_code_span where;                                                \
+        source_code_span function;                                             \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("missing name or parentheses for function"),    \
+             where))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_operand_for_operator, "E026", { source_code_span where; }, \
       .error(QLJS_TRANSLATABLE("missing operand for operator"), where))        \
                                                                                \

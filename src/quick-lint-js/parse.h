@@ -125,6 +125,7 @@ class parser {
     // function f() {}
     case token_type::kw_function:
       this->parse_and_visit_function_declaration(v, function_attributes::normal,
+                                                 /*begin=*/this->peek().begin,
                                                  /*require_name=*/true);
       break;
 
@@ -161,6 +162,7 @@ class parser {
       case token_type::kw_function:
         this->parse_and_visit_function_declaration(v,
                                                    function_attributes::async,
+                                                   /*begin=*/async_token.begin,
                                                    /*require_name=*/true);
         break;
 
@@ -599,9 +601,10 @@ class parser {
         token async_token = this->peek();
         this->skip();
         if (this->peek().type == token_type::kw_function) {
-          this->parse_and_visit_function_declaration(v,
-                                                     function_attributes::async,
-                                                     /*require_name=*/false);
+          this->parse_and_visit_function_declaration(
+              v, function_attributes::async,
+              /*begin=*/async_token.begin,
+              /*require_name=*/false);
         } else {
           expression_ptr ast =
               this->parse_async_expression(async_token, precedence{});
@@ -646,12 +649,15 @@ class parser {
     }
 
     // export class C {}
-    case token_type::kw_async:
+    case token_type::kw_async: {
+      const char8 *async_token_begin = this->peek().begin;
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
       this->parse_and_visit_function_declaration(v, function_attributes::async,
+                                                 /*begin=*/async_token_begin,
                                                  /*require_name=*/false);
       break;
+    }
 
     case token_type::kw_class:
     case token_type::kw_const:
@@ -685,6 +691,7 @@ class parser {
     // function f() {}
     case token_type::kw_function:
       this->parse_and_visit_function_declaration(v, function_attributes::normal,
+                                                 /*begin=*/this->peek().begin,
                                                  /*require_name=*/false);
       break;
 
@@ -718,6 +725,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_declaration(Visitor &v,
                                             function_attributes attributes,
+                                            const char8 *begin,
                                             bool require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
     const char8 *function_token_begin = this->peek().begin;
@@ -749,11 +757,40 @@ class parser {
     // export default function() {}
     case token_type::left_paren:
       if (require_name) {
-        this->error_reporter_->report(error_missing_name_in_function_statement{
-            .where = source_code_span(function_token_begin, this->peek().end),
-        });
+        const char8 *left_paren_end = this->peek().end;
+
+        // The function should have a name, but doesn't have a name. Perhaps the
+        // user intended to include parentheses. Parse the function as an
+        // expression instead of as a declaration.
+        buffering_visitor *function_visitor =
+            this->expressions_.make_buffering_visitor();
+        this->parse_and_visit_function_parameters_and_body_no_scope(
+            *function_visitor, attributes);
+        const char8 *function_end = this->lexer_.end_of_previous_token();
+        expression_ptr function = this->make_expression<expression::function>(
+            attributes, function_visitor,
+            source_code_span(function_token_begin, function_end));
+        expression_ptr full_expression =
+            this->parse_expression_remainder(function, precedence{});
+        this->visit_expression(full_expression, v, variable_context::rhs);
+
+        if (full_expression == function) {
+          this->error_reporter_->report(
+              error_missing_name_in_function_statement{
+                  .where =
+                      source_code_span(function_token_begin, left_paren_end),
+              });
+        } else {
+          this->error_reporter_->report(
+              error_missing_name_or_parentheses_for_function{
+                  .where =
+                      source_code_span(function_token_begin, left_paren_end),
+                  .function = source_code_span(begin, function->span().end()),
+              });
+        }
+      } else {
+        this->parse_and_visit_function_parameters_and_body(v, attributes);
       }
-      this->parse_and_visit_function_parameters_and_body(v, attributes);
       break;
 
     default:
