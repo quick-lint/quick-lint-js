@@ -2879,8 +2879,9 @@ TEST(test_parse, labelled_statement) {
 }
 
 TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
-  {
-    spy_visitor v = parse_and_visit_statement(u8"await: x;"_sv);
+  for (string8_view keyword : {u8"await"_sv, u8"yield"_sv}) {
+    SCOPED_TRACE(out_string8(keyword));
+    spy_visitor v = parse_and_visit_statement(string8(keyword) + u8": x;");
     // TODO(strager): Announce the label with a visit?
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
   }

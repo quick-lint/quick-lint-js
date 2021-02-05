@@ -241,7 +241,6 @@ class parser {
     case token_type::kw_true:
     case token_type::kw_typeof:
     case token_type::kw_void:
-    case token_type::kw_yield:
     case token_type::left_paren:
     case token_type::left_square:
     case token_type::minus:
@@ -265,10 +264,25 @@ class parser {
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
         break;
+      } else {
+        goto parse_loop_label_or_expression_starting_with_identifier;
       }
-      [[fallthrough]];
+
+    // yield value;
+    // yield = value;
+    // yield: for(;;);
+    case token_type::kw_yield:
+      if (this->in_generator_function_) {
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon();
+        break;
+      } else {
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+
     // console.log("hello");
     // label: for(;;);
+    parse_loop_label_or_expression_starting_with_identifier:
     case token_type::identifier: {
       identifier ident = this->peek().identifier_name();
       this->skip();
