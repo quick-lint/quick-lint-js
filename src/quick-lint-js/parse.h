@@ -221,13 +221,12 @@ class parser {
       this->parse_and_visit_import(v);
       break;
 
-    // await settings.save();
+    // this.explode();
     // [1, 2, 3].forEach(x => console.log(x));
     case token_type::bang:
     case token_type::complete_template:
     case token_type::incomplete_template:
     case token_type::kw_as:
-    case token_type::kw_await:
     case token_type::kw_delete:
     case token_type::kw_false:
     case token_type::kw_from:
@@ -258,6 +257,16 @@ class parser {
       this->consume_semicolon();
       break;
 
+    // await settings.save();
+    // await = value;
+    // await: for(;;);
+    case token_type::kw_await:
+      if (this->in_async_function_) {
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon();
+        break;
+      }
+      [[fallthrough]];
     // console.log("hello");
     // label: for(;;);
     case token_type::identifier: {

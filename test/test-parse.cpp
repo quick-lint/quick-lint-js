@@ -2878,6 +2878,14 @@ TEST(test_parse, labelled_statement) {
   }
 }
 
+TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"await: x;"_sv);
+    // TODO(strager): Announce the label with a visit?
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+  }
+}
+
 TEST(test_parse, report_missing_semicolon_for_declarations) {
   {
     spy_visitor v;
