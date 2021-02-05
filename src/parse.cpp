@@ -746,7 +746,7 @@ next:
 template <class... Args>
 expression_ptr parser::parse_arrow_function_body(
     function_attributes attributes, const char8 *parameter_list_begin,
-    Args &&...args) {
+    Args &&... args) {
   function_guard guard = this->enter_function(attributes);
   if (this->peek().type == token_type::left_curly) {
     buffering_visitor *v = this->expressions_.make_buffering_visitor();
