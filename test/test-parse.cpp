@@ -1458,6 +1458,64 @@ TEST(test_parse, parse_function_statement) {
   }
 }
 
+TEST(test_parse, function_statement_with_no_name) {
+  {
+    padded_string code(u8"function() {x;}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_name_in_function_statement, where,
+                    offsets_matcher(&code, 0, strlen(u8"function(")))));
+  }
+
+  {
+    padded_string code(u8"async function() {x;}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_name_in_function_statement, where,
+                              offsets_matcher(&code, strlen(u8"async "),
+                                              strlen(u8"async function(")))));
+  }
+
+  {
+    padded_string code(u8"async function(x) {y;}(z)"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_use"));             // z
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_name_or_parentheses_for_function,  //
+            where,
+            offsets_matcher(&code, strlen(u8"async "),
+                            strlen(u8"async function(")),  //
+            function,
+            offsets_matcher(&code, 0, strlen(u8"async function(x) {y;}")))));
+  }
+}
+
 TEST(test_parse, async_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"async function f() {}"_sv);
