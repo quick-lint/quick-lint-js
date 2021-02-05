@@ -658,7 +658,7 @@ TEST_F(test_lex, lex_strings) {
                     UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 1, 4)),
+                        offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_unclosed_string_literal, string_literal,
                         offsets_matcher(input, 0, 3))
@@ -673,7 +673,7 @@ TEST_F(test_lex, lex_strings) {
                     UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 1, 5)),
+                        offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_unclosed_string_literal, string_literal,
                         offsets_matcher(input, 0, 4))
@@ -688,7 +688,7 @@ TEST_F(test_lex, lex_strings) {
                     ElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 1, 4))
+                        offsets_matcher(input, 1, 3))
                     )
         );
       });
@@ -700,10 +700,10 @@ TEST_F(test_lex, lex_strings) {
                     UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 1, 4)),
+                        offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 3, 6))
+                        offsets_matcher(input, 3, 5))
                     )
         );
       });
@@ -715,10 +715,10 @@ TEST_F(test_lex, lex_strings) {
                     UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 1, 5)),
+                        offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 10, 13))
+                        offsets_matcher(input, 10, 12))
                     )
         );
       });
