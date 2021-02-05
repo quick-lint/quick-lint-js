@@ -661,9 +661,7 @@ TEST_F(test_lex, lex_strings) {
                         offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_unclosed_string_literal, string_literal,
-                        offsets_matcher(input, 0, 3))
-                    )
-        );
+                        offsets_matcher(input, 0, 3))));
       });
 
   this->check_tokens_with_errors(
@@ -676,9 +674,7 @@ TEST_F(test_lex, lex_strings) {
                         offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_unclosed_string_literal, string_literal,
-                        offsets_matcher(input, 0, 4))
-                    )
-        );
+                        offsets_matcher(input, 0, 4))));
       });
 
   this->check_tokens_with_errors(
@@ -688,9 +684,7 @@ TEST_F(test_lex, lex_strings) {
                     ElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 1, 3))
-                    )
-        );
+                        offsets_matcher(input, 1, 3))));
       });
 
   this->check_tokens_with_errors(
@@ -703,9 +697,7 @@ TEST_F(test_lex, lex_strings) {
                         offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 3, 5))
-                    )
-        );
+                        offsets_matcher(input, 3, 5))));
       });
 
   this->check_tokens_with_errors(
@@ -718,9 +710,7 @@ TEST_F(test_lex, lex_strings) {
                         offsets_matcher(input, 1, 3)),
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, 10, 12))
-                    )
-        );
+                        offsets_matcher(input, 10, 12))));
       });
 
   // TODO(strager): Report invalid unicode escape sequences. For example:
