@@ -610,7 +610,7 @@ const char8* lexer::parse_string_literal() noexcept {
       case 'x':
         ++c;
         for (int i = 0; i < 2; ++i) {
-          if (!is_hex_digit(*(c+i))) {
+          if (!is_hex_digit(*(c + i))) {
             this->error_reporter_->report(error_invalid_hex_escape_sequence{
                 source_code_span(escape_sequence_start, c)});
             break;
