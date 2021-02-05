@@ -655,7 +655,7 @@ TEST_F(test_lex, lex_strings) {
       u8"'\\x", {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(
+                    UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
                         offsets_matcher(input, 1, 4)),
@@ -670,7 +670,7 @@ TEST_F(test_lex, lex_strings) {
       u8"'\\x1", {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(
+                    UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
                         offsets_matcher(input, 1, 5)),
@@ -697,7 +697,7 @@ TEST_F(test_lex, lex_strings) {
       u8"'\\x\\xyz'", {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(
+                    UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
                         offsets_matcher(input, 1, 4)),
@@ -712,7 +712,7 @@ TEST_F(test_lex, lex_strings) {
       u8"'\\x1 \\xff \\xg '", {token_type::string},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(
+                    UnorderedElementsAre(
                       ERROR_TYPE_FIELD(
                         error_invalid_hex_escape_sequence, escape_sequence,
                         offsets_matcher(input, 1, 5)),
