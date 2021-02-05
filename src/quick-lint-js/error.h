@@ -169,6 +169,12 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_invalid_hex_escape_sequence, "E060",                               \
+      { source_code_span escape_sequence; },                                   \
+      .error(QLJS_TRANSLATABLE("invalid hex escape sequence: {0}"),            \
+             escape_sequence))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_lone_literal_in_object_literal, "E021",                    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("invalid lone literal in object literal"),      \
