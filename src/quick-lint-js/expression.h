@@ -140,6 +140,9 @@ class expression_arena {
   template <class T>
   array_ptr<T> make_array(T *begin, T *end);
 
+  template <class T, std::size_t Size>
+  array_ptr<T> make_array(std::array<T, Size> &&);
+
   buffering_visitor_ptr make_buffering_visitor() {
     // See matching 'delete' in delete_buffering_visitor.
     return new buffering_visitor();
@@ -342,6 +345,12 @@ inline expression_arena::array_ptr<T> expression_arena::make_array(T *begin,
   T *result_begin = this->allocate_array_move(begin, end);
   int size = narrow_cast<int>(end - begin);
   return array_ptr<T>(result_begin, size);
+}
+
+template <class T, std::size_t Size>
+inline expression_arena::array_ptr<T> expression_arena::make_array(
+    std::array<T, Size> &&elements) {
+  return this->make_array(elements.data(), elements.data() + elements.size());
 }
 
 class expression::expression_with_prefix_operator_base : public expression {

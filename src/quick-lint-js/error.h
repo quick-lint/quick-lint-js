@@ -220,6 +220,13 @@
       .error(QLJS_TRANSLATABLE("missing operand for operator"), where))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_operator_between_expression_and_arrow_function, "E063",    \
+      { source_code_span where; },                                             \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "missing operator between expression and arrow function"),    \
+             where))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_semicolon_after_expression, "E027",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("missing semicolon after expression"), where))  \

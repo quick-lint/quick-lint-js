@@ -45,7 +45,12 @@
 
 namespace quick_lint_js {
 namespace {
-vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr);
+struct arrow_function_parameters {
+  vector<expression_ptr> parameters;
+  const char8 *left_paren_begin = nullptr;
+};
+
+arrow_function_parameters arrow_function_parameters_from_lhs(expression_ptr);
 }
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
@@ -404,7 +409,8 @@ expression_ptr parser::parse_async_expression(token async_token,
       // expression-or-block
       expression_ptr parenthesized_parameters = this->parse_expression();
       QLJS_ASSERT(parameters.empty());
-      parameters = arrow_function_parameters_from_lhs(parenthesized_parameters);
+      parameters = arrow_function_parameters_from_lhs(parenthesized_parameters)
+                       .parameters;
     }
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
@@ -439,6 +445,8 @@ expression_ptr parser::parse_async_expression(token async_token,
       }
       return this->parse_expression_remainder(call_ast, prec);
     }
+
+    // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
     break;
   }
 
@@ -686,9 +694,14 @@ next:
       QLJS_UNIMPLEMENTED();
     }
     expression_ptr lhs = children.back();
-    children.back() = this->parse_arrow_function_body(
-        function_attributes::normal, /*parameter_list_begin=*/nullptr,
-        this->expressions_.make_array(arrow_function_parameters_from_lhs(lhs)));
+    arrow_function_parameters parameters =
+        arrow_function_parameters_from_lhs(lhs);
+    expression_ptr arrow_function = this->parse_arrow_function_body(
+        function_attributes::normal,
+        /*parameter_list_begin=*/parameters.left_paren_begin,
+        this->expressions_.make_array(std::move(parameters.parameters)));
+    children.back() =
+        this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
     goto next;
   }
 
@@ -1139,6 +1152,26 @@ function_attributes parser::parse_generator_star(
   }
 }
 
+expression_ptr parser::maybe_wrap_erroneous_arrow_function(
+    expression_ptr arrow_function, expression_ptr lhs) {
+  switch (lhs->kind()) {
+  default:
+    return arrow_function;
+
+  case expression_kind::call: {
+    expression::call *call = lhs.get<expression::call>();
+    this->error_reporter_->report(
+        error_missing_operator_between_expression_and_arrow_function{
+            .where = source_code_span(call->span().begin(),
+                                      call->left_paren_span().end()),
+        });
+    std::array<expression_ptr, 2> children{lhs->child_0(), arrow_function};
+    return this->make_expression<expression::binary_operator>(
+        this->expressions_.make_array(std::move(children)));
+  }
+  }
+}
+
 void parser::consume_semicolon() {
   switch (this->peek().type) {
   case token_type::semicolon:
@@ -1185,15 +1218,19 @@ parser::function_guard::~function_guard() noexcept {
 }
 
 namespace {
-vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
-  vector<expression_ptr> parameters("arrow_function_parameters_from_lhs");
+arrow_function_parameters arrow_function_parameters_from_lhs(
+    expression_ptr lhs) {
+  arrow_function_parameters result{
+      .parameters =
+          vector<expression_ptr>("arrow_function_parameters_from_lhs"),
+  };
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
   case expression_kind::trailing_comma:
     // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
     // for example.
     for (int i = 0; i < lhs->child_count(); ++i) {
-      parameters.emplace_back(lhs->child(i));
+      result.parameters.emplace_back(lhs->child(i));
     }
     break;
   case expression_kind::array:
@@ -1201,13 +1238,23 @@ vector<expression_ptr> arrow_function_parameters_from_lhs(expression_ptr lhs) {
   case expression_kind::object:
   case expression_kind::spread:
   case expression_kind::variable:
-    parameters.emplace_back(lhs);
+    result.parameters.emplace_back(lhs);
     break;
+
+  // f(x, y) => {}
+  case expression_kind::call:
+    result.left_paren_begin =
+        lhs.get<expression::call>()->left_paren_span().begin();
+    for (int i = 1; i < lhs->child_count(); ++i) {
+      result.parameters.emplace_back(lhs->child(i));
+    }
+    break;
+
   default:
     QLJS_UNIMPLEMENTED();
     break;
   }
-  return parameters;
+  return result;
 }
 }
 }

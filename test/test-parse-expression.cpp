@@ -1775,6 +1775,32 @@ TEST_F(test_parse_expression, async_arrow_function) {
   }
 }
 
+TEST_F(test_parse_expression, invalid_arrow_function) {
+  {
+    test_parser p(u8"a() => b"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var a, arrowexpr(var b))");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_operator_between_expression_and_arrow_function, where,
+            offsets_matcher(p.locator, 0, strlen(u8"a(")))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 0 + strlen(u8"a() => b"));
+  }
+
+  {
+    test_parser p(u8"a(b) => c"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var a, arrowexpr(var b, var c))");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_operator_between_expression_and_arrow_function, where,
+            offsets_matcher(p.locator, 0, strlen(u8"a(")))));
+  }
+}
+
 TEST_F(test_parse_expression, anonymous_class) {
   {
     test_parser p(u8"class {}"_sv);

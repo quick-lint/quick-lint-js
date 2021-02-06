@@ -1798,6 +1798,9 @@ class parser {
 
   function_attributes parse_generator_star(function_attributes);
 
+  expression_ptr maybe_wrap_erroneous_arrow_function(
+      expression_ptr arrow_function, expression_ptr lhs);
+
   void consume_semicolon();
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
