@@ -50,6 +50,13 @@ class expression_ptr {
  public:
   explicit expression_ptr(expression *ptr) noexcept : ptr_(ptr) {}
 
+  template <class Derived>
+  Derived *get() const noexcept {
+    // TODO(strager): Assert that Derived matches the expression's run-time
+    // type.
+    return static_cast<Derived *>(this->ptr_);
+  }
+
   expression *operator->() const noexcept { return this->ptr_; }
   expression &operator*() const noexcept { return *this->ptr_; }
 
@@ -669,10 +676,14 @@ class expression::call final : public expression {
   static constexpr expression_kind kind = expression_kind::call;
 
   explicit call(expression_arena::array_ptr<expression_ptr> children,
-                source_code_span span) noexcept
+                source_code_span span,
+                source_code_span left_paren_span) noexcept
       : expression(kind),
+        call_left_paren_begin_(left_paren_span.begin()),
         call_right_paren_end_(span.end()),
-        children_(children) {}
+        children_(children) {
+    QLJS_ASSERT(left_paren_span.size() == 1);
+  }
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
@@ -685,7 +696,13 @@ class expression::call final : public expression {
                             this->call_right_paren_end_);
   }
 
+  source_code_span left_paren_span() const noexcept {
+    return source_code_span(this->call_left_paren_begin_,
+                            this->call_left_paren_begin_ + 1);
+  }
+
  private:
+  const char8 *call_left_paren_begin_;
   const char8 *call_right_paren_end_;
   expression_arena::array_ptr<expression_ptr> children_;
 };

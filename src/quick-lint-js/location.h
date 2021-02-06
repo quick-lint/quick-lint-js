@@ -38,6 +38,10 @@ class source_code_span {
                         narrow_cast<std::size_t>(this->end() - this->begin()));
   }
 
+  int size() const noexcept {
+    return narrow_cast<int>(this->end() - this->begin());
+  }
+
  private:
   const char8* begin_;
   const char8* end_;

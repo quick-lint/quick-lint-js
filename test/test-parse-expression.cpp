@@ -63,7 +63,11 @@ class test_parser {
   }
 
   cli_source_range range(expression_ptr ast) {
-    return this->locator.range(ast->span());
+    return this->range(ast->span());
+  }
+
+  cli_source_range range(source_code_span span) {
+    return this->locator.range(span);
   }
 
   quick_lint_js::parser &parser() noexcept { return this->parser_; }
@@ -534,6 +538,9 @@ TEST_F(test_parse_expression, parse_function_call) {
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 3);
+    expression::call *call = ast.get<expression::call>();
+    EXPECT_EQ(p.range(call->left_paren_span()).begin_offset(), 1);
+    EXPECT_EQ(p.range(call->left_paren_span()).end_offset(), 2);
   }
 
   {

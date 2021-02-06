@@ -394,6 +394,7 @@ expression_ptr parser::parse_async_expression(token async_token,
       "parse_expression async arrow function parameters");
   switch (this->peek().type) {
   case token_type::left_paren: {
+    source_code_span left_paren_span = this->peek().span();
     this->skip();
 
     if (this->peek().type == token_type::right_paren) {
@@ -431,7 +432,8 @@ expression_ptr parser::parse_async_expression(token async_token,
 
       expression_ptr call_ast = this->make_expression<expression::call>(
           this->expressions_.make_array(std::move(call_children)),
-          right_paren_span);
+          right_paren_span,
+          /*left_paren_span=*/left_paren_span);
       if (!prec.binary_operators) {
         return call_ast;
       }
@@ -548,6 +550,7 @@ next:
 
   // Function call: f(x, y, z)
   case token_type::left_paren: {
+    source_code_span left_paren_span = this->peek().span();
     vector<expression_ptr, 4> call_children(
         "parse_expression_remainder call children", &children.back(),
         &children.back() + 1);
@@ -565,7 +568,8 @@ next:
     this->skip();
     children.back() = this->make_expression<expression::call>(
         this->expressions_.make_array(std::move(call_children)),
-        right_paren_span);
+        right_paren_span,
+        /*left_paren_span=*/left_paren_span);
     goto next;
   }
 
