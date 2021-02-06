@@ -432,8 +432,8 @@ expression_ptr parser::parse_async_expression(token async_token,
 
       expression_ptr call_ast = this->make_expression<expression::call>(
           this->expressions_.make_array(std::move(call_children)),
-          right_paren_span,
-          /*left_paren_span=*/left_paren_span);
+          /*left_paren_span=*/left_paren_span,
+          /*right_paren_span=*/right_paren_span);
       if (!prec.binary_operators) {
         return call_ast;
       }
@@ -568,8 +568,8 @@ next:
     this->skip();
     children.back() = this->make_expression<expression::call>(
         this->expressions_.make_array(std::move(call_children)),
-        right_paren_span,
-        /*left_paren_span=*/left_paren_span);
+        /*left_paren_span=*/left_paren_span,
+        /*right_paren_span=*/right_paren_span);
     goto next;
   }
 

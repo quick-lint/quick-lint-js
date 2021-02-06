@@ -676,13 +676,14 @@ class expression::call final : public expression {
   static constexpr expression_kind kind = expression_kind::call;
 
   explicit call(expression_arena::array_ptr<expression_ptr> children,
-                source_code_span span,
-                source_code_span left_paren_span) noexcept
+                source_code_span left_paren_span,
+                source_code_span right_paren_span) noexcept
       : expression(kind),
         call_left_paren_begin_(left_paren_span.begin()),
-        call_right_paren_end_(span.end()),
+        call_right_paren_end_(right_paren_span.end()),
         children_(children) {
     QLJS_ASSERT(left_paren_span.size() == 1);
+    QLJS_ASSERT(right_paren_span.size() == 1);
   }
 
   int child_count_impl() const noexcept { return this->children_.size(); }
