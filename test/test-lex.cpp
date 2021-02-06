@@ -550,6 +550,7 @@ TEST_F(test_lex, lex_strings) {
   this->check_tokens(u8"\"hello\\\nworld\"", {token_type::string});
   this->check_tokens(u8"'hello\\x0aworld'", {token_type::string});
   this->check_tokens(u8R"('\x68\x65\x6c\x6C\x6f')", {token_type::string});
+  this->check_tokens(u8"'hello\\\r\nworld'", {token_type::string});
 
   this->check_tokens_with_errors(
       u8R"("unterminated)", {token_type::string},
