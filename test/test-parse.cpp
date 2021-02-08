@@ -1244,6 +1244,19 @@ TEST(test_parse, asi_for_statement_at_newline) {
                 ElementsAre("visit_variable_declaration",  // a
                             "visit_variable_use"));        // b
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"a + b\nimport {x} from 'module'\n"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",            // a
+                            "visit_variable_use",            // b
+                            "visit_variable_declaration"));  // x
+  }
 }
 
 TEST(test_parse, asi_for_statement_at_end_of_file) {

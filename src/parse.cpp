@@ -737,6 +737,7 @@ next:
   case token_type::kw_from:
   case token_type::kw_function:
   case token_type::kw_if:
+  case token_type::kw_import:
   case token_type::kw_let:
   case token_type::kw_of:
   case token_type::kw_return:
