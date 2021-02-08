@@ -1100,6 +1100,15 @@ TEST_F(test_parse_expression, array_literal) {
     expression_ptr ast = this->parse_expression(u8"[,,x,,y,,]"_sv);
     EXPECT_EQ(summarize(ast), "array(var x, var y)");
   }
+
+  {
+    // Comma should be parsed as an array separator, not as a comma operator.
+    test_parser p(u8"[await myPromise,]"_sv);
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(summarize(ast), "array(await(var myPromise))");
+  }
 }
 
 TEST_F(test_parse_expression, object_literal) {

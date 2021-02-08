@@ -141,7 +141,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       // await is a unary operator.
       source_code_span operator_span = this->peek().span();
       this->skip();
-      expression_ptr child = this->parse_expression();
+      expression_ptr child = this->parse_expression(prec);
       return this->parse_expression_remainder(
           this->make_expression<expression::await>(child, operator_span), prec);
     } else {
