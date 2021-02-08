@@ -110,6 +110,16 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_statement(Visitor &v) {
+    auto parse_expression_end = [this]() -> void {
+      while (this->peek().type == token_type::right_paren) {
+        this->error_reporter_->report(error_unmatched_parenthesis{
+            .where = this->peek().span(),
+        });
+        this->skip();
+      }
+      this->consume_semicolon();
+    };
+
   parse_statement:
     switch (this->peek().type) {
     // export class C {}
@@ -250,12 +260,13 @@ class parser {
     case token_type::number:
     case token_type::plus:
     case token_type::plus_plus:
+    case token_type::right_paren:
     case token_type::slash:
     case token_type::slash_equal:
     case token_type::string:
     case token_type::tilde:
       this->parse_and_visit_expression(v);
-      this->consume_semicolon();
+      parse_expression_end();
       break;
 
     // await settings.save();
@@ -264,7 +275,7 @@ class parser {
     case token_type::kw_await:
       if (this->in_async_function_) {
         this->parse_and_visit_expression(v);
-        this->consume_semicolon();
+        parse_expression_end();
         break;
       } else {
         goto parse_loop_label_or_expression_starting_with_identifier;
@@ -276,7 +287,7 @@ class parser {
     case token_type::kw_yield:
       if (this->in_generator_function_) {
         this->parse_and_visit_expression(v);
-        this->consume_semicolon();
+        parse_expression_end();
         break;
       } else {
         goto parse_loop_label_or_expression_starting_with_identifier;
@@ -300,7 +311,7 @@ class parser {
             ident, token_type::identifier);
         ast = this->parse_expression_remainder(ast, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
-        this->consume_semicolon();
+        parse_expression_end();
         break;
       }
       break;
@@ -330,7 +341,7 @@ class parser {
 
       default:
         this->parse_and_visit_expression(v);
-        this->consume_semicolon();
+        parse_expression_end();
         break;
       }
       break;
@@ -352,7 +363,7 @@ class parser {
         break;
       }
       this->parse_and_visit_expression(v);
-      this->consume_semicolon();
+      parse_expression_end();
       break;
 
     // try { hard(); } catch (exhaustion) {}

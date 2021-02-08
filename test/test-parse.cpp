@@ -755,6 +755,88 @@ TEST(test_parse, parse_invalid_math_expression) {
   }
 }
 
+TEST(test_parse, stray_right_parenthesis) {
+  {
+    spy_visitor v;
+    padded_string code(u8")"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 0, 1))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"x))"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 1, 2)),
+                            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 2, 3))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"-x))"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 2, 3)),
+                            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                                             offsets_matcher(&code, 3, 4))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"await p)"_sv);
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::async);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unmatched_parenthesis, where,
+                              offsets_matcher(&code, strlen(u8"await p"),
+                                              strlen(u8"await p)")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"yield v)"_sv);
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unmatched_parenthesis, where,
+                              offsets_matcher(&code, strlen(u8"yield p"),
+                                              strlen(u8"yield p)")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"return result)"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unmatched_parenthesis, where,
+                              offsets_matcher(&code, strlen(u8"return result"),
+                                              strlen(u8"return result)")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"throw banana)"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unmatched_parenthesis, where,
+                              offsets_matcher(&code, strlen(u8"throw banana"),
+                                              strlen(u8"throw banana)")))));
+  }
+}
+
 TEST(test_parse, statement_starting_with_binary_only_operator) {
   for (string8_view op : {
            u8"!=", u8"!==", u8"%",  u8"&",          u8"&&",  u8"*", u8"**",
