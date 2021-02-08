@@ -195,6 +195,12 @@
       .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_body_for_if_statement, "E064",                             \
+      { source_code_span if_and_condition; },                                  \
+      .error(QLJS_TRANSLATABLE("missing body for 'if' statement"),             \
+             if_and_condition))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_comma_between_object_literal_entries, "E025",              \
       { source_code_span where; },                                             \
       .error(                                                                  \

@@ -417,6 +417,8 @@ class parser {
       break;
 
     case token_type::right_curly:
+      // TODO(strager): Should we report an error? The caller expected a
+      // statement.
       break;
 
     default:
@@ -1361,6 +1363,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_if(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_if);
+    const char8 *if_token_begin = this->peek().begin;
     this->skip();
 
     bool have_condition_left_paren =
@@ -1399,7 +1402,19 @@ class parser {
           });
     }
 
-    this->parse_and_visit_statement(v);
+    switch (this->peek().type) {
+    default:
+      this->parse_and_visit_statement(v);
+      break;
+
+    case token_type::kw_else:
+    case token_type::right_curly:
+      this->error_reporter_->report(error_missing_body_for_if_statement{
+          .if_and_condition = source_code_span(
+              if_token_begin, this->lexer_.end_of_previous_token()),
+      });
+      break;
+    }
 
     if (this->peek().type == token_type::kw_else) {
       this->skip();
