@@ -930,17 +930,22 @@ expression_ptr parser::parse_object_literal() {
     }
 
     // { async methodName() { } }
+    // { async *generatorName() { } }
     // { get propertyName() { } }
     case token_type::kw_async:
     case token_type::kw_get:
     case token_type::kw_set: {
+      bool is_async = this->peek().type == token_type::kw_async;
       function_attributes method_attributes =
-          this->peek().type == token_type::kw_async
-              ? function_attributes::async
-              : function_attributes::normal;
+          is_async ? function_attributes::async : function_attributes::normal;
       source_code_span keyword_span = this->peek().span();
       token_type keyword_type = this->peek().type;
       this->skip();
+
+      if (is_async && this->peek().type == token_type::star) {
+        // { async *generatorName() { } }
+        this->skip();
+      }
 
       switch (this->peek().type) {
       QLJS_CASE_KEYWORD:

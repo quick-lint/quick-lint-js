@@ -1299,6 +1299,33 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
   }
+
+  {
+    expression_ptr ast =
+        this->parse_expression(u8"{ async *func(a, b) { } }"_sv);
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
+
+  {
+    expression_ptr ast =
+        this->parse_expression(u8"{ async *'func'(a, b) { } }"_sv);
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
+
+  {
+    expression_ptr ast =
+        this->parse_expression(u8"{ async *[func](a, b) { } }"_sv);
+    EXPECT_EQ(ast->kind(), expression_kind::object);
+    EXPECT_EQ(ast->object_entry_count(), 1);
+    EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
+  }
 }
 
 TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
