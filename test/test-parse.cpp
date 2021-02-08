@@ -755,6 +755,24 @@ TEST(test_parse, parse_invalid_math_expression) {
   }
 }
 
+TEST(test_parse, statement_starting_with_binary_only_operator) {
+  for (string8_view op : {
+           u8"!=", u8"!==", u8"%",  u8"&",          u8"&&",  u8"*", u8"**",
+           u8"<",  u8"<<",  u8"<=", u8"==",         u8"===", u8">", u8">=",
+           u8">>", u8">>>", u8"^",  u8"instanceof", u8"|",
+       }) {
+    padded_string code(string8(op) + u8" x");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 0, op.size()))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+  }
+}
+
 TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
   {
     spy_visitor v;

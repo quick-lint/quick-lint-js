@@ -223,6 +223,8 @@ class parser {
 
     // this.explode();
     // [1, 2, 3].forEach(x => console.log(x));
+    // ^ x  // invalid expression
+    QLJS_CASE_BINARY_ONLY_OPERATOR:
     case token_type::bang:
     case token_type::complete_template:
     case token_type::incomplete_template:
