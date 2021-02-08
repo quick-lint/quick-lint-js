@@ -721,6 +721,7 @@ next:
     goto next;
   }
 
+  case token_type::bang:
   case token_type::colon:
   case token_type::end_of_file:
   case token_type::identifier:

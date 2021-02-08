@@ -1232,6 +1232,18 @@ TEST(test_parse, asi_for_statement_at_newline) {
                 ElementsAre("visit_variable_declaration",    // a
                             "visit_variable_declaration"));  // b
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let a = 1\n!b\n"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // a
+                            "visit_variable_use"));        // b
+  }
 }
 
 TEST(test_parse, asi_for_statement_at_end_of_file) {
