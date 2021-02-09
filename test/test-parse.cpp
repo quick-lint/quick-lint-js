@@ -2315,8 +2315,9 @@ TEST(test_parse, class_statement_with_methods) {
 }
 
 TEST(test_parse, class_statement_with_keyword_property) {
-  for (string8 keyword : {u8"async", u8"await", u8"catch", u8"class",
-                          u8"default", u8"get", u8"set", u8"static", u8"try"}) {
+  for (string8 keyword :
+       {u8"async", u8"await", u8"catch", u8"class", u8"default", u8"extends",
+        u8"get", u8"set", u8"static", u8"try"}) {
     {
       string8 code = u8"class C { " + keyword + u8"(){} }";
       SCOPED_TRACE(out_string8(code));

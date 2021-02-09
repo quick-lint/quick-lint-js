@@ -1042,6 +1042,7 @@ class parser {
     case token_type::kw_catch:
     case token_type::kw_class:
     case token_type::kw_default:
+    case token_type::kw_extends:
     case token_type::kw_try:
       v.visit_property_declaration(this->peek().identifier_name());
       this->skip();
