@@ -737,6 +737,17 @@ TEST_F(test_parse_expression,
     expression_ptr ast = parse_expression_in_generator(u8"a ? yield : b");
     EXPECT_EQ(summarize(ast), "cond(var a, yieldnone, var b)");
   }
+
+  {
+    expression_ptr ast = parse_expression_in_generator(u8"yield, yield");
+    EXPECT_EQ(summarize(ast), "binary(yieldnone, yieldnone)");
+  }
+
+  {
+    expression_ptr ast =
+        parse_expression_in_generator(u8"[yield, yield, yield]");
+    EXPECT_EQ(summarize(ast), "array(yieldnone, yieldnone, yieldnone)");
+  }
 }
 
 TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {

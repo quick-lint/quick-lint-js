@@ -157,7 +157,6 @@ expression_ptr parser::parse_expression(precedence prec) {
       this->skip();
       switch (this->peek().type) {
       case token_type::colon:
-      case token_type::comma:
       case token_type::end_of_file:
       case token_type::right_curly:
       case token_type::right_paren:
@@ -165,6 +164,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       case token_type::semicolon:
         return this->make_expression<expression::yield_none>(operator_span);
 
+      case token_type::comma:
       case token_type::kw_in:
       case token_type::question:
         return this->parse_expression_remainder(
