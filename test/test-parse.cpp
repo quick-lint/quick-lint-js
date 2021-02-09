@@ -2619,6 +2619,21 @@ TEST(test_parse, if_without_parens) {
   }
 }
 
+TEST(test_parse, else_without_if) {
+  {
+    spy_visitor v;
+    padded_string code(u8"else { body; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // body
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_else_has_no_if, else_token,
+                              offsets_matcher(&code, 0, strlen(u8"else")))));
+  }
+}
+
 TEST(test_parse, utter_garbage) {
   {
     spy_visitor v;

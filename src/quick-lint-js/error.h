@@ -111,6 +111,11 @@
              character))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_else_has_no_if, "E065", { source_code_span else_token; },          \
+      .error(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),            \
+             else_token))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_escaped_character_disallowed_in_identifiers, "E012",               \
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATABLE(                                                \

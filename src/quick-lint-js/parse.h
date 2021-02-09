@@ -397,6 +397,15 @@ class parser {
       this->parse_and_visit_if(v);
       break;
 
+    // else { nay; } // Invalid.
+    case token_type::kw_else:
+      this->error_reporter_->report(error_else_has_no_if{
+          .else_token = this->peek().span(),
+      });
+      this->skip();
+      this->parse_and_visit_statement(v);
+      break;
+
     // break;
     // continue label;
     case token_type::kw_break:
