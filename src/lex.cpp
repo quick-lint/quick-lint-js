@@ -607,6 +607,13 @@ const char8* lexer::parse_string_literal() noexcept {
           ++c;
           break;
         }
+        break;
+      case '\r':
+        ++c;
+        if (*c == '\n') {
+          ++c;
+        }
+        break;
       case 'x':
         ++c;
         for (int i = 0; i < 2; ++i) {

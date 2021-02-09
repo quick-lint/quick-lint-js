@@ -559,6 +559,15 @@ TEST_F(test_lex, lex_strings) {
                                 offsets_matcher(input, 0, 13))));
       });
 
+  for (string8_view line_terminator : line_terminators) {
+    for (const char8* quotation_mark : {u8"'", u8"\""}) {
+      padded_string input(quotation_mark +
+                          (u8"line1\\" + string8(line_terminator) + u8"line2") +
+                          quotation_mark);
+      this->check_tokens(&input, {token_type::string});
+    }
+  }
+
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
     error_collector v;
     padded_string input(u8"'unterminated" + string8(line_terminator) +
