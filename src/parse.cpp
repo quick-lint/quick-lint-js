@@ -721,6 +721,7 @@ next:
     goto next;
   }
 
+  case token_type::bang:
   case token_type::colon:
   case token_type::end_of_file:
   case token_type::identifier:
@@ -736,11 +737,14 @@ next:
   case token_type::kw_from:
   case token_type::kw_function:
   case token_type::kw_if:
+  case token_type::kw_import:
   case token_type::kw_let:
   case token_type::kw_of:
   case token_type::kw_return:
   case token_type::kw_switch:
   case token_type::kw_this:
+  case token_type::kw_throw:
+  case token_type::kw_try:
   case token_type::kw_var:
   case token_type::kw_while:
   case token_type::kw_with:

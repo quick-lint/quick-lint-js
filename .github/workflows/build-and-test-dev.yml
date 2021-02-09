@@ -28,7 +28,8 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {docker_container: "archlinux:base", name: "Arch Linux", install_dependencies_script: "pacman -Syy --noconfirm cmake gcc ninja", extra_environment: ""}
+          # FIXME(#160): CIArch Linux build is broken.
+          #- {docker_container: "archlinux:base", name: "Arch Linux", install_dependencies_script: "pacman -Syy --noconfirm cmake gcc ninja", extra_environment: ""}
           - {docker_container: "centos:centos8", name: "CentOS 8", install_dependencies_script: "dnf --enablerepo=powertools install -y cmake gcc-c++ ninja-build", extra_environment: ""}
           - {docker_container: "debian:buster", name: "Debian 10 Buster", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "fedora:32", name: "Fedora 32", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
