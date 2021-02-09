@@ -974,16 +974,8 @@ class parser {
     switch (this->peek().type) {
     case token_type::kw_extends:
       this->skip();
-      switch (this->peek().type) {
-      case token_type::identifier:
-      case token_type::number:
-        // TODO(strager): Don't allow extending any ol' expression.
-        this->parse_and_visit_expression(v, precedence{.commas = false});
-        break;
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
+      // TODO(strager): Error when extending things like '0' or 'true'.
+      this->parse_and_visit_expression(v, precedence{.commas = false});
       break;
 
     case token_type::left_curly:

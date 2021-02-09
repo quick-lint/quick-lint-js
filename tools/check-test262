@@ -36,8 +36,6 @@ import unittest
 
 
 TODO_TEST_FILES = (
-    "javascriptcore/stress/dont-crash-on-stack-overflow-when-parsing-default-constructor.js",
-    "javascriptcore/stress/known-cell-type-check-should-allow-empty-value-to-flow-through.js",
     "v8/test262/local-tests/test/language/expressions/class/fields-*.js",
     "v8/test262/local-tests/test/language/statements/class/fields-*.js",
     # TODO(#153): Parse V8 %BuiltInFunctions

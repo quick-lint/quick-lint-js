@@ -2172,13 +2172,41 @@ TEST(test_parse, parse_class_statement) {
   }
 }
 
-TEST(test_parse, class_statement_with_odd_extends) {
-  // TODO(strager): Should these report errors?
+TEST(test_parse, class_statement_with_odd_heritage) {
   {
+    // TODO(strager): Should this report errors?
     spy_visitor v = parse_and_visit_statement(u8"class C extends 0 {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
                                       "visit_enter_class_scope",     //
                                       "visit_exit_class_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C extends null {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     //
+                                      "visit_exit_class_scope"));
+  }
+}
+
+TEST(test_parse, class_statement_extending_class_expression) {
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"class C extends class B { x() {} } { y() {} }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // B
+                                      "visit_variable_declaration",       // B
+                                      "visit_property_declaration",       // B.x
+                                      "visit_enter_function_scope",       // B.x
+                                      "visit_enter_function_scope_body",  // B.x
+                                      "visit_exit_function_scope",        // B.x
+                                      "visit_exit_class_scope",           // B
+                                      "visit_variable_declaration",       // C
+                                      "visit_enter_class_scope",          // C
+                                      "visit_property_declaration",       // C.y
+                                      "visit_enter_function_scope",       // C.y
+                                      "visit_enter_function_scope_body",  // C.y
+                                      "visit_exit_function_scope",        // C.y
+                                      "visit_exit_class_scope"));         // C
   }
 }
 
