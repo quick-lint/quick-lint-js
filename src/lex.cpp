@@ -156,7 +156,7 @@ lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
     : input_(input.data()),
       error_reporter_(error_reporter),
       original_input_(input) {
-  this->last_token_.end = nullptr;
+  this->last_token_.end = this->input_;
   this->parse_current_token();
 }
 
@@ -816,6 +816,7 @@ next:
 }
 
 void lexer::insert_semicolon() {
+  QLJS_ASSERT(this->last_last_token_end_ != nullptr);
   this->input_ = this->last_last_token_end_;
 
   this->last_token_.type = token_type::semicolon;

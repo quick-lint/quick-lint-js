@@ -1768,6 +1768,28 @@ TEST_F(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 }
 
+TEST_F(test_lex, insert_semicolon_at_beginning_of_input) {
+  padded_string code(u8"hello world"_sv);
+  lexer l(&code, &null_error_reporter::instance);
+
+  l.insert_semicolon();
+  EXPECT_EQ(l.peek().type, token_type::semicolon);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+  EXPECT_EQ(l.peek().begin, code.data());
+  EXPECT_EQ(l.peek().end, code.data());
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+}
+
 TEST_F(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   padded_string code(u8"{ x }"_sv);
   error_collector errors;
