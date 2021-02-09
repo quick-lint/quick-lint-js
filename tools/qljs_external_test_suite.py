@@ -19,6 +19,7 @@
 import fnmatch
 import pathlib
 import pipes
+import signal
 import subprocess
 import sys
 import typing
@@ -28,11 +29,18 @@ import unittest
 def run_quick_lint_js(
     quick_lint_js_executable: pathlib.Path, js_file: pathlib.Path
 ) -> "LintResult":
-    result = subprocess.run(
-        [quick_lint_js_executable, "--", js_file],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
+    try:
+        result = subprocess.run(
+            [quick_lint_js_executable, "--", js_file],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=10,
+        )
+    except subprocess.TimeoutExpired as e:
+        result = subprocess.CompletedProcess(
+            args=e.cmd, returncode=-signal.SIGALRM, stdout=e.stdout, stderr=e.stderr
+        )
+        # Fall through.
     return LintResult(js_file=js_file, result=result)
 
 
