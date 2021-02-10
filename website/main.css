@@ -75,3 +75,26 @@ main > h2:first-child {
   border-top: 0;
   padding-top: 0;
 }
+
+@media (prefers-color-scheme: dark) {
+  a:link {
+    color: #3398e0;
+  }
+  a:visited {
+    color: #979ef8;
+  }
+  body {
+    background-color: #002b36;
+    color: white;
+  }
+  .os-logo[src="macos.svg"] {
+    filter: invert(100%);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background: #fff;
+    color: #333;
+  }
+}

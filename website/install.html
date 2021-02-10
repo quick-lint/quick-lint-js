@@ -58,6 +58,22 @@ licenses. See license.html for details.
       .install-comparison td.meh {
         background-color: #ffeecc;
       }
+
+      @media (prefers-color-scheme: dark) {
+        .install-comparison td.bad {
+          color: rgb(255, 255, 255);
+          background-color: #a70000;
+        }
+        .install-comparison td.meh {
+          color: rgb(255, 255, 255);
+          background-color: rgb(238, 214, 59);
+        }
+        .install-comparison td.good {
+          color: rgb(255, 255, 255);
+          background-color: rgb(0, 139, 0);
+        }
+      }
+
       .install-comparison td.os {
         padding: 0;
         width: 1.5em;
@@ -100,19 +116,6 @@ licenses. See license.html for details.
       .os-column-table > .windows {
         grid-area: windows;
       }
-
-    @media (prefers-color-scheme: dark) {
-      a:link {color:#268BD2;}
-      a:visited {color:#6C71C4;}
-      body {background-color:  #002B36; color: white;}
-      td {color:black;}
-      .macos-logo-color {filter: invert(85%);} 
-      }
-    
-    @media (prefers-color-scheme: light) {
-      body {background:#fff; color: #333; }
-    }
-
     </style>
   </head>
   <body>
@@ -208,7 +211,7 @@ licenses. See license.html for details.
               </td>
               <td class="os">
                 <img
-                  class="os-logo macos-logo-color"
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -252,7 +255,7 @@ licenses. See license.html for details.
               <td class="os"></td>
               <td class="os">
                 <img
-                  class="os-logo macos-logo-color"
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -322,8 +325,8 @@ licenses. See license.html for details.
                 />
               </td>
               <td class="os">
-                  <img
-                  class="os-logo macos-logo-color"
+                <img
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -361,7 +364,7 @@ licenses. See license.html for details.
               </td>
               <td class="os">
                 <img
-                  class="os-logo macos-logo-color"
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -395,7 +398,7 @@ licenses. See license.html for details.
               </td>
               <td class="os">
                 <img
-                  class="os-logo macos-logo-color"
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -429,7 +432,7 @@ licenses. See license.html for details.
               </td>
               <td class="os">
                 <img
-                  class="os-logo macos-logo-color"
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -463,7 +466,7 @@ licenses. See license.html for details.
               </td>
               <td class="os">
                 <img
-                  class="os-logo macos-logo-color"
+                  class="os-logo"
                   src="macos.svg"
                   alt="macOS"
                   title="macOS"
@@ -543,7 +546,7 @@ licenses. See license.html for details.
         </div>
         <div class="macos">
           <h3>
-            <img class="os-logo macos-logo-color" src="macos.svg" alt="" title="" />&nbsp;macOS
+            <img class="os-logo" src="macos.svg" alt="" title="" />&nbsp;macOS
           </h3>
           <ul>
             <li>
@@ -626,7 +629,7 @@ licenses. See license.html for details.
         </div>
         <div class="macos">
           <h3>
-            <img class="os-logo macos-logo-color" src="macos.svg" alt="" title="" />&nbsp;macOS
+            <img class="os-logo" src="macos.svg" alt="" title="" />&nbsp;macOS
           </h3>
           <ul>
             <li><a href="#manual-vim">Manual</a></li>
@@ -657,7 +660,7 @@ licenses. See license.html for details.
             alt="GNU/Linux"
             title="GNU/Linux"
           />
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="macOS" title="macOS" />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
           <img
             class="os-logo"
             src="windows.svg"
@@ -697,7 +700,7 @@ licenses. See license.html for details.
 
         <h4>
           <img class="os-logo" src="linux.svg" alt="" />&nbsp;GNU/Linux and
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="" />&nbsp;macOS with npm
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS with npm
         </h4>
         <blockquote>
           <pre><code>$ <kbd>npm install quick-lint-js --save-dev --save-exact</kbd>
@@ -706,7 +709,7 @@ $ <kbd>node_modules/.bin/quick-lint-js --help</kbd></code></pre>
 
         <h4>
           <img class="os-logo" src="linux.svg" alt="" />&nbsp;GNU/Linux and
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="" />&nbsp;macOS with yarn
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS with yarn
         </h4>
         <blockquote>
           <pre><code>$ <kbd>yarn add quick-lint-js --dev --exact</kbd>
@@ -737,7 +740,7 @@ $ <kbd>node_modules\.bin\quick-lint-js.cmd --help</kbd></code></pre>
 
         <h4>
           <img class="os-logo" src="linux.svg" alt="" />&nbsp;GNU/Linux and
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="" />&nbsp;macOS
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS
         </h4>
         <blockquote>
           <pre><code>$ <kbd>sudo npm install --global --unsafe-perm quick-lint-js</kbd>
@@ -757,7 +760,7 @@ $ <kbd>quick-lint-js.cmd --help</kbd></code></pre>
         </h2>
         <p>
           Supported operating systems:
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="macOS" title="macOS" />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
         </p>
 
         <p>
@@ -840,7 +843,7 @@ quick-lint-js version 0.1.0</code></pre>
             alt="GNU/Linux"
             title="GNU/Linux"
           />
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="macOS" title="macOS" />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
         </p>
 
         <p>
@@ -877,7 +880,7 @@ quick-lint-js version 0.1.0</code></pre>
             alt="GNU/Linux"
             title="GNU/Linux"
           />
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="macOS" title="macOS" />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
           <img
             class="os-logo"
             src="windows.svg"
@@ -913,7 +916,7 @@ quick-lint-js version 0.1.0</code></pre>
             alt="GNU/Linux"
             title="GNU/Linux"
           />
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="macOS" title="macOS" />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
           <img
             class="os-logo"
             src="windows.svg"
@@ -1033,7 +1036,7 @@ quick-lint-js version 0.1.0</code></pre>
             alt="GNU/Linux"
             title="GNU/Linux"
           />
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="macOS" title="macOS" />
+          <img class="os-logo" src="macos.svg" alt="macOS" title="macOS" />
           <img
             class="os-logo"
             src="windows.svg"
@@ -1056,7 +1059,7 @@ quick-lint-js version 0.1.0</code></pre>
                     title="GNU/Linux"
                   />
                   <img
-                    class="os-logo macos-logo-color"
+                    class="os-logo"
                     src="macos.svg"
                     alt="macOS"
                     title="macOS"
@@ -1074,7 +1077,7 @@ quick-lint-js version 0.1.0</code></pre>
               <li>
                 <a href="#homebrew">
                   <img
-                    class="os-logo macos-logo-color"
+                    class="os-logo"
                     src="macos.svg"
                     alt="macOS"
                     title="macOS"
@@ -1139,7 +1142,7 @@ quick-lint-js version 0.1.0</code></pre>
 
         <h5>
           <img class="os-logo" src="linux.svg" alt="" />&nbsp;GNU/Linux and
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="" />&nbsp;macOS
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS
         </h5>
         <ol>
           <!-- TODO(strager): Create a /releases/ directory. -->
@@ -1197,7 +1200,7 @@ quick-lint-js version 0.1.0</code></pre>
         <p />
         <h5>
           <img class="os-logo" src="linux.svg" alt="" />&nbsp;GNU/Linux and
-          <img class="os-logo macos-logo-color" src="macos.svg" alt="" />&nbsp;macOS
+          <img class="os-logo" src="macos.svg" alt="" />&nbsp;macOS
         </h5>
         <ol>
           <!-- TODO(strager): Create a /releases/ directory. -->
