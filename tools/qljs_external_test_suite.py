@@ -53,7 +53,7 @@ class LintResult(typing.NamedTuple):
         return self.result.returncode not in (0, 1)
 
     @property
-    def user_runnable_command(self) -> bool:
+    def user_runnable_command(self) -> str:
         return " ".join(pipes.quote(str(arg)) for arg in self.result.args)
 
     def dump(self) -> None:
