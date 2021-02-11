@@ -212,5 +212,18 @@ TEST(test_text_error_formatter, message_with_multiple_span_placeholders) {
 
   EXPECT_EQ(stream.str(), "FILE:1:1: error: free me and let me be [E999]\n");
 }
+
+TEST(test_text_error_formatter, message_with_escaped_curlies) {
+  padded_string code(u8"abc"_sv);
+  cli_locator locator(&code);
+  source_code_span code_span(&code[0], &code[3]);
+
+  std::ostringstream stream;
+  text_error_formatter(stream, "FILE", locator, "E999")
+      .error("a {{0} b }} c"_gmo_message, code_span)
+      .end();
+
+  EXPECT_EQ(stream.str(), "FILE:1:1: error: a {0} b }} c [E999]\n");
+}
 }
 }

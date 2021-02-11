@@ -131,6 +131,17 @@ inline void error_formatter<Derived>::add(
   string8_view remaining_message(translate(message));
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
+    QLJS_ASSERT(left_curly_index != remaining_message.size() &&
+                "invalid message format: { at end of string has no matching }");
+
+    if (remaining_message[left_curly_index + 1] == '{') {
+      // "{{"; the '{' is escaped.
+      self->write_message_part(
+          sev, remaining_message.substr(0, left_curly_index + 1));
+      remaining_message = remaining_message.substr(left_curly_index + 2);
+      continue;
+    }
+
     self->write_message_part(sev,
                              remaining_message.substr(0, left_curly_index));
 

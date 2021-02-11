@@ -715,6 +715,29 @@ class parser {
       this->parse_and_visit_declaration(v);
       break;
 
+    // export stuff;    // Invalid.
+    // export a, b, c;  // Invalid.
+    // export 2 + 2;    // Invalid.
+    case token_type::identifier:
+    case token_type::number: {
+      expression_ptr ast = this->parse_expression();
+      switch (ast->kind()) {
+      case expression_kind::variable:
+        this->error_reporter_->report(error_exporting_requires_curlies{
+            .names = ast->span(),
+        });
+        break;
+      default:
+        this->error_reporter_->report(error_exporting_requires_default{
+            .expression = ast->span(),
+        });
+        break;
+      }
+      this->visit_expression(ast, v, variable_context::rhs);
+      this->consume_semicolon();
+      break;
+    }
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;

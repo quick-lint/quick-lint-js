@@ -163,6 +163,15 @@
           where, string8_view(&token, 1)))                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_exporting_requires_default, "E067",                                \
+      { source_code_span expression; },                                        \
+      .error(QLJS_TRANSLATABLE("exporting requires 'default'"), expression))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_exporting_requires_curlies, "E066", { source_code_span names; },   \
+      .error(QLJS_TRANSLATABLE("exporting requires '{{' and '}'"), names))     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, "E019",                          \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("invalid binding in let statement"), where))    \

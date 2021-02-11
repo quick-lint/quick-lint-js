@@ -245,6 +245,66 @@ TEST(test_parse, export_from) {
   }
 }
 
+TEST(test_parse, invalid_export_expression) {
+  {
+    spy_visitor v;
+    padded_string code(u8"export stuff;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_exporting_requires_curlies, names,
+                              offsets_matcher(&code, strlen(u8"export "),
+                                              strlen(u8"export stuff")))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // stuff
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"export a, b, c;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            // TODO(strager): Report error_exporting_requires_curlies instead.
+            error_exporting_requires_default, expression,
+            offsets_matcher(&code, strlen(u8"export "),
+                            strlen(u8"export a, b, c")))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
+                                      "visit_variable_use",    // b
+                                      "visit_variable_use"));  // c
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"export a, b, c+d;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              // TODO(strager): Should we report
+                              // error_exporting_requires_curlies instead?
+                              error_exporting_requires_default, expression,
+                              offsets_matcher(&code, strlen(u8"export "),
+                                              strlen(u8"export a, b, c+d")))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
+                                      "visit_variable_use",    // b
+                                      "visit_variable_use",    // c
+                                      "visit_variable_use"));  // d
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"export 2 + x;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_exporting_requires_default, expression,
+                              offsets_matcher(&code, strlen(u8"export "),
+                                              strlen(u8"export 2 + x")))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+  }
+}
+
 TEST(test_parse, parse_simple_var) {
   spy_visitor v;
   padded_string code(u8"var x"_sv);
