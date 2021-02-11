@@ -1028,7 +1028,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   }
 
   {
-    test_parser p(u8"await;"_sv);
+    test_parser p(u8"await}"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(?)");
