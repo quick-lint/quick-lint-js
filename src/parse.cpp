@@ -385,6 +385,12 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->make_expression<expression::_invalid>();
   }
 
+  case token_type::semicolon:
+    this->error_reporter_->report(error_expected_expression_before_semicolon{
+        .where = this->peek().span(),
+    });
+    return this->make_expression<expression::_invalid>();
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;

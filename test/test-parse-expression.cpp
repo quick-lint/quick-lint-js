@@ -985,6 +985,64 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_minusminus) {
   }
 }
 
+TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
+  {
+    test_parser p(u8"--;"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_expression_before_semicolon, where,
+            offsets_matcher(p.locator, strlen(u8"--"), strlen(u8"--;")))));
+  }
+
+  {
+    test_parser p(u8"++;"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_expression_before_semicolon, where,
+            offsets_matcher(p.locator, strlen(u8"++"), strlen(u8"++;")))));
+  }
+
+  {
+    test_parser p(u8"-;"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "unary(?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_expression_before_semicolon, where,
+            offsets_matcher(p.locator, strlen(u8"-"), strlen(u8"-;")))));
+  }
+
+  {
+    test_parser p(u8"!;"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "unary(?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_expression_before_semicolon, where,
+            offsets_matcher(p.locator, strlen(u8"!"), strlen(u8"!;")))));
+  }
+
+  {
+    test_parser p(u8"await;"_sv);
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "await(?)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_expression_before_semicolon, where,
+                    offsets_matcher(p.locator, strlen(u8"await"),
+                                    strlen(u8"await;")))));
+  }
+}
+
 TEST_F(test_parse_expression, parse_suffix_plusplus_minusminus) {
   {
     test_parser p(u8"x++"_sv);
