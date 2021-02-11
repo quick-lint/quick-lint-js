@@ -142,6 +142,11 @@ expression_ptr parser::parse_expression(precedence prec) {
       source_code_span operator_span = this->peek().span();
       this->skip();
       expression_ptr child = this->parse_expression(prec);
+      if (child->kind() == expression_kind::_invalid) {
+        this->error_reporter_->report(error_missing_operand_for_operator{
+            .where = operator_span,
+        });
+      }
       return this->parse_expression_remainder(
           this->make_expression<expression::await>(child, operator_span), prec);
     } else {
@@ -213,6 +218,11 @@ expression_ptr parser::parse_expression(precedence prec) {
         precedence{.binary_operators = true,
                    .math_or_logical_or_assignment = false,
                    .commas = false});
+    if (child->kind() == expression_kind::_invalid) {
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = operator_span,
+      });
+    }
     expression_ptr ast =
         type == token_type::kw_typeof
             ? this->make_expression<expression::_typeof>(child, operator_span)
@@ -227,6 +237,11 @@ expression_ptr parser::parse_expression(precedence prec) {
     this->skip();
     expression_ptr child = this->parse_expression(
         precedence{.binary_operators = false, .commas = false});
+    if (child->kind() == expression_kind::_invalid) {
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = operator_span,
+      });
+    }
     return this->parse_expression_remainder(
         this->make_expression<expression::rw_unary_prefix>(child,
                                                            operator_span),
@@ -387,9 +402,6 @@ expression_ptr parser::parse_expression(precedence prec) {
   }
 
   case token_type::semicolon:
-    this->error_reporter_->report(error_expected_expression_before_semicolon{
-        .where = this->peek().span(),
-    });
     return this->make_expression<expression::_invalid>();
 
   default:

@@ -987,47 +987,44 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_minusminus) {
 
 TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
-    test_parser p(u8"--;"_sv);
+    test_parser p(u8"--"_sv);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(?)");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_expression_before_semicolon, where,
-            offsets_matcher(p.locator, strlen(u8"--"), strlen(u8"--;")))));
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_operand_for_operator, where,
+                    offsets_matcher(p.locator, 0, 0 + strlen(u8"--")))));
   }
 
   {
     test_parser p(u8"++;"_sv);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(?)");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_expression_before_semicolon, where,
-            offsets_matcher(p.locator, strlen(u8"++"), strlen(u8"++;")))));
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_operand_for_operator, where,
+                    offsets_matcher(p.locator, 0, 0 + strlen(u8"++")))));
   }
 
   {
-    test_parser p(u8"-;"_sv);
+    test_parser p(u8"(-)"_sv);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(?)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_expression_before_semicolon, where,
-            offsets_matcher(p.locator, strlen(u8"-"), strlen(u8"-;")))));
+            error_missing_operand_for_operator, where,
+            offsets_matcher(p.locator, strlen(u8"("), strlen(u8"(-")))));
   }
 
   {
     test_parser p(u8"!;"_sv);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(?)");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_expression_before_semicolon, where,
-            offsets_matcher(p.locator, strlen(u8"!"), strlen(u8"!;")))));
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_operand_for_operator, where,
+                    offsets_matcher(p.locator, 0, 0 + strlen(u8"!")))));
   }
 
   {
@@ -1037,9 +1034,8 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
     EXPECT_EQ(summarize(ast), "await(?)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_expected_expression_before_semicolon, where,
-                    offsets_matcher(p.locator, strlen(u8"await"),
-                                    strlen(u8"await;")))));
+                    error_missing_operand_for_operator, where,
+                    offsets_matcher(p.locator, 0, 0 + strlen(u8"await")))));
   }
 }
 
