@@ -237,6 +237,7 @@ class parser {
     QLJS_CASE_BINARY_ONLY_OPERATOR:
     case token_type::bang:
     case token_type::complete_template:
+    case token_type::equal:
     case token_type::incomplete_template:
     case token_type::kw_as:
     case token_type::kw_delete:

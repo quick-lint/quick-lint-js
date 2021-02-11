@@ -369,7 +369,8 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(regexp, prec);
   }
 
-  QLJS_CASE_BINARY_ONLY_OPERATOR : {
+  QLJS_CASE_BINARY_ONLY_OPERATOR:
+  case token_type::equal: {
     expression_ptr ast = this->make_expression<expression::_invalid>();
     if (!prec.binary_operators) {
       return ast;
@@ -599,6 +600,9 @@ next:
     default:
       this->error_reporter_->report(
           error_invalid_expression_left_of_assignment{lhs->span()});
+      break;
+    case expression_kind::_invalid:
+      // An error should have been reported elsewhere.
       break;
     case expression_kind::array:
     case expression_kind::dot:
