@@ -226,7 +226,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression_ptr child = this->parse_expression(
-        precedence{.binary_operators = false, .commas = true});
+        precedence{.binary_operators = false, .commas = false});
     return this->parse_expression_remainder(
         this->make_expression<expression::rw_unary_prefix>(child,
                                                            operator_span),

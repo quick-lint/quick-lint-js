@@ -1073,6 +1073,18 @@ TEST_F(test_parse_expression, suffix_plusplus_minusminus_disallows_line_break) {
   }
 }
 
+TEST_F(test_parse_expression, prefix_plusplus_minusminus_cannot_nest) {
+  {
+    test_parser p(u8"++ ++ x"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(rwunary(var x))");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 7);
+    // TODO(strager): Report an error. ++ takes a LeftHandExpression, but ++x is
+    // not a LeftHandExpression.
+  }
+}
+
 TEST_F(test_parse_expression, parse_template) {
   {
     test_parser p(u8"`hello`"_sv);
