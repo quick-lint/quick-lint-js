@@ -24,6 +24,7 @@ import "bytes"
 import "flag"
 import "fmt"
 import "io"
+import "io/ioutil"
 import "log"
 import "os"
 import "os/exec"
@@ -35,14 +36,40 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"v8/test262/local-tests/test/language/expressions/class/fields-*.js",
-	"v8/test262/local-tests/test/language/statements/class/fields-*.js",
+	"language/asi/*.js",
+
+	// TODO(#50): Parse --> comments.
+	"annexB/language/comments/multi-line-html-close.js",
+	"annexB/language/comments/single-line-html-close.js",
+
+	// TODO(strager): Implement non-standard and new features.
+	"language/*/class/*-coalesce.js",
+	"language/expressions/assignmenttargettype/*-coalesce-*.js",
+	"language/expressions/assignmenttargettype/*-logical-*-assignment-*.js",
 
 	// TODO(#153): Parse V8 %BuiltInFunctions
 	"v8/mjsunit/*.js",
 	"v8/mjsunit/*/*.js",
 	"v8/mjsunit/*/*/*.js",
 	"v8/test262/detachArrayBuffer.js",
+}
+
+var TodoTestFeatures [][]byte = [][]byte{
+	// TODO(strager): Implement non-standard and new features.
+	[]byte("async-iteration"),
+	[]byte("class-fields-private"),
+	[]byte("class-fields-public"),
+	[]byte("class-methods-private"),
+	[]byte("class-static-fields-private"),
+	[]byte("class-static-fields-public"),
+	[]byte("class-static-methods-private"),
+	[]byte("coalesce-expression"),
+	[]byte("import.meta"),
+	[]byte("logical-assignment-operators"),
+	[]byte("numeric-separator-literal"),
+	[]byte("optional-catch-binding"),
+	[]byte("optional-chaining"),
+	[]byte("top-level-await"),
 }
 
 func main() {
@@ -217,12 +244,25 @@ func FindTests(test262FixtureDirectory string, testFiles *[]string) {
 }
 
 func ShouldCheckTestFile(testFile string) bool {
-	return !IsTodo(testFile)
+	return !IsTodo(testFile) && !TestRequiresUnimplementedFeatures(testFile)
 }
 
 func IsTodo(path string) bool {
 	for _, pattern := range TodoTestFiles {
 		if MatchPath(pattern, path) {
+			return true
+		}
+	}
+	return false
+}
+
+func TestRequiresUnimplementedFeatures(path string) bool {
+	testContent, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, testFeature := range TodoTestFeatures {
+		if bytes.Contains(testContent, testFeature) {
 			return true
 		}
 	}
