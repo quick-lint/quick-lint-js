@@ -3709,5 +3709,26 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
                               offsets_matcher(&code, 5, 5 + 1))));
   }
 }
+
+TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
+  for (string8_view statement : {
+           u8"for(;x;);"_sv,
+           u8"if(x);"_sv,
+           u8"return x;"_sv,
+           u8"throw x;"_sv,
+           u8"while(x);"_sv,
+       }) {
+    padded_string code(string8(u8"!\n"_sv) + string8(statement));
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 0, 0 + strlen(u8"!")))));
+  }
+}
 }
 }

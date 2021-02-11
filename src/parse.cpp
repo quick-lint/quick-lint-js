@@ -401,6 +401,11 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->make_expression<expression::_invalid>();
   }
 
+  case token_type::kw_for:
+  case token_type::kw_if:
+  case token_type::kw_return:
+  case token_type::kw_throw:
+  case token_type::kw_while:
   case token_type::semicolon:
     return this->make_expression<expression::_invalid>();
 
