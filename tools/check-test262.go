@@ -51,6 +51,11 @@ func main() {
 		"quick-lint-js",
 		"path to the quick-lint-js executable",
 	)
+	stopOnFirstFailure := flag.Bool(
+		"stop-on-first-failure",
+		false,
+		"print only the first failing test (if any)",
+	)
 	flag.Parse()
 	if flag.NArg() == 0 {
 		os.Stderr.WriteString(fmt.Sprintf("error: missing test fixture directory\n"))
@@ -64,7 +69,7 @@ func main() {
 	sort.Strings(testFiles)
 
 	threadCount := runtime.NumCPU()
-	queue := MakeWorkQueue(*quickLintJSExecutable, testFiles, threadCount)
+	queue := MakeWorkQueue(*quickLintJSExecutable, testFiles, threadCount, *stopOnFirstFailure)
 
 	for i := 0; i < queue.threadCount; i++ {
 		queue.wg.Add(1)
@@ -73,25 +78,42 @@ func main() {
 
 	queue.wg.Wait()
 
-	lowestFailingIndex := -1
-	var failure *LintResult = nil
-	for threadIndex, failureIndex := range queue.failureIndexes {
-		if failureIndex != -1 && (lowestFailingIndex == -1 || failureIndex < lowestFailingIndex) {
-			lowestFailingIndex = failureIndex
-			failure = queue.failures[threadIndex]
+	if *stopOnFirstFailure {
+		lowestFailingIndex := -1
+		var failure *LintResult = nil
+		for threadIndex, failureIndex := range queue.failureIndexes {
+			if failureIndex != -1 && (lowestFailingIndex == -1 || failureIndex < lowestFailingIndex) {
+				lowestFailingIndex = failureIndex
+				failure = queue.failures[threadIndex]
+			}
 		}
-	}
-	if failure != nil {
-		failure.Dump(os.Stderr)
-		os.Exit(1)
+		if failure != nil {
+			failure.Dump(os.Stderr)
+			os.Exit(1)
+		}
+	} else {
+		if atomic.LoadInt64(&queue.minimumFailingIndex) >= 0 {
+			os.Exit(1)
+		}
 	}
 }
 
+// If stopOnFirstFailure is true, then output is deterministic. This makes
+// development of quick-lint-js easier.
+//
+// If stopOnFirstFailure is false, then output is non-deterministic. This makes
+// testing faster.
 type WorkQueue struct {
 	quickLintJSExecutable string
 	testFiles             []string
 	threadCount           int
 	wg                    sync.WaitGroup
+	stopOnFirstFailure    bool
+
+	// outputMutex locks dumping test failures.
+	//
+	// Used only if !stopOnFirstFailure
+	outputMutex sync.Mutex
 
 	// minimumFailingIndex is -1 or an index into testFiles.
 	//
@@ -102,6 +124,8 @@ type WorkQueue struct {
 	// failureIndexes is keyed by thread index. Each value is an index into
 	// testFiles, or is -1.
 	//
+	// Used only if stopOnFirstFailure.
+	//
 	// Each thread can non-atomically read and write its own entry in the
 	// failureIndexes slice. The main thread can read any entry from the
 	// failureIndexes slice only after all goroutines have finished.
@@ -109,18 +133,21 @@ type WorkQueue struct {
 
 	// failures is keyed by thread index.
 	//
+	// Used only if stopOnFirstFailure.
+	//
 	// Each thread can read and write its own entry in the failures slice.
 	// The main thread can read any entry from the failures slice only after
 	// all goroutines have finished.
 	failures []*LintResult
 }
 
-func MakeWorkQueue(quickLintJSExecutable string, testFiles []string, threadCount int) *WorkQueue {
+func MakeWorkQueue(quickLintJSExecutable string, testFiles []string, threadCount int, stopOnFirstFailure bool) *WorkQueue {
 	queue := WorkQueue{
 		failureIndexes:        make([]int, threadCount),
 		failures:              make([]*LintResult, threadCount),
 		minimumFailingIndex:   -1,
 		quickLintJSExecutable: quickLintJSExecutable,
+		stopOnFirstFailure:    stopOnFirstFailure,
 		testFiles:             testFiles,
 		threadCount:           threadCount,
 	}
@@ -133,13 +160,15 @@ func MakeWorkQueue(quickLintJSExecutable string, testFiles []string, threadCount
 func RunWorker(queue *WorkQueue, threadIndex int) {
 	defer queue.wg.Done()
 	for i := threadIndex; i < len(queue.testFiles); i += queue.threadCount {
-		if queue.HaveEarlierFailure(i) {
+		if queue.stopOnFirstFailure && queue.HaveEarlierFailure(i) {
 			break
 		}
 		result := RunQuickLintJS(queue.quickLintJSExecutable, queue.testFiles[i])
 		if result.Crashed() {
 			queue.RecordFailure(threadIndex, i, &result)
-			break
+			if queue.stopOnFirstFailure {
+				break
+			}
 		}
 	}
 }
@@ -163,6 +192,12 @@ func (queue *WorkQueue) RecordFailure(threadIndex int, index int, result *LintRe
 			break
 		}
 		oldMinimumFailingIndex = atomic.LoadInt64(&queue.minimumFailingIndex)
+	}
+
+	if !queue.stopOnFirstFailure {
+		queue.outputMutex.Lock()
+		defer queue.outputMutex.Unlock()
+		result.Dump(os.Stderr)
 	}
 }
 
