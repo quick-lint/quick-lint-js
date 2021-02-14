@@ -199,7 +199,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::dot_dot_dot: {
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression_ptr child = this->parse_expression(prec);
+    expression_ptr child = this->parse_expression(precedence{.commas = false});
     return this->parse_expression_remainder(
         this->make_expression<expression::spread>(child, operator_span), prec);
   }
@@ -1196,6 +1196,21 @@ expression_ptr parser::maybe_wrap_erroneous_arrow_function(
   switch (lhs->kind()) {
   default:
     return arrow_function;
+
+  case expression_kind::trailing_comma: {
+    expression::trailing_comma *parameter_list =
+        lhs.get<expression::trailing_comma>();
+    expression_ptr last_parameter =
+        parameter_list->child(parameter_list->child_count() - 1);
+    if (last_parameter->kind() == expression_kind::spread) {
+      this->error_reporter_->report(
+          error_comma_not_allowed_after_spread_parameter{
+              .comma = parameter_list->comma_span(),
+              .spread = last_parameter->span(),
+          });
+    }
+    return arrow_function;
+  }
 
   case expression_kind::call: {
     expression::call *call = lhs.get<expression::call>();

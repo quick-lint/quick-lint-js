@@ -1790,6 +1790,22 @@ TEST_F(test_parse_expression, arrow_function_with_statements) {
   }
 }
 
+TEST_F(test_parse_expression, arrow_function_with_spread_and_comma) {
+  {
+    test_parser p(u8"(...b, ) => { c; }"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_comma_not_allowed_after_spread_parameter, comma,
+            offsets_matcher(p.locator, strlen(u8"(...b"),
+                            strlen(u8"(...b,")),  //
+            spread,
+            offsets_matcher(p.locator, strlen(u8"("), strlen(u8"(...b")))));
+    EXPECT_EQ(summarize(ast), "arrowblock(spread(var b))");
+  }
+}
+
 TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
   {
     test_parser p(u8"({a, b}) => c"_sv);

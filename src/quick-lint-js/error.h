@@ -111,6 +111,16 @@
              character))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_comma_not_allowed_after_spread_parameter, "E070",                  \
+      {                                                                        \
+        source_code_span comma;                                                \
+        source_code_span spread;                                               \
+      },                                                                       \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("commas are not allowed after spread parameter"),  \
+          comma))                                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E065", { source_code_span else_token; },          \
       .error(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),            \
              else_token))                                                      \
