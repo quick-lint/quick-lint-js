@@ -1637,6 +1637,21 @@ TEST_F(test_parse_expression, function_with_destructuring_parameters) {
   }
 }
 
+TEST_F(test_parse_expression, function_with_spread_and_comma) {
+  {
+    test_parser p(u8"function(...a, ) { b; }"_sv);
+    p.parse_expression();
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_comma_not_allowed_after_spread_parameter, comma,
+                    offsets_matcher(p.locator, strlen(u8"function(...a"),
+                                    strlen(u8"function(...a,")),  //
+                    spread,
+                    offsets_matcher(p.locator, strlen(u8"function("),
+                                    strlen(u8"function(...a")))));
+  }
+}
+
 TEST_F(test_parse_expression, async_function_expression) {
   {
     test_parser p(u8"async function(){}"_sv);

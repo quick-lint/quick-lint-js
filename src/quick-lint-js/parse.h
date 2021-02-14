@@ -888,6 +888,7 @@ class parser {
     }
     this->skip();
 
+    std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
     bool first_parameter = true;
     for (;;) {
       std::optional<source_code_span> comma_span = std::nullopt;
@@ -915,11 +916,27 @@ class parser {
       case token_type::kw_static:
       case token_type::kw_yield:
       case token_type::left_curly:
-      case token_type::left_square:
-        this->parse_and_visit_binding_element(v, variable_kind::_parameter,
-                                              /*allow_in_operator=*/true);
+      case token_type::left_square: {
+        expression_ptr parameter = this->parse_expression(
+            precedence{.commas = false, .in_operator = true});
+        this->visit_binding_element(parameter, v, variable_kind::_parameter);
+        if (parameter->kind() == expression_kind::spread) {
+          last_parameter_spread_span = parameter->span();
+        } else {
+          last_parameter_spread_span = std::nullopt;
+        }
         break;
+      }
       case token_type::right_paren:
+        if (last_parameter_spread_span.has_value()) {
+          // function f(...args,)  // Trailing comma is illegal.
+          QLJS_ASSERT(comma_span.has_value());
+          this->error_reporter_->report(
+              error_comma_not_allowed_after_spread_parameter{
+                  .comma = *comma_span,
+                  .spread = *last_parameter_spread_span,
+              });
+        }
         goto done;
       default:
         QLJS_PARSER_UNIMPLEMENTED();
