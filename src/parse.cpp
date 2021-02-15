@@ -404,6 +404,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::kw_for:
   case token_type::kw_if:
   case token_type::kw_return:
+  case token_type::kw_switch:
   case token_type::kw_throw:
   case token_type::kw_while:
   case token_type::right_curly:

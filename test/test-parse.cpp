@@ -3789,6 +3789,20 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
                               error_missing_operand_for_operator, where,
                               offsets_matcher(&code, 0, 0 + strlen(u8"!")))));
   }
+
+  {
+    padded_string code(u8"!\nswitch(x){}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 0, 0 + strlen(u8"!")))));
+  }
 }
 }
 }
