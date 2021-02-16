@@ -1697,19 +1697,41 @@ class parser {
 
       switch (this->peek().type) {
       case token_type::kw_await:
+        if (this->in_async_function_) {
+          this->error_reporter_->report(
+              error_cannot_declare_await_in_async_function{
+                  .name = this->peek().identifier_name(),
+              });
+        }
+        goto variable_name;
+
       case token_type::kw_yield:
-        // TODO(strager): Disallow variables named 'await' in async functions,
-        // or variables named 'yield' in generator functions.
-        [[fallthrough]];
+        // TODO(strager): Disallow variables named 'yield' in generator
+        // functions.
+        goto variable_name;
+
+        // let x;
+        // let x = 42;
+      variable_name:
       case token_type::identifier:
       case token_type::kw_as:
-      case token_type::kw_async:
       case token_type::kw_from:
       case token_type::kw_get:
       case token_type::kw_let:
       case token_type::kw_of:
       case token_type::kw_set:
-      case token_type::kw_static:
+      case token_type::kw_static: {
+        expression_ptr variable = this->make_expression<expression::variable>(
+            this->peek().identifier_name(), this->peek().type);
+        this->skip();
+        expression_ptr ast = this->parse_expression_remainder(
+            variable,
+            precedence{.commas = false, .in_operator = allow_in_operator});
+        this->visit_binding_element(ast, v, declaration_kind);
+        break;
+      }
+
+      case token_type::kw_async:
       case token_type::left_curly:
       case token_type::left_square:
         this->parse_and_visit_binding_element(
