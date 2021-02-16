@@ -428,15 +428,13 @@ expression_ptr parser::parse_async_expression(token async_token,
     source_code_span left_paren_span = this->peek().span();
     this->skip();
 
-    if (this->peek().type == token_type::right_paren) {
-      // Arrow function: async () => expression-or-block
-    } else {
-      // Arrow function: async (parameters, go, here) =>
-      // expression-or-block
-      expression_ptr parenthesized_parameters = this->parse_expression();
-      QLJS_ASSERT(parameters.empty());
-      parameters = arrow_function_parameters_from_lhs(parenthesized_parameters)
-                       .parameters;
+    while (this->peek().type != token_type::right_paren) {
+      parameters.emplace_back(
+          this->parse_expression(precedence{.commas = false}));
+      if (this->peek().type != token_type::comma) {
+        break;
+      }
+      this->skip();
     }
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
