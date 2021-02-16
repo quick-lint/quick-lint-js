@@ -1205,6 +1205,15 @@ class parser {
         this->skip();
 
         switch (this->peek().type) {
+        case token_type::kw_await:
+          if (this->in_async_function_) {
+            this->error_reporter_->report(
+                error_cannot_declare_await_in_async_function{
+                    .name = this->peek().identifier_name(),
+                });
+          }
+          [[fallthrough]];
+
         case token_type::identifier:
         case token_type::kw_as:
         case token_type::kw_async:

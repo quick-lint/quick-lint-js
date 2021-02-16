@@ -1911,6 +1911,22 @@ TEST(test_parse, declare_await_in_async_function) {
             error_cannot_declare_await_in_async_function, name,
             offsets_matcher(&code, strlen(u8"var "), strlen(u8"var await")))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"try {} catch (await) {}"_sv);
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::async);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_catch}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_await_in_async_function, name,
+                    offsets_matcher(&code, strlen(u8"try {} catch ("),
+                                    strlen(u8"try {} catch (await")))));
+  }
 }
 
 TEST(
@@ -3247,8 +3263,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
 }
 
 TEST(test_parse, variables_can_be_named_contextual_keywords) {
-  for (string8 name : {u8"as", u8"async", u8"from", u8"get", u8"let", u8"of",
-                       u8"set", u8"yield"}) {
+  for (string8 name : {u8"as", u8"async", u8"await", u8"from", u8"get", u8"let",
+                       u8"of", u8"set", u8"yield"}) {
     SCOPED_TRACE(out_string8(name));
 
     {
