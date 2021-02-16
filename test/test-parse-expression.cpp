@@ -561,6 +561,43 @@ TEST_F(test_parse_expression, parse_function_call) {
   }
 }
 
+TEST_F(test_parse_expression, function_call_with_invalid_extra_commas) {
+  {
+    test_parser p(u8"f(,)"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var f)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_extra_comma_not_allowed_between_arguments, comma,
+            offsets_matcher(p.locator, strlen(u8"f("), strlen(u8"f(,")))));
+  }
+
+  {
+    test_parser p(u8"f(a,,b)"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var f, var a, var b)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_extra_comma_not_allowed_between_arguments, comma,
+            offsets_matcher(p.locator, strlen(u8"f(a,"), strlen(u8"f(a,,")))));
+  }
+
+  {
+    // A function named 'async' in a special case because of lookahead:
+    // 'async()' is a function call, but 'async()=>{}' is an arrow function.
+    test_parser p(u8"async(a,,b)"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var async, var a, var b)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_extra_comma_not_allowed_between_arguments, comma,
+                    offsets_matcher(p.locator, strlen(u8"async(a,"),
+                                    strlen(u8"async(a,,")))));
+  }
+}
+
 TEST_F(test_parse_expression, parse_dot_expressions) {
   {
     test_parser p(u8"x.prop"_sv);

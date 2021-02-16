@@ -145,6 +145,13 @@
       .error(QLJS_TRANSLATABLE("code point out of range"), escape_sequence))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_extra_comma_not_allowed_between_arguments, "E068",                 \
+      { source_code_span comma; },                                             \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "extra ',' is not allowed between function call arguments"),  \
+             comma))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_before_newline, "E014",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("expected expression before newline"), where))  \

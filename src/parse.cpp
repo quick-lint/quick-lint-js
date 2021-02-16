@@ -401,6 +401,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->make_expression<expression::_invalid>();
   }
 
+  case token_type::comma:
   case token_type::kw_for:
   case token_type::kw_if:
   case token_type::kw_return:
@@ -429,6 +430,17 @@ expression_ptr parser::parse_async_expression(token async_token,
     this->skip();
 
     while (this->peek().type != token_type::right_paren) {
+      if (this->peek().type == token_type::comma) {
+        // TODO(strager): Emit a different error if this is an arrow function.
+        // error_extra_comma_not_allowed_between_arguments only makes sense if
+        // this is a function call.
+        this->error_reporter_->report(
+            error_extra_comma_not_allowed_between_arguments{
+                .comma = this->peek().span(),
+            });
+        this->skip();
+        continue;
+      }
       parameters.emplace_back(
           this->parse_expression(precedence{.commas = false}));
       if (this->peek().type != token_type::comma) {
@@ -457,7 +469,10 @@ expression_ptr parser::parse_async_expression(token async_token,
       call_children.emplace_back(this->make_expression<expression::variable>(
           async_token.identifier_name(), async_token.type));
       for (std::size_t i = 0; i < parameters.size(); ++i) {
-        call_children.emplace_back(parameters.data()[i]);
+        if (parameters.data()[i]->kind() == expression_kind::_invalid) {
+        } else {
+          call_children.emplace_back(parameters.data()[i]);
+        }
       }
 
       expression_ptr call_ast = this->make_expression<expression::call>(
@@ -588,6 +603,14 @@ next:
         &children.back() + 1);
     this->skip();
     while (this->peek().type != token_type::right_paren) {
+      if (this->peek().type == token_type::comma) {
+        this->error_reporter_->report(
+            error_extra_comma_not_allowed_between_arguments{
+                .comma = this->peek().span(),
+            });
+        this->skip();
+        continue;
+      }
       call_children.emplace_back(
           this->parse_expression(precedence{.commas = false}));
       if (this->peek().type != token_type::comma) {
