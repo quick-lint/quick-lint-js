@@ -846,6 +846,11 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   std::optional<identifier> function_name = std::nullopt;
   QLJS_WARNING_POP
   switch (this->peek().type) {
+  case token_type::kw_await:
+  case token_type::kw_yield:
+    // NOTE(strager): A function expression named 'await' or 'yield' is allowed
+    // even within async functions and generator functions.
+    [[fallthrough]];
   case token_type::identifier:
   case token_type::kw_as:
   case token_type::kw_async:
@@ -854,7 +859,6 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   case token_type::kw_let:
   case token_type::kw_of:
   case token_type::kw_set:
-  case token_type::kw_yield:
     function_name = this->peek().identifier_name();
     this->skip();
     break;

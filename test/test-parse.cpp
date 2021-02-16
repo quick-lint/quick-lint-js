@@ -1913,6 +1913,28 @@ TEST(test_parse, declare_await_in_async_function) {
   }
 }
 
+TEST(
+    test_parse,
+    declare_await_in_async_function_is_allowed_for_named_function_expressions) {
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"(async function() {\n"
+        u8"  (function await() { await; })(); \n"
+        u8"})();");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",        //
+                            "visit_enter_function_scope_body",   //
+                            "visit_enter_named_function_scope",  // await
+                            "visit_enter_function_scope_body",   //
+                            "visit_variable_use",                // await
+                            "visit_exit_function_scope",         //
+                            "visit_exit_function_scope"));
+    EXPECT_THAT(v.enter_named_function_scopes,
+                ElementsAre(spy_visitor::visited_enter_named_function_scope{
+                    u8"await"}));
+  }
+}
+
 TEST(test_parse, yield_in_generator_function) {
   {
     spy_visitor v =
