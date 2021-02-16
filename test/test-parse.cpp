@@ -1877,6 +1877,26 @@ TEST(test_parse, declare_await_in_non_async_function) {
   }
 }
 
+TEST(test_parse, declare_await_in_async_function) {
+  {
+    spy_visitor v;
+    padded_string code(u8"function await() { }"_sv);
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::async);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_function}));
+    // TODO(strager): Include a note referencing the origin of the async
+    // function.
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_await_in_async_function, name,
+                    offsets_matcher(&code, strlen(u8"function "),
+                                    strlen(u8"function await")))));
+  }
+}
+
 TEST(test_parse, yield_in_generator_function) {
   {
     spy_visitor v =

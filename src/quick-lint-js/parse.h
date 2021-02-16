@@ -805,10 +805,19 @@ class parser {
 
     switch (this->peek().type) {
     case token_type::kw_await:
+      if (this->in_async_function_) {
+        this->error_reporter_->report(
+            error_cannot_declare_await_in_async_function{
+                .name = this->peek().identifier_name(),
+            });
+      }
+      goto named_function;
+
     case token_type::kw_yield:
-      // TODO(strager): Disallow functions named 'await' in async functions, or
-      // functions named 'yield' in generator functions.
-      [[fallthrough]];
+      // TODO(strager): Disallow functions named 'yield' in generator functions.
+      goto named_function;
+
+    named_function:
     case token_type::identifier:
     case token_type::kw_as:
     case token_type::kw_async:

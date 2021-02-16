@@ -84,6 +84,13 @@
       .error(QLJS_TRANSLATABLE("BigInt literal contains exponent"), where))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_declare_await_in_async_function, "E069",                    \
+      { identifier name; },                                                    \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("cannot declare 'await' inside async function"),   \
+          name))                                                               \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_class_named_let, "E007",                            \
       { source_code_span name; },                                              \
       .error(QLJS_TRANSLATABLE("classes cannot be named 'let'"), name))        \
