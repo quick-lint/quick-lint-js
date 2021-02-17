@@ -662,6 +662,7 @@ next:
   }
 
   case token_type::dot: {
+    source_code_span dot_span = this->peek().span();
     this->skip();
     switch (this->peek().type) {
     case token_type::identifier:
@@ -670,6 +671,16 @@ next:
           children.back(), this->peek().identifier_name());
       this->skip();
       goto next;
+
+    case token_type::string: {
+      this->error_reporter_->report(error_invalid_rhs_for_dot_operator{
+          .dot = dot_span,
+      });
+      children.emplace_back(
+          this->make_expression<expression::literal>(this->peek().span()));
+      this->skip();
+      goto next;
+    }
 
     default:
       QLJS_PARSER_UNIMPLEMENTED();

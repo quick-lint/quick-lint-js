@@ -226,6 +226,13 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_invalid_rhs_for_dot_operator, "E074", { source_code_span dot; },   \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "'.' operator needs a key name; use + to concatenate "        \
+                 "strings; use [] to access with a dynamic key"),              \
+             dot))                                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_utf_8_sequence, "E022", { source_code_span sequence; },    \
       .error(QLJS_TRANSLATABLE("invalid UTF-8 sequence"), sequence))           \
                                                                                \

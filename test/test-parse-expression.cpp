@@ -625,6 +625,21 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
   }
 }
 
+TEST_F(test_parse_expression, invalid_dot_expression) {
+  {
+    test_parser p(u8"x.''"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var x, literal)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_invalid_rhs_for_dot_operator, dot,
+            offsets_matcher(p.locator, strlen(u8"x"), strlen(u8"x.")))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x.''"));
+  }
+}
+
 TEST_F(test_parse_expression, parse_indexing_expression) {
   {
     test_parser p(u8"xs[i]"_sv);
