@@ -915,6 +915,23 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
   }
 }
 
+TEST(test_parse, statement_starting_with_invalid_token) {
+  for (string8_view token : {
+           u8":",
+       }) {
+    padded_string code(string8(token) + u8" x");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_token, token,
+                              offsets_matcher(&code, 0, token.size()))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_end_of_module"));
+  }
+}
+
 TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
   {
     spy_visitor v;
