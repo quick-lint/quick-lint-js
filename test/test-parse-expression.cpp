@@ -1612,6 +1612,28 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   {
+    test_parser p(u8"{async f}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_function_parameter_list, function_name,
+                    offsets_matcher(p.locator, strlen(u8"{async "),
+                                    strlen(u8"{async f")))));
+  }
+
+  {
+    test_parser p(u8"{*f}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, function_name,
+            offsets_matcher(p.locator, strlen(u8"{*"), strlen(u8"{*f")))));
+  }
+
+  {
     test_parser p(u8"{function a(){}}"_sv);
     expression_ptr ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, function)");

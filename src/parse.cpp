@@ -898,7 +898,18 @@ expression_ptr parser::parse_object_literal() {
   auto parse_method_entry = [&](const char8 *key_span_begin, expression_ptr key,
                                 function_attributes attributes) -> void {
     buffering_visitor *v = this->expressions_.make_buffering_visitor();
-    this->parse_and_visit_function_parameters_and_body_no_scope(*v, attributes);
+    switch (this->peek().type) {
+    default:
+      this->parse_and_visit_function_parameters_and_body_no_scope(*v,
+                                                                  attributes);
+      break;
+    case token_type::right_curly:
+      this->error_reporter_->report(error_missing_function_parameter_list{
+          .function_name = key->span(),
+      });
+      break;
+    }
+
     const char8 *span_end = this->lexer_.end_of_previous_token();
     expression_ptr func = this->make_expression<expression::function>(
         attributes, v, source_code_span(key_span_begin, span_end));
@@ -1159,7 +1170,6 @@ expression_ptr parser::parse_object_literal() {
         expression_ptr method_name =
             this->make_expression<expression::literal>(method_name_span);
         this->skip();
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
         parse_method_entry(method_name_span.begin(), method_name,
                            function_attributes::generator);
         break;

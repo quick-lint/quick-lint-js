@@ -260,6 +260,12 @@
           where))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_function_parameter_list, "E073",                           \
+      { source_code_span function_name; },                                     \
+      .error(QLJS_TRANSLATABLE("missing function parameter list"),             \
+             function_name))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_name_in_function_statement, "E061",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("missing name in function statement"), where))  \
