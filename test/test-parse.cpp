@@ -3283,10 +3283,10 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                                                 name + u8") {}");
       EXPECT_THAT(
           v.visits,
-          ElementsAre("visit_variable_declaration",  // (name) (function)
-                      "visit_enter_function_scope",
-                      "visit_variable_declaration",  // (name) (parameter)
-                      "visit_enter_function_scope_body",
+          ElementsAre("visit_variable_declaration",       // (name) (function)
+                      "visit_enter_function_scope",       //
+                      "visit_variable_declaration",       // (name) (parameter)
+                      "visit_enter_function_scope_body",  //
                       "visit_exit_function_scope"));
       ASSERT_EQ(v.variable_declarations.size(), 2);
       EXPECT_EQ(v.variable_declarations[0].name, name);
@@ -3301,7 +3301,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(
           v.visits,
           ElementsAre("visit_enter_named_function_scope",  // (name) (function)
-                      "visit_enter_function_scope_body",
+                      "visit_enter_function_scope_body",   //
                       "visit_exit_function_scope"));
       EXPECT_THAT(
           v.enter_named_function_scopes,
@@ -3311,9 +3311,9 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     {
       spy_visitor v =
           parse_and_visit_statement(u8"try { } catch (" + name + u8") { }");
-      EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
-                                        "visit_exit_block_scope",
-                                        "visit_enter_block_scope",
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                        "visit_exit_block_scope",      //
+                                        "visit_enter_block_scope",     //
                                         "visit_variable_declaration",  // (name)
                                         "visit_exit_block_scope"));
       ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -3335,7 +3335,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v =
           parse_and_visit_statement(u8"console.log(" + name + u8");");
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
-                                        "visit_variable_use"));  // name
+                                        "visit_variable_use"));  // (name)
       ASSERT_EQ(v.variable_uses.size(), 2);
       EXPECT_EQ(v.variable_uses[1].name, name);
     }
@@ -3356,9 +3356,9 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
          }) {
       SCOPED_TRACE(out_string8(code));
       spy_visitor v = parse_and_visit_statement(code);
-      EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
                                         "visit_variable_declaration",  // (name)
-                                        "visit_enter_function_scope_body",
+                                        "visit_enter_function_scope_body",  //
                                         "visit_exit_function_scope"));
       ASSERT_EQ(v.variable_declarations.size(), 1);
       EXPECT_EQ(v.variable_declarations[0].name, name);
