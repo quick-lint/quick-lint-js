@@ -1599,6 +1599,17 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                                 error_invalid_lone_literal_in_object_literal,
                                 where, offsets_matcher(p.locator, 1, 4))));
   }
+
+  {
+    test_parser p(u8"{a b: c}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var a, literal, var c)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_comma_between_object_literal_entries, where,
+            offsets_matcher(p.locator, strlen(u8"{a"), strlen(u8"{a")))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_comma_expression) {

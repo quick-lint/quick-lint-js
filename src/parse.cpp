@@ -942,6 +942,12 @@ expression_ptr parser::parse_object_literal() {
       expression_ptr key = this->make_expression<expression::literal>(key_span);
       this->skip();
       switch (this->peek().type) {
+      // {x y}  // Invalid.
+      case token_type::identifier:
+        // We'll report error_missing_comma_between_object_literal_entries on
+        // the next iteration of the loop.
+        [[fallthrough]];
+
       case token_type::comma:
       case token_type::right_curly: {
         // Name and value are the same: {keyandvalue}
