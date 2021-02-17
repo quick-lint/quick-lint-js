@@ -1005,6 +1005,15 @@ class parser {
           .name = this->peek().identifier_name().span()});
       [[fallthrough]];
     case token_type::identifier:
+    case token_type::kw_as:
+    case token_type::kw_async:
+    case token_type::kw_await:
+    case token_type::kw_from:
+    case token_type::kw_get:
+    case token_type::kw_of:
+    case token_type::kw_set:
+    case token_type::kw_static:
+    case token_type::kw_yield:
       optional_class_name = this->peek().identifier_name();
       this->skip();
       break;

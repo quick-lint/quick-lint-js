@@ -3332,6 +3332,28 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      spy_visitor v = parse_and_visit_statement(u8"class " + name + u8" {}");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration",  // (name)
+                              "visit_enter_class_scope",     //
+                              "visit_exit_class_scope"));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      name, variable_kind::_class}));
+    }
+
+    {
+      spy_visitor v = parse_and_visit_statement(u8"(class " + name + u8" {})");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_enter_class_scope",     //
+                              "visit_variable_declaration",  // (name)
+                              "visit_exit_class_scope"));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      name, variable_kind::_class}));
+    }
+
+    {
       spy_visitor v =
           parse_and_visit_statement(u8"try { } catch (" + name + u8") { }");
       EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
