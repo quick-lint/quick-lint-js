@@ -1915,6 +1915,17 @@ class parser {
       this->visit_binding_element(ast->child_0(), v, declaration_kind);
       break;
 
+    case expression_kind::await: {
+      expression::await *await = ast.get<expression::await>();
+      identifier ident(await->unary_operator_span());
+      v.visit_variable_declaration(ident, declaration_kind);
+      this->error_reporter_->report(
+          error_cannot_declare_await_in_async_function{
+              .name = ident,
+          });
+      break;
+    }
+
     case expression_kind::yield_none: {
       identifier ident(ast->span());
       v.visit_variable_declaration(ident, declaration_kind);

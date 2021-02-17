@@ -374,7 +374,7 @@ class expression::expression_with_prefix_operator_base : public expression {
                             this->child_->span().end());
   }
 
- private:
+ protected:
   const char8 *unary_operator_begin_;
   expression_ptr child_;
 };
@@ -653,6 +653,11 @@ class expression::await final
   explicit await(expression_ptr child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
+
+  source_code_span unary_operator_span() const noexcept {
+    return source_code_span(this->unary_operator_begin_,
+                            this->unary_operator_begin_ + 5);
+  }
 };
 static_assert(expression_arena::is_allocatable<expression::await>);
 

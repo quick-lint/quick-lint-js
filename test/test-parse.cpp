@@ -1950,6 +1950,29 @@ TEST(test_parse, declare_await_in_async_function) {
                     offsets_matcher(&code, strlen(u8"try {} catch ("),
                                     strlen(u8"try {} catch (await")))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"async function f(await) {}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"f", variable_kind::_function},  //
+                    spy_visitor::visited_variable_declaration{
+                        u8"await", variable_kind::_parameter}));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(
+                        error_cannot_declare_await_in_async_function, name,
+                        offsets_matcher(&code, strlen(u8"async function f("),
+                                        strlen(u8"async function f(await"))),
+                    // TODO(strager): Drop the
+                    // error_missing_operand_for_operator error.
+                    ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                                     testing::_)));
+  }
 }
 
 TEST(
