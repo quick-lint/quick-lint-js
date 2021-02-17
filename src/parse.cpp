@@ -859,6 +859,7 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   case token_type::kw_let:
   case token_type::kw_of:
   case token_type::kw_set:
+  case token_type::kw_static:
     function_name = this->peek().identifier_name();
     this->skip();
     break;

@@ -3264,7 +3264,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
 
 TEST(test_parse, variables_can_be_named_contextual_keywords) {
   for (string8 name : {u8"as", u8"async", u8"await", u8"from", u8"get", u8"let",
-                       u8"of", u8"set", u8"yield"}) {
+                       u8"of", u8"set", u8"static", u8"yield"}) {
     SCOPED_TRACE(out_string8(name));
 
     {
