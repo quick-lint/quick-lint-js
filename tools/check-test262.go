@@ -37,15 +37,28 @@ import "sync/atomic"
 
 var TodoTestFiles []string = []string{
 	"language/asi/*.js",
+	"language/expressions/arrow-function/syntax/early-errors/arrowparameters-bindingidentifier-identifier.js",
+	"language/expressions/conditional/in-branch-2.js",
+	"language/expressions/conditional/in-condition.js",
+	"language/expressions/object/identifier-shorthand-invalid-computed-name.js",
+	"language/future-reserved-words/*.js",
+	"language/identifiers/val-*.js",
+	"language/import/escaped-*.js",
+	"language/keywords/ident-ref-*.js",
+	"language/line-terminators/S7.3_A3.2_T1.js",
+	"language/line-terminators/invalid-comment-single-[lp]s.js",
 
 	// TODO(#50): Parse --> comments.
 	"annexB/language/comments/multi-line-html-close.js",
 	"annexB/language/comments/single-line-html-close.js",
 
 	// TODO(strager): Implement non-standard and new features.
+	"language/*/class/*-assignment-*-logical-*.js",
 	"language/*/class/*-coalesce.js",
 	"language/expressions/assignmenttargettype/*-coalesce-*.js",
 	"language/expressions/assignmenttargettype/*-logical-*-assignment-*.js",
+	"language/expressions/object/*-assignment-*-logical-*.js",
+	"language/expressions/object/*-coalesce.js",
 
 	// TODO(#153): Parse V8 %BuiltInFunctions
 	"v8/mjsunit/*.js",
