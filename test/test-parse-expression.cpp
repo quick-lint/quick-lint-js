@@ -1610,6 +1610,39 @@ TEST_F(test_parse_expression, malformed_object_literal) {
             error_missing_comma_between_object_literal_entries, where,
             offsets_matcher(p.locator, strlen(u8"{a"), strlen(u8"{a")))));
   }
+
+  {
+    test_parser p(u8"{function a(){}}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_use_function_keyword, function_token,
+            offsets_matcher(p.locator, strlen(u8"{"), strlen(u8"{function")))));
+  }
+
+  {
+    test_parser p(u8"{async function a(){}}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_methods_should_not_use_function_keyword,
+                                function_token,
+                                offsets_matcher(p.locator, strlen(u8"{async "),
+                                                strlen(u8"{async function")))));
+  }
+
+  {
+    test_parser p(u8"{function *a(){}}"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_use_function_keyword, function_token,
+            offsets_matcher(p.locator, strlen(u8"{"), strlen(u8"{function")))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_comma_expression) {

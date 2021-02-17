@@ -926,6 +926,8 @@ expression_ptr parser::parse_object_literal() {
     if (this->peek().type == token_type::end_of_file) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
+
+  parse_entry:
     switch (this->peek().type) {
     case token_type::comma:
     case token_type::end_of_file:
@@ -943,11 +945,21 @@ expression_ptr parser::parse_object_literal() {
       this->skip();
       switch (this->peek().type) {
       // {x y}  // Invalid.
+      // {function f() {}}  // Invalid.
       case token_type::identifier:
-        // We'll report error_missing_comma_between_object_literal_entries on
-        // the next iteration of the loop.
-        [[fallthrough]];
+        if (key_type == token_type::kw_function) {
+          this->error_reporter_->report(
+              error_methods_should_not_use_function_keyword{
+                  .function_token = key_span,
+              });
+          goto parse_entry;
+        } else {
+          // We'll report error_missing_comma_between_object_literal_entries on
+          // the next iteration of the loop.
+          goto single_token_key_and_value;
+        }
 
+      single_token_key_and_value:
       case token_type::comma:
       case token_type::right_curly: {
         // Name and value are the same: {keyandvalue}
@@ -983,6 +995,46 @@ expression_ptr parser::parse_object_literal() {
         parse_method_entry(key_span.begin(), key, function_attributes::normal);
         break;
 
+      case token_type::star:
+        if (key_type == token_type::kw_function) {
+          // { function *f() {} }  // Invalid.
+          this->error_reporter_->report(
+              error_methods_should_not_use_function_keyword{
+                  .function_token = key_span,
+              });
+          this->skip();
+          switch (this->peek().type) {
+          QLJS_CASE_KEYWORD:
+          case token_type::identifier:
+          case token_type::number:
+          case token_type::string: {
+            source_code_span real_key_span = this->peek().span();
+            expression_ptr real_key =
+                this->make_expression<expression::literal>(real_key_span);
+            this->skip();
+            parse_method_entry(real_key_span.begin(), real_key,
+                               function_attributes::generator);
+            break;
+          }
+
+          // { get [expr]() {} }
+          case token_type::left_square: {
+            source_code_span left_square_span = this->peek().span();
+            expression_ptr real_key = parse_computed_property_name();
+            parse_method_entry(left_square_span.begin(), real_key,
+                               function_attributes::generator);
+            break;
+          }
+
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+          }
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+        break;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -1002,6 +1054,15 @@ expression_ptr parser::parse_object_literal() {
       source_code_span keyword_span = this->peek().span();
       token_type keyword_type = this->peek().type;
       this->skip();
+
+      if (this->peek().type == token_type::kw_function) {
+        // { async function f() { } }  // Invalid.
+        this->error_reporter_->report(
+            error_methods_should_not_use_function_keyword{
+                .function_token = this->peek().span(),
+            });
+        this->skip();
+      }
 
       if (is_async && this->peek().type == token_type::star) {
         // { async *generatorName() { } }

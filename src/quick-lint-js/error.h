@@ -240,6 +240,13 @@
       .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_methods_should_not_use_function_keyword, "E072",                   \
+      { source_code_span function_token; },                                    \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("methods should not use the 'function' keyword"),  \
+          function_token))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_if_statement, "E064",                             \
       { source_code_span if_and_condition; },                                  \
       .error(QLJS_TRANSLATABLE("missing body for 'if' statement"),             \
