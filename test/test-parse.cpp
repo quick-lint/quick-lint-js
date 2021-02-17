@@ -3279,6 +3279,28 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      spy_visitor v =
+          parse_and_visit_statement(u8"let " + name + u8" = initial;");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_use",            // initial
+                              "visit_variable_declaration"));  // (name)
+      ASSERT_EQ(v.variable_declarations.size(), 1);
+      EXPECT_EQ(v.variable_declarations[0].name, name);
+      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+    }
+
+    {
+      spy_visitor v =
+          parse_and_visit_statement(u8"const " + name + u8" = initial;");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_use",            // initial
+                              "visit_variable_declaration"));  // (name)
+      ASSERT_EQ(v.variable_declarations.size(), 1);
+      EXPECT_EQ(v.variable_declarations[0].name, name);
+      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
+    }
+
+    {
       spy_visitor v = parse_and_visit_statement(u8"function " + name + u8"(" +
                                                 name + u8") {}");
       EXPECT_THAT(
