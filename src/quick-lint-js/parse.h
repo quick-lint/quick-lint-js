@@ -679,8 +679,21 @@ class parser {
       break;
 
     // export * from "module";
+    // export * as name from "module";
     case token_type::star:
       this->skip();
+      if (this->peek().type == token_type::kw_as) {
+        this->skip();
+        switch (this->peek().type) {
+        QLJS_CASE_KEYWORD:
+        case token_type::identifier:
+          this->skip();
+          break;
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+        }
+      }
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_from);
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);

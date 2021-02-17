@@ -216,6 +216,12 @@ TEST(test_parse, export_from) {
   }
 
   {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export * as mother from 'other';"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"export {} from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
@@ -3824,14 +3830,23 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
 
 TEST(test_parse, exported_names_can_be_named_keywords) {
   for (string8 export_name : keywords) {
-    string8 code = u8"export {someFunction as " + export_name + u8"};";
-    SCOPED_TRACE(out_string8(code));
-    spy_visitor v = parse_and_visit_statement(code.c_str());
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_export_use"));  // someFunction
-    EXPECT_THAT(
-        v.variable_uses,
-        ElementsAre(spy_visitor::visited_variable_use{u8"someFunction"}));
+    {
+      string8 code = u8"export {someFunction as " + export_name + u8"};";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_export_use"));  // someFunction
+      EXPECT_THAT(
+          v.variable_uses,
+          ElementsAre(spy_visitor::visited_variable_use{u8"someFunction"}));
+    }
+
+    {
+      string8 code = u8"export * as " + export_name + u8" from 'other-module';";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(v.visits, IsEmpty());
+    }
   }
 }
 
