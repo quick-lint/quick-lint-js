@@ -3263,8 +3263,9 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
 }
 
 TEST(test_parse, variables_can_be_named_contextual_keywords) {
-  for (string8 name : {u8"as", u8"async", u8"await", u8"from", u8"get", u8"of",
-                       u8"set", u8"static", u8"yield"}) {
+  for (string8 name :
+       {u8"as", u8"async", u8"await", u8"from", u8"get", u8"of", u8"private",
+        u8"protected", u8"public", u8"set", u8"static", u8"yield"}) {
     SCOPED_TRACE(out_string8(name));
 
     {
@@ -3362,6 +3363,14 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_EQ(v.variable_uses[1].name, name);
     }
 
+    {
+      string8 code = name + u8";";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
+      ASSERT_EQ(v.variable_uses.size(), 1);
+      EXPECT_EQ(v.variable_uses[0].name, name);
+    }
     {
       spy_visitor v = parse_and_visit_statement(name + u8".method();");
       EXPECT_THAT(v.visits,
@@ -3771,94 +3780,6 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
-  }
-}
-
-TEST(test_parse, variables_can_be_named_private_protected_public_static) {
-  for (string8 variable_name :
-       {u8"private", u8"protected", u8"public", u8"static"}) {
-    SCOPED_TRACE(out_string8(variable_name));
-
-    for (string8 variable_kind : {u8"const", u8"let", u8"var"}) {
-      string8 code = variable_kind + u8" " + variable_name + u8" = initial;";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // initial
-                                        "visit_variable_declaration"));
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, variable_name);
-    }
-
-    {
-      string8 code =
-          u8"function " + variable_name + u8"(" + variable_name + u8") {}";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
-      EXPECT_THAT(v.visits,
-                  ElementsAre("visit_variable_declaration",  // (function name)
-                              "visit_enter_function_scope",
-                              "visit_variable_declaration",  // (parameter name)
-                              "visit_enter_function_scope_body",
-                              "visit_exit_function_scope"));
-      ASSERT_EQ(v.variable_declarations.size(), 2);
-      EXPECT_EQ(v.variable_declarations[0].name, variable_name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
-      EXPECT_EQ(v.variable_declarations[1].name, variable_name);
-      EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
-    }
-
-    {
-      string8 code = u8"try { } catch (" + variable_name + u8") { }";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
-      EXPECT_THAT(v.visits,
-                  ElementsAre("visit_enter_block_scope",     //
-                              "visit_exit_block_scope",      //
-                              "visit_enter_block_scope",     //
-                              "visit_variable_declaration",  //
-                              "visit_exit_block_scope"));
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, variable_name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
-    }
-
-    {
-      string8 code = u8"console.log(" + variable_name + u8");";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
-      EXPECT_THAT(v.visits,
-                  ElementsAre("visit_variable_use",    // console
-                              "visit_variable_use"));  // (variable_name)
-      ASSERT_EQ(v.variable_uses.size(), 2);
-      EXPECT_EQ(v.variable_uses[1].name, variable_name);
-    }
-
-    {
-      string8 code = variable_name + u8";";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-      ASSERT_EQ(v.variable_uses.size(), 1);
-      EXPECT_EQ(v.variable_uses[0].name, variable_name);
-    }
-
-    for (string8 code : {
-             u8"(async " + variable_name + u8" => null)",
-             u8"(async (" + variable_name + u8") => null)",
-             u8"(" + variable_name + u8" => null)",
-             u8"((" + variable_name + u8") => null)",
-         }) {
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
-      EXPECT_THAT(v.visits,
-                  ElementsAre("visit_enter_function_scope",
-                              "visit_variable_declaration",  // (variable_name)
-                              "visit_enter_function_scope_body",
-                              "visit_exit_function_scope"));
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, variable_name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
-    }
   }
 }
 
