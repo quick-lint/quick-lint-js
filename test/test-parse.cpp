@@ -3768,8 +3768,8 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
 
 TEST(test_parse, parameters_can_be_named_contextual_keywords) {
   for (string8 parameter_name :
-       {u8"as", u8"async", u8"await", u8"from", u8"get", u8"let", u8"set",
-        u8"static", u8"yield"}) {
+       {u8"as", u8"async", u8"await", u8"from", u8"get", u8"let", u8"of",
+        u8"set", u8"static", u8"yield"}) {
     {
       string8 code = u8"function f(" + parameter_name + u8") {}";
       SCOPED_TRACE(out_string8(code));

@@ -196,6 +196,7 @@ class parser {
       case token_type::kw_get:
       case token_type::kw_in:
       case token_type::kw_let:
+      case token_type::kw_of:
       case token_type::kw_set:
       case token_type::kw_static:
       case token_type::kw_yield:
