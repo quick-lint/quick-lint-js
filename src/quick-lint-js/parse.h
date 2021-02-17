@@ -835,7 +835,12 @@ class parser {
       goto named_function;
 
     case token_type::kw_yield:
-      // TODO(strager): Disallow functions named 'yield' in generator functions.
+      if (this->in_generator_function_) {
+        this->error_reporter_->report(
+            error_cannot_declare_yield_in_generator_function{
+                .name = this->peek().identifier_name(),
+            });
+      }
       goto named_function;
 
     named_function:
@@ -1242,8 +1247,18 @@ class parser {
                     .name = this->peek().identifier_name(),
                 });
           }
-          [[fallthrough]];
+          goto catch_identifier;
 
+        case token_type::kw_yield:
+          if (this->in_generator_function_) {
+            this->error_reporter_->report(
+                error_cannot_declare_yield_in_generator_function{
+                    .name = this->peek().identifier_name(),
+                });
+          }
+          goto catch_identifier;
+
+        catch_identifier:
         case token_type::identifier:
         case token_type::kw_as:
         case token_type::kw_async:
@@ -1253,7 +1268,6 @@ class parser {
         case token_type::kw_of:
         case token_type::kw_set:
         case token_type::kw_static:
-        case token_type::kw_yield:
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_catch);
           this->skip();
@@ -1745,8 +1759,12 @@ class parser {
         goto variable_name;
 
       case token_type::kw_yield:
-        // TODO(strager): Disallow variables named 'yield' in generator
-        // functions.
+        if (this->in_generator_function_) {
+          this->error_reporter_->report(
+              error_cannot_declare_yield_in_generator_function{
+                  .name = this->peek().identifier_name(),
+              });
+        }
         goto variable_name;
 
         // let x;
@@ -1896,6 +1914,17 @@ class parser {
     case expression_kind::spread:
       this->visit_binding_element(ast->child_0(), v, declaration_kind);
       break;
+
+    case expression_kind::yield_none: {
+      identifier ident(ast->span());
+      v.visit_variable_declaration(ident, declaration_kind);
+      this->error_reporter_->report(
+          error_cannot_declare_yield_in_generator_function{
+              .name = ident,
+          });
+      break;
+    }
+
     default:
       QLJS_UNIMPLEMENTED();
       break;

@@ -103,6 +103,13 @@
              name))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_declare_yield_in_generator_function, "E071",                \
+      { identifier name; },                                                    \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "cannot declare 'yield' inside generator function"),          \
+             name))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_export_let, "E009", { source_code_span export_name; },      \
       .error(QLJS_TRANSLATABLE("cannot export variable named 'let'"),          \
              export_name))                                                     \
