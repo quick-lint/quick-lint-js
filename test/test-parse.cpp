@@ -3263,8 +3263,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
 }
 
 TEST(test_parse, variables_can_be_named_contextual_keywords) {
-  for (string8 name : {u8"as", u8"async", u8"await", u8"from", u8"get", u8"let",
-                       u8"of", u8"set", u8"static", u8"yield"}) {
+  for (string8 name : {u8"as", u8"async", u8"await", u8"from", u8"get", u8"of",
+                       u8"set", u8"static", u8"yield"}) {
     SCOPED_TRACE(out_string8(name));
 
     {
@@ -3369,15 +3369,8 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v =
           parse_and_visit_statement(u8"for (" + name + u8" in xs) ;");
       EXPECT_THAT(v.visits,
-                  ::testing::AnyOf(
-                      // TODO(strager): A for scope shouldn't be introduced by
-                      // this syntax. (No variable is being declared.)
-                      ElementsAre("visit_enter_for_scope",      //
-                                  "visit_variable_use",         // xs
-                                  "visit_variable_assignment",  // (name)
-                                  "visit_exit_for_scope"),
-                      ElementsAre("visit_variable_use",            // xs
-                                  "visit_variable_assignment")));  // (name)
+                  ElementsAre("visit_variable_use",           // xs
+                              "visit_variable_assignment"));  // (name)
       EXPECT_THAT(v.variable_assignments,
                   ElementsAre(spy_visitor::visited_variable_assignment{name}));
     }
@@ -3386,13 +3379,8 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v =
           parse_and_visit_statement(u8"for (" + name + u8".prop in xs) ;");
       EXPECT_THAT(v.variable_uses,
-                  // TODO(strager): Why are 'let' and 'async' giving different
-                  // orders for these variable uses?
-                  ::testing::AnyOf(
-                      ElementsAre(spy_visitor::visited_variable_use{u8"xs"},  //
-                                  spy_visitor::visited_variable_use{name}),   //
-                      ElementsAre(spy_visitor::visited_variable_use{name},    //
-                                  spy_visitor::visited_variable_use{u8"xs"})));
+                  ElementsAre(spy_visitor::visited_variable_use{name},  //
+                              spy_visitor::visited_variable_use{u8"xs"}));
     }
   }
 }
@@ -3543,6 +3531,119 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
       EXPECT_THAT(v.variable_uses,
                   ElementsAre(spy_visitor::visited_variable_use{u8"go"}));
     }
+  }
+}
+
+TEST(test_parse, old_style_variables_can_be_named_let) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"var let = initial;");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",            // initial
+                            "visit_variable_declaration"));  // let
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"function let(let) {}");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // let (function)
+                            "visit_enter_function_scope",
+                            "visit_variable_declaration",  // let (parameter)
+                            "visit_enter_function_scope_body",
+                            "visit_exit_function_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_EQ(v.variable_declarations[1].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(function let() {})");
+    EXPECT_THAT(
+        v.visits,
+        ElementsAre("visit_enter_named_function_scope",  // let (function)
+                    "visit_enter_function_scope_body",
+                    "visit_exit_function_scope"));
+    EXPECT_THAT(
+        v.enter_named_function_scopes,
+        ElementsAre(spy_visitor::visited_enter_named_function_scope{u8"let"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"try { } catch (let) { }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // let
+                                      "visit_exit_block_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let {x = let} = o;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // o
+                                      "visit_variable_use",            // let
+                                      "visit_variable_declaration"));  // x
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[1].name, u8"let");
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"console.log(let);");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
+                                      "visit_variable_use"));  // let
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[1].name, u8"let");
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let.method();");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use"));  // let
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
+  }
+
+  for (string8 code : {
+           u8"(async let => null)",
+           u8"(async (let) => null)",
+           u8"(let => null)",
+           u8"((let) => null)",
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_statement(code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // let
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (let in xs) ;");
+    EXPECT_THAT(v.visits,
+                // TODO(strager): A for scope shouldn't be introduced by
+                // this syntax. (No variable is being declared.)
+                ElementsAre("visit_enter_for_scope",      //
+                            "visit_variable_use",         // xs
+                            "visit_variable_assignment",  // let
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"let"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (let.prop in xs) ;");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"xs"},  //
+                            spy_visitor::visited_variable_use{u8"let"}));
   }
 }
 
