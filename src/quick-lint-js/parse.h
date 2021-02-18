@@ -134,9 +134,11 @@ class parser {
 
     // function f() {}
     case token_type::kw_function:
-      this->parse_and_visit_function_declaration(v, function_attributes::normal,
-                                                 /*begin=*/this->peek().begin,
-                                                 /*require_name=*/true);
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::normal,
+          /*begin=*/this->peek().begin,
+          /*require_name=*/
+          function_name_requirement::required_for_function_statement);
       break;
 
     // var x = 42;
@@ -170,10 +172,11 @@ class parser {
       switch (this->peek().type) {
       // async function f() {}
       case token_type::kw_function:
-        this->parse_and_visit_function_declaration(v,
-                                                   function_attributes::async,
-                                                   /*begin=*/async_token.begin,
-                                                   /*require_name=*/true);
+        this->parse_and_visit_function_declaration(
+            v, function_attributes::async,
+            /*begin=*/async_token.begin,
+            /*require_name=*/
+            function_name_requirement::required_for_function_statement);
         break;
 
       // async (x, y) => expressionOrStatement
@@ -663,7 +666,7 @@ class parser {
           this->parse_and_visit_function_declaration(
               v, function_attributes::async,
               /*begin=*/async_token.begin,
-              /*require_name=*/false);
+              /*require_name=*/function_name_requirement::optional);
         } else {
           expression_ptr ast =
               this->parse_async_expression(async_token, precedence{});
@@ -746,9 +749,10 @@ class parser {
       const char8 *async_token_begin = this->peek().begin;
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_function);
-      this->parse_and_visit_function_declaration(v, function_attributes::async,
-                                                 /*begin=*/async_token_begin,
-                                                 /*require_name=*/false);
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::async,
+          /*begin=*/async_token_begin,
+          /*require_name=*/function_name_requirement::optional);
       break;
     }
 
@@ -806,9 +810,10 @@ class parser {
 
     // function f() {}
     case token_type::kw_function:
-      this->parse_and_visit_function_declaration(v, function_attributes::normal,
-                                                 /*begin=*/this->peek().begin,
-                                                 /*require_name=*/false);
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::normal,
+          /*begin=*/this->peek().begin,
+          /*require_name=*/function_name_requirement::optional);
       break;
 
     // class C {}
@@ -838,11 +843,15 @@ class parser {
     }
   }
 
+  enum class function_name_requirement {
+    optional,
+    required_for_function_statement,
+  };
+
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_declaration(Visitor &v,
-                                            function_attributes attributes,
-                                            const char8 *begin,
-                                            bool require_name) {
+  void parse_and_visit_function_declaration(
+      Visitor &v, function_attributes attributes, const char8 *begin,
+      function_name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
     const char8 *function_token_begin = this->peek().begin;
     this->skip();
@@ -886,7 +895,8 @@ class parser {
 
     // export default function() {}
     case token_type::left_paren:
-      if (require_name) {
+      switch (require_name) {
+      case function_name_requirement::required_for_function_statement: {
         const char8 *left_paren_end = this->peek().end;
 
         // The function should have a name, but doesn't have a name. Perhaps the
@@ -918,8 +928,12 @@ class parser {
                   .function = source_code_span(begin, function->span().end()),
               });
         }
-      } else {
+        break;
+      }
+
+      case function_name_requirement::optional:
         this->parse_and_visit_function_parameters_and_body(v, attributes);
+        break;
       }
       break;
 
