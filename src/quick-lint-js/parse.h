@@ -752,13 +752,20 @@ class parser {
       this->parse_and_visit_function_declaration(
           v, function_attributes::async,
           /*begin=*/async_token_begin,
-          /*require_name=*/function_name_requirement::optional);
+          /*require_name=*/function_name_requirement::required_for_export);
       break;
     }
 
+    // export function f() {}
+    case token_type::kw_function:
+      this->parse_and_visit_function_declaration(
+          v, function_attributes::normal,
+          /*begin=*/this->peek().begin,
+          /*require_name=*/function_name_requirement::required_for_export);
+      break;
+
     case token_type::kw_class:
     case token_type::kw_const:
-    case token_type::kw_function:
     case token_type::kw_let:
     case token_type::kw_var:
       this->parse_and_visit_declaration(v);
@@ -845,6 +852,7 @@ class parser {
 
   enum class function_name_requirement {
     optional,
+    required_for_export,
     required_for_function_statement,
   };
 
@@ -853,7 +861,8 @@ class parser {
       Visitor &v, function_attributes attributes, const char8 *begin,
       function_name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
-    const char8 *function_token_begin = this->peek().begin;
+    source_code_span function_token_span = this->peek().span();
+    const char8 *function_token_begin = function_token_span.begin();
     this->skip();
     attributes = this->parse_generator_star(attributes);
 
@@ -928,6 +937,14 @@ class parser {
                   .function = source_code_span(begin, function->span().end()),
               });
         }
+        break;
+      }
+
+      case function_name_requirement::required_for_export: {
+        this->error_reporter_->report(error_missing_name_of_exported_function{
+            .function_keyword = function_token_span,
+        });
+        this->parse_and_visit_function_parameters_and_body(v, attributes);
         break;
       }
 
