@@ -744,7 +744,7 @@ class parser {
       break;
     }
 
-    // export class C {}
+    // export async function f() {}
     case token_type::kw_async: {
       const char8 *async_token_begin = this->peek().begin;
       this->skip();
@@ -764,6 +764,8 @@ class parser {
           /*require_name=*/function_name_requirement::required_for_export);
       break;
 
+    // export class C {}
+    // export let x = 42;
     case token_type::kw_class:
     case token_type::kw_const:
     case token_type::kw_let:
