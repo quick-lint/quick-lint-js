@@ -310,9 +310,9 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_semicolon_after_expression, "E027",                        \
+      error_missing_semicolon_after_statement, "E027",                         \
       { source_code_span where; },                                             \
-      .error(QLJS_TRANSLATABLE("missing semicolon after expression"), where))  \
+      .error(QLJS_TRANSLATABLE("missing semicolon after statement"), where))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores, "E028",           \

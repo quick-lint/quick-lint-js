@@ -1366,7 +1366,7 @@ void parser::consume_semicolon() {
     } else {
       this->lexer_.insert_semicolon();
       this->error_reporter_->report(
-          error_missing_semicolon_after_expression{this->peek().span()});
+          error_missing_semicolon_after_statement{this->peek().span()});
       this->skip();
     }
     break;

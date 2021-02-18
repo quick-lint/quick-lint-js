@@ -1409,7 +1409,7 @@ TEST(test_parse, asi_for_statement_at_newline) {
     cli_source_position::offset_type end_of_first_expression =
         strlen(u8"console.log('hello')");
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_semicolon_after_expression, where,
+                              error_missing_semicolon_after_statement, where,
                               offsets_matcher(&code, end_of_first_expression,
                                               end_of_first_expression))));
   }
@@ -3386,7 +3386,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     cli_source_position::offset_type end_of_let_statement =
         strlen(u8"let x = 2");
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_semicolon_after_expression, where,
+                              error_missing_semicolon_after_statement, where,
                               offsets_matcher(&code, end_of_let_statement,
                                               end_of_let_statement))));
   }
@@ -3402,7 +3402,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     cli_source_position::offset_type end_of_const_statement =
         strlen(u8"const x");
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_semicolon_after_expression, where,
+                              error_missing_semicolon_after_statement, where,
                               offsets_matcher(&code, end_of_const_statement,
                                               end_of_const_statement))));
   }
