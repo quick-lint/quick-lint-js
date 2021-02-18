@@ -144,7 +144,7 @@ class parser {
     // var x = 42;
     case token_type::kw_const:
     case token_type::kw_var:
-      this->parse_and_visit_declaration(v);
+      this->parse_and_visit_variable_declaration(v);
       break;
 
     // let x = 42;
@@ -681,8 +681,16 @@ class parser {
       // export default class C {}
       // export default function f() {}
       case token_type::kw_class:
+        this->parse_and_visit_class(
+            v,
+            /*require_name=*/name_requirement::optional);
+        break;
+
       case token_type::kw_function:
-        this->parse_and_visit_declaration(v);
+        this->parse_and_visit_function_declaration(
+            v, function_attributes::normal,
+            /*begin=*/this->peek().begin,
+            /*require_name=*/name_requirement::optional);
         break;
 
       // export default let x = null;  // Invalid.
@@ -776,7 +784,7 @@ class parser {
     case token_type::kw_const:
     case token_type::kw_let:
     case token_type::kw_var:
-      this->parse_and_visit_declaration(v);
+      this->parse_and_visit_variable_declaration(v);
       break;
 
     // export stuff;    // Invalid.
@@ -809,38 +817,15 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_declaration(Visitor &v) {
-    switch (this->peek().type) {
-    // var x = 42;
-    case token_type::kw_const:
-    case token_type::kw_let:
-    case token_type::kw_var: {
-      token declaring_token = this->peek();
-      this->skip();
-      this->parse_and_visit_let_bindings(v, declaring_token,
-                                         /*allow_in_operator=*/true);
-      this->consume_semicolon();
-      break;
-    }
-
-    // function f() {}
-    case token_type::kw_function:
-      this->parse_and_visit_function_declaration(
-          v, function_attributes::normal,
-          /*begin=*/this->peek().begin,
-          /*require_name=*/name_requirement::optional);
-      break;
-
-    // class C {}
-    case token_type::kw_class:
-      this->parse_and_visit_class(v,
-                                  /*require_name=*/name_requirement::optional);
-      break;
-
-    default:
-      QLJS_PARSER_UNIMPLEMENTED();
-      break;
-    }
+  void parse_and_visit_variable_declaration(Visitor &v) {
+    token declaring_token = this->peek();
+    QLJS_ASSERT(declaring_token.type == token_type::kw_const ||
+                declaring_token.type == token_type::kw_let ||
+                declaring_token.type == token_type::kw_var);
+    this->skip();
+    this->parse_and_visit_let_bindings(v, declaring_token,
+                                       /*allow_in_operator=*/true);
+    this->consume_semicolon();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
