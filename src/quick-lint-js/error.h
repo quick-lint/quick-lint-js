@@ -279,6 +279,15 @@
           where))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_expression_between_parentheses, "E078",                    \
+      {                                                                        \
+        source_code_span left_paren;                                           \
+        source_code_span right_paren;                                          \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("missing expression between parentheses"),      \
+             source_code_span(left_paren.begin(), right_paren.end())))         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_function_parameter_list, "E073",                           \
       { source_code_span function_name; },                                     \
       .error(QLJS_TRANSLATABLE("missing function parameter list"),             \

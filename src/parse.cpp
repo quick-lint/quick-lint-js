@@ -253,6 +253,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     this->skip();
 
     if (this->peek().type == token_type::right_paren) {
+      source_code_span right_paren_span = this->peek().span();
       this->skip();
       if (this->peek().type == token_type::equal_greater) {
         this->skip();
@@ -261,7 +262,17 @@ expression_ptr parser::parse_expression(precedence prec) {
             function_attributes::normal, left_paren_span.begin());
         return this->parse_expression_remainder(ast, prec);
       } else {
-        QLJS_PARSER_UNIMPLEMENTED();
+        // ()  // Invalid.
+        this->error_reporter_->report(
+            error_missing_expression_between_parentheses{
+                .left_paren = left_paren_span,
+                .right_paren = right_paren_span,
+            });
+        expression_ptr child = this->parse_expression();
+        if (!prec.binary_operators) {
+          return child;
+        }
+        return this->parse_expression_remainder(child, prec);
       }
     }
 

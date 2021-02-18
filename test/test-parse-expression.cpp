@@ -2078,6 +2078,19 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   }
 }
 
+TEST_F(test_parse_expression, invalid_parentheses) {
+  {
+    test_parser p(u8"()"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "?");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_missing_expression_between_parentheses, left_paren,
+                    offsets_matcher(p.locator, 0, 1),  //
+                    right_paren, offsets_matcher(p.locator, 1, 2))));
+  }
+}
+
 TEST_F(test_parse_expression, anonymous_class) {
   {
     test_parser p(u8"class {}"_sv);
