@@ -2091,6 +2091,18 @@ TEST_F(test_parse_expression, invalid_parentheses) {
   }
 }
 
+TEST_F(test_parse_expression, invalid_keyword_in_expression) {
+  {
+    test_parser p(u8"debugger"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "?");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_token, token,
+                    offsets_matcher(p.locator, 0, strlen(u8"debugger")))));
+  }
+}
+
 TEST_F(test_parse_expression, anonymous_class) {
   {
     test_parser p(u8"class {}"_sv);

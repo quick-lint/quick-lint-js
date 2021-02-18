@@ -407,7 +407,8 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
-  case token_type::colon: {
+  case token_type::colon:
+  case token_type::kw_debugger: {
     this->error_reporter_->report(error_unexpected_token{this->peek().span()});
     this->skip();
     return this->make_expression<expression::_invalid>();
