@@ -112,10 +112,29 @@ TEST(test_parse, parse_simple_let) {
   }
 }
 
-TEST(test_parse, export_let) {
+TEST(test_parse, export_variable) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export let x;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export var x;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_var}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export const x;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_const}));
   }
 }
 
@@ -1700,13 +1719,6 @@ TEST(test_parse, parse_function_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"foo");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
-  }
-
-  {
     spy_visitor v = parse_and_visit_statement(u8"function sin(theta) {}"_sv);
 
     ASSERT_EQ(v.variable_declarations.size(), 2);
@@ -1869,6 +1881,33 @@ TEST(test_parse, generator_function_statement) {
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"f", variable_kind::_function}));
+  }
+}
+
+TEST(test_parse, export_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"foo");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export async function foo() {}"_sv);
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"foo");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+  }
+}
+
+TEST(test_parse, export_class) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export class C {}"_sv);
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"C");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
   }
 }
 
@@ -2497,14 +2536,6 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
                                       "visit_enter_class_scope",     //
                                       "visit_exit_class_scope"));
-  }
-
-  {
-    spy_visitor v = parse_and_visit_statement(u8"export class C {}"_sv);
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"C");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
   }
 
   {
