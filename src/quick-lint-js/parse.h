@@ -668,6 +668,7 @@ class parser {
           expression_ptr ast =
               this->parse_async_expression(async_token, precedence{});
           this->visit_expression(ast, v, variable_context::rhs);
+          this->consume_semicolon();
         }
         break;
       }
@@ -696,6 +697,7 @@ class parser {
       // export default 2 + 2;
       default:
         this->parse_and_visit_expression(v);
+        this->consume_semicolon();
         break;
       }
       break;
