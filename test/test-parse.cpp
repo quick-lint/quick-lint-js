@@ -191,6 +191,24 @@ TEST(test_parse, export_default) {
   }
 }
 
+TEST(test_parse, export_default_of_variable_is_illegal) {
+  for (string8 declaration_kind : {u8"const", u8"let", u8"var"}) {
+    padded_string code(u8"export default " + declaration_kind + u8" x = y;");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
+                                      "visit_variable_declaration"));  // x
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_cannot_export_default_variable, declaring_token,
+            offsets_matcher(&code, strlen(u8"export default "),
+                            (u8"export default " + declaration_kind).size()))));
+  }
+}
+
 TEST(test_parse, export_list) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export {one, two};"_sv);

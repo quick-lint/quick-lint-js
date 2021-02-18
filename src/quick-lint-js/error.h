@@ -110,6 +110,13 @@
              name))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_export_default_variable, "E076",                            \
+      { source_code_span declaring_token; },                                   \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "cannot declare and export variable with 'export default'"),  \
+             declaring_token))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_export_let, "E009", { source_code_span export_name; },      \
       .error(QLJS_TRANSLATABLE("cannot export variable named 'let'"),          \
              export_name))                                                     \

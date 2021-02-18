@@ -654,6 +654,8 @@ class parser {
     case token_type::kw_default:
       this->skip();
       switch (this->peek().type) {
+      // export default async function f() {}
+      // export default async () => {}
       case token_type::kw_async: {
         token async_token = this->peek();
         this->skip();
@@ -669,10 +671,29 @@ class parser {
         }
         break;
       }
+
+      // export default class C {}
+      // export default function f() {}
       case token_type::kw_class:
       case token_type::kw_function:
         this->parse_and_visit_declaration(v);
         break;
+
+      // export default let x = null;  // Invalid.
+      case token_type::kw_const:
+      case token_type::kw_let:
+      case token_type::kw_var: {
+        token declaring_token = this->peek();
+        this->skip();
+        this->error_reporter_->report(error_cannot_export_default_variable{
+            .declaring_token = declaring_token.span(),
+        });
+        this->parse_and_visit_let_bindings(v, declaring_token,
+                                           /*allow_in_operator=*/true);
+        break;
+      }
+
+      // export default 2 + 2;
       default:
         this->parse_and_visit_expression(v);
         break;
