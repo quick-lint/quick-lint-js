@@ -299,6 +299,17 @@
       .error(QLJS_TRANSLATABLE("missing name in function statement"), where))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_name_in_class_statement, "E080",                           \
+      { source_code_span class_keyword; },                                     \
+      .error(QLJS_TRANSLATABLE("missing name of class"), class_keyword))       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_name_of_exported_class, "E081",                            \
+      { source_code_span class_keyword; },                                     \
+      .error(QLJS_TRANSLATABLE("missing name of exported class"),              \
+             class_keyword))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_name_of_exported_function, "E079",                         \
       { source_code_span function_keyword; },                                  \
       .error(QLJS_TRANSLATABLE("missing name of exported function"),           \

@@ -325,7 +325,9 @@ class parser {
 
     // class C {}
     case token_type::kw_class:
-      this->parse_and_visit_class(v);
+      this->parse_and_visit_class(
+          v,
+          /*require_name=*/name_requirement::required_for_statement);
       break;
 
     // switch (x) { default: ; }
@@ -765,8 +767,12 @@ class parser {
       break;
 
     // export class C {}
-    // export let x = 42;
     case token_type::kw_class:
+      this->parse_and_visit_class(
+          v, /*require_name=*/name_requirement::required_for_export);
+      break;
+
+    // export let x = 42;
     case token_type::kw_const:
     case token_type::kw_let:
     case token_type::kw_var:
@@ -827,7 +833,8 @@ class parser {
 
     // class C {}
     case token_type::kw_class:
-      this->parse_and_visit_class(v);
+      this->parse_and_visit_class(v,
+                                  /*require_name=*/name_requirement::optional);
       break;
 
     default:
@@ -1050,10 +1057,10 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class(Visitor &v) {
+  void parse_and_visit_class(Visitor &v, name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
 
-    this->parse_and_visit_class_heading(v);
+    this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
 
     v.visit_enter_class_scope();
 
@@ -1077,8 +1084,10 @@ class parser {
   // Parse the 'class' keyword, the class's optional name, and any extends
   // clause.
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_heading(Visitor &v) {
+  void parse_and_visit_class_heading(Visitor &v,
+                                     name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
+    source_code_span class_keyword_span = this->peek().span();
     this->skip();
 
     std::optional<identifier> optional_class_name;
@@ -1132,8 +1141,20 @@ class parser {
     if (optional_class_name.has_value()) {
       v.visit_variable_declaration(*optional_class_name, variable_kind::_class);
     } else {
-      // TODO(strager): Require class name for class declarations. Class names
-      // are only optional for 'export default' and expressions.
+      switch (require_name) {
+      case name_requirement::optional:
+        break;
+      case name_requirement::required_for_export:
+        this->error_reporter_->report(error_missing_name_of_exported_class{
+            .class_keyword = class_keyword_span,
+        });
+        break;
+      case name_requirement::required_for_statement:
+        this->error_reporter_->report(error_missing_name_in_class_statement{
+            .class_keyword = class_keyword_span,
+        });
+        break;
+      }
     }
   }
 

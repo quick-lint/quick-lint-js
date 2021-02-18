@@ -1243,7 +1243,8 @@ expression_ptr parser::parse_class_expression() {
   const char8 *span_begin = this->peek().begin;
 
   buffering_visitor *v = this->expressions_.make_buffering_visitor();
-  this->parse_and_visit_class_heading(*v);
+  this->parse_and_visit_class_heading(
+      *v, /*require_name=*/name_requirement::optional);
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();

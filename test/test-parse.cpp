@@ -1943,6 +1943,22 @@ TEST(test_parse, export_class) {
   }
 }
 
+TEST(test_parse, export_class_requires_a_name) {
+  {
+    padded_string code(u8"export class {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_name_of_exported_class, class_keyword,
+                    offsets_matcher(&code, strlen(u8"export "),
+                                    strlen(u8"export class")))));
+  }
+}
+
 TEST(test_parse, await_in_async_function) {
   {
     spy_visitor v = parse_and_visit_statement(
@@ -2606,6 +2622,21 @@ TEST(test_parse, parse_class_statement) {
                         u8"A", variable_kind::_class},
                     spy_visitor::visited_variable_declaration{
                         u8"B", variable_kind::_class}));
+  }
+}
+
+TEST(test_parse, class_statement_requires_a_name) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class {}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_name_in_class_statement, class_keyword,
+                    offsets_matcher(&code, 0, strlen(u8"class")))));
   }
 }
 
