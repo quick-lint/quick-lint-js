@@ -919,6 +919,18 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
                               offsets_matcher(&code, 0, op.size()))));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
   }
+
+  {
+    padded_string code(u8".x; y;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 0, strlen(u8".")))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // y
+  }
 }
 
 TEST(test_parse, statement_starting_with_invalid_token) {
