@@ -138,7 +138,7 @@ class parser {
           v, function_attributes::normal,
           /*begin=*/this->peek().begin,
           /*require_name=*/
-          function_name_requirement::required_for_function_statement);
+          name_requirement::required_for_statement);
       break;
 
     // var x = 42;
@@ -176,7 +176,7 @@ class parser {
             v, function_attributes::async,
             /*begin=*/async_token.begin,
             /*require_name=*/
-            function_name_requirement::required_for_function_statement);
+            name_requirement::required_for_statement);
         break;
 
       // async (x, y) => expressionOrStatement
@@ -666,7 +666,7 @@ class parser {
           this->parse_and_visit_function_declaration(
               v, function_attributes::async,
               /*begin=*/async_token.begin,
-              /*require_name=*/function_name_requirement::optional);
+              /*require_name=*/name_requirement::optional);
         } else {
           expression_ptr ast =
               this->parse_async_expression(async_token, precedence{});
@@ -752,7 +752,7 @@ class parser {
       this->parse_and_visit_function_declaration(
           v, function_attributes::async,
           /*begin=*/async_token_begin,
-          /*require_name=*/function_name_requirement::required_for_export);
+          /*require_name=*/name_requirement::required_for_export);
       break;
     }
 
@@ -761,7 +761,7 @@ class parser {
       this->parse_and_visit_function_declaration(
           v, function_attributes::normal,
           /*begin=*/this->peek().begin,
-          /*require_name=*/function_name_requirement::required_for_export);
+          /*require_name=*/name_requirement::required_for_export);
       break;
 
     // export class C {}
@@ -822,7 +822,7 @@ class parser {
       this->parse_and_visit_function_declaration(
           v, function_attributes::normal,
           /*begin=*/this->peek().begin,
-          /*require_name=*/function_name_requirement::optional);
+          /*require_name=*/name_requirement::optional);
       break;
 
     // class C {}
@@ -852,16 +852,17 @@ class parser {
     }
   }
 
-  enum class function_name_requirement {
+  enum class name_requirement {
     optional,
     required_for_export,
-    required_for_function_statement,
+    required_for_statement,
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_declaration(
-      Visitor &v, function_attributes attributes, const char8 *begin,
-      function_name_requirement require_name) {
+  void parse_and_visit_function_declaration(Visitor &v,
+                                            function_attributes attributes,
+                                            const char8 *begin,
+                                            name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_function);
     source_code_span function_token_span = this->peek().span();
     const char8 *function_token_begin = function_token_span.begin();
@@ -907,7 +908,7 @@ class parser {
     // export default function() {}
     case token_type::left_paren:
       switch (require_name) {
-      case function_name_requirement::required_for_function_statement: {
+      case name_requirement::required_for_statement: {
         const char8 *left_paren_end = this->peek().end;
 
         // The function should have a name, but doesn't have a name. Perhaps the
@@ -942,7 +943,7 @@ class parser {
         break;
       }
 
-      case function_name_requirement::required_for_export: {
+      case name_requirement::required_for_export: {
         this->error_reporter_->report(error_missing_name_of_exported_function{
             .function_keyword = function_token_span,
         });
@@ -950,7 +951,7 @@ class parser {
         break;
       }
 
-      case function_name_requirement::optional:
+      case name_requirement::optional:
         this->parse_and_visit_function_parameters_and_body(v, attributes);
         break;
       }
