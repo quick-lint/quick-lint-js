@@ -2782,6 +2782,67 @@ TEST(test_parse, class_statement_with_methods) {
   }
 }
 
+TEST(test_parse, class_methods_should_not_use_function_keyword) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { function f() {} }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // C
+                                      "visit_enter_class_scope",          //
+                                      "visit_property_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_use_function_keyword, function_token,
+            offsets_matcher(&code, strlen(u8"class C { "),
+                            strlen(u8"class C { function")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { async function f() {} }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_use_function_keyword, function_token,
+            offsets_matcher(&code, strlen(u8"class C { async "),
+                            strlen(u8"class C { async function")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { function* f() {} }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_use_function_keyword, function_token,
+            offsets_matcher(&code, strlen(u8"class C { "),
+                            strlen(u8"class C { function")))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { static function f() {} }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_use_function_keyword, function_token,
+            offsets_matcher(&code, strlen(u8"class C { static "),
+                            strlen(u8"class C { static function")))));
+  }
+}
+
 TEST(test_parse, class_statement_with_keyword_property) {
   for (string8 keyword :
        {u8"async", u8"await", u8"catch", u8"class", u8"default", u8"extends",

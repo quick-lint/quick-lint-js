@@ -1233,6 +1233,15 @@ class parser {
       }
       break;
 
+    // function f() {}  // Invalid.
+    case token_type::kw_function:
+      this->error_reporter_->report(
+          error_methods_should_not_use_function_keyword{
+              .function_token = this->peek().span(),
+          });
+      this->skip();
+      goto next;
+
     case token_type::semicolon:
       this->skip();
       break;
