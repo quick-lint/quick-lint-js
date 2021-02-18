@@ -409,6 +409,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::kw_throw:
   case token_type::kw_while:
   case token_type::right_curly:
+  case token_type::right_square:
   case token_type::semicolon:
     return this->make_expression<expression::_invalid>();
 
@@ -695,6 +696,14 @@ next:
     expression_ptr subscript = this->parse_expression();
     switch (this->peek().type) {
     case token_type::right_square:
+      if (subscript->kind() == expression_kind::_invalid) {
+        // expr[]  // Invalid.
+        source_code_span right_square_span = this->peek().span();
+        this->error_reporter_->report(error_indexing_requires_expression{
+            .squares = source_code_span(left_square_span.begin(),
+                                        right_square_span.end()),
+        });
+      }
       break;
     case token_type::end_of_file:
       this->error_reporter_->report(

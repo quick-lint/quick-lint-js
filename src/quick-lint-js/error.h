@@ -203,6 +203,11 @@
       .error(QLJS_TRANSLATABLE("exporting requires '{{' and '}'"), names))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_indexing_requires_expression, "E075",                              \
+      { source_code_span squares; },                                           \
+      .error(QLJS_TRANSLATABLE("indexing requires an expression"), squares))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_binding_in_let_statement, "E019",                          \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("invalid binding in let statement"), where))    \

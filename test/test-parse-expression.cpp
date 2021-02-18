@@ -664,6 +664,21 @@ TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
   }
 }
 
+TEST_F(test_parse_expression, empty_indexing_expression) {
+  {
+    test_parser p(u8"xs[]"_sv);
+    expression_ptr ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "index(var xs, ?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_indexing_requires_expression, squares,
+            offsets_matcher(p.locator, strlen(u8"xs"), strlen(u8"xs[]")))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"xs[]"));
+  }
+}
+
 TEST_F(test_parse_expression, parse_parenthesized_expression) {
   {
     test_parser p(u8"(x)"_sv);
