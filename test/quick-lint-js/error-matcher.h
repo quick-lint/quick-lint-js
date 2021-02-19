@@ -44,9 +44,20 @@
 namespace quick_lint_js {
 class offsets_matcher {
  public:
+  // Create an offsets_matcher which asserts that the matched source_code_span
+  // begins at begin_offset and ends at end_offset.
   explicit offsets_matcher(padded_string_view input,
                            cli_source_position::offset_type begin_offset,
                            cli_source_position::offset_type end_offset);
+
+  // Create an offsets_matcher which asserts that the matched source_code_span
+  // begins at begin_offset and ends at begin_offset+strlen(text).
+  //
+  // TODO(strager): Also ensure the matched source_code_span's content equals
+  // text.
+  explicit offsets_matcher(padded_string_view input,
+                           cli_source_position::offset_type begin_offset,
+                           string8_view text);
 
   offsets_matcher(const offsets_matcher &) = delete;
   offsets_matcher &operator=(const offsets_matcher &) = delete;
