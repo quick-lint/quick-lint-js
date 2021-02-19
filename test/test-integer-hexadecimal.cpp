@@ -16,7 +16,7 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
-#include <quick-lint-js/gtest-char8.h>
+#include <quick-lint-js/gtest.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/warning.h>
 #include <system_error>

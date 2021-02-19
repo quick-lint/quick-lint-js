@@ -28,7 +28,7 @@ quick_lint_js_add_executable(
   quick-lint-js/characters.h
   quick-lint-js/error-collector.h
   quick-lint-js/error-matcher.h
-  quick-lint-js/gtest-char8.h
+  quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
   quick-lint-js/pipe.h
   quick-lint-js/spy-lsp-endpoint-remote.h

@@ -21,16 +21,12 @@
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/gtest.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <string_view>
 #include <vector>
-
-// HACK(strager): Improve formatting of googletest diagnostics.
-namespace std {
-inline void PrintTo(const std::string_view &s, std::ostream *out) { *out << s; }
-}
 
 namespace quick_lint_js {
 struct spy_visitor : public error_collector {

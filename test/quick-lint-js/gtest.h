@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef QUICK_LINT_JS_GTEST_CHAR8_H
-#define QUICK_LINT_JS_GTEST_CHAR8_H
+#ifndef QUICK_LINT_JS_GTEST_H
+#define QUICK_LINT_JS_GTEST_H
 
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <quick-lint-js/have.h>
+#include <string_view>
 
 namespace testing::internal {
 template <>
@@ -50,6 +51,11 @@ inline void PrintTo(const std::basic_string_view<char8_t> &s,
           out);
 }
 #endif
+}
+
+// HACK(strager): Improve formatting of googletest diagnostics.
+namespace std {
+inline void PrintTo(const std::string_view &s, std::ostream *out) { *out << s; }
 }
 
 #endif
