@@ -1461,7 +1461,6 @@ class parser {
       [[fallthrough]];
     case token_type::kw_var: {
       token declaring_token = this->peek();
-      token_type variable_token = this->peek().type;
       this->skip();
       buffering_visitor lhs;
       this->parse_and_visit_let_bindings(lhs, declaring_token,
@@ -1477,7 +1476,7 @@ class parser {
       // for (let x of xs) {}
       case token_type::kw_in:
       case token_type::kw_of: {
-        bool is_var_in = variable_token == token_type::kw_var &&
+        bool is_var_in = declaring_token.type == token_type::kw_var &&
                          this->peek().type == token_type::kw_in;
         this->skip();
         expression_ptr rhs = this->parse_expression();
