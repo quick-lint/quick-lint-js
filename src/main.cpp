@@ -355,9 +355,12 @@ void process_file(padded_string_view input, error_reporter *error_reporter,
   parser p(input, error_reporter);
   linter l(error_reporter);
   if (print_parser_visits) {
+    buffering_visitor v;
+    p.parse_and_visit_module(v);
+
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
-    p.parse_and_visit_module(visitor);
+    v.move_into(visitor);
   } else {
     p.parse_and_visit_module(l);
   }
