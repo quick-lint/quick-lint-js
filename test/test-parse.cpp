@@ -3795,6 +3795,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       ASSERT_EQ(v.variable_uses.size(), 1);
       EXPECT_EQ(v.variable_uses[0].name, name);
     }
+
     {
       spy_visitor v = parse_and_visit_statement(name + u8".method();");
       EXPECT_THAT(v.visits,
@@ -3837,7 +3838,82 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                   ElementsAre(spy_visitor::visited_variable_use{name},  //
                               spy_visitor::visited_variable_use{u8"xs"}));
     }
+
+    if (name != u8"async") {
+      // NOTE(strager): async isn't allowed here. See
+      // test_parse.cannot_assign_to_variable_named_async_in_for_of.
+      spy_visitor v =
+          parse_and_visit_statement(u8"for (" + name + u8" of xs) ;");
+      EXPECT_THAT(v.variable_assignments,
+                  ElementsAre(spy_visitor::visited_variable_assignment{name}));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+    }
+
+    {
+      spy_visitor v =
+          parse_and_visit_statement(u8"for ((" + name + u8") of xs) ;");
+      EXPECT_THAT(v.variable_assignments,
+                  ElementsAre(spy_visitor::visited_variable_assignment{name}));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+    }
+
+    {
+      spy_visitor v =
+          parse_and_visit_statement(u8"for (" + name + u8".prop of xs) ;");
+      EXPECT_THAT(v.variable_assignments, IsEmpty());
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{name},
+                              spy_visitor::visited_variable_use{u8"xs"}));
+    }
+
+    {
+      spy_visitor v =
+          parse_and_visit_statement(u8"for (" + name + u8"; cond;) ;");
+      EXPECT_THAT(v.variable_assignments, IsEmpty());
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{name},
+                              spy_visitor::visited_variable_use{u8"cond"}));
+    }
+
+    {
+      spy_visitor v =
+          parse_and_visit_statement(u8"for (" + name + u8".prop; cond;) ;");
+      EXPECT_THAT(v.variable_assignments, IsEmpty());
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{name},
+                              spy_visitor::visited_variable_use{u8"cond"}));
+    }
   }
+}
+
+TEST(test_parse, for_loop_async_arrow_with_of_parameter_is_init_expression) {
+  spy_visitor v = parse_and_visit_statement(u8"for (async of => x; y; z);"_sv);
+  EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                    "visit_variable_declaration",       // of
+                                    "visit_enter_function_scope_body",  //
+                                    "visit_variable_use",               // x
+                                    "visit_exit_function_scope",        //
+                                    "visit_variable_use",               // y
+                                    "visit_variable_use"));             // z
+}
+
+TEST(test_parse,
+     cannot_assign_to_variable_named_async_without_parentheses_in_for_of) {
+  padded_string code(u8"for (async of xs) ;"_sv);
+  spy_visitor v;
+  parser p(&code, &v);
+  p.parse_and_visit_statement(v);
+  EXPECT_THAT(v.variable_assignments,
+              ElementsAre(spy_visitor::visited_variable_assignment{u8"async"}));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_cannot_assign_to_variable_named_async_in_for_of_loop,
+                  async_identifier,
+                  offsets_matcher(&code, strlen(u8"for ("), u8"async"))));
 }
 
 TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {

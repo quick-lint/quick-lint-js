@@ -84,6 +84,14 @@
       .error(QLJS_TRANSLATABLE("BigInt literal contains exponent"), where))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_assign_to_variable_named_async_in_for_of_loop, "E082",      \
+      { identifier async_identifier; },                                        \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "assigning to 'async' in a for-of loop requires parentheses"),   \
+          async_identifier))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_await_in_async_function, "E069",                    \
       { identifier name; },                                                    \
       .error(                                                                  \

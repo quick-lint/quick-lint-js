@@ -30,6 +30,7 @@
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
+#include <quick-lint-js/warning.h>
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR      \
   case token_type::kw_instanceof:           \
@@ -1421,6 +1422,29 @@ class parser {
 
     bool entered_for_scope = false;
 
+    QLJS_WARNING_PUSH
+    QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
+    auto parse_in_or_of_or_condition_update =
+        [&, this](auto &v, expression_ptr init_expression) -> void {
+      QLJS_WARNING_POP
+      switch (this->peek().type) {
+      case token_type::semicolon:
+        this->skip();
+        this->visit_expression(init_expression, v, variable_context::rhs);
+        parse_c_style_head_remainder();
+        break;
+      case token_type::kw_in:
+      case token_type::kw_of: {
+        this->skip();
+        expression_ptr rhs = this->parse_expression();
+        this->visit_assignment_expression(init_expression, rhs, v);
+        break;
+      }
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+    };
     switch (this->peek().type) {
     // for (;;) {}
     case token_type::semicolon:
@@ -1480,27 +1504,75 @@ class parser {
       break;
     }
 
+    // for (async; condition; update) {}
+    // for (async.prop; condition; update) {}
+    // for (async in things) {}
+    // for (async.prop of things) {}
+    // for (async of => {}; condition; update) {}
+    // for (async of things) {}  // Invalid.
+    case token_type::kw_async: {
+      token async_token = this->peek();
+      expression_ptr async_var_expression =
+          this->make_expression<expression::variable>(
+              async_token.identifier_name(), async_token.type);
+      this->skip();
+      switch (this->peek().type) {
+      // for (async of => {}; condition; update) {}
+      // for (async of things) {}  // Invalid.
+      case token_type::kw_of: {
+        token of_token = this->peek();
+        this->skip();
+        if (this->peek().type == token_type::equal_greater) {
+          // for (async of => {}; condition; update) {}
+          this->skip();
+          std::array<expression_ptr, 1> parameters = {
+              this->make_expression<expression::variable>(
+                  identifier(of_token.span()), of_token.type)};
+          expression_ptr ast = this->parse_arrow_function_body(
+              function_attributes::async, async_token.begin,
+              this->expressions_.make_array(std::move(parameters)));
+          ast = this->parse_expression_remainder(
+              ast, precedence{.in_operator = false});
+          parse_in_or_of_or_condition_update(v, ast);
+        } else {
+          // for (async of things) {}  // Invalid.
+          this->error_reporter_->report(
+              error_cannot_assign_to_variable_named_async_in_for_of_loop{
+                  .async_identifier = async_token.identifier_name(),
+              });
+          expression_ptr rhs = this->parse_expression();
+          this->visit_assignment_expression(async_var_expression, rhs, v);
+        }
+        break;
+      }
+
+      // for (async in things) {}
+      // for (async; condition; update) {}
+      case token_type::kw_in:
+      case token_type::semicolon:
+        parse_in_or_of_or_condition_update(v, async_var_expression);
+        break;
+
+      // for (async.prop; condition; update) {}
+      // for (async.prop of things) {}
+      case token_type::dot:
+      default: {
+        expression_ptr init_expression = this->parse_expression_remainder(
+            async_var_expression, precedence{.in_operator = false});
+        parse_in_or_of_or_condition_update(v, init_expression);
+        break;
+      }
+      }
+      break;
+    }
+
     // for (init; condition; update) {}
+    // for (item of things) {}
+    // for (item in things) {}
     default: {
       expression_ptr init_expression =
           this->parse_expression(precedence{.in_operator = false});
-      switch (this->peek().type) {
-      case token_type::semicolon:
-        this->skip();
-        this->visit_expression(init_expression, v, variable_context::rhs);
-        parse_c_style_head_remainder();
-        break;
-      case token_type::kw_in:
-      case token_type::kw_of: {
-        this->skip();
-        expression_ptr rhs = this->parse_expression();
-        this->visit_assignment_expression(init_expression, rhs, v);
-        break;
-      }
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
+      parse_in_or_of_or_condition_update(v, init_expression);
       break;
     }
     }
