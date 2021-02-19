@@ -26,10 +26,6 @@ struct offsets_matcher::state {
   padded_string_view code;
   cli_source_position::offset_type begin_offset;
   cli_source_position::offset_type end_offset;
-
-  cli_source_range range(source_code_span span) const {
-    return cli_locator(this->code).range(span);
-  }
 };
 
 class offsets_matcher::span_impl
@@ -49,11 +45,14 @@ class offsets_matcher::span_impl
 
   bool MatchAndExplain(const source_code_span &span,
                        testing::MatchResultListener *listener) const override {
-    cli_source_range range = this->state_.range(span);
-    bool result = range.begin_offset() == this->state_.begin_offset &&
-                  range.end_offset() == this->state_.end_offset;
-    *listener << "whose begin-end offset (" << range.begin_offset() << '-'
-              << range.end_offset() << ") "
+    auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
+        span.begin() - this->state_.code.data());
+    auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
+        span.end() - this->state_.code.data());
+    bool result = span_begin_offset == this->state_.begin_offset &&
+                  span_end_offset == this->state_.end_offset;
+    *listener << "whose begin-end offset (" << span_begin_offset << '-'
+              << span_end_offset << ") "
               << (result ? "equals" : "doesn't equal") << " "
               << this->state_.begin_offset << '-' << this->state_.end_offset;
     return result;
