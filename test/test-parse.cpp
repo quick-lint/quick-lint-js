@@ -604,9 +604,9 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_let_with_no_bindings, where,
-                                             offsets_matcher(&code, 0, 3))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_let_with_no_bindings, where,
+                              offsets_matcher(&code, 0, u8"let"))));
   }
 
   {
@@ -615,9 +615,10 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_stray_comma_in_let_statement, where,
-                              offsets_matcher(&code, 5, 6))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_stray_comma_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"let a"), u8","))));
   }
 
   {
@@ -626,9 +627,10 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_invalid_binding_in_let_statement, where,
-                              offsets_matcher(&code, 7, 9))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_binding_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"let x, "), u8"42"))));
   }
 
   {
@@ -637,9 +639,10 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_invalid_binding_in_let_statement, where,
-                              offsets_matcher(&code, 4, 6))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_binding_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"let "), u8"if"))));
   }
 
   {
@@ -648,9 +651,10 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_invalid_binding_in_let_statement, where,
-                              offsets_matcher(&code, 4, 6))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_binding_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"let "), u8"42"))));
   }
 
   {
@@ -659,9 +663,10 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_invalid_binding_in_let_statement, where,
-                              offsets_matcher(&code, 4, 12))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_binding_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"let "), u8"debugger"))));
   }
 
   {
@@ -673,10 +678,13 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_EQ(v.variable_declarations.size(), 2);
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(error_invalid_binding_in_let_statement,
-                                     where, offsets_matcher(&code, 4, 8)),
-                    ERROR_TYPE_FIELD(error_invalid_binding_in_let_statement,
-                                     where, offsets_matcher(&code, 10, 14))));
+        ElementsAre(
+            ERROR_TYPE_FIELD(
+                error_invalid_binding_in_let_statement, where,
+                offsets_matcher(&code, strlen(u8"let "), u8"true")),
+            ERROR_TYPE_FIELD(
+                error_invalid_binding_in_let_statement, where,
+                offsets_matcher(&code, strlen(u8"let true, "), u8"true"))));
   }
 }
 
@@ -830,9 +838,10 @@ TEST(test_parse, throw_statement) {
     padded_string code(u8"throw;"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_expected_expression_before_semicolon, where,
-                              offsets_matcher(&code, 5, 6))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_expression_before_semicolon, where,
+                    offsets_matcher(&code, strlen(u8"throw"), u8";"))));
   }
 
   {
@@ -840,9 +849,10 @@ TEST(test_parse, throw_statement) {
     padded_string code(u8"throw\nnew Error();"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_expected_expression_before_newline, where,
-                              offsets_matcher(&code, 5, 5))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_expression_before_newline, where,
+                    offsets_matcher(&code, strlen(u8"throw"), u8""))));
   }
 }
 
@@ -883,7 +893,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
-                              offsets_matcher(&code, 2, 3))));
+                              offsets_matcher(&code, strlen(u8"2 "), u8"+"))));
   }
 
   {
@@ -893,7 +903,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
-                              offsets_matcher(&code, 0, 1))));
+                              offsets_matcher(&code, 0, u8"^"))));
   }
 
   {
@@ -903,7 +913,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
-                              offsets_matcher(&code, 2, 3))));
+                              offsets_matcher(&code, strlen(u8"2 "), u8"*"))));
   }
 
   {
@@ -913,10 +923,11 @@ TEST(test_parse, parse_invalid_math_expression) {
     p.parse_and_visit_expression(v);
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
-                                     offsets_matcher(&code, 2, 3)),
-                    ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
-                                     offsets_matcher(&code, 4, 5))));
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                             offsets_matcher(&code, strlen(u8"2 "), u8"&")),
+            ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                             offsets_matcher(&code, strlen(u8"2 & "), u8"&"))));
   }
 
   {
@@ -926,7 +937,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
-                              offsets_matcher(&code, 3, 4))));
+                              offsets_matcher(&code, strlen(u8"(2 "), u8"*"))));
   }
   {
     spy_visitor v;
@@ -934,8 +945,9 @@ TEST(test_parse, parse_invalid_math_expression) {
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 4, 5))));
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unmatched_parenthesis, where,
+                    offsets_matcher(&code, strlen(u8"2 * "), u8"("))));
   }
 
   {
@@ -943,11 +955,14 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 * (3 + (4"_sv);
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 9, 10)),
-                            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 4, 5))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(
+                error_unmatched_parenthesis, where,
+                offsets_matcher(&code, strlen(u8"2 * (3 + "), u8"(")),
+            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                             offsets_matcher(&code, strlen(u8"2 * "), u8"("))));
   }
 }
 
@@ -957,9 +972,9 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8")"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 0, 1))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unmatched_parenthesis, where,
+                              offsets_matcher(&code, 0, u8")"))));
   }
 
   {
@@ -967,11 +982,13 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8"x))"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 1, 2)),
-                            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 2, 3))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                             offsets_matcher(&code, strlen(u8"x"), u8")")),
+            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                             offsets_matcher(&code, strlen(u8"x)"), u8")"))));
   }
 
   {
@@ -979,11 +996,13 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8"-x))"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 2, 3)),
-                            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
-                                             offsets_matcher(&code, 3, 4))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                             offsets_matcher(&code, strlen(u8"-x"), u8")")),
+            ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
+                             offsets_matcher(&code, strlen(u8"-x)"), u8")"))));
   }
 
   {
@@ -1046,7 +1065,7 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
-                              offsets_matcher(&code, 0, op.size()))));
+                              offsets_matcher(&code, 0, op))));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
   }
 
@@ -1074,7 +1093,7 @@ TEST(test_parse, statement_starting_with_invalid_token) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unexpected_token, token,
-                              offsets_matcher(&code, 0, token.size()))));
+                              offsets_matcher(&code, 0, token))));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
@@ -1087,8 +1106,9 @@ TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unexpected_identifier, where,
-                                             offsets_matcher(&code, 4, 7))));
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_identifier, where,
+                    offsets_matcher(&code, strlen(u8"ten "), u8"ten"))));
   }
 }
 
@@ -1520,10 +1540,10 @@ TEST(test_parse, asi_for_statement_at_newline) {
                             spy_visitor::visited_variable_use{u8"console"}));
     cli_source_position::offset_type end_of_first_expression =
         strlen(u8"console.log('hello')");
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_semicolon_after_statement, where,
-                              offsets_matcher(&code, end_of_first_expression,
-                                              end_of_first_expression))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_semicolon_after_statement, where,
+                    offsets_matcher(&code, end_of_first_expression, u8""))));
   }
 
   for (string8 variable_kind : {u8"const", u8"let", u8"var"}) {
@@ -1645,9 +1665,9 @@ TEST(test_parse, DISABLED_parse_invalid_function_calls) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_unexpected_identifier, where,
-                                             offsets_matcher(&code, 3, 4))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_identifier, where,
+                              offsets_matcher(&code, strlen(u8"(x)"), u8"f"))));
 
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, u8"x");
@@ -3089,7 +3109,7 @@ TEST(test_parse, if_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_if_statement, if_and_condition,
-                    offsets_matcher(&code, 0, strlen(u8"if (a)")))));
+                    offsets_matcher(&code, 0, u8"if (a)"))));
   }
 
   {
@@ -3127,7 +3147,7 @@ TEST(test_parse, if_without_parens) {
                     error_expected_parentheses_around_if_condition, condition,
                     offsets_matcher(&code, strlen(u8"if "),
                                     // TODO(#139): End the error at the 'd'.
-                                    strlen(u8"if cond ")))));
+                                    u8"cond "))));
   }
 
   {
@@ -3176,7 +3196,7 @@ TEST(test_parse, else_without_if) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_else_has_no_if, else_token,
-                              offsets_matcher(&code, 0, strlen(u8"else")))));
+                              offsets_matcher(&code, 0, u8"else"))));
   }
 }
 
@@ -3196,7 +3216,7 @@ TEST(test_parse, utter_garbage) {
                 error_expected_parentheses_around_if_condition, condition,
                 offsets_matcher(&code, strlen(u8"if "),
                                 // TODO(#139): End the error at the ':'.
-                                strlen(u8"if :\n"))),
+                                u8":\n")),
             ERROR_TYPE_FIELD(error_unexpected_token, token,
                              offsets_matcher(&code, strlen(u8"if "), u8":"))));
   }
@@ -3621,10 +3641,10 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
     cli_source_position::offset_type end_of_let_statement =
         strlen(u8"let x = 2");
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_semicolon_after_statement, where,
-                              offsets_matcher(&code, end_of_let_statement,
-                                              end_of_let_statement))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_semicolon_after_statement, where,
+                    offsets_matcher(&code, end_of_let_statement, u8""))));
   }
   {
     spy_visitor v;
@@ -3637,10 +3657,10 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                     u8"x", variable_kind::_const}));
     cli_source_position::offset_type end_of_const_statement =
         strlen(u8"const x");
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_semicolon_after_statement, where,
-                              offsets_matcher(&code, end_of_const_statement,
-                                              end_of_const_statement))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_semicolon_after_statement, where,
+                    offsets_matcher(&code, end_of_const_statement, u8""))));
   }
 }
 
@@ -4089,11 +4109,11 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_cannot_declare_variable_named_let_with_let, name,
-                    offsets_matcher(&code, declaration_kind.size() + 1,
-                                    declaration_kind.size() + 1 + 3))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_cannot_declare_variable_named_let_with_let, name,
+            offsets_matcher(&code, declaration_kind.size() + 1, u8"let"))));
 
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     ASSERT_EQ(v.variable_declarations.size(), 1);
@@ -4105,9 +4125,11 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"let {other, let} = stuff;"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_cannot_declare_variable_named_let_with_let,
-                              name, offsets_matcher(&code, 12, 12 + 3))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_cannot_declare_variable_named_let_with_let, name,
+            offsets_matcher(&code, strlen(u8"let {other, "), u8"let"))));
   }
 
   // import implies strict mode (because modules imply strict mode).
@@ -4116,9 +4138,10 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"import let from 'weird';"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_cannot_import_let, import_name,
-                              offsets_matcher(&code, 7, 7 + 3))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_import_let, import_name,
+                    offsets_matcher(&code, strlen(u8"import "), u8"let"))));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
@@ -4131,9 +4154,11 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"import * as let from 'weird';"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_cannot_import_let, import_name,
-                              offsets_matcher(&code, 12, 12 + 3))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_cannot_import_let, import_name,
+            offsets_matcher(&code, strlen(u8"import * as "), u8"let"))));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
@@ -4146,9 +4171,10 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"import { let } from 'weird';"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_cannot_import_let, import_name,
-                              offsets_matcher(&code, 9, 9 + 3))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_import_let, import_name,
+                    offsets_matcher(&code, strlen(u8"import { "), u8"let"))));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
@@ -4162,9 +4188,11 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"export function let() {}"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_cannot_export_let, export_name,
-                              offsets_matcher(&code, 16, 16 + 3))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_cannot_export_let, export_name,
+            offsets_matcher(&code, strlen(u8"export function "), u8"let"))));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
@@ -4177,9 +4205,10 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"class let {}"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_cannot_declare_class_named_let, name,
-                              offsets_matcher(&code, 6, 6 + 3))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_class_named_let, name,
+                    offsets_matcher(&code, strlen(u8"class "), u8"let"))));
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"let");
@@ -4229,9 +4258,10 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
     padded_string code(u8"(a, b, );"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_operand_for_operator, where,
-                              offsets_matcher(&code, 5, 5 + 1))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_operand_for_operator, where,
+                    offsets_matcher(&code, strlen(u8"(a, b"), u8","))));
   }
 }
 
