@@ -49,10 +49,6 @@ class offsets_matcher {
                            cli_source_position::offset_type begin_offset,
                            cli_source_position::offset_type end_offset);
 
-  explicit offsets_matcher(const cli_locator &locator,
-                           cli_source_position::offset_type begin_offset,
-                           cli_source_position::offset_type end_offset);
-
   offsets_matcher(const offsets_matcher &) = delete;
   offsets_matcher &operator=(const offsets_matcher &) = delete;
 

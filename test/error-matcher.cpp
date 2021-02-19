@@ -23,23 +23,12 @@
 
 namespace quick_lint_js {
 struct offsets_matcher::state {
-  std::variant<const cli_locator *, padded_string_view> locator;
+  padded_string_view code;
   cli_source_position::offset_type begin_offset;
   cli_source_position::offset_type end_offset;
 
   cli_source_range range(source_code_span span) const {
-    struct range_impl {
-      const source_code_span &span;
-
-      cli_source_range operator()(const cli_locator *locator) const {
-        return locator->range(this->span);
-      }
-
-      cli_source_range operator()(padded_string_view input) const {
-        return cli_locator(input).range(this->span);
-      }
-    };
-    return std::visit(range_impl{span}, this->locator);
+    return cli_locator(this->code).range(span);
   }
 };
 
@@ -99,14 +88,7 @@ class offsets_matcher::identifier_impl
 offsets_matcher::offsets_matcher(padded_string_view input,
                                  cli_source_position::offset_type begin_offset,
                                  cli_source_position::offset_type end_offset)
-    : state_(new state{.locator = input,
-                       .begin_offset = begin_offset,
-                       .end_offset = end_offset}) {}
-
-offsets_matcher::offsets_matcher(const cli_locator &locator,
-                                 cli_source_position::offset_type begin_offset,
-                                 cli_source_position::offset_type end_offset)
-    : state_(new state{.locator = &locator,
+    : state_(new state{.code = input,
                        .begin_offset = begin_offset,
                        .end_offset = end_offset}) {}
 
