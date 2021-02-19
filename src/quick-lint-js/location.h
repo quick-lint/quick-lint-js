@@ -49,6 +49,9 @@ class source_code_span {
 
 bool operator==(source_code_span, string8_view) noexcept;
 bool operator!=(source_code_span, string8_view) noexcept;
+
+bool operator==(source_code_span, source_code_span) noexcept;
+bool operator!=(source_code_span, source_code_span) noexcept;
 }
 
 #endif

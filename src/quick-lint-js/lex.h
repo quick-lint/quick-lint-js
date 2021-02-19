@@ -83,6 +83,7 @@
 
 namespace quick_lint_js {
 class error_reporter;
+struct lexer_transaction;
 
 enum class token_type {
   // Single-character symbols:
@@ -307,6 +308,38 @@ class lexer {
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
 
+  // Save lexer state.
+  //
+  // After calling begin_transaction, you must call either commit_transaction or
+  // roll_back_transaction with the returned transaction.
+  //
+  // You cannot call begin_transaction again before calling commit_transaction
+  // or roll_back_transaction. In other words, transactions may not be nested.
+  //
+  // Inside a transaction, errors are not reported until commit_transaction is
+  // called.
+  lexer_transaction begin_transaction();
+
+  // After calling commit_transaction, it's almost as if you never called
+  // begin_transaction in the first place.
+  //
+  // commit_transaction does not restore the state of the lexer when
+  // begin_transaction was called.
+  void commit_transaction(lexer_transaction&&);
+
+  // Restore lexer state to a prior version.
+  //
+  // After calling roll_back_transaction, it's as if you never called
+  // begin_transaction or subsequently called skip, insert_semicolon, or
+  // other functions.
+  //
+  // roll_back_transaction effectively undoes calls to skip, insert_semicolon,
+  // etc.
+  //
+  // Calling roll_back_transaction will not report lexer errors which might have
+  // been reported if it weren't for begin_transaction.
+  void roll_back_transaction(lexer_transaction&&);
+
   void insert_semicolon();
 
   // Do not call this after calling insert_semicolon, unless skip has been
@@ -419,6 +452,14 @@ class lexer {
   padded_string_view original_input_;
 
   boost::container::pmr::monotonic_buffer_resource memory_;
+};
+
+struct lexer_transaction {
+  // Private to lexer. Do not read or modify.
+  token old_last_token;
+  const char8* old_last_last_token_end;
+  const char8* old_input;
+  error_reporter* old_error_reporter;
 };
 }
 

@@ -25,4 +25,12 @@ bool operator==(source_code_span x, string8_view y) noexcept {
 bool operator!=(source_code_span x, string8_view y) noexcept {
   return !(x == y);
 }
+
+bool operator==(source_code_span x, source_code_span y) noexcept {
+  return x.begin() == y.begin() && x.end() == y.end();
+}
+
+bool operator!=(source_code_span x, source_code_span y) noexcept {
+  return !(x == y);
+}
 }

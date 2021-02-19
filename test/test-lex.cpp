@@ -1823,6 +1823,132 @@ TEST_F(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   EXPECT_THAT(errors.errors, IsEmpty());
 }
 
+TEST_F(test_lex, transaction_buffers_errors_until_commit) {
+  padded_string code(u8"x 0b y"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0o999 error shouldn't be written to error reporter";
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.commit_transaction(std::move(transaction));
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(error_no_digits_in_binary_number,
+                                           characters, testing::_)));
+}
+
+TEST_F(test_lex, errors_after_transaction_commit_are_reported_unbuffered) {
+  padded_string code(u8"x 'y' 0b"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+
+  l.commit_transaction(std::move(transaction));
+  EXPECT_EQ(l.peek().type, token_type::string);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(error_no_digits_in_binary_number,
+                                           characters, testing::_)));
+}
+
+TEST_F(test_lex, errors_after_transaction_rollback_are_reported_unbuffered) {
+  padded_string code(u8"x 'y' 0b"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+
+  l.roll_back_transaction(std::move(transaction));
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(error_no_digits_in_binary_number,
+                                           characters, testing::_)));
+}
+
+TEST_F(test_lex, rolling_back_transaction) {
+  padded_string code(u8"x 'y' 3"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction transaction = l.begin_transaction();
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+
+  l.roll_back_transaction(std::move(transaction));
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+}
+
+TEST_F(test_lex, insert_semicolon_after_rolling_back_transaction) {
+  padded_string code(u8"x 'y' 3"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+
+  lexer_transaction transaction = l.begin_transaction();
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+
+  l.roll_back_transaction(std::move(transaction));
+  l.insert_semicolon();
+  EXPECT_EQ(l.peek().type, token_type::semicolon);
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::string);
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);
+}
+
 void test_lex::check_single_token(string8_view input,
                                   string8_view expected_identifier_name,
                                   source_location local_caller) {

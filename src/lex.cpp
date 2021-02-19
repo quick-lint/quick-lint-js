@@ -22,6 +22,7 @@
 #include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/bit.h>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/have.h>
@@ -33,6 +34,7 @@
 #include <quick-lint-js/utf-8.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
+#include <utility>
 
 #if QLJS_HAVE_X86_SSE4_2
 #include <nmmintrin.h>
@@ -813,6 +815,37 @@ next:
 
   this->input_ = c;
   this->last_token_.end = this->input_;
+}
+
+lexer_transaction lexer::begin_transaction() {
+  error_reporter* new_error_reporter = new buffering_error_reporter();
+  return lexer_transaction{
+      .old_last_token = this->last_token_,
+      .old_last_last_token_end = this->last_last_token_end_,
+      .old_input = this->input_,
+      .old_error_reporter =
+          std::exchange(this->error_reporter_, new_error_reporter),
+  };
+}
+
+void lexer::commit_transaction(lexer_transaction&& transaction) {
+  buffering_error_reporter* buffered_errors =
+      static_cast<buffering_error_reporter*>(this->error_reporter_);
+  buffered_errors->move_into(transaction.old_error_reporter);
+  delete buffered_errors;
+
+  this->error_reporter_ = transaction.old_error_reporter;
+}
+
+void lexer::roll_back_transaction(lexer_transaction&& transaction) {
+  buffering_error_reporter* buffered_errors =
+      static_cast<buffering_error_reporter*>(this->error_reporter_);
+  delete buffered_errors;
+
+  this->last_token_ = transaction.old_last_token;
+  this->last_last_token_end_ = transaction.old_last_last_token_end;
+  this->input_ = transaction.old_input;
+  this->error_reporter_ = transaction.old_error_reporter;
 }
 
 void lexer::insert_semicolon() {

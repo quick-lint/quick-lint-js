@@ -40,6 +40,7 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
+  buffering-error-reporter.cpp
   byte-buffer.cpp
   char8.cpp
   cli-location.cpp
@@ -68,6 +69,7 @@ quick_lint_js_add_library(
   parse.cpp
   quick-lint-js/assert.h
   quick-lint-js/bit.h
+  quick-lint-js/buffering-error-reporter.h
   quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.h
   quick-lint-js/char8.h
