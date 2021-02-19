@@ -22,50 +22,52 @@
 #include <variant>
 
 namespace quick_lint_js {
-struct offsets_matcher::state {
-  padded_string_view code;
-  cli_source_position::offset_type begin_offset;
-  cli_source_position::offset_type end_offset;
-};
-
 class offsets_matcher::span_impl
     : public testing::MatcherInterface<const source_code_span &> {
  public:
-  explicit span_impl(state s) : state_(s) {}
+  explicit span_impl(padded_string_view code,
+                     cli_source_position::offset_type begin_offset,
+                     cli_source_position::offset_type end_offset)
+      : code_(code), begin_offset_(begin_offset), end_offset_(end_offset) {}
 
   void DescribeTo(std::ostream *out) const override {
-    *out << "has begin-end offset " << this->state_.begin_offset << '-'
-         << this->state_.end_offset;
+    *out << "has begin-end offset " << this->begin_offset_ << '-'
+         << this->end_offset_;
   }
 
   void DescribeNegationTo(std::ostream *out) const override {
-    *out << "doesn't have begin-end offset " << this->state_.begin_offset << '-'
-         << this->state_.end_offset;
+    *out << "doesn't have begin-end offset " << this->begin_offset_ << '-'
+         << this->end_offset_;
   }
 
   bool MatchAndExplain(const source_code_span &span,
                        testing::MatchResultListener *listener) const override {
     auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
-        span.begin() - this->state_.code.data());
+        span.begin() - this->code_.data());
     auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
-        span.end() - this->state_.code.data());
-    bool result = span_begin_offset == this->state_.begin_offset &&
-                  span_end_offset == this->state_.end_offset;
+        span.end() - this->code_.data());
+    bool result = span_begin_offset == this->begin_offset_ &&
+                  span_end_offset == this->end_offset_;
     *listener << "whose begin-end offset (" << span_begin_offset << '-'
               << span_end_offset << ") "
               << (result ? "equals" : "doesn't equal") << " "
-              << this->state_.begin_offset << '-' << this->state_.end_offset;
+              << this->begin_offset_ << '-' << this->end_offset_;
     return result;
   }
 
  private:
-  state state_;
+  padded_string_view code_;
+  cli_source_position::offset_type begin_offset_;
+  cli_source_position::offset_type end_offset_;
 };
 
 class offsets_matcher::identifier_impl
     : public testing::MatcherInterface<const identifier &> {
  public:
-  explicit identifier_impl(state s) : impl_(s) {}
+  explicit identifier_impl(padded_string_view code,
+                           cli_source_position::offset_type begin_offset,
+                           cli_source_position::offset_type end_offset)
+      : impl_(code, begin_offset, end_offset) {}
 
   void DescribeTo(std::ostream *out) const override {
     this->impl_.DescribeTo(out);
@@ -87,21 +89,20 @@ class offsets_matcher::identifier_impl
 offsets_matcher::offsets_matcher(padded_string_view input,
                                  cli_source_position::offset_type begin_offset,
                                  cli_source_position::offset_type end_offset)
-    : state_(new state{.code = input,
-                       .begin_offset = begin_offset,
-                       .end_offset = end_offset}) {}
+    : code_(input), begin_offset_(begin_offset), end_offset_(end_offset) {}
 
 offsets_matcher::~offsets_matcher() = default;
 
 /*implicit*/ offsets_matcher::operator testing::Matcher<const identifier &>()
     const {
   return testing::Matcher<const identifier &>(
-      new identifier_impl(*this->state_));
+      new identifier_impl(this->code_, this->begin_offset_, this->end_offset_));
 }
+
 /*implicit*/ offsets_matcher::operator testing::Matcher<
     const source_code_span &>() const {
   return testing::Matcher<const source_code_span &>(
-      new span_impl(*this->state_));
+      new span_impl(this->code_, this->begin_offset_, this->end_offset_));
 }
 
 class span_matcher::span_impl

@@ -18,7 +18,6 @@
 #define QUICK_LINT_JS_ERROR_MATCHER_H
 
 #include <gmock/gmock.h>
-#include <memory>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/lex.h>
@@ -60,10 +59,10 @@ class offsets_matcher {
  private:
   class identifier_impl;
   class span_impl;
-  struct state;
 
- private:
-  std::unique_ptr<state> state_;
+  padded_string_view code_;
+  cli_source_position::offset_type begin_offset_;
+  cli_source_position::offset_type end_offset_;
 };
 
 class span_matcher {
