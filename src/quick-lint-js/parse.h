@@ -818,18 +818,6 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_variable_declaration(Visitor &v) {
-    token declaring_token = this->peek();
-    QLJS_ASSERT(declaring_token.type == token_type::kw_const ||
-                declaring_token.type == token_type::kw_let ||
-                declaring_token.type == token_type::kw_var);
-    this->skip();
-    this->parse_and_visit_let_bindings(v, declaring_token,
-                                       /*allow_in_operator=*/true);
-    this->consume_semicolon();
-  }
-
-  template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_statement_block_no_scope(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
@@ -1826,6 +1814,18 @@ class parser {
   done:
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     this->skip();
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_variable_declaration(Visitor &v) {
+    token declaring_token = this->peek();
+    QLJS_ASSERT(declaring_token.type == token_type::kw_const ||
+                declaring_token.type == token_type::kw_let ||
+                declaring_token.type == token_type::kw_var);
+    this->skip();
+    this->parse_and_visit_let_bindings(v, declaring_token,
+                                       /*allow_in_operator=*/true);
+    this->consume_semicolon();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
