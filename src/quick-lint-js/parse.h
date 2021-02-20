@@ -1176,12 +1176,45 @@ class parser {
 
     // method() {}
     case token_type::identifier:
+    case token_type::kw_as:
     case token_type::kw_await:
+    case token_type::kw_break:
+    case token_type::kw_case:
     case token_type::kw_catch:
     case token_type::kw_class:
+    case token_type::kw_const:
+    case token_type::kw_continue:
+    case token_type::kw_debugger:
     case token_type::kw_default:
+    case token_type::kw_delete:
+    case token_type::kw_do:
+    case token_type::kw_else:
+    case token_type::kw_export:
     case token_type::kw_extends:
+    case token_type::kw_false:
+    case token_type::kw_finally:
+    case token_type::kw_for:
+    case token_type::kw_from:
+    case token_type::kw_if:
+    case token_type::kw_import:
+    case token_type::kw_in:
+    case token_type::kw_instanceof:
+    case token_type::kw_let:
+    case token_type::kw_new:
+    case token_type::kw_null:
+    case token_type::kw_of:
+    case token_type::kw_return:
+    case token_type::kw_super:
+    case token_type::kw_switch:
+    case token_type::kw_this:
+    case token_type::kw_throw:
+    case token_type::kw_true:
     case token_type::kw_try:
+    case token_type::kw_typeof:
+    case token_type::kw_var:
+    case token_type::kw_void:
+    case token_type::kw_while:
+    case token_type::kw_with:
     case token_type::kw_yield:
       v.visit_property_declaration(this->peek().identifier_name());
       this->skip();
@@ -1222,14 +1255,26 @@ class parser {
       }
       break;
 
+    // function() {}
     // function f() {}  // Invalid.
-    case token_type::kw_function:
-      this->error_reporter_->report(
-          error_methods_should_not_use_function_keyword{
-              .function_token = this->peek().span(),
-          });
+    case token_type::kw_function: {
+      token function_token = this->peek();
       this->skip();
-      goto next;
+      if (this->peek().type == token_type::left_paren) {
+        // function() {}
+        v.visit_property_declaration(function_token.identifier_name());
+        this->parse_and_visit_function_parameters_and_body(v,
+                                                           method_attributes);
+        break;
+      } else {
+        // function f() {}  // Invalid.
+        this->error_reporter_->report(
+            error_methods_should_not_use_function_keyword{
+                .function_token = function_token.span(),
+            });
+        goto next;
+      }
+    }
 
     case token_type::semicolon:
       this->skip();
