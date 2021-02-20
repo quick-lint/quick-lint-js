@@ -349,6 +349,11 @@
       .error(QLJS_TRANSLATABLE("missing semicolon after statement"), where))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_value_for_object_literal_entry, "E083",                    \
+      { source_code_span key; },                                               \
+      .error(QLJS_TRANSLATABLE("missing value for object property"), key))     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores, "E028",           \
       { source_code_span underscores; },                                       \
       .error(QLJS_TRANSLATABLE(                                                \

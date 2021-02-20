@@ -1557,6 +1557,12 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
       expression_ptr ast = this->parse_expression(code.c_str());
       EXPECT_EQ(summarize(ast), "object(literal, function)");
     }
+  }
+}
+
+TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
+  for (string8 keyword : {u8"async", u8"get", u8"set"}) {
+    SCOPED_TRACE(out_string8(keyword));
 
     {
       string8 code = u8"{" + keyword + u8"}";
@@ -1581,6 +1587,40 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
           ast->object_entry(0).value->variable_identifier().normalized_name(),
           keyword);
       EXPECT_EQ(summarize(ast->object_entry(1).value), "var other");
+    }
+  }
+}
+
+TEST_F(test_parse_expression,
+       object_literal_with_reserved_keyword_keyvalue_is_an_error) {
+  for (string8 keyword :
+       {u8"break",      u8"case",     u8"catch",   u8"class",  u8"const",
+        u8"continue",   u8"debugger", u8"default", u8"delete", u8"do",
+        u8"else",       u8"export",   u8"extends", u8"false",  u8"finally",
+        u8"for",        u8"function", u8"if",      u8"import", u8"in",
+        u8"instanceof", u8"new",      u8"null",    u8"return", u8"super",
+        u8"switch",     u8"this",     u8"throw",   u8"true",   u8"try",
+        u8"typeof",     u8"var",      u8"void",    u8"while",  u8"with"}) {
+    SCOPED_TRACE(out_string8(keyword));
+
+    {
+      test_parser p(u8"{" + keyword + u8"}");
+      expression_ptr ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "object(literal, ?)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_missing_value_for_object_literal_entry, key,
+                      offsets_matcher(p.code(), strlen(u8"{"), keyword))));
+    }
+
+    {
+      test_parser p(u8"{" + keyword + u8", other}");
+      expression_ptr ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "object(literal, ?, literal, var other)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_missing_value_for_object_literal_entry, key,
+                      offsets_matcher(p.code(), strlen(u8"{"), keyword))));
     }
   }
 }

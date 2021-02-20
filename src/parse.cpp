@@ -1021,15 +1021,64 @@ expression_ptr parser::parse_object_literal() {
       case token_type::right_curly: {
         // Name and value are the same: {keyandvalue}
 
-        if (key_type == token_type::string || key_type == token_type::number) {
+        switch (key_type) {
+        case token_type::number:
+        case token_type::string: {
           expression_ptr value = this->make_expression<expression::_invalid>();
           this->error_reporter_->report(
               error_invalid_lone_literal_in_object_literal{key_span});
           entries.emplace_back(key, value);
-        } else {
+          break;
+        }
+
+        case token_type::kw_break:
+        case token_type::kw_case:
+        case token_type::kw_catch:
+        case token_type::kw_class:
+        case token_type::kw_const:
+        case token_type::kw_continue:
+        case token_type::kw_debugger:
+        case token_type::kw_default:
+        case token_type::kw_delete:
+        case token_type::kw_do:
+        case token_type::kw_else:
+        case token_type::kw_export:
+        case token_type::kw_extends:
+        case token_type::kw_false:
+        case token_type::kw_finally:
+        case token_type::kw_for:
+        case token_type::kw_function:
+        case token_type::kw_if:
+        case token_type::kw_import:
+        case token_type::kw_in:
+        case token_type::kw_instanceof:
+        case token_type::kw_new:
+        case token_type::kw_null:
+        case token_type::kw_return:
+        case token_type::kw_super:
+        case token_type::kw_switch:
+        case token_type::kw_this:
+        case token_type::kw_throw:
+        case token_type::kw_true:
+        case token_type::kw_try:
+        case token_type::kw_typeof:
+        case token_type::kw_var:
+        case token_type::kw_void:
+        case token_type::kw_while:
+        case token_type::kw_with: {
+          expression_ptr value = this->make_expression<expression::_invalid>();
+          this->error_reporter_->report(
+              error_missing_value_for_object_literal_entry{.key = key_span});
+          entries.emplace_back(key, value);
+          break;
+        }
+
+        default: {
           expression_ptr value = this->make_expression<expression::variable>(
               identifier(key_span), key_type);
           entries.emplace_back(key, value);
+          break;
+        }
         }
         break;
       }
