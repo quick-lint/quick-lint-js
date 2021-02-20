@@ -680,13 +680,13 @@ class parser {
       }
 
       // export default class C {}
-      // export default function f() {}
       case token_type::kw_class:
         this->parse_and_visit_class(
             v,
             /*require_name=*/name_requirement::optional);
         break;
 
+      // export default function f() {}
       case token_type::kw_function:
         this->parse_and_visit_function_declaration(
             v, function_attributes::normal,
