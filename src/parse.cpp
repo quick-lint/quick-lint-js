@@ -850,8 +850,20 @@ next:
   return build_expression();
 }
 
-template <class... Args>
 expression_ptr parser::parse_arrow_function_body(
+    function_attributes attributes, const char8 *parameter_list_begin) {
+  return this->parse_arrow_function_body_impl(attributes, parameter_list_begin);
+}
+
+expression_ptr parser::parse_arrow_function_body(
+    function_attributes attributes, const char8 *parameter_list_begin,
+    expression_arena::array_ptr<expression_ptr> &&parameters) {
+  return this->parse_arrow_function_body_impl(attributes, parameter_list_begin,
+                                              std::move(parameters));
+}
+
+template <class... Args>
+expression_ptr parser::parse_arrow_function_body_impl(
     function_attributes attributes, const char8 *parameter_list_begin,
     Args &&... args) {
   function_guard guard = this->enter_function(attributes);

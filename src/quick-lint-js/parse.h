@@ -2034,13 +2034,17 @@ class parser {
 
   expression_ptr parse_expression_remainder(expression_ptr, precedence);
 
+  expression_ptr parse_arrow_function_body(function_attributes,
+                                           const char8 *parameter_list_begin);
+  expression_ptr parse_arrow_function_body(
+      function_attributes, const char8 *parameter_list_begin,
+      expression_arena::array_ptr<expression_ptr> &&parameters);
   // Args is either of the following:
-  // * vector<expression_ptr> &&parameters
+  // * expression_arena::array_ptr<expression_ptr> &&parameters
   // * (none)
   template <class... Args>
-  expression_ptr parse_arrow_function_body(function_attributes,
-                                           const char8 *parameter_list_begin,
-                                           Args &&... args);
+  expression_ptr parse_arrow_function_body_impl(
+      function_attributes, const char8 *parameter_list_begin, Args &&... args);
 
   expression_ptr parse_function_expression(function_attributes,
                                            const char8 *span_begin);
