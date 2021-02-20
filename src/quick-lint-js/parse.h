@@ -1511,57 +1511,35 @@ class parser {
     // for (async of things) {}  // Invalid.
     case token_type::kw_async: {
       token async_token = this->peek();
-      expression_ptr async_var_expression =
-          this->make_expression<expression::variable>(
-              async_token.identifier_name(), async_token.type);
+
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      bool is_invalid_async_of_sequence = false;
       this->skip();
-      switch (this->peek().type) {
-      // for (async of => {}; condition; update) {}
-      // for (async of things) {}  // Invalid.
-      case token_type::kw_of: {
-        token of_token = this->peek();
+      if (this->peek().type == token_type::kw_of) {
         this->skip();
-        if (this->peek().type == token_type::equal_greater) {
-          // for (async of => {}; condition; update) {}
-          this->skip();
-          std::array<expression_ptr, 1> parameters = {
-              this->make_expression<expression::variable>(
-                  identifier(of_token.span()), of_token.type)};
-          expression_ptr ast = this->parse_arrow_function_body(
-              function_attributes::async, async_token.begin,
-              this->expressions_.make_array(std::move(parameters)));
-          ast = this->parse_expression_remainder(
-              ast, precedence{.in_operator = false});
-          parse_in_or_of_or_condition_update(v, ast);
-        } else {
-          // for (async of things) {}  // Invalid.
-          this->error_reporter_->report(
-              error_cannot_assign_to_variable_named_async_in_for_of_loop{
-                  .async_identifier = async_token.identifier_name(),
-              });
-          expression_ptr rhs = this->parse_expression();
-          this->visit_assignment_expression(async_var_expression, rhs, v);
+        if (this->peek().type != token_type::equal_greater) {
+          is_invalid_async_of_sequence = true;
         }
-        break;
       }
+      this->lexer_.roll_back_transaction(std::move(transaction));
 
-      // for (async in things) {}
-      // for (async; condition; update) {}
-      case token_type::kw_in:
-      case token_type::semicolon:
-        parse_in_or_of_or_condition_update(v, async_var_expression);
-        break;
+      expression_ptr init_expression(nullptr);
+      if (is_invalid_async_of_sequence) {
+        // for (async of things) {}  // Invalid.
+        this->error_reporter_->report(
+            error_cannot_assign_to_variable_named_async_in_for_of_loop{
+                .async_identifier = async_token.identifier_name(),
+            });
 
-      // for (async.prop; condition; update) {}
-      // for (async.prop of things) {}
-      case token_type::dot:
-      default: {
-        expression_ptr init_expression = this->parse_expression_remainder(
-            async_var_expression, precedence{.in_operator = false});
-        parse_in_or_of_or_condition_update(v, init_expression);
-        break;
+        this->skip();
+        QLJS_ASSERT(this->peek().type == token_type::kw_of);
+        init_expression = this->make_expression<expression::variable>(
+            async_token.identifier_name(), async_token.type);
+      } else {
+        init_expression =
+            this->parse_expression(precedence{.in_operator = false});
       }
-      }
+      parse_in_or_of_or_condition_update(v, init_expression);
       break;
     }
 
