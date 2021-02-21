@@ -145,7 +145,7 @@ class parser {
     // var x = 42;
     case token_type::kw_const:
     case token_type::kw_var:
-      this->parse_and_visit_variable_declaration(v);
+      this->parse_and_visit_variable_declaration_statement(v);
       break;
 
     // let x = 42;
@@ -797,7 +797,7 @@ class parser {
     case token_type::kw_const:
     case token_type::kw_let:
     case token_type::kw_var:
-      this->parse_and_visit_variable_declaration(v);
+      this->parse_and_visit_variable_declaration_statement(v);
       break;
 
     // export stuff;    // Invalid.
@@ -1900,7 +1900,7 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_variable_declaration(Visitor &v) {
+  void parse_and_visit_variable_declaration_statement(Visitor &v) {
     token declaring_token = this->peek();
     QLJS_ASSERT(declaring_token.type == token_type::kw_const ||
                 declaring_token.type == token_type::kw_let ||
