@@ -31,7 +31,7 @@
 //
 // The parser class currently does not build an abstract syntax tree (AST) for
 // statements. This allows the parser to send partial information to the lexer
-// incrementally, enabling single-pass parsing and linting [1].
+// incrementally, enabling single-pass parsing and linting.
 //
 // The parser class currently builds an AST for expressions. (See expression.h.)
 // Therefore, parsing and linting are not truly single-pass. This detail is not
