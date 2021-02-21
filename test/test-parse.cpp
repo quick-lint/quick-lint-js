@@ -3449,6 +3449,22 @@ TEST(test_parse, for_of_loop) {
                                       "visit_exit_block_scope",      //
                                       "visit_exit_for_scope"));
   }
+
+  {
+    padded_string code(u8"for (let of myArray) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",    //
+                                      "visit_variable_use",       // myArray
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_let_with_no_bindings, where,
+                    offsets_matcher(&code, strlen(u8"for ("), u8"let"))));
+  }
 }
 
 TEST(test_parse, block_statement) {

@@ -1522,6 +1522,13 @@ class parser {
             this->parse_expression(precedence{.in_operator = false});
         this->visit_expression(ast, lhs, variable_context::lhs);
         this->maybe_visit_assignment(ast, lhs);
+      } else if (declaring_token.type == token_type::kw_let &&
+                 this->peek().type == token_type::kw_of) {
+        // for (let of xs) {}  // Invalid.
+        this->lexer_.commit_transaction(std::move(transaction));
+        this->error_reporter_->report(error_let_with_no_bindings{
+            .where = declaring_token.span(),
+        });
       } else {
         // for (let i = 0; i < length; ++length) {}
         // for (let x of xs) {}
