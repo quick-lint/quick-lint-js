@@ -1073,8 +1073,21 @@ expression_ptr parser::parse_object_literal() {
           break;
         }
 
+        case token_type::kw_await:
+        case token_type::kw_yield:
+          // TODO(strager): Disallow referencing a variable named 'await' for
+          // async functions, or a variable named 'yield' for generator
+          // functions.
+          [[fallthrough]];
         case token_type::identifier:
-        case token_type::kw_let: {
+        case token_type::kw_as:
+        case token_type::kw_async:
+        case token_type::kw_from:
+        case token_type::kw_get:
+        case token_type::kw_let:
+        case token_type::kw_of:
+        case token_type::kw_set:
+        case token_type::kw_static: {
           expression_ptr value = this->make_expression<expression::variable>(
               identifier(key_span), key_type);
           entries.emplace_back(key, value);

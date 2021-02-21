@@ -1561,7 +1561,9 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
 }
 
 TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
-  for (string8 keyword : {u8"async", u8"get", u8"set"}) {
+  for (string8 keyword : {u8"as", u8"async", u8"await", u8"from", u8"get",
+                          u8"let", u8"of", u8"private", u8"protected",
+                          u8"public", u8"set", u8"static", u8"yield"}) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
