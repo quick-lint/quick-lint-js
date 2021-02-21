@@ -344,6 +344,9 @@ func (result *LintResult) Dump(out *os.File) {
 func MatchPath(pattern string, path string) bool {
 	patternParts := SplitPathComponents(pattern)
 	pathParts := SplitPathComponents(path)
+	if len(patternParts) > len(pathParts) {
+		return false
+	}
 	pathParts = pathParts[len(pathParts)-len(patternParts):]
 
 	for i := 0; i < len(patternParts); i++ {
