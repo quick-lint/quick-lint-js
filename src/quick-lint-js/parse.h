@@ -149,15 +149,26 @@ class parser {
       break;
 
     // let x = 42;
+    // let();
     // let: while (true) {}
     case token_type::kw_let: {
       token let_token = this->peek();
+      lexer_transaction transaction = this->lexer_.begin_transaction();
       this->skip();
       if (this->peek().type == token_type::colon) {
         // Labelled statement.
+        this->lexer_.commit_transaction(std::move(transaction));
         this->skip();
         goto parse_statement;
+      } else if (this->is_let_token_a_variable_reference(this->peek().type)) {
+        // Expression.
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        expression_ptr ast =
+            this->parse_expression(precedence{.in_operator = true});
+        this->visit_expression(ast, v, variable_context::rhs);
       } else {
+        // Variable declaration.
+        this->lexer_.commit_transaction(std::move(transaction));
         this->parse_and_visit_let_bindings(v, let_token,
                                            /*allow_in_operator=*/true);
         this->consume_semicolon();
@@ -695,6 +706,7 @@ class parser {
         break;
 
       // export default let x = null;  // Invalid.
+      // export default let;           // Invalid.
       case token_type::kw_const:
       case token_type::kw_let:
       case token_type::kw_var: {
@@ -1487,6 +1499,7 @@ class parser {
 
     // for (let i = 0; i < length; ++length) {}
     // for (let x of xs) {}
+    // for (let in xs) {}
     case token_type::kw_const:
     case token_type::kw_let:
       v.visit_enter_for_scope();
@@ -1494,10 +1507,28 @@ class parser {
       [[fallthrough]];
     case token_type::kw_var: {
       token declaring_token = this->peek();
+
+      lexer_transaction transaction = this->lexer_.begin_transaction();
       this->skip();
       buffering_visitor lhs;
-      this->parse_and_visit_let_bindings(lhs, declaring_token,
-                                         /*allow_in_operator=*/false);
+      if (declaring_token.type == token_type::kw_let &&
+          this->is_let_token_a_variable_reference(this->peek().type)) {
+        // for (let = expression; cond; up) {}
+        // for (let(); cond; up) {}
+        // for (let; cond; up) {}
+        // for (let in myArray) {}
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        expression_ptr ast =
+            this->parse_expression(precedence{.in_operator = false});
+        this->visit_expression(ast, lhs, variable_context::lhs);
+        this->maybe_visit_assignment(ast, lhs);
+      } else {
+        // for (let i = 0; i < length; ++length) {}
+        // for (let x of xs) {}
+        this->lexer_.commit_transaction(std::move(transaction));
+        this->parse_and_visit_let_bindings(lhs, declaring_token,
+                                           /*allow_in_operator=*/false);
+      }
       switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
       case token_type::semicolon:
@@ -1902,8 +1933,6 @@ class parser {
                                     variable_kind declaration_kind,
                                     bool allow_in_operator) {
     source_code_span let_span = declaring_token.span();
-    identifier let_identifier = declaring_token.identifier_name();
-    token_type let_token_type = declaring_token.type;
     bool first_binding = true;
     for (;;) {
       std::optional<source_code_span> comma_span = std::nullopt;
@@ -1992,33 +2021,7 @@ class parser {
       case token_type::question:
       case token_type::semicolon:
       case token_type::slash:
-        if (first_binding && let_token_type == token_type::kw_let) {
-          // 'let' is the name of a variable. Examples:
-          //
-          // * let = expression;
-          // * let();
-          // * let;
-          // * let in other;  // If allow_in_operator is true.
-          // * for (let in myArray) {}  // allow_in_operator is false.
-          expression_ptr let_variable =
-              this->make_expression<expression::variable>(let_identifier,
-                                                          let_token_type);
-          expression_ptr ast = this->parse_expression_remainder(
-              let_variable, precedence{.in_operator = allow_in_operator});
-
-          // TODO(strager): Make this a parameter instead of hackily overloading
-          // the meaning of the allow_in_operator parameter.
-          bool in_for_loop_init = !allow_in_operator;
-          if (in_for_loop_init) {
-            // for (let in myArray) {}
-            this->visit_expression(ast, v, variable_context::lhs);
-            this->maybe_visit_assignment(ast, v);
-          } else {
-            this->visit_expression(ast, v, variable_context::rhs);
-          }
-        } else {
-          QLJS_PARSER_UNIMPLEMENTED();
-        }
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
 
       default:
@@ -2032,6 +2035,32 @@ class parser {
         break;
       }
       first_binding = false;
+    }
+  }
+
+  bool is_let_token_a_variable_reference(token_type following_token) noexcept {
+    switch (following_token) {
+    QLJS_CASE_BINARY_ONLY_OPERATOR:
+    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+    case token_type::comma:
+    case token_type::complete_template:
+    case token_type::dot:
+    case token_type::equal:
+    case token_type::equal_greater:
+    case token_type::incomplete_template:
+    case token_type::kw_in:
+    case token_type::left_paren:
+    case token_type::minus:
+    case token_type::minus_minus:
+    case token_type::plus:
+    case token_type::plus_plus:
+    case token_type::question:
+    case token_type::semicolon:
+    case token_type::slash:
+      return true;
+
+    default:
+      return false;
     }
   }
 
