@@ -1038,6 +1038,10 @@ expression_ptr parser::parse_object_literal() {
       QLJS_ASSERT(false);
       break;
 
+    // {key: value}
+    // {"key": value}
+    // {10: value}
+    // {keyAndValue}
     QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET:
     case token_type::identifier:
     case token_type::number:
@@ -1297,6 +1301,7 @@ expression_ptr parser::parse_object_literal() {
       break;
     }
 
+    // {[keyExpression]: value}
     case token_type::left_square: {
       source_code_span left_square_span = this->peek().span();
       expression_ptr key = parse_computed_property_name();
@@ -1350,6 +1355,7 @@ expression_ptr parser::parse_object_literal() {
       break;
     }
 
+    // {...other}  // Spread operator.
     case token_type::dot_dot_dot:
       entries.emplace_back(parse_value_expression());
       break;
