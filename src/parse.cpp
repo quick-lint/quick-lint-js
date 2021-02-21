@@ -517,9 +517,12 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
     source_code_span right_paren_span = this->peek().span();
     this->skip();
 
-    // async as an identifier (variable reference)
-    // Function call: async(arg)
-    if (this->peek().type != token_type::equal_greater) {
+    if (this->peek().type == token_type::equal_greater) {
+      // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
+      return parse_arrow_function_arrow_and_body(std::move(parameters));
+    } else {
+      // async as an identifier (variable reference)
+      // Function call: async(arg)
       // TODO(strager): Reduce copying of the arguments.
       vector<expression_ptr> call_children(
           "parse_expression async call children");
@@ -539,8 +542,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
       return call_ast;
     }
 
-    // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
-    return parse_arrow_function_arrow_and_body(std::move(parameters));
+    QLJS_UNREACHABLE();
   }
 
   // async parameter => expression-or-block  // Arrow function.
