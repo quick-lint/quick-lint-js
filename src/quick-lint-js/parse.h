@@ -1684,9 +1684,7 @@ class parser {
 
     this->parse_and_visit_expression(v);
 
-    const char8 *condition_end =
-        this->peek()
-            .begin;  // TODO(#139): Use the end of the previous token instead.
+    const char8 *condition_end = this->lexer_.end_of_previous_token();
     bool have_condition_right_paren =
         this->peek().type == token_type::right_paren;
     if (have_condition_right_paren) {

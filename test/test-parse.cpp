@@ -3176,9 +3176,7 @@ TEST(test_parse, if_without_parens) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_expected_parentheses_around_if_condition, condition,
-                    offsets_matcher(&code, strlen(u8"if "),
-                                    // TODO(#139): End the error at the 'd'.
-                                    u8"cond "))));
+                    offsets_matcher(&code, strlen(u8"if "), u8"cond"))));
   }
 
   {
@@ -3195,7 +3193,7 @@ TEST(test_parse, if_without_parens) {
                     error_expected_parenthesis_around_if_condition,  //
                     where,
                     // TODO(#139): Place the error immediately after the 'd'.
-                    offsets_matcher(&code, strlen(u8"if (cond "), u8""),  //
+                    offsets_matcher(&code, strlen(u8"if (cond"), u8""),  //
                     token, u8')')));
   }
 
@@ -3243,11 +3241,9 @@ TEST(test_parse, utter_garbage) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_FIELD(
-                error_expected_parentheses_around_if_condition, condition,
-                offsets_matcher(&code, strlen(u8"if "),
-                                // TODO(#139): End the error at the ':'.
-                                u8":\n")),
+            ERROR_TYPE_FIELD(error_expected_parentheses_around_if_condition,
+                             condition,
+                             offsets_matcher(&code, strlen(u8"if "), u8":")),
             ERROR_TYPE_FIELD(error_unexpected_token, token,
                              offsets_matcher(&code, strlen(u8"if "), u8":"))));
   }
