@@ -463,6 +463,14 @@ expression_ptr parser::parse_expression(precedence prec) {
 
 expression_ptr parser::parse_async_expression(token async_token,
                                               precedence prec) {
+  expression_ptr ast = this->parse_async_expression_only(async_token);
+  if (!prec.binary_operators) {
+    return ast;
+  }
+  return this->parse_expression_remainder(ast, prec);
+}
+
+expression_ptr parser::parse_async_expression_only(token async_token) {
   const char8 *async_begin = async_token.begin;
 
   vector<expression_ptr> parameters(
@@ -501,13 +509,6 @@ expression_ptr parser::parse_async_expression(token async_token,
     // async as an identifier (variable reference)
     // Function call: async(arg)
     if (this->peek().type != token_type::equal_greater) {
-      if (!prec.binary_operators) {
-        // TODO(strager): What should we do here exactly? We already parsed
-        // the argument list. (Function calls are considered binary operators
-        // according to prec.) Everything seems okay as-is, but maybe there's
-        // an edge case I'm not thinking of.
-      }
-
       // TODO(strager): Reduce copying of the arguments.
       vector<expression_ptr> call_children(
           "parse_expression async call children");
@@ -524,10 +525,7 @@ expression_ptr parser::parse_async_expression(token async_token,
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
           /*right_paren_span=*/right_paren_span);
-      if (!prec.binary_operators) {
-        return call_ast;
-      }
-      return this->parse_expression_remainder(call_ast, prec);
+      return call_ast;
     }
 
     // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
@@ -555,17 +553,14 @@ expression_ptr parser::parse_async_expression(token async_token,
   case token_type::kw_function: {
     expression_ptr function = this->parse_function_expression(
         function_attributes::async, async_begin);
-    return this->parse_expression_remainder(function, prec);
+    return function;
   }
 
   // async  // Identifier (variable reference).
   default: {
     expression_ptr ast = this->make_expression<expression::variable>(
         async_token.identifier_name(), async_token.type);
-    if (!prec.binary_operators) {
-      return ast;
-    }
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
   }
 
@@ -575,7 +570,7 @@ expression_ptr parser::parse_async_expression(token async_token,
   expression_ptr ast = this->parse_arrow_function_body(
       function_attributes::async, async_begin,
       this->expressions_.make_array(std::move(parameters)));
-  return this->parse_expression_remainder(ast, prec);
+  return ast;
 }
 
 expression_ptr parser::parse_expression_remainder(expression_ptr ast,
