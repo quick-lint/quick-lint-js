@@ -50,13 +50,6 @@ class expression_ptr {
  public:
   explicit expression_ptr(expression *ptr) noexcept : ptr_(ptr) {}
 
-  template <class Derived>
-  Derived *get() const noexcept {
-    // TODO(strager): Assert that Derived matches the expression's run-time
-    // type.
-    return static_cast<Derived *>(this->ptr_);
-  }
-
   expression *operator->() const noexcept { return this->ptr_; }
   expression &operator*() const noexcept { return *this->ptr_; }
 
@@ -292,6 +285,17 @@ class expression {
 
   expression_kind kind_;
 };
+
+template <class Derived>
+Derived *expression_cast(expression_ptr p) noexcept {
+  // TODO(strager): Assert that Derived matches the expression's run-time
+  // type.
+  return static_cast<Derived *>(&*p);
+}
+
+// Prevent expression_cast<array>((call*)p).
+template <class Derived, class Expression>
+Derived *expression_cast(Expression *) noexcept = delete;
 
 template <class T>
 class expression_arena::array_ptr {

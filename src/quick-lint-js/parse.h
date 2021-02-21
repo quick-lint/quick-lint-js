@@ -2119,7 +2119,7 @@ class parser {
       break;
 
     case expression_kind::await: {
-      expression::await *await = ast.get<expression::await>();
+      expression::await *await = expression_cast<expression::await>(ast);
       identifier ident(await->unary_operator_span());
       v.visit_variable_declaration(ident, declaration_kind);
       this->error_reporter_->report(

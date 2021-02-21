@@ -1473,7 +1473,7 @@ expression_ptr parser::maybe_wrap_erroneous_arrow_function(
 
   case expression_kind::trailing_comma: {
     expression::trailing_comma *parameter_list =
-        lhs.get<expression::trailing_comma>();
+        expression_cast<expression::trailing_comma>(lhs);
     expression_ptr last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == expression_kind::spread) {
@@ -1487,7 +1487,7 @@ expression_ptr parser::maybe_wrap_erroneous_arrow_function(
   }
 
   case expression_kind::call: {
-    expression::call *call = lhs.get<expression::call>();
+    expression::call *call = expression_cast<expression::call>(lhs);
     this->error_reporter_->report(
         error_missing_operator_between_expression_and_arrow_function{
             .where = source_code_span(call->span().begin(),
@@ -1572,7 +1572,7 @@ arrow_function_parameters arrow_function_parameters_from_lhs(
   // f(x, y) => {}
   case expression_kind::call:
     result.left_paren_begin =
-        lhs.get<expression::call>()->left_paren_span().begin();
+        expression_cast<expression::call>(lhs)->left_paren_span().begin();
     for (int i = 1; i < lhs->child_count(); ++i) {
       result.parameters.emplace_back(lhs->child(i));
     }

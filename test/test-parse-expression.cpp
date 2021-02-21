@@ -548,7 +548,7 @@ TEST_F(test_parse_expression, parse_function_call) {
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 3);
-    expression::call *call = ast.get<expression::call>();
+    expression::call *call = expression_cast<expression::call>(ast);
     EXPECT_EQ(p.range(call->left_paren_span()).begin_offset(), 1);
     EXPECT_EQ(p.range(call->left_paren_span()).end_offset(), 2);
   }
