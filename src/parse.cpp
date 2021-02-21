@@ -1073,12 +1073,17 @@ expression_ptr parser::parse_object_literal() {
           break;
         }
 
-        default: {
+        case token_type::identifier:
+        case token_type::kw_let: {
           expression_ptr value = this->make_expression<expression::variable>(
               identifier(key_span), key_type);
           entries.emplace_back(key, value);
           break;
         }
+
+        default:
+          QLJS_UNIMPLEMENTED();
+          break;
         }
         break;
       }
