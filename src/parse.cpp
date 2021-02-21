@@ -408,7 +408,7 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   case token_type::end_of_file:
   case token_type::right_paren:
-    return this->make_expression<expression::_invalid>();
+    return this->make_expression<expression::_invalid>(this->peek().span());
 
   // /regexp/    // RegExp literal.
   // /=regexp/  // RegExp literal.
@@ -427,7 +427,8 @@ expression_ptr parser::parse_expression(precedence prec) {
   QLJS_CASE_BINARY_ONLY_OPERATOR:
   case token_type::dot:
   case token_type::equal: {
-    expression_ptr ast = this->make_expression<expression::_invalid>();
+    expression_ptr ast =
+        this->make_expression<expression::_invalid>(this->peek().span());
     if (!prec.binary_operators) {
       return ast;
     }
@@ -438,9 +439,10 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   case token_type::colon:
   case token_type::kw_debugger: {
-    this->error_reporter_->report(error_unexpected_token{this->peek().span()});
+    source_code_span token_span = this->peek().span();
+    this->error_reporter_->report(error_unexpected_token{token_span});
     this->skip();
-    return this->make_expression<expression::_invalid>();
+    return this->make_expression<expression::_invalid>(token_span);
   }
 
   case token_type::comma:
@@ -453,7 +455,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::right_curly:
   case token_type::right_square:
   case token_type::semicolon:
-    return this->make_expression<expression::_invalid>();
+    return this->make_expression<expression::_invalid>(this->peek().span());
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
@@ -1074,7 +1076,8 @@ expression_ptr parser::parse_object_literal() {
         switch (key_type) {
         case token_type::number:
         case token_type::string: {
-          expression_ptr value = this->make_expression<expression::_invalid>();
+          expression_ptr value =
+              this->make_expression<expression::_invalid>(key_span);
           this->error_reporter_->report(
               error_invalid_lone_literal_in_object_literal{key_span});
           entries.emplace_back(key, value);
@@ -1116,7 +1119,8 @@ expression_ptr parser::parse_object_literal() {
         case token_type::kw_void:
         case token_type::kw_while:
         case token_type::kw_with: {
-          expression_ptr value = this->make_expression<expression::_invalid>();
+          expression_ptr value =
+              this->make_expression<expression::_invalid>(key_span);
           this->error_reporter_->report(
               error_missing_value_for_object_literal_entry{.key = key_span});
           entries.emplace_back(key, value);

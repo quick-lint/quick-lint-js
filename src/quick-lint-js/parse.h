@@ -2139,6 +2139,12 @@ class parser {
       break;
     }
 
+    case expression_kind::_invalid:
+      this->error_reporter_->report(error_invalid_binding_in_let_statement{
+          .where = ast->span(),
+      });
+      break;
+
     default:
       QLJS_UNIMPLEMENTED();
       break;

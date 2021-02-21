@@ -671,6 +671,39 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
+    padded_string code(u8"let {debugger}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_missing_value_for_object_literal_entry, key,
+                offsets_matcher(&code, strlen(u8"let {"), u8"debugger")),
+            ERROR_TYPE_FIELD(
+                error_invalid_binding_in_let_statement, where,
+                offsets_matcher(&code, strlen(u8"let {"), u8"debugger"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let {42}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(
+                        error_invalid_lone_literal_in_object_literal, where,
+                        offsets_matcher(&code, strlen(u8"let {"), u8"42")),
+                    ERROR_TYPE_FIELD(
+                        error_invalid_binding_in_let_statement, where,
+                        offsets_matcher(&code, strlen(u8"let {"), u8"42"))));
+  }
+
+  {
+    spy_visitor v;
     padded_string code(u8"let true, true, y\nlet x;"_sv);
     parser p(&code, &v);
     p.parse_and_visit_statement(v);

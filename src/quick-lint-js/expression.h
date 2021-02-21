@@ -403,12 +403,13 @@ class expression::_invalid final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_invalid;
 
-  explicit _invalid() noexcept : expression(kind) {}
+  explicit _invalid(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept {
-    QLJS_UNIMPLEMENTED();
-    QLJS_UNREACHABLE();
-  }
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+ private:
+  source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_invalid>);
 
