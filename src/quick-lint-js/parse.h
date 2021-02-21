@@ -1998,8 +1998,8 @@ class parser {
           // * let = expression;
           // * let();
           // * let;
-          // * let in other;  // If allow_in_operator is false.
-          // * for (let in myArray) {}  // allow_in_operator is true.
+          // * let in other;  // If allow_in_operator is true.
+          // * for (let in myArray) {}  // allow_in_operator is false.
           expression_ptr let_variable =
               this->make_expression<expression::variable>(let_identifier,
                                                           let_token_type);
