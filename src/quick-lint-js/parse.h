@@ -1978,18 +1978,18 @@ class parser {
       QLJS_CASE_BINARY_ONLY_OPERATOR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::comma:
-      case token_type::question:
-      case token_type::equal_greater:
-      case token_type::incomplete_template:
       case token_type::complete_template:
       case token_type::dot:
       case token_type::equal:
+      case token_type::equal_greater:
+      case token_type::incomplete_template:
       case token_type::kw_in:
       case token_type::left_paren:
       case token_type::minus:
       case token_type::minus_minus:
       case token_type::plus:
       case token_type::plus_plus:
+      case token_type::question:
       case token_type::semicolon:
       case token_type::slash:
         if (first_binding && let_token_type == token_type::kw_let) {
