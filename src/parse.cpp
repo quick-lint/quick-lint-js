@@ -79,6 +79,7 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
 
 expression_ptr parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
+  // f  // Variable name.
   identifier:
   case token_type::identifier:
   case token_type::kw_as:
@@ -97,6 +98,9 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // false
+  // `hello`
+  // 42
   case token_type::kw_false:
   case token_type::kw_null:
   case token_type::kw_this:
@@ -113,6 +117,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // import.meta
   case token_type::kw_import: {
     expression_ptr ast =
         this->make_expression<expression::import>(this->peek().span());
@@ -123,6 +128,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // super()
   case token_type::kw_super: {
     expression_ptr ast =
         this->make_expression<expression::super>(this->peek().span());
@@ -133,9 +139,12 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // `hello${world}`
   case token_type::incomplete_template:
     return this->parse_template(/*tag=*/std::nullopt);
 
+  // await            // Identifier.
+  // await myPromise
   case token_type::kw_await: {
     if (this->in_async_function_) {
       // await is a unary operator.
@@ -155,6 +164,9 @@ expression_ptr parser::parse_expression(precedence prec) {
     }
   }
 
+  // yield       // Identifier.
+  // yield       // Operator.
+  // yield item
   case token_type::kw_yield: {
     if (this->in_generator_function_) {
       // yield is a unary operator.
@@ -196,6 +208,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     }
   }
 
+  // ...args  // Spread operator.
   case token_type::dot_dot_dot: {
     source_code_span operator_span = this->peek().span();
     this->skip();
@@ -204,6 +217,8 @@ expression_ptr parser::parse_expression(precedence prec) {
         this->make_expression<expression::spread>(child, operator_span), prec);
   }
 
+  // !x
+  // delete o[key]
   case token_type::bang:
   case token_type::kw_delete:
   case token_type::kw_typeof:
@@ -231,6 +246,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // --x
   case token_type::minus_minus:
   case token_type::plus_plus: {
     source_code_span operator_span = this->peek().span();
@@ -248,6 +264,9 @@ expression_ptr parser::parse_expression(precedence prec) {
         prec);
   }
 
+  // () => {}     // Arrow function.
+  // (x) => {}    // Arrow function.
+  // (x + y * z)  // Parenthesized expression.
   case token_type::left_paren: {
     source_code_span left_paren_span = this->peek().span();
     this->skip();
@@ -292,12 +311,15 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(child, prec);
   }
 
+  // async           // Identifer.
+  // async () => {}  // Arrow function.
   case token_type::kw_async: {
     token async_token = this->peek();
     this->skip();
     return this->parse_async_expression(async_token, prec);
   }
 
+  // [x, 3, f()]  // Array literal.
   case token_type::left_square: {
     const char8 *left_square_begin = this->peek().begin;
     const char8 *right_square_end;
@@ -326,11 +348,13 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // {k: v}  // Object literal.
   case token_type::left_curly: {
     expression_ptr ast = this->parse_object_literal();
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // function() {}  // Function expression.
   case token_type::kw_function: {
     expression_ptr function = this->parse_function_expression(
         function_attributes::normal, this->peek().begin);
@@ -343,11 +367,14 @@ expression_ptr parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(class_expression, prec);
   }
 
+  // new XMLHttpRequest()
+  // new.target
   case token_type::kw_new: {
     source_code_span operator_span = this->peek().span();
     this->skip();
 
     switch (this->peek().type) {
+    // new XMLHttpRequest()
     default: {
       expression_ptr target = this->parse_expression(prec);
       vector<expression_ptr> children("parse_expression new children");
@@ -383,6 +410,8 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::right_paren:
     return this->make_expression<expression::_invalid>();
 
+  // /regexp/    // RegExp literal.
+  // /=regexp/  // RegExp literal.
   case token_type::slash:
   case token_type::slash_equal: {
     this->lexer_.reparse_as_regexp();
@@ -439,6 +468,8 @@ expression_ptr parser::parse_async_expression(token async_token,
   vector<expression_ptr> parameters(
       "parse_expression async arrow function parameters");
   switch (this->peek().type) {
+  // async () => {}  // Arrow function.
+  // async()         // Function call.
   case token_type::left_paren: {
     source_code_span left_paren_span = this->peek().span();
     this->skip();
@@ -503,7 +534,7 @@ expression_ptr parser::parse_async_expression(token async_token,
     break;
   }
 
-  // Arrow function: async parameter => expression-or-block
+  // async parameter => expression-or-block  // Arrow function.
   case token_type::identifier:
   case token_type::kw_as:
   case token_type::kw_async:
@@ -527,7 +558,7 @@ expression_ptr parser::parse_async_expression(token async_token,
     return this->parse_expression_remainder(function, prec);
   }
 
-  // async as an identifier (variable reference)
+  // async  // Identifier (variable reference).
   default: {
     expression_ptr ast = this->make_expression<expression::variable>(
         async_token.identifier_name(), async_token.type);
@@ -567,6 +598,7 @@ expression_ptr parser::parse_expression_remainder(expression_ptr ast,
 
 next:
   switch (this->peek().type) {
+  // x, y, z  // Sequence operator or parameter separator.
   case token_type::comma: {
     if (!prec.commas) {
       break;
@@ -591,6 +623,7 @@ next:
     goto next;
   }
 
+  // x + y
   QLJS_CASE_BINARY_ONLY_OPERATOR:
   case token_type::minus:
   case token_type::plus:
@@ -609,7 +642,7 @@ next:
     goto next;
   }
 
-  // Function call: f(x, y, z)
+  // f(x, y, z)  // Function call.
   case token_type::left_paren: {
     source_code_span left_paren_span = this->peek().span();
     vector<expression_ptr, 4> call_children(
@@ -642,6 +675,8 @@ next:
     goto next;
   }
 
+  // x += y
+  // f().prop = other
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
   case token_type::equal: {
     if (!prec.math_or_logical_or_assignment) {
@@ -675,6 +710,7 @@ next:
     goto next;
   }
 
+  // x.y
   case token_type::dot: {
     source_code_span dot_span = this->peek().span();
     this->skip();
@@ -703,6 +739,7 @@ next:
     break;
   }
 
+  // o[key]  // Indexing expression.
   case token_type::left_square: {
     source_code_span left_square_span = this->peek().span();
     this->skip();
@@ -733,6 +770,7 @@ next:
     goto next;
   }
 
+  // x++  // Suffix unary operator.
   case token_type::minus_minus:
   case token_type::plus_plus:
     if (this->peek().has_leading_newline) {
@@ -747,6 +785,7 @@ next:
     }
     goto next;
 
+  // key in o
   case token_type::kw_in:
     if (!prec.in_operator) {
       break;
@@ -755,6 +794,7 @@ next:
     children.emplace_back(this->parse_expression(prec));
     goto next;
 
+  // x ? y : z  // Conditional operator.
   case token_type::question: {
     this->skip();
 
@@ -770,7 +810,7 @@ next:
         condition, true_expression, false_expression);
   }
 
-  // Arrow function: (parameters, go, here) => expression-or-block
+  // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
     this->skip();
     if (children.size() != 1) {
@@ -788,6 +828,7 @@ next:
     goto next;
   }
 
+  // html`<h1>My Website</h1>  // Template call.
   case token_type::complete_template: {
     source_code_span template_span = this->peek().span();
     this->skip();
@@ -798,6 +839,7 @@ next:
     goto next;
   }
 
+  // html`<h1>${title}</h1>`  // Template call.
   case token_type::incomplete_template: {
     expression_ptr tag = children.back();
     children.back() = this->parse_template(tag);
