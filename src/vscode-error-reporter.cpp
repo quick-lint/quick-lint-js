@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <iostream>
 #include <memory>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/unreachable.h>
@@ -85,9 +84,8 @@ vscode_error_formatter vscode_error_reporter::format(const char *code) {
 }
 
 char8 *vscode_error_reporter::allocate_c_string(string8_view string) {
-  boost::container::pmr::polymorphic_allocator<char8> allocator(
-      &this->string_memory_);
-  char8 *result = allocator.allocate(string.size() + 1);
+  char8 *result = this->string_allocator_.allocate_uninitialized_array<char8>(
+      string.size() + 1);
   std::uninitialized_copy(string.begin(), string.end(), result);
   result[string.size()] = u8'\0';
   return result;

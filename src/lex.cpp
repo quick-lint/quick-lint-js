@@ -1177,12 +1177,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   using lexer_string8 =
       std::basic_string<char8, std::char_traits<char8>,
                         boost::container::pmr::polymorphic_allocator<char8>>;
-  boost::container::pmr::polymorphic_allocator<lexer_string8> allocator(
-      &this->memory_);
-  lexer_string8* normalized = allocator.allocate(1);
-  normalized = new (normalized) lexer_string8(
-      identifier_begin, input,
-      boost::container::pmr::polymorphic_allocator<char8>(&this->memory_));
+  lexer_string8* normalized = this->allocator_.new_object<lexer_string8>(
+      identifier_begin, input, this->allocator_.standard_allocator<char8>());
 
   std::vector<source_code_span> escape_sequences;
 

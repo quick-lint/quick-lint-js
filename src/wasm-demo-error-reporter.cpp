@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <iostream>
 #include <memory>
 #include <quick-lint-js/cli-location.h>
@@ -75,9 +73,8 @@ wasm_demo_error_formatter wasm_demo_error_reporter::format() {
 }
 
 char8 *wasm_demo_error_reporter::allocate_c_string(string8_view string) {
-  boost::container::pmr::polymorphic_allocator<char8> allocator(
-      &this->string_memory_);
-  char8 *result = allocator.allocate(string.size() + 1);
+  char8 *result = this->string_allocator_.allocate_uninitialized_array<char8>(
+      string.size() + 1);
   std::uninitialized_copy(string.begin(), string.end(), result);
   result[string.size()] = u8'\0';
   return result;

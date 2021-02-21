@@ -17,13 +17,13 @@
 #ifndef QUICK_LINT_JS_VSCODE_ERROR_REPORTER_H
 #define QUICK_LINT_JS_VSCODE_ERROR_REPORTER_H
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
@@ -61,7 +61,7 @@ class vscode_error_reporter final : public error_reporter {
   std::vector<qljs_vscode_diagnostic> diagnostics_;
   const lsp_locator *locator_;
   const char8 *input_;
-  boost::container::pmr::monotonic_buffer_resource string_memory_;
+  monotonic_allocator string_allocator_;
 
   friend vscode_error_formatter;
 };

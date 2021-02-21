@@ -18,8 +18,6 @@
 #define QUICK_LINT_JS_EXPRESSION_H
 
 #include <array>
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <deque>
 #include <memory>
 #include <optional>
@@ -28,6 +26,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/unreachable.h>
@@ -131,22 +130,19 @@ class expression_arena {
   template <class T, class... Args>
   T *allocate(Args &&... args) {
     static_assert(is_allocatable<T>);
-    boost::container::pmr::polymorphic_allocator<T> allocator(&this->memory_);
-    T *result = allocator.allocate(1);
-    result = new (result) T(std::forward<Args>(args)...);
-    return result;
+    return this->allocator_.new_object<T>(std::forward<Args>(args)...);
   }
 
   template <class T>
   T *allocate_array_move(T *begin, T *end) {
     static_assert(is_allocatable<T>);
-    boost::container::pmr::polymorphic_allocator<T> allocator(&this->memory_);
-    T *result = allocator.allocate(narrow_cast<std::size_t>(end - begin));
+    T *result = this->allocator_.allocate_uninitialized_array<T>(
+        narrow_cast<std::size_t>(end - begin));
     std::uninitialized_move(begin, end, result);
     return result;
   }
 
-  boost::container::pmr::monotonic_buffer_resource memory_;
+  monotonic_allocator allocator_;
 };
 
 class expression {

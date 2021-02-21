@@ -17,13 +17,13 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <vector>
@@ -451,7 +451,7 @@ class lexer {
   error_reporter* error_reporter_;
   padded_string_view original_input_;
 
-  boost::container::pmr::monotonic_buffer_resource memory_;
+  monotonic_allocator allocator_;
 };
 
 struct lexer_transaction {
