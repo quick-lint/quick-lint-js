@@ -473,12 +473,23 @@ expression_ptr parser::parse_async_expression(token async_token,
 expression_ptr parser::parse_async_expression_only(token async_token) {
   const char8 *async_begin = async_token.begin;
 
-  vector<expression_ptr> parameters(
-      "parse_expression async arrow function parameters");
+  auto parse_arrow_function_arrow_and_body = [this,
+                                              async_begin](auto &&parameters) {
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+    this->skip();
+
+    expression_ptr ast = this->parse_arrow_function_body(
+        function_attributes::async, async_begin,
+        this->expressions_.make_array(std::move(parameters)));
+    return ast;
+  };
+
   switch (this->peek().type) {
   // async () => {}  // Arrow function.
   // async()         // Function call.
   case token_type::left_paren: {
+    vector<expression_ptr> parameters(
+        "parse_expression async arrow function parameters");
     source_code_span left_paren_span = this->peek().span();
     this->skip();
 
@@ -529,7 +540,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
     }
 
     // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
-    break;
+    return parse_arrow_function_arrow_and_body(std::move(parameters));
   }
 
   // async parameter => expression-or-block  // Arrow function.
@@ -543,11 +554,13 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
   case token_type::kw_of:
   case token_type::kw_set:
   case token_type::kw_static:
-  case token_type::kw_yield:
-    parameters.emplace_back(this->make_expression<expression::variable>(
-        identifier(this->peek().span()), this->peek().type));
+  case token_type::kw_yield: {
+    std::array<expression_ptr, 1> parameters = {
+        this->make_expression<expression::variable>(
+            identifier(this->peek().span()), this->peek().type)};
     this->skip();
-    break;
+    return parse_arrow_function_arrow_and_body(std::move(parameters));
+  }
 
   // async function f(parameters) { statements; }
   case token_type::kw_function: {
@@ -564,13 +577,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
   }
   }
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
-  this->skip();
-
-  expression_ptr ast = this->parse_arrow_function_body(
-      function_attributes::async, async_begin,
-      this->expressions_.make_array(std::move(parameters)));
-  return ast;
+  QLJS_UNREACHABLE();
 }
 
 expression_ptr parser::parse_expression_remainder(expression_ptr ast,
