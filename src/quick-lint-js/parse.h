@@ -163,7 +163,7 @@ class parser {
       } else if (this->is_let_token_a_variable_reference(this->peek().type)) {
         // Expression.
         this->lexer_.roll_back_transaction(std::move(transaction));
-        expression_ptr ast =
+        expression *ast =
             this->parse_expression(precedence{.in_operator = true});
         this->visit_expression(ast, v, variable_context::rhs);
       } else {
@@ -223,7 +223,7 @@ class parser {
       case token_type::question:
       case token_type::semicolon:
       case token_type::slash: {
-        expression_ptr ast =
+        expression *ast =
             this->parse_async_expression(async_token, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
         break;
@@ -325,7 +325,7 @@ class parser {
 
       // Expression statement.
       default:
-        expression_ptr ast = this->make_expression<expression::variable>(
+        expression *ast = this->make_expression<expression::variable>(
             ident, token_type::identifier);
         ast = this->parse_expression_remainder(ast, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
@@ -479,7 +479,7 @@ class parser {
     this->parse_and_visit_expression(v, precedence{});
   }
 
-  expression_ptr parse_expression() {
+  expression *parse_expression() {
     return this->parse_expression(precedence{});
   }
 
@@ -490,8 +490,7 @@ class parser {
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void visit_expression(expression_ptr ast, Visitor &v,
-                        variable_context context) {
+  void visit_expression(expression *ast, Visitor &v, variable_context context) {
     auto visit_children = [&] {
       int child_count = ast->child_count();
       for (int i = 0; i < child_count; ++i) {
@@ -500,7 +499,7 @@ class parser {
     };
     auto visit_parameters = [&](int parameter_count) {
       for (int i = 0; i < parameter_count; ++i) {
-        expression_ptr parameter = ast->child(i);
+        expression *parameter = ast->child(i);
         this->visit_binding_element(parameter, v, variable_kind::_parameter);
       }
     };
@@ -552,19 +551,19 @@ class parser {
       v.visit_exit_function_scope();
       break;
     case expression_kind::assignment: {
-      expression_ptr lhs = ast->child_0();
-      expression_ptr rhs = ast->child_1();
+      expression *lhs = ast->child_0();
+      expression *rhs = ast->child_1();
       this->visit_assignment_expression(lhs, rhs, v);
       break;
     }
     case expression_kind::compound_assignment: {
-      expression_ptr lhs = ast->child_0();
-      expression_ptr rhs = ast->child_1();
+      expression *lhs = ast->child_0();
+      expression *rhs = ast->child_1();
       this->visit_compound_assignment_expression(lhs, rhs, v);
       break;
     }
     case expression_kind::_typeof: {
-      expression_ptr child = ast->child_0();
+      expression *child = ast->child_0();
       if (child->kind() == expression_kind::variable) {
         v.visit_variable_typeof_use(child->variable_identifier());
       } else {
@@ -602,7 +601,7 @@ class parser {
       break;
     case expression_kind::rw_unary_prefix:
     case expression_kind::rw_unary_suffix: {
-      expression_ptr child = ast->child_0();
+      expression *child = ast->child_0();
       this->visit_expression(child, v, variable_context::rhs);
       this->maybe_visit_assignment(child, v);
       break;
@@ -630,7 +629,7 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void visit_assignment_expression(expression_ptr lhs, expression_ptr rhs,
+  void visit_assignment_expression(expression *lhs, expression *rhs,
                                    Visitor &v) {
     this->visit_expression(lhs, v, variable_context::lhs);
     this->visit_expression(rhs, v, variable_context::rhs);
@@ -638,19 +637,19 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void visit_compound_assignment_expression(expression_ptr lhs,
-                                            expression_ptr rhs, Visitor &v) {
+  void visit_compound_assignment_expression(expression *lhs, expression *rhs,
+                                            Visitor &v) {
     this->visit_expression(lhs, v, variable_context::rhs);
     this->visit_expression(rhs, v, variable_context::rhs);
     this->maybe_visit_assignment(lhs, v);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void maybe_visit_assignment(expression_ptr ast, Visitor &v) {
+  void maybe_visit_assignment(expression *ast, Visitor &v) {
     switch (ast->kind()) {
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
-        expression_ptr value = ast->object_entry(i).value;
+        expression *value = ast->object_entry(i).value;
         this->maybe_visit_assignment(value, v);
       }
       break;
@@ -682,7 +681,7 @@ class parser {
               /*begin=*/async_token.begin,
               /*require_name=*/name_requirement::optional);
         } else {
-          expression_ptr ast =
+          expression *ast =
               this->parse_async_expression(async_token, precedence{});
           this->visit_expression(ast, v, variable_context::rhs);
           this->consume_semicolon();
@@ -805,7 +804,7 @@ class parser {
     // export 2 + 2;    // Invalid.
     case token_type::identifier:
     case token_type::number: {
-      expression_ptr ast = this->parse_expression();
+      expression *ast = this->parse_expression();
       switch (ast->kind()) {
       case expression_kind::variable:
         this->error_reporter_->report(error_exporting_requires_curlies{
@@ -912,10 +911,10 @@ class parser {
         this->parse_and_visit_function_parameters_and_body_no_scope(
             *function_visitor, attributes);
         const char8 *function_end = this->lexer_.end_of_previous_token();
-        expression_ptr function = this->make_expression<expression::function>(
+        expression *function = this->make_expression<expression::function>(
             attributes, function_visitor,
             source_code_span(function_token_begin, function_end));
-        expression_ptr full_expression =
+        expression *full_expression =
             this->parse_expression_remainder(function, precedence{});
         this->visit_expression(full_expression, v, variable_context::rhs);
 
@@ -1003,7 +1002,7 @@ class parser {
       case token_type::kw_yield:
       case token_type::left_curly:
       case token_type::left_square: {
-        expression_ptr parameter = this->parse_expression(
+        expression *parameter = this->parse_expression(
             precedence{.commas = false, .in_operator = true});
         this->visit_binding_element(parameter, v, variable_kind::_parameter);
         if (parameter->kind() == expression_kind::spread) {
@@ -1452,7 +1451,7 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
     this->skip();
 
-    std::optional<expression_ptr> after_expression;
+    std::optional<expression *> after_expression;
     auto parse_c_style_head_remainder = [&]() {
       if (this->peek().type != token_type::semicolon) {
         this->parse_and_visit_expression(v);
@@ -1470,7 +1469,7 @@ class parser {
     QLJS_WARNING_PUSH
     QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
     auto parse_in_or_of_or_condition_update =
-        [&, this](auto &v, expression_ptr init_expression) -> void {
+        [&, this](auto &v, expression *init_expression) -> void {
       QLJS_WARNING_POP
       switch (this->peek().type) {
       case token_type::semicolon:
@@ -1481,7 +1480,7 @@ class parser {
       case token_type::kw_in:
       case token_type::kw_of: {
         this->skip();
-        expression_ptr rhs = this->parse_expression();
+        expression *rhs = this->parse_expression();
         this->visit_assignment_expression(init_expression, rhs, v);
         break;
       }
@@ -1518,7 +1517,7 @@ class parser {
         // for (let; cond; up) {}
         // for (let in myArray) {}
         this->lexer_.roll_back_transaction(std::move(transaction));
-        expression_ptr ast =
+        expression *ast =
             this->parse_expression(precedence{.in_operator = false});
         this->visit_expression(ast, lhs, variable_context::lhs);
         this->maybe_visit_assignment(ast, lhs);
@@ -1550,7 +1549,7 @@ class parser {
         bool is_var_in = declaring_token.type == token_type::kw_var &&
                          this->peek().type == token_type::kw_in;
         this->skip();
-        expression_ptr rhs = this->parse_expression();
+        expression *rhs = this->parse_expression();
         if (is_var_in) {
           // In the following code, 'init' is evaluated before 'array':
           //
@@ -1594,7 +1593,7 @@ class parser {
       }
       this->lexer_.roll_back_transaction(std::move(transaction));
 
-      expression_ptr init_expression(nullptr);
+      expression *init_expression(nullptr);
       if (is_invalid_async_of_sequence) {
         // for (async of things) {}  // Invalid.
         this->error_reporter_->report(
@@ -1618,7 +1617,7 @@ class parser {
     // for (item of things) {}
     // for (item in things) {}
     default: {
-      expression_ptr init_expression =
+      expression *init_expression =
           this->parse_expression(precedence{.in_operator = false});
       parse_in_or_of_or_condition_update(v, init_expression);
       break;
@@ -1779,7 +1778,7 @@ class parser {
     //
     // import(url).then(() => { /* ... */ })
     case token_type::left_paren: {
-      expression_ptr ast = this->parse_expression_remainder(
+      expression *ast = this->parse_expression_remainder(
           this->make_expression<expression::import>(import_span), precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
       this->consume_semicolon();
@@ -1981,10 +1980,10 @@ class parser {
       case token_type::kw_of:
       case token_type::kw_set:
       case token_type::kw_static: {
-        expression_ptr variable = this->make_expression<expression::variable>(
+        expression *variable = this->make_expression<expression::variable>(
             this->peek().identifier_name(), this->peek().type);
         this->skip();
-        expression_ptr ast = this->parse_expression_remainder(
+        expression *ast = this->parse_expression_remainder(
             variable,
             precedence{.commas = false, .in_operator = allow_in_operator});
         this->visit_binding_element(ast, v, declaration_kind);
@@ -2075,13 +2074,13 @@ class parser {
   void parse_and_visit_binding_element(Visitor &v,
                                        variable_kind declaration_kind,
                                        bool allow_in_operator) {
-    expression_ptr ast = this->parse_expression(
+    expression *ast = this->parse_expression(
         precedence{.commas = false, .in_operator = allow_in_operator});
     this->visit_binding_element(ast, v, declaration_kind);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void visit_binding_element(expression_ptr ast, Visitor &v,
+  void visit_binding_element(expression *ast, Visitor &v,
                              variable_kind declaration_kind) {
     switch (ast->kind()) {
     case expression_kind::array:
@@ -2110,7 +2109,7 @@ class parser {
     }
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
-        expression_ptr value = ast->object_entry(i).value;
+        expression *value = ast->object_entry(i).value;
         this->visit_binding_element(value, v, declaration_kind);
       }
       break;
@@ -2160,42 +2159,43 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_expression(Visitor &v, precedence prec) {
-    expression_ptr ast = this->parse_expression(prec);
+    expression *ast = this->parse_expression(prec);
     this->visit_expression(ast, v, variable_context::rhs);
   }
 
-  expression_ptr parse_expression(precedence);
+  expression *parse_expression(precedence);
 
-  expression_ptr parse_async_expression(token async_token, precedence);
-  expression_ptr parse_async_expression_only(token async_token);
+  expression *parse_async_expression(token async_token, precedence);
+  expression *parse_async_expression_only(token async_token);
 
-  expression_ptr parse_expression_remainder(expression_ptr, precedence);
+  expression *parse_expression_remainder(expression *, precedence);
 
-  expression_ptr parse_arrow_function_body(function_attributes,
-                                           const char8 *parameter_list_begin);
-  expression_ptr parse_arrow_function_body(
+  expression *parse_arrow_function_body(function_attributes,
+                                        const char8 *parameter_list_begin);
+  expression *parse_arrow_function_body(
       function_attributes, const char8 *parameter_list_begin,
-      expression_arena::array_ptr<expression_ptr> &&parameters);
+      expression_arena::array_ptr<expression *> &&parameters);
   // Args is either of the following:
-  // * expression_arena::array_ptr<expression_ptr> &&parameters
+  // * expression_arena::array_ptr<expression*> &&parameters
   // * (none)
   template <class... Args>
-  expression_ptr parse_arrow_function_body_impl(
-      function_attributes, const char8 *parameter_list_begin, Args &&... args);
+  expression *parse_arrow_function_body_impl(function_attributes,
+                                             const char8 *parameter_list_begin,
+                                             Args &&... args);
 
-  expression_ptr parse_function_expression(function_attributes,
-                                           const char8 *span_begin);
+  expression *parse_function_expression(function_attributes,
+                                        const char8 *span_begin);
 
-  expression_ptr parse_object_literal();
+  expression *parse_object_literal();
 
-  expression_ptr parse_class_expression();
+  expression *parse_class_expression();
 
-  expression_ptr parse_template(std::optional<expression_ptr> tag);
+  expression *parse_template(std::optional<expression *> tag);
 
   function_attributes parse_generator_star(function_attributes);
 
-  expression_ptr maybe_wrap_erroneous_arrow_function(
-      expression_ptr arrow_function, expression_ptr lhs);
+  expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
+                                                  expression *lhs);
 
   void consume_semicolon();
 
@@ -2207,7 +2207,7 @@ class parser {
       const char *qljs_function_name);
 
   template <class Expression, class... Args>
-  expression_ptr make_expression(Args &&... args) {
+  expression *make_expression(Args &&... args) {
     return this->expressions_.make_expression<Expression>(
         std::forward<Args>(args)...);
   }

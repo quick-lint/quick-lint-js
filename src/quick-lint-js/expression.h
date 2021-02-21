@@ -46,25 +46,6 @@
 namespace quick_lint_js {
 class expression;
 
-class expression_ptr {
- public:
-  explicit expression_ptr(expression *ptr) noexcept : ptr_(ptr) {}
-
-  expression *operator->() const noexcept { return this->ptr_; }
-  expression &operator*() const noexcept { return *this->ptr_; }
-
-  bool operator==(expression_ptr other) const noexcept {
-    return this->ptr_ == other.ptr_;
-  }
-
-  bool operator!=(expression_ptr other) const noexcept {
-    return !(*this == other);
-  }
-
- private:
-  expression *ptr_;
-};
-
 enum class expression_kind {
   _class,
   _invalid,
@@ -102,15 +83,15 @@ enum class expression_kind {
 };
 
 struct object_property_value_pair {
-  explicit object_property_value_pair(expression_ptr property,
-                                      expression_ptr value) noexcept
+  explicit object_property_value_pair(expression *property,
+                                      expression *value) noexcept
       : property(property), value(value) {}
 
-  explicit object_property_value_pair(expression_ptr value) noexcept
+  explicit object_property_value_pair(expression *value) noexcept
       : property(std::nullopt), value(value) {}
 
-  std::optional<expression_ptr> property;
-  expression_ptr value;
+  std::optional<expression *> property;
+  expression *value;
 };
 
 class expression_arena {
@@ -125,7 +106,7 @@ class expression_arena {
       std::is_trivially_destructible_v<std::remove_reference_t<T>>;
 
   template <class Expression, class... Args>
-  expression_ptr make_expression(Args &&... args);
+  expression *make_expression(Args &&... args);
 
   template <class T, std::size_t InSituCapacity>
   array_ptr<T> make_array(vector<T, InSituCapacity> &&);
@@ -212,11 +193,11 @@ class expression {
 
   int child_count() const noexcept;
 
-  expression_ptr child_0() const noexcept { return this->child(0); }
-  expression_ptr child_1() const noexcept { return this->child(1); }
-  expression_ptr child_2() const noexcept { return this->child(2); }
+  expression *child_0() const noexcept { return this->child(0); }
+  expression *child_1() const noexcept { return this->child(1); }
+  expression *child_2() const noexcept { return this->child(2); }
 
-  expression_ptr child(int) const noexcept;
+  expression *child(int) const noexcept;
 
   // Can be called at most once.
   template <QLJS_PARSE_VISITOR Visitor>
@@ -251,7 +232,7 @@ class expression {
 
   int child_count_impl() const noexcept { QLJS_UNEXPECTED_EXPRESSION_KIND(); }
 
-  expression_ptr child_impl(int) const noexcept {
+  expression *child_impl(int) const noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
@@ -287,7 +268,7 @@ class expression {
 };
 
 template <class Derived>
-Derived *expression_cast(expression_ptr p) noexcept {
+Derived *expression_cast(expression *p) noexcept {
   // TODO(strager): Assert that Derived matches the expression's run-time
   // type.
   return static_cast<Derived *>(&*p);
@@ -327,9 +308,8 @@ class expression_arena::array_ptr {
 };
 
 template <class Expression, class... Args>
-expression_ptr expression_arena::make_expression(Args &&... args) {
-  expression_ptr result(
-      this->allocate<Expression>(std::forward<Args>(args)...));
+expression *expression_arena::make_expression(Args &&... args) {
+  expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
   return result;
 }
@@ -360,7 +340,7 @@ inline expression_arena::array_ptr<T> expression_arena::make_array(
 class expression::expression_with_prefix_operator_base : public expression {
  public:
   explicit expression_with_prefix_operator_base(
-      expression_kind kind, expression_ptr child,
+      expression_kind kind, expression *child,
       source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_begin_(operator_span.begin()),
@@ -368,7 +348,7 @@ class expression::expression_with_prefix_operator_base : public expression {
 
   int child_count_impl() const noexcept { return 1; }
 
-  expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
+  expression *child_impl([[maybe_unused]] int index) const noexcept {
     QLJS_ASSERT(index == 0);
     return this->child_;
   }
@@ -380,7 +360,7 @@ class expression::expression_with_prefix_operator_base : public expression {
 
  protected:
   const char8 *unary_operator_begin_;
-  expression_ptr child_;
+  expression *child_;
 };
 
 class expression::_class : public expression {
@@ -421,13 +401,13 @@ class expression::_new final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_new;
 
-  explicit _new(expression_arena::array_ptr<expression_ptr> children,
+  explicit _new(expression_arena::array_ptr<expression *> children,
                 source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -435,7 +415,7 @@ class expression::_new final : public expression {
 
  private:
   source_code_span span_;
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::_new>);
 
@@ -443,13 +423,13 @@ class expression::_template final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_template;
 
-  explicit _template(expression_arena::array_ptr<expression_ptr> children,
+  explicit _template(expression_arena::array_ptr<expression *> children,
                      source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -457,7 +437,7 @@ class expression::_template final : public expression {
 
  private:
   source_code_span span_;
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::_template>);
 
@@ -466,8 +446,7 @@ class expression::_typeof final
  public:
   static constexpr expression_kind kind = expression_kind::_typeof;
 
-  explicit _typeof(expression_ptr child,
-                   source_code_span operator_span) noexcept
+  explicit _typeof(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
@@ -477,13 +456,13 @@ class expression::array final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::array;
 
-  explicit array(expression_arena::array_ptr<expression_ptr> children,
+  explicit array(expression_arena::array_ptr<expression *> children,
                  source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -491,7 +470,7 @@ class expression::array final : public expression {
 
  private:
   source_code_span span_;
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::array>);
 
@@ -501,7 +480,7 @@ class expression::arrow_function_with_expression final : public expression {
       expression_kind::arrow_function_with_expression;
 
   explicit arrow_function_with_expression(
-      function_attributes attributes, expression_ptr body,
+      function_attributes attributes, expression *body,
       const char8 *parameter_list_begin) noexcept
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
@@ -510,8 +489,8 @@ class expression::arrow_function_with_expression final : public expression {
 
   explicit arrow_function_with_expression(
       function_attributes attributes,
-      expression_arena::array_ptr<expression_ptr> parameters,
-      expression_ptr body, const char8 *parameter_list_begin) noexcept
+      expression_arena::array_ptr<expression *> parameters, expression *body,
+      const char8 *parameter_list_begin) noexcept
       : expression(kind),
         parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
@@ -524,7 +503,7 @@ class expression::arrow_function_with_expression final : public expression {
 
   int child_count_impl() const noexcept { return this->parameters_.size() + 1; }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     if (index == this->parameters_.size()) {
       return this->body_;
     } else {
@@ -549,8 +528,8 @@ class expression::arrow_function_with_expression final : public expression {
  private:
   const char8 *parameter_list_begin_;
   function_attributes function_attributes_;
-  expression_arena::array_ptr<expression_ptr> parameters_;
-  expression_ptr body_;
+  expression_arena::array_ptr<expression *> parameters_;
+  expression *body_;
 };
 static_assert(expression_arena::is_allocatable<
               expression::arrow_function_with_expression>);
@@ -574,7 +553,7 @@ class expression::arrow_function_with_statements final : public expression {
 
   explicit arrow_function_with_statements(
       function_attributes attributes,
-      expression_arena::array_ptr<expression_ptr> parameters,
+      expression_arena::array_ptr<expression *> parameters,
       expression_arena::buffering_visitor_ptr child_visits,
       const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
@@ -590,7 +569,7 @@ class expression::arrow_function_with_statements final : public expression {
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -616,15 +595,15 @@ class expression::arrow_function_with_statements final : public expression {
   const char8 *parameter_list_begin_;
   const char8 *span_end_;
   expression_arena::buffering_visitor_ptr child_visits_;
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<
               expression::arrow_function_with_statements>);
 
 class expression::assignment final : public expression {
  public:
-  explicit assignment(expression_kind kind, expression_ptr lhs,
-                      expression_ptr rhs) noexcept
+  explicit assignment(expression_kind kind, expression *lhs,
+                      expression *rhs) noexcept
       : expression(kind), children_{lhs, rhs} {
     QLJS_ASSERT(kind == expression_kind::assignment ||
                 kind == expression_kind::compound_assignment);
@@ -634,7 +613,7 @@ class expression::assignment final : public expression {
     return narrow_cast<int>(this->children_.size());
   }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
@@ -646,7 +625,7 @@ class expression::assignment final : public expression {
   }
 
  private:
-  std::array<expression_ptr, 2> children_;
+  std::array<expression *, 2> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::assignment>);
 
@@ -655,7 +634,7 @@ class expression::await final
  public:
   static constexpr expression_kind kind = expression_kind::await;
 
-  explicit await(expression_ptr child, source_code_span operator_span) noexcept
+  explicit await(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 
@@ -671,12 +650,12 @@ class expression::binary_operator final : public expression {
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
   explicit binary_operator(
-      expression_arena::array_ptr<expression_ptr> children) noexcept
+      expression_arena::array_ptr<expression *> children) noexcept
       : expression(kind), children_(children) {}
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -686,7 +665,7 @@ class expression::binary_operator final : public expression {
   }
 
  private:
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::binary_operator>);
 
@@ -694,7 +673,7 @@ class expression::call final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::call;
 
-  explicit call(expression_arena::array_ptr<expression_ptr> children,
+  explicit call(expression_arena::array_ptr<expression *> children,
                 source_code_span left_paren_span,
                 source_code_span right_paren_span) noexcept
       : expression(kind),
@@ -707,7 +686,7 @@ class expression::call final : public expression {
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -724,7 +703,7 @@ class expression::call final : public expression {
  private:
   const char8 *call_left_paren_begin_;
   const char8 *call_right_paren_end_;
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::call>);
 
@@ -732,15 +711,15 @@ class expression::conditional final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::conditional;
 
-  explicit conditional(expression_ptr condition, expression_ptr true_branch,
-                       expression_ptr false_branch) noexcept
+  explicit conditional(expression *condition, expression *true_branch,
+                       expression *false_branch) noexcept
       : expression(kind), children_{condition, true_branch, false_branch} {}
 
   int child_count_impl() const noexcept {
     return narrow_cast<int>(this->children_.size());
   }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
@@ -752,7 +731,7 @@ class expression::conditional final : public expression {
   }
 
  private:
-  std::array<expression_ptr, 3> children_;
+  std::array<expression *, 3> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::conditional>);
 
@@ -760,12 +739,12 @@ class expression::dot final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::dot;
 
-  explicit dot(expression_ptr lhs, identifier rhs) noexcept
+  explicit dot(expression *lhs, identifier rhs) noexcept
       : expression(kind), variable_identifier_(rhs), child_(lhs) {}
 
   int child_count_impl() const noexcept { return 1; }
 
-  expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
+  expression *child_impl([[maybe_unused]] int index) const noexcept {
     QLJS_ASSERT(index == 0);
     return this->child_;
   }
@@ -781,7 +760,7 @@ class expression::dot final : public expression {
 
  private:
   identifier variable_identifier_;
-  expression_ptr child_;
+  expression *child_;
 };
 static_assert(expression_arena::is_allocatable<expression::dot>);
 
@@ -832,7 +811,7 @@ class expression::index final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::index;
 
-  explicit index(expression_ptr container, expression_ptr subscript,
+  explicit index(expression *container, expression *subscript,
                  const char8 *subscript_end) noexcept
       : expression(kind),
         index_subscript_end_(subscript_end),
@@ -842,7 +821,7 @@ class expression::index final : public expression {
     return narrow_cast<int>(this->children_.size());
   }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     return this->children_[narrow_cast<unsigned>(index)];
@@ -855,7 +834,7 @@ class expression::index final : public expression {
 
  private:
   const char8 *index_subscript_end_;
-  std::array<expression_ptr, 2> children_;
+  std::array<expression *, 2> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::index>);
 
@@ -950,7 +929,7 @@ class expression::rw_unary_prefix final
  public:
   static constexpr expression_kind kind = expression_kind::rw_unary_prefix;
 
-  explicit rw_unary_prefix(expression_ptr child,
+  explicit rw_unary_prefix(expression *child,
                            source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
@@ -961,7 +940,7 @@ class expression::rw_unary_suffix final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::rw_unary_suffix;
 
-  explicit rw_unary_suffix(expression_ptr child,
+  explicit rw_unary_suffix(expression *child,
                            source_code_span operator_span) noexcept
       : expression(kind),
         unary_operator_end_(operator_span.end()),
@@ -969,7 +948,7 @@ class expression::rw_unary_suffix final : public expression {
 
   int child_count_impl() const noexcept { return 1; }
 
-  expression_ptr child_impl([[maybe_unused]] int index) const noexcept {
+  expression *child_impl([[maybe_unused]] int index) const noexcept {
     QLJS_ASSERT(index == 0);
     return this->child_;
   }
@@ -981,7 +960,7 @@ class expression::rw_unary_suffix final : public expression {
 
  private:
   const char8 *unary_operator_end_;
-  expression_ptr child_;
+  expression *child_;
 };
 static_assert(expression_arena::is_allocatable<expression::rw_unary_suffix>);
 
@@ -990,7 +969,7 @@ class expression::spread final
  public:
   static constexpr expression_kind kind = expression_kind::spread;
 
-  explicit spread(expression_ptr child, source_code_span operator_span) noexcept
+  explicit spread(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
@@ -1013,7 +992,7 @@ static_assert(expression_arena::is_allocatable<expression::super>);
 class expression::tagged_template_literal final : public expression {
  public:
   explicit tagged_template_literal(
-      expression_arena::array_ptr<expression_ptr> tag_and_template_children,
+      expression_arena::array_ptr<expression *> tag_and_template_children,
       source_code_span template_span) noexcept
       : expression(expression_kind::tagged_template_literal),
         tag_and_template_children_(tag_and_template_children),
@@ -1025,7 +1004,7 @@ class expression::tagged_template_literal final : public expression {
     return this->tag_and_template_children_.size();
   }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->tag_and_template_children_[index];
   }
 
@@ -1035,7 +1014,7 @@ class expression::tagged_template_literal final : public expression {
   }
 
  private:
-  expression_arena::array_ptr<expression_ptr> tag_and_template_children_;
+  expression_arena::array_ptr<expression *> tag_and_template_children_;
   const char8 *template_span_end_;
 };
 static_assert(
@@ -1045,7 +1024,7 @@ class expression::trailing_comma final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::trailing_comma;
 
-  explicit trailing_comma(expression_arena::array_ptr<expression_ptr> children,
+  explicit trailing_comma(expression_arena::array_ptr<expression *> children,
                           source_code_span comma_span) noexcept
       : expression(kind), children_(children), comma_end_(comma_span.end()) {
     QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
@@ -1053,7 +1032,7 @@ class expression::trailing_comma final : public expression {
 
   int child_count_impl() const noexcept { return this->children_.size(); }
 
-  expression_ptr child_impl(int index) const noexcept {
+  expression *child_impl(int index) const noexcept {
     return this->children_[index];
   }
 
@@ -1067,7 +1046,7 @@ class expression::trailing_comma final : public expression {
   }
 
  private:
-  expression_arena::array_ptr<expression_ptr> children_;
+  expression_arena::array_ptr<expression *> children_;
   const char8 *comma_end_;
 };
 static_assert(expression_arena::is_allocatable<expression::trailing_comma>);
@@ -1077,7 +1056,7 @@ class expression::unary_operator final
  public:
   static constexpr expression_kind kind = expression_kind::unary_operator;
 
-  explicit unary_operator(expression_ptr child,
+  explicit unary_operator(expression *child,
                           source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
@@ -1116,7 +1095,7 @@ class expression::yield_many final
  public:
   static constexpr expression_kind kind = expression_kind::yield_many;
 
-  explicit yield_many(expression_ptr child,
+  explicit yield_many(expression *child,
                       source_code_span yield_operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          yield_operator_span) {}
@@ -1142,8 +1121,7 @@ class expression::yield_one final
  public:
   static constexpr expression_kind kind = expression_kind::yield_one;
 
-  explicit yield_one(expression_ptr child,
-                     source_code_span operator_span) noexcept
+  explicit yield_one(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
 };
@@ -1219,7 +1197,7 @@ inline int expression::child_count() const noexcept {
       [](const auto &self) { return self.child_count_impl(); });
 }
 
-inline expression_ptr expression::child(int index) const noexcept {
+inline expression *expression::child(int index) const noexcept {
   return this->with_derived(
       [&](const auto &self) { return self.child_impl(index); });
 }

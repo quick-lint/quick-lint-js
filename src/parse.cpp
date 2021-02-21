@@ -46,11 +46,11 @@
 namespace quick_lint_js {
 namespace {
 struct arrow_function_parameters {
-  vector<expression_ptr> parameters;
-  const char8 *left_paren_begin = nullptr;
+  vector<expression*> parameters;
+  const char8* left_paren_begin = nullptr;
 };
 
-arrow_function_parameters arrow_function_parameters_from_lhs(expression_ptr);
+arrow_function_parameters arrow_function_parameters_from_lhs(expression*);
 }
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
@@ -77,7 +77,7 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
   return function_guard(this, was_in_async_function, was_in_generator_function);
 }
 
-expression_ptr parser::parse_expression(precedence prec) {
+expression* parser::parse_expression(precedence prec) {
   switch (this->peek().type) {
   // f  // Variable name.
   identifier:
@@ -89,7 +89,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::kw_of:
   case token_type::kw_set:
   case token_type::kw_static: {
-    expression_ptr ast = this->make_expression<expression::variable>(
+    expression* ast = this->make_expression<expression::variable>(
         this->peek().identifier_name(), this->peek().type);
     this->skip();
     if (!prec.binary_operators) {
@@ -108,7 +108,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::complete_template:
   case token_type::number:
   case token_type::string: {
-    expression_ptr ast =
+    expression* ast =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
     if (!prec.binary_operators) {
@@ -119,7 +119,7 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   // import.meta
   case token_type::kw_import: {
-    expression_ptr ast =
+    expression* ast =
         this->make_expression<expression::import>(this->peek().span());
     this->skip();
     if (!prec.binary_operators) {
@@ -130,7 +130,7 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   // super()
   case token_type::kw_super: {
-    expression_ptr ast =
+    expression* ast =
         this->make_expression<expression::super>(this->peek().span());
     this->skip();
     if (!prec.binary_operators) {
@@ -150,7 +150,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       // await is a unary operator.
       source_code_span operator_span = this->peek().span();
       this->skip();
-      expression_ptr child = this->parse_expression(prec);
+      expression* child = this->parse_expression(prec);
       if (child->kind() == expression_kind::_invalid) {
         this->error_reporter_->report(error_missing_operand_for_operator{
             .where = operator_span,
@@ -189,14 +189,14 @@ expression_ptr parser::parse_expression(precedence prec) {
 
       case token_type::star: {
         this->skip();
-        expression_ptr child = this->parse_expression();
+        expression* child = this->parse_expression();
         return this->parse_expression_remainder(
             this->make_expression<expression::yield_many>(child, operator_span),
             prec);
       }
 
       default: {
-        expression_ptr child = this->parse_expression();
+        expression* child = this->parse_expression();
         return this->parse_expression_remainder(
             this->make_expression<expression::yield_one>(child, operator_span),
             prec);
@@ -212,7 +212,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::dot_dot_dot: {
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression_ptr child = this->parse_expression(precedence{.commas = false});
+    expression* child = this->parse_expression(precedence{.commas = false});
     return this->parse_expression_remainder(
         this->make_expression<expression::spread>(child, operator_span), prec);
   }
@@ -229,7 +229,7 @@ expression_ptr parser::parse_expression(precedence prec) {
     token_type type = this->peek().type;
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression_ptr child = this->parse_expression(
+    expression* child = this->parse_expression(
         precedence{.binary_operators = true,
                    .math_or_logical_or_assignment = false,
                    .commas = false});
@@ -238,7 +238,7 @@ expression_ptr parser::parse_expression(precedence prec) {
           .where = operator_span,
       });
     }
-    expression_ptr ast =
+    expression* ast =
         type == token_type::kw_typeof
             ? this->make_expression<expression::_typeof>(child, operator_span)
             : this->make_expression<expression::unary_operator>(child,
@@ -251,7 +251,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::plus_plus: {
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression_ptr child = this->parse_expression(
+    expression* child = this->parse_expression(
         precedence{.binary_operators = false, .commas = false});
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -277,7 +277,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       if (this->peek().type == token_type::equal_greater) {
         this->skip();
         // Arrow function: () => expression-or-block
-        expression_ptr ast = this->parse_arrow_function_body(
+        expression* ast = this->parse_arrow_function_body(
             function_attributes::normal, left_paren_span.begin());
         return this->parse_expression_remainder(ast, prec);
       } else {
@@ -287,7 +287,7 @@ expression_ptr parser::parse_expression(precedence prec) {
                 .left_paren = left_paren_span,
                 .right_paren = right_paren_span,
             });
-        expression_ptr child = this->parse_expression();
+        expression* child = this->parse_expression();
         if (!prec.binary_operators) {
           return child;
         }
@@ -295,7 +295,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       }
     }
 
-    expression_ptr child = this->parse_expression();
+    expression* child = this->parse_expression();
     switch (this->peek().type) {
     case token_type::right_paren:
       this->skip();
@@ -321,11 +321,11 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   // [x, 3, f()]  // Array literal.
   case token_type::left_square: {
-    const char8 *left_square_begin = this->peek().begin;
-    const char8 *right_square_end;
+    const char8* left_square_begin = this->peek().begin;
+    const char8* right_square_end;
     this->skip();
 
-    vector<expression_ptr> children("parse_expression array children");
+    vector<expression*> children("parse_expression array children");
     for (;;) {
       if (this->peek().type == token_type::right_square) {
         right_square_end = this->peek().end;
@@ -342,7 +342,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       children.emplace_back(
           this->parse_expression(precedence{.commas = false}));
     }
-    expression_ptr ast = this->make_expression<expression::array>(
+    expression* ast = this->make_expression<expression::array>(
         this->expressions_.make_array(std::move(children)),
         source_code_span(left_square_begin, right_square_end));
     return this->parse_expression_remainder(ast, prec);
@@ -350,20 +350,20 @@ expression_ptr parser::parse_expression(precedence prec) {
 
   // {k: v}  // Object literal.
   case token_type::left_curly: {
-    expression_ptr ast = this->parse_object_literal();
+    expression* ast = this->parse_object_literal();
     return this->parse_expression_remainder(ast, prec);
   }
 
   // function() {}  // Function expression.
   case token_type::kw_function: {
-    expression_ptr function = this->parse_function_expression(
+    expression* function = this->parse_function_expression(
         function_attributes::normal, this->peek().begin);
     return this->parse_expression_remainder(function, prec);
   }
 
   // class {}
   case token_type::kw_class: {
-    expression_ptr class_expression = this->parse_class_expression();
+    expression* class_expression = this->parse_class_expression();
     return this->parse_expression_remainder(class_expression, prec);
   }
 
@@ -376,8 +376,8 @@ expression_ptr parser::parse_expression(precedence prec) {
     switch (this->peek().type) {
     // new XMLHttpRequest()
     default: {
-      expression_ptr target = this->parse_expression(prec);
-      vector<expression_ptr> children("parse_expression new children");
+      expression* target = this->parse_expression(prec);
+      vector<expression*> children("parse_expression new children");
       if (target->kind() == expression_kind::call) {
         for (int i = 0; i < target->child_count(); ++i) {
           children.emplace_back(target->child(i));
@@ -398,7 +398,7 @@ expression_ptr parser::parse_expression(precedence prec) {
       // * Are \u{} escapes allowed?
       source_code_span target_span = this->peek().identifier_name().span();
       this->skip();
-      expression_ptr ast = this->make_expression<expression::new_target>(
+      expression* ast = this->make_expression<expression::new_target>(
           source_code_span(operator_span.begin(), target_span.end()));
       return this->parse_expression_remainder(ast, prec);
     }
@@ -415,7 +415,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   case token_type::slash:
   case token_type::slash_equal: {
     this->lexer_.reparse_as_regexp();
-    expression_ptr regexp =
+    expression* regexp =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
     if (!prec.binary_operators) {
@@ -427,7 +427,7 @@ expression_ptr parser::parse_expression(precedence prec) {
   QLJS_CASE_BINARY_ONLY_OPERATOR:
   case token_type::dot:
   case token_type::equal: {
-    expression_ptr ast =
+    expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (!prec.binary_operators) {
       return ast;
@@ -463,24 +463,23 @@ expression_ptr parser::parse_expression(precedence prec) {
   }
 }
 
-expression_ptr parser::parse_async_expression(token async_token,
-                                              precedence prec) {
-  expression_ptr ast = this->parse_async_expression_only(async_token);
+expression* parser::parse_async_expression(token async_token, precedence prec) {
+  expression* ast = this->parse_async_expression_only(async_token);
   if (!prec.binary_operators) {
     return ast;
   }
   return this->parse_expression_remainder(ast, prec);
 }
 
-expression_ptr parser::parse_async_expression_only(token async_token) {
-  const char8 *async_begin = async_token.begin;
+expression* parser::parse_async_expression_only(token async_token) {
+  const char8* async_begin = async_token.begin;
 
   auto parse_arrow_function_arrow_and_body = [this,
-                                              async_begin](auto &&parameters) {
+                                              async_begin](auto&& parameters) {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
     this->skip();
 
-    expression_ptr ast = this->parse_arrow_function_body(
+    expression* ast = this->parse_arrow_function_body(
         function_attributes::async, async_begin,
         this->expressions_.make_array(std::move(parameters)));
     return ast;
@@ -490,7 +489,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
   // async () => {}  // Arrow function.
   // async()         // Function call.
   case token_type::left_paren: {
-    vector<expression_ptr> parameters(
+    vector<expression*> parameters(
         "parse_expression async arrow function parameters");
     source_code_span left_paren_span = this->peek().span();
     this->skip();
@@ -526,8 +525,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
       // async as an identifier (variable reference)
       // Function call: async(arg)
       // TODO(strager): Reduce copying of the arguments.
-      vector<expression_ptr> call_children(
-          "parse_expression async call children");
+      vector<expression*> call_children("parse_expression async call children");
       call_children.emplace_back(this->make_expression<expression::variable>(
           async_token.identifier_name(), async_token.type));
       for (std::size_t i = 0; i < parameters.size(); ++i) {
@@ -537,7 +535,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
         }
       }
 
-      expression_ptr call_ast = this->make_expression<expression::call>(
+      expression* call_ast = this->make_expression<expression::call>(
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
           /*right_paren_span=*/right_paren_span);
@@ -559,7 +557,7 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
   case token_type::kw_set:
   case token_type::kw_static:
   case token_type::kw_yield: {
-    std::array<expression_ptr, 1> parameters = {
+    std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
             identifier(this->peek().span()), this->peek().type)};
     this->skip();
@@ -568,14 +566,14 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
 
   // async function f(parameters) { statements; }
   case token_type::kw_function: {
-    expression_ptr function = this->parse_function_expression(
+    expression* function = this->parse_function_expression(
         function_attributes::async, async_begin);
     return function;
   }
 
   // async  // Identifier (variable reference).
   default: {
-    expression_ptr ast = this->make_expression<expression::variable>(
+    expression* ast = this->make_expression<expression::variable>(
         async_token.identifier_name(), async_token.type);
     return ast;
   }
@@ -584,13 +582,13 @@ expression_ptr parser::parse_async_expression_only(token async_token) {
   QLJS_UNREACHABLE();
 }
 
-expression_ptr parser::parse_expression_remainder(expression_ptr ast,
-                                                  precedence prec) {
+expression* parser::parse_expression_remainder(expression* ast,
+                                               precedence prec) {
   if (prec.commas) {
     QLJS_ASSERT(prec.binary_operators);
   }
 
-  vector<expression_ptr, /*InSituCapacity=*/2> children(
+  vector<expression*, /*InSituCapacity=*/2> children(
       "parse_expression_remainder children", &ast, &ast + 1);
   auto build_expression = [&]() {
     if (children.size() == 1) {
@@ -619,7 +617,7 @@ next:
           this->expressions_.make_array(std::move(children)), comma_span);
     } else {
       // Comma expression: a, b, c
-      expression_ptr rhs = children.emplace_back(
+      expression* rhs = children.emplace_back(
           this->parse_expression(precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report(
@@ -639,7 +637,7 @@ next:
     }
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression_ptr rhs = children.emplace_back(this->parse_expression(
+    expression* rhs = children.emplace_back(this->parse_expression(
         precedence{.binary_operators = false, .commas = false}));
     if (rhs->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(
@@ -651,7 +649,7 @@ next:
   // f(x, y, z)  // Function call.
   case token_type::left_paren: {
     source_code_span left_paren_span = this->peek().span();
-    vector<expression_ptr, 4> call_children(
+    vector<expression*, 4> call_children(
         "parse_expression_remainder call children", &children.back(),
         &children.back() + 1);
     this->skip();
@@ -690,7 +688,7 @@ next:
     }
     bool is_plain_assignment = this->peek().type == token_type::equal;
     this->skip();
-    expression_ptr lhs = build_expression();
+    expression* lhs = build_expression();
     switch (lhs->kind()) {
     default:
       this->error_reporter_->report(
@@ -706,7 +704,7 @@ next:
     case expression_kind::variable:
       break;
     }
-    expression_ptr rhs = this->parse_expression(
+    expression* rhs = this->parse_expression(
         precedence{.commas = false, .in_operator = prec.in_operator});
     children.clear();
     children.emplace_back(this->make_expression<expression::assignment>(
@@ -749,7 +747,7 @@ next:
   case token_type::left_square: {
     source_code_span left_square_span = this->peek().span();
     this->skip();
-    expression_ptr subscript = this->parse_expression();
+    expression* subscript = this->parse_expression();
     switch (this->peek().type) {
     case token_type::right_square:
       if (subscript->kind() == expression_kind::_invalid) {
@@ -804,13 +802,13 @@ next:
   case token_type::question: {
     this->skip();
 
-    expression_ptr condition = build_expression();
-    expression_ptr true_expression = this->parse_expression();
+    expression* condition = build_expression();
+    expression* true_expression = this->parse_expression();
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
     this->skip();
 
-    expression_ptr false_expression = this->parse_expression(prec);
+    expression* false_expression = this->parse_expression(prec);
 
     return this->make_expression<expression::conditional>(
         condition, true_expression, false_expression);
@@ -822,10 +820,10 @@ next:
     if (children.size() != 1) {
       QLJS_UNIMPLEMENTED();
     }
-    expression_ptr lhs = children.back();
+    expression* lhs = children.back();
     arrow_function_parameters parameters =
         arrow_function_parameters_from_lhs(lhs);
-    expression_ptr arrow_function = this->parse_arrow_function_body(
+    expression* arrow_function = this->parse_arrow_function_body(
         function_attributes::normal,
         /*parameter_list_begin=*/parameters.left_paren_begin,
         this->expressions_.make_array(std::move(parameters.parameters)));
@@ -838,7 +836,7 @@ next:
   case token_type::complete_template: {
     source_code_span template_span = this->peek().span();
     this->skip();
-    expression_ptr tag = children.back();
+    expression* tag = children.back();
     children.back() =
         this->make_expression<expression::tagged_template_literal>(
             this->expressions_.make_array(&tag, &tag + 1), template_span);
@@ -847,7 +845,7 @@ next:
 
   // html`<h1>${title}</h1>`  // Template call.
   case token_type::incomplete_template: {
-    expression_ptr tag = children.back();
+    expression* tag = children.back();
     children.back() = this->parse_template(tag);
     goto next;
   }
@@ -898,39 +896,39 @@ next:
   return build_expression();
 }
 
-expression_ptr parser::parse_arrow_function_body(
-    function_attributes attributes, const char8 *parameter_list_begin) {
+expression* parser::parse_arrow_function_body(
+    function_attributes attributes, const char8* parameter_list_begin) {
   return this->parse_arrow_function_body_impl(attributes, parameter_list_begin);
 }
 
-expression_ptr parser::parse_arrow_function_body(
-    function_attributes attributes, const char8 *parameter_list_begin,
-    expression_arena::array_ptr<expression_ptr> &&parameters) {
+expression* parser::parse_arrow_function_body(
+    function_attributes attributes, const char8* parameter_list_begin,
+    expression_arena::array_ptr<expression*>&& parameters) {
   return this->parse_arrow_function_body_impl(attributes, parameter_list_begin,
                                               std::move(parameters));
 }
 
 template <class... Args>
-expression_ptr parser::parse_arrow_function_body_impl(
-    function_attributes attributes, const char8 *parameter_list_begin,
-    Args &&... args) {
+expression* parser::parse_arrow_function_body_impl(
+    function_attributes attributes, const char8* parameter_list_begin,
+    Args&&... args) {
   function_guard guard = this->enter_function(attributes);
   if (this->peek().type == token_type::left_curly) {
-    buffering_visitor *v = this->expressions_.make_buffering_visitor();
+    buffering_visitor* v = this->expressions_.make_buffering_visitor();
     this->parse_and_visit_statement_block_no_scope(*v);
-    const char8 *span_end = this->lexer_.end_of_previous_token();
+    const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
         attributes, std::forward<Args>(args)..., v, parameter_list_begin,
         span_end);
   } else {
-    expression_ptr body = this->parse_expression(precedence{.commas = false});
+    expression* body = this->parse_expression(precedence{.commas = false});
     return this->make_expression<expression::arrow_function_with_expression>(
         attributes, std::forward<Args>(args)..., body, parameter_list_begin);
   }
 }
 
-expression_ptr parser::parse_function_expression(function_attributes attributes,
-                                                 const char8 *span_begin) {
+expression* parser::parse_function_expression(function_attributes attributes,
+                                              const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   this->skip();
   attributes = this->parse_generator_star(attributes);
@@ -960,9 +958,9 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
   default:
     break;
   }
-  buffering_visitor *v = this->expressions_.make_buffering_visitor();
+  buffering_visitor* v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_function_parameters_and_body_no_scope(*v, attributes);
-  const char8 *span_end = this->lexer_.end_of_previous_token();
+  const char8* span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
                    attributes, *function_name, v,
@@ -971,27 +969,27 @@ expression_ptr parser::parse_function_expression(function_attributes attributes,
                    attributes, v, source_code_span(span_begin, span_end));
 }
 
-expression_ptr parser::parse_object_literal() {
+expression* parser::parse_object_literal() {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
-  const char8 *left_curly_begin = this->peek().begin;
-  const char8 *right_curly_end;
+  const char8* left_curly_begin = this->peek().begin;
+  const char8* right_curly_end;
   this->skip();
 
   vector<object_property_value_pair> entries("parse_object_literal entries");
   auto parse_value_expression = [&]() {
     return this->parse_expression(precedence{.commas = false});
   };
-  auto parse_computed_property_name = [this]() -> expression_ptr {
+  auto parse_computed_property_name = [this]() -> expression* {
     QLJS_ASSERT(this->peek().type == token_type::left_square);
     this->skip();
-    expression_ptr property_name = this->parse_expression();
+    expression* property_name = this->parse_expression();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
     this->skip();
     return property_name;
   };
-  auto parse_method_entry = [&](const char8 *key_span_begin, expression_ptr key,
+  auto parse_method_entry = [&](const char8* key_span_begin, expression* key,
                                 function_attributes attributes) -> void {
-    buffering_visitor *v = this->expressions_.make_buffering_visitor();
+    buffering_visitor* v = this->expressions_.make_buffering_visitor();
     switch (this->peek().type) {
     default:
       this->parse_and_visit_function_parameters_and_body_no_scope(*v,
@@ -1004,8 +1002,8 @@ expression_ptr parser::parse_object_literal() {
       break;
     }
 
-    const char8 *span_end = this->lexer_.end_of_previous_token();
-    expression_ptr func = this->make_expression<expression::function>(
+    const char8* span_end = this->lexer_.end_of_previous_token();
+    expression* func = this->make_expression<expression::function>(
         attributes, v, source_code_span(key_span_begin, span_end));
     entries.emplace_back(key, func);
   };
@@ -1023,7 +1021,7 @@ expression_ptr parser::parse_object_literal() {
       continue;
     }
     if (expect_comma_or_end) {
-      const char8 *comma_location = this->lexer_.end_of_previous_token();
+      const char8* comma_location = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(
           error_missing_comma_between_object_literal_entries{
               source_code_span(comma_location, comma_location)});
@@ -1050,7 +1048,7 @@ expression_ptr parser::parse_object_literal() {
     case token_type::string: {
       token_type key_type = this->peek().type;
       source_code_span key_span = this->peek().span();
-      expression_ptr key = this->make_expression<expression::literal>(key_span);
+      expression* key = this->make_expression<expression::literal>(key_span);
       this->skip();
       switch (this->peek().type) {
       // {x y}  // Invalid.
@@ -1076,7 +1074,7 @@ expression_ptr parser::parse_object_literal() {
         switch (key_type) {
         case token_type::number:
         case token_type::string: {
-          expression_ptr value =
+          expression* value =
               this->make_expression<expression::_invalid>(key_span);
           this->error_reporter_->report(
               error_invalid_lone_literal_in_object_literal{key_span});
@@ -1119,7 +1117,7 @@ expression_ptr parser::parse_object_literal() {
         case token_type::kw_void:
         case token_type::kw_while:
         case token_type::kw_with: {
-          expression_ptr value =
+          expression* value =
               this->make_expression<expression::_invalid>(key_span);
           this->error_reporter_->report(
               error_missing_value_for_object_literal_entry{.key = key_span});
@@ -1142,7 +1140,7 @@ expression_ptr parser::parse_object_literal() {
         case token_type::kw_of:
         case token_type::kw_set:
         case token_type::kw_static: {
-          expression_ptr value = this->make_expression<expression::variable>(
+          expression* value = this->make_expression<expression::variable>(
               identifier(key_span), key_type);
           entries.emplace_back(key, value);
           break;
@@ -1161,7 +1159,7 @@ expression_ptr parser::parse_object_literal() {
       case token_type::equal: {
         // TODO(strager): Only allow this for identifiers, not numbers or
         // strings.
-        expression_ptr value = this->parse_expression_remainder(
+        expression* value = this->parse_expression_remainder(
             this->make_expression<expression::variable>(identifier(key_span),
                                                         key_type),
             precedence{.commas = false});
@@ -1187,7 +1185,7 @@ expression_ptr parser::parse_object_literal() {
           case token_type::number:
           case token_type::string: {
             source_code_span real_key_span = this->peek().span();
-            expression_ptr real_key =
+            expression* real_key =
                 this->make_expression<expression::literal>(real_key_span);
             this->skip();
             parse_method_entry(real_key_span.begin(), real_key,
@@ -1198,7 +1196,7 @@ expression_ptr parser::parse_object_literal() {
           // { get [expr]() {} }
           case token_type::left_square: {
             source_code_span left_square_span = this->peek().span();
-            expression_ptr real_key = parse_computed_property_name();
+            expression* real_key = parse_computed_property_name();
             parse_method_entry(left_square_span.begin(), real_key,
                                function_attributes::generator);
             break;
@@ -1253,8 +1251,7 @@ expression_ptr parser::parse_object_literal() {
       case token_type::number:
       case token_type::string: {
         source_code_span key_span = this->peek().span();
-        expression_ptr key =
-            this->make_expression<expression::literal>(key_span);
+        expression* key = this->make_expression<expression::literal>(key_span);
         this->skip();
         parse_method_entry(keyword_span.begin(), key, method_attributes);
         break;
@@ -1263,7 +1260,7 @@ expression_ptr parser::parse_object_literal() {
       // { get [expr]() {} }
       case token_type::left_square: {
         source_code_span left_square_span = this->peek().span();
-        expression_ptr key = parse_computed_property_name();
+        expression* key = parse_computed_property_name();
         parse_method_entry(left_square_span.begin(), key, method_attributes);
         break;
       }
@@ -1272,7 +1269,7 @@ expression_ptr parser::parse_object_literal() {
       // { async: value }
       case token_type::colon: {
         this->skip();
-        expression_ptr key =
+        expression* key =
             this->make_expression<expression::literal>(keyword_span);
         entries.emplace_back(key, parse_value_expression());
         break;
@@ -1280,7 +1277,7 @@ expression_ptr parser::parse_object_literal() {
 
       // { get() {} }
       case token_type::left_paren: {
-        expression_ptr key =
+        expression* key =
             this->make_expression<expression::literal>(keyword_span);
         parse_method_entry(keyword_span.begin(), key,
                            function_attributes::normal);
@@ -1290,9 +1287,9 @@ expression_ptr parser::parse_object_literal() {
       // { get }
       case token_type::comma:
       case token_type::right_curly: {
-        expression_ptr key =
+        expression* key =
             this->make_expression<expression::literal>(keyword_span);
-        expression_ptr value = this->make_expression<expression::variable>(
+        expression* value = this->make_expression<expression::variable>(
             identifier(keyword_span), keyword_type);
         entries.emplace_back(key, value);
         break;
@@ -1308,7 +1305,7 @@ expression_ptr parser::parse_object_literal() {
     // {[keyExpression]: value}
     case token_type::left_square: {
       source_code_span left_square_span = this->peek().span();
-      expression_ptr key = parse_computed_property_name();
+      expression* key = parse_computed_property_name();
       switch (this->peek().type) {
       case token_type::colon:
         this->skip();
@@ -1335,7 +1332,7 @@ expression_ptr parser::parse_object_literal() {
       case token_type::number:
       case token_type::string: {
         source_code_span method_name_span = this->peek().span();
-        expression_ptr method_name =
+        expression* method_name =
             this->make_expression<expression::literal>(method_name_span);
         this->skip();
         parse_method_entry(method_name_span.begin(), method_name,
@@ -1345,7 +1342,7 @@ expression_ptr parser::parse_object_literal() {
 
       case token_type::left_square: {
         source_code_span left_square_span = this->peek().span();
-        expression_ptr key = parse_computed_property_name();
+        expression* key = parse_computed_property_name();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
         parse_method_entry(left_square_span.begin(), key,
                            function_attributes::generator);
@@ -1375,11 +1372,11 @@ expression_ptr parser::parse_object_literal() {
       source_code_span(left_curly_begin, right_curly_end));
 }
 
-expression_ptr parser::parse_class_expression() {
+expression* parser::parse_class_expression() {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
-  const char8 *span_begin = this->peek().begin;
+  const char8* span_begin = this->peek().begin;
 
-  buffering_visitor *v = this->expressions_.make_buffering_visitor();
+  buffering_visitor* v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_class_heading(
       *v, /*require_name=*/name_requirement::optional);
 
@@ -1389,16 +1386,16 @@ expression_ptr parser::parse_class_expression() {
   this->parse_and_visit_class_body(*v);
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-  const char8 *span_end = this->peek().end;
+  const char8* span_end = this->peek().end;
   this->skip();
 
   return this->make_expression<expression::_class>(
       v, source_code_span(span_begin, span_end));
 }
 
-expression_ptr parser::parse_template(std::optional<expression_ptr> tag) {
-  const char8 *template_begin = this->peek().begin;
-  vector<expression_ptr> children("parse_template children");
+expression* parser::parse_template(std::optional<expression*> tag) {
+  const char8* template_begin = this->peek().begin;
+  vector<expression*> children("parse_template children");
   if (tag.has_value()) {
     children.emplace_back(*tag);
   }
@@ -1411,10 +1408,10 @@ expression_ptr parser::parse_template(std::optional<expression_ptr> tag) {
       this->lexer_.skip_in_template(template_begin);
       switch (this->peek().type) {
       case token_type::complete_template: {
-        const char8 *template_end = this->peek().end;
+        const char8* template_end = this->peek().end;
         this->skip();
 
-        expression_arena::array_ptr<expression_ptr> children_array =
+        expression_arena::array_ptr<expression*> children_array =
             this->expressions_.make_array(std::move(children));
         source_code_span template_span(template_begin, template_end);
         if (tag.has_value()) {
@@ -1465,16 +1462,16 @@ function_attributes parser::parse_generator_star(
   }
 }
 
-expression_ptr parser::maybe_wrap_erroneous_arrow_function(
-    expression_ptr arrow_function, expression_ptr lhs) {
+expression* parser::maybe_wrap_erroneous_arrow_function(
+    expression* arrow_function, expression* lhs) {
   switch (lhs->kind()) {
   default:
     return arrow_function;
 
   case expression_kind::trailing_comma: {
-    expression::trailing_comma *parameter_list =
+    expression::trailing_comma* parameter_list =
         expression_cast<expression::trailing_comma>(lhs);
-    expression_ptr last_parameter =
+    expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == expression_kind::spread) {
       this->error_reporter_->report(
@@ -1487,13 +1484,13 @@ expression_ptr parser::maybe_wrap_erroneous_arrow_function(
   }
 
   case expression_kind::call: {
-    expression::call *call = expression_cast<expression::call>(lhs);
+    expression::call* call = expression_cast<expression::call>(lhs);
     this->error_reporter_->report(
         error_missing_operator_between_expression_and_arrow_function{
             .where = source_code_span(call->span().begin(),
                                       call->left_paren_span().end()),
         });
-    std::array<expression_ptr, 2> children{lhs->child_0(), arrow_function};
+    std::array<expression*, 2> children{lhs->child_0(), arrow_function};
     return this->make_expression<expression::binary_operator>(
         this->expressions_.make_array(std::move(children)));
   }
@@ -1522,9 +1519,9 @@ void parser::consume_semicolon() {
   }
 }
 
-void parser::crash_on_unimplemented_token(const char *qljs_file_name,
+void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
-                                          const char *qljs_function_name) {
+                                          const char* qljs_function_name) {
   this->error_reporter_->report_fatal_error_unimplemented_token(
       /*qljs_file_name=*/qljs_file_name,
       /*qljs_line=*/qljs_line,
@@ -1534,7 +1531,7 @@ void parser::crash_on_unimplemented_token(const char *qljs_file_name,
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
 
-parser::function_guard::function_guard(parser *p, bool was_in_async_function,
+parser::function_guard::function_guard(parser* p, bool was_in_async_function,
                                        bool was_in_generator_function) noexcept
     : parser_(p),
       was_in_async_function_(was_in_async_function),
@@ -1546,11 +1543,9 @@ parser::function_guard::~function_guard() noexcept {
 }
 
 namespace {
-arrow_function_parameters arrow_function_parameters_from_lhs(
-    expression_ptr lhs) {
+arrow_function_parameters arrow_function_parameters_from_lhs(expression* lhs) {
   arrow_function_parameters result{
-      .parameters =
-          vector<expression_ptr>("arrow_function_parameters_from_lhs"),
+      .parameters = vector<expression*>("arrow_function_parameters_from_lhs"),
   };
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
