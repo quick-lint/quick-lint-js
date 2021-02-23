@@ -1434,6 +1434,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_for(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_for);
+    const char8 *for_token_begin = this->peek().begin;
     this->skip();
 
     if (this->peek().type == token_type::kw_await) {
@@ -1633,7 +1634,19 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->skip();
 
-    this->parse_and_visit_statement(v);
+    switch (this->peek().type) {
+    default:
+      this->parse_and_visit_statement(v);
+      break;
+
+    case token_type::end_of_file:
+    case token_type::right_curly:
+      this->error_reporter_->report(error_missing_body_for_for_statement{
+          .for_and_header = source_code_span(
+              for_token_begin, this->lexer_.end_of_previous_token()),
+      });
+      break;
+    }
 
     if (after_expression.has_value()) {
       this->visit_expression(*after_expression, v, variable_context::rhs);
