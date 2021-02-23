@@ -243,6 +243,23 @@
           where, string8_view(&token, 1)))                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_parentheses_around_with_expression, "E089",               \
+      { source_code_span expression; },                                        \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "with statement needs parentheses around expression"),        \
+             expression))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_parenthesis_around_with_expression, "E090",               \
+      {                                                                        \
+        source_code_span where;                                                \
+        char8 token;                                                           \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "with statement is missing '{1}' around expression"),         \
+             where, string8_view(&token, 1)))                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_exporting_requires_default, "E067",                                \
       { source_code_span expression; },                                        \
       .error(QLJS_TRANSLATABLE("exporting requires 'default'"), expression))   \

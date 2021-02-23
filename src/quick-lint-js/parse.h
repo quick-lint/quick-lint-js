@@ -1650,13 +1650,9 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_with);
     this->skip();
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
-    this->skip();
-
-    this->parse_and_visit_expression(v);
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-    this->skip();
+    this->parse_and_visit_parenthesized_expression<
+        error_expected_parentheses_around_with_expression,
+        error_expected_parenthesis_around_with_expression>(v);
 
     this->parse_and_visit_statement(v);
   }
@@ -1694,33 +1690,33 @@ class parser {
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
             QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_parenthesized_expression(Visitor &v) {
-    bool have_condition_left_paren =
+    bool have_expression_left_paren =
         this->peek().type == token_type::left_paren;
-    if (have_condition_left_paren) {
+    if (have_expression_left_paren) {
       this->skip();
     }
-    const char8 *condition_begin = this->peek().begin;
+    const char8 *expression_begin = this->peek().begin;
 
     this->parse_and_visit_expression(v);
 
-    const char8 *condition_end = this->lexer_.end_of_previous_token();
-    bool have_condition_right_paren =
+    const char8 *expression_end = this->lexer_.end_of_previous_token();
+    bool have_expression_right_paren =
         this->peek().type == token_type::right_paren;
-    if (have_condition_right_paren) {
+    if (have_expression_right_paren) {
       this->skip();
     }
 
-    if (!have_condition_left_paren && !have_condition_right_paren) {
+    if (!have_expression_left_paren && !have_expression_right_paren) {
       this->error_reporter_->report(ExpectedParenthesesError{
-          .condition = source_code_span(condition_begin, condition_end)});
-    } else if (!have_condition_right_paren) {
+          source_code_span(expression_begin, expression_end)});
+    } else if (!have_expression_right_paren) {
       this->error_reporter_->report(ExpectedParenthesisError{
-          .where = source_code_span(condition_end, condition_end),
+          .where = source_code_span(expression_end, expression_end),
           .token = ')',
       });
-    } else if (!have_condition_left_paren) {
+    } else if (!have_expression_left_paren) {
       this->error_reporter_->report(ExpectedParenthesisError{
-          .where = source_code_span(condition_begin, condition_begin),
+          .where = source_code_span(expression_begin, expression_begin),
           .token = '(',
       });
     }
