@@ -1452,17 +1452,34 @@ class parser {
             this->parse_and_visit_expression(v);
           }
 
-          if (this->peek().type == token_type::semicolon) {
+          switch (this->peek().type) {
+          // for (init; cond; update) {}
+          semicolon:
+          case token_type::semicolon:
             this->skip();
             if (this->peek().type != token_type::right_paren) {
               after_expression = this->parse_expression();
             }
-          } else {
+            break;
+
+          // for (init; cond update) {}  // Invalid.
+          case token_type::identifier:
+          default:
+            this->lexer_.insert_semicolon();
+            this->error_reporter_->report(
+                error_missing_semicolon_between_for_loop_condition_and_update{
+                    .expected_semicolon = this->peek().span(),
+                });
+            goto semicolon;
+
+          // for (init; cond) {}  // Invalid.
+          case token_type::right_paren:
             this->error_reporter_->report(
                 error_c_style_for_loop_is_missing_third_component{
                     .expected_last_component = this->peek().span(),
                     .existing_semicolon = first_semicolon_span,
                 });
+            break;
           }
         };
 
@@ -1475,6 +1492,7 @@ class parser {
       QLJS_WARNING_POP
       switch (this->peek().type) {
       // for (init; condition; update) {}
+      semicolon:
       case token_type::semicolon: {
         source_code_span first_semicolon_span = this->peek().span();
         this->skip();
@@ -1482,6 +1500,17 @@ class parser {
         parse_c_style_head_remainder(first_semicolon_span);
         break;
       }
+
+      // for (lhs rhs) {}                 // Invalid.
+      // for (init condition; update) {}  // Invalid.
+      case token_type::identifier:
+      default:
+        this->lexer_.insert_semicolon();
+        this->error_reporter_->report(
+            error_missing_semicolon_between_for_loop_init_and_condition{
+                .expected_semicolon = this->peek().span(),
+            });
+        goto semicolon;
 
       // for (lhs of rhs) {}
       case token_type::kw_in:
@@ -1501,10 +1530,6 @@ class parser {
                 .for_token = for_token_span,
             });
         this->visit_expression(init_expression, v, variable_context::rhs);
-        break;
-
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
     };

@@ -3487,6 +3487,43 @@ TEST(test_parse, for_loop_with_missing_component) {
   }
 }
 
+TEST(test_parse, for_loop_with_missing_semicolons) {
+  {
+    padded_string code(u8"for (a b; c) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_semicolon_between_for_loop_init_and_condition,
+                    expected_semicolon,
+                    offsets_matcher(&code, strlen(u8"for (a"), u8""))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // c
+  }
+
+  {
+    padded_string code(u8"for (a; b c) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_semicolon_between_for_loop_condition_and_update,
+            expected_semicolon,
+            offsets_matcher(&code, strlen(u8"for (a; b"), u8""))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // c
+  }
+}
+
 TEST(test_parse, for_in_loop) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for (x in xs) { body; }"_sv);

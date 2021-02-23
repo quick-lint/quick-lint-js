@@ -462,6 +462,20 @@
       .error(QLJS_TRANSLATABLE("missing semicolon after statement"), where))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_semicolon_between_for_loop_condition_and_update, "E100",   \
+      { source_code_span expected_semicolon; },                                \
+      .error(QLJS_TRANSLATABLE("missing semicolon between condition and "      \
+                               "update parts of for loop"),                    \
+             expected_semicolon))                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_semicolon_between_for_loop_init_and_condition, "E099",     \
+      { source_code_span expected_semicolon; },                                \
+      .error(QLJS_TRANSLATABLE("missing semicolon between init and condition " \
+                               "parts of for loop"),                           \
+             expected_semicolon))                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_value_for_object_literal_entry, "E083",                    \
       { source_code_span key; },                                               \
       .error(QLJS_TRANSLATABLE("missing value for object property"), key))     \
