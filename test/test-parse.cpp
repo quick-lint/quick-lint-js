@@ -3640,6 +3640,58 @@ TEST(test_parse, switch_statement) {
   }
 }
 
+TEST(test_parse, switch_without_parens) {
+  {
+    spy_visitor v;
+    padded_string code(u8"switch cond { case ONE: break; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // ONE
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_parentheses_around_switch_condition, condition,
+            offsets_matcher(&code, strlen(u8"switch "), u8"cond"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"switch (cond { case ONE: break; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // ONE
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_parenthesis_around_switch_condition,             //
+            where, offsets_matcher(&code, strlen(u8"switch (cond"), u8""),  //
+            token, u8')')));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"switch cond) { case ONE: break; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // ONE
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_parenthesis_around_switch_condition,        //
+            where, offsets_matcher(&code, strlen(u8"switch "), u8""),  //
+            token, u8'(')));
+  }
+}
+
 TEST(test_parse, while_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"while (cond) body;"_sv);

@@ -226,6 +226,23 @@
           where, string8_view(&token, 1)))                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_parentheses_around_switch_condition, "E091",              \
+      { source_code_span condition; },                                         \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "switch statement needs parentheses around condition"),       \
+             condition))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_parenthesis_around_switch_condition, "E092",              \
+      {                                                                        \
+        source_code_span where;                                                \
+        char8 token;                                                           \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "switch statement is missing '{1}' around condition"),        \
+             where, string8_view(&token, 1)))                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_while_condition, "E087",               \
       { source_code_span condition; },                                         \
       .error(                                                                  \
