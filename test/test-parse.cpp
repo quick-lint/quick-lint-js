@@ -3434,6 +3434,40 @@ TEST(test_parse, for_loop_with_missing_component) {
   }
 
   {
+    padded_string code(u8"for (myVar) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_for_loop_rhs_or_components_after_expression, header,
+            offsets_matcher(&code, strlen(u8"for "), u8"(myVar)"),  //
+            for_token, offsets_matcher(&code, 0, u8"for"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // myVar
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    padded_string code(u8"for (let myVar) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_for_loop_rhs_or_components_after_declaration, header,
+            offsets_matcher(&code, strlen(u8"for "), u8"(let myVar)"),  //
+            for_token, offsets_matcher(&code, 0, u8"for"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_declaration",  // myVar
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_exit_for_scope"));
+  }
+
+  {
     padded_string code(u8"for (init; cond) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);

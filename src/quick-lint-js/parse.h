@@ -1434,7 +1434,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_for(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_for);
-    const char8 *for_token_begin = this->peek().begin;
+    source_code_span for_token_span = this->peek().span();
     this->skip();
 
     if (this->peek().type == token_type::kw_await) {
@@ -1474,6 +1474,7 @@ class parser {
         [&, this](auto &v, expression *init_expression) -> void {
       QLJS_WARNING_POP
       switch (this->peek().type) {
+      // for (init; condition; update) {}
       case token_type::semicolon: {
         source_code_span first_semicolon_span = this->peek().span();
         this->skip();
@@ -1481,6 +1482,8 @@ class parser {
         parse_c_style_head_remainder(first_semicolon_span);
         break;
       }
+
+      // for (lhs of rhs) {}
       case token_type::kw_in:
       case token_type::kw_of: {
         this->skip();
@@ -1488,6 +1491,18 @@ class parser {
         this->visit_assignment_expression(init_expression, rhs, v);
         break;
       }
+
+      // for (expression) {}    // Invalid.
+      case token_type::right_paren:
+        this->error_reporter_->report(
+            error_missing_for_loop_rhs_or_components_after_expression{
+                .header =
+                    source_code_span(left_paren_token_begin, this->peek().end),
+                .for_token = for_token_span,
+            });
+        this->visit_expression(init_expression, v, variable_context::rhs);
+        break;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -1574,6 +1589,17 @@ class parser {
         break;
       }
 
+      // for (let myVariable) {}    // Invalid.
+      case token_type::right_paren:
+        this->error_reporter_->report(
+            error_missing_for_loop_rhs_or_components_after_declaration{
+                .header =
+                    source_code_span(left_paren_token_begin, this->peek().end),
+                .for_token = for_token_span,
+            });
+        lhs.move_into(v);
+        break;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -1651,7 +1677,7 @@ class parser {
     case token_type::right_curly:
       this->error_reporter_->report(error_missing_body_for_for_statement{
           .for_and_header = source_code_span(
-              for_token_begin, this->lexer_.end_of_previous_token()),
+              for_token_span.begin(), this->lexer_.end_of_previous_token()),
       });
       break;
     }

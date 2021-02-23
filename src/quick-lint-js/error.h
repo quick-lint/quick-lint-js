@@ -380,6 +380,31 @@
              source_code_span(left_paren.begin(), right_paren.end())))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_for_loop_rhs_or_components_after_expression, "E097",       \
+      {                                                                        \
+        source_code_span header;                                               \
+        source_code_span for_token;                                            \
+      },                                                                       \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "for loop needs an iterable, or condition and update clauses"),  \
+          header)                                                              \
+          .note(QLJS_TRANSLATABLE(                                             \
+                    "use 'while' instead to loop until a condition is false"), \
+                for_token))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_for_loop_rhs_or_components_after_declaration, "E098",      \
+      {                                                                        \
+        source_code_span header;                                               \
+        source_code_span for_token;                                            \
+      },                                                                       \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "for loop needs an iterable, or condition and update clauses"),  \
+          header))                                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_function_parameter_list, "E073",                           \
       { source_code_span function_name; },                                     \
       .error(QLJS_TRANSLATABLE("missing function parameter list"),             \
