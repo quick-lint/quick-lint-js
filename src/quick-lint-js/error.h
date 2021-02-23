@@ -192,6 +192,23 @@
              escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_parentheses_around_do_while_condition, "E084",            \
+      { source_code_span condition; },                                         \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "do-while loop needs parentheses around condition"),          \
+             condition))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_parenthesis_around_do_while_condition, "E085",            \
+      {                                                                        \
+        source_code_span where;                                                \
+        char8 token;                                                           \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "do-while loop is missing '{1}' around condition"),           \
+             where, string8_view(&token, 1)))                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_if_condition, "E017",                  \
       { source_code_span condition; },                                         \
       .error(QLJS_TRANSLATABLE(                                                \

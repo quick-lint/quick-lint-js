@@ -3278,6 +3278,88 @@ TEST(test_parse, do_while) {
   }
 }
 
+TEST(test_parse, do_while_without_parens) {
+  {
+    spy_visitor v;
+    padded_string code(u8"do {} while cond"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_parentheses_around_do_while_condition, condition,
+            offsets_matcher(&code, strlen(u8"do {} while "), u8"cond"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"do {} while cond;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_parentheses_around_do_while_condition, condition,
+            offsets_matcher(&code, strlen(u8"do {} while "), u8"cond"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"{ do {} while cond }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   //
+                                      "visit_enter_block_scope",   //
+                                      "visit_exit_block_scope",    //
+                                      "visit_variable_use",        // cond
+                                      "visit_exit_block_scope"));  //
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_parentheses_around_do_while_condition, condition,
+            offsets_matcher(&code, strlen(u8"{ do {} while "), u8"cond"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"do {} while (cond"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_parenthesis_around_do_while_condition,  //
+            where,
+            offsets_matcher(&code, strlen(u8"do {} while (cond"), u8""),  //
+            token, u8')')));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"do {} while cond)"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_parenthesis_around_do_while_condition,           //
+            where, offsets_matcher(&code, strlen(u8"do {} while "), u8""),  //
+            token, u8'(')));
+  }
+}
+
 TEST(test_parse, c_style_for_loop) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for (;;) { a; }"_sv);
