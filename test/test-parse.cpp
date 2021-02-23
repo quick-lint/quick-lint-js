@@ -3188,13 +3188,12 @@ TEST(test_parse, if_without_parens) {
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_FIELDS(
-                    error_expected_parenthesis_around_if_condition,  //
-                    where,
-                    // TODO(#139): Place the error immediately after the 'd'.
-                    offsets_matcher(&code, strlen(u8"if (cond"), u8""),  //
-                    token, u8')')));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_parenthesis_around_if_condition,             //
+            where, offsets_matcher(&code, strlen(u8"if (cond"), u8""),  //
+            token, u8')')));
   }
 
   {
