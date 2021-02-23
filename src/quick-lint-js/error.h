@@ -84,6 +84,16 @@
       .error(QLJS_TRANSLATABLE("BigInt literal contains exponent"), where))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_c_style_for_loop_is_missing_third_component, "E093",               \
+      {                                                                        \
+        source_code_span expected_last_component;                              \
+        source_code_span existing_semicolon;                                   \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "C-style for loop is missing its third component"),           \
+             expected_last_component))                                         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_assign_to_variable_named_async_in_for_of_loop, "E082",      \
       { identifier async_identifier; },                                        \
       .error(                                                                  \

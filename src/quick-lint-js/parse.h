@@ -1444,17 +1444,25 @@ class parser {
     this->skip();
 
     std::optional<expression *> after_expression;
-    auto parse_c_style_head_remainder = [&]() {
-      if (this->peek().type != token_type::semicolon) {
-        this->parse_and_visit_expression(v);
-      }
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::semicolon);
-      this->skip();
+    auto parse_c_style_head_remainder =
+        [&](source_code_span first_semicolon_span) {
+          if (this->peek().type != token_type::semicolon) {
+            this->parse_and_visit_expression(v);
+          }
 
-      if (this->peek().type != token_type::right_paren) {
-        after_expression = this->parse_expression();
-      }
-    };
+          if (this->peek().type == token_type::semicolon) {
+            this->skip();
+            if (this->peek().type != token_type::right_paren) {
+              after_expression = this->parse_expression();
+            }
+          } else {
+            this->error_reporter_->report(
+                error_c_style_for_loop_is_missing_third_component{
+                    .expected_last_component = this->peek().span(),
+                    .existing_semicolon = first_semicolon_span,
+                });
+          }
+        };
 
     bool entered_for_scope = false;
 
@@ -1464,11 +1472,13 @@ class parser {
         [&, this](auto &v, expression *init_expression) -> void {
       QLJS_WARNING_POP
       switch (this->peek().type) {
-      case token_type::semicolon:
+      case token_type::semicolon: {
+        source_code_span first_semicolon_span = this->peek().span();
         this->skip();
         this->visit_expression(init_expression, v, variable_context::rhs);
-        parse_c_style_head_remainder();
+        parse_c_style_head_remainder(first_semicolon_span);
         break;
+      }
       case token_type::kw_in:
       case token_type::kw_of: {
         this->skip();
@@ -1483,10 +1493,12 @@ class parser {
     };
     switch (this->peek().type) {
     // for (;;) {}
-    case token_type::semicolon:
+    case token_type::semicolon: {
+      source_code_span first_semicolon_span = this->peek().span();
       this->skip();
-      parse_c_style_head_remainder();
+      parse_c_style_head_remainder(first_semicolon_span);
       break;
+    }
 
     // for (let i = 0; i < length; ++length) {}
     // for (let x of xs) {}
@@ -1529,11 +1541,13 @@ class parser {
       }
       switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
-      case token_type::semicolon:
+      case token_type::semicolon: {
+        source_code_span first_semicolon_span = this->peek().span();
         this->skip();
         lhs.move_into(v);
-        parse_c_style_head_remainder();
+        parse_c_style_head_remainder(first_semicolon_span);
         break;
+      }
 
       // for (let x of xs) {}
       case token_type::kw_in:

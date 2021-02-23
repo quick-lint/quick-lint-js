@@ -3419,6 +3419,27 @@ TEST(test_parse, c_style_for_loop) {
   }
 }
 
+TEST(test_parse, c_style_for_loop_with_missing_component) {
+  {
+    padded_string code(u8"for (init; cond) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_c_style_for_loop_is_missing_third_component,
+            existing_semicolon,
+            offsets_matcher(&code, strlen(u8"for (init"), u8";"),  //
+            expected_last_component,
+            offsets_matcher(&code, strlen(u8"for (init; cond"), u8")"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // init
+                                      "visit_variable_use",        // cond
+                                      "visit_enter_block_scope",   //
+                                      "visit_exit_block_scope"));  //
+  }
+}
+
 TEST(test_parse, for_in_loop) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for (x in xs) { body; }"_sv);
