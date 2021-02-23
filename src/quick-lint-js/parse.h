@@ -1638,13 +1638,9 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_while);
     this->skip();
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
-    this->skip();
-
-    this->parse_and_visit_expression(v);
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-    this->skip();
+    this->parse_and_visit_parenthesized_expression<
+        error_expected_parentheses_around_while_condition,
+        error_expected_parenthesis_around_while_condition>(v);
 
     this->parse_and_visit_statement(v);
   }

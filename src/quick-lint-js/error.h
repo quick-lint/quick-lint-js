@@ -226,6 +226,23 @@
           where, string8_view(&token, 1)))                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_parentheses_around_while_condition, "E087",               \
+      { source_code_span condition; },                                         \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("while loop needs parentheses around condition"),  \
+          condition))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_expected_parenthesis_around_while_condition, "E088",               \
+      {                                                                        \
+        source_code_span where;                                                \
+        char8 token;                                                           \
+      },                                                                       \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("while loop is missing '{1}' around condition"),   \
+          where, string8_view(&token, 1)))                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_exporting_requires_default, "E067",                                \
       { source_code_span expression; },                                        \
       .error(QLJS_TRANSLATABLE("exporting requires 'default'"), expression))   \
