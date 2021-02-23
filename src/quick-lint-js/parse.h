@@ -1442,6 +1442,7 @@ class parser {
     }
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    const char8 *left_paren_token_begin = this->peek().begin;
     this->skip();
 
     std::optional<expression *> after_expression;
@@ -1629,6 +1630,13 @@ class parser {
       parse_in_or_of_or_condition_update(v, init_expression);
       break;
     }
+
+    // for () {}  // Invalid.
+    case token_type::right_paren:
+      this->error_reporter_->report(error_missing_header_of_for_loop{
+          .where = source_code_span(left_paren_token_begin, this->peek().end),
+      });
+      break;
     }
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);

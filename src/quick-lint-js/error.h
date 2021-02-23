@@ -386,6 +386,10 @@
              function_name))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_header_of_for_loop, "E096", { source_code_span where; },   \
+      .error(QLJS_TRANSLATABLE("missing for loop header"), where))             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_name_in_function_statement, "E061",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("missing name in function statement"), where))  \

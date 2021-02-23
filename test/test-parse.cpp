@@ -3419,7 +3419,20 @@ TEST(test_parse, c_style_for_loop) {
   }
 }
 
-TEST(test_parse, c_style_for_loop_with_missing_component) {
+TEST(test_parse, for_loop_with_missing_component) {
+  {
+    padded_string code(u8"for () {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_header_of_for_loop, where,
+                    offsets_matcher(&code, strlen(u8"for "), u8"()"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   //
+                                      "visit_exit_block_scope"));  //
+  }
+
   {
     padded_string code(u8"for (init; cond) {}"_sv);
     spy_visitor v;
