@@ -4020,6 +4020,20 @@ TEST(test_parse, while_without_parens) {
   }
 }
 
+TEST(test_parse, while_without_body) {
+  {
+    padded_string code(u8"while (cond) "_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_body_for_while_statement, while_and_condition,
+                    offsets_matcher(&code, 0, u8"while (cond)"))));
+  }
+}
+
 TEST(test_parse, with_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"with (cond) body;"_sv);

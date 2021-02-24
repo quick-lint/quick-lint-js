@@ -1795,6 +1795,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_while(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_while);
+    const char8 *while_token_begin = this->peek().begin;
     this->skip();
 
     this->parse_and_visit_parenthesized_expression<
@@ -1803,7 +1804,10 @@ class parser {
 
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
-      QLJS_PARSER_UNIMPLEMENTED();
+      this->error_reporter_->report(error_missing_body_for_while_statement{
+          .while_and_condition = source_code_span(
+              while_token_begin, this->lexer_.end_of_previous_token()),
+      });
     }
   }
 
