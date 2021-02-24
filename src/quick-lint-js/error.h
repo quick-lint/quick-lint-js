@@ -654,7 +654,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_c_style_for_loop, "E102",                  \
       { source_code_span semicolon; },                                         \
-      .error(QLJS_TRANSLATABLE("C-style for loops have only three components " \
+      .error(QLJS_TRANSLATABLE("C-style for loops have only three "            \
                                "semicolon-separated components"),              \
              semicolon))                                                       \
                                                                                \
