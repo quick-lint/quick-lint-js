@@ -36,14 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"language/statements/for-in/S12.6.4_A15.js",
-	"language/statements/for-of/escaped-of.js",
-	"language/statements/for/S12.6.3_A4.1.js",
-	"language/statements/for/S12.6.3_A4_T*.js",
-	"language/statements/for/S12.6.3_A7.1_T*.js",
-	"language/statements/for/S12.6.3_A7_T*.js",
-	"language/statements/for/S12.6.3_A8.1_T*.js",
-	"language/statements/for/S12.6.3_A8_T*.js",
 	"language/statements/function/invalid-2-names.js",
 	"language/statements/function/invalid-3-names.js",
 	"language/statements/function/invalid-function-body-1.js",
