@@ -36,11 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"language/asi/*.js",
-	"language/expressions/arrow-function/syntax/early-errors/arrowparameters-bindingidentifier-identifier.js",
-	"language/expressions/conditional/in-branch-2.js",
-	"language/expressions/conditional/in-condition.js",
-	"language/expressions/object/identifier-shorthand-invalid-computed-name.js",
 	"language/future-reserved-words/*.js",
 	"language/identifiers/val-*.js",
 	"language/import/escaped-*.js",
