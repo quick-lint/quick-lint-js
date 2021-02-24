@@ -36,15 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"tools/generation/test/expected/glob*/normal/*.js",
-	"tools/generation/test/expected/glob*/normal/*/*.js",
-	"tools/generation/test/expected/multiple/glob/*.js",
-	"tools/generation/test/expected/multiple/normal/*/*.js",
-	"tools/generation/test/expected/multiple/normal/*.js",
-	"tools/generation/test/expected/normal/nested/*.js",
-	"tools/generation/test/expected/normal/*.js",
-	"tools/lint/test/fixtures/*.js",
-
 	// TODO(#50): Parse --> comments.
 	"annexB/language/comments/multi-line-html-close.js",
 	"annexB/language/comments/single-line-html-close.js",
