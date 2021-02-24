@@ -36,7 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"language/future-reserved-words/*.js",
 	"language/identifiers/val-*.js",
 	"language/import/escaped-*.js",
 	"language/keywords/ident-ref-*.js",
