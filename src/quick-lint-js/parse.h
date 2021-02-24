@@ -103,14 +103,23 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_module(Visitor &v) {
-    while (this->peek().type != token_type::end_of_file) {
-      this->parse_and_visit_statement(v);
+    for (;;) {
+      bool parsed_statement = this->parse_and_visit_statement(v);
+      if (!parsed_statement && this->peek().type == token_type::end_of_file) {
+        break;
+      }
     }
     v.visit_end_of_module();
   }
 
+  // If a statement was parsed, this function returns true.
+  //
+  // If a statement was not parsed (e.g. end of file), then:
+  // * no tokens are consumed
+  // * no error is reported
+  // * this function returns false
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_statement(Visitor &v) {
+  [[nodiscard]] bool parse_and_visit_statement(Visitor &v) {
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
         this->error_reporter_->report(error_unmatched_parenthesis{
@@ -418,13 +427,18 @@ class parser {
       break;
 
     // else { nay; } // Invalid.
-    case token_type::kw_else:
+    case token_type::kw_else: {
       this->error_reporter_->report(error_else_has_no_if{
           .else_token = this->peek().span(),
       });
       this->skip();
-      this->parse_and_visit_statement(v);
+
+      bool parsed_else_body = this->parse_and_visit_statement(v);
+      if (!parsed_else_body) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
       break;
+    }
 
     // break;
     // continue label;
@@ -456,11 +470,6 @@ class parser {
       v.visit_exit_block_scope();
       break;
 
-    case token_type::right_curly:
-      // TODO(strager): Should we report an error? The caller expected a
-      // statement.
-      break;
-
     case token_type::colon:
       this->error_reporter_->report(error_unexpected_token{
           .token = this->peek().span(),
@@ -468,10 +477,16 @@ class parser {
       this->skip();
       break;
 
+    case token_type::end_of_file:
+    case token_type::right_curly:
+      return false;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+
+    return true;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -833,13 +848,14 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
-      this->parse_and_visit_statement(v);
-      if (this->peek().type == token_type::right_curly) {
-        this->skip();
-        break;
-      }
-      if (this->peek().type == token_type::end_of_file) {
-        QLJS_PARSER_UNIMPLEMENTED();
+      bool parsed_statement = this->parse_and_visit_statement(v);
+      if (!parsed_statement) {
+        if (this->peek().type == token_type::right_curly) {
+          this->skip();
+          break;
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
       }
     }
   }
@@ -1328,9 +1344,13 @@ class parser {
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
         this->skip();
         break;
-      default:
-        this->parse_and_visit_statement(v);
+      default: {
+        bool parsed_statement = this->parse_and_visit_statement(v);
+        if (!parsed_statement) {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
         break;
+      }
       }
     }
 
@@ -1419,9 +1439,13 @@ class parser {
     this->skip();
 
     switch (this->peek().type) {
-    default:
-      this->parse_and_visit_statement(v);
+    default: {
+      bool parsed_statement = this->parse_and_visit_statement(v);
+      if (!parsed_statement) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
       break;
+    }
     case token_type::kw_while:
       this->error_reporter_->report(error_missing_body_for_do_while_statement{
           .do_token = do_token_span,
@@ -1720,18 +1744,12 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->skip();
 
-    switch (this->peek().type) {
-    default:
-      this->parse_and_visit_statement(v);
-      break;
-
-    case token_type::end_of_file:
-    case token_type::right_curly:
+    bool parsed_body = this->parse_and_visit_statement(v);
+    if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_for_statement{
           .for_and_header = source_code_span(
               for_token_span.begin(), this->lexer_.end_of_previous_token()),
       });
-      break;
     }
 
     if (after_expression.has_value()) {
@@ -1751,7 +1769,10 @@ class parser {
         error_expected_parentheses_around_while_condition,
         error_expected_parenthesis_around_while_condition>(v);
 
-    this->parse_and_visit_statement(v);
+    bool parsed_body = this->parse_and_visit_statement(v);
+    if (!parsed_body) {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -1763,7 +1784,10 @@ class parser {
         error_expected_parentheses_around_with_expression,
         error_expected_parenthesis_around_with_expression>(v);
 
-    this->parse_and_visit_statement(v);
+    bool parsed_body = this->parse_and_visit_statement(v);
+    if (!parsed_body) {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -1777,9 +1801,13 @@ class parser {
         error_expected_parenthesis_around_if_condition>(v);
 
     switch (this->peek().type) {
-    default:
-      this->parse_and_visit_statement(v);
+    default: {
+      bool parsed_if_body = this->parse_and_visit_statement(v);
+      if (!parsed_if_body) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
       break;
+    }
 
     case token_type::kw_else:
     case token_type::right_curly:
@@ -1792,7 +1820,10 @@ class parser {
 
     if (this->peek().type == token_type::kw_else) {
       this->skip();
-      this->parse_and_visit_statement(v);
+      bool parsed_else_body = this->parse_and_visit_statement(v);
+      if (!parsed_else_body) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
     }
   }
 

@@ -42,7 +42,7 @@ spy_visitor parse_and_visit_statement(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;
   parser p(&code, &v);
-  p.parse_and_visit_statement(v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
   EXPECT_THAT(v.errors, IsEmpty());
   return v;
 }
@@ -101,10 +101,10 @@ TEST(test_parse, parse_simple_let) {
     spy_visitor v;
     padded_string code(u8"let first; let second"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"first");
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, u8"first");
     EXPECT_EQ(v.variable_declarations[1].name, u8"second");
@@ -216,7 +216,7 @@ TEST(test_parse, export_default_of_variable_is_illegal) {
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
                                       "visit_variable_declaration"));  // x
     EXPECT_THAT(v.errors,
@@ -386,7 +386,7 @@ TEST(test_parse, invalid_export_expression) {
     spy_visitor v;
     padded_string code(u8"export stuff;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_exporting_requires_curlies, names,
@@ -398,7 +398,7 @@ TEST(test_parse, invalid_export_expression) {
     spy_visitor v;
     padded_string code(u8"export a, b, c;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -414,7 +414,7 @@ TEST(test_parse, invalid_export_expression) {
     spy_visitor v;
     padded_string code(u8"export a, b, c+d;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -432,7 +432,7 @@ TEST(test_parse, invalid_export_expression) {
     spy_visitor v;
     padded_string code(u8"export 2 + x;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_exporting_requires_default, expression,
@@ -445,7 +445,7 @@ TEST(test_parse, parse_simple_var) {
   spy_visitor v;
   padded_string code(u8"var x"_sv);
   parser p(&code, &v);
-  p.parse_and_visit_statement(v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, u8"x");
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
@@ -456,7 +456,7 @@ TEST(test_parse, parse_simple_const) {
   spy_visitor v;
   padded_string code(u8"const x"_sv);
   parser p(&code, &v);
-  p.parse_and_visit_statement(v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, u8"x");
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
@@ -585,7 +585,7 @@ TEST(test_parse,
   spy_visitor v;
   padded_string code(u8"let x = x"_sv);
   parser p(&code, &v);
-  p.parse_and_visit_statement(v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
 
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
                                     "visit_variable_declaration"));
@@ -602,7 +602,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations, IsEmpty());
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_let_with_no_bindings, where,
@@ -613,7 +613,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let a,"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 1);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
@@ -625,7 +625,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let x, 42"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 1);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
@@ -637,7 +637,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let if"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
@@ -649,7 +649,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let 42"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
@@ -661,7 +661,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let debugger"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
@@ -673,7 +673,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let {debugger}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(
         v.errors,
@@ -690,7 +690,7 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let {42}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
@@ -706,8 +706,8 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let true, true, y\nlet x;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 2);
     EXPECT_THAT(
         v.errors,
@@ -745,8 +745,8 @@ TEST(test_parse, parse_and_visit_import) {
     spy_visitor v;
     padded_string code(u8"import fs from 'fs'; import net from 'net';"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, u8"fs");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
@@ -808,8 +808,8 @@ TEST(test_parse, return_statement) {
     spy_visitor v;
     padded_string code(u8"return a\nreturn b"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use", "visit_variable_use"));
@@ -822,8 +822,8 @@ TEST(test_parse, return_statement) {
     spy_visitor v;
     padded_string code(u8"return a; return b;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use", "visit_variable_use"));
@@ -836,8 +836,8 @@ TEST(test_parse, return_statement) {
     spy_visitor v;
     padded_string code(u8"if (true) return; x;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
     EXPECT_THAT(v.variable_uses,
@@ -870,7 +870,7 @@ TEST(test_parse, throw_statement) {
     spy_visitor v;
     padded_string code(u8"throw;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_expected_expression_before_semicolon, where,
@@ -881,7 +881,7 @@ TEST(test_parse, throw_statement) {
     spy_visitor v;
     padded_string code(u8"throw\nnew Error();"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_expected_expression_before_newline, where,
@@ -1004,7 +1004,7 @@ TEST(test_parse, stray_right_parenthesis) {
     spy_visitor v;
     padded_string code(u8")"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unmatched_parenthesis, where,
                               offsets_matcher(&code, 0, u8")"))));
@@ -1014,7 +1014,7 @@ TEST(test_parse, stray_right_parenthesis) {
     spy_visitor v;
     padded_string code(u8"x))"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(
@@ -1028,7 +1028,7 @@ TEST(test_parse, stray_right_parenthesis) {
     spy_visitor v;
     padded_string code(u8"-x))"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(
@@ -1043,7 +1043,7 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8"await p)"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unmatched_parenthesis, where,
@@ -1055,7 +1055,7 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8"yield v)"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unmatched_parenthesis, where,
@@ -1066,7 +1066,7 @@ TEST(test_parse, stray_right_parenthesis) {
     spy_visitor v;
     padded_string code(u8"return result)"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unmatched_parenthesis, where,
@@ -1077,7 +1077,7 @@ TEST(test_parse, stray_right_parenthesis) {
     spy_visitor v;
     padded_string code(u8"throw banana)"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unmatched_parenthesis, where,
@@ -1095,7 +1095,7 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
                               offsets_matcher(&code, 0, op))));
@@ -1106,8 +1106,8 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
     padded_string code(u8".x; y;"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_operand_for_operator, where,
                               offsets_matcher(&code, 0, strlen(u8".")))));
@@ -1137,7 +1137,7 @@ TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
     spy_visitor v;
     padded_string code(u8"ten ten"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unexpected_identifier, where,
@@ -1437,8 +1437,8 @@ TEST(test_parse, expression_statement) {
     spy_visitor v;
     padded_string code(u8"import(url).then(); secondStatement;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
 
     EXPECT_THAT(v.visits,
@@ -1493,8 +1493,8 @@ TEST(test_parse, asi_plusplus_minusminus) {
     spy_visitor v;
     padded_string code(u8"x\n++\ny;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
 
     EXPECT_THAT(v.variable_uses,
@@ -1515,8 +1515,8 @@ TEST(test_parse, asi_for_statement_at_right_curly) {
     padded_string code(
         u8"function f() { console.log(\"hello\") } function g() { }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(
@@ -1532,8 +1532,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     spy_visitor v;
     padded_string code(u8"console.log('hello')\nconsole.log('world')\n"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"},
@@ -1551,8 +1551,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     padded_string code(string8(u8"let x = 2\n"_sv) + string8(second_statement));
     SCOPED_TRACE(code);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let}));
@@ -1566,8 +1566,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     spy_visitor v;
     padded_string code(u8"console.log('hello') console.log('world');"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"},
                             spy_visitor::visited_variable_use{u8"console"}));
@@ -1585,8 +1585,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",    // a
@@ -1597,8 +1597,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     spy_visitor v;
     padded_string code(u8"let a = 1\n!b\n"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",  // a
@@ -1609,8 +1609,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     spy_visitor v;
     padded_string code(u8"a + b\nimport {x} from 'module'\n"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use",            // a
@@ -1714,7 +1714,7 @@ TEST(test_parse, DISABLED_parse_invalid_function_calls) {
     spy_visitor v;
     padded_string code(u8"(x)f"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unexpected_identifier, where,
@@ -1732,12 +1732,12 @@ TEST(test_parse, parse_function_call_as_statement) {
     padded_string code(u8"f(x); g(y);"_sv);
     parser p(&code, &v);
 
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, u8"f");
     EXPECT_EQ(v.variable_uses[1].name, u8"x");
 
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     ASSERT_EQ(v.variable_uses.size(), 4);
     EXPECT_EQ(v.variable_uses[2].name, u8"g");
     EXPECT_EQ(v.variable_uses[3].name, u8"y");
@@ -1877,7 +1877,7 @@ TEST(test_parse, function_statement_with_no_name) {
     padded_string code(u8"function() {x;}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // x
@@ -1894,7 +1894,7 @@ TEST(test_parse, function_statement_with_no_name) {
     padded_string code(u8"async function() {x;}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // x
@@ -1912,7 +1912,7 @@ TEST(test_parse, function_statement_with_no_name) {
     padded_string code(u8"async function(x) {y;}(z)"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // x
                                       "visit_enter_function_scope_body",  //
@@ -1976,7 +1976,7 @@ TEST(test_parse, export_function_requires_a_name) {
     padded_string code(u8"export function() {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
@@ -1991,7 +1991,7 @@ TEST(test_parse, export_function_requires_a_name) {
     padded_string code(u8"export async function() {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
@@ -2018,7 +2018,7 @@ TEST(test_parse, export_class_requires_a_name) {
     padded_string code(u8"export class {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
                                       "visit_exit_class_scope"));
     EXPECT_THAT(v.errors,
@@ -2186,7 +2186,7 @@ TEST(test_parse, declare_await_in_async_function) {
     padded_string code(u8"function await() { }"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"await", variable_kind::_function}));
@@ -2203,7 +2203,7 @@ TEST(test_parse, declare_await_in_async_function) {
     padded_string code(u8"var await;"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"await", variable_kind::_var}));
@@ -2218,7 +2218,7 @@ TEST(test_parse, declare_await_in_async_function) {
     padded_string code(u8"try {} catch (await) {}"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"await", variable_kind::_catch}));
@@ -2233,7 +2233,7 @@ TEST(test_parse, declare_await_in_async_function) {
     spy_visitor v;
     padded_string code(u8"async function f(await) {}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(
                     spy_visitor::visited_variable_declaration{
@@ -2386,7 +2386,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     padded_string code(u8"function yield() { }"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"yield", variable_kind::_function}));
@@ -2403,7 +2403,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     padded_string code(u8"var yield;"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"yield", variable_kind::_var}));
@@ -2418,7 +2418,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     padded_string code(u8"try {} catch (yield) {}"_sv);
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"yield", variable_kind::_catch}));
@@ -2433,7 +2433,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     spy_visitor v;
     padded_string code(u8"function* f(yield) {}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(
                     spy_visitor::visited_variable_declaration{
@@ -2679,8 +2679,8 @@ TEST(test_parse, parse_class_statement) {
     spy_visitor v;
     padded_string code(u8"class A {} class B {}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(
                     spy_visitor::visited_variable_declaration{
@@ -2695,7 +2695,7 @@ TEST(test_parse, class_statement_requires_a_name) {
     spy_visitor v;
     padded_string code(u8"class {}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
                                       "visit_exit_class_scope"));
     EXPECT_THAT(v.errors,
@@ -2852,7 +2852,7 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     spy_visitor v;
     padded_string code(u8"class C { function f() {} }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // C
                                       "visit_enter_class_scope",          //
                                       "visit_property_declaration",       // f
@@ -2871,7 +2871,7 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     spy_visitor v;
     padded_string code(u8"class C { async function f() {} }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -2884,7 +2884,7 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     spy_visitor v;
     padded_string code(u8"class C { function* f() {} }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -2896,7 +2896,7 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     spy_visitor v;
     padded_string code(u8"class C { static function f() {} }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -3152,7 +3152,7 @@ TEST(test_parse, if_without_body) {
     spy_visitor v;
     padded_string code(u8"if (a)\nelse e;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use"));  // e
     EXPECT_THAT(v.errors,
@@ -3165,7 +3165,7 @@ TEST(test_parse, if_without_body) {
     spy_visitor v;
     padded_string code(u8"{\nif (a)\n} b;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
@@ -3173,7 +3173,7 @@ TEST(test_parse, if_without_body) {
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_if_statement, if_and_condition,
                     offsets_matcher(&code, strlen(u8"{\n"), u8"if (a)"))));
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope",   //
@@ -3186,7 +3186,7 @@ TEST(test_parse, if_without_parens) {
     spy_visitor v;
     padded_string code(u8"if cond { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -3201,7 +3201,7 @@ TEST(test_parse, if_without_parens) {
     spy_visitor v;
     padded_string code(u8"if (cond { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -3218,7 +3218,7 @@ TEST(test_parse, if_without_parens) {
     spy_visitor v;
     padded_string code(u8"if cond) { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -3236,7 +3236,7 @@ TEST(test_parse, else_without_if) {
     spy_visitor v;
     padded_string code(u8"else { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
@@ -3251,8 +3251,8 @@ TEST(test_parse, utter_garbage) {
     spy_visitor v;
     padded_string code(u8"if :\nkjaslkjd;kjaslkjd"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // kjaslkjd
                                       "visit_variable_use"));  // kjaslkjd
     EXPECT_THAT(
@@ -3301,7 +3301,7 @@ TEST(test_parse, do_while_without_parens) {
     spy_visitor v;
     padded_string code(u8"do {} while cond"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));     // cond
@@ -3316,7 +3316,7 @@ TEST(test_parse, do_while_without_parens) {
     spy_visitor v;
     padded_string code(u8"do {} while cond;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));     // cond
@@ -3331,7 +3331,7 @@ TEST(test_parse, do_while_without_parens) {
     spy_visitor v;
     padded_string code(u8"{ do {} while cond }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   //
                                       "visit_enter_block_scope",   //
                                       "visit_exit_block_scope",    //
@@ -3348,7 +3348,7 @@ TEST(test_parse, do_while_without_parens) {
     spy_visitor v;
     padded_string code(u8"do {} while (cond"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));     // cond
@@ -3365,7 +3365,7 @@ TEST(test_parse, do_while_without_parens) {
     spy_visitor v;
     padded_string code(u8"do {} while cond)"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));     // cond
@@ -3383,7 +3383,7 @@ TEST(test_parse, do_while_without_body) {
     padded_string code(u8"do\nwhile (cond);"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_missing_body_for_do_while_statement,
@@ -3455,7 +3455,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     padded_string code(u8"for () {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_header_of_for_loop, where,
@@ -3468,7 +3468,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     padded_string code(u8"for (myVar) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -3484,7 +3484,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     padded_string code(u8"for (let myVar) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -3502,7 +3502,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     padded_string code(u8"for (init; cond) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -3523,7 +3523,7 @@ TEST(test_parse, for_loop_with_missing_semicolons) {
     padded_string code(u8"for (a b; c) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_semicolon_between_for_loop_init_and_condition,
@@ -3540,7 +3540,7 @@ TEST(test_parse, for_loop_with_missing_semicolons) {
     padded_string code(u8"for (a; b c) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -3560,7 +3560,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     padded_string code(u8"for (;;;) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unexpected_semicolon_in_c_style_for_loop, semicolon,
@@ -3573,7 +3573,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     padded_string code(u8"for (;; ;;;) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
@@ -3592,7 +3592,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     padded_string code(u8"for (a;b;c;d) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unexpected_semicolon_in_c_style_for_loop, semicolon,
@@ -3756,7 +3756,7 @@ TEST(test_parse, for_of_loop) {
     padded_string code(u8"for (let of myArray) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",    //
                                       "visit_variable_use",       // myArray
                                       "visit_enter_block_scope",  //
@@ -3774,7 +3774,7 @@ TEST(test_parse, for_loop_without_body) {
     padded_string code(u8"for (let x of myArray) "_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_use",          // myArray
                                       "visit_variable_declaration",  // x
@@ -3789,7 +3789,7 @@ TEST(test_parse, for_loop_without_body) {
     padded_string code(u8"{ for (let x of myArray) }"_sv);
     spy_visitor v;
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
                                       "visit_enter_for_scope",       //
                                       "visit_variable_use",          // myArray
@@ -3872,7 +3872,7 @@ TEST(test_parse, switch_without_parens) {
     spy_visitor v;
     padded_string code(u8"switch cond { case ONE: break; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
@@ -3888,7 +3888,7 @@ TEST(test_parse, switch_without_parens) {
     spy_visitor v;
     padded_string code(u8"switch (cond { case ONE: break; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
@@ -3905,7 +3905,7 @@ TEST(test_parse, switch_without_parens) {
     spy_visitor v;
     padded_string code(u8"switch cond) { case ONE: break; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
@@ -3940,7 +3940,7 @@ TEST(test_parse, while_without_parens) {
     spy_visitor v;
     padded_string code(u8"while cond { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -3956,7 +3956,7 @@ TEST(test_parse, while_without_parens) {
     spy_visitor v;
     padded_string code(u8"while (cond { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -3973,7 +3973,7 @@ TEST(test_parse, while_without_parens) {
     spy_visitor v;
     padded_string code(u8"while cond) { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -4007,7 +4007,7 @@ TEST(test_parse, with_statement_without_parens) {
     spy_visitor v;
     padded_string code(u8"with cond { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -4023,7 +4023,7 @@ TEST(test_parse, with_statement_without_parens) {
     spy_visitor v;
     padded_string code(u8"with (cond { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -4040,7 +4040,7 @@ TEST(test_parse, with_statement_without_parens) {
     spy_visitor v;
     padded_string code(u8"with cond) { body; }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -4086,8 +4086,8 @@ TEST(test_parse, debugger_statement) {
     spy_visitor v;
     padded_string code(u8"debugger; x;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
     EXPECT_THAT(v.variable_uses,
@@ -4100,8 +4100,8 @@ TEST(test_parse, labelled_statement) {
     spy_visitor v;
     padded_string code(u8"some_label: ; x;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
     // TODO(strager): Announce the label with a visit?
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
@@ -4137,8 +4137,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     spy_visitor v;
     padded_string code(u8"let x = 2 for (;;) { console.log(); }"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let}));
@@ -4155,8 +4155,8 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     spy_visitor v;
     padded_string code(u8"const x debugger"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_const}));
@@ -4409,7 +4409,7 @@ TEST(test_parse,
   padded_string code(u8"for (async of xs) ;"_sv);
   spy_visitor v;
   parser p(&code, &v);
-  p.parse_and_visit_statement(v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
   EXPECT_THAT(v.variable_assignments,
               ElementsAre(spy_visitor::visited_variable_assignment{u8"async"}));
   EXPECT_THAT(v.variable_uses,
@@ -4688,7 +4688,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(declaration_kind + u8" let = null;");
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
 
     EXPECT_THAT(
         v.errors,
@@ -4705,7 +4705,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(u8"let {other, let} = stuff;"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -4718,7 +4718,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(u8"import let from 'weird';"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_import_let, import_name,
@@ -4734,7 +4734,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(u8"import * as let from 'weird';"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -4751,7 +4751,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(u8"import { let } from 'weird';"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_import_let, import_name,
@@ -4768,7 +4768,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(u8"export function let() {}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -4785,7 +4785,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     padded_string code(u8"class let {}"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_declare_class_named_let, name,
@@ -4838,7 +4838,7 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
     spy_visitor v;
     padded_string code(u8"(a, b, );"_sv);
     parser p(&code, &v);
-    p.parse_and_visit_statement(v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,

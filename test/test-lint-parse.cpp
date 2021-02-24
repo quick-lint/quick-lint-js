@@ -35,7 +35,7 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   error_collector v;
   linter l(&v);
   parser p(&input, &v);
-  p.parse_and_visit_statement(l);
+  EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
