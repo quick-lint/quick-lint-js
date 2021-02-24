@@ -36,10 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"language/statements/class/async-meth-escaped-async.js",
-	"language/statements/class/syntax/escaped-static.js",
-	"language/statements/do-while/S12.6.1_A12.js",
-	"language/statements/do-while/S12.6.1_A6_T*.js",
 	"language/statements/for-in/S12.6.4_A15.js",
 	"language/statements/for-of/escaped-of.js",
 	"language/statements/for/S12.6.3_A4.1.js",
