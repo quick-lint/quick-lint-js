@@ -352,6 +352,12 @@
           function_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_arrow_function_parameter_list, "E105",                     \
+      { source_code_span arrow; },                                             \
+      .error(QLJS_TRANSLATABLE("missing parameters for arrow function"),       \
+             arrow))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_for_statement, "E094",                            \
       { source_code_span for_and_header; },                                    \
       .error(QLJS_TRANSLATABLE("missing body for 'for' loop"),                 \

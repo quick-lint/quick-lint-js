@@ -2106,6 +2106,33 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
             error_missing_operator_between_expression_and_arrow_function, where,
             offsets_matcher(p.code(), 0, u8"a("))));
   }
+
+  {
+    test_parser p(u8"=> a"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "arrowexpr(var a)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_arrow_function_parameter_list,
+                                arrow, offsets_matcher(p.code(), 0, u8"=>"))));
+  }
+
+  {
+    test_parser p(u8"=> { body; }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "arrowblock()");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_arrow_function_parameter_list,
+                                arrow, offsets_matcher(p.code(), 0, u8"=>"))));
+  }
+
+  {
+    test_parser p(u8"=> { body; }, other"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(arrowblock(), var other)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_arrow_function_parameter_list,
+                                arrow, offsets_matcher(p.code(), 0, u8"=>"))));
+  }
 }
 
 TEST_F(test_parse_expression, invalid_parentheses) {

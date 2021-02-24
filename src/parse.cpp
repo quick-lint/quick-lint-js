@@ -447,6 +447,21 @@ expression* parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // => expr  // Invalid. Treat as arrow function.
+  // => {}    // Invalid. Treat as arrow function.
+  case token_type::equal_greater: {
+    source_code_span arrow_span = this->peek().span();
+    this->error_reporter_->report(error_missing_arrow_function_parameter_list{
+        .arrow = arrow_span,
+    });
+    this->skip();
+
+    expression* arrow_function = this->parse_arrow_function_body(
+        function_attributes::normal,
+        /*parameter_list_begin=*/arrow_span.begin());
+    return this->parse_expression_remainder(arrow_function, prec);
+  }
+
   case token_type::colon:
   case token_type::kw_debugger: {
     source_code_span token_span = this->peek().span();
