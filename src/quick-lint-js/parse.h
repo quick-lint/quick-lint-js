@@ -31,6 +31,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/warning.h>
+#include <utility>
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR      \
   case token_type::kw_instanceof:           \
@@ -86,6 +87,8 @@ namespace quick_lint_js {
 class parser {
  private:
   class function_guard;
+  class loop_guard;
+  class switch_guard;
 
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
@@ -100,6 +103,7 @@ class parser {
 
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
+  [[nodiscard]] loop_guard enter_loop();
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_module(Visitor &v) {
@@ -343,9 +347,11 @@ class parser {
       break;
 
     // switch (x) { default: ; }
-    case token_type::kw_switch:
+    case token_type::kw_switch: {
+      switch_guard s(this, std::exchange(this->in_switch_statement_, true));
       this->parse_and_visit_switch(v);
       break;
+    }
 
     // return;
     // return 42;
@@ -392,20 +398,26 @@ class parser {
       break;
 
     // do { } while (can);
-    case token_type::kw_do:
+    case token_type::kw_do: {
+      loop_guard guard = this->enter_loop();
       this->parse_and_visit_do_while(v);
       break;
+    }
 
     // for (let i = 0; i < length; ++i) {}
     // for (let x of xs) {}
-    case token_type::kw_for:
+    case token_type::kw_for: {
+      loop_guard guard = this->enter_loop();
       this->parse_and_visit_for(v);
       break;
+    }
 
     // while (cond) {}
-    case token_type::kw_while:
+    case token_type::kw_while: {
+      loop_guard guard = this->enter_loop();
       this->parse_and_visit_while(v);
       break;
+    }
 
     // with (o) { eek(); }
     case token_type::kw_with:
@@ -429,7 +441,9 @@ class parser {
     // break;
     // continue label;
     case token_type::kw_break:
-    case token_type::kw_continue:
+    case token_type::kw_continue: {
+      bool is_break = this->peek().type == token_type::kw_break;
+      source_code_span token_span = this->peek().span();
       this->skip();
       switch (this->peek().type) {
       // TODO(strager): Are contextual keywords allowed as labels?
@@ -438,10 +452,20 @@ class parser {
         this->skip();
         break;
       default:
+        if (is_break) {
+          if (!(this->in_switch_statement_ || this->in_loop_statement_)) {
+            this->error_reporter_->report(error_invalid_break{token_span});
+          }
+        } else {
+          if (!this->in_loop_statement_) {
+            this->error_reporter_->report(error_invalid_continue{token_span});
+          }
+        }
         break;
       }
       this->consume_semicolon();
       break;
+    }
 
     // debugger;
     case token_type::kw_debugger:
@@ -2229,7 +2253,9 @@ class parser {
   class function_guard {
    public:
     explicit function_guard(parser *, bool was_in_async_function,
-                            bool was_in_generator_function) noexcept;
+                            bool was_in_generator_function,
+                            bool was_in_loop_statement,
+                            bool was_in_switch_statement) noexcept;
 
     function_guard(const function_guard &) = delete;
     function_guard &operator=(const function_guard &) = delete;
@@ -2240,6 +2266,36 @@ class parser {
     parser *parser_;
     bool was_in_async_function_;
     bool was_in_generator_function_;
+    bool was_in_loop_statement_;
+    bool was_in_switch_statement_;
+  };
+
+  class loop_guard {
+   public:
+    explicit loop_guard(parser *, bool was_in_loop_statement) noexcept;
+
+    loop_guard(const loop_guard &) = delete;
+    loop_guard &operator=(const loop_guard &) = delete;
+
+    ~loop_guard() noexcept;
+
+   private:
+    parser *parser_;
+    bool was_in_loop_statement_;
+  };
+
+  class switch_guard {
+   public:
+    explicit switch_guard(parser *, bool was_in_switch_statement) noexcept;
+
+    switch_guard(const switch_guard &) = delete;
+    switch_guard &operator=(const switch_guard &) = delete;
+
+    ~switch_guard() noexcept;
+
+   private:
+    parser *parser_;
+    bool was_in_switch_statement_;
   };
 
   quick_lint_js::lexer lexer_;
@@ -2248,6 +2304,8 @@ class parser {
 
   bool in_async_function_ = false;
   bool in_generator_function_ = false;
+  bool in_loop_statement_ = false;
+  bool in_switch_statement_ = false;
 };
 }
 

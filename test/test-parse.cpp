@@ -3884,8 +3884,97 @@ TEST(test_parse, with_statement_without_parens) {
 
 TEST(test_parse, break_statement) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"break;"_sv);
+    spy_visitor v;
+    padded_string code(u8"break;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_break, break_statement,
+                              offsets_matcher(&code, 0, u8"break"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"for (;;) { } break;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_invalid_break, break_statement,
+            offsets_matcher(&code, strlen(u8"for (;;) { } "), u8"break"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"for (;;) { function f() { break; } }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_invalid_break, break_statement,
+            offsets_matcher(&code, strlen(u8"for (;;) { function f() { "),
+                            u8"break"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"for (;;) { () => { break; } }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_break, break_statement,
+                    offsets_matcher(&code, strlen(u8"for (;;) { () => { "),
+                                    u8"break"))));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"switch (0) { default: break; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"do { break; } while (0);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (;;) { break; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"while (0) { break; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"for (;;) { for (;;) { break; } break; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  //
+                            "visit_enter_block_scope",  //
+                            "visit_exit_block_scope",   //
+                            "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"switch (0) { default: switch(0) { default: break; } break; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  //
+                            "visit_enter_block_scope",  //
+                            "visit_exit_block_scope",   //
+                            "visit_exit_block_scope"));
   }
 
   // TODO(strager): Are contextual keywords allowed as labels?
@@ -3898,8 +3987,80 @@ TEST(test_parse, break_statement) {
 
 TEST(test_parse, continue_statement) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"continue;"_sv);
+    spy_visitor v;
+    padded_string code(u8"continue;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
     EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_continue, continue_statement,
+                              offsets_matcher(&code, 0, u8"continue"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"switch (0) { default: continue; }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    ASSERT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_continue, continue_statement,
+                    offsets_matcher(&code, strlen(u8"switch (0) { default: "),
+                                    u8"continue"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"for (;;) { function f() { continue; } }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_invalid_continue, continue_statement,
+            offsets_matcher(&code, strlen(u8"for (;;) { function f() { "),
+                            u8"continue"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"for (;;) { () => { continue; } }"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_continue, continue_statement,
+                    offsets_matcher(&code, strlen(u8"for (;;) { () => { "),
+                                    u8"continue"))));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"do { continue; } while (0);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (;;) { continue; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"while (0) { continue; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"for (;;) { for (;;) { continue; } continue; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  //
+                            "visit_enter_block_scope",  //
+                            "visit_exit_block_scope",   //
+                            "visit_exit_block_scope"));
   }
 
   // TODO(strager): Are contextual keywords allowed as labels?
