@@ -862,6 +862,7 @@ next:
   case token_type::kw_do:
   case token_type::kw_else:
   case token_type::kw_export:
+  case token_type::kw_false:
   case token_type::kw_for:
   case token_type::kw_from:
   case token_type::kw_function:
@@ -874,6 +875,7 @@ next:
   case token_type::kw_switch:
   case token_type::kw_this:
   case token_type::kw_throw:
+  case token_type::kw_true:
   case token_type::kw_try:
   case token_type::kw_var:
   case token_type::kw_while:
