@@ -55,6 +55,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       #code-input {
         background: transparent;
       }
+
       #shadow-code-input,
       #shadow-code-input mark {
         color: transparent;
@@ -67,7 +68,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       /* Make errors stand out. */
       mark {
         text-decoration: underline;
-
         background-color: #ffdddd;
         text-decoration-color: red;
         text-decoration-line: underline;
@@ -81,6 +81,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         margin-left: -2px; /* (width of SVG) / 2 */
         margin-top: 4px; /* height of SVG */
         position: absolute;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #code-input {
+          color: white;
+        }
+        mark {
+          background-color: #7a1965;
+        }
       }
     </style>
   </head>

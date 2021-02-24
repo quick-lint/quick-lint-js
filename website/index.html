@@ -55,6 +55,21 @@ licenses. See license.html for details.
         background-color: #ffeecc;
       }
 
+      @media (prefers-color-scheme: dark) {
+        .feature-comparison td.bad {
+          color: rgb(255, 255, 255);
+          background-color: #a70000;
+        }
+        .feature-comparison td.meh {
+          color: rgb(255, 255, 255);
+          background-color: rgb(238, 214, 59);
+        }
+        .feature-comparison td.good {
+          color: rgb(255, 255, 255);
+          background-color: rgb(0, 139, 0);
+        }
+      }
+
       .feature-comparison td.quick-lint-js,
       .feature-comparison th.quick-lint-js {
         border-left-width: 1px;
