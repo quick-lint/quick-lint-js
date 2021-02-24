@@ -36,16 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	"language/statements/try/S12.14_A16_T13.js",
-	"language/statements/variable/S12.2_A8_T1.js",
-	"language/statements/variable/S12.2_A8_T5.js",
-	"language/statements/while/S12.6.2_A6_T1.js",
-	"language/statements/while/S12.6.2_A6_T2.js",
-	"language/statements/while/S12.6.2_A6_T3.js",
-	"language/statements/while/S12.6.2_A6_T4.js",
-	"language/statements/while/S12.6.2_A6_T5.js",
-	"language/statements/while/S12.6.2_A6_T6.js",
-
 	"tools/generation/test/expected/glob*/normal/*.js",
 	"tools/generation/test/expected/glob*/normal/*/*.js",
 	"tools/generation/test/expected/multiple/glob/*.js",
