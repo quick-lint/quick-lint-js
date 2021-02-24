@@ -659,6 +659,20 @@
              semicolon))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_semicolon_in_for_in_loop, "E110",                       \
+      { source_code_span semicolon; },                                         \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("for-in loop expression cannot have semicolons"),  \
+          semicolon))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_semicolon_in_for_of_loop, "E109",                       \
+      { source_code_span semicolon; },                                         \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons"),  \
+          semicolon))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_binary_number, "E049",                                \
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATABLE("binary number literal has no digits"),         \

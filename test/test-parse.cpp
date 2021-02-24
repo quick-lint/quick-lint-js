@@ -3662,6 +3662,72 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
                             spy_visitor::visited_variable_use{u8"d"},  //
                             spy_visitor::visited_variable_use{u8"c"}));
   }
+
+  {
+    padded_string code(u8"for (a of b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_for_of_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (a of b"), u8";")),
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_for_of_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (a of b; c"), u8";"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // b
+                                      "visit_variable_assignment",  // a
+                                      "visit_variable_use",         // c
+                                      "visit_variable_use",         // d
+                                      "visit_enter_block_scope",    //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"b"},  //
+                            spy_visitor::visited_variable_use{u8"c"},  //
+                            spy_visitor::visited_variable_use{u8"d"}));
+  }
+
+  {
+    padded_string code(u8"for (var a of b; c) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_semicolon_in_for_of_loop, semicolon,
+            offsets_matcher(&code, strlen(u8"for (var a of b"), u8";"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // b
+                                      "visit_variable_declaration",  // a
+                                      "visit_variable_use",          // c
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    padded_string code(u8"for (var a in b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_for_in_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (var a of b"), u8";")),
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_for_in_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (var a of b; c"),
+                                u8";"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // a
+                                      "visit_variable_use",          // b
+                                      "visit_variable_use",          // c
+                                      "visit_variable_use",          // d
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
 }
 
 TEST(test_parse, for_in_loop) {

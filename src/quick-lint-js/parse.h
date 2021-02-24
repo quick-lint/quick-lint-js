@@ -1567,26 +1567,16 @@ class parser {
                 });
             break;
           }
-
-          // for (;;;) {}  // Invalid.
-          while (this->peek().type == token_type::semicolon) {
-            this->error_reporter_->report(
-                error_unexpected_semicolon_in_c_style_for_loop{
-                    .semicolon = this->peek().span(),
-                });
-            this->skip();
-            switch (this->peek().type) {
-            case token_type::semicolon:
-            case token_type::right_paren:
-              break;
-            default:
-              this->parse_and_visit_expression(v);
-              break;
-            }
-          }
         };
 
     bool entered_for_scope = false;
+    enum class loop_style {
+      c_style,
+      for_in,
+      for_of,
+      other,
+    };
+    loop_style for_loop_style;
 
     QLJS_WARNING_PUSH
     QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
@@ -1600,6 +1590,7 @@ class parser {
         source_code_span first_semicolon_span = this->peek().span();
         this->skip();
         this->visit_expression(init_expression, v, variable_context::rhs);
+        for_loop_style = loop_style::c_style;
         parse_c_style_head_remainder(first_semicolon_span);
         break;
       }
@@ -1630,6 +1621,7 @@ class parser {
           });
           source_code_span first_semicolon_span = this->peek().span();
           this->skip();
+          for_loop_style = loop_style::for_in;
           parse_c_style_head_remainder(first_semicolon_span);
         }
         break;
@@ -1640,6 +1632,7 @@ class parser {
         this->skip();
         expression *rhs = this->parse_expression();
         this->visit_assignment_expression(init_expression, rhs, v);
+        for_loop_style = loop_style::for_of;
         break;
       }
 
@@ -1652,6 +1645,7 @@ class parser {
                 .for_token = for_token_span,
             });
         this->visit_expression(init_expression, v, variable_context::rhs);
+        for_loop_style = loop_style::c_style;
         break;
       }
     };
@@ -1660,6 +1654,7 @@ class parser {
     case token_type::semicolon: {
       source_code_span first_semicolon_span = this->peek().span();
       this->skip();
+      for_loop_style = loop_style::c_style;
       parse_c_style_head_remainder(first_semicolon_span);
       break;
     }
@@ -1709,6 +1704,7 @@ class parser {
         source_code_span first_semicolon_span = this->peek().span();
         this->skip();
         lhs.move_into(v);
+        for_loop_style = loop_style::c_style;
         parse_c_style_head_remainder(first_semicolon_span);
         break;
       }
@@ -1716,8 +1712,11 @@ class parser {
       // for (let x of xs) {}
       case token_type::kw_in:
       case token_type::kw_of: {
+        for_loop_style = this->peek().type == token_type::kw_in
+                             ? loop_style::for_in
+                             : loop_style::for_of;
         bool is_var_in = declaring_token.type == token_type::kw_var &&
-                         this->peek().type == token_type::kw_in;
+                         for_loop_style == loop_style::for_in;
         this->skip();
         expression *rhs = this->parse_expression();
         if (is_var_in) {
@@ -1745,6 +1744,7 @@ class parser {
                 .for_token = for_token_span,
             });
         lhs.move_into(v);
+        for_loop_style = loop_style::for_of;
         break;
 
       default:
@@ -1809,7 +1809,41 @@ class parser {
       this->error_reporter_->report(error_missing_header_of_for_loop{
           .where = source_code_span(left_paren_token_begin, this->peek().end),
       });
+      for_loop_style = loop_style::other;
       break;
+    }
+
+    // for (;;;) {}  // Invalid.
+    // for (x of y; z) {}  // Invalid.
+    while (this->peek().type == token_type::semicolon) {
+      switch (for_loop_style) {
+      case loop_style::c_style:
+      case loop_style::other:
+        this->error_reporter_->report(
+            error_unexpected_semicolon_in_c_style_for_loop{
+                .semicolon = this->peek().span(),
+            });
+        break;
+      case loop_style::for_in:
+        this->error_reporter_->report(error_unexpected_semicolon_in_for_in_loop{
+            .semicolon = this->peek().span(),
+        });
+        break;
+      case loop_style::for_of:
+        this->error_reporter_->report(error_unexpected_semicolon_in_for_of_loop{
+            .semicolon = this->peek().span(),
+        });
+        break;
+      }
+      this->skip();
+      switch (this->peek().type) {
+      case token_type::semicolon:
+      case token_type::right_paren:
+        break;
+      default:
+        this->parse_and_visit_expression(v);
+        break;
+      }
     }
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
