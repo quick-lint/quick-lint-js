@@ -375,6 +375,12 @@
              if_and_condition))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_body_for_switch_statement, "E106",                         \
+      { source_code_span switch_and_condition; },                              \
+      .error(QLJS_TRANSLATABLE("missing body for 'switch' statement"),         \
+             switch_and_condition))                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_while_statement, "E104",                          \
       { source_code_span while_and_condition; },                               \
       .error(QLJS_TRANSLATABLE("missing body for while loop"),                 \

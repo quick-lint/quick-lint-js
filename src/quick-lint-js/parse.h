@@ -1340,14 +1340,21 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_switch(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_switch);
+    const char8 *switch_token_begin = this->peek().begin;
     this->skip();
 
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_switch_condition,
         error_expected_parenthesis_around_switch_condition>(v);
 
+    if (this->peek().type != token_type::left_curly) {
+      this->error_reporter_->report(error_missing_body_for_switch_statement{
+          .switch_and_condition = source_code_span(
+              switch_token_begin, this->lexer_.end_of_previous_token()),
+      });
+      return;
+    }
     v.visit_enter_block_scope();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
     this->skip();
 
     bool keep_going = true;
