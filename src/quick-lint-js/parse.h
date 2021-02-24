@@ -1347,7 +1347,21 @@ class parser {
         error_expected_parentheses_around_switch_condition,
         error_expected_parenthesis_around_switch_condition>(v);
 
-    if (this->peek().type != token_type::left_curly) {
+    switch (this->peek().type) {
+    case token_type::left_curly:
+      this->skip();
+      break;
+
+    case token_type::kw_case:
+    case token_type::kw_default: {
+      const char8 *here = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(error_expected_left_curly{
+          .expected_left_curly = source_code_span(here, here),
+      });
+      break;
+    }
+
+    default:
       this->error_reporter_->report(error_missing_body_for_switch_statement{
           .switch_and_condition = source_code_span(
               switch_token_begin, this->lexer_.end_of_previous_token()),
@@ -1355,7 +1369,6 @@ class parser {
       return;
     }
     v.visit_enter_block_scope();
-    this->skip();
 
     bool keep_going = true;
     while (keep_going) {

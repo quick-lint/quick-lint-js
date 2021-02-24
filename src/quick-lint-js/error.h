@@ -202,6 +202,11 @@
              escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_left_curly, "E107",                                       \
+      { source_code_span expected_left_curly; },                               \
+      .error(QLJS_TRANSLATABLE("expected '{'"), expected_left_curly))          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_do_while_condition, "E084",            \
       { source_code_span condition; },                                         \
       .error(QLJS_TRANSLATABLE(                                                \

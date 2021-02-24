@@ -3967,6 +3967,38 @@ TEST(test_parse, switch_without_body) {
   }
 }
 
+TEST(test_parse, switch_without_body_curlies) {
+  {
+    spy_visitor v;
+    padded_string code(u8"switch (cond) case a: break; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // a
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_left_curly, expected_left_curly,
+                    offsets_matcher(&code, strlen(u8"switch (cond)"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"switch (cond) default: body; break; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // body
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_left_curly, expected_left_curly,
+                    offsets_matcher(&code, strlen(u8"switch (cond)"), u8""))));
+  }
+}
+
 TEST(test_parse, while_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"while (cond) body;"_sv);
