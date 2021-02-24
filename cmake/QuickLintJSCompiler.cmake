@@ -60,6 +60,13 @@ function (quick_lint_js_enable_char8_t_if_supported)
   endif ()
 endfunction ()
 
+function (quick_lint_js_enable_bigobj_if_supported TARGET)
+  check_cxx_compiler_flag(/bigobj QUICK_LINT_JS_HAVE_BIGOBJ)
+  if (QUICK_LINT_JS_HAVE_BIGOBJ)
+    target_compile_options("${TARGET}" PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/bigobj>)
+  endif ()
+endfunction ()
+
 function (quick_lint_js_configure_exception_handling)
   if (MSVC)
     add_compile_options(/EHcs)

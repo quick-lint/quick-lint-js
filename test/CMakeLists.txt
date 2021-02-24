@@ -106,6 +106,7 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
     <simdjson.h>
   )
 endif ()
+quick_lint_js_enable_bigobj_if_supported(quick-lint-js-test)
 
 add_test(
   NAME quick-lint-js-test
