@@ -9,13 +9,13 @@ To build the demo, install the [emscripten SDK][emscripten-sdk] and
     $ emmake cmake --install build-emscripten --component wasm-demo --prefix .
 
 To run the demo on your own machine, execute the build instructions above, then
-run a static file server in the `demo` directory:
+run a static file server in the `website` directory:
 
-    $ cd demo  # Navigate to this directory.
+    $ cd website  # Navigate to the parent of this directory.
     $ python -m http.server 8080
 
-Then, in your web browser, navigate to the server's URL (e.g.
-`http://localhost:8080/`).
+Then, in your web browser, navigate to the demo page on the server (e.g.
+`http://localhost:8080/demo/`).
 
 [Ninja]: https://ninja-build.org/
 [emscripten-sdk]: https://emscripten.org/docs/getting_started/downloads.html
