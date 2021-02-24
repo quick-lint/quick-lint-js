@@ -1453,7 +1453,15 @@ class parser {
       break;
     }
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_while);
+    if (this->peek().type != token_type::kw_while) {
+      const char8 *here = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(
+          error_missing_while_and_condition_for_do_while_statement{
+              .do_token = do_token_span,
+              .expected_while = source_code_span(here, here),
+          });
+      return;
+    }
     this->skip();
 
     this->parse_and_visit_parenthesized_expression<

@@ -486,6 +486,18 @@
       .error(QLJS_TRANSLATABLE("missing value for object property"), key))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_while_and_condition_for_do_while_statement, "E103",        \
+      {                                                                        \
+        source_code_span do_token;                                             \
+        source_code_span expected_while;                                       \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "missing 'while (condition)' for do-while statement"),        \
+             expected_while)                                                   \
+          .note(QLJS_TRANSLATABLE("do-while statement starts here"),           \
+                do_token))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores, "E028",           \
       { source_code_span underscores; },                                       \
       .error(QLJS_TRANSLATABLE(                                                \

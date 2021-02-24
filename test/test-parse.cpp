@@ -3391,6 +3391,40 @@ TEST(test_parse, do_while_without_body) {
   }
 }
 
+TEST(test_parse, do_while_without_while_and_condition) {
+  {
+    padded_string code(u8"do {} "_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_while_and_condition_for_do_while_statement, do_token,
+            offsets_matcher(&code, 0, u8"do"),  //
+            expected_while, offsets_matcher(&code, strlen(u8"do {}"), u8""))));
+  }
+
+  {
+    padded_string code(u8"do {}; while (x);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use",       // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_while_and_condition_for_do_while_statement, do_token,
+            offsets_matcher(&code, 0, u8"do"),  //
+            expected_while, offsets_matcher(&code, strlen(u8"do {}"), u8""))));
+  }
+}
+
 TEST(test_parse, c_style_for_loop) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for (;;) { a; }"_sv);
