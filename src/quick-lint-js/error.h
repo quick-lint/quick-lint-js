@@ -358,6 +358,11 @@
              for_and_header))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_body_for_do_while_statement, "E101",                       \
+      { source_code_span do_token; },                                          \
+      .error(QLJS_TRANSLATABLE("missing body for do-while loop"), do_token))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_if_statement, "E064",                             \
       { source_code_span if_and_condition; },                                  \
       .error(QLJS_TRANSLATABLE("missing body for 'if' statement"),             \

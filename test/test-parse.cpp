@@ -3378,6 +3378,19 @@ TEST(test_parse, do_while_without_parens) {
   }
 }
 
+TEST(test_parse, do_while_without_body) {
+  {
+    padded_string code(u8"do\nwhile (cond);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_body_for_do_while_statement,
+                              do_token, offsets_matcher(&code, 0, u8"do"))));
+  }
+}
+
 TEST(test_parse, c_style_for_loop) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for (;;) { a; }"_sv);

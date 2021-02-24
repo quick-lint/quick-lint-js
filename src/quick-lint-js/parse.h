@@ -1415,9 +1415,19 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_do_while(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_do);
+    source_code_span do_token_span = this->peek().span();
     this->skip();
 
-    this->parse_and_visit_statement(v);
+    switch (this->peek().type) {
+    default:
+      this->parse_and_visit_statement(v);
+      break;
+    case token_type::kw_while:
+      this->error_reporter_->report(error_missing_body_for_do_while_statement{
+          .do_token = do_token_span,
+      });
+      break;
+    }
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_while);
     this->skip();
