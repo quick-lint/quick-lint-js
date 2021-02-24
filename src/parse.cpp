@@ -26,6 +26,7 @@
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
+#include <utility>
 
 // parser is a recursive-descent parser.
 //
@@ -56,6 +57,8 @@ arrow_function_parameters arrow_function_parameters_from_lhs(expression*);
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_async_function = this->in_async_function_;
   bool was_in_generator_function = this->in_generator_function_;
+  bool was_in_loop_statement = this->in_loop_statement_;
+  bool was_in_switch_statement = this->in_switch_statement_;
   switch (attributes) {
   case function_attributes::async:
     this->in_async_function_ = true;
@@ -74,7 +77,14 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
     this->in_generator_function_ = false;
     break;
   }
-  return function_guard(this, was_in_async_function, was_in_generator_function);
+  this->in_loop_statement_ = false;
+  this->in_switch_statement_ = false;
+  return function_guard(this, was_in_async_function, was_in_generator_function,
+                        was_in_loop_statement, was_in_switch_statement);
+}
+
+parser::loop_guard parser::enter_loop() {
+  return loop_guard(this, std::exchange(this->in_loop_statement_, true));
 }
 
 expression* parser::parse_expression(precedence prec) {
@@ -1534,14 +1544,35 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 }
 
 parser::function_guard::function_guard(parser* p, bool was_in_async_function,
-                                       bool was_in_generator_function) noexcept
+                                       bool was_in_generator_function,
+                                       bool was_in_loop_statement,
+                                       bool was_in_switch_statement) noexcept
     : parser_(p),
       was_in_async_function_(was_in_async_function),
-      was_in_generator_function_(was_in_generator_function) {}
+      was_in_generator_function_(was_in_generator_function),
+      was_in_loop_statement_(was_in_loop_statement),
+      was_in_switch_statement_(was_in_switch_statement) {}
 
 parser::function_guard::~function_guard() noexcept {
   this->parser_->in_async_function_ = this->was_in_async_function_;
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
+  this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
+  this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
+}
+
+parser::loop_guard::loop_guard(parser* p, bool was_in_loop_statement) noexcept
+    : parser_(p), was_in_loop_statement_(was_in_loop_statement) {}
+
+parser::loop_guard::~loop_guard() noexcept {
+  this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
+}
+
+parser::switch_guard::switch_guard(parser* p,
+                                   bool was_in_switch_statement) noexcept
+    : parser_(p), was_in_switch_statement_(was_in_switch_statement) {}
+
+parser::switch_guard::~switch_guard() noexcept {
+  this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
 }
 
 namespace {

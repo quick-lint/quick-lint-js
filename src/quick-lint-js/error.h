@@ -680,6 +680,18 @@
       },                                                                       \
       .error(QLJS_TRANSLATABLE("variable used before declaration: {0}"), use)  \
           .note(QLJS_TRANSLATABLE("variable declared here"), declaration))     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_invalid_break, "E200", { source_code_span break_statement; },      \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "break can only be used inside of a loop or switch"),         \
+             break_statement))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_invalid_continue, "E201",                                          \
+      { source_code_span continue_statement; },                                \
+      .error(QLJS_TRANSLATABLE("continue can only be used inside of a loop"),  \
+             continue_statement))                                              \
   /* END */
 
 namespace quick_lint_js {
