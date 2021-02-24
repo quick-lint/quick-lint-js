@@ -1481,6 +1481,23 @@ class parser {
                 });
             break;
           }
+
+          // for (;;;) {}  // Invalid.
+          while (this->peek().type == token_type::semicolon) {
+            this->error_reporter_->report(
+                error_unexpected_semicolon_in_c_style_for_loop{
+                    .semicolon = this->peek().span(),
+                });
+            this->skip();
+            switch (this->peek().type) {
+            case token_type::semicolon:
+            case token_type::right_paren:
+              break;
+            default:
+              this->parse_and_visit_expression(v);
+              break;
+            }
+          }
         };
 
     bool entered_for_scope = false;

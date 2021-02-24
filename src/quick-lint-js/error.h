@@ -605,6 +605,13 @@
              characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_semicolon_in_c_style_for_loop, "E102",                  \
+      { source_code_span semicolon; },                                         \
+      .error(QLJS_TRANSLATABLE("C-style for loops have only three components " \
+                               "semicolon-separated components"),              \
+             semicolon))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_binary_number, "E049",                                \
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATABLE("binary number literal has no digits"),         \

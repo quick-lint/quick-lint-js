@@ -3542,6 +3542,62 @@ TEST(test_parse, for_loop_with_missing_semicolons) {
   }
 }
 
+TEST(test_parse, for_loop_with_extra_semicolons) {
+  {
+    padded_string code(u8"for (;;;) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_semicolon_in_c_style_for_loop, semicolon,
+                    offsets_matcher(&code, strlen(u8"for (;;"), u8";"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    padded_string code(u8"for (;; ;;;) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_c_style_for_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (;; "), u8";")),
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_c_style_for_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (;; ;"), u8";")),
+            ERROR_TYPE_FIELD(
+                error_unexpected_semicolon_in_c_style_for_loop, semicolon,
+                offsets_matcher(&code, strlen(u8"for (;; ;;"), u8";"))));
+  }
+
+  {
+    padded_string code(u8"for (a;b;c;d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_statement(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_semicolon_in_c_style_for_loop, semicolon,
+                    offsets_matcher(&code, strlen(u8"for (a;b;c"), u8";"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_variable_use",       // d
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_variable_use"));     // c
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"a"},  //
+                            spy_visitor::visited_variable_use{u8"b"},  //
+                            spy_visitor::visited_variable_use{u8"d"},  //
+                            spy_visitor::visited_variable_use{u8"c"}));
+  }
+}
+
 TEST(test_parse, for_in_loop) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for (x in xs) { body; }"_sv);
