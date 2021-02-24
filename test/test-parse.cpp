@@ -3484,6 +3484,25 @@ TEST(test_parse, c_style_for_loop) {
   }
 }
 
+TEST(test_parse, c_style_for_loop_with_in_operator) {
+  {
+    padded_string code(u8"for (a in b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_in_disallowed_in_c_style_for_loop, in_token,
+                    offsets_matcher(&code, strlen(u8"for (a "), u8"in"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // b
+                                      "visit_variable_assignment",  // a
+                                      "visit_variable_use",         // c
+                                      "visit_enter_block_scope",    //
+                                      "visit_exit_block_scope",     //
+                                      "visit_variable_use"));       // d
+  }
+}
+
 TEST(test_parse, for_loop_with_missing_component) {
   {
     padded_string code(u8"for () {}"_sv);

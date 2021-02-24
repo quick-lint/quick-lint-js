@@ -1615,8 +1615,27 @@ class parser {
             });
         goto semicolon;
 
+      // for (lhs in rhs) {}
+      // for (lhs in rhs; condition; update) {}  // Invalid.
+      case token_type::kw_in: {
+        source_code_span in_token_span = this->peek().span();
+        this->skip();
+
+        expression *rhs = this->parse_expression();
+        this->visit_assignment_expression(init_expression, rhs, v);
+
+        if (this->peek().type == token_type::semicolon) {
+          this->error_reporter_->report(error_in_disallowed_in_c_style_for_loop{
+              .in_token = in_token_span,
+          });
+          source_code_span first_semicolon_span = this->peek().span();
+          this->skip();
+          parse_c_style_head_remainder(first_semicolon_span);
+        }
+        break;
+      }
+
       // for (lhs of rhs) {}
-      case token_type::kw_in:
       case token_type::kw_of: {
         this->skip();
         expression *rhs = this->parse_expression();

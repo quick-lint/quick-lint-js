@@ -301,6 +301,13 @@
       .error(QLJS_TRANSLATABLE("exporting requires '{{' and '}'"), names))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_in_disallowed_in_c_style_for_loop, "E108",                         \
+      { source_code_span in_token; },                                          \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "'in' disallowed in C-style for loop initializer"),           \
+             in_token))                                                        \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_indexing_requires_expression, "E075",                              \
       { source_code_span squares; },                                           \
       .error(QLJS_TRANSLATABLE("indexing requires an expression"), squares))   \
