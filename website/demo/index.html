@@ -56,23 +56,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         background: transparent;
       }
 
-      mark {
-        text-decoration: underline;
-        background-color: #ffdddd;
-        text-decoration-color: red;
-        text-decoration-line: underline;
-        text-decoration-skip-ink: none;
-        text-decoration-style: wavy;
-      }
-      mark:empty::before {
-        color: red;
-        content: url("carat.svg") / "^";
-        content: url("carat.svg");
-        margin-left: -2px; /* (width of SVG) / 2 */
-        margin-top: 4px; /* height of SVG */
-        position: absolute;
-      }
-
       #shadow-code-input,
       #shadow-code-input mark {
         color: transparent;
@@ -99,18 +82,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         margin-top: 4px; /* height of SVG */
         position: absolute;
       }
+
       @media (prefers-color-scheme: dark) {
-        a:link {
-          color: #3398e0;
-        }
-        a:visited {
-          color: #979ef8;
-        }
         #code-input {
-          color: white;
-        }
-        body {
-          background-color: #002b36;
           color: white;
         }
         mark {
