@@ -1084,26 +1084,29 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class(Visitor &v, name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
+    const char8 *class_keyword_begin = this->peek().begin;
 
     this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
-
-    v.visit_enter_class_scope();
 
     switch (this->peek().type) {
     case token_type::left_curly:
       this->skip();
+
+      v.visit_enter_class_scope();
       this->parse_and_visit_class_body(v);
+      v.visit_exit_class_scope();
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
       this->skip();
       break;
 
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      this->error_reporter_->report(error_missing_body_for_class{
+          .class_keyword_and_name_and_heritage = source_code_span(
+              class_keyword_begin, this->lexer_.end_of_previous_token()),
+      });
       break;
     }
-
-    v.visit_exit_class_scope();
   }
 
   // Parse the 'class' keyword, the class's optional name, and any extends
@@ -1158,8 +1161,10 @@ class parser {
     case token_type::left_curly:
       break;
 
+    // class C;     // Invalid.
+    // { class C }  // Invalid.
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      // parse_and_visit_class or parse_class_expression will report an error.
       break;
     }
 

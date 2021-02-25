@@ -370,6 +370,12 @@
              arrow))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_body_for_class, "E111",                                    \
+      { source_code_span class_keyword_and_name_and_heritage; },               \
+      .error(QLJS_TRANSLATABLE("missing body for class"),                      \
+             class_keyword_and_name_and_heritage))                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_for_statement, "E094",                            \
       { source_code_span for_and_header; },                                    \
       .error(QLJS_TRANSLATABLE("missing body for 'for' loop"),                 \

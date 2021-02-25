@@ -1419,14 +1419,22 @@ expression* parser::parse_class_expression() {
   this->parse_and_visit_class_heading(
       *v, /*require_name=*/name_requirement::optional);
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
-  this->skip();
+  const char8* span_end;
+  if (this->peek().type == token_type::left_curly) {
+    this->skip();
 
-  this->parse_and_visit_class_body(*v);
+    this->parse_and_visit_class_body(*v);
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-  const char8* span_end = this->peek().end;
-  this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+    span_end = this->peek().end;
+    this->skip();
+  } else {
+    span_end = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_missing_body_for_class{
+        .class_keyword_and_name_and_heritage =
+            source_code_span(span_begin, span_end),
+    });
+  }
 
   return this->make_expression<expression::_class>(
       v, source_code_span(span_begin, span_end));

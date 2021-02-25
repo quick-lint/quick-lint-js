@@ -2200,6 +2200,20 @@ TEST_F(test_parse_expression, anonymous_class) {
   }
 }
 
+TEST_F(test_parse_expression, class_requires_a_body) {
+  {
+    test_parser p(u8"class C "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "class");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"class C"));
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_body_for_class,
+                                class_keyword_and_name_and_heritage,
+                                offsets_matcher(p.code(), 0, u8"class C"))));
+  }
+}
+
 TEST_F(test_parse_expression, parse_mixed_expression) {
   {
     expression* ast = this->parse_expression(u8"a+f()"_sv);

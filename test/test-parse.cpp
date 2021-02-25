@@ -2705,6 +2705,20 @@ TEST(test_parse, class_statement_requires_a_name) {
   }
 }
 
+TEST(test_parse, class_statement_requires_a_body) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class C "_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // C
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_body_for_class,
+                              class_keyword_and_name_and_heritage,
+                              offsets_matcher(&code, 0, u8"class C"))));
+  }
+}
+
 TEST(test_parse, class_statement_with_odd_heritage) {
   {
     // TODO(strager): Should this report errors?
