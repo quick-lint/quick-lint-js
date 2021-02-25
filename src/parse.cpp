@@ -1344,6 +1344,18 @@ expression* parser::parse_object_literal() {
                            function_attributes::normal);
         break;
 
+      case token_type::comma:
+      case token_type::right_curly: {
+        source_code_span key_span(left_square_span.begin(),
+                                  this->lexer_.end_of_previous_token());
+        expression* value =
+            this->make_expression<expression::_invalid>(key_span);
+        this->error_reporter_->report(
+            error_missing_value_for_object_literal_entry{.key = key_span});
+        entries.emplace_back(key, value);
+        break;
+      }
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
       }

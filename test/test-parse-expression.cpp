@@ -1729,6 +1729,26 @@ TEST_F(test_parse_expression, malformed_object_literal) {
             error_methods_should_not_use_function_keyword, function_token,
             offsets_matcher(p.code(), strlen(u8"{"), u8"function"))));
   }
+
+  {
+    test_parser p(u8"{ [x] }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var x, ?)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_value_for_object_literal_entry, key,
+                    offsets_matcher(p.code(), strlen(u8"{ "), u8"[x]"))));
+  }
+
+  {
+    test_parser p(u8"{ [x], other }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var x, ?, literal, var other)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_value_for_object_literal_entry, key,
+                    offsets_matcher(p.code(), strlen(u8"{ "), u8"[x]"))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_comma_expression) {
