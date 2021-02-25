@@ -2701,7 +2701,7 @@ TEST(test_parse, class_statement_requires_a_name) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_name_in_class_statement, class_keyword,
-                    offsets_matcher(&code, 0, strlen(u8"class")))));
+                    offsets_matcher(&code, 0, u8"class"))));
   }
 }
 
