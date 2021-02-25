@@ -112,14 +112,14 @@ main > h2:first-child {
 @media (prefers-color-scheme: dark) {
   .comparison td.bad {
     color: rgb(255, 255, 255);
-    background-color: #a70000;
+    background-color: #772222;
   }
   .comparison td.meh {
     color: rgb(255, 255, 255);
-    background-color: rgb(238, 214, 59);
+    background-color: #776622;
   }
   .comparison td.good {
     color: rgb(255, 255, 255);
-    background-color: rgb(0, 139, 0);
+    background-color: #226622;
   }
 }
