@@ -98,3 +98,28 @@ main > h2:first-child {
     color: black;
   }
 }
+
+/* Comparison tables */
+.comparison td.good {
+  background-color: #ddffdd;
+}
+.comparison td.bad {
+  background-color: #ffdddd;
+}
+.comparison td.meh {
+  background-color: #ffeecc;
+}
+@media (prefers-color-scheme: dark) {
+  .comparison td.bad {
+    color: rgb(255, 255, 255);
+    background-color: #a70000;
+  }
+  .comparison td.meh {
+    color: rgb(255, 255, 255);
+    background-color: rgb(238, 214, 59);
+  }
+  .comparison td.good {
+    color: rgb(255, 255, 255);
+    background-color: rgb(0, 139, 0);
+  }
+}
