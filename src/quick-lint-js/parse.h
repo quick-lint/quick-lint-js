@@ -1146,8 +1146,10 @@ class parser {
     case token_type::kw_extends:
       break;
 
+    // { class }  // Invalid.
+    // class;     // Invalid.
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      // We'll report errors later.
       break;
     }
 

@@ -2717,6 +2717,22 @@ TEST(test_parse, class_statement_requires_a_body) {
                               class_keyword_and_name_and_heritage,
                               offsets_matcher(&code, 0, u8"class C"))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class ;"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(error_missing_name_in_class_statement,
+                                     class_keyword,
+                                     offsets_matcher(&code, 0, u8"class")),
+                    ERROR_TYPE_FIELD(error_missing_body_for_class,
+                                     class_keyword_and_name_and_heritage,
+                                     offsets_matcher(&code, 0, u8"class"))));
+  }
 }
 
 TEST(test_parse, class_statement_with_odd_heritage) {
