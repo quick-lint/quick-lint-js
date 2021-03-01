@@ -703,7 +703,9 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_export(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_export);
+    source_code_span export_token_span = this->peek().span();
     this->skip();
+
     switch (this->peek().type) {
     // export default class C {}
     case token_type::kw_default:
@@ -861,8 +863,17 @@ class parser {
       break;
     }
 
+    case token_type::end_of_file:
+    case token_type::semicolon:
+      this->error_reporter_->report(error_missing_token_after_export{
+          .export_token = export_token_span,
+      });
+      break;
+
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      this->error_reporter_->report(error_unexpected_token_after_export{
+          .unexpected_token = this->peek().span(),
+      });
       break;
     }
   }

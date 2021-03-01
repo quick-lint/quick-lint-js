@@ -441,6 +441,43 @@ TEST(test_parse, invalid_export_expression) {
   }
 }
 
+TEST(test_parse, invalid_export) {
+  {
+    spy_visitor v;
+    padded_string code(u8"export ;"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_token_after_export, export_token,
+                              offsets_matcher(&code, 0, u8"export"))));
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"export "_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_token_after_export, export_token,
+                              offsets_matcher(&code, 0, u8"export"))));
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"export = x"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_token_after_export, unexpected_token,
+                    offsets_matcher(&code, strlen(u8"export "), u8"="))));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));               // Parse '= x'.
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+  }
+}
+
 TEST(test_parse, parse_simple_var) {
   spy_visitor v;
   padded_string code(u8"var x"_sv);

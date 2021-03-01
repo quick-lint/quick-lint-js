@@ -517,6 +517,15 @@
              expected_semicolon))                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_token_after_export, "E113",                                \
+      { source_code_span export_token; },                                      \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "incomplete export; expected 'export default ...' or "        \
+                 "'export {name}' or 'export * from ...' or 'export class' "   \
+                 "or 'export function' or 'export let'"),                      \
+             export_token))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_value_for_object_literal_entry, "E083",                    \
       { source_code_span key; },                                               \
       .error(QLJS_TRANSLATABLE("missing value for object property"), key))     \
@@ -708,6 +717,15 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_token, "E054", { source_code_span token; },             \
       .error(QLJS_TRANSLATABLE("unexpected token"), token))                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_token_after_export, "E112",                             \
+      { source_code_span unexpected_token; },                                  \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "unexpected token in export; expected 'export default ...' "  \
+                 "or 'export {name}' or 'export * from ...' or 'export "       \
+                 "class' or 'export function' or 'export let'"),               \
+             unexpected_token))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unmatched_indexing_bracket, "E055",                                \
