@@ -670,16 +670,17 @@ TEST(test_parse, parse_invalid_let) {
                     offsets_matcher(&code, strlen(u8"let x, "), u8"42"))));
   }
 
-  {
+  for (string8 keyword : {u8"debugger", u8"if"}) {
+    padded_string code(u8"let " + keyword);
+    SCOPED_TRACE(code);
     spy_visitor v;
-    padded_string code(u8"let if"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_invalid_binding_in_let_statement, where,
-                    offsets_matcher(&code, strlen(u8"let "), u8"if"))));
+                    offsets_matcher(&code, strlen(u8"let "), keyword))));
   }
 
   {
@@ -692,18 +693,6 @@ TEST(test_parse, parse_invalid_let) {
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_invalid_binding_in_let_statement, where,
                     offsets_matcher(&code, strlen(u8"let "), u8"42"))));
-  }
-
-  {
-    spy_visitor v;
-    padded_string code(u8"let debugger"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_invalid_binding_in_let_statement, where,
-                    offsets_matcher(&code, strlen(u8"let "), u8"debugger"))));
   }
 
   {
