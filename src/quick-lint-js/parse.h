@@ -2254,12 +2254,19 @@ class parser {
         this->parse_and_visit_binding_element(
             v, declaration_kind, /*allow_in_operator=*/allow_in_operator);
         break;
-      case token_type::kw_if:
+
       case token_type::kw_break:
+      case token_type::kw_class:
+      case token_type::kw_const:
       case token_type::kw_continue:
       case token_type::kw_debugger:
+      case token_type::kw_export:
+      case token_type::kw_extends:
       case token_type::kw_false:
+      case token_type::kw_if:
+      case token_type::kw_import:
       case token_type::kw_null:
+      case token_type::kw_super:
       case token_type::kw_true:
       case token_type::kw_void:
       case token_type::number:

@@ -670,7 +670,8 @@ TEST(test_parse, parse_invalid_let) {
                     offsets_matcher(&code, strlen(u8"let x, "), u8"42"))));
   }
 
-  for (string8 keyword : {u8"debugger", u8"if"}) {
+  for (string8 keyword : {u8"class", u8"const", u8"debugger", u8"export",
+                          u8"extends", u8"if", u8"import", u8"super"}) {
     padded_string code(u8"let " + keyword);
     SCOPED_TRACE(code);
     spy_visitor v;
