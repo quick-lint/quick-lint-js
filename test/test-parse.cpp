@@ -670,36 +670,57 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_invalid_binding_in_let_statement, where,
-                    offsets_matcher(&code, strlen(u8"let x, "), u8"42"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let x, "), u8"42"))));
   }
 
-  for (string8 keyword : {u8"class", u8"const", u8"debugger", u8"export",
-                          u8"extends", u8"if", u8"import", u8"super"}) {
+  for (string8 keyword :
+       {u8"class", u8"const", u8"debugger", u8"export", u8"extends", u8"if",
+        u8"import", u8"super", u8"while"}) {
     padded_string code(u8"let " + keyword);
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_invalid_binding_in_let_statement, where,
-                    offsets_matcher(&code, strlen(u8"let "), keyword))));
+    EXPECT_THAT(v.variable_declarations, IsEmpty());
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let "), keyword))));
+  }
+
+  {
+    padded_string code(u8"let while (x) { break; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_declarations, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let "), u8"while"))));
   }
 
   {
     spy_visitor v;
-    padded_string code(u8"let 42"_sv);
+    padded_string code(u8"let 42*69"_sv);
     parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    p.parse_and_visit_module(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_invalid_binding_in_let_statement, where,
-                    offsets_matcher(&code, strlen(u8"let "), u8"42"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let "), u8"42"))));
   }
 
   {
@@ -739,18 +760,20 @@ TEST(test_parse, parse_invalid_let) {
     spy_visitor v;
     padded_string code(u8"let true, true, y\nlet x;"_sv);
     parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_EQ(v.variable_declarations.size(), 2);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
-            ERROR_TYPE_FIELD(
-                error_invalid_binding_in_let_statement, where,
-                offsets_matcher(&code, strlen(u8"let "), u8"true")),
-            ERROR_TYPE_FIELD(
-                error_invalid_binding_in_let_statement, where,
-                offsets_matcher(&code, strlen(u8"let true, "), u8"true"))));
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let "), u8"true"))));
   }
 }
 

@@ -728,6 +728,13 @@
              unexpected_token))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_token_in_variable_declaration, "E114",                  \
+      { source_code_span unexpected_token; },                                  \
+      .error(QLJS_TRANSLATABLE("unexpected token in variable declaration; "    \
+                               "expected variable name"),                      \
+             unexpected_token))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unmatched_indexing_bracket, "E055",                                \
       { source_code_span left_square; },                                       \
       .error(QLJS_TRANSLATABLE("unmatched indexing bracket"), left_square))    \

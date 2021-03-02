@@ -2269,10 +2269,12 @@ class parser {
       case token_type::kw_super:
       case token_type::kw_true:
       case token_type::kw_void:
+      case token_type::kw_while:
       case token_type::number:
         this->error_reporter_->report(
-            error_invalid_binding_in_let_statement{this->peek().span()});
-        this->skip();
+            error_unexpected_token_in_variable_declaration{
+                this->peek().span()});
+        this->lexer_.insert_semicolon();
         break;
 
       QLJS_CASE_BINARY_ONLY_OPERATOR:
