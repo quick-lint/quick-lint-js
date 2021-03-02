@@ -33,8 +33,6 @@ inline constexpr auto make_array(Args&&... items) {
   return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
 }
 
-QLJS_WARNING_POP
-
 template <class T, std::size_t LHSSize, std::size_t RHSSize,
           std::size_t... LHSIndexes, std::size_t... RHSIndexes>
 inline constexpr std::array<T, LHSSize + RHSSize> concat_impl(
@@ -51,6 +49,8 @@ inline constexpr std::array<T, LHSSize + RHSSize> concat(
       lhs, std::make_index_sequence<LHSSize>(), rhs,
       std::make_index_sequence<RHSSize>());
 }
+
+QLJS_WARNING_POP
 }
 
 #endif
