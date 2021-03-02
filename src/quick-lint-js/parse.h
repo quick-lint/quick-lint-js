@@ -414,6 +414,14 @@ class parser {
       this->parse_and_visit_maybe_catch_maybe_finally(v);
       break;
 
+    // finally { }  // Invalid.
+    case token_type::kw_finally:
+      this->error_reporter_->report(error_finally_without_try{
+          .finally_token = this->peek().span(),
+      });
+      this->parse_and_visit_maybe_catch_maybe_finally(v);
+      break;
+
     // do { } while (can);
     case token_type::kw_do: {
       loop_guard guard = this->enter_loop();

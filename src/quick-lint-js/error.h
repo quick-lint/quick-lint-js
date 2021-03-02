@@ -306,6 +306,11 @@
       .error(QLJS_TRANSLATABLE("exporting requires '{{' and '}'"), names))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_finally_without_try, "E118", { source_code_span finally_token; },  \
+      .error(QLJS_TRANSLATABLE("unexpected 'finally' without 'try'"),          \
+             finally_token))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_in_disallowed_in_c_style_for_loop, "E108",                         \
       { source_code_span in_token; },                                          \
       .error(QLJS_TRANSLATABLE(                                                \
