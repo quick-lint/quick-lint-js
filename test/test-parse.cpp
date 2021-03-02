@@ -4185,6 +4185,63 @@ TEST(test_parse, switch_without_body_curlies) {
   }
 }
 
+TEST(test_parse, switch_clause_outside_switch_statement) {
+  {
+    padded_string code(u8"case x:"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_case_outside_switch_statement, case_token,
+                    offsets_matcher(&code, 0, u8"case"))));
+  }
+
+  {
+    padded_string code(u8"case\nif (y) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // y
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_case_outside_switch_statement, case_token,
+                    offsets_matcher(&code, 0, u8"case"))));
+  }
+
+  {
+    padded_string code(u8"default: next;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // next
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_default_outside_switch_statement,
+                    default_token, offsets_matcher(&code, 0, u8"default"))));
+  }
+
+  {
+    padded_string code(u8"default\nif (x) body;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_variable_use",  // body
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_default_outside_switch_statement,
+                    default_token, offsets_matcher(&code, 0, u8"default"))));
+  }
+}
+
 TEST(test_parse, while_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"while (cond) body;"_sv);

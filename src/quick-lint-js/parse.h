@@ -494,6 +494,31 @@ class parser {
       v.visit_exit_block_scope();
       break;
 
+    // case 3:  // Invalid.
+    case token_type::kw_case:
+      this->error_reporter_->report(
+          error_unexpected_case_outside_switch_statement{
+              .case_token = this->peek().span(),
+          });
+      this->skip();
+      this->parse_and_visit_expression(v);
+      if (this->peek().type == token_type::colon) {
+        this->skip();
+      }
+      break;
+
+    // default:  // Invalid.
+    case token_type::kw_default:
+      this->error_reporter_->report(
+          error_unexpected_default_outside_switch_statement{
+              .default_token = this->peek().span(),
+          });
+      this->skip();
+      if (this->peek().type == token_type::colon) {
+        this->skip();
+      }
+      break;
+
     case token_type::colon:
       this->error_reporter_->report(error_unexpected_token{
           .token = this->peek().span(),

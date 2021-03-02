@@ -638,6 +638,12 @@
       .error(QLJS_TRANSLATABLE("unexpected '\\' in identifier"), backslash))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_case_outside_switch_statement, "E115",                  \
+      { source_code_span case_token; },                                        \
+      .error(QLJS_TRANSLATABLE("unexpected 'case' outside switch statement"),  \
+             case_token))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_number, "E044",                           \
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATABLE("unexpected characters in number literal"),     \
@@ -665,6 +671,13 @@
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATABLE("unexpected characters in hex literal"),        \
              characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_default_outside_switch_statement, "E116",               \
+      { source_code_span default_token; },                                     \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("unexpected 'default' outside switch statement"),  \
+          default_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_c_style_for_loop, "E102",                  \
