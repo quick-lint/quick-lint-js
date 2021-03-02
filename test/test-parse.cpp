@@ -711,6 +711,21 @@ TEST(test_parse, parse_invalid_let) {
   }
 
   {
+    padded_string code(u8"let\nwhile (x) { break; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_declarations, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_let_with_no_bindings, where,
+                              offsets_matcher(&code, 0, u8"let"))));
+  }
+
+  {
     spy_visitor v;
     padded_string code(u8"let 42*69"_sv);
     parser p(&code, &v);
