@@ -144,6 +144,11 @@
       .error(QLJS_TRANSLATABLE("cannot import 'let'"), import_name))           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_catch_without_try, "E117", { source_code_span catch_token; },      \
+      .error(QLJS_TRANSLATABLE("unexpected 'catch' without 'try'"),            \
+             catch_token))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_character_disallowed_in_identifiers, "E011",                       \
       { source_code_span character; },                                         \
       .error(QLJS_TRANSLATABLE("character is not allowed in identifiers"),     \

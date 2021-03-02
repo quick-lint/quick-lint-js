@@ -403,7 +403,15 @@ class parser {
 
     // try { hard(); } catch (exhaustion) {}
     case token_type::kw_try:
-      this->parse_and_visit_try(v);
+      this->parse_and_visit_try_maybe_catch_maybe_finally(v);
+      break;
+
+    // catch (e) { }  // Invalid.
+    case token_type::kw_catch:
+      this->error_reporter_->report(error_catch_without_try{
+          .catch_token = this->peek().span(),
+      });
+      this->parse_and_visit_maybe_catch_maybe_finally(v);
       break;
 
     // do { } while (can);
@@ -1445,7 +1453,7 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_try(Visitor &v) {
+  void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_try);
     this->skip();
 
@@ -1453,6 +1461,11 @@ class parser {
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
 
+    this->parse_and_visit_maybe_catch_maybe_finally(v);
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_maybe_catch_maybe_finally(Visitor &v) {
     if (this->peek().type == token_type::kw_catch) {
       this->skip();
 

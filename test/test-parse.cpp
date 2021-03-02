@@ -3212,6 +3212,41 @@ TEST(test_parse, parse_and_visit_try) {
   }
 }
 
+TEST(test_parse, catch_without_try) {
+  {
+    padded_string code(u8"catch (e) { body; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // e
+                                      "visit_variable_use",          // body
+                                      "visit_exit_block_scope",      //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_catch_without_try, catch_token,
+                              offsets_matcher(&code, 0, u8"catch"))));
+  }
+
+  {
+    padded_string code(u8"catch (e) { body; } finally { body; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // e
+                                      "visit_variable_use",          // body
+                                      "visit_exit_block_scope",      //
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_use",          // body
+                                      "visit_exit_block_scope",      //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_catch_without_try, catch_token,
+                              offsets_matcher(&code, 0, u8"catch"))));
+  }
+}
+
 TEST(test_parse, if_without_else) {
   {
     spy_visitor v = parse_and_visit_statement(u8"if (a) { b; }"_sv);
