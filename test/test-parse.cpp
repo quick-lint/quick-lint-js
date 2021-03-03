@@ -65,6 +65,19 @@ constexpr std::array reserved_keywords = make_array(
     u8"return", u8"super", u8"switch", u8"this", u8"throw", u8"true", u8"try",
     u8"typeof", u8"var", u8"void", u8"while", u8"with", u8"yield");
 
+// Exclusions from BindingIdentifier (ReservedWord except 'await' and 'yield')
+// https://262.ecma-international.org/11.0/#prod-ReservedWord
+// https://262.ecma-international.org/11.0/#prod-BindingIdentifier
+std::vector<const char8 *> disallowed_binding_identifier_keywords = []() {
+  std::vector<const char8 *> result;
+  for (const char8 *keyword : reserved_keywords) {
+    if (!(keyword == u8"await"_sv || keyword == u8"yield"_sv)) {
+      result.push_back(keyword);
+    }
+  }
+  return result;
+}();
+
 constexpr std::array contextual_keywords =
     make_array(u8"as", u8"async", u8"from", u8"get", u8"let", u8"meta", u8"of",
                u8"set", u8"static", u8"target");
@@ -677,11 +690,9 @@ TEST(test_parse, parse_invalid_let) {
             offsets_matcher(&code, strlen(u8"let x, "), u8"42"))));
   }
 
-  for (string8 keyword :
-       {u8"class", u8"const", u8"debugger", u8"export", u8"extends", u8"if",
-        u8"import", u8"super", u8"while"}) {
+  for (string8 keyword : disallowed_binding_identifier_keywords) {
     {
-      padded_string code(u8"let " + keyword);
+      padded_string code(u8"var " + keyword);
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -690,11 +701,11 @@ TEST(test_parse, parse_invalid_let) {
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_cannot_declare_variable_with_keyword_name, keyword,
-                      offsets_matcher(&code, strlen(u8"let "), keyword))));
+                      offsets_matcher(&code, strlen(u8"var "), keyword))));
     }
 
     {
-      padded_string code(u8"let " + keyword + u8";");
+      padded_string code(u8"var " + keyword + u8";");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -703,11 +714,11 @@ TEST(test_parse, parse_invalid_let) {
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_cannot_declare_variable_with_keyword_name, keyword,
-                      offsets_matcher(&code, strlen(u8"let "), keyword))));
+                      offsets_matcher(&code, strlen(u8"var "), keyword))));
     }
 
     {
-      padded_string code(u8"let " + keyword + u8" = x;");
+      padded_string code(u8"var " + keyword + u8" = x;");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -717,7 +728,7 @@ TEST(test_parse, parse_invalid_let) {
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_cannot_declare_variable_with_keyword_name, keyword,
-                      offsets_matcher(&code, strlen(u8"let "), keyword))));
+                      offsets_matcher(&code, strlen(u8"var "), keyword))));
     }
   }
 

@@ -2353,20 +2353,41 @@ class parser {
       // let switch = 3;  // Invalid.
       // let if (x) {}    // Invalid.
       case token_type::kw_break:
+      case token_type::kw_case:
+      case token_type::kw_catch:
       case token_type::kw_class:
       case token_type::kw_const:
       case token_type::kw_continue:
       case token_type::kw_debugger:
+      case token_type::kw_default:
+      case token_type::kw_delete:
+      case token_type::kw_do:
+      case token_type::kw_else:
+      case token_type::kw_enum:
       case token_type::kw_export:
       case token_type::kw_extends:
       case token_type::kw_false:
+      case token_type::kw_finally:
+      case token_type::kw_for:
+      case token_type::kw_function:
       case token_type::kw_if:
       case token_type::kw_import:
+      case token_type::kw_in:
+      case token_type::kw_instanceof:
+      case token_type::kw_new:
       case token_type::kw_null:
+      case token_type::kw_return:
       case token_type::kw_super:
+      case token_type::kw_switch:
+      case token_type::kw_this:
+      case token_type::kw_throw:
       case token_type::kw_true:
+      case token_type::kw_try:
+      case token_type::kw_typeof:
+      case token_type::kw_var:
       case token_type::kw_void:
-      case token_type::kw_while: {
+      case token_type::kw_while:
+      case token_type::kw_with: {
         source_code_span keyword_span = this->peek().span();
         lexer_transaction transaction = this->lexer_.begin_transaction();
         this->skip();
@@ -2410,14 +2431,12 @@ class parser {
         this->lexer_.insert_semicolon();
         break;
 
-      QLJS_CASE_BINARY_ONLY_OPERATOR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::comma:
       case token_type::complete_template:
       case token_type::dot:
       case token_type::equal_greater:
       case token_type::incomplete_template:
-      case token_type::kw_in:
       case token_type::left_paren:
       case token_type::minus:
       case token_type::minus_minus:
