@@ -3263,6 +3263,20 @@ TEST(test_parse, finally_without_try) {
   }
 }
 
+TEST(test_parse, try_without_body) {
+  {
+    padded_string code(u8"try\nlet x = 3;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_body_for_try_statement, try_token,
+                              offsets_matcher(&code, 0, u8"try"))));
+  }
+}
+
 TEST(test_parse, catch_without_body) {
   {
     padded_string code(u8"try {} catch\nlet x = 3;"_sv);

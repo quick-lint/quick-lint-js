@@ -1463,11 +1463,18 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_try);
+    source_code_span try_token_span = this->peek().span();
     this->skip();
 
-    v.visit_enter_block_scope();
-    this->parse_and_visit_statement_block_no_scope(v);
-    v.visit_exit_block_scope();
+    if (this->peek().type == token_type::left_curly) {
+      v.visit_enter_block_scope();
+      this->parse_and_visit_statement_block_no_scope(v);
+      v.visit_exit_block_scope();
+    } else {
+      this->error_reporter_->report(error_missing_body_for_try_statement{
+          .try_token = try_token_span,
+      });
+    }
 
     this->parse_and_visit_maybe_catch_maybe_finally(v);
   }
