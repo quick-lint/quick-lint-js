@@ -3296,6 +3296,23 @@ TEST(test_parse, catch_without_body) {
   }
 }
 
+TEST(test_parse, finally_without_body) {
+  {
+    padded_string code(u8"try {} finally\nlet x = 3;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // (try)
+                                      "visit_exit_block_scope",      // (try)
+                                      "visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_body_for_finally_clause, finally_token,
+                    offsets_matcher(&code, strlen(u8"try {} "), u8"finally"))));
+  }
+}
+
 TEST(test_parse, if_without_else) {
   {
     spy_visitor v = parse_and_visit_statement(u8"if (a) { b; }"_sv);

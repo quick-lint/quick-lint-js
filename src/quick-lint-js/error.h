@@ -396,6 +396,12 @@
       .error(QLJS_TRANSLATABLE("missing body for do-while loop"), do_token))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_body_for_finally_clause, "E121",                           \
+      { source_code_span finally_token; },                                     \
+      .error(QLJS_TRANSLATABLE("missing body for finally clause"),             \
+             finally_token))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_for_statement, "E094",                            \
       { source_code_span for_and_header; },                                    \
       .error(QLJS_TRANSLATABLE("missing body for 'for' loop"),                 \
