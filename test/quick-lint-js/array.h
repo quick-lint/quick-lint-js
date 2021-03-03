@@ -19,9 +19,9 @@
 
 #include <array>
 #include <cstddef>
-#include <quick-lint-js/assert.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
+#include <utility>
 
 namespace quick_lint_js {
 QLJS_WARNING_PUSH
@@ -35,19 +35,21 @@ inline constexpr auto make_array(Args&&... items) {
 
 QLJS_WARNING_POP
 
+template <class T, std::size_t LHSSize, std::size_t RHSSize,
+          std::size_t... LHSIndexes, std::size_t... RHSIndexes>
+inline constexpr std::array<T, LHSSize + RHSSize> concat_impl(
+    const std::array<T, LHSSize>& lhs, std::index_sequence<LHSIndexes...>,
+    const std::array<T, RHSSize>& rhs, std::index_sequence<RHSIndexes...>) {
+  return std::array<T, LHSSize + RHSSize>{lhs[LHSIndexes]...,
+                                          rhs[RHSIndexes]...};
+}
+
 template <class T, std::size_t LHSSize, std::size_t RHSSize>
 inline constexpr std::array<T, LHSSize + RHSSize> concat(
     const std::array<T, LHSSize>& lhs, const std::array<T, RHSSize>& rhs) {
-  std::array<T, LHSSize + RHSSize> result;
-  auto it = result.begin();
-  for (const auto& value : lhs) {
-    *it++ = value;
-  }
-  for (const auto& value : rhs) {
-    *it++ = value;
-  }
-  QLJS_ASSERT(it == result.end());
-  return result;
+  return concat_impl<T, LHSSize, RHSSize>(
+      lhs, std::make_index_sequence<LHSSize>(), rhs,
+      std::make_index_sequence<RHSSize>());
 }
 }
 

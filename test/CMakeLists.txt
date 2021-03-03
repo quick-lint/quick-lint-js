@@ -35,6 +35,7 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
   spy-visitor.cpp
+  test-array.cpp
   test-assert.cpp
   test-bit.cpp
   test-buffering-error-reporter.cpp
