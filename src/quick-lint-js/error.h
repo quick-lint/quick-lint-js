@@ -464,6 +464,11 @@
              source_code_span(left_paren.begin(), right_paren.end())))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_for_loop_header, "E125", { source_code_span for_token; },  \
+      .error(QLJS_TRANSLATABLE("missing header and body for 'for' loop"),      \
+             for_token))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_for_loop_rhs_or_components_after_expression, "E097",       \
       {                                                                        \
         source_code_span header;                                               \

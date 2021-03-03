@@ -4206,6 +4206,37 @@ TEST(test_parse, for_loop_without_body) {
   }
 }
 
+TEST(test_parse, for_loop_without_header) {
+  {
+    padded_string code(u8"for x = y;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // y
+                                      "visit_variable_assignment",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_for_loop_header, for_token,
+                              offsets_matcher(&code, 0, u8"for"))));
+  }
+
+  {
+    padded_string code(u8"{ for } x = y;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",    //
+                                      "visit_exit_block_scope",     //
+                                      "visit_variable_use",         // y
+                                      "visit_variable_assignment",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_for_loop_header, for_token,
+                    offsets_matcher(&code, strlen(u8"{ "), u8"for"))));
+  }
+}
+
 TEST(test_parse, block_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"{ }"_sv);

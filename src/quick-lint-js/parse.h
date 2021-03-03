@@ -1640,7 +1640,12 @@ class parser {
       this->skip();
     }
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+    if (this->peek().type != token_type::left_paren) {
+      this->error_reporter_->report(error_missing_for_loop_header{
+          .for_token = for_token_span,
+      });
+      return;
+    }
     const char8 *left_paren_token_begin = this->peek().begin;
     this->skip();
 
