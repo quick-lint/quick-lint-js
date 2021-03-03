@@ -431,6 +431,17 @@
              while_and_condition))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_catch_or_finally_for_try_statement, "E122",                \
+      {                                                                        \
+        source_code_span expected_catch_or_finally;                            \
+        source_code_span try_token;                                            \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "missing catch or finally clause for try statement"),         \
+             expected_catch_or_finally)                                        \
+          .note(QLJS_TRANSLATABLE("try statement starts here"), try_token))    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_comma_between_object_literal_entries, "E025",              \
       { source_code_span where; },                                             \
       .error(                                                                  \

@@ -407,20 +407,24 @@ class parser {
       break;
 
     // catch (e) { }  // Invalid.
-    case token_type::kw_catch:
+    case token_type::kw_catch: {
       this->error_reporter_->report(error_catch_without_try{
           .catch_token = this->peek().span(),
       });
-      this->parse_and_visit_maybe_catch_maybe_finally(v);
+      bool parsed_catch = this->parse_and_visit_catch_or_finally_or_both(v);
+      QLJS_ASSERT(parsed_catch);
       break;
+    }
 
     // finally { }  // Invalid.
-    case token_type::kw_finally:
+    case token_type::kw_finally: {
       this->error_reporter_->report(error_finally_without_try{
           .finally_token = this->peek().span(),
       });
-      this->parse_and_visit_maybe_catch_maybe_finally(v);
+      bool parsed_finally = this->parse_and_visit_catch_or_finally_or_both(v);
+      QLJS_ASSERT(parsed_finally);
       break;
+    }
 
     // do { } while (can);
     case token_type::kw_do: {
@@ -1466,7 +1470,9 @@ class parser {
     source_code_span try_token_span = this->peek().span();
     this->skip();
 
+    bool parsed_try_body = false;
     if (this->peek().type == token_type::left_curly) {
+      parsed_try_body = true;
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
@@ -1476,12 +1482,27 @@ class parser {
       });
     }
 
-    this->parse_and_visit_maybe_catch_maybe_finally(v);
+    bool parsed_catch_or_finally =
+        this->parse_and_visit_catch_or_finally_or_both(v);
+    if (parsed_try_body && !parsed_catch_or_finally) {
+      const char8 *expected_catch_or_finally =
+          this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(
+          error_missing_catch_or_finally_for_try_statement{
+              .expected_catch_or_finally = source_code_span(
+                  expected_catch_or_finally, expected_catch_or_finally),
+              .try_token = try_token_span,
+          });
+    }
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_maybe_catch_maybe_finally(Visitor &v) {
+  [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(Visitor &v) {
+    bool parsed_catch = false;
+    bool parsed_finally = false;
+
     if (this->peek().type == token_type::kw_catch) {
+      parsed_catch = true;
       source_code_span catch_token_span = this->peek().span();
       this->skip();
 
@@ -1546,7 +1567,9 @@ class parser {
       }
       v.visit_exit_block_scope();
     }
+
     if (this->peek().type == token_type::kw_finally) {
+      parsed_finally = true;
       source_code_span finally_token_span = this->peek().span();
       this->skip();
 
@@ -1560,6 +1583,8 @@ class parser {
         });
       }
     }
+
+    return parsed_catch || parsed_finally;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>

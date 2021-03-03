@@ -3263,6 +3263,27 @@ TEST(test_parse, finally_without_try) {
   }
 }
 
+TEST(test_parse, try_without_catch_or_finally) {
+  {
+    padded_string code(u8"try { tryBody; }\nlet x = 3;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // (try)
+                                      "visit_variable_use",          // tryBody
+                                      "visit_exit_block_scope",      // (try)
+                                      "visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_catch_or_finally_for_try_statement, try_token,
+            offsets_matcher(&code, 0, u8"try"),  //
+            expected_catch_or_finally,
+            offsets_matcher(&code, strlen(u8"try { tryBody; }"), u8""))));
+  }
+}
+
 TEST(test_parse, try_without_body) {
   {
     padded_string code(u8"try\nlet x = 3;"_sv);
