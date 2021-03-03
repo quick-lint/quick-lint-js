@@ -121,6 +121,12 @@
              name))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_declare_variable_with_keyword_name, "E124",                 \
+      { source_code_span keyword; },                                           \
+      .error(QLJS_TRANSLATABLE("cannot declare variable named keyword '{0}'"), \
+             keyword))                                                         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_yield_in_generator_function, "E071",                \
       { identifier name; },                                                    \
       .error(QLJS_TRANSLATABLE(                                                \

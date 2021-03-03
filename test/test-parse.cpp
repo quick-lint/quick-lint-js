@@ -680,17 +680,45 @@ TEST(test_parse, parse_invalid_let) {
   for (string8 keyword :
        {u8"class", u8"const", u8"debugger", u8"export", u8"extends", u8"if",
         u8"import", u8"super", u8"while"}) {
-    padded_string code(u8"let " + keyword);
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unexpected_token_in_variable_declaration, unexpected_token,
-            offsets_matcher(&code, strlen(u8"let "), keyword))));
+    {
+      padded_string code(u8"let " + keyword);
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations, IsEmpty());
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_cannot_declare_variable_with_keyword_name, keyword,
+                      offsets_matcher(&code, strlen(u8"let "), keyword))));
+    }
+
+    {
+      padded_string code(u8"let " + keyword + u8";");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations, IsEmpty());
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_cannot_declare_variable_with_keyword_name, keyword,
+                      offsets_matcher(&code, strlen(u8"let "), keyword))));
+    }
+
+    {
+      padded_string code(u8"let " + keyword + u8" = x;");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations, IsEmpty());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_cannot_declare_variable_with_keyword_name, keyword,
+                      offsets_matcher(&code, strlen(u8"let "), keyword))));
+    }
   }
 
   {

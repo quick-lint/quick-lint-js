@@ -2349,6 +2349,8 @@ class parser {
             v, declaration_kind, /*allow_in_operator=*/allow_in_operator);
         break;
 
+      // let switch = 3;  // Invalid.
+      // let if (x) {}    // Invalid.
       case token_type::kw_break:
       case token_type::kw_class:
       case token_type::kw_const:
@@ -2363,16 +2365,48 @@ class parser {
       case token_type::kw_super:
       case token_type::kw_true:
       case token_type::kw_void:
-      case token_type::kw_while:
-      case token_type::number:
-        if (this->peek().has_leading_newline) {
-          this->error_reporter_->report(error_let_with_no_bindings{let_span});
-        } else {
+      case token_type::kw_while: {
+        source_code_span keyword_span = this->peek().span();
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+        this->skip();
+
+        switch (this->peek().type) {
+        // let switch = 3;  // Invalid.
+        case token_type::end_of_file:
+        case token_type::equal:
+        case token_type::semicolon:
+          this->lexer_.commit_transaction(std::move(transaction));
           this->error_reporter_->report(
-              error_unexpected_token_in_variable_declaration{
-                  this->peek().span()});
-          this->lexer_.insert_semicolon();
+              error_cannot_declare_variable_with_keyword_name{
+                  .keyword = keyword_span,
+              });
+          this->skip();
+          this->parse_and_visit_expression(
+              v, precedence{.commas = false, .in_operator = allow_in_operator});
+          break;
+
+        // let if (x) {}    // Invalid.
+        default:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          if (this->peek().has_leading_newline) {
+            this->error_reporter_->report(error_let_with_no_bindings{let_span});
+          } else {
+            this->error_reporter_->report(
+                error_unexpected_token_in_variable_declaration{keyword_span});
+            this->lexer_.insert_semicolon();
+          }
+          break;
         }
+        break;
+      }
+
+      // let 42;  // Invalid.
+      case token_type::number:
+        this->error_reporter_->report(
+            error_unexpected_token_in_variable_declaration{
+                .unexpected_token = this->peek().span(),
+            });
+        this->lexer_.insert_semicolon();
         break;
 
       QLJS_CASE_BINARY_ONLY_OPERATOR:
