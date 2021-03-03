@@ -209,7 +209,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_expected_left_curly, "E107",                                       \
       { source_code_span expected_left_curly; },                               \
-      .error(QLJS_TRANSLATABLE("expected '{'"), expected_left_curly))          \
+      .error(QLJS_TRANSLATABLE("expected '{{'"), expected_left_curly))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_do_while_condition, "E084",            \
@@ -558,7 +558,7 @@
       { source_code_span export_token; },                                      \
       .error(QLJS_TRANSLATABLE(                                                \
                  "incomplete export; expected 'export default ...' or "        \
-                 "'export {name}' or 'export * from ...' or 'export class' "   \
+                 "'export {{name}' or 'export * from ...' or 'export class' "  \
                  "or 'export function' or 'export let'"),                      \
              export_token))                                                    \
                                                                                \
@@ -778,7 +778,7 @@
       { source_code_span unexpected_token; },                                  \
       .error(QLJS_TRANSLATABLE(                                                \
                  "unexpected token in export; expected 'export default ...' "  \
-                 "or 'export {name}' or 'export * from ...' or 'export "       \
+                 "or 'export {{name}' or 'export * from ...' or 'export "      \
                  "class' or 'export function' or 'export let'"),               \
              unexpected_token))                                                \
                                                                                \
