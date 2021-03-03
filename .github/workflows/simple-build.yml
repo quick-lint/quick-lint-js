@@ -28,7 +28,7 @@ jobs:
       matrix:
         toolchain:
           - {runs_on: macos-10.15, name: "macOS Clang", CXX: clang++, CXXFLAGS: "-std=gnu++17 -O2"}
-          - {runs_on: ubuntu-latest, name: "Linux Clang 9 libc++", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libc++ -O2"}
+          - {runs_on: ubuntu-18.04, name: "Linux Clang 9 libc++", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libc++ -O2"}
           - {runs_on: ubuntu-latest, name: "Linux Clang 9 libstdc++", CXX: clang++-9, CXXFLAGS: "-std=gnu++17 -stdlib=libstdc++ -O2"}
           - {runs_on: ubuntu-latest, name: "Linux GCC 8", CXX: g++-8, CXXFLAGS: "-std=gnu++17 -O2"}
     runs-on: ${{ matrix.toolchain.runs_on }}
