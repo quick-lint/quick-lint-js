@@ -5521,5 +5521,19 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
                               offsets_matcher(&code, 0, u8"!"))));
   }
 }
+
+TEST(test_parse, statement_starting_with_extends) {
+  {
+    padded_string code(u8"extends Base"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // Base
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_token, token,
+                              offsets_matcher(&code, 0, u8"extends"))));
+  }
+}
 }
 }
