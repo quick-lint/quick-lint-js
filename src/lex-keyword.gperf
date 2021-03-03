@@ -63,6 +63,7 @@ default,    token_type::kw_default
 delete,     token_type::kw_delete
 do,         token_type::kw_do
 else,       token_type::kw_else
+enum,       token_type::kw_enum
 export,     token_type::kw_export
 extends,    token_type::kw_extends
 false,      token_type::kw_false

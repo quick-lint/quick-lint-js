@@ -42,6 +42,7 @@
   case ::quick_lint_js::token_type::kw_delete:         \
   case ::quick_lint_js::token_type::kw_do:             \
   case ::quick_lint_js::token_type::kw_else:           \
+  case ::quick_lint_js::token_type::kw_enum:           \
   case ::quick_lint_js::token_type::kw_export:         \
   case ::quick_lint_js::token_type::kw_extends:        \
   case ::quick_lint_js::token_type::kw_false:          \
@@ -135,6 +136,7 @@ enum class token_type {
   kw_delete,
   kw_do,
   kw_else,
+  kw_enum,
   kw_export,
   kw_extends,
   kw_false,

@@ -1711,6 +1711,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(kw_delete)
     QLJS_CASE(kw_do)
     QLJS_CASE(kw_else)
+    QLJS_CASE(kw_enum)
     QLJS_CASE(kw_export)
     QLJS_CASE(kw_extends)
     QLJS_CASE(kw_false)

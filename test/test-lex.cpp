@@ -1436,6 +1436,7 @@ TEST_F(test_lex, lex_keywords) {
   this->check_tokens(u8"delete"_sv, {token_type::kw_delete});
   this->check_tokens(u8"do"_sv, {token_type::kw_do});
   this->check_tokens(u8"else"_sv, {token_type::kw_else});
+  this->check_tokens(u8"enum"_sv, {token_type::kw_enum});
   this->check_tokens(u8"export"_sv, {token_type::kw_export});
   this->check_tokens(u8"extends"_sv, {token_type::kw_extends});
   this->check_tokens(u8"false"_sv, {token_type::kw_false});
