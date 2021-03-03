@@ -1475,6 +1475,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_maybe_catch_maybe_finally(Visitor &v) {
     if (this->peek().type == token_type::kw_catch) {
+      source_code_span catch_token_span = this->peek().span();
       this->skip();
 
       v.visit_enter_block_scope();
@@ -1528,7 +1529,14 @@ class parser {
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
         this->skip();
       }
-      this->parse_and_visit_statement_block_no_scope(v);
+
+      if (this->peek().type == token_type::left_curly) {
+        this->parse_and_visit_statement_block_no_scope(v);
+      } else {
+        this->error_reporter_->report(error_missing_body_for_catch_clause{
+            .catch_token = catch_token_span,
+        });
+      }
       v.visit_exit_block_scope();
     }
     if (this->peek().type == token_type::kw_finally) {
