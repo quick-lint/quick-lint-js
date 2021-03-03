@@ -2379,7 +2379,6 @@ class parser {
       case token_type::comma:
       case token_type::complete_template:
       case token_type::dot:
-      case token_type::equal:
       case token_type::equal_greater:
       case token_type::incomplete_template:
       case token_type::kw_in:
@@ -2392,6 +2391,16 @@ class parser {
       case token_type::semicolon:
       case token_type::slash:
         QLJS_PARSER_UNIMPLEMENTED();
+        break;
+
+      case token_type::equal:
+        this->error_reporter_->report(
+            error_missing_variable_name_in_declaration{
+                .equal_token = this->peek().span(),
+            });
+        this->skip();
+        this->parse_and_visit_expression(
+            v, precedence{.commas = false, .in_operator = allow_in_operator});
         break;
 
       default:

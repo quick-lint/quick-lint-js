@@ -568,6 +568,11 @@
       .error(QLJS_TRANSLATABLE("missing value for object property"), key))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_variable_name_in_declaration, "E123",                      \
+      { source_code_span equal_token; },                                       \
+      .error(QLJS_TRANSLATABLE("missing variable name"), equal_token))         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_while_and_condition_for_do_while_statement, "E103",        \
       {                                                                        \
         source_code_span do_token;                                             \

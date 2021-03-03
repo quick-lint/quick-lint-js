@@ -790,6 +790,27 @@ TEST(test_parse, parse_invalid_let) {
             error_unexpected_token_in_variable_declaration, unexpected_token,
             offsets_matcher(&code, strlen(u8"let "), u8"true"))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"const = y, z = w, = x;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_use",          // w
+                                      "visit_variable_declaration",  // z
+                                      "visit_variable_use",          // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(
+                        error_missing_variable_name_in_declaration, equal_token,
+                        offsets_matcher(&code, strlen(u8"const "), u8"=")),
+                    ERROR_TYPE_FIELD(
+                        error_missing_variable_name_in_declaration, equal_token,
+                        offsets_matcher(&code, strlen(u8"const = y, z = w, "),
+                                        u8"="))));
+  }
 }
 
 TEST(test_parse, parse_and_visit_import) {
