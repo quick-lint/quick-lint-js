@@ -508,6 +508,15 @@ class parser {
       this->consume_semicolon();
       break;
 
+    // enum E { a, b, c }  // TypeScript.
+    case token_type::kw_enum: {
+      this->error_reporter_->report(error_typescript_enum_not_implemented{
+          .enum_keyword = this->peek().span(),
+      });
+      this->skip();
+      break;
+    }
+
     // { statement; statement; }
     case token_type::left_curly:
       v.visit_enter_block_scope();

@@ -826,5 +826,20 @@ TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
   }
 }
 
+TEST(test_parse, enum_statement_not_yet_implemented) {
+  {
+    spy_visitor v;
+    padded_string code(u8"enum\nlet x = y;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_typescript_enum_not_implemented, enum_keyword,
+                    offsets_matcher(&code, 0, u8"enum"))));
+  }
+}
 }
 }

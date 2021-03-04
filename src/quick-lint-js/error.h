@@ -656,6 +656,13 @@
       .error(QLJS_TRANSLATABLE("stray comma in let statement"), where))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_typescript_enum_not_implemented, "E127",                           \
+      { source_code_span enum_keyword; },                                      \
+      .error(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "       \
+                               "implemented by quick-lint-js"),                \
+             enum_keyword))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_block_comment, "E037",                                    \
       { source_code_span comment_open; },                                      \
       .error(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))       \

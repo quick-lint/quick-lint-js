@@ -936,6 +936,21 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
                               error_missing_operand_for_operator, where,
                               offsets_matcher(&code, 0, u8"!"))));
   }
+
+  {
+    padded_string code(u8"!\nenum"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                                     offsets_matcher(&code, 0, u8"!")),
+                    ERROR_TYPE_FIELD(
+                        error_typescript_enum_not_implemented, enum_keyword,
+                        offsets_matcher(&code, strlen(u8"!\n"), u8"enum"))));
+  }
 }
 }
 }

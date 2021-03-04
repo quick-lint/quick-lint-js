@@ -472,6 +472,7 @@ expression* parser::parse_expression(precedence prec) {
   }
 
   case token_type::comma:
+  case token_type::kw_enum:
   case token_type::kw_for:
   case token_type::kw_if:
   case token_type::kw_return:
@@ -887,6 +888,7 @@ next:
   case token_type::kw_delete:
   case token_type::kw_do:
   case token_type::kw_else:
+  case token_type::kw_enum:
   case token_type::kw_export:
   case token_type::kw_false:
   case token_type::kw_for:
