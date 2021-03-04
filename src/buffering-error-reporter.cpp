@@ -18,16 +18,30 @@
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/unreachable.h>
-#include <variant>
+#include <type_traits>
 #include <vector>
 
 namespace quick_lint_js {
 struct buffering_error_reporter::impl {
-  using any_error = std::variant<std::monostate
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) , name
-                                     QLJS_X_ERROR_TYPES
+  struct any_error {
+    enum class error_kind {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format) name,
+      QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-                                 >;
+    };
+
+    union underlying_error {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format)             \
+  ::quick_lint_js::name name;                                        \
+  static_assert(std::is_trivially_copyable_v<::quick_lint_js::name>, \
+                #name " should be trivially copyable");
+      QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+    };
+
+    error_kind kind;
+    underlying_error error;
+  };
 
   std::vector<any_error> errors_;
 };
@@ -45,7 +59,10 @@ buffering_error_reporter::~buffering_error_reporter() = default;
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
   void buffering_error_reporter::report(name error) {    \
-    this->impl_->errors_.emplace_back(std::move(error)); \
+    this->impl_->errors_.push_back(impl::any_error{      \
+        .kind = impl::any_error::error_kind::name,       \
+        .error = {.name = error},                        \
+    });                                                  \
   }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -57,19 +74,15 @@ void buffering_error_reporter::report_fatal_error_unimplemented_token(
     const char *, int, const char *, token_type, const char8 *) {}
 
 void buffering_error_reporter::move_into(error_reporter *other) {
-  struct error_visitor {
-    [[noreturn]] void operator()(std::monostate) { QLJS_UNREACHABLE(); }
-
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void operator()(const name &error) { this->other->report(error); }
-    QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-    error_reporter *other;
-  };
-
   for (impl::any_error &error : this->impl_->errors_) {
-    std::visit(error_visitor{other}, error);
+    switch (error.kind) {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
+  case impl::any_error::error_kind::name:                \
+    other->report(error.error.name);                     \
+    break;
+      QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+    }
   }
 }
 }
