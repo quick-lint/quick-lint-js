@@ -23,6 +23,7 @@ quick_lint_js_add_executable(
   error-collector.cpp
   error-matcher.cpp
   parse-json.cpp
+  parse-support.cpp
   pipe.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h

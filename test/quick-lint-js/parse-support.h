@@ -29,6 +29,11 @@
 #include <vector>
 
 namespace quick_lint_js {
+extern template void parser::parse_and_visit_module<spy_visitor>(
+    spy_visitor &v);
+extern template bool parser::parse_and_visit_statement<spy_visitor>(
+    spy_visitor &v);
+
 namespace {
 inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
   padded_string code(raw_code);
