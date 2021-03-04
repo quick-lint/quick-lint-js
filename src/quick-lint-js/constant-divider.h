@@ -18,7 +18,6 @@
 #define QUICK_LINT_JS_CONSTANT_DIVIDER_H
 
 #include <cassert>
-#include <cmath>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/bit.h>

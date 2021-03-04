@@ -17,7 +17,6 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
