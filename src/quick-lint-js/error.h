@@ -216,6 +216,12 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_from_before_module_specifier, "E128",                     \
+      { source_code_span module_specifier; },                                  \
+      .error(QLJS_TRANSLATABLE("expected 'from' before module specifier"),     \
+             module_specifier))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_hex_digits_in_unicode_escape, "E016",                     \
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATABLE(                                                \

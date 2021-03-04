@@ -496,6 +496,21 @@ TEST(test_parse, import_star_without_as_keyword) {
   }
 }
 
+TEST(test_parse, import_without_from_keyword) {
+  {
+    padded_string code(u8"import { x } 'other';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_from_before_module_specifier, module_specifier,
+            offsets_matcher(&code, strlen(u8"import { x } "), u8"'other'"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // x
+  }
+}
+
 TEST(test_parse, export_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);

@@ -2173,10 +2173,21 @@ class parser {
       break;
     }
 
-    if (this->peek().type != token_type::kw_from) {
+    switch (this->peek().type) {
+    case token_type::kw_from:
+      this->skip();
+      break;
+
+    case token_type::string:
+      this->error_reporter_->report(error_expected_from_before_module_specifier{
+          .module_specifier = this->peek().span(),
+      });
+      break;
+
+    default:
       QLJS_PARSER_UNIMPLEMENTED();
+      break;
     }
-    this->skip();
 
     if (this->peek().type != token_type::string) {
       QLJS_PARSER_UNIMPLEMENTED();
