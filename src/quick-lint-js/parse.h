@@ -274,6 +274,7 @@ class parser {
     case token_type::kw_false:
     case token_type::kw_from:
     case token_type::kw_get:
+    case token_type::kw_in:
     case token_type::kw_new:
     case token_type::kw_null:
     case token_type::kw_of:

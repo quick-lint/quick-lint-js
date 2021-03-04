@@ -436,7 +436,8 @@ expression* parser::parse_expression(precedence prec) {
 
   QLJS_CASE_BINARY_ONLY_OPERATOR:
   case token_type::dot:
-  case token_type::equal: {
+  case token_type::equal:
+  case token_type::kw_in: {
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (!prec.binary_operators) {
