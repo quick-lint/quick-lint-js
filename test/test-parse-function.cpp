@@ -160,10 +160,9 @@ TEST(test_parse, function_statement_with_no_name) {
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_name_in_function_statement, where,
-                    offsets_matcher(&code, 0, strlen(u8"function(")))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_name_in_function_statement, where,
+                              offsets_matcher(&code, 0, u8"function("))));
   }
 
   {
@@ -201,8 +200,7 @@ TEST(test_parse, function_statement_with_no_name) {
             error_missing_name_or_parentheses_for_function,  //
             where,
             offsets_matcher(&code, strlen(u8"async "), u8"function("),  //
-            function,
-            offsets_matcher(&code, 0, strlen(u8"async function(x) {y;}")))));
+            function, offsets_matcher(&code, 0, u8"async function(x) {y;}"))));
   }
 }
 
