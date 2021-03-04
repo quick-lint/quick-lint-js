@@ -42,6 +42,7 @@ namespace {
 TEST(test_parse, statement_starting_with_invalid_token) {
   for (string8_view token : {
            u8":",
+           u8"?",
        }) {
     padded_string code(string8(token) + u8" x");
     SCOPED_TRACE(code);

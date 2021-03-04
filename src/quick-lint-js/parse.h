@@ -552,6 +552,7 @@ class parser {
 
     case token_type::colon:
     case token_type::kw_extends:
+    case token_type::question:
       this->error_reporter_->report(error_unexpected_token{
           .token = this->peek().span(),
       });
