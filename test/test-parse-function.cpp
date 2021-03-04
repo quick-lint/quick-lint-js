@@ -523,5 +523,23 @@ TEST(test_parse, function_statement_without_name_or_parameter_list_or_body) {
                     offsets_matcher(&code, strlen(u8"{ "), u8"function"))));
   }
 }
+
+TEST(test_parse, arrow_function_without_parameter_list) {
+  {
+    padded_string code(u8"=> x + y"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_arrow_function_parameter_list,
+                              arrow, offsets_matcher(&code, 0, u8"=>"))));
+  }
+}
 }
 }

@@ -268,6 +268,7 @@ class parser {
     case token_type::complete_template:
     case token_type::dot:
     case token_type::equal:
+    case token_type::equal_greater:
     case token_type::incomplete_template:
     case token_type::kw_as:
     case token_type::kw_delete:
