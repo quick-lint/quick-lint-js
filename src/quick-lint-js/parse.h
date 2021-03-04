@@ -1525,6 +1525,7 @@ class parser {
 
       v.visit_enter_block_scope();
       if (this->peek().type == token_type::left_paren) {
+        source_code_span catch_left_paren_span = this->peek().span();
         this->skip();
 
         switch (this->peek().type) {
@@ -1565,6 +1566,14 @@ class parser {
         case token_type::left_square:
           this->parse_and_visit_binding_element(v, variable_kind::_catch,
                                                 /*allow_in_operator=*/false);
+          break;
+
+        case token_type::right_paren:
+          this->error_reporter_->report(
+              error_missing_catch_variable_between_parentheses{
+                  .left_paren = catch_left_paren_span,
+                  .right_paren = this->peek().span(),
+              });
           break;
 
         default:

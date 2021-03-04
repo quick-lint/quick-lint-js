@@ -470,6 +470,16 @@
           .note(QLJS_TRANSLATABLE("try statement starts here"), try_token))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_catch_variable_between_parentheses, "E130",                \
+      {                                                                        \
+        source_code_span left_paren;                                           \
+        source_code_span right_paren;                                          \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "missing catch variable name between parentheses"),           \
+             source_code_span(left_paren.begin(), right_paren.end())))         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_comma_between_object_literal_entries, "E025",              \
       { source_code_span where; },                                             \
       .error(                                                                  \
