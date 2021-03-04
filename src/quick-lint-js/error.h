@@ -216,6 +216,12 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_from_and_module_specifier, "E129",                        \
+      { source_code_span where; },                                             \
+      .error(QLJS_TRANSLATABLE("expected 'from \"name_of_module.mjs\"'"),      \
+             where))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_from_before_module_specifier, "E128",                     \
       { source_code_span module_specifier; },                                  \
       .error(QLJS_TRANSLATABLE("expected 'from' before module specifier"),     \

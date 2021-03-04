@@ -2184,9 +2184,13 @@ class parser {
       });
       break;
 
-    default:
-      QLJS_PARSER_UNIMPLEMENTED();
-      break;
+    default: {
+      const char8 *where = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(error_expected_from_and_module_specifier{
+          .where = source_code_span(where, where),
+      });
+      return;
+    }
     }
 
     if (this->peek().type != token_type::string) {

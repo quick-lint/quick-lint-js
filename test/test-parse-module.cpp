@@ -509,6 +509,18 @@ TEST(test_parse, import_without_from_keyword) {
             offsets_matcher(&code, strlen(u8"import { x } "), u8"'other'"))));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // x
   }
+
+  {
+    padded_string code(u8"import { x } ;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_expected_from_and_module_specifier, where,
+                    offsets_matcher(&code, strlen(u8"import { x }"), u8""))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // x
+  }
 }
 
 TEST(test_parse, export_function) {
