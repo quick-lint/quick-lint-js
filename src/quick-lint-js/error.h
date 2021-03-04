@@ -195,6 +195,16 @@
              comma))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_as_before_imported_namespace_alias, "E126",               \
+      {                                                                        \
+        source_code_span alias;                                                \
+        source_code_span star_token;                                           \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("expected 'as' between '{1}' and '{2}'"),       \
+             source_code_span(star_token.begin(), alias.end()), star_token,    \
+             alias))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_before_newline, "E014",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("expected expression before newline"), where))  \

@@ -2190,12 +2190,27 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_name_space_import(Visitor &v) {
+    QLJS_ASSERT(this->peek().type == token_type::star);
+    source_code_span star_span = this->peek().span();
     this->skip();
 
-    if (this->peek().type != token_type::kw_as) {
+    switch (this->peek().type) {
+    case token_type::kw_as:
+      this->skip();
+      break;
+
+    case token_type::identifier:
+      this->error_reporter_->report(
+          error_expected_as_before_imported_namespace_alias{
+              .alias = this->peek().span(),
+              .star_token = star_span,
+          });
+      break;
+
+    default:
       QLJS_PARSER_UNIMPLEMENTED();
+      break;
     }
-    this->skip();
 
     switch (this->peek().type) {
     case token_type::kw_let:

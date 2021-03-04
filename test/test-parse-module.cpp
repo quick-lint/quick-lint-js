@@ -478,6 +478,24 @@ TEST(test_parse, parse_and_visit_import) {
   }
 }
 
+TEST(test_parse, import_star_without_as_keyword) {
+  {
+    padded_string code(u8"import * myExport from 'other';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_as_before_imported_namespace_alias, star_token,
+            offsets_matcher(&code, strlen(u8"import "), u8"*"),  //
+            alias,
+            offsets_matcher(&code, strlen(u8"import * "), u8"myExport"))));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration"));  // myExport
+  }
+}
+
 TEST(test_parse, export_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);
