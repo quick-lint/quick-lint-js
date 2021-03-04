@@ -505,5 +505,23 @@ TEST(test_parse, arrow_functions_allow_trailing_commas_in_parameter_list) {
                                       "visit_exit_function_scope"));
   }
 }
+
+TEST(test_parse, function_statement_without_name_or_parameter_list_or_body) {
+  {
+    padded_string code(u8"{ function } x = y;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",    //
+                                      "visit_exit_block_scope",     //
+                                      "visit_variable_use",         // y
+                                      "visit_variable_assignment",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_name_in_function_statement, where,
+                    offsets_matcher(&code, strlen(u8"{ "), u8"function"))));
+  }
+}
 }
 }

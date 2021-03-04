@@ -1047,8 +1047,11 @@ class parser {
       }
       break;
 
+    // { function }  // Invalid.
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      this->error_reporter_->report(error_missing_name_in_function_statement{
+          .where = function_token_span,
+      });
       break;
     }
   }
