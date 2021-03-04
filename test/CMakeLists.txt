@@ -30,6 +30,7 @@ quick_lint_js_add_executable(
   quick-lint-js/error-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
+  quick-lint-js/parse-support.h
   quick-lint-js/pipe.h
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
@@ -66,7 +67,14 @@ quick_lint_js_add_executable(
   test-narrow-cast.cpp
   test-options.cpp
   test-padded-string.cpp
+  test-parse-class.cpp
+  test-parse-expression-statement.cpp
   test-parse-expression.cpp
+  test-parse-function.cpp
+  test-parse-loop.cpp
+  test-parse-module.cpp
+  test-parse-statement.cpp
+  test-parse-var.cpp
   test-parse.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
