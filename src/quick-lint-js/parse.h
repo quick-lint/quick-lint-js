@@ -2416,6 +2416,8 @@ class parser {
           break;
 
         case token_type::identifier:
+        case token_type::left_curly:
+        case token_type::left_square:
           if (this->peek().has_leading_newline) {
             // Caller will insert our semicolon if needed.
             return;
@@ -2468,10 +2470,14 @@ class parser {
         expression *variable = this->make_expression<expression::variable>(
             this->peek().identifier_name(), this->peek().type);
         this->skip();
-        expression *ast = this->parse_expression_remainder(
-            variable,
-            precedence{.commas = false, .in_operator = allow_in_operator});
-        this->visit_binding_element(ast, v, declaration_kind);
+        if (this->peek().type == token_type::equal) {
+          expression *ast = this->parse_expression_remainder(
+              variable,
+              precedence{.commas = false, .in_operator = allow_in_operator});
+          this->visit_binding_element(ast, v, declaration_kind);
+        } else {
+          this->visit_binding_element(variable, v, declaration_kind);
+        }
         break;
       }
 

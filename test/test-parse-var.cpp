@@ -449,6 +449,29 @@ TEST(test_parse, parse_invalid_let) {
                 expected_comma,
                 offsets_matcher(&code, strlen(u8"let x y = z"), u8""))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x [y]=ys {z}=zs"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // ys
+                                      "visit_variable_declaration",  // y
+                                      "visit_variable_use",          // zs
+                                      "visit_variable_declaration",  // z
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(error_missing_comma_between_variable_declarations,
+                             expected_comma,
+                             offsets_matcher(&code, strlen(u8"let x"), u8"")),
+            ERROR_TYPE_FIELD(
+                error_missing_comma_between_variable_declarations,
+                expected_comma,
+                offsets_matcher(&code, strlen(u8"let x [y]=ys"), u8""))));
+  }
 }
 
 TEST(test_parse, report_missing_semicolon_for_declarations) {
