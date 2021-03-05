@@ -2409,11 +2409,30 @@ class parser {
     for (;;) {
       std::optional<source_code_span> comma_span = std::nullopt;
       if (!first_binding) {
-        if (this->peek().type != token_type::comma) {
+        switch (this->peek().type) {
+        case token_type::comma:
+          comma_span = this->peek().span();
+          this->skip();
           break;
+
+        case token_type::identifier:
+          if (this->peek().has_leading_newline) {
+            // Caller will insert our semicolon if needed.
+            return;
+          } else {
+            // let x y
+            const char8 *here = this->lexer_.end_of_previous_token();
+            this->error_reporter_->report(
+                error_missing_comma_between_variable_declarations{
+                    .expected_comma = source_code_span(here, here),
+                });
+          }
+          break;
+
+        default:
+          // Caller will insert our semicolon if needed.
+          return;
         }
-        comma_span = this->peek().span();
-        this->skip();
       }
 
       switch (this->peek().type) {

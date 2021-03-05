@@ -493,6 +493,12 @@
           where))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_comma_between_variable_declarations, "E132",               \
+      { source_code_span expected_comma; },                                    \
+      .error(QLJS_TRANSLATABLE("missing ',' between variable declarations"),   \
+             expected_comma))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_expression_between_parentheses, "E078",                    \
       {                                                                        \
         source_code_span left_paren;                                           \

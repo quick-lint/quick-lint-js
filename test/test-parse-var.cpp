@@ -106,6 +106,15 @@ TEST(test_parse, parse_simple_const) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
+TEST(test_parse, let_asi) {
+  {
+    spy_visitor v = parse_and_visit_module(u8"let x\ny"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // y
+                                      "visit_end_of_module"));
+  }
+}
+
 TEST(test_parse, parse_let_with_initializers) {
   {
     spy_visitor v = parse_and_visit_statement(u8"let x = 2"_sv);
@@ -417,6 +426,28 @@ TEST(test_parse, parse_invalid_let) {
                         error_missing_variable_name_in_declaration, equal_token,
                         offsets_matcher(&code, strlen(u8"const = y, z = w, "),
                                         u8"="))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x y = z w"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // z
+                                      "visit_variable_declaration",  // y
+                                      "visit_variable_declaration",  // z
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(error_missing_comma_between_variable_declarations,
+                             expected_comma,
+                             offsets_matcher(&code, strlen(u8"let x"), u8"")),
+            ERROR_TYPE_FIELD(
+                error_missing_comma_between_variable_declarations,
+                expected_comma,
+                offsets_matcher(&code, strlen(u8"let x y = z"), u8""))));
   }
 }
 

@@ -35,6 +35,15 @@ extern template bool parser::parse_and_visit_statement<spy_visitor>(
     spy_visitor &v);
 
 namespace {
+inline spy_visitor parse_and_visit_module(string8_view raw_code) {
+  padded_string code(raw_code);
+  spy_visitor v;
+  parser p(&code, &v);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.errors, ::testing::IsEmpty());
+  return v;
+}
+
 inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;
