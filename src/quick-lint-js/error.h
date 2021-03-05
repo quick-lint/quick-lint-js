@@ -205,6 +205,12 @@
              alias))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_comma_to_separate_object_literal_entries, "E131",         \
+      { source_code_span unexpected_token; },                                  \
+      .error(QLJS_TRANSLATABLE("expected ',' between object literal entries"), \
+             unexpected_token))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_before_newline, "E014",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("expected expression before newline"), where))  \

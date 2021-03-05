@@ -1749,6 +1749,63 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                     error_missing_value_for_object_literal_entry, key,
                     offsets_matcher(p.code(), strlen(u8"{ "), u8"[x]"))));
   }
+
+  {
+    test_parser p(u8"{ key: value; other: second }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "object(literal, var value, literal, var second)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_comma_to_separate_object_literal_entries,
+            unexpected_token,
+            offsets_matcher(p.code(), strlen(u8"{ key: value"), u8";"))));
+  }
+
+  {
+    test_parser p(u8"{ first; get; set; async; }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "object(literal, var first, literal, var get, "
+              "literal, var set, literal, var async)");
+    EXPECT_THAT(
+        p.errors(),
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first"), u8";")),
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first; get"), u8";")),
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first; get; set"),
+                                u8";")),
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first; get; set; async"),
+                                u8";"))));
+  }
+
+  {
+    test_parser p(u8"{ [key]; other }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var key, ?, literal, var other)");
+    EXPECT_THAT(p.errors(),
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(
+                        error_expected_comma_to_separate_object_literal_entries,
+                        unexpected_token,
+                        offsets_matcher(p.code(), strlen(u8"{ [key]"), u8";")),
+                    ERROR_TYPE_FIELD(
+                        error_missing_value_for_object_literal_entry, key,
+                        offsets_matcher(p.code(), strlen(u8"{ "), u8"[key]"))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_comma_expression) {

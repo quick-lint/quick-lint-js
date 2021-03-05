@@ -1050,6 +1050,15 @@ expression* parser::parse_object_literal() {
       expect_comma_or_end = false;
       continue;
     }
+    if (this->peek().type == token_type::semicolon) {
+      this->error_reporter_->report(
+          error_expected_comma_to_separate_object_literal_entries{
+              .unexpected_token = this->peek().span(),
+          });
+      this->skip();
+      expect_comma_or_end = false;
+      continue;
+    }
     if (expect_comma_or_end) {
       const char8* comma_location = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(
@@ -1065,6 +1074,7 @@ expression* parser::parse_object_literal() {
     case token_type::comma:
     case token_type::end_of_file:
     case token_type::right_curly:
+    case token_type::semicolon:
       QLJS_ASSERT(false);
       break;
 
@@ -1098,7 +1108,8 @@ expression* parser::parse_object_literal() {
 
       single_token_key_and_value:
       case token_type::comma:
-      case token_type::right_curly: {
+      case token_type::right_curly:
+      case token_type::semicolon: {
         // Name and value are the same: {keyandvalue}
 
         switch (key_type) {
@@ -1316,7 +1327,8 @@ expression* parser::parse_object_literal() {
 
       // { get }
       case token_type::comma:
-      case token_type::right_curly: {
+      case token_type::right_curly:
+      case token_type::semicolon: {
         expression* key =
             this->make_expression<expression::literal>(keyword_span);
         expression* value = this->make_expression<expression::variable>(
@@ -1348,7 +1360,8 @@ expression* parser::parse_object_literal() {
         break;
 
       case token_type::comma:
-      case token_type::right_curly: {
+      case token_type::right_curly:
+      case token_type::semicolon: {
         source_code_span key_span(left_square_span.begin(),
                                   this->lexer_.end_of_previous_token());
         expression* value =
