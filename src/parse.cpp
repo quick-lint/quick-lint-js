@@ -990,7 +990,11 @@ expression* parser::parse_function_expression(function_attributes attributes,
   }
   buffering_visitor* v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_function_parameters_and_body_no_scope(
-      *v, /*name=*/function_name, attributes);
+      *v,
+      /*name=*/function_name.has_value()
+          ? std::optional<source_code_span>(function_name->span())
+          : std::nullopt,
+      attributes);
   const char8* span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(

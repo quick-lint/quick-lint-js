@@ -1004,7 +1004,7 @@ class parser {
       this->skip();
 
       this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/function_name, attributes);
+          v, /*name=*/function_name.span(), attributes);
       break;
     }
 
@@ -1073,7 +1073,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body(
-      Visitor &v, std::optional<identifier> name,
+      Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes) {
     v.visit_enter_function_scope();
     this->parse_and_visit_function_parameters_and_body_no_scope(v, name,
@@ -1083,7 +1083,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body_no_scope(
-      Visitor &v, std::optional<identifier> name,
+      Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes) {
     function_guard guard = this->enter_function(attributes);
 
@@ -1095,7 +1095,7 @@ class parser {
       // (e.g. function* f*() {}).
       this->error_reporter_->report(
           error_generator_function_star_belongs_before_name{
-              .function_name = name->span(),
+              .function_name = *name,
               .star = this->peek().span(),
           });
       this->skip();
@@ -1121,7 +1121,7 @@ class parser {
         QLJS_PARSER_UNIMPLEMENTED();
       }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .function_name = name->span(),
+          .function_name = *name,
       });
       break;
 
@@ -1397,7 +1397,7 @@ class parser {
       case token_type::left_paren:
         v.visit_property_declaration(method_name);
         this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/method_name, method_attributes);
+            v, /*name=*/method_name.span(), method_attributes);
         break;
 
       case token_type::identifier:
@@ -1443,9 +1443,9 @@ class parser {
     case token_type::left_paren:
       if (last_ident.has_value()) {
         v.visit_property_declaration(*last_ident);
-        this->parse_and_visit_function_parameters_and_body(v,
-                                                           /*name=*/*last_ident,
-                                                           method_attributes);
+        this->parse_and_visit_function_parameters_and_body(
+            v,
+            /*name=*/last_ident->span(), method_attributes);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -1460,9 +1460,9 @@ class parser {
         // function() {}
         identifier method_name = function_token.identifier_name();
         v.visit_property_declaration(method_name);
-        this->parse_and_visit_function_parameters_and_body(v,
-                                                           /*name=*/method_name,
-                                                           method_attributes);
+        this->parse_and_visit_function_parameters_and_body(
+            v,
+            /*name=*/method_name.span(), method_attributes);
         break;
       } else {
         // function f() {}  // Invalid.
