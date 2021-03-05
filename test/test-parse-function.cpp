@@ -544,7 +544,7 @@ TEST(test_parse, arrow_function_without_parameter_list) {
 
 TEST(test_parse, generator_function_with_misplaced_star) {
   {
-    padded_string code(u8"function f*(x) {body;}"_sv);
+    padded_string code(u8"function f*(x) { yield x; }"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -552,7 +552,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
                                       "visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // x
                                       "visit_enter_function_scope_body",  //
-                                      "visit_variable_use",  // body
+                                      "visit_variable_use",               // x
                                       "visit_exit_function_scope"));
     EXPECT_THAT(
         v.errors,
