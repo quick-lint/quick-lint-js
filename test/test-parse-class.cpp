@@ -445,5 +445,27 @@ TEST(test_parse, class_statement_allows_stray_semicolons) {
   EXPECT_EQ(v.property_declarations[0].name, u8"f");
 }
 
+TEST(test_parse, class_method_without_parameter_list) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { method { body; } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_variable_use",               // body
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, function_name,
+            offsets_matcher(&code, strlen(u8"class C { "), u8"method"))));
+  }
+}
 }
 }

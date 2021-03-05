@@ -998,13 +998,15 @@ class parser {
     case token_type::kw_let:
     case token_type::kw_of:
     case token_type::kw_set:
-    case token_type::kw_static:
-      v.visit_variable_declaration(this->peek().identifier_name(),
-                                   variable_kind::_function);
+    case token_type::kw_static: {
+      identifier function_name = this->peek().identifier_name();
+      v.visit_variable_declaration(function_name, variable_kind::_function);
       this->skip();
 
-      this->parse_and_visit_function_parameters_and_body(v, attributes);
+      this->parse_and_visit_function_parameters_and_body(
+          v, /*name=*/function_name, attributes);
       break;
+    }
 
     // export default function() {}
     case token_type::left_paren:
@@ -1018,7 +1020,7 @@ class parser {
         buffering_visitor *function_visitor =
             this->expressions_.make_buffering_visitor();
         this->parse_and_visit_function_parameters_and_body_no_scope(
-            *function_visitor, attributes);
+            *function_visitor, /*name=*/std::nullopt, attributes);
         const char8 *function_end = this->lexer_.end_of_previous_token();
         expression *function = this->make_expression<expression::function>(
             attributes, function_visitor,
@@ -1048,12 +1050,14 @@ class parser {
         this->error_reporter_->report(error_missing_name_of_exported_function{
             .function_keyword = function_token_span,
         });
-        this->parse_and_visit_function_parameters_and_body(v, attributes);
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/std::nullopt, attributes);
         break;
       }
 
       case name_requirement::optional:
-        this->parse_and_visit_function_parameters_and_body(v, attributes);
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/std::nullopt, attributes);
         break;
       }
       break;
@@ -1069,22 +1073,56 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body(
-      Visitor &v, function_attributes attributes) {
+      Visitor &v, std::optional<identifier> name,
+      function_attributes attributes) {
     v.visit_enter_function_scope();
-    this->parse_and_visit_function_parameters_and_body_no_scope(v, attributes);
+    this->parse_and_visit_function_parameters_and_body_no_scope(v, name,
+                                                                attributes);
     v.visit_exit_function_scope();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body_no_scope(
-      Visitor &v, function_attributes attributes) {
+      Visitor &v, std::optional<identifier> name,
+      function_attributes attributes) {
     function_guard guard = this->enter_function(attributes);
 
-    if (this->peek().type != token_type::left_paren) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    this->skip();
+    switch (this->peek().type) {
+    // function f(arg0, arg1) {}
+    case token_type::left_paren:
+      this->skip();
 
+      this->parse_and_visit_function_parameters(v);
+
+      if (this->peek().type != token_type::right_paren) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+      this->skip();
+
+      break;
+
+    // function f {}  // Invalid.
+    case token_type::left_curly:
+      if (!name.has_value()) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+      this->error_reporter_->report(error_missing_function_parameter_list{
+          .function_name = name->span(),
+      });
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+
+    v.visit_enter_function_scope_body();
+
+    this->parse_and_visit_statement_block_no_scope(v);
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_function_parameters(Visitor &v) {
     std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
     bool first_parameter = true;
     for (;;) {
@@ -1141,16 +1179,7 @@ class parser {
       }
       first_parameter = false;
     }
-  done:
-
-    if (this->peek().type != token_type::right_paren) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    this->skip();
-
-    v.visit_enter_function_scope_body();
-
-    this->parse_and_visit_statement_block_no_scope(v);
+  done:;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -1346,11 +1375,14 @@ class parser {
     case token_type::kw_void:
     case token_type::kw_while:
     case token_type::kw_with:
-    case token_type::kw_yield:
-      v.visit_property_declaration(this->peek().identifier_name());
+    case token_type::kw_yield: {
+      identifier method_name = this->peek().identifier_name();
+      v.visit_property_declaration(method_name);
       this->skip();
-      this->parse_and_visit_function_parameters_and_body(v, method_attributes);
+      this->parse_and_visit_function_parameters_and_body(
+          v, /*name=*/method_name, method_attributes);
       break;
+    }
 
     // "method"() {}
     // 9001() {}
@@ -1358,7 +1390,8 @@ class parser {
     case token_type::string:
       v.visit_property_declaration();
       this->skip();
-      this->parse_and_visit_function_parameters_and_body(v, method_attributes);
+      this->parse_and_visit_function_parameters_and_body(
+          v, /*name=*/std::nullopt, method_attributes);
       break;
 
     // [methodNameExpression]() {}
@@ -1371,7 +1404,8 @@ class parser {
       this->skip();
 
       v.visit_property_declaration();
-      this->parse_and_visit_function_parameters_and_body(v, method_attributes);
+      this->parse_and_visit_function_parameters_and_body(
+          v, /*name=*/std::nullopt, method_attributes);
       break;
 
     // async() {}
@@ -1380,6 +1414,7 @@ class parser {
       if (last_ident.has_value()) {
         v.visit_property_declaration(*last_ident);
         this->parse_and_visit_function_parameters_and_body(v,
+                                                           /*name=*/*last_ident,
                                                            method_attributes);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
@@ -1393,8 +1428,10 @@ class parser {
       this->skip();
       if (this->peek().type == token_type::left_paren) {
         // function() {}
-        v.visit_property_declaration(function_token.identifier_name());
+        identifier method_name = function_token.identifier_name();
+        v.visit_property_declaration(method_name);
         this->parse_and_visit_function_parameters_and_body(v,
+                                                           /*name=*/method_name,
                                                            method_attributes);
         break;
       } else {

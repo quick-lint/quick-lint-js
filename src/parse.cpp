@@ -989,7 +989,8 @@ expression* parser::parse_function_expression(function_attributes attributes,
     break;
   }
   buffering_visitor* v = this->expressions_.make_buffering_visitor();
-  this->parse_and_visit_function_parameters_and_body_no_scope(*v, attributes);
+  this->parse_and_visit_function_parameters_and_body_no_scope(
+      *v, /*name=*/function_name, attributes);
   const char8* span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
@@ -1022,8 +1023,10 @@ expression* parser::parse_object_literal() {
     buffering_visitor* v = this->expressions_.make_buffering_visitor();
     switch (this->peek().type) {
     default:
-      this->parse_and_visit_function_parameters_and_body_no_scope(*v,
-                                                                  attributes);
+      // TODO(strager): Is this name correct?
+      this->parse_and_visit_function_parameters_and_body_no_scope(
+          *v,
+          /*name=*/std::nullopt, attributes);
       break;
     case token_type::right_curly:
       this->error_reporter_->report(error_missing_function_parameter_list{
