@@ -1377,10 +1377,26 @@ class parser {
     case token_type::kw_with:
     case token_type::kw_yield: {
       identifier method_name = this->peek().identifier_name();
-      v.visit_property_declaration(method_name);
       this->skip();
-      this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/method_name, method_attributes);
+      switch (this->peek().type) {
+      case token_type::left_curly:
+      case token_type::left_paren:
+        v.visit_property_declaration(method_name);
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/method_name, method_attributes);
+        break;
+
+      case token_type::identifier:
+      case token_type::right_curly:
+        this->error_reporter_->report(error_unexpected_token{
+            .token = method_name.span(),
+        });
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
       break;
     }
 
