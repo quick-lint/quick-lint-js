@@ -1806,6 +1806,37 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                         error_missing_value_for_object_literal_entry, key,
                         offsets_matcher(p.code(), strlen(u8"{ "), u8"[key]"))));
   }
+
+  for (string8 op : {u8"*=", u8"/=", u8"%=", u8"+=", u8"-=", u8"<<=", u8">>=",
+                     u8">>>=", u8"&=", u8"^=", u8"|=", u8"**="}) {
+    string8 code = u8"{one " + op + u8" two}";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, upassign(var one, var two))");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_token, token,
+                    offsets_matcher(p.code(), strlen(u8"{one "), op))));
+  }
+
+  for (string8 op : {u8"++", u8"--"}) {
+    string8 code = u8"{one " + op + u8" two}";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "object(literal, rwunarysuffix(var one), literal, var two)");
+    EXPECT_THAT(
+        p.errors(),
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(error_unexpected_token, token,
+                             offsets_matcher(p.code(), strlen(u8"{one "), op)),
+            // TODO(strager): Don't report
+            // error_missing_comma_between_object_literal_entries.
+            ::testing::VariantWith<
+                error_missing_comma_between_object_literal_entries>(_)));
+  }
 }
 
 TEST_F(test_parse_expression, parse_comma_expression) {

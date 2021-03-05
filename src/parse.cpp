@@ -1200,6 +1200,8 @@ expression* parser::parse_object_literal() {
         this->skip();
         entries.emplace_back(key, parse_value_expression());
         break;
+
+      full_expression:
       case token_type::equal: {
         // TODO(strager): Only allow this for identifiers, not numbers or
         // strings.
@@ -1210,6 +1212,15 @@ expression* parser::parse_object_literal() {
         entries.emplace_back(key, value);
         break;
       }
+
+      // {x += y}  // Invalid.
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      case token_type::minus_minus:
+      case token_type::plus_plus:
+        this->error_reporter_->report(error_unexpected_token{
+            .token = this->peek().span(),
+        });
+        goto full_expression;
 
       case token_type::left_paren:
         parse_method_entry(key_span.begin(), key, function_attributes::normal);
