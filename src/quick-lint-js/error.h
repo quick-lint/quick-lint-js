@@ -345,6 +345,16 @@
              finally_token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_generator_function_star_belongs_before_name, "E133",               \
+      {                                                                        \
+        source_code_span function_name;                                        \
+        source_code_span star;                                                 \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "generator function '*' belongs before function name"),       \
+             star))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_in_disallowed_in_c_style_for_loop, "E108",                         \
       { source_code_span in_token; },                                          \
       .error(QLJS_TRANSLATABLE(                                                \

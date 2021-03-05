@@ -541,5 +541,26 @@ TEST(test_parse, arrow_function_without_parameter_list) {
                               arrow, offsets_matcher(&code, 0, u8"=>"))));
   }
 }
+
+TEST(test_parse, generator_function_with_misplaced_star) {
+  {
+    padded_string code(u8"function f*(x) {body;}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",  // body
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_generator_function_star_belongs_before_name, function_name,
+            offsets_matcher(&code, strlen(u8"function "), u8"f"),  //
+            star, offsets_matcher(&code, strlen(u8"function f"), u8"*"))));
+  }
+}
 }
 }

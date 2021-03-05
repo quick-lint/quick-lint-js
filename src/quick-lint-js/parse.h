@@ -1087,6 +1087,20 @@ class parser {
       function_attributes attributes) {
     function_guard guard = this->enter_function(attributes);
 
+    if (this->peek().type == token_type::star) {
+      if (!name.has_value()) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+      // TODO(strager): Emit a different error if a star was already present
+      // (e.g. function* f*() {}).
+      this->error_reporter_->report(
+          error_generator_function_star_belongs_before_name{
+              .function_name = name->span(),
+              .star = this->peek().span(),
+          });
+      this->skip();
+    }
+
     switch (this->peek().type) {
     // function f(arg0, arg1) {}
     case token_type::left_paren:
