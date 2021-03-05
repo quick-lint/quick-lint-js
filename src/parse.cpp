@@ -1026,12 +1026,15 @@ expression* parser::parse_object_literal() {
                                 function_attributes attributes) -> void {
     buffering_visitor* v = this->expressions_.make_buffering_visitor();
     switch (this->peek().type) {
-    default:
-      // TODO(strager): Is this name correct?
+    default: {
       this->parse_and_visit_function_parameters_and_body_no_scope(
           *v,
-          /*name=*/std::nullopt, attributes);
+          /*name=*/
+          source_code_span(key_span_begin,
+                           this->lexer_.end_of_previous_token()),
+          attributes);
       break;
+    }
     case token_type::right_curly:
       this->error_reporter_->report(error_missing_function_parameter_list{
           .function_name = key->span(),
@@ -1266,7 +1269,9 @@ expression* parser::parse_object_literal() {
             break;
           }
         } else {
-          QLJS_PARSER_UNIMPLEMENTED();
+          // {method*() {}}  // Invalid.
+          parse_method_entry(key_span.begin(), key,
+                             function_attributes::normal);
         }
         break;
 
@@ -1389,6 +1394,12 @@ expression* parser::parse_object_literal() {
         entries.emplace_back(key, value);
         break;
       }
+
+      // {[key]*() {}}  // Invalid.
+      case token_type::star:
+        parse_method_entry(left_square_span.begin(), key,
+                           function_attributes::normal);
+        break;
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();

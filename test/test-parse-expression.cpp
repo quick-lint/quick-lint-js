@@ -1839,6 +1839,33 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 }
 
+TEST(test_parse, object_literal_generator_method_with_misplaced_star) {
+  {
+    test_parser p(u8"{method*() { yield 42; }}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_generator_function_star_belongs_before_name, function_name,
+            offsets_matcher(p.code(), strlen(u8"{"), u8"method"),  //
+            star, offsets_matcher(p.code(), strlen(u8"{method"), u8"*"))));
+  }
+
+  {
+    test_parser p(u8"{ [computed] *() { yield 42; }}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var computed, function)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_generator_function_star_belongs_before_name, function_name,
+            offsets_matcher(p.code(), strlen(u8"{ "), u8"[computed]"),  //
+            star,
+            offsets_matcher(p.code(), strlen(u8"{ [computed] "), u8"*"))));
+  }
+}
+
 TEST_F(test_parse_expression, parse_comma_expression) {
   {
     test_parser p(u8"x,y,z"_sv);
