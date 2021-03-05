@@ -445,6 +445,19 @@ TEST(test_parse, if_without_body) {
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use"));     // b
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (a)"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // a
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_body_for_if_statement, if_and_condition,
+                    offsets_matcher(&code, 0, u8"if (a)"))));
+  }
 }
 
 TEST(test_parse, if_without_parens) {

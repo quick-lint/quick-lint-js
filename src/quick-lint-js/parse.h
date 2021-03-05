@@ -2060,6 +2060,7 @@ class parser {
       break;
     }
 
+    case token_type::end_of_file:
     case token_type::kw_else:
     case token_type::right_curly:
       this->error_reporter_->report(error_missing_body_for_if_statement{
