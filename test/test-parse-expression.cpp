@@ -1844,6 +1844,66 @@ TEST_F(test_parse_expression,
   }
 }
 
+// On some keyboards, '<' is input by pressing ',' while holding the SHIFT key.
+TEST_F(test_parse_expression,
+       object_literal_entries_are_not_separated_by_less_than_symbol) {
+  {
+    test_parser p(u8"{ first< get< set< async< }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "object(literal, var first, literal, var get, "
+              "literal, var set, literal, var async)");
+    EXPECT_THAT(
+        p.errors(),
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first"), u8"<")),
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first< get"), u8"<")),
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first< get< set"),
+                                u8"<")),
+            ERROR_TYPE_FIELD(
+                error_expected_comma_to_separate_object_literal_entries,
+                unexpected_token,
+                offsets_matcher(p.code(), strlen(u8"{ first< get< set< async"),
+                                u8"<"))));
+  }
+
+  {
+    test_parser p(u8"{ [key]< other }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var key, ?, literal, var other)");
+    EXPECT_THAT(p.errors(),
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(
+                        error_expected_comma_to_separate_object_literal_entries,
+                        unexpected_token,
+                        offsets_matcher(p.code(), strlen(u8"{ [key]"), u8"<")),
+                    ERROR_TYPE_FIELD(
+                        error_missing_value_for_object_literal_entry, key,
+                        offsets_matcher(p.code(), strlen(u8"{ "), u8"[key]"))));
+  }
+
+  {
+    test_parser p(u8"{ method() {}< other }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function, literal, var other)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_comma_to_separate_object_literal_entries,
+            unexpected_token,
+            offsets_matcher(p.code(), strlen(u8"{ method() {}"), u8"<"))));
+  }
+}
+
 TEST(test_parse, object_literal_generator_method_with_misplaced_star) {
   {
     test_parser p(u8"{method*() { yield 42; }}"_sv);

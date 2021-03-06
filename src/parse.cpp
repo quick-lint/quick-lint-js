@@ -1060,7 +1060,9 @@ expression* parser::parse_object_literal() {
       expect_comma_or_end = false;
       continue;
     }
-    if (this->peek().type == token_type::semicolon) {
+    if (this->peek().type == token_type::less ||
+        this->peek().type == token_type::semicolon) {
+      // { k1: v1; k2() {}< k3: v3 }  // Invalid.
       this->error_reporter_->report(
           error_expected_comma_to_separate_object_literal_entries{
               .unexpected_token = this->peek().span(),
@@ -1118,6 +1120,7 @@ expression* parser::parse_object_literal() {
 
       single_token_key_and_value:
       case token_type::comma:
+      case token_type::less:
       case token_type::right_curly:
       case token_type::semicolon: {
         // Name and value are the same: {keyandvalue}
@@ -1350,6 +1353,7 @@ expression* parser::parse_object_literal() {
 
       // { get }
       case token_type::comma:
+      case token_type::less:
       case token_type::right_curly:
       case token_type::semicolon: {
         expression* key =
@@ -1383,6 +1387,7 @@ expression* parser::parse_object_literal() {
         break;
 
       case token_type::comma:
+      case token_type::less:
       case token_type::right_curly:
       case token_type::semicolon: {
         source_code_span key_span(left_square_span.begin(),
