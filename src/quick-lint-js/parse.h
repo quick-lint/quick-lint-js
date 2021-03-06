@@ -1670,6 +1670,14 @@ class parser {
               });
           break;
 
+        // catch ("junk") {}
+        case token_type::string:
+          this->error_reporter_->report(error_expected_variable_name_for_catch{
+              .unexpected_token = this->peek().span(),
+          });
+          this->skip();
+          break;
+
         default:
           QLJS_PARSER_UNIMPLEMENTED();
         }

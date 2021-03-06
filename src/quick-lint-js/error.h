@@ -331,6 +331,12 @@
              where, string8_view(&token, 1)))                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_variable_name_for_catch, "E135",                          \
+      { source_code_span unexpected_token; },                                  \
+      .error(QLJS_TRANSLATABLE("expected variable name for 'catch'"),          \
+             unexpected_token))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_exporting_requires_default, "E067",                                \
       { source_code_span expression; },                                        \
       .error(QLJS_TRANSLATABLE("exporting requires 'default'"), expression))   \

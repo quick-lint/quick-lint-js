@@ -375,6 +375,25 @@ TEST(test_parse, catch_without_variable_name_in_parentheses) {
             right_paren,
             offsets_matcher(&code, strlen(u8"try {} catch ("), u8")"))));
   }
+
+  {
+    padded_string code(u8"try {} catch ('ball') { body; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  // (try)
+                            "visit_exit_block_scope",   // (try)
+                            "visit_enter_block_scope",  // (catch)
+                            "visit_variable_use",       // body
+                            "visit_exit_block_scope",   // (catch)
+                            "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_variable_name_for_catch, unexpected_token,
+            offsets_matcher(&code, strlen(u8"try {} catch ("), u8"'ball'"))));
+  }
 }
 
 TEST(test_parse, if_without_else) {
