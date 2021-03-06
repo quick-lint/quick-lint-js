@@ -1126,6 +1126,18 @@ class parser {
       });
       break;
 
+    // { function f }  // Invalid.
+    case token_type::number:
+    case token_type::right_curly:
+      if (!name.has_value()) {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+      this->error_reporter_->report(error_missing_function_parameter_list{
+          .function_name = *name,
+      });
+      // Don't parse a function body.
+      return;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;

@@ -524,6 +524,43 @@ TEST(test_parse, function_statement_without_name_or_parameter_list_or_body) {
   }
 }
 
+TEST(test_parse, function_statement_without_parameter_list_or_body) {
+  {
+    padded_string code(u8"{ function f } x = y;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_exit_function_scope",   // f
+                                      "visit_exit_block_scope",      //
+                                      "visit_variable_use",          // y
+                                      "visit_variable_assignment",   // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_function_parameter_list, function_name,
+                    offsets_matcher(&code, strlen(u8"{ function "), u8"f"))));
+  }
+
+  {
+    padded_string code(u8"function f\n3 * x;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_exit_function_scope",   // f
+                                      "visit_variable_use",          // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_function_parameter_list, function_name,
+                    offsets_matcher(&code, strlen(u8"function "), u8"f"))));
+  }
+}
+
 TEST(test_parse, arrow_function_without_parameter_list) {
   {
     padded_string code(u8"=> x + y"_sv);
