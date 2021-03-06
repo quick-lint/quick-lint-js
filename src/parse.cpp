@@ -435,6 +435,7 @@ expression* parser::parse_expression(precedence prec) {
   }
 
   QLJS_CASE_BINARY_ONLY_OPERATOR:
+  case token_type::comma:
   case token_type::dot:
   case token_type::equal:
   case token_type::kw_in: {
@@ -471,7 +472,6 @@ expression* parser::parse_expression(precedence prec) {
     return this->make_expression<expression::_invalid>(token_span);
   }
 
-  case token_type::comma:
   case token_type::kw_enum:
   case token_type::kw_for:
   case token_type::kw_if:

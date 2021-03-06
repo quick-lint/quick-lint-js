@@ -265,6 +265,7 @@ class parser {
     // ^ x  // invalid expression
     QLJS_CASE_BINARY_ONLY_OPERATOR:
     case token_type::bang:
+    case token_type::comma:
     case token_type::complete_template:
     case token_type::dot:
     case token_type::equal:
