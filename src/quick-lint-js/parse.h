@@ -939,15 +939,26 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_statement_block_no_scope(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
+    source_code_span left_curly_span = this->peek().span();
     this->skip();
+
     for (;;) {
       bool parsed_statement = this->parse_and_visit_statement(v);
       if (!parsed_statement) {
-        if (this->peek().type == token_type::right_curly) {
+        switch (this->peek().type) {
+        case token_type::right_curly:
           this->skip();
-          break;
-        } else {
+          return;
+
+        case token_type::end_of_file:
+          this->error_reporter_->report(error_unclosed_code_block{
+              .block_open = left_curly_span,
+          });
+          return;
+
+        default:
           QLJS_PARSER_UNIMPLEMENTED();
+          break;
         }
       }
     }

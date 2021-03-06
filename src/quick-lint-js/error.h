@@ -722,6 +722,12 @@
       .error(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unclosed_code_block, "E134", { source_code_span block_open; },     \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "unclosed code block; expected '}' by end of file"),          \
+             block_open))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_identifier_escape_sequence, "E038",                       \
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATABLE("unclosed identifier escape sequence"),         \

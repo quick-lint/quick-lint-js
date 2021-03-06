@@ -599,5 +599,23 @@ TEST(test_parse, generator_function_with_misplaced_star) {
             star, offsets_matcher(&code, strlen(u8"function f"), u8"*"))));
   }
 }
+
+TEST(test_parse, incomplete_function_body) {
+  {
+    padded_string code(u8"function f() { a; "_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_variable_use",               // a
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unclosed_code_block, block_open,
+                    offsets_matcher(&code, strlen(u8"function f() "), u8"{"))));
+  }
+}
 }
 }
