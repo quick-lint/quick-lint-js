@@ -1139,6 +1139,8 @@ class parser {
       break;
 
     // { function f }  // Invalid.
+    case token_type::comma:
+    case token_type::dot:
     case token_type::number:
     case token_type::right_curly:
       if (!name.has_value()) {

@@ -559,6 +559,56 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                     error_missing_function_parameter_list, function_name,
                     offsets_matcher(&code, strlen(u8"function "), u8"f"))));
   }
+
+  {
+    padded_string code(u8"function f, x;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_exit_function_scope",   // f
+                                      "visit_variable_use",          // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_missing_function_parameter_list, function_name,
+                offsets_matcher(&code, strlen(u8"function "), u8"f")),
+            ERROR_TYPE_FIELD(
+                error_missing_operand_for_operator, where,
+                offsets_matcher(&code, strlen(u8"function f"), u8","))));
+  }
+
+  {
+    padded_string code(u8"function f.x() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    // Expected parse:
+    //   function f  // no parameter list or body
+    //   .x()        // no lhs for '.'; no ';'
+    //   {}
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_exit_function_scope",   // f
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(
+                error_missing_function_parameter_list, function_name,
+                offsets_matcher(&code, strlen(u8"function "), u8"f")),
+            ERROR_TYPE_FIELD(
+                error_missing_operand_for_operator, where,
+                offsets_matcher(&code, strlen(u8"function f"), u8".")),
+            ERROR_TYPE_FIELD(
+                error_missing_semicolon_after_statement, where,
+                offsets_matcher(&code, strlen(u8"function f.x()"), u8""))));
+  }
 }
 
 TEST(test_parse, arrow_function_without_parameter_list) {
