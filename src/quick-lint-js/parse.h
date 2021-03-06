@@ -1098,7 +1098,7 @@ class parser {
               .function_name = *name,
               .star = this->peek().span(),
           });
-      this->in_generator_function_ = true;  // Restore by existing guard.
+      this->in_generator_function_ = true;  // Restored by existing guard.
       this->skip();
     }
 
