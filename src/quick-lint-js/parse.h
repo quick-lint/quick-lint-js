@@ -2655,9 +2655,7 @@ class parser {
       case token_type::incomplete_template:
       case token_type::left_paren:
       case token_type::minus:
-      case token_type::minus_minus:
       case token_type::plus:
-      case token_type::plus_plus:
       case token_type::question:
       case token_type::semicolon:
       case token_type::slash:

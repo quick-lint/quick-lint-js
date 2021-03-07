@@ -407,6 +407,24 @@ TEST(test_parse, parse_invalid_let) {
             offsets_matcher(&code, strlen(u8"let "), u8"true"))));
   }
 
+  for (string8 prefix_operator : {u8"--", u8"++"}) {
+    padded_string code(u8"var " + prefix_operator + u8"x;");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // x
+                                      "visit_variable_assignment",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(error_let_with_no_bindings, where,
+                             offsets_matcher(&code, 0, u8"let")),
+            ERROR_TYPE_FIELD(error_missing_semicolon_after_statement, where,
+                             offsets_matcher(&code, strlen(u8"let"), u8""))));
+  }
+
   {
     spy_visitor v;
     padded_string code(u8"const = y, z = w, = x;"_sv);
