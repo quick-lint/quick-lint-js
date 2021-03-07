@@ -653,6 +653,12 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_property_name_for_dot_operator, "E142",                    \
+      { source_code_span dot; },                                               \
+      .error(QLJS_TRANSLATABLE("missing property name after '.' operator"),    \
+             dot))                                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_semicolon_after_statement, "E027",                         \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("missing semicolon after statement"), where))   \

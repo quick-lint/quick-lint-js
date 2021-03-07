@@ -775,6 +775,26 @@ next:
       goto next;
     }
 
+    QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
+    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+    case token_type::colon:
+    case token_type::comma:
+    case token_type::end_of_file:
+    case token_type::equal:
+    case token_type::minus:
+    case token_type::plus:
+    case token_type::question:
+    case token_type::right_paren: {
+      source_code_span empty_property_name(dot_span.end(), dot_span.end());
+      children.back() = this->make_expression<expression::dot>(
+          children.back(), identifier(empty_property_name));
+      this->error_reporter_->report(
+          error_missing_property_name_for_dot_operator{
+              .dot = dot_span,
+          });
+      goto next;
+    }
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;

@@ -641,6 +641,59 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x.''"));
   }
+
+  {
+    test_parser p(u8"x. "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(var x, )");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_property_name_for_dot_operator, dot,
+                    offsets_matcher(p.code(), strlen(u8"x"), u8"."))));
+  }
+
+  {
+    test_parser p(u8"(x.)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(var x, )");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_property_name_for_dot_operator, dot,
+                    offsets_matcher(p.code(), strlen(u8"(x"), u8"."))));
+  }
+
+  for (string8 op : {
+           u8"!=",  u8"!==",  u8"%",   u8"%=", u8"&",  u8"&&",  u8"&=",
+           u8"*",   u8"**",   u8"**=", u8"*=", u8"+",  u8"+=",  u8",",
+           u8"-",   u8"-=",   u8"/=",  u8"<",  u8"<<", u8"<<=", u8"<=",
+           u8"=",   u8"==",   u8"===", u8">",  u8">=", u8">>",  u8">>=",
+           u8">>>", u8">>>=", u8"^",   u8"^=", u8"|",  u8"|=",  u8"||",
+       }) {
+    test_parser p(u8"x. " + op + u8" y");
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast),
+                ::testing::AnyOf("assign(dot(var x, ), var y)",  //
+                                 "binary(dot(var x, ), var y)",  //
+                                 "upassign(dot(var x, ), var y)"));
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_property_name_for_dot_operator, dot,
+                    offsets_matcher(p.code(), strlen(u8"x"), u8"."))));
+  }
+
+  {
+    test_parser p(u8"x. ? y. : z"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(dot(var x, ), dot(var y, ), var z)");
+    EXPECT_THAT(
+        p.errors(),
+        UnorderedElementsAre(
+            ERROR_TYPE_FIELD(error_missing_property_name_for_dot_operator, dot,
+                             offsets_matcher(p.code(), strlen(u8"x"), u8".")),
+            ERROR_TYPE_FIELD(
+                error_missing_property_name_for_dot_operator, dot,
+                offsets_matcher(p.code(), strlen(u8"x. ? y"), u8"."))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_indexing_expression) {
