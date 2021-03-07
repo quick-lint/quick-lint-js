@@ -202,7 +202,7 @@ def detect_system_package_manager(
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
-    raise Exception("Could not detect system package manager")
+    return None
 
 
 def dump_from_system_archives(
@@ -215,6 +215,16 @@ def dump_from_system_archives(
         linked_system_archives,
         is_cross_compiling_emscripten=is_cross_compiling_emscripten,
     )
+    if system_package_manager is None:
+        warn("Could not detect system package manager")
+        print("""## Other packages
+
+The following files are statically linked into quick-lint-js. Their copyright and licenses are unknown:
+""")
+        for archive in sorted(linked_system_archives):
+            print(f"* {archive}")
+        return
+
     installed_packages = system_package_manager.packages_for_installed_files(
         linked_system_archives
     )
