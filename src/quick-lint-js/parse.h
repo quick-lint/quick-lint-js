@@ -1559,17 +1559,30 @@ class parser {
         this->skip();
         keep_going = false;
         break;
-      case token_type::kw_case:
+
+      case token_type::kw_case: {
+        source_code_span case_token_span = this->peek().span();
         this->skip();
-        this->parse_and_visit_expression(v);
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
-        this->skip();
+        if (this->peek().type == token_type::colon) {
+          this->error_reporter_->report(
+              error_expected_expression_for_switch_case{
+                  .case_token = case_token_span,
+              });
+          this->skip();
+        } else {
+          this->parse_and_visit_expression(v);
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+          this->skip();
+        }
         break;
+      }
+
       case token_type::kw_default:
         this->skip();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
         this->skip();
         break;
+
       default: {
         bool parsed_statement = this->parse_and_visit_statement(v);
         if (!parsed_statement) {

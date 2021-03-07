@@ -229,6 +229,12 @@
       .error(QLJS_TRANSLATABLE("expected expression before newline"), where))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_expression_for_switch_case, "E140",                       \
+      { source_code_span case_token; },                                        \
+      .error(QLJS_TRANSLATABLE("expected expression after 'case'"),            \
+             case_token))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_before_semicolon, "E015",                      \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("expected expression before semicolon"),        \

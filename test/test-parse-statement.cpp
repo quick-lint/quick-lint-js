@@ -754,6 +754,24 @@ TEST(test_parse, switch_without_body_curlies) {
   }
 }
 
+TEST(test_parse, switch_case_without_expression) {
+  {
+    padded_string code(u8"switch (cond) { case: banana; break; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+                                      "visit_enter_block_scope",  //
+                                      "visit_variable_use",       // banana
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_expression_for_switch_case, case_token,
+            offsets_matcher(&code, strlen(u8"switch (cond) { "), u8"case"))));
+  }
+}
+
 TEST(test_parse, switch_clause_outside_switch_statement) {
   {
     padded_string code(u8"case x:"_sv);
