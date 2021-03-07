@@ -534,6 +534,12 @@
              if_keyword))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_condition_for_while_statement, "E139",                     \
+      { source_code_span while_keyword; },                                     \
+      .error(QLJS_TRANSLATABLE("missing condition for while statement"),       \
+             while_keyword))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_condition_for_switch_statement, "E137",                    \
       { source_code_span switch_keyword; },                                    \
       .error(QLJS_TRANSLATABLE("missing condition for switch statement"),      \

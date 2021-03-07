@@ -2120,18 +2120,25 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_while(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_while);
-    const char8 *while_token_begin = this->peek().begin;
+    source_code_span while_token_span = this->peek().span();
     this->skip();
 
-    this->parse_and_visit_parenthesized_expression<
-        error_expected_parentheses_around_while_condition,
-        error_expected_parenthesis_around_while_condition>(v);
+    if (this->peek().type == token_type::left_curly) {
+      // while { body; }  // Invalid.
+      this->error_reporter_->report(error_missing_condition_for_while_statement{
+          .while_keyword = while_token_span,
+      });
+    } else {
+      this->parse_and_visit_parenthesized_expression<
+          error_expected_parentheses_around_while_condition,
+          error_expected_parenthesis_around_while_condition>(v);
+    }
 
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_while_statement{
           .while_and_condition = source_code_span(
-              while_token_begin, this->lexer_.end_of_previous_token()),
+              while_token_span.begin(), this->lexer_.end_of_previous_token()),
       });
     }
   }

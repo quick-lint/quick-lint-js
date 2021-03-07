@@ -792,6 +792,22 @@ TEST(test_parse, while_without_parens) {
   }
 }
 
+TEST(test_parse, while_without_condition) {
+  {
+    spy_visitor v;
+    padded_string code(u8"while { go(); break; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // go
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_condition_for_while_statement, while_keyword,
+                    offsets_matcher(&code, 0, u8"while"))));
+  }
+}
+
 TEST(test_parse, while_without_body) {
   {
     padded_string code(u8"while (cond) "_sv);
