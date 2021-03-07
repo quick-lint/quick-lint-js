@@ -472,6 +472,40 @@ TEST(test_parse, parse_invalid_let) {
                 expected_comma,
                 offsets_matcher(&code, strlen(u8"let x [y]=ys"), u8""))));
   }
+
+  for (string8 compound_assignment_operator : {
+           u8"%=",
+           u8"&=",
+           u8"**=",
+           u8"*=",
+           u8"+=",
+           u8"-=",
+           u8"/=",
+           u8"<<=",
+           u8">>=",
+           u8">>>=",
+           u8"^=",
+           u8"|=",
+       }) {
+    padded_string code(u8"let x " + compound_assignment_operator + u8" y, z");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    // TODO(strager): We should signal to the linter that duplicate-definition
+    // errors should be ignored for 'x'.
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_declaration",  // z
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_cannot_update_variable_during_declaration, updating_operator,
+            offsets_matcher(&code, strlen(u8"let x "),
+                            compound_assignment_operator),  //
+            declaring_token, offsets_matcher(&code, 0, u8"let"))));
+  }
 }
 
 TEST(test_parse, report_missing_semicolon_for_declarations) {

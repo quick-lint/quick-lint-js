@@ -150,6 +150,19 @@
       .error(QLJS_TRANSLATABLE("cannot import 'let'"), import_name))           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_update_variable_during_declaration, "E136",                 \
+      {                                                                        \
+        source_code_span declaring_token;                                      \
+        source_code_span updating_operator;                                    \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "cannot update variable with '{0}' while declaring it"),      \
+             updating_operator)                                                \
+          .note(QLJS_TRANSLATABLE(                                             \
+                    "remove '{0}' to update an existing variable"),            \
+                declaring_token))                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_catch_without_try, "E117", { source_code_span catch_token; },      \
       .error(QLJS_TRANSLATABLE("unexpected 'catch' without 'try'"),            \
              catch_token))                                                     \

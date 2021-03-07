@@ -2519,13 +2519,42 @@ class parser {
         expression *variable = this->make_expression<expression::variable>(
             this->peek().identifier_name(), this->peek().type);
         this->skip();
-        if (this->peek().type == token_type::equal) {
+        switch (this->peek().type) {
+        // let x = 3;
+        initialize_variable:
+        case token_type::equal: {
           expression *ast = this->parse_expression_remainder(
               variable,
               precedence{.commas = false, .in_operator = allow_in_operator});
           this->visit_binding_element(ast, v, declaration_kind);
-        } else {
+          break;
+        }
+
+        // let x += 42;  // Invalid.
+        case token_type::ampersand_equal:
+        case token_type::circumflex_equal:
+        case token_type::greater_greater_equal:
+        case token_type::greater_greater_greater_equal:
+        case token_type::less_less_equal:
+        case token_type::minus_equal:
+        case token_type::percent_equal:
+        case token_type::pipe_equal:
+        case token_type::plus_equal:
+        case token_type::slash_equal:
+        case token_type::star_equal:
+        case token_type::star_star_equal:
+          this->error_reporter_->report(
+              error_cannot_update_variable_during_declaration{
+                  .declaring_token = declaring_token.span(),
+                  .updating_operator = this->peek().span(),
+              });
+          goto initialize_variable;
+
+        // let x;
+        // let x, y;
+        default:
           this->visit_binding_element(variable, v, declaration_kind);
+          break;
         }
         break;
       }
@@ -2704,6 +2733,7 @@ class parser {
       }
       break;
     case expression_kind::assignment:
+    case expression_kind::compound_assignment:
       this->visit_expression(ast->child_1(), v, variable_context::rhs);
       this->visit_binding_element(ast->child_0(), v, declaration_kind);
       break;
