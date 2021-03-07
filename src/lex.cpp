@@ -364,8 +364,14 @@ retry:
 
   case '-':
     if (this->input_[1] == '-') {
-      this->last_token_.type = token_type::minus_minus;
-      this->input_ += 2;
+      if (this->input_[2] == '>' && this->is_first_token_on_line()) {
+        this->input_ += 3;
+        this->skip_line_comment_body();
+        goto retry;
+      } else {
+        this->last_token_.type = token_type::minus_minus;
+        this->input_ += 2;
+      }
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::minus_equal;
       this->input_ += 2;
@@ -1556,6 +1562,11 @@ void lexer::skip_line_comment_body() {
 bool lexer::is_eof(const char8* input) noexcept {
   QLJS_ASSERT(*input == u8'\0');
   return input == this->original_input_.null_terminator();
+}
+
+bool lexer::is_first_token_on_line() const noexcept {
+  return this->last_token_.has_leading_newline ||
+         this->last_last_token_end_ == this->original_input_.data();
 }
 
 bool lexer::is_binary_digit(char8 c) { return c == u8'0' || c == u8'1'; }

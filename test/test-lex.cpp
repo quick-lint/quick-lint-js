@@ -171,6 +171,33 @@ TEST_F(test_lex, lex_html_open_comments) {
        token_type::minus, token_type::identifier});
 }
 
+TEST_F(test_lex, lex_html_close_comments) {
+  EXPECT_THAT(this->lex_to_eof(u8"--> comment"_sv), IsEmpty());
+  EXPECT_THAT(this->lex_to_eof(u8"     --> comment"_sv), IsEmpty());
+  EXPECT_THAT(this->lex_to_eof(u8"/* */--> comment"_sv), IsEmpty());
+  EXPECT_THAT(this->lex_to_eof(u8"/**//**/--> comment"_sv), IsEmpty());
+
+  for (string8_view line_terminator : line_terminators) {
+    string8 eol(line_terminator);
+
+    this->check_single_token(u8"-->" + eol + u8"hello", u8"hello");
+    this->check_single_token(u8"--> comment" + eol + u8"hello", u8"hello");
+    this->check_single_token(
+        u8"--> comment1" + eol + u8"--> comment2" + eol + u8"hello", u8"hello");
+
+    this->check_single_token(u8"/*" + eol + u8"*/--> comment" + eol + u8"hello",
+                             u8"hello");
+    this->check_single_token(
+        u8"/* */ /*" + eol + u8"*/ --> comment" + eol + u8"hello", u8"hello");
+    this->check_single_token(
+        u8"/*" + eol + u8"*/ /* */ --> comment" + eol + u8"hello", u8"hello");
+  }
+
+  // Not an HTML close comment because non-whitespace non-comment preceeds.
+  this->check_tokens(u8"3 --> 4", {token_type::number, token_type::minus_minus,
+                                   token_type::greater, token_type::number});
+}
+
 TEST_F(test_lex, lex_numbers) {
   this->check_tokens(u8"0"_sv, {token_type::number});
   this->check_tokens(u8"2"_sv, {token_type::number});

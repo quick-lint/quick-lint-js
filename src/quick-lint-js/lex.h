@@ -428,6 +428,8 @@ class lexer {
 
   bool is_eof(const char8*) noexcept;
 
+  bool is_first_token_on_line() const noexcept;
+
   static bool is_binary_digit(char8);
   static bool is_octal_digit(char8);
   static bool is_digit(char8);

@@ -36,10 +36,6 @@ import "sync"
 import "sync/atomic"
 
 var TodoTestFiles []string = []string{
-	// TODO(#50): Parse --> comments.
-	"annexB/language/comments/multi-line-html-close.js",
-	"annexB/language/comments/single-line-html-close.js",
-
 	// TODO(strager): Implement non-standard and new features.
 	"language/*/class/*-assignment-*-logical-*.js",
 	"language/*/class/*-coalesce.js",
