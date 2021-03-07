@@ -1545,7 +1545,7 @@ void lexer::skip_line_comment_body() {
       this->skip_whitespace();
       break;
     }
-    // TODO(strager): Should we handle null bytes differently for #!  comments?
+    // TODO(strager): Should we handle null bytes differently for #! comments?
     if (*c == u8'\0' && this->is_eof(c)) {
       this->input_ = c;
       break;
