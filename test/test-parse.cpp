@@ -89,6 +89,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
   }
 
   for (string8_view second_statement : {
+           u8"break; cond;"_sv,
+           u8"continue; cond;"_sv,
            u8"do {} while (cond)"_sv,
            u8"for (; cond; ) {}"_sv,
            u8"if (cond) {}"_sv,
@@ -99,8 +101,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     padded_string code(string8(u8"let x = 2\n"_sv) + string8(second_statement));
     SCOPED_TRACE(code);
     parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    auto loop_guard = p.enter_loop();  // Allow 'break' and 'continue'.
+    p.parse_and_visit_module(v);
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let}));
