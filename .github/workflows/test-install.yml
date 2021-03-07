@@ -45,3 +45,5 @@ jobs:
         run: cd / && quick-lint-js --help
       - name: test copyright
         run: grep GPL /usr/local/share/doc/quick-lint-js/copyright
+      - name: test man pages
+        run: grep '^\.TH' /usr/local/share/man/man1/quick-lint-js.1

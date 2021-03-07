@@ -1,0 +1,191 @@
+.\" quick-lint-js finds bugs in JavaScript programs.
+.\" Copyright (C) 2020  Matthew Glazar
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <https://www.gnu.org/licenses/>.
+.
+.\" Manual page for the 'man' utility.
+.
+.
+.TH QUICK\-LINT\-JS 1 "" "quick\-lint\-js version 0.1.0"
+.
+.
+.\" BEGIN_AN_EXT_TMAC -----------------------------------------------------------
+.\" The following macros are taken from groff's an-ext.tmac file.
+.\" Copyright (C) 2007-2018 Free Software Foundation, Inc.
+.\" Written by Eric S. Raymond <esr@thyrsus.com>
+.\"            Werner Lemberg <wl@gnu.org>
+.\" You may freely use, modify and/or distribute portions of this file between
+.\" BEGIN_AN_EXT_TMAC and END_AN_EXT_TMAC.
+.
+.\" Continuation line for .TP header.
+.de TQ
+.  br
+.  ns
+.  TP \\$1\" no doublequotes around argument!
+..
+.
+.\" Start example.
+.de EX
+.  do ds mF \\n[.fam]
+.  nr mE \\n(.f
+.  nf
+.  nh
+.  do fam C
+.  ft CW
+..
+.
+.\" End example.
+.de EE
+.  do fam \\*(mF
+.  ft \\n(mE
+.  fi
+.  hy \\n(HY
+..
+.\" END_AN_EXT_TMAC -------------------------------------------------------------
+.
+.
+.SH NAME
+.B quick\-lint\-js
+\- find bugs in JavaScript programs
+.
+.
+.SH SYNOPSIS
+.nf
+\fBquick\-lint\-js\fR [\fB\-\-output\-format\fR=\fIformat\fR] [<options>] \fIfile\fR [\fIfile\fR...]
+\fBquick\-lint\-js\fR \fB\-\-lsp\-server\fR [<options>]
+.fi
+.
+.
+.SH DESCRIPTION
+\fBquick\-lint\-js\fR reads JavaScript files and reports syntax errors and other bugs.
+.PP
+This command has two modes:
+.
+.TP
+.nf
+\fBquick\-lint\-js\fR [<options>] \fIfile\fR [\fIfile\fR...]
+.fi
+Batch mode (default).
+Check the given files, and report errors to the terminal (standard error).
+\-\-output\-format can be used to customize how errors look.
+.
+.TP
+.nf
+\fBquick\-lint\-js\fR \-\-lsp\-server
+.fi
+LSP server mode.
+Start a Language Server Protocol server, communicating using standard input and standard output.
+Use this mode to integrate with code editors supporting LSP.
+.RE
+.
+.
+.SH OPTIONS
+.TP
+.BR \-\-output\-format\fR=\fIformat\fR
+Customize how errors are printed. \fIformat\fR is one of the following:
+.RS
+.IP \- 2
+\fBgnu-like\fR (default): a human-readable format similar to GCC.
+.IP \- 2
+\fBvim-qflist-json\fR: machine-readable JSON which can be given to Vim's \fIsetqflist\fR function.
+.RE
+.RS
+.sp
+Incompatible with \fB\-\-lsp\-server\fR.
+.RE
+.
+.TP
+.BR \-\-vim-file-bufnr\fR=\fInumber\fR
+Set the \fIbufnr\fR property for errors printed with the \fB\-\-output\-format=vim-qflist-json\fR option.
+\fB\-\-vim\-file\-bufnr\fR applies only to files which are given later in the command line.
+Therefore, if multiple files are given, \fB-\-vim\-file\-bufnr\fR can be specified multiple times.
+.
+.TP
+.BR \-\-lsp ", " \-\-lsp-server
+Run \fBquick\-lint\-js\fR in LSP server mode.
+Use this mode to integrate with code editors supporting LSP.
+An editor can send LSP requests and notifications to \fBquick\-lint\-js\fR via standard input, and receive LSP responses and notifications from standard output.
+.sp
+Incompatible with \fB\-\-output\-format\fR.
+.
+.TP
+.BR \-h ", " \-\-help
+Print a help message and exit.
+.sp
+The output format is not intended to be machine-parsable and may change in the future.
+.
+.TP
+.BR \-v ", " \-\-version
+Print version information and exit.
+.sp
+The output format is not intended to be machine-parsable and may change in the future.
+.RE
+.
+.
+.SH EXIT STATUS
+.TP
+.B 0
+Batch mode: Linting succeeded with no errors or warnings.
+.sp
+LSP server mode: The LSP client requested that the server shut down.
+This exit status may change in the future.
+.
+.TP
+.B non-0
+Batch mode: Linting failed with at least one error or warning, or at least one \fIfile\fR could not be opened and read.
+.sp
+The specific status code may change in the future.
+.
+.
+.SH ENVIRONMENT
+.TP
+.B LC_ALL
+.TQ
+.B LC_MESSAGES
+Change the language used for error and warning messages.
+For example, set \fBLC_ALL=en\fR to see messages written in United States English.
+.
+.
+.SH EXAMPLE
+To lint a file called \fIlib/index.js\fR, writing error messages to the terminal:
+.PP
+.RS
+.EX
+$ \fBquick-lint-js\fR lib/index.js
+lib/index.js:1:20: error: variable used before declaration: language [E058]
+lib/index.js:2:7: note: variable declared here [E058]
+lib/index.js:3:1: error: assignment to const variable [E003]
+lib/index.js:1:7: note: const variable declared here [E003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
+.EE
+.RE
+.
+.PP
+To lint three files, writing machine-readable messages to \fI/tmp/vim\-qflist.json\fR:
+.PP
+.RS
+.EX
+$ \fBquick-lint-js\fR --output-format=vim-qflist-json \\
+    --vim-bufnr=3 lib/pizza-dough.js \\
+    --vim-bufnr=4 lib/pizza-sauce.js \\
+    --vim-bufnr=6 lib/pineapple.js \\
+    >/tmp/vim-qflist.json
+.EE
+.RE
+.PP
+Errors for \fIlib/pizza\-dough.js\fR will include \fI"bufnr":3\fR in the output and errors for \fIlib/pineapple.js\fR will include \fI"bufnr":6\fR.
+.
+.
+.SH SEE ALSO
+.BR eslint (1)
