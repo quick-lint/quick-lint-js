@@ -235,5 +235,18 @@ TEST(test_parse, statement_starting_with_extends) {
                               offsets_matcher(&code, 0, u8"extends"))));
   }
 }
+
+TEST(test_parse, stray_right_curly_at_top_level) {
+  {
+    padded_string code(u8"}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unmatched_right_curly, right_curly,
+                              offsets_matcher(&code, 0, u8"}"))));
+  }
+}
 }
 }

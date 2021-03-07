@@ -110,10 +110,26 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_module(Visitor &v) {
-    for (;;) {
+    bool done = false;
+    while (!done) {
       bool parsed_statement = this->parse_and_visit_statement(v);
-      if (!parsed_statement && this->peek().type == token_type::end_of_file) {
-        break;
+      if (!parsed_statement) {
+        switch (this->peek().type) {
+        case token_type::end_of_file:
+          done = true;
+          break;
+
+        case token_type::right_curly:
+          this->error_reporter_->report(error_unmatched_right_curly{
+              .right_curly = this->peek().span(),
+          });
+          this->skip();
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+        }
       }
     }
     v.visit_end_of_module();

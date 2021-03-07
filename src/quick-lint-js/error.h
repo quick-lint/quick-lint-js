@@ -936,6 +936,10 @@
       .error(QLJS_TRANSLATABLE("unmatched parenthesis"), where))               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unmatched_right_curly, "E143", { source_code_span right_curly; },  \
+      .error(QLJS_TRANSLATABLE("unmatched '}'"), right_curly))                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_use_of_undeclared_variable, "E057", { identifier name; },          \
       .warning(QLJS_TRANSLATABLE("use of undeclared variable: {0}"), name))    \
                                                                                \
