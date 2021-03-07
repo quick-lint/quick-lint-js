@@ -565,7 +565,7 @@ expression* parser::parse_async_expression_only(token async_token) {
       expression* call_ast = this->make_expression<expression::call>(
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
-          /*right_paren_span=*/right_paren_span);
+          /*span_end=*/right_paren_span.end());
       return call_ast;
     }
 
@@ -696,13 +696,25 @@ next:
       }
       this->skip();
     }
-    QLJS_ASSERT(this->peek().type == token_type::right_paren);
-    source_code_span right_paren_span = this->peek().span();
-    this->skip();
+    const char8* call_span_end;
+    if (this->peek().type == token_type::right_paren) {
+      call_span_end = this->peek().end;
+      this->skip();
+    } else {
+      // { f(x }  // Invalid.
+      // f(x;     // Invalid.
+      call_span_end = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(
+          error_expected_right_paren_for_function_call{
+              .expected_right_paren =
+                  source_code_span(call_span_end, call_span_end),
+              .left_paren = left_paren_span,
+          });
+    }
     children.back() = this->make_expression<expression::call>(
         this->expressions_.make_array(std::move(call_children)),
         /*left_paren_span=*/left_paren_span,
-        /*right_paren_span=*/right_paren_span);
+        /*span_end=*/call_span_end);
     goto next;
   }
 

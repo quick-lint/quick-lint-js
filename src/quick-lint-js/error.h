@@ -265,6 +265,16 @@
       .error(QLJS_TRANSLATABLE("expected '{{'"), expected_left_curly))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_right_paren_for_function_call, "E141",                    \
+      {                                                                        \
+        source_code_span expected_right_paren;                                 \
+        source_code_span left_paren;                                           \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("expected ')' to close function call"),         \
+             expected_right_paren)                                             \
+          .note(QLJS_TRANSLATABLE("function call started here"), left_paren))  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_do_while_condition, "E084",            \
       { source_code_span condition; },                                         \
       .error(QLJS_TRANSLATABLE(                                                \

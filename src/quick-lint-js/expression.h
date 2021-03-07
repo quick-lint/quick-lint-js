@@ -671,13 +671,12 @@ class expression::call final : public expression {
 
   explicit call(expression_arena::array_ptr<expression *> children,
                 source_code_span left_paren_span,
-                source_code_span right_paren_span) noexcept
+                const char8 *span_end) noexcept
       : expression(kind),
         call_left_paren_begin_(left_paren_span.begin()),
-        call_right_paren_end_(right_paren_span.end()),
+        span_end_(span_end),
         children_(children) {
     QLJS_ASSERT(left_paren_span.size() == 1);
-    QLJS_ASSERT(right_paren_span.size() == 1);
   }
 
   int child_count_impl() const noexcept { return this->children_.size(); }
@@ -688,7 +687,7 @@ class expression::call final : public expression {
 
   source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
-                            this->call_right_paren_end_);
+                            this->span_end_);
   }
 
   source_code_span left_paren_span() const noexcept {
@@ -698,7 +697,7 @@ class expression::call final : public expression {
 
  private:
   const char8 *call_left_paren_begin_;
-  const char8 *call_right_paren_end_;
+  const char8 *span_end_;
   expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::call>);
