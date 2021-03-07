@@ -185,6 +185,14 @@ TEST(test_parse, asi_between_expression_statements) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  {
+    padded_string code(u8"true\nvoid x;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse, asi_for_statement_at_end_of_file) {

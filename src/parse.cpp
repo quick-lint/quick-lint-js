@@ -940,6 +940,7 @@ next:
   case token_type::kw_true:
   case token_type::kw_try:
   case token_type::kw_var:
+  case token_type::kw_void:
   case token_type::kw_while:
   case token_type::kw_with:
   case token_type::left_curly:
