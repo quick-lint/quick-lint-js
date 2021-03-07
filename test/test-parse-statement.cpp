@@ -529,6 +529,24 @@ TEST(test_parse, if_without_parens) {
   }
 }
 
+TEST(test_parse, if_without_condition) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if { yay(); } else { nay(); }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // (if)
+                                      "visit_variable_use",        // yay
+                                      "visit_exit_block_scope",    // (if)
+                                      "visit_enter_block_scope",   // (else)
+                                      "visit_variable_use",        // nay
+                                      "visit_exit_block_scope"));  // (else)
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_condition_for_if_statement,
+                              if_keyword, offsets_matcher(&code, 0, u8"if"))));
+  }
+}
+
 TEST(test_parse, else_without_if) {
   {
     spy_visitor v;

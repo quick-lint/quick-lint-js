@@ -2154,12 +2154,19 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_if(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_if);
-    const char8 *if_token_begin = this->peek().begin;
+    source_code_span if_token_span = this->peek().span();
     this->skip();
 
-    this->parse_and_visit_parenthesized_expression<
-        error_expected_parentheses_around_if_condition,
-        error_expected_parenthesis_around_if_condition>(v);
+    if (this->peek().type == token_type::left_curly) {
+      // if { body; }  // Invalid.
+      this->error_reporter_->report(error_missing_condition_for_if_statement{
+          .if_keyword = if_token_span,
+      });
+    } else {
+      this->parse_and_visit_parenthesized_expression<
+          error_expected_parentheses_around_if_condition,
+          error_expected_parenthesis_around_if_condition>(v);
+    }
 
     switch (this->peek().type) {
     default: {
@@ -2175,7 +2182,7 @@ class parser {
     case token_type::right_curly:
       this->error_reporter_->report(error_missing_body_for_if_statement{
           .if_and_condition = source_code_span(
-              if_token_begin, this->lexer_.end_of_previous_token()),
+              if_token_span.begin(), this->lexer_.end_of_previous_token()),
       });
       break;
     }
