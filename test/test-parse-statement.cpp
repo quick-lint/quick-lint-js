@@ -674,6 +674,22 @@ TEST(test_parse, switch_without_parens) {
   }
 }
 
+TEST(test_parse, switch_without_condition) {
+  {
+    spy_visitor v;
+    padded_string code(u8"switch { case ONE: break; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // ONE
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_condition_for_switch_statement,
+                    switch_keyword, offsets_matcher(&code, 0, u8"switch"))));
+  }
+}
+
 TEST(test_parse, switch_without_body) {
   {
     spy_visitor v;

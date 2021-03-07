@@ -528,6 +528,12 @@
              expected_comma))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_condition_for_switch_statement, "E137",                    \
+      { source_code_span switch_keyword; },                                    \
+      .error(QLJS_TRANSLATABLE("missing condition for switch statement"),      \
+             switch_keyword))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_expression_between_parentheses, "E078",                    \
       {                                                                        \
         source_code_span left_paren;                                           \

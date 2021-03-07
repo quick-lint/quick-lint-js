@@ -1514,12 +1514,20 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_switch(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_switch);
-    const char8 *switch_token_begin = this->peek().begin;
+    source_code_span switch_token_span = this->peek().span();
     this->skip();
 
-    this->parse_and_visit_parenthesized_expression<
-        error_expected_parentheses_around_switch_condition,
-        error_expected_parenthesis_around_switch_condition>(v);
+    if (this->peek().type == token_type::left_curly) {
+      // switch { case 1: break; }  // Invalid.
+      this->error_reporter_->report(
+          error_missing_condition_for_switch_statement{
+              .switch_keyword = switch_token_span,
+          });
+    } else {
+      this->parse_and_visit_parenthesized_expression<
+          error_expected_parentheses_around_switch_condition,
+          error_expected_parenthesis_around_switch_condition>(v);
+    }
 
     switch (this->peek().type) {
     case token_type::left_curly:
@@ -1538,7 +1546,7 @@ class parser {
     default:
       this->error_reporter_->report(error_missing_body_for_switch_statement{
           .switch_and_condition = source_code_span(
-              switch_token_begin, this->lexer_.end_of_previous_token()),
+              switch_token_span.begin(), this->lexer_.end_of_previous_token()),
       });
       return;
     }
