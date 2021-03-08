@@ -140,8 +140,5 @@ TEST_F(test_lsp_error_reporter, multiple_errors) {
   ::Json::Value diagnostics = this->parse_json();
   EXPECT_EQ(diagnostics.size(), 3);
 }
-
-// TODO(strager): LSP has particular and peculiar rules for source locations.
-// Ensure we implement them properly. (We don't.)
 }
 }
