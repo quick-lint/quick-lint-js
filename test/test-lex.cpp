@@ -1448,9 +1448,7 @@ TEST_F(test_lex, lex_identifiers_which_look_like_keywords) {
   this->check_tokens(u8"IF"_sv, {token_type::identifier});
 }
 
-TEST_F(test_lex, lex_keywords) {
-  this->check_tokens(u8"as"_sv, {token_type::kw_as});
-  this->check_tokens(u8"async"_sv, {token_type::kw_async});
+TEST_F(test_lex, lex_reserved_keywords) {
   this->check_tokens(u8"await"_sv, {token_type::kw_await});
   this->check_tokens(u8"break"_sv, {token_type::kw_break});
   this->check_tokens(u8"case"_sv, {token_type::kw_case});
@@ -1469,18 +1467,14 @@ TEST_F(test_lex, lex_keywords) {
   this->check_tokens(u8"false"_sv, {token_type::kw_false});
   this->check_tokens(u8"finally"_sv, {token_type::kw_finally});
   this->check_tokens(u8"for"_sv, {token_type::kw_for});
-  this->check_tokens(u8"from"_sv, {token_type::kw_from});
   this->check_tokens(u8"function"_sv, {token_type::kw_function});
   this->check_tokens(u8"if"_sv, {token_type::kw_if});
   this->check_tokens(u8"import"_sv, {token_type::kw_import});
   this->check_tokens(u8"in"_sv, {token_type::kw_in});
   this->check_tokens(u8"instanceof"_sv, {token_type::kw_instanceof});
-  this->check_tokens(u8"let"_sv, {token_type::kw_let});
   this->check_tokens(u8"new"_sv, {token_type::kw_new});
   this->check_tokens(u8"null"_sv, {token_type::kw_null});
-  this->check_tokens(u8"of"_sv, {token_type::kw_of});
   this->check_tokens(u8"return"_sv, {token_type::kw_return});
-  this->check_tokens(u8"static"_sv, {token_type::kw_static});
   this->check_tokens(u8"super"_sv, {token_type::kw_super});
   this->check_tokens(u8"switch"_sv, {token_type::kw_switch});
   this->check_tokens(u8"this"_sv, {token_type::kw_this});
@@ -1496,8 +1490,13 @@ TEST_F(test_lex, lex_keywords) {
 }
 
 TEST_F(test_lex, lex_contextual_keywords) {
-  // TODO(strager): Move some assertions from lex_keywords into here.
+  this->check_tokens(u8"as"_sv, {token_type::kw_as});
+  this->check_tokens(u8"async"_sv, {token_type::kw_async});
+  this->check_tokens(u8"from"_sv, {token_type::kw_from});
   this->check_tokens(u8"get"_sv, {token_type::kw_get});
+  this->check_tokens(u8"let"_sv, {token_type::kw_let});
+  this->check_tokens(u8"of"_sv, {token_type::kw_of});
+  this->check_tokens(u8"static"_sv, {token_type::kw_static});
 }
 
 TEST_F(test_lex, lex_keywords_cannot_contain_escape_sequences) {
