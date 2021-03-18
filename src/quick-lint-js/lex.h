@@ -112,15 +112,15 @@ enum class token_type {
   star = '*',
   tilde = '~',
 
-  complete_template,
+  complete_template,  // `text` or }text`
   end_of_file,
   identifier,
-  incomplete_template,
+  incomplete_template,  // `text${
   number,
   regexp,
   string,
 
-  // Keywords ('kw' stands for 'KeyWord'):
+  // Reserved words and contextual keywords ('kw' stands for 'KeyWord'):
   kw_as,
   kw_async,
   kw_await,
@@ -169,34 +169,34 @@ enum class token_type {
   kw_yield,
 
   // Symbols:
-  ampersand_ampersand,
-  ampersand_equal,
-  bang_equal,
-  bang_equal_equal,
-  circumflex_equal,
-  dot_dot_dot,
-  equal_equal,
-  equal_equal_equal,
-  equal_greater,
-  greater_equal,
-  greater_greater,
-  greater_greater_equal,
-  greater_greater_greater,
-  greater_greater_greater_equal,
-  less_equal,
-  less_less,
-  less_less_equal,
-  minus_equal,
-  minus_minus,
-  percent_equal,
-  pipe_equal,
-  pipe_pipe,
-  plus_equal,
-  plus_plus,
-  slash_equal,
-  star_equal,
-  star_star,
-  star_star_equal,
+  ampersand_ampersand,            // &&
+  ampersand_equal,                // &=
+  bang_equal,                     // !=
+  bang_equal_equal,               // !==
+  circumflex_equal,               // ^=
+  dot_dot_dot,                    // ...
+  equal_equal,                    // ==
+  equal_equal_equal,              // ===
+  equal_greater,                  // =>
+  greater_equal,                  // >=
+  greater_greater,                // >>
+  greater_greater_equal,          // >>=
+  greater_greater_greater,        // >>>
+  greater_greater_greater_equal,  // >>>=
+  less_equal,                     // <=
+  less_less,                      // <<
+  less_less_equal,                // <<=
+  minus_equal,                    // -=
+  minus_minus,                    // --
+  percent_equal,                  // %=
+  pipe_equal,                     // |=
+  pipe_pipe,                      // ||
+  plus_equal,                     // +=
+  plus_plus,                      // ++
+  slash_equal,                    // /=
+  star_equal,                     // *=
+  star_star,                      // **
+  star_star_equal,                // **=
 };
 
 const char* to_string(token_type);
