@@ -1496,6 +1496,7 @@ TEST_F(test_lex, lex_contextual_keywords) {
   this->check_tokens(u8"get"_sv, {token_type::kw_get});
   this->check_tokens(u8"let"_sv, {token_type::kw_let});
   this->check_tokens(u8"of"_sv, {token_type::kw_of});
+  this->check_tokens(u8"set"_sv, {token_type::kw_set});
   this->check_tokens(u8"static"_sv, {token_type::kw_static});
 }
 
@@ -1581,6 +1582,7 @@ TEST_F(test_lex, lex_contextual_keywords_can_contain_escape_sequences) {
            test_case{u8"\\u{67}et", u8"get"},
            test_case{u8"\\u{6c}et", u8"let"},
            test_case{u8"\\u{6f}f", u8"of"},
+           test_case{u8"\\u{73}et", u8"set"},
            test_case{u8"\\u{73}tatic", u8"static"},
        }) {
     SCOPED_TRACE(out_string8(tc.code));

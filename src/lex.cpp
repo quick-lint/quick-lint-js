@@ -219,6 +219,7 @@ retry:
       case token_type::kw_get:
       case token_type::kw_let:
       case token_type::kw_of:
+      case token_type::kw_set:
       case token_type::kw_static:
         // Escape sequences in identifiers prevent it from becoming a
         // contextual keyword.
