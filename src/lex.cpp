@@ -208,13 +208,31 @@ retry:
     this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
     this->last_token_.type = this->identifier_token_type(ident.normalized);
-    if (!ident.escape_sequences.empty() &&
-        this->last_token_.type != token_type::identifier) {
-      // Escape sequences in identifiers prevent it from becoming a keyword.
-      for (const source_code_span& escape_sequence : ident.escape_sequences) {
-        this->error_reporter_->report(
-            error_keywords_cannot_contain_escape_sequences{
-                .escape_sequence = escape_sequence});
+    if (!ident.escape_sequences.empty()) {
+      switch (this->last_token_.type) {
+      case token_type::identifier:
+        break;
+
+      case token_type::kw_as:
+      case token_type::kw_async:
+      case token_type::kw_from:
+      case token_type::kw_get:
+      case token_type::kw_let:
+      case token_type::kw_of:
+      case token_type::kw_static:
+        // Escape sequences in identifiers prevent it from becoming a
+        // contextual keyword.
+        break;
+
+      default:
+        // Escape sequences in identifiers prevent it from becoming a reserved
+        // keyword.
+        for (const source_code_span& escape_sequence : ident.escape_sequences) {
+          this->error_reporter_->report(
+              error_keywords_cannot_contain_escape_sequences{
+                  .escape_sequence = escape_sequence});
+        }
+        break;
       }
       this->last_token_.type = token_type::identifier;
     }

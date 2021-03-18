@@ -998,5 +998,25 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
                         offsets_matcher(&code, strlen(u8"!\n"), u8"enum"))));
   }
 }
+
+TEST(test_parse, let_is_an_identifier_if_escaped) {
+  {
+    // The following would instead be parsed as a declaration of a variable
+    // named 'x':
+    //
+    //   let[x] = [y];
+    //
+    // Escaping the 'l' in 'let' forces it to behave as an identifier, not a
+    // contextual keyword.
+    spy_visitor v = parse_and_visit_expression(u8"\\u{6c}et[x] = [y];"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // let
+                                      "visit_variable_use",    // x
+                                      "visit_variable_use"));  // y
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"},
+                            spy_visitor::visited_variable_use{u8"x"},
+                            spy_visitor::visited_variable_use{u8"y"}));
+  }
+}
 }
 }
