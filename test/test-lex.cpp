@@ -1500,13 +1500,70 @@ TEST_F(test_lex, lex_contextual_keywords) {
 }
 
 TEST_F(test_lex, lex_keywords_cannot_contain_escape_sequences) {
-  this->check_single_token_with_errors(
-      u8"\\u{69}f", u8"if", [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_keywords_cannot_contain_escape_sequences,
-                        escape_sequence, offsets_matcher(input, 0, 6))));
-      });
+  struct test_case {
+    string8 code;
+    string8 expected_identifier;
+  };
+
+  for (test_case tc : {
+           test_case{u8"\\u{61}s", u8"as"},
+           test_case{u8"\\u{61}sync", u8"async"},
+           test_case{u8"\\u{61}wait", u8"await"},
+           test_case{u8"\\u{62}reak", u8"break"},
+           test_case{u8"\\u{63}ase", u8"case"},
+           test_case{u8"\\u{63}atch", u8"catch"},
+           test_case{u8"\\u{63}lass", u8"class"},
+           test_case{u8"\\u{63}onst", u8"const"},
+           test_case{u8"\\u{63}ontinue", u8"continue"},
+           test_case{u8"\\u{64}ebugger", u8"debugger"},
+           test_case{u8"\\u{64}efault", u8"default"},
+           test_case{u8"\\u{64}elete", u8"delete"},
+           test_case{u8"\\u{64}o", u8"do"},
+           test_case{u8"\\u{65}lse", u8"else"},
+           test_case{u8"\\u{65}num", u8"enum"},
+           test_case{u8"\\u{65}xport", u8"export"},
+           test_case{u8"\\u{65}xtends", u8"extends"},
+           test_case{u8"\\u{66}alse", u8"false"},
+           test_case{u8"\\u{66}inally", u8"finally"},
+           test_case{u8"\\u{66}or", u8"for"},
+           test_case{u8"\\u{66}rom", u8"from"},
+           test_case{u8"\\u{66}unction", u8"function"},
+           test_case{u8"\\u{67}et", u8"get"},
+           test_case{u8"\\u{69}f", u8"if"},
+           test_case{u8"\\u{69}mport", u8"import"},
+           test_case{u8"\\u{69}n", u8"in"},
+           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
+           test_case{u8"\\u{6c}et", u8"let"},
+           test_case{u8"\\u{6e}ew", u8"new"},
+           test_case{u8"\\u{6e}ull", u8"null"},
+           test_case{u8"\\u{6f}f", u8"of"},
+           test_case{u8"\\u{72}eturn", u8"return"},
+           test_case{u8"\\u{73}tatic", u8"static"},
+           test_case{u8"\\u{73}uper", u8"super"},
+           test_case{u8"\\u{73}witch", u8"switch"},
+           test_case{u8"\\u{74}his", u8"this"},
+           test_case{u8"\\u{74}hrow", u8"throw"},
+           test_case{u8"\\u{74}rue", u8"true"},
+           test_case{u8"\\u{74}ry", u8"try"},
+           test_case{u8"\\u{74}ypeof", u8"typeof"},
+           test_case{u8"\\u{76}ar", u8"var"},
+           test_case{u8"\\u{76}oid", u8"void"},
+           test_case{u8"\\u{77}hile", u8"while"},
+           test_case{u8"\\u{77}ith", u8"with"},
+           test_case{u8"\\u{79}ield", u8"yield"},
+       }) {
+    SCOPED_TRACE(out_string8(tc.code));
+    SCOPED_TRACE(out_string8(tc.expected_identifier));
+    this->check_single_token_with_errors(
+        tc.code, tc.expected_identifier,
+        [](padded_string_view input, const auto& errors) {
+          EXPECT_THAT(
+              errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_keywords_cannot_contain_escape_sequences,
+                  escape_sequence, offsets_matcher(input, 0, u8"\\u{??}"))));
+        });
+  }
 
   // TODO(strager): Allow escape sequences in contextual keywords. (They should
   // be interpreted as identifiers, not keywords.)
