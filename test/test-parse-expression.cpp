@@ -2516,6 +2516,126 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
   }
 }
 
+TEST_F(test_parse_expression,
+       reserved_keywords_for_object_properties_can_contain_escape_sequences) {
+  struct test_case {
+    string8 property;
+    string8 expected_identifier;
+  };
+
+  for (test_case tc : {
+           test_case{u8"\\u{61}wait", u8"await"},
+           test_case{u8"\\u{62}reak", u8"break"},
+           test_case{u8"\\u{63}ase", u8"case"},
+           test_case{u8"\\u{63}atch", u8"catch"},
+           test_case{u8"\\u{63}lass", u8"class"},
+           test_case{u8"\\u{63}onst", u8"const"},
+           test_case{u8"\\u{63}ontinue", u8"continue"},
+           test_case{u8"\\u{64}ebugger", u8"debugger"},
+           test_case{u8"\\u{64}efault", u8"default"},
+           test_case{u8"\\u{64}elete", u8"delete"},
+           test_case{u8"\\u{64}o", u8"do"},
+           test_case{u8"\\u{65}lse", u8"else"},
+           test_case{u8"\\u{65}num", u8"enum"},
+           test_case{u8"\\u{65}xport", u8"export"},
+           test_case{u8"\\u{65}xtends", u8"extends"},
+           test_case{u8"\\u{66}alse", u8"false"},
+           test_case{u8"\\u{66}inally", u8"finally"},
+           test_case{u8"\\u{66}or", u8"for"},
+           test_case{u8"\\u{66}unction", u8"function"},
+           test_case{u8"\\u{69}f", u8"if"},
+           test_case{u8"\\u{69}mport", u8"import"},
+           test_case{u8"\\u{69}n", u8"in"},
+           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
+           test_case{u8"\\u{6e}ew", u8"new"},
+           test_case{u8"\\u{6e}ull", u8"null"},
+           test_case{u8"\\u{72}eturn", u8"return"},
+           test_case{u8"\\u{73}uper", u8"super"},
+           test_case{u8"\\u{73}witch", u8"switch"},
+           test_case{u8"\\u{74}his", u8"this"},
+           test_case{u8"\\u{74}hrow", u8"throw"},
+           test_case{u8"\\u{74}rue", u8"true"},
+           test_case{u8"\\u{74}ry", u8"try"},
+           test_case{u8"\\u{74}ypeof", u8"typeof"},
+           test_case{u8"\\u{76}ar", u8"var"},
+           test_case{u8"\\u{76}oid", u8"void"},
+           test_case{u8"\\u{77}hile", u8"while"},
+           test_case{u8"\\u{77}ith", u8"with"},
+           test_case{u8"\\u{79}ield", u8"yield"},
+       }) {
+    {
+      string8 code = u8"obj." + tc.property;
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(ast->kind(), expression_kind::dot);
+      EXPECT_EQ(summarize(ast->child_0()), "var obj");
+      EXPECT_EQ(ast->variable_identifier().normalized_name(),
+                tc.expected_identifier);
+    }
+
+    {
+      string8 code = u8"{ " + tc.property + u8": value }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, var value)");
+    }
+
+    {
+      string8 code = u8"{ " + tc.property + u8"() {} }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      string8 code = u8"{ get " + tc.property + u8"() {} }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      string8 code = u8"{ set " + tc.property + u8"(v) {} }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      string8 code = u8"{ async " + tc.property + u8"() {} }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      string8 code = u8"{ *" + tc.property + u8"() {} }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      string8 code = u8"{ async *" + tc.property + u8"() {} }";
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+    }
+
+    {
+      test_parser p(u8"{ function *" + tc.property + u8"() {} }");
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_THAT(
+          p.errors(),
+          ElementsAre(::testing::VariantWith<
+                      error_methods_should_not_use_function_keyword>(_)));
+    }
+
+    // TODO(strager): Test class property names.
+  }
+}
+
 std::string summarize(const expression& expression) {
   auto children = [&] {
     std::string result;

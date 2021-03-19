@@ -757,6 +757,7 @@ next:
     this->skip();
     switch (this->peek().type) {
     case token_type::identifier:
+    case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
       children.back() = this->make_expression<expression::dot>(
           children.back(), this->peek().identifier_name());
@@ -1124,6 +1125,7 @@ expression* parser::parse_object_literal() {
     QLJS_CASE_RESERVED_KEYWORD:
     case token_type::identifier:
     case token_type::number:
+    case token_type::reserved_keyword_with_escape_sequence:
     case token_type::string: {
       token key_token = this->peek();
       expression* key =
@@ -1235,6 +1237,7 @@ expression* parser::parse_object_literal() {
           QLJS_CASE_KEYWORD:
           case token_type::identifier:
           case token_type::number:
+          case token_type::reserved_keyword_with_escape_sequence:
           case token_type::string: {
             source_code_span real_key_span = this->peek().span();
             expression* real_key =
@@ -1302,6 +1305,7 @@ expression* parser::parse_object_literal() {
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
       case token_type::number:
+      case token_type::reserved_keyword_with_escape_sequence:
       case token_type::string: {
         source_code_span key_span = this->peek().span();
         expression* key = this->make_expression<expression::literal>(key_span);
@@ -1405,6 +1409,7 @@ expression* parser::parse_object_literal() {
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
       case token_type::number:
+      case token_type::reserved_keyword_with_escape_sequence:
       case token_type::string: {
         source_code_span method_name_span = this->peek().span();
         expression* method_name =
