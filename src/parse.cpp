@@ -1120,18 +1120,18 @@ expression* parser::parse_object_literal() {
     case token_type::identifier:
     case token_type::number:
     case token_type::string: {
-      token_type key_type = this->peek().type;
-      source_code_span key_span = this->peek().span();
-      expression* key = this->make_expression<expression::literal>(key_span);
+      token key_token = this->peek();
+      expression* key =
+          this->make_expression<expression::literal>(key_token.span());
       this->skip();
       switch (this->peek().type) {
       // {x y}  // Invalid.
       // {function f() {}}  // Invalid.
       case token_type::identifier:
-        if (key_type == token_type::kw_function) {
+        if (key_token.type == token_type::kw_function) {
           this->error_reporter_->report(
               error_methods_should_not_use_function_keyword{
-                  .function_token = key_span,
+                  .function_token = key_token.span(),
               });
           goto parse_entry;
         } else {
@@ -1147,22 +1147,23 @@ expression* parser::parse_object_literal() {
       case token_type::semicolon: {
         // Name and value are the same: {keyandvalue}
 
-        switch (key_type) {
+        switch (key_token.type) {
         case token_type::number:
         case token_type::string: {
           expression* value =
-              this->make_expression<expression::_invalid>(key_span);
+              this->make_expression<expression::_invalid>(key_token.span());
           this->error_reporter_->report(
-              error_invalid_lone_literal_in_object_literal{key_span});
+              error_invalid_lone_literal_in_object_literal{key_token.span()});
           entries.emplace_back(key, value);
           break;
         }
 
         QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD : {
           expression* value =
-              this->make_expression<expression::_invalid>(key_span);
+              this->make_expression<expression::_invalid>(key_token.span());
           this->error_reporter_->report(
-              error_missing_value_for_object_literal_entry{.key = key_span});
+              error_missing_value_for_object_literal_entry{
+                  .key = key_token.span()});
           entries.emplace_back(key, value);
           break;
         }
@@ -1176,7 +1177,7 @@ expression* parser::parse_object_literal() {
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case token_type::identifier: {
           expression* value = this->make_expression<expression::variable>(
-              identifier(key_span), key_type);
+              identifier(key_token.span()), key_token.type);
           entries.emplace_back(key, value);
           break;
         }
@@ -1197,8 +1198,8 @@ expression* parser::parse_object_literal() {
         // TODO(strager): Only allow this for identifiers, not numbers or
         // strings.
         expression* value = this->parse_expression_remainder(
-            this->make_expression<expression::variable>(identifier(key_span),
-                                                        key_type),
+            this->make_expression<expression::variable>(
+                identifier(key_token.span()), key_token.type),
             precedence{.commas = false});
         entries.emplace_back(key, value);
         break;
@@ -1214,15 +1215,15 @@ expression* parser::parse_object_literal() {
         goto full_expression;
 
       case token_type::left_paren:
-        parse_method_entry(key_span.begin(), key, function_attributes::normal);
+        parse_method_entry(key_token.begin, key, function_attributes::normal);
         break;
 
       case token_type::star:
-        if (key_type == token_type::kw_function) {
+        if (key_token.type == token_type::kw_function) {
           // { function *f() {} }  // Invalid.
           this->error_reporter_->report(
               error_methods_should_not_use_function_keyword{
-                  .function_token = key_span,
+                  .function_token = key_token.span(),
               });
           this->skip();
           switch (this->peek().type) {
@@ -1254,8 +1255,7 @@ expression* parser::parse_object_literal() {
           }
         } else {
           // {method*() {}}  // Invalid.
-          parse_method_entry(key_span.begin(), key,
-                             function_attributes::normal);
+          parse_method_entry(key_token.begin, key, function_attributes::normal);
         }
         break;
 
