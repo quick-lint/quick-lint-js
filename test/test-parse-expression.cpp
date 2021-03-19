@@ -24,6 +24,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
@@ -1640,15 +1641,7 @@ TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
 
 TEST_F(test_parse_expression,
        object_literal_with_reserved_keyword_keyvalue_is_an_error) {
-  for (string8 keyword :
-       {u8"break",    u8"case",       u8"catch",    u8"class",   u8"const",
-        u8"continue", u8"debugger",   u8"default",  u8"delete",  u8"do",
-        u8"else",     u8"enum",       u8"export",   u8"extends", u8"false",
-        u8"finally",  u8"for",        u8"function", u8"if",      u8"import",
-        u8"in",       u8"instanceof", u8"new",      u8"null",    u8"return",
-        u8"super",    u8"switch",     u8"this",     u8"throw",   u8"true",
-        u8"try",      u8"typeof",     u8"var",      u8"void",    u8"while",
-        u8"with"}) {
+  for (string8 keyword : disallowed_binding_identifier_keywords) {
     SCOPED_TRACE(out_string8(keyword));
 
     {
