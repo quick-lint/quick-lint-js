@@ -1169,6 +1169,7 @@ expression* parser::parse_object_literal() {
         case token_type::kw_delete:
         case token_type::kw_do:
         case token_type::kw_else:
+        case token_type::kw_enum:
         case token_type::kw_export:
         case token_type::kw_extends:
         case token_type::kw_false:
