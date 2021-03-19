@@ -573,16 +573,9 @@ expression* parser::parse_async_expression_only(token async_token) {
   }
 
   // async parameter => expression-or-block  // Arrow function.
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
-  case token_type::kw_as:
-  case token_type::kw_async:
   case token_type::kw_await:
-  case token_type::kw_from:
-  case token_type::kw_get:
-  case token_type::kw_let:
-  case token_type::kw_of:
-  case token_type::kw_set:
-  case token_type::kw_static:
   case token_type::kw_yield: {
     std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
@@ -1008,15 +1001,8 @@ expression* parser::parse_function_expression(function_attributes attributes,
     // NOTE(strager): A function expression named 'await' or 'yield' is allowed
     // even within async functions and generator functions.
     [[fallthrough]];
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
-  case token_type::kw_as:
-  case token_type::kw_async:
-  case token_type::kw_from:
-  case token_type::kw_get:
-  case token_type::kw_let:
-  case token_type::kw_of:
-  case token_type::kw_set:
-  case token_type::kw_static:
     function_name = this->peek().identifier_name();
     this->skip();
     break;
@@ -1220,15 +1206,8 @@ expression* parser::parse_object_literal() {
           // async functions, or a variable named 'yield' for generator
           // functions.
           [[fallthrough]];
-        case token_type::identifier:
-        case token_type::kw_as:
-        case token_type::kw_async:
-        case token_type::kw_from:
-        case token_type::kw_get:
-        case token_type::kw_let:
-        case token_type::kw_of:
-        case token_type::kw_set:
-        case token_type::kw_static: {
+        QLJS_CASE_CONTEXTUAL_KEYWORD:
+        case token_type::identifier: {
           expression* value = this->make_expression<expression::variable>(
               identifier(key_span), key_type);
           entries.emplace_back(key, value);

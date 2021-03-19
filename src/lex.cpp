@@ -213,14 +213,7 @@ retry:
       case token_type::identifier:
         break;
 
-      case token_type::kw_as:
-      case token_type::kw_async:
-      case token_type::kw_from:
-      case token_type::kw_get:
-      case token_type::kw_let:
-      case token_type::kw_of:
-      case token_type::kw_set:
-      case token_type::kw_static:
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
         // Escape sequences in identifiers prevent it from becoming a
         // contextual keyword.
         break;

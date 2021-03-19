@@ -229,6 +229,7 @@ class parser {
       // async += 42;
       QLJS_CASE_BINARY_ONLY_OPERATOR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::comma:
       case token_type::complete_template:
       case token_type::dot:
@@ -236,16 +237,7 @@ class parser {
       case token_type::equal_greater:
       case token_type::identifier:
       case token_type::incomplete_template:
-      case token_type::kw_as:
-      case token_type::kw_async:
-      case token_type::kw_await:
-      case token_type::kw_from:
-      case token_type::kw_get:
       case token_type::kw_in:
-      case token_type::kw_let:
-      case token_type::kw_of:
-      case token_type::kw_set:
-      case token_type::kw_static:
       case token_type::kw_yield:
       case token_type::left_paren:
       case token_type::minus:
@@ -1021,15 +1013,8 @@ class parser {
       goto named_function;
 
     named_function:
-    case token_type::identifier:
-    case token_type::kw_as:
-    case token_type::kw_async:
-    case token_type::kw_from:
-    case token_type::kw_get:
-    case token_type::kw_let:
-    case token_type::kw_of:
-    case token_type::kw_set:
-    case token_type::kw_static: {
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    case token_type::identifier: {
       identifier function_name = this->peek().identifier_name();
       v.visit_variable_declaration(function_name, variable_kind::_function);
       this->skip();
@@ -1199,16 +1184,9 @@ class parser {
       case token_type::kw_await:
         // TODO(strager): Disallow parameters named 'await' for async functions.
         [[fallthrough]];
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::dot_dot_dot:
       case token_type::identifier:
-      case token_type::kw_as:
-      case token_type::kw_async:
-      case token_type::kw_from:
-      case token_type::kw_get:
-      case token_type::kw_let:
-      case token_type::kw_of:
-      case token_type::kw_set:
-      case token_type::kw_static:
       case token_type::kw_yield:
       case token_type::left_curly:
       case token_type::left_square: {
@@ -1281,20 +1259,14 @@ class parser {
 
     std::optional<identifier> optional_class_name;
     switch (this->peek().type) {
-    case token_type::kw_let:
-      this->error_reporter_->report(error_cannot_declare_class_named_let{
-          .name = this->peek().identifier_name().span()});
-      [[fallthrough]];
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
-    case token_type::kw_as:
-    case token_type::kw_async:
     case token_type::kw_await:
-    case token_type::kw_from:
-    case token_type::kw_get:
-    case token_type::kw_of:
-    case token_type::kw_set:
-    case token_type::kw_static:
     case token_type::kw_yield:
+      if (this->peek().type == token_type::kw_let) {
+        this->error_reporter_->report(error_cannot_declare_class_named_let{
+            .name = this->peek().identifier_name().span()});
+      }
       optional_class_name = this->peek().identifier_name();
       this->skip();
       break;
@@ -1682,15 +1654,8 @@ class parser {
           goto catch_identifier;
 
         catch_identifier:
+        QLJS_CASE_CONTEXTUAL_KEYWORD:
         case token_type::identifier:
-        case token_type::kw_as:
-        case token_type::kw_async:
-        case token_type::kw_from:
-        case token_type::kw_get:
-        case token_type::kw_let:
-        case token_type::kw_of:
-        case token_type::kw_set:
-        case token_type::kw_static:
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_catch);
           this->skip();
