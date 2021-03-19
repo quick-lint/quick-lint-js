@@ -1502,7 +1502,7 @@ TEST_F(test_lex, lex_contextual_keywords) {
 
 TEST_F(
     test_lex,
-    lex_reserved_keywords_except_await_and_yield_cannot_contain_escape_sequences) {
+    lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences) {
   struct test_case {
     string8 code;
     string8 expected_identifier;
@@ -1546,27 +1546,23 @@ TEST_F(
            test_case{u8"\\u{77}hile", u8"while"},
            test_case{u8"\\u{77}ith", u8"with"},
        }) {
-    SCOPED_TRACE(out_string8(tc.code));
-    SCOPED_TRACE(out_string8(tc.expected_identifier));
-    this->check_single_token_with_errors(
-        tc.code, tc.expected_identifier,
-        [](padded_string_view input, const auto& errors) {
-          EXPECT_THAT(
-              errors,
-              ElementsAre(ERROR_TYPE_FIELD(
-                  error_keywords_cannot_contain_escape_sequences,
-                  escape_sequence, offsets_matcher(input, 0, u8"\\u{??}"))));
-        });
-  }
+    padded_string code(tc.code);
+    SCOPED_TRACE(code);
+    error_collector errors;
+    lexer& l = this->make_lexer(&code, &errors);
 
-  // TODO(strager): Allow escape sequences in keywords if they are being parsed
-  // as identifiers.
-  //
-  // For example:
-  //
-  // let o = { \u{69}f: "hi", \u{67}et: "got" };
-  // console.log(o.i\u{66}); // Logs 'hi'.
-  // console.log(o.get); // Logs 'got'.
+    EXPECT_THAT(l.peek().type,
+                token_type::reserved_keyword_with_escape_sequence);
+    EXPECT_THAT(l.peek().identifier_name().normalized_name(),
+                tc.expected_identifier);
+    EXPECT_THAT(errors.errors, IsEmpty());
+
+    l.report_errors_for_escape_sequences_in_keyword();
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_keywords_cannot_contain_escape_sequences,
+                    escape_sequence, offsets_matcher(&code, 0, u8"\\u{??}"))));
+  }
 }
 
 TEST_F(

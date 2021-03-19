@@ -142,6 +142,7 @@ identifier token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
   case token_type::identifier:
+  case token_type::reserved_keyword_with_escape_sequence:
     break;
   default:
     QLJS_ASSERT(false);
@@ -212,6 +213,7 @@ retry:
     if (!ident.escape_sequences.empty()) {
       switch (this->last_token_.type) {
       case token_type::identifier:
+        this->last_token_.type = token_type::identifier;
         break;
 
       QLJS_CASE_CONTEXTUAL_KEYWORD:
@@ -219,22 +221,21 @@ retry:
       case token_type::kw_yield:
         // Escape sequences in identifiers prevent it from becoming a
         // contextual keyword.
+        this->last_token_.type = token_type::identifier;
         break;
 
       QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
         // Escape sequences in identifiers prevent it from becoming a reserved
         // keyword.
-        for (const source_code_span& escape_sequence : ident.escape_sequences) {
-          this->error_reporter_->report(
-              error_keywords_cannot_contain_escape_sequences{
-                  .escape_sequence = escape_sequence});
-        }
+        QLJS_ASSERT(!ident.escape_sequences.empty());
+        this->last_token_.type =
+            token_type::reserved_keyword_with_escape_sequence;
+        this->last_token_escape_sequences_ = std::move(ident.escape_sequences);
         break;
 
       default:
         QLJS_UNREACHABLE();
       }
-      this->last_token_.type = token_type::identifier;
     }
     break;
   }
@@ -870,6 +871,18 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
   this->error_reporter_ = transaction.old_error_reporter;
+}
+
+void lexer::report_errors_for_escape_sequences_in_keyword() {
+  QLJS_ASSERT(this->last_token_.type ==
+              token_type::reserved_keyword_with_escape_sequence);
+  QLJS_ASSERT(!this->last_token_escape_sequences_.empty());
+  for (const source_code_span& escape_sequence :
+       this->last_token_escape_sequences_) {
+    this->error_reporter_->report(
+        error_keywords_cannot_contain_escape_sequences{.escape_sequence =
+                                                           escape_sequence});
+  }
 }
 
 void lexer::insert_semicolon() {
@@ -1793,6 +1806,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(plus_plus)
     QLJS_CASE(question)
     QLJS_CASE(regexp)
+    QLJS_CASE(reserved_keyword_with_escape_sequence)
     QLJS_CASE(right_curly)
     QLJS_CASE(right_paren)
     QLJS_CASE(right_square)

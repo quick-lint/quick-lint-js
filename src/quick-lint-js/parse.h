@@ -362,6 +362,11 @@ class parser {
       break;
     }
 
+    // \u{69}\u{66} // 'if', but escaped.
+    case token_type::reserved_keyword_with_escape_sequence:
+      this->lexer_.report_errors_for_escape_sequences_in_keyword();
+      goto parse_loop_label_or_expression_starting_with_identifier;
+
     // class C {}
     case token_type::kw_class:
       this->parse_and_visit_class(

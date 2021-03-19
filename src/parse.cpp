@@ -108,6 +108,11 @@ expression* parser::parse_expression(precedence prec) {
     return this->parse_expression_remainder(ast, prec);
   }
 
+  // \u{69}\u{66} // 'if', but escaped.
+  case token_type::reserved_keyword_with_escape_sequence:
+    this->lexer_.report_errors_for_escape_sequences_in_keyword();
+    goto identifier;
+
   // false
   // `hello`
   // 42

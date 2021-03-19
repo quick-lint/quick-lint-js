@@ -141,6 +141,14 @@ enum class token_type {
   regexp,
   string,
 
+  // An identifier which contains escape sequences and which, if unescaped,
+  // matches a reserved keyword. For example, the token `\u{69}\u{66}` unescaped
+  // is `if`.
+  //
+  // Such identifiers are sometimes legal and sometimes illegal depending on the
+  // parser's context, hence we distinguish them from token_type::identifier.
+  reserved_keyword_with_escape_sequence,
+
   // Reserved words and contextual keywords ('kw' stands for 'KeyWord'):
   kw_as,
   kw_async,
@@ -362,6 +370,14 @@ class lexer {
   // been reported if it weren't for begin_transaction.
   void roll_back_transaction(lexer_transaction&&);
 
+  // Report error_keywords_cannot_contain_escape_sequences for each escape
+  // sequence in the most recently parsed keyword-looking identifier.
+  //
+  // Precondition:
+  //   this->peek().type == token_type::reserved_keyword_with_escape_sequence
+  // Precondition: This function was not previously called for the same token.
+  void report_errors_for_escape_sequences_in_keyword();
+
   void insert_semicolon();
 
   // Do not call this after calling insert_semicolon, unless skip has been
@@ -474,6 +490,10 @@ class lexer {
   const char8* input_;
   error_reporter* error_reporter_;
   padded_string_view original_input_;
+
+  // This may not be up to date. It is only guaranteed to be updated after
+  // parsing a token_type::reserved_keyword_with_escape_sequence.
+  std::vector<source_code_span> last_token_escape_sequences_;
 
   monotonic_allocator allocator_;
 };

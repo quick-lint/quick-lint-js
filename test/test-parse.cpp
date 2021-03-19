@@ -329,6 +329,15 @@ TEST(test_parse,
               offsets_matcher(&code, strlen(u8"("), u8"\\u{??}"))));
     }
   }
+
+  // TODO(strager): Allow escape sequences in keywords if they are being parsed
+  // as identifiers.
+  //
+  // For example:
+  //
+  // let o = { \u{69}f: "hi", \u{67}et: "got" };
+  // console.log(o.i\u{66}); // Logs 'hi'.
+  // console.log(o.get); // Logs 'got'.
 }
 
 TEST(test_parse,
