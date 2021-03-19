@@ -1177,7 +1177,7 @@ expression* parser::parse_object_literal() {
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case token_type::identifier: {
           expression* value = this->make_expression<expression::variable>(
-              identifier(key_token.span()), key_token.type);
+              key_token.identifier_name(), key_token.type);
           entries.emplace_back(key, value);
           break;
         }
@@ -1199,7 +1199,7 @@ expression* parser::parse_object_literal() {
         // strings.
         expression* value = this->parse_expression_remainder(
             this->make_expression<expression::variable>(
-                identifier(key_token.span()), key_token.type),
+                key_token.identifier_name(), key_token.type),
             precedence{.commas = false});
         entries.emplace_back(key, value);
         break;

@@ -367,6 +367,20 @@ TEST(test_parse,
     }
 
     {
+      padded_string code(u8"({ " + tc.code + u8" })");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{
+                      tc.expected_identifier}));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+
+    {
       padded_string code(u8"({ " + tc.code + u8"() {} })");
       SCOPED_TRACE(code);
       spy_visitor v;
@@ -396,6 +410,22 @@ TEST(test_parse,
       parser p(&code, &v);
       p.parse_and_visit_module(v);
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      tc.expected_identifier, variable_kind::_var}));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+
+    {
+      padded_string code(u8"var { " + tc.code + u8" = a } = b;");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // a
+                                        "visit_variable_use",          // b
+                                        "visit_variable_declaration",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
