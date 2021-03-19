@@ -852,6 +852,7 @@ class parser {
         switch (this->peek().type) {
         QLJS_CASE_KEYWORD:
         case token_type::identifier:
+        case token_type::reserved_keyword_with_escape_sequence:
           this->skip();
           break;
         default:
@@ -2350,7 +2351,8 @@ class parser {
     for (;;) {
       switch (this->peek().type) {
       QLJS_CASE_KEYWORD:
-      case token_type::identifier: {
+      case token_type::identifier:
+      case token_type::reserved_keyword_with_escape_sequence: {
         // TODO(strager): Is 'import {default} ...' allowed?
         identifier left_name = this->peek().identifier_name();
         identifier right_name = left_name;
@@ -2361,6 +2363,7 @@ class parser {
           switch (this->peek().type) {
           QLJS_CASE_KEYWORD:
           case token_type::identifier:
+          case token_type::reserved_keyword_with_escape_sequence:
             // TODO(strager): Is 'import {x as default} ...' allowed?
             right_name = this->peek().identifier_name();
             right_token_type = this->peek().type;

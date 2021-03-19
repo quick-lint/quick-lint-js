@@ -668,5 +668,49 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
                     u8"someFunction", variable_kind::_import}));
   }
 }
+
+TEST(
+    test_parse,
+    imported_and_exported_names_can_be_reserved_keywords_with_escape_sequences) {
+  for (string8 exported_name : {
+           u8"\\u{61}wait",    u8"\\u{62}reak",      u8"\\u{63}ase",
+           u8"\\u{63}atch",    u8"\\u{63}lass",      u8"\\u{63}onst",
+           u8"\\u{63}ontinue", u8"\\u{64}ebugger",   u8"\\u{64}efault",
+           u8"\\u{64}elete",   u8"\\u{64}o",         u8"\\u{65}lse",
+           u8"\\u{65}num",     u8"\\u{65}xport",     u8"\\u{65}xtends",
+           u8"\\u{66}alse",    u8"\\u{66}inally",    u8"\\u{66}or",
+           u8"\\u{66}unction", u8"\\u{69}f",         u8"\\u{69}mport",
+           u8"\\u{69}n",       u8"\\u{69}nstanceof", u8"\\u{6e}ew",
+           u8"\\u{6e}ull",     u8"\\u{72}eturn",     u8"\\u{73}uper",
+           u8"\\u{73}witch",   u8"\\u{74}his",       u8"\\u{74}hrow",
+           u8"\\u{74}rue",     u8"\\u{74}ry",        u8"\\u{74}ypeof",
+           u8"\\u{76}ar",      u8"\\u{76}oid",       u8"\\u{77}hile",
+           u8"\\u{77}ith",     u8"\\u{79}ield",
+       }) {
+    {
+      padded_string code(u8"import {" + exported_name +
+                         u8" as someFunction} from 'somewhere';");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_statement(code.string_view());
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // someFunction
+    }
+
+    {
+      padded_string code(u8"export {someFunction as " + exported_name + u8"};");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_statement(code.string_view());
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_export_use"));  // someFunction
+    }
+
+    {
+      padded_string code(u8"export * as " + exported_name + u8" from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_statement(code.string_view());
+      EXPECT_THAT(v.visits, IsEmpty());
+    }
+  }
+}
 }
 }
