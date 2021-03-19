@@ -27,53 +27,67 @@
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
-// Non-contextual keywords, including future reserved words.
-// TODO(strager): private, public, and protected should be in this list.
-#define QLJS_CASE_RESERVED_KEYWORD                 \
-  case ::quick_lint_js::token_type::kw_await:      \
-  case ::quick_lint_js::token_type::kw_break:      \
-  case ::quick_lint_js::token_type::kw_case:       \
-  case ::quick_lint_js::token_type::kw_catch:      \
-  case ::quick_lint_js::token_type::kw_class:      \
-  case ::quick_lint_js::token_type::kw_const:      \
-  case ::quick_lint_js::token_type::kw_continue:   \
-  case ::quick_lint_js::token_type::kw_debugger:   \
-  case ::quick_lint_js::token_type::kw_default:    \
-  case ::quick_lint_js::token_type::kw_delete:     \
-  case ::quick_lint_js::token_type::kw_do:         \
-  case ::quick_lint_js::token_type::kw_else:       \
-  case ::quick_lint_js::token_type::kw_enum:       \
-  case ::quick_lint_js::token_type::kw_export:     \
-  case ::quick_lint_js::token_type::kw_extends:    \
-  case ::quick_lint_js::token_type::kw_false:      \
-  case ::quick_lint_js::token_type::kw_finally:    \
-  case ::quick_lint_js::token_type::kw_for:        \
-  case ::quick_lint_js::token_type::kw_function:   \
-  case ::quick_lint_js::token_type::kw_if:         \
-  case ::quick_lint_js::token_type::kw_import:     \
-  case ::quick_lint_js::token_type::kw_in:         \
-  case ::quick_lint_js::token_type::kw_instanceof: \
-  case ::quick_lint_js::token_type::kw_new:        \
-  case ::quick_lint_js::token_type::kw_null:       \
-  case ::quick_lint_js::token_type::kw_return:     \
-  case ::quick_lint_js::token_type::kw_super:      \
-  case ::quick_lint_js::token_type::kw_switch:     \
-  case ::quick_lint_js::token_type::kw_this:       \
-  case ::quick_lint_js::token_type::kw_throw:      \
-  case ::quick_lint_js::token_type::kw_true:       \
-  case ::quick_lint_js::token_type::kw_try:        \
-  case ::quick_lint_js::token_type::kw_typeof:     \
-  case ::quick_lint_js::token_type::kw_var:        \
-  case ::quick_lint_js::token_type::kw_void:       \
-  case ::quick_lint_js::token_type::kw_while:      \
-  case ::quick_lint_js::token_type::kw_with:       \
+#define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD \
+  case ::quick_lint_js::token_type::kw_break:                          \
+  case ::quick_lint_js::token_type::kw_case:                           \
+  case ::quick_lint_js::token_type::kw_catch:                          \
+  case ::quick_lint_js::token_type::kw_class:                          \
+  case ::quick_lint_js::token_type::kw_const:                          \
+  case ::quick_lint_js::token_type::kw_continue:                       \
+  case ::quick_lint_js::token_type::kw_debugger:                       \
+  case ::quick_lint_js::token_type::kw_default:                        \
+  case ::quick_lint_js::token_type::kw_delete:                         \
+  case ::quick_lint_js::token_type::kw_do:                             \
+  case ::quick_lint_js::token_type::kw_else:                           \
+  case ::quick_lint_js::token_type::kw_enum:                           \
+  case ::quick_lint_js::token_type::kw_export:                         \
+  case ::quick_lint_js::token_type::kw_extends:                        \
+  case ::quick_lint_js::token_type::kw_false:                          \
+  case ::quick_lint_js::token_type::kw_finally:                        \
+  case ::quick_lint_js::token_type::kw_for:                            \
+  case ::quick_lint_js::token_type::kw_if:                             \
+  case ::quick_lint_js::token_type::kw_import:                         \
+  case ::quick_lint_js::token_type::kw_in:                             \
+  case ::quick_lint_js::token_type::kw_instanceof:                     \
+  case ::quick_lint_js::token_type::kw_new:                            \
+  case ::quick_lint_js::token_type::kw_null:                           \
+  case ::quick_lint_js::token_type::kw_return:                         \
+  case ::quick_lint_js::token_type::kw_super:                          \
+  case ::quick_lint_js::token_type::kw_switch:                         \
+  case ::quick_lint_js::token_type::kw_this:                           \
+  case ::quick_lint_js::token_type::kw_throw:                          \
+  case ::quick_lint_js::token_type::kw_true:                           \
+  case ::quick_lint_js::token_type::kw_try:                            \
+  case ::quick_lint_js::token_type::kw_typeof:                         \
+  case ::quick_lint_js::token_type::kw_var:                            \
+  case ::quick_lint_js::token_type::kw_void:                           \
+  case ::quick_lint_js::token_type::kw_while:                          \
+  case ::quick_lint_js::token_type::kw_with
+
+#define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION                \
+  QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD: \
+  case ::quick_lint_js::token_type::kw_await:                     \
   case ::quick_lint_js::token_type::kw_yield
 
-#define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET \
-  case ::quick_lint_js::token_type::kw_as:                        \
-  case ::quick_lint_js::token_type::kw_from:                      \
-  case ::quick_lint_js::token_type::kw_let:                       \
-  case ::quick_lint_js::token_type::kw_of:                        \
+#define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD         \
+  QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD: \
+  case ::quick_lint_js::token_type::kw_function
+
+// Non-contextual keywords, including future reserved words.
+// TODO(strager): private, public, and protected should be in this list.
+#define QLJS_CASE_RESERVED_KEYWORD                   \
+  QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD: \
+  case ::quick_lint_js::token_type::kw_await:        \
+  case ::quick_lint_js::token_type::kw_yield
+
+#define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC \
+  case ::quick_lint_js::token_type::kw_as:                                   \
+  case ::quick_lint_js::token_type::kw_from:                                 \
+  case ::quick_lint_js::token_type::kw_let:                                  \
+  case ::quick_lint_js::token_type::kw_of
+
+#define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET       \
+  QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC: \
   case ::quick_lint_js::token_type::kw_static
 
 // Keywords which are sometimes treated as identifiers; i.e. identifiers which

@@ -1158,42 +1158,7 @@ expression* parser::parse_object_literal() {
           break;
         }
 
-        case token_type::kw_break:
-        case token_type::kw_case:
-        case token_type::kw_catch:
-        case token_type::kw_class:
-        case token_type::kw_const:
-        case token_type::kw_continue:
-        case token_type::kw_debugger:
-        case token_type::kw_default:
-        case token_type::kw_delete:
-        case token_type::kw_do:
-        case token_type::kw_else:
-        case token_type::kw_enum:
-        case token_type::kw_export:
-        case token_type::kw_extends:
-        case token_type::kw_false:
-        case token_type::kw_finally:
-        case token_type::kw_for:
-        case token_type::kw_function:
-        case token_type::kw_if:
-        case token_type::kw_import:
-        case token_type::kw_in:
-        case token_type::kw_instanceof:
-        case token_type::kw_new:
-        case token_type::kw_null:
-        case token_type::kw_return:
-        case token_type::kw_super:
-        case token_type::kw_switch:
-        case token_type::kw_this:
-        case token_type::kw_throw:
-        case token_type::kw_true:
-        case token_type::kw_try:
-        case token_type::kw_typeof:
-        case token_type::kw_var:
-        case token_type::kw_void:
-        case token_type::kw_while:
-        case token_type::kw_with: {
+        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD : {
           expression* value =
               this->make_expression<expression::_invalid>(key_span);
           this->error_reporter_->report(
