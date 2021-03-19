@@ -84,10 +84,6 @@
   case ::quick_lint_js::token_type::kw_get:                  \
   case ::quick_lint_js::token_type::kw_set
 
-#define QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET       \
-  QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET: \
-  QLJS_CASE_RESERVED_KEYWORD
-
 #define QLJS_CASE_KEYWORD       \
   QLJS_CASE_CONTEXTUAL_KEYWORD: \
   QLJS_CASE_RESERVED_KEYWORD

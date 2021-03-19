@@ -1115,7 +1115,8 @@ expression* parser::parse_object_literal() {
     // {"key": value}
     // {10: value}
     // {keyAndValue}
-    QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET:
+    QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET:
+    QLJS_CASE_RESERVED_KEYWORD:
     case token_type::identifier:
     case token_type::number:
     case token_type::string: {
