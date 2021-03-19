@@ -69,25 +69,24 @@
   case ::quick_lint_js::token_type::kw_with:       \
   case ::quick_lint_js::token_type::kw_yield
 
-// Keywords which are sometimes treated as identifiers; i.e. identifiers which
-// are sometimes treated as keywords.
-#define QLJS_CASE_CONTEXTUAL_KEYWORD          \
-  case ::quick_lint_js::token_type::kw_as:    \
-  case ::quick_lint_js::token_type::kw_async: \
-  case ::quick_lint_js::token_type::kw_from:  \
-  case ::quick_lint_js::token_type::kw_get:   \
-  case ::quick_lint_js::token_type::kw_let:   \
-  case ::quick_lint_js::token_type::kw_of:    \
-  case ::quick_lint_js::token_type::kw_set:   \
+#define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET \
+  case ::quick_lint_js::token_type::kw_as:                        \
+  case ::quick_lint_js::token_type::kw_from:                      \
+  case ::quick_lint_js::token_type::kw_let:                       \
+  case ::quick_lint_js::token_type::kw_of:                        \
   case ::quick_lint_js::token_type::kw_static
 
-#define QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET \
-  case ::quick_lint_js::token_type::kw_as:             \
-  case ::quick_lint_js::token_type::kw_from:           \
-  case ::quick_lint_js::token_type::kw_let:            \
-  case ::quick_lint_js::token_type::kw_of:             \
-  case ::quick_lint_js::token_type::kw_static:         \
-    QLJS_CASE_RESERVED_KEYWORD
+// Keywords which are sometimes treated as identifiers; i.e. identifiers which
+// are sometimes treated as keywords.
+#define QLJS_CASE_CONTEXTUAL_KEYWORD                         \
+  QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET: \
+  case ::quick_lint_js::token_type::kw_async:                \
+  case ::quick_lint_js::token_type::kw_get:                  \
+  case ::quick_lint_js::token_type::kw_set
+
+#define QLJS_CASE_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET       \
+  QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET: \
+  QLJS_CASE_RESERVED_KEYWORD
 
 #define QLJS_CASE_KEYWORD_EXCEPT_GET_AND_SET  \
   case ::quick_lint_js::token_type::kw_async: \
