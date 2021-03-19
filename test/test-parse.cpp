@@ -248,5 +248,181 @@ TEST(test_parse, stray_right_curly_at_top_level) {
                               offsets_matcher(&code, 0, u8"}"))));
   }
 }
+
+TEST(test_parse,
+     reserved_keywords_except_await_and_yield_cannot_contain_escape_sequences) {
+  struct test_case {
+    string8 code;
+    string8 expected_identifier;
+  };
+
+  for (test_case tc : {
+           test_case{u8"\\u{62}reak", u8"break"},
+           test_case{u8"\\u{63}ase", u8"case"},
+           test_case{u8"\\u{63}atch", u8"catch"},
+           test_case{u8"\\u{63}lass", u8"class"},
+           test_case{u8"\\u{63}onst", u8"const"},
+           test_case{u8"\\u{63}ontinue", u8"continue"},
+           test_case{u8"\\u{64}ebugger", u8"debugger"},
+           test_case{u8"\\u{64}efault", u8"default"},
+           test_case{u8"\\u{64}elete", u8"delete"},
+           test_case{u8"\\u{64}o", u8"do"},
+           test_case{u8"\\u{65}lse", u8"else"},
+           test_case{u8"\\u{65}num", u8"enum"},
+           test_case{u8"\\u{65}xport", u8"export"},
+           test_case{u8"\\u{65}xtends", u8"extends"},
+           test_case{u8"\\u{66}alse", u8"false"},
+           test_case{u8"\\u{66}inally", u8"finally"},
+           test_case{u8"\\u{66}or", u8"for"},
+           test_case{u8"\\u{66}unction", u8"function"},
+           test_case{u8"\\u{69}f", u8"if"},
+           test_case{u8"\\u{69}mport", u8"import"},
+           test_case{u8"\\u{69}n", u8"in"},
+           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
+           test_case{u8"\\u{6e}ew", u8"new"},
+           test_case{u8"\\u{6e}ull", u8"null"},
+           test_case{u8"\\u{72}eturn", u8"return"},
+           test_case{u8"\\u{73}uper", u8"super"},
+           test_case{u8"\\u{73}witch", u8"switch"},
+           test_case{u8"\\u{74}his", u8"this"},
+           test_case{u8"\\u{74}hrow", u8"throw"},
+           test_case{u8"\\u{74}rue", u8"true"},
+           test_case{u8"\\u{74}ry", u8"try"},
+           test_case{u8"\\u{74}ypeof", u8"typeof"},
+           test_case{u8"\\u{76}ar", u8"var"},
+           test_case{u8"\\u{76}oid", u8"void"},
+           test_case{u8"\\u{77}hile", u8"while"},
+           test_case{u8"\\u{77}ith", u8"with"},
+       }) {
+    {
+      padded_string code(tc.code);
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{
+                      tc.expected_identifier}));
+      EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_keywords_cannot_contain_escape_sequences,
+                                escape_sequence,
+                                offsets_matcher(&code, 0, u8"\\u{??}"))));
+    }
+
+    {
+      padded_string code(u8"(" + tc.code + u8")");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{
+                      tc.expected_identifier}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_keywords_cannot_contain_escape_sequences, escape_sequence,
+              offsets_matcher(&code, strlen(u8"("), u8"\\u{??}"))));
+    }
+  }
+}
+
+TEST(test_parse,
+     contextual_keywords_and_await_and_yield_can_contain_escape_sequences) {
+  struct test_case {
+    string8 code;
+    string8 expected_identifier;
+  };
+
+  for (test_case tc : {
+           test_case{u8"\\u{61}s", u8"as"},
+           test_case{u8"\\u{61}sync", u8"async"},
+           test_case{u8"\\u{61}wait", u8"await"},
+           test_case{u8"\\u{66}rom", u8"from"},
+           test_case{u8"\\u{67}et", u8"get"},
+           test_case{u8"\\u{6c}et", u8"let"},
+           test_case{u8"\\u{6f}f", u8"of"},
+           test_case{u8"\\u{73}et", u8"set"},
+           test_case{u8"\\u{73}tatic", u8"static"},
+           test_case{u8"\\u{79}ield", u8"yield"},
+       }) {
+    SCOPED_TRACE(out_string8(tc.expected_identifier));
+
+    {
+      padded_string code(tc.code);
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{
+                      tc.expected_identifier}));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+
+    {
+      padded_string code(u8"({ " + tc.code + u8"() {} })");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                        "visit_enter_function_scope_body",  //
+                                        "visit_exit_function_scope",        //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+
+    {
+      padded_string code(u8"({ " + tc.code + u8": null })");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+
+    {
+      padded_string code(u8"var " + tc.code + u8" = null;");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      tc.expected_identifier, variable_kind::_var}));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+
+    {
+      padded_string code(u8"class C { " + tc.code + u8"() {} }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // C
+                                        "visit_enter_class_scope",          //
+                                        "visit_property_declaration",       //
+                                        "visit_enter_function_scope",       //
+                                        "visit_enter_function_scope_body",  //
+                                        "visit_exit_function_scope",        //
+                                        "visit_exit_class_scope",           //
+                                        "visit_end_of_module"));
+      EXPECT_THAT(v.property_declarations,
+                  ElementsAre(spy_visitor::visited_property_declaration{
+                      tc.expected_identifier}));
+      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+    }
+  }
+}
 }
 }
