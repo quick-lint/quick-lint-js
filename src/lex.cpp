@@ -31,6 +31,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/simd.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-8.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
@@ -218,7 +219,7 @@ retry:
         // contextual keyword.
         break;
 
-      default:
+      QLJS_CASE_RESERVED_KEYWORD:
         // Escape sequences in identifiers prevent it from becoming a reserved
         // keyword.
         for (const source_code_span& escape_sequence : ident.escape_sequences) {
@@ -227,6 +228,9 @@ retry:
                   .escape_sequence = escape_sequence});
         }
         break;
+
+      default:
+        QLJS_UNREACHABLE();
       }
       this->last_token_.type = token_type::identifier;
     }
