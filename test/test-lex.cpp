@@ -1500,14 +1500,15 @@ TEST_F(test_lex, lex_contextual_keywords) {
   this->check_tokens(u8"static"_sv, {token_type::kw_static});
 }
 
-TEST_F(test_lex, lex_reserved_keywords_cannot_contain_escape_sequences) {
+TEST_F(
+    test_lex,
+    lex_reserved_keywords_except_await_and_yield_cannot_contain_escape_sequences) {
   struct test_case {
     string8 code;
     string8 expected_identifier;
   };
 
   for (test_case tc : {
-           test_case{u8"\\u{61}wait", u8"await"},
            test_case{u8"\\u{62}reak", u8"break"},
            test_case{u8"\\u{63}ase", u8"case"},
            test_case{u8"\\u{63}atch", u8"catch"},
@@ -1544,7 +1545,6 @@ TEST_F(test_lex, lex_reserved_keywords_cannot_contain_escape_sequences) {
            test_case{u8"\\u{76}oid", u8"void"},
            test_case{u8"\\u{77}hile", u8"while"},
            test_case{u8"\\u{77}ith", u8"with"},
-           test_case{u8"\\u{79}ield", u8"yield"},
        }) {
     SCOPED_TRACE(out_string8(tc.code));
     SCOPED_TRACE(out_string8(tc.expected_identifier));
@@ -1569,7 +1569,9 @@ TEST_F(test_lex, lex_reserved_keywords_cannot_contain_escape_sequences) {
   // console.log(o.get); // Logs 'got'.
 }
 
-TEST_F(test_lex, lex_contextual_keywords_can_contain_escape_sequences) {
+TEST_F(
+    test_lex,
+    lex_contextual_keywords_and_await_and_yield_can_contain_escape_sequences) {
   struct test_case {
     string8 code;
     string8 expected_identifier;
@@ -1578,12 +1580,14 @@ TEST_F(test_lex, lex_contextual_keywords_can_contain_escape_sequences) {
   for (test_case tc : {
            test_case{u8"\\u{61}s", u8"as"},
            test_case{u8"\\u{61}sync", u8"async"},
+           test_case{u8"\\u{61}wait", u8"await"},
            test_case{u8"\\u{66}rom", u8"from"},
            test_case{u8"\\u{67}et", u8"get"},
            test_case{u8"\\u{6c}et", u8"let"},
            test_case{u8"\\u{6f}f", u8"of"},
            test_case{u8"\\u{73}et", u8"set"},
            test_case{u8"\\u{73}tatic", u8"static"},
+           test_case{u8"\\u{79}ield", u8"yield"},
        }) {
     SCOPED_TRACE(out_string8(tc.code));
     SCOPED_TRACE(out_string8(tc.expected_identifier));

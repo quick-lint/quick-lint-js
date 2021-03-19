@@ -215,11 +215,13 @@ retry:
         break;
 
       QLJS_CASE_CONTEXTUAL_KEYWORD:
+      case token_type::kw_await:
+      case token_type::kw_yield:
         // Escape sequences in identifiers prevent it from becoming a
         // contextual keyword.
         break;
 
-      QLJS_CASE_RESERVED_KEYWORD:
+      QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
         // Escape sequences in identifiers prevent it from becoming a reserved
         // keyword.
         for (const source_code_span& escape_sequence : ident.escape_sequences) {
