@@ -31,6 +31,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/source-location.h>
+#include <quick-lint-js/token.h>
 #include <string_view>
 #include <type_traits>
 #include <vector>

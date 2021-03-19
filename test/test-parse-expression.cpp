@@ -26,6 +26,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <string>

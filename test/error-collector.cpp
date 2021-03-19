@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {

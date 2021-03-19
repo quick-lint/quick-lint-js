@@ -18,10 +18,10 @@
 #include <memory>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/wasm-demo-error-reporter.h>
 #include <string>

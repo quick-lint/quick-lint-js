@@ -21,9 +21,9 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/lex.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/wasm-demo-location.h>
 #include <vector>
 

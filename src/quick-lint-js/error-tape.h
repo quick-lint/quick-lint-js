@@ -19,6 +19,7 @@
 
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 
 namespace quick_lint_js {

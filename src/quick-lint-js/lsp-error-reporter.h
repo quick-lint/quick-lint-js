@@ -21,10 +21,10 @@
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/token.h>
 #include <string>
 
 namespace quick_lint_js {

@@ -29,6 +29,7 @@
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse-visitor.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>

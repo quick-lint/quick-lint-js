@@ -17,12 +17,12 @@
 #include <iostream>
 #include <memory>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vscode-error-reporter.h>
 #include <quick-lint-js/vscode.h>

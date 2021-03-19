@@ -30,6 +30,7 @@
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
 

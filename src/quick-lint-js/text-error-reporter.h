@@ -24,9 +24,9 @@
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
-#include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
 class text_error_formatter;

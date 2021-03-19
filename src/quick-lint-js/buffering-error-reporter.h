@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
 class buffering_error_reporter final : public error_reporter {

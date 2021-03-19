@@ -18,6 +18,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
 void error_reporter::write_fatal_error_unimplemented_character(

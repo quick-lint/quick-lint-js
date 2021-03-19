@@ -23,6 +23,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>

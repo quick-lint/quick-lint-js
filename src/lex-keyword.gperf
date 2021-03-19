@@ -28,6 +28,7 @@
 
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
 #include <stddef.h>
 #include <string.h>
