@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
+#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
@@ -173,6 +174,10 @@ class lexer {
     const char8* end;
   };
 
+  using escape_sequence_list = std::vector<
+      source_code_span,
+      boost::container::pmr::polymorphic_allocator<source_code_span>>;
+
   // The result of parsing an identifier.
   //
   // Typically, .normalized is default-constructed. However, if an identifier
@@ -189,13 +194,16 @@ class lexer {
   // In this case, .end points to the ')' character which follows the
   // identifier, and .normalized points to a heap-allocated string u8"wat".
   //
+  // If any escape sequences were parsed, .escape_sequences points to a list of
+  // escape squence spans.
+  //
   // Invariant:
-  // if (escape_sequences.empty()) normalized.data() == nullptr;
+  //   (escape_sequences == nullptr) == (normalized.data() == nullptr)
   struct parsed_identifier {
     const char8* after;  // Where to continue parsing.
     string8_view normalized;
 
-    std::vector<source_code_span> escape_sequences;
+    escape_sequence_list* escape_sequences;
   };
 
   void parse_current_token();
@@ -265,7 +273,7 @@ class lexer {
 
   // This may not be up to date. It is only guaranteed to be updated after
   // parsing a token_type::reserved_keyword_with_escape_sequence.
-  std::vector<source_code_span> last_token_escape_sequences_;
+  escape_sequence_list* last_token_escape_sequences_;
 
   monotonic_allocator allocator_;
 };

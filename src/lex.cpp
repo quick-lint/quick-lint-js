@@ -198,7 +198,7 @@ retry:
     this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
     this->last_token_.type = this->identifier_token_type(ident.normalized);
-    if (!ident.escape_sequences.empty()) {
+    if (ident.escape_sequences) {
       switch (this->last_token_.type) {
       case token_type::identifier:
         this->last_token_.type = token_type::identifier;
@@ -215,10 +215,9 @@ retry:
       QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
         // Escape sequences in identifiers prevent it from becoming a reserved
         // keyword.
-        QLJS_ASSERT(!ident.escape_sequences.empty());
         this->last_token_.type =
             token_type::reserved_keyword_with_escape_sequence;
-        this->last_token_escape_sequences_ = std::move(ident.escape_sequences);
+        this->last_token_escape_sequences_ = ident.escape_sequences;
         break;
 
       default:
@@ -803,10 +802,13 @@ next:
         *c == u8'\\') {
       parsed_identifier ident = this->parse_identifier(c);
       c = ident.after;
-      for (const source_code_span& escape_sequence : ident.escape_sequences) {
-        this->error_reporter_->report(
-            error_regexp_literal_flags_cannot_contain_unicode_escapes{
-                .escape_sequence = escape_sequence});
+      if (ident.escape_sequences) {
+        for (const source_code_span& escape_sequence :
+             *ident.escape_sequences) {
+          this->error_reporter_->report(
+              error_regexp_literal_flags_cannot_contain_unicode_escapes{
+                  .escape_sequence = escape_sequence});
+        }
       }
     }
     break;
@@ -864,9 +866,10 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
 void lexer::report_errors_for_escape_sequences_in_keyword() {
   QLJS_ASSERT(this->last_token_.type ==
               token_type::reserved_keyword_with_escape_sequence);
-  QLJS_ASSERT(!this->last_token_escape_sequences_.empty());
+  QLJS_ASSERT(this->last_token_escape_sequences_);
+  QLJS_ASSERT(!this->last_token_escape_sequences_->empty());
   for (const source_code_span& escape_sequence :
-       this->last_token_escape_sequences_) {
+       *this->last_token_escape_sequences_) {
     this->error_reporter_->report(
         error_keywords_cannot_contain_escape_sequences{.escape_sequence =
                                                            escape_sequence});
@@ -1209,7 +1212,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   lexer_string8* normalized = this->allocator_.new_object<lexer_string8>(
       identifier_begin, input, this->allocator_.standard_allocator<char8>());
 
-  std::vector<source_code_span> escape_sequences;
+  escape_sequence_list escape_sequences(
+      this->allocator_.standard_allocator<source_code_span>());
 
   auto parse_unicode_escape = [&]() {
     const char8* escape_sequence_begin = input;
@@ -1369,7 +1373,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   return parsed_identifier{
       .after = input,
       .normalized = string8_view(*normalized),
-      .escape_sequences = std::move(escape_sequences),
+      .escape_sequences = this->allocator_.new_object<escape_sequence_list>(
+          std::move(escape_sequences)),
   };
 }
 QLJS_WARNING_POP
