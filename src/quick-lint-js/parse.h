@@ -2210,13 +2210,13 @@ class parser {
 
     switch (this->peek().type) {
     // import let from "module";
-    case token_type::kw_let:
-      this->error_reporter_->report(
-          error_cannot_import_let{.import_name = this->peek().span()});
-      [[fallthrough]];
     // import fs from "fs";
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
-    case token_type::kw_async:
+      if (this->peek().type == token_type::kw_let) {
+        this->error_reporter_->report(
+            error_cannot_import_let{.import_name = this->peek().span()});
+      }
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_import);
       this->skip();
@@ -2327,12 +2327,12 @@ class parser {
     }
 
     switch (this->peek().type) {
-    case token_type::kw_let:
-      this->error_reporter_->report(error_cannot_import_let{
-          .import_name = this->peek().identifier_name().span()});
-      [[fallthrough]];
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
-    case token_type::kw_async:
+      if (this->peek().type == token_type::kw_let) {
+        this->error_reporter_->report(error_cannot_import_let{
+            .import_name = this->peek().identifier_name().span()});
+      }
       v.visit_variable_declaration(this->peek().identifier_name(),
                                    variable_kind::_import);
       this->skip();

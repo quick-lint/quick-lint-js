@@ -607,7 +607,11 @@ TEST(test_parse, parse_empty_module) {
 }
 
 TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
-  for (string8 name : {u8"async"}) {
+  for (string8 name : contextual_keywords) {
+    if (name == u8"let") {
+      continue;
+    }
+
     SCOPED_TRACE(out_string8(name));
 
     {
