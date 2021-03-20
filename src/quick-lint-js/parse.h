@@ -871,7 +871,7 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor;
-      this->parse_and_visit_named_exports(exports_visitor, /*is_export=*/true);
+      this->parse_and_visit_named_exports_for_export(exports_visitor);
       if (this->peek().type == token_type::kw_from) {
         this->skip();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
@@ -2225,7 +2225,7 @@ class parser {
         switch (this->peek().type) {
         // import fs, {readFile} from "fs";
         case token_type::left_curly:
-          parse_and_visit_named_exports(v, /*is_export=*/false);
+          this->parse_and_visit_named_exports_for_import(v);
           break;
 
         // import fs, * as fs2 from "fs";
@@ -2242,7 +2242,7 @@ class parser {
 
     // import {readFile} from "fs";
     case token_type::left_curly:
-      parse_and_visit_named_exports(v, /*is_export=*/false);
+      this->parse_and_visit_named_exports_for_import(v);
       break;
 
     // import expression statement:
@@ -2342,6 +2342,16 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_named_exports_for_export(Visitor &v) {
+    this->parse_and_visit_named_exports(v, /*is_export=*/true);
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_named_exports_for_import(Visitor &v) {
+    this->parse_and_visit_named_exports(v, /*is_export=*/false);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
