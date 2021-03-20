@@ -871,12 +871,23 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor;
-      this->parse_and_visit_named_exports_for_export(exports_visitor);
+      std::vector<identifier> exported_keywords;
+      this->parse_and_visit_named_exports_for_export(
+          exports_visitor, /*out_exported_keywords=*/exported_keywords);
       if (this->peek().type == token_type::kw_from) {
+        // export {a, b, c} from "module";
         this->skip();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
         this->skip();
+        // Ignore exported_keywords.
       } else {
+        // export {a as default, b};
+        for (identifier &exported_keyword : exported_keywords) {
+          this->error_reporter_->report(
+              error_cannot_export_variable_named_keyword{
+                  .export_name = exported_keyword,
+              });
+        }
         exports_visitor.move_into(v);
       }
       this->consume_semicolon();
@@ -2209,6 +2220,12 @@ class parser {
     this->skip();
 
     switch (this->peek().type) {
+    // import var from "module";  // Invalid.
+    QLJS_CASE_RESERVED_KEYWORD:
+      this->error_reporter_->report(error_cannot_import_variable_named_keyword{
+          .import_name = this->peek().identifier_name(),
+      });
+      [[fallthrough]];
     // import let from "module";
     // import fs from "fs";
     QLJS_CASE_CONTEXTUAL_KEYWORD:
@@ -2327,6 +2344,12 @@ class parser {
     }
 
     switch (this->peek().type) {
+    // import * as var from "module";  // Invalid.
+    QLJS_CASE_RESERVED_KEYWORD:
+      this->error_reporter_->report(error_cannot_import_variable_named_keyword{
+          .import_name = this->peek().identifier_name(),
+      });
+      [[fallthrough]];
     QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
       if (this->peek().type == token_type::kw_let) {
@@ -2345,25 +2368,33 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports_for_export(Visitor &v) {
-    this->parse_and_visit_named_exports(v, /*is_export=*/true);
+  void parse_and_visit_named_exports_for_export(
+      Visitor &v, std::vector<identifier> &out_exported_keywords) {
+    this->parse_and_visit_named_exports(
+        v, /*out_exported_keywords=*/&out_exported_keywords);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_import(Visitor &v) {
-    this->parse_and_visit_named_exports(v, /*is_export=*/false);
+    this->parse_and_visit_named_exports(v, /*out_exported_keywords=*/nullptr);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports(Visitor &v, bool is_export) {
+  void parse_and_visit_named_exports(
+      Visitor &v, std::vector<identifier> *out_exported_keywords) {
+    bool is_export = out_exported_keywords != nullptr;
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
       switch (this->peek().type) {
-      QLJS_CASE_KEYWORD:
+      QLJS_CASE_RESERVED_KEYWORD:
+        if (out_exported_keywords) {
+          out_exported_keywords->emplace_back(this->peek().identifier_name());
+        }
+        [[fallthrough]];
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
-        // TODO(strager): Is 'import {default} ...' allowed?
         identifier left_name = this->peek().identifier_name();
         identifier right_name = left_name;
         token_type right_token_type = this->peek().type;
@@ -2374,7 +2405,6 @@ class parser {
           QLJS_CASE_KEYWORD:
           case token_type::identifier:
           case token_type::reserved_keyword_with_escape_sequence:
-            // TODO(strager): Is 'import {x as default} ...' allowed?
             right_name = this->peek().identifier_name();
             right_token_type = this->peek().type;
             this->skip();
@@ -2387,10 +2417,33 @@ class parser {
         if (is_export) {
           v.visit_variable_export_use(left_name);
         } else {
-          if (right_token_type == token_type::kw_let) {
-            // TODO(strager): What about other keywords?
+          switch (right_token_type) {
+          // import {myFunc} from 'other';
+          // import {myFunc as let} from 'other';  // Invalid.
+          // import {myFunc as static} from 'other';
+          QLJS_CASE_CONTEXTUAL_KEYWORD:
+          case token_type::identifier:
+            if (right_token_type == token_type::kw_let) {
+              this->error_reporter_->report(
+                  error_cannot_import_let{.import_name = right_name.span()});
+            }
+            break;
+
+          // import {var} from 'other';  // Invalid.
+          QLJS_CASE_RESERVED_KEYWORD:
             this->error_reporter_->report(
-                error_cannot_import_let{.import_name = right_name.span()});
+                error_cannot_import_variable_named_keyword{
+                    .import_name = right_name,
+                });
+            break;
+
+          case token_type::reserved_keyword_with_escape_sequence:
+            QLJS_UNIMPLEMENTED();
+            break;
+
+          default:
+            QLJS_UNIMPLEMENTED();
+            break;
           }
           v.visit_variable_declaration(right_name, variable_kind::_import);
         }

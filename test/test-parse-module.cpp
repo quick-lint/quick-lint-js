@@ -264,6 +264,40 @@ TEST(test_parse, export_list) {
   }
 }
 
+TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
+  for (string8 keyword : reserved_keywords) {
+    padded_string code(u8"export {" + keyword + u8"};");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_export_use"));  // (keyword)
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_export_variable_named_keyword, export_name,
+                    offsets_matcher(&code, strlen(u8"export {"), keyword))));
+  }
+
+  for (string8 keyword : reserved_keywords) {
+    padded_string code(u8"export {" + keyword + u8" as thing};");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_export_use"));  // (keyword)
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_export_variable_named_keyword, export_name,
+                    offsets_matcher(&code, strlen(u8"export {"), keyword))));
+  }
+}
+
 TEST(test_parse, export_from) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export * from 'other';"_sv);
@@ -634,6 +668,69 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
                                                 u8" from 'other';");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
+    }
+  }
+}
+
+TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
+  for (string8 name : reserved_keywords) {
+    {
+      padded_string code(u8"import { " + name + u8" } from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_cannot_import_variable_named_keyword, import_name,
+                      offsets_matcher(&code, strlen(u8"import { "), name))));
+    }
+
+    {
+      padded_string code(u8"import { someFunction as " + name +
+                         u8" } from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_cannot_import_variable_named_keyword, import_name,
+              offsets_matcher(&code, strlen(u8"import { someFunction as "),
+                              name))));
+    }
+
+    {
+      padded_string code(u8"import " + name + u8" from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_cannot_import_variable_named_keyword, import_name,
+                      offsets_matcher(&code, strlen(u8"import "), name))));
+    }
+
+    {
+      padded_string code(u8"import * as " + name + u8" from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_cannot_import_variable_named_keyword, import_name,
+                      offsets_matcher(&code, strlen(u8"import * as "), name))));
     }
   }
 }

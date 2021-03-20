@@ -146,8 +146,20 @@
              export_name))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_export_variable_named_keyword, "E144",                      \
+      { identifier export_name; },                                             \
+      .error(QLJS_TRANSLATABLE("cannot export variable named keyword '{0}'"),  \
+             export_name))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_import_let, "E010", { source_code_span import_name; },      \
       .error(QLJS_TRANSLATABLE("cannot import 'let'"), import_name))           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_cannot_import_variable_named_keyword, "E145",                      \
+      { identifier import_name; },                                             \
+      .error(QLJS_TRANSLATABLE("cannot import variable named keyword '{0}'"),  \
+             import_name))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_update_variable_during_declaration, "E136",                 \
