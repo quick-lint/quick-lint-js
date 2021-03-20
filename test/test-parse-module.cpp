@@ -720,6 +720,118 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
                       offsets_matcher(&code, strlen(u8"import * as "), name))));
     }
   }
+
+  struct test_case {
+    string8 name;
+    string8 expected_identifier;
+  };
+
+  // TODO(strager): test_case{u8"\\u{61}wait", u8"await"}
+  // TODO(strager): test_case{u8"\\u{79}ield", u8"yield"}
+  for (test_case tc : {
+           test_case{u8"\\u{62}reak", u8"break"},
+           test_case{u8"\\u{63}ase", u8"case"},
+           test_case{u8"\\u{63}atch", u8"catch"},
+           test_case{u8"\\u{63}lass", u8"class"},
+           test_case{u8"\\u{63}onst", u8"const"},
+           test_case{u8"\\u{63}ontinue", u8"continue"},
+           test_case{u8"\\u{64}ebugger", u8"debugger"},
+           test_case{u8"\\u{64}efault", u8"default"},
+           test_case{u8"\\u{64}elete", u8"delete"},
+           test_case{u8"\\u{64}o", u8"do"},
+           test_case{u8"\\u{65}lse", u8"else"},
+           test_case{u8"\\u{65}num", u8"enum"},
+           test_case{u8"\\u{65}xport", u8"export"},
+           test_case{u8"\\u{65}xtends", u8"extends"},
+           test_case{u8"\\u{66}alse", u8"false"},
+           test_case{u8"\\u{66}inally", u8"finally"},
+           test_case{u8"\\u{66}or", u8"for"},
+           test_case{u8"\\u{66}unction", u8"function"},
+           test_case{u8"\\u{69}f", u8"if"},
+           test_case{u8"\\u{69}mport", u8"import"},
+           test_case{u8"\\u{69}n", u8"in"},
+           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
+           test_case{u8"\\u{6e}ew", u8"new"},
+           test_case{u8"\\u{6e}ull", u8"null"},
+           test_case{u8"\\u{72}eturn", u8"return"},
+           test_case{u8"\\u{73}uper", u8"super"},
+           test_case{u8"\\u{73}witch", u8"switch"},
+           test_case{u8"\\u{74}his", u8"this"},
+           test_case{u8"\\u{74}hrow", u8"throw"},
+           test_case{u8"\\u{74}rue", u8"true"},
+           test_case{u8"\\u{74}ry", u8"try"},
+           test_case{u8"\\u{74}ypeof", u8"typeof"},
+           test_case{u8"\\u{76}ar", u8"var"},
+           test_case{u8"\\u{76}oid", u8"void"},
+           test_case{u8"\\u{77}hile", u8"while"},
+           test_case{u8"\\u{77}ith", u8"with"},
+       }) {
+    {
+      padded_string code(u8"import { " + tc.name + u8" } from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      tc.expected_identifier, variable_kind::_import}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_keywords_cannot_contain_escape_sequences, escape_sequence,
+              offsets_matcher(&code, strlen(u8"import { "), u8"\\u{??}"))));
+    }
+
+    {
+      padded_string code(u8"import { someFunction as " + tc.name +
+                         u8" } from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      tc.expected_identifier, variable_kind::_import}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_keywords_cannot_contain_escape_sequences, escape_sequence,
+              offsets_matcher(&code, strlen(u8"import { someFunction as "),
+                              u8"\\u{??}"))));
+    }
+
+    {
+      padded_string code(u8"import " + tc.name + u8" from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      tc.expected_identifier, variable_kind::_import}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_keywords_cannot_contain_escape_sequences, escape_sequence,
+              offsets_matcher(&code, strlen(u8"import "), u8"\\u{??}"))));
+    }
+
+    {
+      padded_string code(u8"import * as " + tc.name + u8" from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      tc.expected_identifier, variable_kind::_import}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_keywords_cannot_contain_escape_sequences, escape_sequence,
+              offsets_matcher(&code, strlen(u8"import * as "), u8"\\u{??}"))));
+    }
+  }
 }
 
 TEST(test_parse, exported_names_can_be_named_keywords) {

@@ -2214,9 +2214,17 @@ class parser {
       this->error_reporter_->report(error_cannot_import_variable_named_keyword{
           .import_name = this->peek().identifier_name(),
       });
-      [[fallthrough]];
+      goto identifier;
+
+    // import \u{76}ar from "module";  // Invalid.
+    case token_type::reserved_keyword_with_escape_sequence:
+      this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
+          this->error_reporter_);
+      goto identifier;
+
     // import let from "module";
     // import fs from "fs";
+    identifier:
     QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
       if (this->peek().type == token_type::kw_let) {
@@ -2338,7 +2346,15 @@ class parser {
       this->error_reporter_->report(error_cannot_import_variable_named_keyword{
           .import_name = this->peek().identifier_name(),
       });
-      [[fallthrough]];
+      goto identifier;
+
+    // import * as \u{76}ar from "module";  // Invalid.
+    case token_type::reserved_keyword_with_escape_sequence:
+      this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
+          this->error_reporter_);
+      goto identifier;
+
+    identifier:
     QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
       if (this->peek().type == token_type::kw_let) {
@@ -2386,7 +2402,7 @@ class parser {
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier left_name = this->peek().identifier_name();
         identifier right_name = left_name;
-        token_type right_token_type = this->peek().type;
+        token right_token = this->peek();
         this->skip();
         if (this->peek().type == token_type::kw_as) {
           this->skip();
@@ -2395,7 +2411,7 @@ class parser {
           case token_type::identifier:
           case token_type::reserved_keyword_with_escape_sequence:
             right_name = this->peek().identifier_name();
-            right_token_type = this->peek().type;
+            right_token = this->peek();
             this->skip();
             break;
           default:
@@ -2406,13 +2422,13 @@ class parser {
         if (is_export) {
           v.visit_variable_export_use(left_name);
         } else {
-          switch (right_token_type) {
+          switch (right_token.type) {
           // import {myFunc} from 'other';
           // import {myFunc as let} from 'other';  // Invalid.
           // import {myFunc as static} from 'other';
           QLJS_CASE_CONTEXTUAL_KEYWORD:
           case token_type::identifier:
-            if (right_token_type == token_type::kw_let) {
+            if (right_token.type == token_type::kw_let) {
               this->error_reporter_->report(
                   error_cannot_import_let{.import_name = right_name.span()});
             }
@@ -2426,8 +2442,10 @@ class parser {
                 });
             break;
 
+          // import {\u{76}ar} from 'other';  // Invalid.
           case token_type::reserved_keyword_with_escape_sequence:
-            QLJS_UNIMPLEMENTED();
+            right_token.report_errors_for_escape_sequences_in_keyword(
+                this->error_reporter_);
             break;
 
           default:
