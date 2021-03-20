@@ -299,9 +299,10 @@ TEST(test_parse, export_from) {
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
-  {
-    spy_visitor v =
-        parse_and_visit_statement(u8"export {default} from 'other';"_sv);
+  for (string8 keyword : keywords) {
+    padded_string code(u8"export {" + keyword + u8"} from 'other';");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_statement(code.string_view());
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
