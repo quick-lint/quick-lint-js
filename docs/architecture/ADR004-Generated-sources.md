@@ -47,3 +47,6 @@ tools, and the often-changed `error.h` file is definitely an unorthodox source.
 
 It's easy for unorthodox artifacts to get out of sync with their unorthodox
 sources. This is clearly true for translation files (.po).
+
+Generation scripts are written in various languages. Some languages are a bit
+hostile to certain platforms, such as POSIX shell on Windows.
