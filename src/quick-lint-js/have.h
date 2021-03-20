@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// See ADR001-Feature-testing-with-have-h.md for usage of and rationale for this
+// file.
+
 #ifndef QUICK_LINT_JS_HAVE_H
 #define QUICK_LINT_JS_HAVE_H
 

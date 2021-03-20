@@ -2,6 +2,8 @@
 
 This vendor directory contains third-party software.
 
+See ADR003-Vendor-sources.md for usage of and rational for this directory.
+
 ## benchmark
 
 The benchmark directory contains Google Benchmark, a performance measurement
