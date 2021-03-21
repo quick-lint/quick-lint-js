@@ -36,6 +36,12 @@ class padded_string {
   explicit padded_string(string8_view);
   explicit padded_string(const char8 *) = delete;
 
+  padded_string(const padded_string &) = delete;
+  padded_string &operator=(const padded_string &) = delete;
+
+  padded_string(padded_string &&) = default;
+  padded_string &operator=(padded_string &&) = default;
+
   const char8 *c_str() const noexcept { return this->data(); }
 
   char8 *data() noexcept { return this->data_.data(); }

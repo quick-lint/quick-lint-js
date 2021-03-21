@@ -329,7 +329,7 @@ TEST(test_utf_8_decode, truncated_four_byte_character) {
 }
 
 TEST(test_utf_8_decode, overlong_sequences_are_an_error_for_each_code_unit) {
-  for (padded_string input : {
+  for (const padded_string& input : {
            "\xc0\x80"_padded,                  // U+0000
            "\xe0\x80\x80"_padded,              // U+0000
            "\xf0\x80\x80\x80"_padded,          // U+0000
@@ -350,7 +350,7 @@ TEST(test_utf_8_decode, overlong_sequences_are_an_error_for_each_code_unit) {
        }) {
     SCOPED_TRACE(input);
 
-    char8* begin = input.data();
+    const char8* begin = input.data();
     while (begin != input.null_terminator()) {
       padded_string_view current_input(begin, input.null_terminator());
       SCOPED_TRACE(current_input);
@@ -364,7 +364,7 @@ TEST(test_utf_8_decode, overlong_sequences_are_an_error_for_each_code_unit) {
 }
 
 TEST(test_utf_8_decode, surrogate_sequences_are_an_error_for_each_code_unit) {
-  for (padded_string input : {
+  for (const padded_string& input : {
            "\xed\xa0\x80"_padded,  // U+D800
            "\xed\xad\xbf"_padded,  // U+DB7F
            "\xed\xae\x80"_padded,  // U+DB80
@@ -375,7 +375,7 @@ TEST(test_utf_8_decode, surrogate_sequences_are_an_error_for_each_code_unit) {
        }) {
     SCOPED_TRACE(input);
 
-    char8* begin = input.data();
+    const char8* begin = input.data();
     while (begin != input.null_terminator()) {
       padded_string_view current_input(begin, input.null_terminator());
       SCOPED_TRACE(current_input);
@@ -567,7 +567,7 @@ TEST(test_count_lsp_characters_in_utf_8,
 
 TEST(test_count_lsp_characters_in_utf_8,
      invalid_surrogate_sequences_count_as_one_per_byte) {
-  for (padded_string input : {
+  for (const padded_string& input : {
            "\xed\xa0\x80"_padded,  // U+D800
            "\xed\xad\xbf"_padded,  // U+DB7F
            "\xed\xae\x80"_padded,  // U+DB80
@@ -583,7 +583,7 @@ TEST(test_count_lsp_characters_in_utf_8,
 
 TEST(test_count_lsp_characters_in_utf_8,
      overlong_sequences_count_as_one_per_byte) {
-  for (padded_string input : {
+  for (const padded_string& input : {
            "\xc0\x80"_padded,                  // U+0000
            "\xe0\x80\x80"_padded,              // U+0000
            "\xf0\x80\x80\x80"_padded,          // U+0000
