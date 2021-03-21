@@ -344,7 +344,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                    /*is_assigned_before_declaration=*/false);
                break;
              case used_variable_kind::_export:
-               // TODO(strager): This shouldn't happen. export statemenents are
+               // TODO(strager): This shouldn't happen. export statements are
                // not allowed inside functions.
                break;
              case used_variable_kind::_typeof:
