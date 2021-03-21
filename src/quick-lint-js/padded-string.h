@@ -29,7 +29,9 @@ namespace quick_lint_js {
 // padded_string enables using SIMD instructions without extra bounds checking.
 class padded_string {
  public:
-  static constexpr int padding_size = 16;
+  using size_type = int;
+
+  static constexpr size_type padding_size = 16;
 
   explicit padded_string();
   explicit padded_string(string8 &&);
@@ -49,15 +51,17 @@ class padded_string {
   char8 *data() noexcept { return this->data_; }
   const char8 *data() const noexcept { return this->data_; }
 
-  int size() const noexcept { return this->size_excluding_padding_bytes_; }
+  size_type size() const noexcept {
+    return this->size_excluding_padding_bytes_;
+  }
 
-  const char8 &operator[](int index) const noexcept {
+  const char8 &operator[](size_type index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index <= this->size());
     return this->data_[narrow_cast<unsigned>(index)];
   }
 
-  void resize(int new_size);
+  void resize(size_type new_size);
 
   char8 *begin() noexcept { return this->data(); }
   char8 *end() noexcept { return this->data() + this->size(); }
@@ -80,21 +84,24 @@ class padded_string {
 
  private:
   void free_and_set_storage(char8 *new_data,
-                            int new_size_excluding_padding_bytes);
+                            size_type new_size_excluding_padding_bytes);
 
   char8 *data_;
-  int size_excluding_padding_bytes_;
+  size_type size_excluding_padding_bytes_;
 };
 
 class padded_string_view {
  public:
+  using size_type = padded_string::size_type;
+
   /*implicit*/ padded_string_view(const padded_string *string)
       : data_(string->data()), length_(string->size()) {
     QLJS_ASSERT(*this->null_terminator() == u8'\0');
   }
 
   explicit padded_string_view(const char8 *begin, const char8 *null_terminator)
-      : data_(begin), length_(narrow_cast<int>(null_terminator - begin)) {}
+      : data_(begin),
+        length_(narrow_cast<size_type>(null_terminator - begin)) {}
 
   padded_string_view(const padded_string_view &) noexcept = default;
   padded_string_view &operator=(const padded_string_view &) noexcept = default;
@@ -104,19 +111,19 @@ class padded_string_view {
 
   const char8 *data() const noexcept { return this->data_; }
 
-  int size() const noexcept { return this->length_; }
+  size_type size() const noexcept { return this->length_; }
 
   const char8 *null_terminator() const noexcept {
     return this->data_ + this->length_;
   }
 
-  const char8 &operator[](int index) const noexcept {
+  const char8 &operator[](size_type index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index <= this->size());
     return this->data_[index];
   }
 
-  padded_string_view substr(int offset) const noexcept {
+  padded_string_view substr(size_type offset) const noexcept {
     return padded_string_view(this->data() + offset, this->null_terminator());
   }
 
@@ -131,7 +138,7 @@ class padded_string_view {
 
  private:
   const char8 *data_;
-  int length_;
+  size_type length_;
 };
 }
 

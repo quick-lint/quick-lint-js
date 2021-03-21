@@ -39,8 +39,8 @@ padded_string::padded_string(string8&& string)
     : padded_string(string8_view(string)) {}
 
 padded_string::padded_string(string8_view string) {
-  this->size_excluding_padding_bytes_ = narrow_cast<int>(string.size());
-  int size_including_padding_bytes =
+  this->size_excluding_padding_bytes_ = narrow_cast<size_type>(string.size());
+  size_type size_including_padding_bytes =
       this->size_excluding_padding_bytes_ + this->padding_size;
   this->data_ = reinterpret_cast<char8*>(std::malloc(
       narrow_cast<std::size_t>(size_including_padding_bytes) * sizeof(char8)));
@@ -66,8 +66,8 @@ padded_string& padded_string::operator=(padded_string&& other) {
 
 padded_string::~padded_string() { this->free_and_set_storage(nullptr, 0); }
 
-void padded_string::resize(int new_size) {
-  int old_size = this->size_excluding_padding_bytes_;
+void padded_string::resize(size_type new_size) {
+  size_type old_size = this->size_excluding_padding_bytes_;
   if (new_size == old_size) {
     // Do nothing.
   } else if (new_size < old_size) {
@@ -78,7 +78,7 @@ void padded_string::resize(int new_size) {
     // Grow. Need to reallocate and copy.
     char8* old_data =
         this->data_ == empty_string.data() ? nullptr : this->data_;
-    int new_size_including_padding_bytes = new_size + this->padding_size;
+    size_type new_size_including_padding_bytes = new_size + this->padding_size;
 
     char8* new_data = reinterpret_cast<char8*>(std::realloc(
         old_data, narrow_cast<std::size_t>(new_size_including_padding_bytes) *
@@ -95,8 +95,8 @@ string8_view padded_string::string_view() const noexcept {
   return string8_view(this->data(), narrow_cast<std::size_t>(this->size()));
 }
 
-void padded_string::free_and_set_storage(char8* new_data,
-                                         int new_size_excluding_padding_bytes) {
+void padded_string::free_and_set_storage(
+    char8* new_data, size_type new_size_excluding_padding_bytes) {
   if (this->data_ != empty_string.data()) {
     std::free(this->data_);
   }
