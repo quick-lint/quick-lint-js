@@ -98,34 +98,53 @@ TEST(test_padded_string, shrinking_preserves_data) {
   expect_null_terminated(s);
 }
 
-TEST(test_padded_string, move_constructing_preserves_data) {
+TEST(test_padded_string, shrinking_does_not_reallocate) {
+  padded_string s(u8"helloworld"_sv);
+  const char8 *old_data = s.data();
+  s.resize(5);
+  EXPECT_EQ(s.data(), old_data);
+  s.resize(1);
+  EXPECT_EQ(s.data(), old_data);
+}
+
+TEST(test_padded_string, move_constructing_does_not_invalidate_pointers) {
   padded_string s1(u8"helloworld"_sv);
+  const char8 *old_s1_data = s1.data();
   padded_string s2(std::move(s1));
+  EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
   EXPECT_EQ(s2.string_view(), u8"helloworld"_sv)
       << "moving should not change data";
   expect_null_terminated(s2);
 }
 
-TEST(test_padded_string, move_constructing_empty_string_preserves_data) {
+TEST(test_padded_string,
+     move_constructing_empty_string_does_not_invalidate_pointers) {
   padded_string s1;
+  const char8 *old_s1_data = s1.data();
   padded_string s2(std::move(s1));
+  EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
   EXPECT_EQ(s2.string_view(), u8""_sv) << "moving should not change data";
   expect_null_terminated(s2);
 }
 
-TEST(test_padded_string, move_assigning_changes_data) {
+TEST(test_padded_string, move_assigning_copies_pointers) {
   padded_string s1(u8"helloworld"_sv);
+  const char8 *old_s1_data = s1.data();
   padded_string s2(u8"other"_sv);
   s2 = std::move(s1);
-  EXPECT_EQ(s2.string_view(), u8"helloworld"_sv) << "moving should change data";
+  EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
+  EXPECT_EQ(s2.string_view(), u8"helloworld"_sv)
+      << "moving should not change data";
   expect_null_terminated(s2);
 }
 
-TEST(test_padded_string, move_assigning_empty_string_changes_data) {
+TEST(test_padded_string, move_assigning_empty_string_copies_pointers) {
   padded_string s1;
+  const char8 *old_s1_data = s1.data();
   padded_string s2(u8"other"_sv);
   s2 = std::move(s1);
-  EXPECT_EQ(s2.string_view(), u8""_sv) << "moving should change data";
+  EXPECT_EQ(s2.data(), old_s1_data) << "moving should not reallocate";
+  EXPECT_EQ(s2.string_view(), u8""_sv) << "moving should not change data";
   expect_null_terminated(s2);
 }
 

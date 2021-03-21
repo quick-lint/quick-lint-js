@@ -39,18 +39,17 @@ class padded_string {
   padded_string(const padded_string &) = delete;
   padded_string &operator=(const padded_string &) = delete;
 
-  padded_string(padded_string &&) = default;
-  padded_string &operator=(padded_string &&) = default;
+  padded_string(padded_string &&);
+  padded_string &operator=(padded_string &&);
+
+  ~padded_string();
 
   const char8 *c_str() const noexcept { return this->data(); }
 
-  char8 *data() noexcept { return this->data_.data(); }
-  const char8 *data() const noexcept { return this->data_.data(); }
+  char8 *data() noexcept { return this->data_; }
+  const char8 *data() const noexcept { return this->data_; }
 
-  int size() const noexcept {
-    return narrow_cast<int>(this->data_.size() -
-                            narrow_cast<unsigned>(this->null_bytes_to_add));
-  }
+  int size() const noexcept { return this->size_excluding_padding_bytes_; }
 
   const char8 &operator[](int index) const noexcept {
     QLJS_ASSERT(index >= 0);
@@ -80,9 +79,11 @@ class padded_string {
   friend bool operator!=(const padded_string &, string8_view) noexcept;
 
  private:
-  static constexpr int null_bytes_to_add = padding_size - 1;
+  void free_and_set_storage(char8 *new_data,
+                            int new_size_excluding_padding_bytes);
 
-  string8 data_;
+  char8 *data_;
+  int size_excluding_padding_bytes_;
 };
 
 class padded_string_view {

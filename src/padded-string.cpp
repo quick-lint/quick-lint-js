@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstdlib>
 #include <ostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -22,27 +26,82 @@
 #include <utility>
 
 namespace quick_lint_js {
-padded_string::padded_string()
-    : data_(narrow_cast<unsigned>(this->null_bytes_to_add), u8'\0') {}
-
-padded_string::padded_string(string8&& string) : data_(std::move(string)) {
-  this->data_.reserve(this->data_.size() +
-                      narrow_cast<unsigned>(this->null_bytes_to_add));
-  this->data_.append(narrow_cast<unsigned>(this->null_bytes_to_add), '\0');
+namespace {
+std::array<char8, padded_string::padding_size> empty_string = {};
 }
 
-padded_string::padded_string(string8_view string)
-    : padded_string(string8(string)) {}
+padded_string::padded_string() {
+  this->data_ = empty_string.data();
+  this->size_excluding_padding_bytes_ = 0;
+}
+
+padded_string::padded_string(string8&& string)
+    : padded_string(string8_view(string)) {}
+
+padded_string::padded_string(string8_view string) {
+  this->size_excluding_padding_bytes_ = narrow_cast<int>(string.size());
+  int size_including_padding_bytes =
+      this->size_excluding_padding_bytes_ + this->padding_size;
+  this->data_ = reinterpret_cast<char8*>(std::malloc(
+      narrow_cast<std::size_t>(size_including_padding_bytes) * sizeof(char8)));
+  char8* padding_bytes = std::copy(string.begin(), string.end(), this->data_);
+  std::fill_n(padding_bytes, this->padding_size, u8'\0');
+}
+
+padded_string::padded_string(padded_string&& other) {
+  this->data_ = std::exchange(other.data_, empty_string.data());
+  this->size_excluding_padding_bytes_ =
+      std::exchange(other.size_excluding_padding_bytes_, 0);
+}
+
+padded_string& padded_string::operator=(padded_string&& other) {
+  if (this != &other) {
+    this->free_and_set_storage(other.data_,
+                               other.size_excluding_padding_bytes_);
+    other.data_ = empty_string.data();
+    other.size_excluding_padding_bytes_ = 0;
+  }
+  return *this;
+}
+
+padded_string::~padded_string() { this->free_and_set_storage(nullptr, 0); }
 
 void padded_string::resize(int new_size) {
-  this->data_.resize(narrow_cast<std::size_t>(new_size) +
-                     this->null_bytes_to_add);
-  std::fill(this->data_.end() - this->null_bytes_to_add, this->data_.end(),
-            u8'\0');
+  int old_size = this->size_excluding_padding_bytes_;
+  if (new_size == old_size) {
+    // Do nothing.
+  } else if (new_size < old_size) {
+    // Shrink. Do not reallocate and copy.
+    std::fill_n(&this->data_[new_size], this->padding_size, u8'\0');
+    this->size_excluding_padding_bytes_ = new_size;
+  } else {
+    // Grow. Need to reallocate and copy.
+    char8* old_data =
+        this->data_ == empty_string.data() ? nullptr : this->data_;
+    int new_size_including_padding_bytes = new_size + this->padding_size;
+
+    char8* new_data = reinterpret_cast<char8*>(std::realloc(
+        old_data, narrow_cast<std::size_t>(new_size_including_padding_bytes) *
+                      sizeof(char8)));
+    std::fill(&new_data[old_size], &new_data[new_size_including_padding_bytes],
+              u8'\0');
+
+    this->data_ = new_data;
+    this->size_excluding_padding_bytes_ = new_size;
+  }
 }
 
 string8_view padded_string::string_view() const noexcept {
   return string8_view(this->data(), narrow_cast<std::size_t>(this->size()));
+}
+
+void padded_string::free_and_set_storage(char8* new_data,
+                                         int new_size_excluding_padding_bytes) {
+  if (this->data_ != empty_string.data()) {
+    std::free(this->data_);
+  }
+  this->data_ = new_data;
+  this->size_excluding_padding_bytes_ = new_size_excluding_padding_bytes;
 }
 
 bool operator==(string8_view x, const padded_string& y) noexcept {
