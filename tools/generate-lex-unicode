@@ -128,6 +128,8 @@ static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, {chunk_index
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
+// This file is part of quick-lint-js.
+//
 // quick-lint-js is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -960,6 +962,8 @@ if __name__ == "__main__":
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
 #
 # quick-lint-js is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
