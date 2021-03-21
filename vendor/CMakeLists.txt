@@ -1,3 +1,16 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+cmake_minimum_required(VERSION 3.10)
+
+if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
+  include(benchmark.cmake)
+endif ()
+include(boost.cmake)
+include(googletest.cmake)
+include(jsoncpp.cmake)
+include(simdjson.cmake)
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -13,13 +26,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-cmake_minimum_required(VERSION 3.10)
-
-if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
-  include(benchmark.cmake)
-endif ()
-include(boost.cmake)
-include(googletest.cmake)
-include(jsoncpp.cmake)
-include(simdjson.cmake)

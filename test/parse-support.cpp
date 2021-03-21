@@ -1,3 +1,14 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#include <quick-lint-js/parse-support.h>
+#include <quick-lint-js/parse.h>
+
+namespace quick_lint_js {
+template void parser::parse_and_visit_module<spy_visitor>(spy_visitor &v);
+template bool parser::parse_and_visit_statement<spy_visitor>(spy_visitor &v);
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,11 +24,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#include <quick-lint-js/parse-support.h>
-#include <quick-lint-js/parse.h>
-
-namespace quick_lint_js {
-template void parser::parse_and_visit_module<spy_visitor>(spy_visitor &v);
-template bool parser::parse_and_visit_statement<spy_visitor>(spy_visitor &v);
-}

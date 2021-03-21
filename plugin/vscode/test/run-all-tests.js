@@ -1,3 +1,18 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+"use strict";
+
+async function mainAsync() {
+  await require("./other-tests.js").mainAsync();
+  await require("./run-vscode-tests.js").mainAsync();
+}
+
+mainAsync().catch((error) => {
+  console.error(error.stack);
+  process.exit(1);
+});
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,15 +28,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-"use strict";
-
-async function mainAsync() {
-  await require("./other-tests.js").mainAsync();
-  await require("./run-vscode-tests.js").mainAsync();
-}
-
-mainAsync().catch((error) => {
-  console.error(error.stack);
-  process.exit(1);
-});

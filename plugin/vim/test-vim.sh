@@ -1,5 +1,21 @@
 #!/bin/sh
 
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+set -e
+set -u
+
+cd "$(dirname "${0}")"
+
+# TODO(strager): Escape spaces and other characters in runtimepath.
+vim \
+  --not-a-term \
+  -u NONE \
+  -c "set runtimepath+=${PWD}/quick-lint-js.vim/" \
+  -c 'set verbosefile=/dev/stdout' \
+  -S ./test.vim
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -15,16 +31,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-set -e
-set -u
-
-cd "$(dirname "${0}")"
-
-# TODO(strager): Escape spaces and other characters in runtimepath.
-vim \
-  --not-a-term \
-  -u NONE \
-  -c "set runtimepath+=${PWD}/quick-lint-js.vim/" \
-  -c 'set verbosefile=/dev/stdout' \
-  -S ./test.vim

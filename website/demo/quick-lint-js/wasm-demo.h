@@ -1,3 +1,19 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#ifndef QUICK_LINT_JS_WASM_DEMO_H
+#define QUICK_LINT_JS_WASM_DEMO_H
+
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/wasm-demo-error-reporter.h>
+
+namespace quick_lint_js {
+extern "C" const wasm_demo_error_reporter::error *
+quick_lint_js_parse_and_lint_for_wasm_demo(const char8 *input);
+}
+
+#endif
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,16 +29,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef QUICK_LINT_JS_WASM_DEMO_H
-#define QUICK_LINT_JS_WASM_DEMO_H
-
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/wasm-demo-error-reporter.h>
-
-namespace quick_lint_js {
-extern "C" const wasm_demo_error_reporter::error *
-quick_lint_js_parse_and_lint_for_wasm_demo(const char8 *input);
-}
-
-#endif

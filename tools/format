@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+set -e
+set -o pipefail
+set -u
+
+cd "$(dirname "${0}")/.."
+source tools/files.sh
+
+find_non_vendor_files | matching '\.(c|cpp|h)$' | xargs clang-format -i
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -15,12 +27,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-set -e
-set -o pipefail
-set -u
-
-cd "$(dirname "${0}")/.."
-source tools/files.sh
-
-find_non_vendor_files | matching '\.(c|cpp|h)$' | xargs clang-format -i

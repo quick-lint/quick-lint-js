@@ -1,3 +1,15 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#ifndef QUICK_LINT_JS_FEATURE_H
+#define QUICK_LINT_JS_FEATURE_H
+
+#if !defined(QLJS_FEATURE_VECTOR_PROFILING)
+#define QLJS_FEATURE_VECTOR_PROFILING 0
+#endif
+
+#endif
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,12 +25,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef QUICK_LINT_JS_FEATURE_H
-#define QUICK_LINT_JS_FEATURE_H
-
-#if !defined(QLJS_FEATURE_VECTOR_PROFILING)
-#define QLJS_FEATURE_VECTOR_PROFILING 0
-#endif
-
-#endif

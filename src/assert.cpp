@@ -1,3 +1,18 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#include <cstdio>
+#include <quick-lint-js/assert.h>
+
+namespace quick_lint_js {
+void report_assertion_failure(const char *qljs_file_name, int qljs_line,
+                              const char *qljs_function_name,
+                              const char *message) {
+  std::fprintf(stderr, "%s:%d: internal check failed in %s: %s\n",
+               qljs_file_name, qljs_line, qljs_function_name, message);
+}
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,15 +28,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#include <cstdio>
-#include <quick-lint-js/assert.h>
-
-namespace quick_lint_js {
-void report_assertion_failure(const char *qljs_file_name, int qljs_line,
-                              const char *qljs_function_name,
-                              const char *message) {
-  std::fprintf(stderr, "%s:%d: internal check failed in %s: %s\n",
-               qljs_file_name, qljs_line, qljs_function_name, message);
-}
-}

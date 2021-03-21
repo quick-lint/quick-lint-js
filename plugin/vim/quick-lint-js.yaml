@@ -1,3 +1,14 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+# This is a registry file for vim-addons.
+
+addon: quick-lint-js
+description: Find bugs in your JavaScript code with quick-lint-js
+files:
+  - ale_linters/javascript/quick_lint_js.vim
+  - autoload/quick_lint_js_ale.vim
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -13,11 +24,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-# This is a registry file for vim-addons.
-
-addon: quick-lint-js
-description: Find bugs in your JavaScript code with quick-lint-js
-files:
-  - ale_linters/javascript/quick_lint_js.vim
-  - autoload/quick_lint_js_ale.vim

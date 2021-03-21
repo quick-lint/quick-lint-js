@@ -1,3 +1,20 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#ifndef QUICK_LINT_JS_STRING_VIEW_H
+#define QUICK_LINT_JS_STRING_VIEW_H
+
+#include <string_view>
+
+namespace quick_lint_js {
+inline bool starts_with(std::string_view haystack,
+                        std::string_view needle) noexcept {
+  return haystack.substr(0, needle.size()) == needle;
+}
+}
+
+#endif
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,17 +30,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef QUICK_LINT_JS_STRING_VIEW_H
-#define QUICK_LINT_JS_STRING_VIEW_H
-
-#include <string_view>
-
-namespace quick_lint_js {
-inline bool starts_with(std::string_view haystack,
-                        std::string_view needle) noexcept {
-  return haystack.substr(0, needle.size()) == needle;
-}
-}
-
-#endif

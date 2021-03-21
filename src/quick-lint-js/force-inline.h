@@ -1,3 +1,20 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#ifndef QUICK_LINT_JS_FORCE_INLINE_H
+#define QUICK_LINT_JS_FORCE_INLINE_H
+
+#if defined(__clang__) || defined(__GNUC__)
+#define QLJS_FORCE_INLINE [[gnu::always_inline]]
+#elif defined(_MSC_VER)
+#define QLJS_FORCE_INLINE __forceinline
+#else
+#define QLJS_WARNING_PUSH /* empty */
+#define QLJS_WARNING_POP  /* empty */
+#endif
+
+#endif
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,17 +30,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef QUICK_LINT_JS_FORCE_INLINE_H
-#define QUICK_LINT_JS_FORCE_INLINE_H
-
-#if defined(__clang__) || defined(__GNUC__)
-#define QLJS_FORCE_INLINE [[gnu::always_inline]]
-#elif defined(_MSC_VER)
-#define QLJS_FORCE_INLINE __forceinline
-#else
-#define QLJS_WARNING_PUSH /* empty */
-#define QLJS_WARNING_POP  /* empty */
-#endif
-
-#endif

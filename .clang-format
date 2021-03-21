@@ -1,3 +1,15 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+BasedOnStyle: Google
+
+IncludeBlocks: Merge
+IncludeCategories: [{Regex: '.*', Priority: 0}]
+SortIncludes: true
+
+FixNamespaceComments: false
+IndentCaseLabels: false
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -13,12 +25,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-BasedOnStyle: Google
-
-IncludeBlocks: Merge
-IncludeCategories: [{Regex: '.*', Priority: 0}]
-SortIncludes: true
-
-FixNamespaceComments: false
-IndentCaseLabels: false

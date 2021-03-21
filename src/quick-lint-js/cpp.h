@@ -1,3 +1,14 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+#ifndef QUICK_LINT_JS_CPP_H
+#define QUICK_LINT_JS_CPP_H
+
+#define QLJS_CPP_CONCAT(x, y) QLJS_CPP_CONCAT_(x, y)
+#define QLJS_CPP_CONCAT_(x, y) x##y
+
+#endif
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
@@ -13,11 +24,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef QUICK_LINT_JS_CPP_H
-#define QUICK_LINT_JS_CPP_H
-
-#define QLJS_CPP_CONCAT(x, y) QLJS_CPP_CONCAT_(x, y)
-#define QLJS_CPP_CONCAT_(x, y) x##y
-
-#endif

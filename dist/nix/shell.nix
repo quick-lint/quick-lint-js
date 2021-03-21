@@ -1,3 +1,20 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+{ pkgs ? import <nixpkgs> { }
+, buildType ? "Debug"
+# Without disabling fixing, code in vendor/ will be modified when building
+# interactively.
+, dontFixCmake ? true
+, ...
+}:
+
+{
+  quick-lint-js = pkgs.callPackage ./quick-lint-js.nix {
+    inherit pkgs buildType dontFixCmake;
+  };
+}
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -13,17 +30,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-{ pkgs ? import <nixpkgs> { }
-, buildType ? "Debug"
-# Without disabling fixing, code in vendor/ will be modified when building
-# interactively.
-, dontFixCmake ? true
-, ...
-}:
-
-{
-  quick-lint-js = pkgs.callPackage ./quick-lint-js.nix {
-    inherit pkgs buildType dontFixCmake;
-  };
-}

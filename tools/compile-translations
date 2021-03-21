@@ -1,20 +1,7 @@
 #!/bin/sh
 
-# quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# See end of file for extended copyright information.
 
 set -e
 set -u
@@ -29,21 +16,8 @@ done
 locales="$(printf '%s\n' ${locales} | LC_ALL=C sort)"
 
 {
-  printf '// quick-lint-js finds bugs in JavaScript programs.\n'
   printf '// Copyright (C) 2020  Matthew Glazar\n'
-  printf '//\n'
-  printf '// This program is free software: you can redistribute it and/or modify\n'
-  printf '// it under the terms of the GNU General Public License as published by\n'
-  printf '// the Free Software Foundation, either version 3 of the License, or\n'
-  printf '// (at your option) any later version.\n'
-  printf '//\n'
-  printf '// This program is distributed in the hope that it will be useful,\n'
-  printf '// but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
-  printf '// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n'
-  printf '// GNU General Public License for more details.\n'
-  printf '//\n'
-  printf '// You should have received a copy of the GNU General Public License\n'
-  printf '// along with this program.  If not, see <https://www.gnu.org/licenses/>.\n'
+  printf '// See end of file for extended copyright information.\n'
   printf '\n'
   printf '// This file is **GENERATED** by tools/compile-translations.\n'
   printf '\n'
@@ -78,4 +52,37 @@ locales="$(printf '%s\n' ${locales} | LC_ALL=C sort)"
   printf '};\n'
 
   printf '}\n'
+
+  printf '\n'
+  printf '// quick-lint-js finds bugs in JavaScript programs.\n'
+  printf '// Copyright (C) 2020  Matthew Glazar\n'
+  printf '//\n'
+  printf '// This program is free software: you can redistribute it and/or modify\n'
+  printf '// it under the terms of the GNU General Public License as published by\n'
+  printf '// the Free Software Foundation, either version 3 of the License, or\n'
+  printf '// (at your option) any later version.\n'
+  printf '//\n'
+  printf '// This program is distributed in the hope that it will be useful,\n'
+  printf '// but WITHOUT ANY WARRANTY; without even the implied warranty of\n'
+  printf '// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n'
+  printf '// GNU General Public License for more details.\n'
+  printf '//\n'
+  printf '// You should have received a copy of the GNU General Public License\n'
+  printf '// along with this program.  If not, see <https://www.gnu.org/licenses/>.\n'
 } >src/translation-data.cpp
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.

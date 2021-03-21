@@ -1,3 +1,18 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+# This file is a script for the Nix package manager. This file is at the root of
+# the repository so the Nix CLI can easily install quick-lint-js from a source
+# tarball.
+
+{ pkgs ? import <nixpkgs> { }, ... }:
+
+{
+  quick-lint-js = pkgs.callPackage ./dist/nix/quick-lint-js.nix { };
+
+  # TODO: add expression for vim plugin
+}
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
@@ -13,15 +28,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-# This file is a script for the Nix package manager. This file is at the root of
-# the repository so the Nix CLI can easily install quick-lint-js from a source
-# tarball.
-
-{ pkgs ? import <nixpkgs> { }, ... }:
-
-{
-  quick-lint-js = pkgs.callPackage ./dist/nix/quick-lint-js.nix { };
-
-  # TODO: add expression for vim plugin
-}
