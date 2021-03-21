@@ -5,9 +5,8 @@
 # directly.
 
 find_non_vendor_files() {
-  # TODO(strager): Include vendor/CMakeLists.txt, etc.
   git ls-files --cached --exclude-standard --others \
-    | { grep -v '^vendor/' || true ; } \
+    | { grep -v '^vendor/.*/' || true ; } \
     | {
       while read path ; do
         if [ -f "${path}" ] ; then
