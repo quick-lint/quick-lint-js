@@ -78,7 +78,7 @@ file_read_result windows_handle_file_ref::read(void *buffer,
       //
       // In my experiments, I haven't been able to make ReadFile give
       // 0-bytes-read in this case. However, given the documentation, when we
-      // get 0 bytes read, we should ask the pipe of we reached EOF.
+      // get 0 bytes read, we should ask the pipe if we reached EOF.
       .at_end_of_file = read_size == 0,
       .bytes_read = narrow_cast<int>(read_size),
       .error_message = std::nullopt,
