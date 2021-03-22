@@ -39,7 +39,7 @@ TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
   s.resize(10);
 
   EXPECT_EQ(s.size(), 10);
-  EXPECT_STREQ(reinterpret_cast<const char *>(s.c_str()), "hello");
+  EXPECT_EQ(s.string_view(), u8"hello\0\0\0\0\0"_sv);
   expect_null_terminated(s);
 }
 
@@ -49,7 +49,7 @@ TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
   s.resize(5);
 
   EXPECT_EQ(s.size(), 5);
-  EXPECT_STREQ(reinterpret_cast<const char *>(s.c_str()), "hello");
+  EXPECT_EQ(s.string_view(), u8"hello"_sv);
   expect_null_terminated(s);
 }
 
@@ -67,22 +67,6 @@ TEST(test_padded_string, writing_to_ostream_does_not_include_padding_bytes) {
 TEST(test_padded_string, std_string_view_excludes_padding_bytes) {
   padded_string s(string8(u8"hello"));
   EXPECT_TRUE(s.string_view() == string8_view(u8"hello"));
-}
-
-TEST(test_padded_string, growing_preserves_data_and_adds_null_bytes) {
-  padded_string s(u8"helloworld"_sv);
-  s.resize(15);
-  EXPECT_EQ(s.size(), 15);
-  EXPECT_EQ(s.string_view(), u8"helloworld\0\0\0\0\0"_sv);
-  expect_null_terminated(s);
-}
-
-TEST(test_padded_string, shrinking_preserves_data) {
-  padded_string s(u8"helloworld"_sv);
-  s.resize(5);
-  EXPECT_EQ(s.size(), 5);
-  EXPECT_EQ(s.string_view(), u8"hello"_sv);
-  expect_null_terminated(s);
 }
 
 TEST(test_padded_string, shrinking_does_not_reallocate) {
