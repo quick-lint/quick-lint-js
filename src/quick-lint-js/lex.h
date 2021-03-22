@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
@@ -174,10 +173,6 @@ class lexer {
     const char8* end;
   };
 
-  using escape_sequence_list = std::vector<
-      source_code_span,
-      boost::container::pmr::polymorphic_allocator<source_code_span>>;
-
   // The result of parsing an identifier.
   //
   // Typically, .normalized is default-constructed. However, if an identifier
@@ -270,10 +265,6 @@ class lexer {
   const char8* input_;
   error_reporter* error_reporter_;
   padded_string_view original_input_;
-
-  // This may not be up to date. It is only guaranteed to be updated after
-  // parsing a token_type::reserved_keyword_with_escape_sequence.
-  escape_sequence_list* last_token_escape_sequences_;
 
   monotonic_allocator allocator_;
 };

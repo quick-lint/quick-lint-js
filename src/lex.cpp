@@ -217,7 +217,7 @@ retry:
         // keyword.
         this->last_token_.type =
             token_type::reserved_keyword_with_escape_sequence;
-        this->last_token_escape_sequences_ = ident.escape_sequences;
+        this->last_token_.identifier_escape_sequences = ident.escape_sequences;
         break;
 
       default:
@@ -866,10 +866,10 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
 void lexer::report_errors_for_escape_sequences_in_keyword() {
   QLJS_ASSERT(this->last_token_.type ==
               token_type::reserved_keyword_with_escape_sequence);
-  QLJS_ASSERT(this->last_token_escape_sequences_);
-  QLJS_ASSERT(!this->last_token_escape_sequences_->empty());
+  QLJS_ASSERT(this->last_token_.identifier_escape_sequences);
+  QLJS_ASSERT(!this->last_token_.identifier_escape_sequences->empty());
   for (const source_code_span& escape_sequence :
-       *this->last_token_escape_sequences_) {
+       *this->last_token_.identifier_escape_sequences) {
     this->error_reporter_->report(
         error_keywords_cannot_contain_escape_sequences{.escape_sequence =
                                                            escape_sequence});

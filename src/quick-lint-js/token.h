@@ -4,8 +4,10 @@
 #ifndef QUICK_LINT_JS_TOKEN_H
 #define QUICK_LINT_JS_TOKEN_H
 
+#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
+#include <vector>
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD \
   case ::quick_lint_js::token_type::kw_break:                          \
@@ -211,6 +213,10 @@ enum class token_type {
 const char* to_string(token_type);
 std::ostream& operator<<(std::ostream&, token_type);
 
+using escape_sequence_list =
+    std::vector<source_code_span,
+                boost::container::pmr::polymorphic_allocator<source_code_span>>;
+
 struct token {
   identifier identifier_name() const noexcept;
   source_code_span span() const noexcept;
@@ -226,6 +232,9 @@ struct token {
   // If the token contains no escape sequences, .normalized_identifier is
   // equivalent to string8_view(.begin, .end).
   string8_view normalized_identifier;
+
+  // Used only if this is a reserved_keyword_with_escape_sequence token.
+  escape_sequence_list* identifier_escape_sequences;
 };
 }
 
