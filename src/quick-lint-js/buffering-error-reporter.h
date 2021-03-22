@@ -23,10 +23,6 @@ class buffering_error_reporter final : public error_reporter {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-  void report_fatal_error_unimplemented_token(const char *, int, const char *,
-                                              token_type,
-                                              const char8 *) override;
-
   void move_into(error_reporter *other);
 
  private:

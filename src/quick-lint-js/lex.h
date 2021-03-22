@@ -154,6 +154,8 @@ class lexer {
   // called after.
   const char8* end_of_previous_token() const noexcept;
 
+  padded_string_view original_input() const noexcept;
+
   static constexpr std::size_t unicode_table_chunk_size = 256;
   static constexpr std::size_t unicode_tables_chunks_size = 46848;
   static const std::uint8_t unicode_tables_chunks[];

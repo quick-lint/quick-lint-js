@@ -28,10 +28,6 @@ class lsp_error_reporter final : public error_reporter {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-  void report_fatal_error_unimplemented_token(
-      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      token_type, const char8 *token_begin) override;
-
  private:
   lsp_error_formatter begin_error(const char *code);
   lsp_error_formatter format(const char *code);

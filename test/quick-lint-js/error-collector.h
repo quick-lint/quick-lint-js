@@ -19,10 +19,6 @@ struct error_collector : public error_reporter {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-  void report_fatal_error_unimplemented_token(
-      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      token_type, const char8 *token_begin) override;
-
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {
    public:

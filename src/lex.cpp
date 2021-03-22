@@ -892,6 +892,10 @@ const char8* lexer::end_of_previous_token() const noexcept {
   return this->last_last_token_end_;
 }
 
+padded_string_view lexer::original_input() const noexcept {
+  return this->original_input_;
+}
+
 template <class Error>
 const char8* lexer::check_garbage_in_number_literal(const char8* input) {
   const char8* garbage_begin = input;

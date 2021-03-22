@@ -20,18 +20,6 @@ QLJS_X_ERROR_TYPES
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-void error_collector::report_fatal_error_unimplemented_token(
-    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-    token_type type, const char8 *token_begin) {
-  error_reporter::write_fatal_error_unimplemented_token(
-      /*qljs_file_name=*/qljs_file_name,
-      /*qljs_line=*/qljs_line,
-      /*qljs_function_name=*/qljs_function_name,
-      /*type=*/type,
-      /*token_begin=*/token_begin,
-      /*locator=*/nullptr);
-}
-
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call)              \
   template <>                                                              \
   bool holds_alternative<name>(const error_collector::error &e) noexcept { \

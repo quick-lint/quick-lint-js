@@ -56,18 +56,6 @@ void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-void vim_qflist_json_error_reporter::report_fatal_error_unimplemented_token(
-    const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-    token_type type, const char8 *token_begin) {
-  error_reporter::write_fatal_error_unimplemented_token(
-      /*qljs_file_name=*/qljs_file_name,
-      /*qljs_line=*/qljs_line,
-      /*qljs_function_name=*/qljs_function_name,
-      /*type=*/type,
-      /*token_begin=*/token_begin,
-      /*locator=*/nullptr);
-}
-
 vim_qflist_json_error_formatter vim_qflist_json_error_reporter::begin_error(
     const char *code) {
   if (this->need_comma_) {

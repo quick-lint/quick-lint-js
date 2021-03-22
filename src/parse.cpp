@@ -8,6 +8,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
@@ -1598,12 +1599,14 @@ void parser::consume_semicolon() {
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
-  this->error_reporter_->report_fatal_error_unimplemented_token(
+  cli_locator locator(this->lexer_.original_input());
+  error_reporter::write_fatal_error_unimplemented_token(
       /*qljs_file_name=*/qljs_file_name,
       /*qljs_line=*/qljs_line,
       /*qljs_function_name=*/qljs_function_name,
       /*type=*/this->peek().type,
-      /*token_begin=*/this->peek().begin);
+      /*token_begin=*/this->peek().begin,
+      /*locator=*/&locator);
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
 
