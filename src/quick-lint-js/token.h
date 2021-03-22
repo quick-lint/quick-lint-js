@@ -85,6 +85,7 @@
   QLJS_CASE_RESERVED_KEYWORD
 
 namespace quick_lint_js {
+class error_reporter;
 class identifier;
 class source_code_span;
 
@@ -220,6 +221,14 @@ using escape_sequence_list =
 struct token {
   identifier identifier_name() const noexcept;
   source_code_span span() const noexcept;
+
+  // Report error_keywords_cannot_contain_escape_sequences for each escape
+  // sequence in the most recently parsed keyword-looking identifier.
+  //
+  // Precondition:
+  //   this->type == token_type::reserved_keyword_with_escape_sequence
+  // Precondition: This function was not previously called for the same token.
+  void report_errors_for_escape_sequences_in_keyword(error_reporter*) const;
 
   token_type type;
 

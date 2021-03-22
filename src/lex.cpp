@@ -144,6 +144,18 @@ source_code_span token::span() const noexcept {
   return source_code_span(this->begin, this->end);
 }
 
+void token::report_errors_for_escape_sequences_in_keyword(
+    error_reporter* reporter) const {
+  QLJS_ASSERT(this->type == token_type::reserved_keyword_with_escape_sequence);
+  QLJS_ASSERT(this->identifier_escape_sequences);
+  QLJS_ASSERT(!this->identifier_escape_sequences->empty());
+  for (const source_code_span& escape_sequence :
+       *this->identifier_escape_sequences) {
+    reporter->report(error_keywords_cannot_contain_escape_sequences{
+        .escape_sequence = escape_sequence});
+  }
+}
+
 lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
     : input_(input.data()),
       error_reporter_(error_reporter),
@@ -861,19 +873,6 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
   this->error_reporter_ = transaction.old_error_reporter;
-}
-
-void lexer::report_errors_for_escape_sequences_in_keyword() {
-  QLJS_ASSERT(this->last_token_.type ==
-              token_type::reserved_keyword_with_escape_sequence);
-  QLJS_ASSERT(this->last_token_.identifier_escape_sequences);
-  QLJS_ASSERT(!this->last_token_.identifier_escape_sequences->empty());
-  for (const source_code_span& escape_sequence :
-       *this->last_token_.identifier_escape_sequences) {
-    this->error_reporter_->report(
-        error_keywords_cannot_contain_escape_sequences{.escape_sequence =
-                                                           escape_sequence});
-  }
 }
 
 void lexer::insert_semicolon() {

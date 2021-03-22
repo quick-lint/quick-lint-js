@@ -140,14 +140,6 @@ class lexer {
   // been reported if it weren't for begin_transaction.
   void roll_back_transaction(lexer_transaction&&);
 
-  // Report error_keywords_cannot_contain_escape_sequences for each escape
-  // sequence in the most recently parsed keyword-looking identifier.
-  //
-  // Precondition:
-  //   this->peek().type == token_type::reserved_keyword_with_escape_sequence
-  // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_keyword();
-
   void insert_semicolon();
 
   // Do not call this after calling insert_semicolon, unless skip has been

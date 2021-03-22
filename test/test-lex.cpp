@@ -1545,7 +1545,7 @@ TEST_F(
                 tc.expected_identifier);
     EXPECT_THAT(errors.errors, IsEmpty());
 
-    l.report_errors_for_escape_sequences_in_keyword();
+    l.peek().report_errors_for_escape_sequences_in_keyword(&errors);
     EXPECT_THAT(errors.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_keywords_cannot_contain_escape_sequences,
