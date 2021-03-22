@@ -55,9 +55,6 @@ buffering_error_reporter::~buffering_error_reporter() = default;
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-void buffering_error_reporter::report_fatal_error_unimplemented_character(
-    const char *, int, const char *, const char8 *) {}
-
 void buffering_error_reporter::report_fatal_error_unimplemented_token(
     const char *, int, const char *, token_type, const char8 *) {}
 

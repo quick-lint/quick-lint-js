@@ -988,16 +988,10 @@ class error_reporter {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-  virtual void report_fatal_error_unimplemented_character(
-      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      const char8 *character) = 0;
   virtual void report_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin) = 0;
 
-  static void write_fatal_error_unimplemented_character(
-      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      const char8 *character, const cli_locator *);
   static void write_fatal_error_unimplemented_token(
       const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
       token_type, const char8 *token_begin, const cli_locator *);
@@ -1012,9 +1006,6 @@ class null_error_reporter : public error_reporter {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-  void report_fatal_error_unimplemented_character(const char *, int,
-                                                  const char *,
-                                                  const char8 *) override {}
   void report_fatal_error_unimplemented_token(const char *, int, const char *,
                                               token_type,
                                               const char8 *) override {}
