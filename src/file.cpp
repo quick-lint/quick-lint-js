@@ -55,6 +55,8 @@ read_file_result read_file_result::failure(const std::string &error) {
 namespace {
 void read_file_buffered(platform_file_ref file, int buffer_size,
                         read_file_result *out) {
+  // TODO(strager): Use byte_buffer to avoid copying the file content every
+  // iteration.
   for (;;) {
     int size_before = out->content.size();
     {
