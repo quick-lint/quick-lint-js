@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -1599,14 +1600,15 @@ void parser::consume_semicolon() {
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
+  std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
+               qljs_file_name, qljs_line, qljs_function_name,
+               to_string(this->peek().type));
   cli_locator locator(this->lexer_.original_input());
-  error_reporter::write_fatal_error_unimplemented_token(
-      /*qljs_file_name=*/qljs_file_name,
-      /*qljs_line=*/qljs_line,
-      /*qljs_function_name=*/qljs_function_name,
-      /*type=*/this->peek().type,
-      /*token_begin=*/this->peek().begin,
-      /*locator=*/&locator);
+  cli_source_position token_position = locator.position(this->peek().begin);
+  std::fprintf(stderr, " on line %d column %d", token_position.line_number,
+               token_position.column_number);
+  std::fprintf(stderr, "\n");
+
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
 

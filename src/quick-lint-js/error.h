@@ -987,10 +987,6 @@ class error_reporter {
   virtual void report(name) = 0;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-
-  static void write_fatal_error_unimplemented_token(
-      const char *qljs_file_name, int qljs_line, const char *qljs_function_name,
-      token_type, const char8 *token_begin, const cli_locator *);
 };
 
 class null_error_reporter : public error_reporter {
