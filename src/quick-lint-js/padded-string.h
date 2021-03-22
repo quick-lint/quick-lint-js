@@ -49,6 +49,7 @@ class padded_string {
   }
 
   void resize(size_type new_size);
+  void resize_grow_uninitialized(size_type new_size);
 
   char8 *begin() noexcept { return this->data(); }
   char8 *end() noexcept { return this->data() + this->size(); }

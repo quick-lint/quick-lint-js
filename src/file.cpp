@@ -64,7 +64,7 @@ void read_file_buffered(platform_file_ref file, int buffer_size,
         out->error = "file too large to read into memory";
         return;
       }
-      out->content.resize(size_before + buffer_size);
+      out->content.resize_grow_uninitialized(size_before + buffer_size);
     }
 
     file_read_result read_result =
@@ -93,7 +93,7 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
     result.error = "file too large to read into memory";
     return result;
   }
-  result.content.resize(*size_to_read);
+  result.content.resize_grow_uninitialized(*size_to_read);
 
   file_read_result read_result =
       file.read(result.content.data(), *size_to_read);

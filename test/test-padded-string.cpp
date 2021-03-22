@@ -43,6 +43,18 @@ TEST(test_padded_string, resize_with_bigger_size_adds_new_characters) {
   expect_null_terminated(s);
 }
 
+TEST(test_padded_string, resize_grow_uninitialized_preserves_original_data) {
+  padded_string s(u8"hello"_sv);
+
+  s.resize_grow_uninitialized(10);
+
+  EXPECT_EQ(s.size(), 10);
+  EXPECT_EQ(s.string_view().substr(0, 5), u8"hello"_sv);
+  expect_null_terminated(s);
+  // Don't read indexes 5 through 9. The data is uninitialized and could be
+  // anything.
+}
+
 TEST(test_padded_string, resize_with_smaller_size_removes_characters) {
   padded_string s(u8"helloworld"_sv);
 

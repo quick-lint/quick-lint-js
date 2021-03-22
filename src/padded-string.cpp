@@ -63,19 +63,27 @@ void padded_string::resize(size_type new_size) {
     this->size_excluding_padding_bytes_ = new_size;
   } else {
     // Grow. Need to reallocate and copy.
-    char8* old_data =
-        this->data_ == empty_string.data() ? nullptr : this->data_;
-    size_type new_size_including_padding_bytes = new_size + this->padding_size;
-
-    char8* new_data = reinterpret_cast<char8*>(std::realloc(
-        old_data, narrow_cast<std::size_t>(new_size_including_padding_bytes) *
-                      sizeof(char8)));
-    std::fill(&new_data[old_size], &new_data[new_size_including_padding_bytes],
-              u8'\0');
-
-    this->data_ = new_data;
-    this->size_excluding_padding_bytes_ = new_size;
+    this->resize_grow_uninitialized(new_size);
+    std::fill(&this->data_[old_size], &this->data_[new_size], u8'\0');
   }
+}
+
+void padded_string::resize_grow_uninitialized(size_type new_size) {
+  size_type old_size = this->size_excluding_padding_bytes_;
+  QLJS_ASSERT(new_size > old_size);
+
+  char8* old_data = this->data_ == empty_string.data() ? nullptr : this->data_;
+  size_type new_size_including_padding_bytes = new_size + this->padding_size;
+
+  char8* new_data = reinterpret_cast<char8*>(std::realloc(
+      old_data, narrow_cast<std::size_t>(new_size_including_padding_bytes) *
+                    sizeof(char8)));
+  // Only null-terminate. Do not write between &new_data[old_size] and
+  // &new_data[new_size].
+  std::fill_n(&new_data[new_size], this->padding_size, u8'\0');
+
+  this->data_ = new_data;
+  this->size_excluding_padding_bytes_ = new_size;
 }
 
 string8_view padded_string::string_view() const noexcept {
