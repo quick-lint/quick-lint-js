@@ -146,8 +146,13 @@ expression* parser::parse_expression(precedence prec) {
   }
 
   // `hello${world}`
-  case token_type::incomplete_template:
-    return this->parse_template(/*tag=*/std::nullopt);
+  case token_type::incomplete_template: {
+    expression* ast = this->parse_template(/*tag=*/std::nullopt);
+    if (!prec.binary_operators) {
+      return ast;
+    }
+    return this->parse_expression_remainder(ast, prec);
+  }
 
   // await            // Identifier.
   // await myPromise

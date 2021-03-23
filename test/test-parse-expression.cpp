@@ -1333,6 +1333,11 @@ TEST_F(test_parse_expression, parse_template) {
     expression* ast = this->parse_expression(u8"`${one}${two}${three}`"_sv);
     EXPECT_EQ(summarize(ast), "template(var one, var two, var three)");
   }
+
+  {
+    expression* ast = this->parse_expression(u8"`hello${world}` + rhs"_sv);
+    EXPECT_EQ(summarize(ast), "binary(template(var world), var rhs)");
+  }
 }
 
 TEST_F(test_parse_expression, tagged_template_literal) {
