@@ -2408,7 +2408,6 @@ class parser {
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier: {
         identifier left_name = this->peek().identifier_name();
-        identifier right_name = left_name;
         token right_token = this->peek();
         this->skip();
         if (this->peek().type == token_type::kw_as) {
@@ -2417,7 +2416,6 @@ class parser {
           QLJS_CASE_KEYWORD:
           case token_type::identifier:
           case token_type::reserved_keyword_with_escape_sequence:
-            right_name = this->peek().identifier_name();
             right_token = this->peek();
             this->skip();
             break;
@@ -2437,7 +2435,7 @@ class parser {
           case token_type::identifier:
             if (right_token.type == token_type::kw_let) {
               this->error_reporter_->report(
-                  error_cannot_import_let{.import_name = right_name.span()});
+                  error_cannot_import_let{.import_name = right_token.span()});
             }
             break;
 
@@ -2445,7 +2443,7 @@ class parser {
           QLJS_CASE_RESERVED_KEYWORD:
             this->error_reporter_->report(
                 error_cannot_import_variable_named_keyword{
-                    .import_name = right_name,
+                    .import_name = right_token.identifier_name(),
                 });
             break;
 
@@ -2459,7 +2457,8 @@ class parser {
             QLJS_UNIMPLEMENTED();
             break;
           }
-          v.visit_variable_declaration(right_name, variable_kind::_import);
+          v.visit_variable_declaration(right_token.identifier_name(),
+                                       variable_kind::_import);
         }
         break;
       }
