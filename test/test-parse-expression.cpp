@@ -654,17 +654,19 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
   }
 
   for (string8 op : {
-           u8"!=",  u8"!==",  u8"%",   u8"%=", u8"&",  u8"&&",  u8"&=",
-           u8"*",   u8"**",   u8"**=", u8"*=", u8"+",  u8"+=",  u8",",
-           u8"-",   u8"-=",   u8"/=",  u8"<",  u8"<<", u8"<<=", u8"<=",
-           u8"=",   u8"==",   u8"===", u8">",  u8">=", u8">>",  u8">>=",
-           u8">>>", u8">>>=", u8"^",   u8"^=", u8"|",  u8"|=",  u8"||",
+           u8"!=",  u8"!==", u8"%",    u8"%=",  u8"&",      u8"&&", u8"&&=",
+           u8"&=",  u8"*",   u8"**",   u8"**=", u8"*=",     u8"+",  u8"+=",
+           u8",",   u8"-",   u8"-=",   u8"/=",  u8"<",      u8"<<", u8"<<=",
+           u8"<=",  u8"=",   u8"==",   u8"===", u8">",      u8">=", u8">>",
+           u8">>=", u8">>>", u8">>>=", u8"??",  u8"?\x3f=", u8"^",  u8"^=",
+           u8"|",   u8"|=",  u8"||",   u8"||=",
        }) {
     test_parser p(u8"x. " + op + u8" y");
     expression* ast = p.parse_expression();
     EXPECT_THAT(summarize(ast),
-                ::testing::AnyOf("assign(dot(var x, ), var y)",  //
-                                 "binary(dot(var x, ), var y)",  //
+                ::testing::AnyOf("assign(dot(var x, ), var y)",      //
+                                 "binary(dot(var x, ), var y)",      //
+                                 "condassign(dot(var x, ), var y)",  //
                                  "upassign(dot(var x, ), var y)"));
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
