@@ -97,6 +97,7 @@ class test_parser {
     case expression_kind::binary_operator:
     case expression_kind::call:
     case expression_kind::compound_assignment:
+    case expression_kind::conditional_assignment:
     case expression_kind::index:
     case expression_kind::tagged_template_literal:
     case expression_kind::trailing_comma:
@@ -1038,6 +1039,21 @@ TEST_F(test_parse_expression, parse_compound_assignment) {
     test_parser p(code.c_str());
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::compound_assignment);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_EQ(summarize(ast->child_1()), "var y");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), code.size());
+  }
+}
+
+TEST_F(test_parse_expression, parse_conditional_assignment) {
+  for (string8 op : {u8"&&=", u8"?\x3f=", u8"||="}) {
+    SCOPED_TRACE(out_string8(op));
+    string8 code = u8"x " + op + u8" y";
+    test_parser p(code.c_str());
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::conditional_assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2741,6 +2757,8 @@ std::string summarize(const expression& expression) {
     return "unary(" + summarize(expression.child_0()) + ")";
   case expression_kind::compound_assignment:
     return "upassign(" + children() + ")";
+  case expression_kind::conditional_assignment:
+    return "condassign(" + children() + ")";
   case expression_kind::variable:
     return "var " + string8_to_string(
                         expression.variable_identifier().normalized_name());

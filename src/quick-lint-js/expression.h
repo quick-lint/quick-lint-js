@@ -48,6 +48,7 @@ enum class expression_kind {
   call,
   compound_assignment,
   conditional,
+  conditional_assignment,
   dot,
   function,
   import,
@@ -590,7 +591,8 @@ class expression::assignment final : public expression {
                       expression *rhs) noexcept
       : expression(kind), children_{lhs, rhs} {
     QLJS_ASSERT(kind == expression_kind::assignment ||
-                kind == expression_kind::compound_assignment);
+                kind == expression_kind::compound_assignment ||
+                kind == expression_kind::conditional_assignment);
   }
 
   int child_count_impl() const noexcept {
@@ -1113,6 +1115,7 @@ static_assert(expression_arena::is_allocatable<expression::yield_one>);
 template <class Func>
 inline auto expression::with_derived(Func &&func) {
   using compound_assignment = assignment;
+  using conditional_assignment = assignment;
 
 #define QLJS_EXPRESSION_CASE(kind) \
   case expression_kind::kind:      \
@@ -1133,6 +1136,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(call)
     QLJS_EXPRESSION_CASE(compound_assignment)
     QLJS_EXPRESSION_CASE(conditional)
+    QLJS_EXPRESSION_CASE(conditional_assignment)
     QLJS_EXPRESSION_CASE(dot)
     QLJS_EXPRESSION_CASE(function)
     QLJS_EXPRESSION_CASE(import)

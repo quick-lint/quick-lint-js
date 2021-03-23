@@ -709,12 +709,27 @@ next:
 
   // x += y
   // f().prop = other
+  // x[y] &&= z
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
   case token_type::equal: {
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
-    bool is_plain_assignment = this->peek().type == token_type::equal;
+    expression_kind kind;
+    switch (this->peek().type) {
+    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      kind = expression_kind::compound_assignment;
+      break;
+    QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      kind = expression_kind::conditional_assignment;
+      break;
+    case token_type::equal:
+      kind = expression_kind::assignment;
+      break;
+    default:
+      QLJS_UNREACHABLE();
+    }
     this->skip();
     expression* lhs = build_expression();
     switch (lhs->kind()) {
@@ -735,10 +750,8 @@ next:
     expression* rhs = this->parse_expression(
         precedence{.commas = false, .in_operator = prec.in_operator});
     children.clear();
-    children.emplace_back(this->make_expression<expression::assignment>(
-        is_plain_assignment ? expression_kind::assignment
-                            : expression_kind::compound_assignment,
-        lhs, rhs));
+    children.emplace_back(
+        this->make_expression<expression::assignment>(kind, lhs, rhs));
     goto next;
   }
 
@@ -767,6 +780,7 @@ next:
 
     QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
     QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+    QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
     case token_type::colon:
     case token_type::comma:
     case token_type::end_of_file:

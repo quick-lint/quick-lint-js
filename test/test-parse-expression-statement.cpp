@@ -875,6 +875,7 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
 
     for (const char8 *binary_operator : {
              u8"%=",
+             u8"&&=",
              u8"&=",
              u8"**=",
              u8"*=",
@@ -884,8 +885,10 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
              u8"<<=",
              u8">>=",
              u8">>>=",
+             u8"?\x3f=",
              u8"^=",
              u8"|=",
+             u8"||=",
          }) {
       string8 code = name + u8" " + binary_operator + u8" other";
       SCOPED_TRACE(out_string8(code));

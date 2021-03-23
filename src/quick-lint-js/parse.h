@@ -60,6 +60,11 @@
   case token_type::star_equal:                    \
   case token_type::star_star_equal
 
+#define QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR \
+  case token_type::ampersand_ampersand_equal:     \
+  case token_type::pipe_pipe_equal:               \
+  case token_type::question_question_equal
+
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
     this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
@@ -217,6 +222,7 @@ class parser {
       // async += 42;
       QLJS_CASE_BINARY_ONLY_OPERATOR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::comma:
       case token_type::complete_template:
@@ -659,10 +665,11 @@ class parser {
       this->visit_assignment_expression(lhs, rhs, v);
       break;
     }
-    case expression_kind::compound_assignment: {
+    case expression_kind::compound_assignment:
+    case expression_kind::conditional_assignment: {
       expression *lhs = ast->child_0();
       expression *rhs = ast->child_1();
-      this->visit_compound_assignment_expression(lhs, rhs, v);
+      this->visit_compound_or_conditional_assignment_expression(lhs, rhs, v);
       break;
     }
     case expression_kind::_typeof: {
@@ -740,8 +747,9 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void visit_compound_assignment_expression(expression *lhs, expression *rhs,
-                                            Visitor &v) {
+  void visit_compound_or_conditional_assignment_expression(expression *lhs,
+                                                           expression *rhs,
+                                                           Visitor &v) {
     this->visit_expression(lhs, v, variable_context::rhs);
     this->visit_expression(rhs, v, variable_context::rhs);
     this->maybe_visit_assignment(lhs, v);
@@ -2719,6 +2727,7 @@ class parser {
     switch (following_token) {
     QLJS_CASE_BINARY_ONLY_OPERATOR:
     QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+    QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
     case token_type::comma:
     case token_type::complete_template:
     case token_type::dot:
