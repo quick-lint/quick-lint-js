@@ -39,6 +39,7 @@
   case token_type::percent:                   \
   case token_type::pipe:                      \
   case token_type::pipe_pipe:                 \
+  case token_type::question_question:         \
   case token_type::star:                      \
   case token_type::star_star
 

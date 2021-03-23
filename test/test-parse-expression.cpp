@@ -425,8 +425,9 @@ TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
 }
 
 TEST_F(test_parse_expression, parse_logical_expression) {
-  for (const char8* input : {u8"2==2", u8"2===2", u8"2!=2", u8"2!==2", u8"2>2",
-                             u8"2<2", u8"2>=2", u8"2<=2", u8"2&&2", u8"2||2"}) {
+  for (const char8* input :
+       {u8"2==2", u8"2===2", u8"2!=2", u8"2!==2", u8"2>2", u8"2<2", u8"2>=2",
+        u8"2<=2", u8"2&&2", u8"2??2", u8"2||2"}) {
     SCOPED_TRACE(out_string8(u8"input = " + string8(input)));
     test_parser p(input);
     expression* ast = p.parse_expression();

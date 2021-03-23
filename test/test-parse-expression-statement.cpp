@@ -222,10 +222,10 @@ TEST(test_parse, stray_right_parenthesis) {
 
 TEST(test_parse, statement_starting_with_binary_only_operator) {
   for (string8_view op : {
-           u8"!=", u8"!==", u8"%",          u8"&",  u8"&&", u8"*",
-           u8"**", u8",",   u8"<",          u8"<<", u8"<=", u8"=",
-           u8"==", u8"===", u8">",          u8">=", u8">>", u8">>>",
-           u8"^",  u8"in",  u8"instanceof", u8"|",
+           u8"!=", u8"!==", u8"%",  u8"&",          u8"&&", u8"*",
+           u8"**", u8",",   u8"<",  u8"<<",         u8"<=", u8"=",
+           u8"==", u8"===", u8">",  u8">=",         u8">>", u8">>>",
+           u8"??", u8"^",   u8"in", u8"instanceof", u8"|",
        }) {
     padded_string code(string8(op) + u8" x");
     SCOPED_TRACE(code);
@@ -902,10 +902,10 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
     }
 
     for (const char8 *binary_operator : {
-             u8"!=", u8"!==",        u8"%", u8"&",  u8"&&", u8"*",   u8"**",
-             u8"+",  u8",",          u8"-", u8"/",  u8"<",  u8"<<",  u8"<=",
-             u8"==", u8"===",        u8">", u8">=", u8">>", u8">>>", u8"^",
-             u8"in", u8"instanceof", u8"|", u8"||",
+             u8"!=", u8"!==", u8"%",          u8"&",  u8"&&", u8"*",   u8"**",
+             u8"+",  u8",",   u8"-",          u8"/",  u8"<",  u8"<<",  u8"<=",
+             u8"==", u8"===", u8">",          u8">=", u8">>", u8">>>", u8"??",
+             u8"^",  u8"in",  u8"instanceof", u8"|",  u8"||",
          }) {
       string8 code = name + u8" " + binary_operator + u8" other";
       SCOPED_TRACE(out_string8(code));
