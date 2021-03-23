@@ -24,12 +24,6 @@ import "sync/atomic"
 
 var TodoTestFiles []string = []string{
 	// TODO(strager): Implement non-standard and new features.
-	"language/*/class/*-assignment-*-logical-*.js",
-	"language/*/class/*-coalesce.js",
-	"language/expressions/assignmenttargettype/*-coalesce-*.js",
-	"language/expressions/assignmenttargettype/*-logical-*-assignment-*.js",
-	"language/expressions/object/*-assignment-*-logical-*.js",
-	"language/expressions/object/*-coalesce.js",
 	"language/module-code/early-export-ill-formed-string.js",
 	"language/module-code/export-expname-*string*.js",
 	"language/module-code/export-expname-*unpaired-surrogate*.js",
