@@ -1380,7 +1380,8 @@ class parser {
     // method() {}
     QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
     QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
-    case token_type::identifier: {
+    case token_type::identifier:
+    case token_type::reserved_keyword_with_escape_sequence: {
       identifier method_name = this->peek().identifier_name();
       this->skip();
       switch (this->peek().type) {

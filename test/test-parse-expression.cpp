@@ -2634,8 +2634,6 @@ TEST_F(test_parse_expression,
           ElementsAre(::testing::VariantWith<
                       error_methods_should_not_use_function_keyword>(_)));
     }
-
-    // TODO(strager): Test class property names.
   }
 }
 
