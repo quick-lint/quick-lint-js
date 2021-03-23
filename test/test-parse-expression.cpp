@@ -583,6 +583,51 @@ TEST_F(test_parse_expression,
   }
 }
 
+TEST_F(test_parse_expression,
+       conditional_expression_with_missing_colon_and_false_component) {
+  {
+    test_parser p(u8"a ? b "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_colon_in_conditional_expression, expected_colon,
+            offsets_matcher(p.code(), strlen(u8"a ? b"), u8""),  //
+            question, offsets_matcher(p.code(), strlen(u8"a "), u8"?"))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"a ? b"));
+  }
+
+  {
+    test_parser p(u8"a ? b c"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_colon_in_conditional_expression, expected_colon,
+            offsets_matcher(p.code(), strlen(u8"a ? b"), u8""),  //
+            question, offsets_matcher(p.code(), strlen(u8"a "), u8"?"))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"a ? b"));
+  }
+
+  {
+    test_parser p(u8"(a ? b)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_missing_colon_in_conditional_expression, expected_colon,
+            offsets_matcher(p.code(), strlen(u8"(a ? b"), u8""),  //
+            question, offsets_matcher(p.code(), strlen(u8"(a "), u8"?"))));
+    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8"("));
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(a ? b"));
+  }
+}
+
 TEST_F(test_parse_expression, parse_function_call) {
   {
     test_parser p(u8"f()"_sv);

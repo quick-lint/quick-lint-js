@@ -544,6 +544,17 @@
              expected_comma))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_colon_in_conditional_expression, "E146",                   \
+      {                                                                        \
+        source_code_span expected_colon;                                       \
+        source_code_span question;                                             \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("missing ':' in conditional expression"),       \
+             expected_colon)                                                   \
+          .note(QLJS_TRANSLATABLE("'?' creates a conditional expression"),     \
+                question))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_condition_for_if_statement, "E138",                        \
       { source_code_span if_keyword; },                                        \
       .error(QLJS_TRANSLATABLE("missing condition for if statement"),          \

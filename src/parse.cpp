@@ -881,7 +881,19 @@ next:
       true_expression = this->parse_expression();
     }
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+    if (this->peek().type != token_type::colon) {
+      source_code_span expected_colon(this->lexer_.end_of_previous_token(),
+                                      this->lexer_.end_of_previous_token());
+      this->error_reporter_->report(
+          error_missing_colon_in_conditional_expression{
+              .expected_colon = expected_colon,
+              .question = question_span,
+          });
+      expression* false_expression =
+          this->make_expression<expression::_invalid>(expected_colon);
+      return this->make_expression<expression::conditional>(
+          condition, true_expression, false_expression);
+    }
     source_code_span colon_span = this->peek().span();
     this->skip();
 
