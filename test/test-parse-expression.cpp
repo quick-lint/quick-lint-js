@@ -1654,6 +1654,21 @@ TEST_F(test_parse_expression,
   }
 }
 
+TEST_F(
+    test_parse_expression,
+    object_literal_with_reserved_keyword_keyvalue_with_unicode_escapes_is_an_error) {
+  {
+    test_parser p(u8"{ \\u{69}f }");
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var if)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_keywords_cannot_contain_escape_sequences, escape_sequence,
+            offsets_matcher(p.code(), strlen(u8"{ "), u8"\\u{69}"))));
+  }
+}
+
 TEST_F(test_parse_expression, object_literal_with_number_key) {
   {
     expression* ast = this->parse_expression(u8"{1234: null}"_sv);

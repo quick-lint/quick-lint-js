@@ -1171,7 +1171,9 @@ expression* parser::parse_object_literal() {
           // TODO(strager): Disallow referencing a variable named 'await' for
           // async functions, or a variable named 'yield' for generator
           // functions.
-          [[fallthrough]];
+          goto single_token_key_and_value_identifier;
+
+        single_token_key_and_value_identifier:
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case token_type::identifier: {
           expression* value = this->make_expression<expression::variable>(
@@ -1179,6 +1181,12 @@ expression* parser::parse_object_literal() {
           entries.emplace_back(key, value);
           break;
         }
+
+        // { \u{69}f }  // Invalid.
+        case token_type::reserved_keyword_with_escape_sequence:
+          key_token.report_errors_for_escape_sequences_in_keyword(
+              this->error_reporter_);
+          goto single_token_key_and_value_identifier;
 
         default:
           QLJS_UNIMPLEMENTED();
