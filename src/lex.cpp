@@ -210,7 +210,7 @@ retry:
     this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
     this->last_token_.type = this->identifier_token_type(ident.normalized);
-    if (ident.escape_sequences) {
+    if (ident.escape_sequences && !ident.escape_sequences->empty()) {
       switch (this->last_token_.type) {
       case token_type::identifier:
         this->last_token_.type = token_type::identifier;

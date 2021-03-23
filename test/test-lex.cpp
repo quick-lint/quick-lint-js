@@ -1701,6 +1701,14 @@ TEST_F(test_lex, lex_whitespace) {
       this->check_tokens(input.c_str(),
                          {token_type::number, token_type::string});
     }
+
+    {
+      string8 input =
+          string8(u8"async") + whitespace + u8"function" + whitespace;
+      SCOPED_TRACE(out_string8(input));
+      this->check_tokens(input.c_str(),
+                         {token_type::kw_async, token_type::kw_function});
+    }
   }
 }
 
