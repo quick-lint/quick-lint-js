@@ -877,14 +877,20 @@ next:
       true_expression =
           this->make_expression<expression::_invalid>(source_code_span(
               this->lexer_.end_of_previous_token(), this->peek().begin));
-      this->skip();
     } else {
       true_expression = this->parse_expression();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
-      this->skip();
     }
 
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+    source_code_span colon_span = this->peek().span();
+    this->skip();
+
     expression* false_expression = this->parse_expression(prec);
+    if (false_expression->kind() == expression_kind::_invalid) {
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = colon_span,
+      });
+    }
 
     return this->make_expression<expression::conditional>(
         condition, true_expression, false_expression);
