@@ -864,13 +864,25 @@ next:
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
+    source_code_span question_span = this->peek().span();
     this->skip();
 
     expression* condition = build_expression();
-    expression* true_expression = this->parse_expression();
 
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
-    this->skip();
+    expression* true_expression;
+    if (this->peek().type == token_type::colon) {
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = question_span,
+      });
+      true_expression =
+          this->make_expression<expression::_invalid>(source_code_span(
+              this->lexer_.end_of_previous_token(), this->peek().begin));
+      this->skip();
+    } else {
+      true_expression = this->parse_expression();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+      this->skip();
+    }
 
     expression* false_expression = this->parse_expression(prec);
 

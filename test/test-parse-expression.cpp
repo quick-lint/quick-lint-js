@@ -539,6 +539,21 @@ TEST_F(test_parse_expression, conditional_expression_with_missing_condition) {
   }
 }
 
+TEST_F(test_parse_expression,
+       conditional_expression_with_missing_true_component) {
+  {
+    test_parser p(u8"a ? : c"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var a, ?, var c)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_operand_for_operator, where,
+                    offsets_matcher(p.code(), strlen(u8"a "), u8"?"))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"a ? : c"));
+  }
+}
+
 TEST_F(test_parse_expression, parse_function_call) {
   {
     test_parser p(u8"f()"_sv);
