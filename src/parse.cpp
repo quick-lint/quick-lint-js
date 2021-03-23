@@ -434,7 +434,8 @@ expression* parser::parse_expression(precedence prec) {
   case token_type::comma:
   case token_type::dot:
   case token_type::equal:
-  case token_type::kw_in: {
+  case token_type::kw_in:
+  case token_type::question: {
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (!prec.binary_operators) {
