@@ -255,7 +255,6 @@ retry:
   case ',':
   case ':':
   case ';':
-  case '?':
   case '[':
   case ']':
   case '{':
@@ -263,6 +262,22 @@ retry:
   case '~':
     this->last_token_.type = static_cast<token_type>(*this->input_);
     this->input_ += 1;
+    this->last_token_.end = this->input_;
+    break;
+
+  case '?':
+    if (this->input_[1] == '?') {
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::question_question_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::question_question;
+        this->input_ += 2;
+      }
+    } else {
+      this->last_token_.type = token_type::question;
+      this->input_ += 1;
+    }
     this->last_token_.end = this->input_;
     break;
 
@@ -464,8 +479,13 @@ retry:
       this->last_token_.type = token_type::ampersand_equal;
       this->input_ += 2;
     } else if (this->input_[1] == '&') {
-      this->last_token_.type = token_type::ampersand_ampersand;
-      this->input_ += 2;
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::ampersand_ampersand_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::ampersand_ampersand;
+        this->input_ += 2;
+      }
     } else {
       this->last_token_.type = token_type::ampersand;
       this->input_ += 1;
@@ -478,8 +498,13 @@ retry:
       this->last_token_.type = token_type::pipe_equal;
       this->input_ += 2;
     } else if (this->input_[1] == '|') {
-      this->last_token_.type = token_type::pipe_pipe;
-      this->input_ += 2;
+      if (this->input_[2] == '=') {
+        this->last_token_.type = token_type::pipe_pipe_equal;
+        this->input_ += 3;
+      } else {
+        this->last_token_.type = token_type::pipe_pipe;
+        this->input_ += 2;
+      }
     } else {
       this->last_token_.type = token_type::pipe;
       this->input_ += 1;
@@ -1720,6 +1745,7 @@ const char* to_string(token_type type) {
   switch (type) {
     QLJS_CASE(ampersand)
     QLJS_CASE(ampersand_ampersand)
+    QLJS_CASE(ampersand_ampersand_equal)
     QLJS_CASE(ampersand_equal)
     QLJS_CASE(bang)
     QLJS_CASE(bang_equal)
@@ -1806,10 +1832,13 @@ const char* to_string(token_type type) {
     QLJS_CASE(pipe)
     QLJS_CASE(pipe_equal)
     QLJS_CASE(pipe_pipe)
+    QLJS_CASE(pipe_pipe_equal)
     QLJS_CASE(plus)
     QLJS_CASE(plus_equal)
     QLJS_CASE(plus_plus)
     QLJS_CASE(question)
+    QLJS_CASE(question_question)
+    QLJS_CASE(question_question_equal)
     QLJS_CASE(regexp)
     QLJS_CASE(reserved_keyword_with_escape_sequence)
     QLJS_CASE(right_curly)

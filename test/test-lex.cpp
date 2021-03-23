@@ -1627,9 +1627,13 @@ TEST_F(test_lex, lex_multi_character_symbols) {
   this->check_tokens(u8"/="_sv, {token_type::slash_equal});
   this->check_tokens(u8"%="_sv, {token_type::percent_equal});
   this->check_tokens(u8"**="_sv, {token_type::star_star_equal});
+  this->check_tokens(u8"&&="_sv, {token_type::ampersand_ampersand_equal});
   this->check_tokens(u8"&="_sv, {token_type::ampersand_equal});
+  this->check_tokens(u8"??"_sv, {token_type::question_question});
+  this->check_tokens(u8"?\x3f="_sv, {token_type::question_question_equal});
   this->check_tokens(u8"^="_sv, {token_type::circumflex_equal});
   this->check_tokens(u8"|="_sv, {token_type::pipe_equal});
+  this->check_tokens(u8"||="_sv, {token_type::pipe_pipe_equal});
   this->check_tokens(u8"<<="_sv, {token_type::less_less_equal});
   this->check_tokens(u8">>="_sv, {token_type::greater_greater_equal});
   this->check_tokens(u8">>>="_sv, {token_type::greater_greater_greater_equal});
@@ -1644,7 +1648,6 @@ TEST_F(test_lex, lex_adjacent_symbols) {
                      {token_type::left_square, token_type::right_square});
   this->check_tokens(u8"/!"_sv, {token_type::slash, token_type::bang});
   this->check_tokens(u8"*=="_sv, {token_type::star_equal, token_type::equal});
-  this->check_tokens(u8"||="_sv, {token_type::pipe_pipe, token_type::equal});
   this->check_tokens(u8"^>>"_sv,
                      {token_type::circumflex, token_type::greater_greater});
 }

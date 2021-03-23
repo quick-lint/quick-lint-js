@@ -182,6 +182,7 @@ enum class token_type {
 
   // Symbols:
   ampersand_ampersand,            // &&
+  ampersand_ampersand_equal,      // &&=
   ampersand_equal,                // &=
   bang_equal,                     // !=
   bang_equal_equal,               // !==
@@ -203,8 +204,11 @@ enum class token_type {
   percent_equal,                  // %=
   pipe_equal,                     // |=
   pipe_pipe,                      // ||
+  pipe_pipe_equal,                // ||=
   plus_equal,                     // +=
   plus_plus,                      // ++
+  question_question,              // ??
+  question_question_equal,        // ??=
   slash_equal,                    // /=
   star_equal,                     // *=
   star_star,                      // **
