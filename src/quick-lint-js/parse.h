@@ -860,7 +860,7 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor;
-      std::vector<identifier> exported_keywords;
+      std::vector<token> exported_keywords;
       this->parse_and_visit_named_exports_for_export(
           exports_visitor, /*out_exported_keywords=*/exported_keywords);
       if (this->peek().type == token_type::kw_from) {
@@ -871,11 +871,17 @@ class parser {
         // Ignore exported_keywords.
       } else {
         // export {a as default, b};
-        for (identifier &exported_keyword : exported_keywords) {
-          this->error_reporter_->report(
-              error_cannot_export_variable_named_keyword{
-                  .export_name = exported_keyword,
-              });
+        for (token &exported_keyword : exported_keywords) {
+          if (exported_keyword.type ==
+              token_type::reserved_keyword_with_escape_sequence) {
+            exported_keyword.report_errors_for_escape_sequences_in_keyword(
+                this->error_reporter_);
+          } else {
+            this->error_reporter_->report(
+                error_cannot_export_variable_named_keyword{
+                    .export_name = exported_keyword.identifier_name(),
+                });
+          }
         }
         exports_visitor.move_into(v);
       }
@@ -2374,7 +2380,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_export(
-      Visitor &v, std::vector<identifier> &out_exported_keywords) {
+      Visitor &v, std::vector<token> &out_exported_keywords) {
     this->parse_and_visit_named_exports(
         v, /*out_exported_keywords=*/&out_exported_keywords);
   }
@@ -2386,20 +2392,20 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports(
-      Visitor &v, std::vector<identifier> *out_exported_keywords) {
+      Visitor &v, std::vector<token> *out_exported_keywords) {
     bool is_export = out_exported_keywords != nullptr;
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
       switch (this->peek().type) {
       QLJS_CASE_RESERVED_KEYWORD:
+      case token_type::reserved_keyword_with_escape_sequence:
         if (out_exported_keywords) {
-          out_exported_keywords->emplace_back(this->peek().identifier_name());
+          out_exported_keywords->emplace_back(this->peek());
         }
         [[fallthrough]];
       QLJS_CASE_CONTEXTUAL_KEYWORD:
-      case token_type::identifier:
-      case token_type::reserved_keyword_with_escape_sequence: {
+      case token_type::identifier: {
         identifier left_name = this->peek().identifier_name();
         identifier right_name = left_name;
         token right_token = this->peek();
