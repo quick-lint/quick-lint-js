@@ -379,7 +379,7 @@ let tests = {
       );
 
       try {
-        let document = new MockDocument("hello.js", "let x;");
+        let document = new MockDocument("hello.js", "const x;");
         let linter = linters.getLinter(document);
         let shouldOpenEditorBeforeChanges = rng.nextCoinFlip();
         if (shouldOpenEditorBeforeChanges) {
@@ -388,7 +388,7 @@ let tests = {
 
         qljs.maybeInjectFault = maybeInjectFaultWithExhaustiveRNG;
         let promises = [];
-        for (let charactersToType of ["let ", "x;"]) {
+        for (let charactersToType of ["const ", "x;"]) {
           let changes = [
             {
               range: new vscode.Range(
@@ -412,16 +412,16 @@ let tests = {
           diagnosticCollection.get(document.uri)
         );
         if (firstChangeFailed && lastChangeFailed) {
-          // No changes were applied. The linted document was "let x;".
+          // No changes were applied. The linted document was "const x;".
           assert.deepStrictEqual(
             diags.map((diag) => diag.message),
             []
           );
         } else if (!firstChangeFailed && lastChangeFailed) {
           // Partial changes were applied. The linted document was either
-          // "let x;let " (if the first change finished before the second change
-          // started) or "let x; let x;" (if the second change failed before the
-          // first change started).
+          // "const x;const " (if the first change finished before the second
+          // change started) or "const x; const x;" (if the second change failed
+          // before the first change started).
           let messages = diags.map((diag) => diag.message);
           assert.strictEqual(messages.length, 1, messages);
           assert.ok(
@@ -431,7 +431,7 @@ let tests = {
           );
         } else {
           // Because the last call to textChangedAsync succeeded, all changes
-          // were applied. The linted document was "let x;let x;".
+          // were applied. The linted document was "const x;const x;".
           assert.deepStrictEqual(
             diags.map((diag) => diag.message),
             ["redeclaration of variable: x"]

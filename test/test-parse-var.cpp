@@ -220,17 +220,6 @@ TEST(test_parse,
 TEST(test_parse, parse_invalid_let) {
   {
     spy_visitor v;
-    padded_string code(u8"let"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_let_with_no_bindings, where,
-                              offsets_matcher(&code, 0, u8"let"))));
-  }
-
-  {
-    spy_visitor v;
     padded_string code(u8"let a,"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
@@ -513,6 +502,32 @@ TEST(test_parse, parse_invalid_let) {
   }
 }
 
+TEST(test_parse, parse_invalid_var) {
+  {
+    spy_visitor v;
+    padded_string code(u8"var"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_declarations, IsEmpty());
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_let_with_no_bindings, where,
+                              offsets_matcher(&code, 0, u8"var"))));
+  }
+}
+
+TEST(test_parse, parse_invalid_const) {
+  {
+    spy_visitor v;
+    padded_string code(u8"const"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_declarations, IsEmpty());
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_let_with_no_bindings, where,
+                              offsets_matcher(&code, 0, u8"const"))));
+  }
+}
+
 TEST(test_parse, report_missing_semicolon_for_declarations) {
   {
     spy_visitor v;
@@ -660,6 +675,12 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"xs"},  //
                             spy_visitor::visited_variable_use{u8"let"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
   }
 }
 

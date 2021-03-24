@@ -2732,6 +2732,7 @@ class parser {
     case token_type::comma:
     case token_type::complete_template:
     case token_type::dot:
+    case token_type::end_of_file:
     case token_type::equal:
     case token_type::equal_greater:
     case token_type::incomplete_template:
