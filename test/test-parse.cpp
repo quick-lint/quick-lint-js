@@ -219,6 +219,18 @@ TEST(test_parse, asi_between_expression_statement_and_switch_label) {
   }
 }
 
+TEST(test_parse, asi_between_expression_statement_and_declaration) {
+  {
+    spy_visitor v = parse_and_visit_module(u8"f()\nclass C {}"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",          // f
+                            "visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     //
+                            "visit_exit_class_scope",      //
+                            "visit_end_of_module"));
+  }
+}
+
 TEST(test_parse, asi_for_statement_at_end_of_file) {
   {
     spy_visitor v = parse_and_visit_statement(u8"console.log(2+2)"_sv);
