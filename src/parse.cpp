@@ -974,14 +974,17 @@ next:
   case token_type::kw_if:
   case token_type::kw_import:
   case token_type::kw_let:
+  case token_type::kw_new:
   case token_type::kw_null:
   case token_type::kw_of:
   case token_type::kw_return:
+  case token_type::kw_super:
   case token_type::kw_switch:
   case token_type::kw_this:
   case token_type::kw_throw:
   case token_type::kw_true:
   case token_type::kw_try:
+  case token_type::kw_typeof:
   case token_type::kw_var:
   case token_type::kw_void:
   case token_type::kw_while:

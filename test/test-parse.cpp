@@ -180,6 +180,21 @@ TEST(test_parse, asi_between_expression_statements) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"true\nnew Animal();"_sv);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"true\nsuper();"_sv);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"true\ntypeof x;"_sv);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse, asi_between_expression_statement_and_switch_label) {
