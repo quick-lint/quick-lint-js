@@ -953,6 +953,7 @@ next:
   case token_type::colon:
   case token_type::end_of_file:
   case token_type::identifier:
+  case token_type::kw_as:
   case token_type::kw_async:
   case token_type::kw_await:
   case token_type::kw_break:
@@ -971,6 +972,7 @@ next:
   case token_type::kw_for:
   case token_type::kw_from:
   case token_type::kw_function:
+  case token_type::kw_get:
   case token_type::kw_if:
   case token_type::kw_import:
   case token_type::kw_let:
@@ -978,6 +980,8 @@ next:
   case token_type::kw_null:
   case token_type::kw_of:
   case token_type::kw_return:
+  case token_type::kw_set:
+  case token_type::kw_static:
   case token_type::kw_super:
   case token_type::kw_switch:
   case token_type::kw_this:

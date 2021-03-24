@@ -195,6 +195,13 @@ TEST(test_parse, asi_between_expression_statements) {
     spy_visitor v = parse_and_visit_module(u8"true\ntypeof x;"_sv);
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  for (string8 keyword : contextual_keywords) {
+    padded_string code(u8"true\n" + keyword);
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_module(code.string_view());
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse, asi_between_expression_statement_and_switch_label) {
