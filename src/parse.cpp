@@ -956,9 +956,11 @@ next:
   case token_type::kw_async:
   case token_type::kw_await:
   case token_type::kw_break:
+  case token_type::kw_case:
   case token_type::kw_const:
   case token_type::kw_continue:
   case token_type::kw_debugger:
+  case token_type::kw_default:
   case token_type::kw_delete:
   case token_type::kw_do:
   case token_type::kw_else:

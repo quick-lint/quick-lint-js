@@ -182,6 +182,43 @@ TEST(test_parse, asi_between_expression_statements) {
   }
 }
 
+TEST(test_parse, asi_between_expression_statement_and_switch_label) {
+  {
+    spy_visitor v = parse_and_visit_module(
+        u8R"(
+      switch (x) {
+        case a:
+          f()
+        case b:
+          g()
+      }
+    )"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
+                            spy_visitor::visited_variable_use{u8"a"},
+                            spy_visitor::visited_variable_use{u8"f"},
+                            spy_visitor::visited_variable_use{u8"b"},
+                            spy_visitor::visited_variable_use{u8"g"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(
+        u8R"(
+      switch (x) {
+        case a:
+          f()
+        default:
+          g()
+      }
+    )"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
+                            spy_visitor::visited_variable_use{u8"a"},
+                            spy_visitor::visited_variable_use{u8"f"},
+                            spy_visitor::visited_variable_use{u8"g"}));
+  }
+}
+
 TEST(test_parse, asi_for_statement_at_end_of_file) {
   {
     spy_visitor v = parse_and_visit_statement(u8"console.log(2+2)"_sv);
