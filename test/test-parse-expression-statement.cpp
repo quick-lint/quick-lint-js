@@ -673,6 +673,17 @@ TEST(test_parse, asi_plusplus_minusminus) {
   }
 }
 
+TEST(test_parse, asi_after_let) {
+  {
+    spy_visitor v = parse_and_visit_module(u8"let\nwhile (x) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // let
+                                      "visit_variable_use",       // x
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+  }
+}
+
 TEST(test_parse, parse_function_calls) {
   {
     spy_visitor v = parse_and_visit_expression(u8"f(x)"_sv);

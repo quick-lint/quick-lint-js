@@ -303,21 +303,6 @@ TEST(test_parse, parse_invalid_let) {
   }
 
   {
-    padded_string code(u8"let\nwhile (x) { break; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
-                                      "visit_enter_block_scope",  //
-                                      "visit_exit_block_scope",   //
-                                      "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_let_with_no_bindings, where,
-                              offsets_matcher(&code, 0, u8"let"))));
-  }
-
-  {
     spy_visitor v;
     padded_string code(u8"let 42*69"_sv);
     parser p(&code, &v);
@@ -687,6 +672,20 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
     spy_visitor v = parse_and_visit_statement(u8"let;");
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let in other;");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"},
+                            spy_visitor::visited_variable_use{u8"other"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let instanceof MyClass;");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"},
+                            spy_visitor::visited_variable_use{u8"MyClass"}));
   }
 }
 

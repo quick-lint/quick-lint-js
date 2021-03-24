@@ -186,7 +186,7 @@ class parser {
         this->lexer_.commit_transaction(std::move(transaction));
         this->skip();
         goto parse_statement;
-      } else if (this->is_let_token_a_variable_reference(this->peek().type)) {
+      } else if (this->is_let_token_a_variable_reference(this->peek())) {
         // Expression.
         this->lexer_.roll_back_transaction(std::move(transaction));
         expression *ast =
@@ -1906,7 +1906,7 @@ class parser {
       this->skip();
       buffering_visitor lhs;
       if (declaring_token.type == token_type::kw_let &&
-          this->is_let_token_a_variable_reference(this->peek().type)) {
+          this->is_let_token_a_variable_reference(this->peek())) {
         // for (let = expression; cond; up) {}
         // for (let(); cond; up) {}
         // for (let; cond; up) {}
@@ -2724,9 +2724,9 @@ class parser {
     }
   }
 
-  bool is_let_token_a_variable_reference(token_type following_token) noexcept {
-    switch (following_token) {
-    QLJS_CASE_BINARY_ONLY_OPERATOR:
+  bool is_let_token_a_variable_reference(token following_token) noexcept {
+    switch (following_token.type) {
+    QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
     QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
     QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
     case token_type::comma:
@@ -2736,7 +2736,6 @@ class parser {
     case token_type::equal:
     case token_type::equal_greater:
     case token_type::incomplete_template:
-    case token_type::kw_in:
     case token_type::left_paren:
     case token_type::minus:
     case token_type::minus_minus:
@@ -2746,6 +2745,14 @@ class parser {
     case token_type::semicolon:
     case token_type::slash:
       return true;
+
+    QLJS_CASE_RESERVED_KEYWORD:
+      if (following_token.type == token_type::kw_in ||
+          following_token.type == token_type::kw_instanceof) {
+        return true;
+      } else {
+        return following_token.has_leading_newline;
+      }
 
     default:
       return false;
