@@ -24,9 +24,6 @@ import "sync/atomic"
 
 var TodoTestFiles []string = []string{
 	// TODO(strager): Implement non-standard and new features.
-	"language/module-code/early-export-ill-formed-string.js",
-	"language/module-code/export-expname-*string*.js",
-	"language/module-code/export-expname-*unpaired-surrogate*.js",
 	"language/module-code/export-expname_FIXTURE.js",
 
 	// TODO(#153): Parse V8 %BuiltInFunctions
@@ -38,6 +35,7 @@ var TodoTestFiles []string = []string{
 
 var TodoTestFeatures [][]byte = [][]byte{
 	// TODO(strager): Implement non-standard and new features.
+	[]byte("arbitrary-module-namespace-names"),
 	[]byte("async-iteration"),
 	[]byte("class-fields-private"),
 	[]byte("class-fields-public"),
