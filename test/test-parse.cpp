@@ -196,6 +196,28 @@ TEST(test_parse, asi_between_expression_statements) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
+  {
+    padded_string code(u8"true\nawait myPromise;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::async);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    padded_string code(u8"true\nyield myValue;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+
   for (string8 keyword : contextual_keywords) {
     padded_string code(u8"true\n" + keyword);
     SCOPED_TRACE(code);
