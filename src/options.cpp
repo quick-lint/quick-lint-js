@@ -177,6 +177,9 @@ options parse_options(int argc, char** argv) {
       } else {
         next_vim_file_bufnr = bufnr;
       }
+    } else if (const char* arg_value =
+                   parser.match_option_with_value("--exit-fail-on"sv)) {
+      o.exit_fail_on.add(parse_error_list(arg_value));
     } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
                parser.match_flag_shorthand('h')) {
       o.help = true;
@@ -197,10 +200,20 @@ done_parsing_options:
 }
 
 bool options::dump_errors(std::ostream& out) const {
-  for (const auto &option : this->error_unrecognized_options) {
+  bool have_errors = false;
+  for (const auto& option : this->error_unrecognized_options) {
     out << "error: unrecognized option: " << option << '\n';
+    have_errors = true;
   }
-  return !this->error_unrecognized_options.empty();
+  for (const std::string& error :
+       this->exit_fail_on.parse_errors("--exit-fail-on")) {
+    out << "error: " << error << '\n';
+    have_errors = true;
+  }
+  for (const std::string& warning : this->exit_fail_on.parse_warnings()) {
+    out << "warning: " << warning << '\n';
+  }
+  return have_errors;
 }
 }
 

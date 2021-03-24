@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_ERROR_TAPE_H
 #define QUICK_LINT_JS_ERROR_TAPE_H
 
+#include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/token.h>
@@ -13,17 +14,20 @@ namespace quick_lint_js {
 template <typename T>
 class error_tape final : public error_reporter {
  public:
-  error_tape(T reporter) : reporter_(reporter), error_(false) {}
+  explicit error_tape(T reporter, const compiled_error_list *predicate)
+      : reporter_(reporter), predicate_(predicate) {}
 
   T *get_reporter() { return &(this->reporter_); }
 
-  bool get_error(void) { return this->error_; }
-
-  void set_error(void) { this->error_ = true; }
+  bool found_matching_error() const noexcept {
+    return this->found_matching_error_;
+  }
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
   void report(name e) override final {                   \
-    set_error();                                         \
+    if (this->predicate_->template is_present<name>()) { \
+      this->found_matching_error_ = true;                \
+    }                                                    \
     reporter_.report(e);                                 \
   }
   QLJS_X_ERROR_TYPES
@@ -32,7 +36,8 @@ class error_tape final : public error_reporter {
  private:
   T reporter_;
 
-  bool error_;
+  const compiled_error_list *predicate_;
+  bool found_matching_error_ = false;
 };
 }
 

@@ -51,6 +51,25 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("[E017]", result.stderr)
 
+    def test_file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--exit-fail-on=E057",
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("[E017]", result.stderr)  # Error should be printed
+
 
 if __name__ == "__main__":
     unittest.main()

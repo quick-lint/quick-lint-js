@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
+#include <quick-lint-js/error-list.h>
+#include <quick-lint-js/error.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
 #include <sstream>
@@ -202,6 +204,18 @@ TEST(test_options, print_version) {
   }
 }
 
+TEST(test_options, exit_fail_on) {
+  {
+    options o = parse_options({"--exit-fail-on=E003", "file.js"});
+    EXPECT_TRUE(o.exit_fail_on.is_present<error_assignment_to_const_variable>())
+        << "E003 should cause failure";
+    EXPECT_FALSE(
+        o.exit_fail_on
+            .is_present<error_big_int_literal_contains_decimal_point>())
+        << "E005 should not cause failure";
+  }
+}
+
 TEST(test_options, invalid_vim_file_bufnr) {
   {
     options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
@@ -269,7 +283,36 @@ TEST(test_options, dump_errors) {
     std::ostringstream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_TRUE(have_errors);
-    EXPECT_EQ(dumped_errors.str(), "error: unrecognized option: --bad-option\n");
+    EXPECT_EQ(dumped_errors.str(),
+              "error: unrecognized option: --bad-option\n");
+  }
+
+  {
+    options o;
+
+    parsed_error_list parsed_errors;
+    parsed_errors.included_categories.emplace_back("banana");
+    parsed_errors.excluded_codes.emplace_back("E999");
+    o.exit_fail_on.add(parsed_errors);
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    EXPECT_EQ(dumped_errors.str(),
+              "warning: unknown error category: banana\n"
+              "warning: unknown error code: E999\n");
+  }
+
+  {
+    options o;
+    o.exit_fail_on.add(parsed_error_list());
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_TRUE(have_errors);
+    EXPECT_EQ(
+        dumped_errors.str(),
+        "error: --exit-fail-on must be given at least one category or code\n");
   }
 }
 }

@@ -6,6 +6,7 @@
 
 #include <iosfwd>
 #include <optional>
+#include <quick-lint-js/error-list.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -27,10 +28,11 @@ struct options {
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::gnu_like;
   std::vector<file_to_lint> files_to_lint;
+  compiled_error_list exit_fail_on;
 
   std::vector<const char *> error_unrecognized_options;
 
-  bool dump_errors(std::ostream&) const;
+  bool dump_errors(std::ostream &) const;
 };
 
 options parse_options(int argc, char **argv);

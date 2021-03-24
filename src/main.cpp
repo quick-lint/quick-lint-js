@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iostream>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
@@ -35,14 +36,15 @@ namespace quick_lint_js {
 namespace {
 class any_error_reporter {
  public:
-  static any_error_reporter make(output_format format) {
+  static any_error_reporter make(output_format format,
+                                 compiled_error_list *exit_fail_on) {
     switch (format) {
     case output_format::gnu_like:
-      return any_error_reporter(
-          error_tape<text_error_reporter>(text_error_reporter(std::cerr)));
+      return any_error_reporter(error_tape<text_error_reporter>(
+          text_error_reporter(std::cerr), exit_fail_on));
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
-          vim_qflist_json_error_reporter(std::cout)));
+          vim_qflist_json_error_reporter(std::cout), exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
@@ -67,7 +69,8 @@ class any_error_reporter {
   }
 
   bool get_error() noexcept {
-    return std::visit([](auto &r) { return r.get_error(); }, this->tape_);
+    return std::visit([](auto &r) { return r.found_matching_error(); },
+                      this->tape_);
   }
 
   void finish() {
@@ -134,8 +137,7 @@ void handle_options(quick_lint_js::options o) {
     quick_lint_js::print_version_information();
     std::exit(EXIT_SUCCESS);
   }
-  if (!o.error_unrecognized_options.empty()) {
-    o.dump_errors(std::cerr);
+  if (o.dump_errors(std::cerr)) {
     std::exit(EXIT_FAILURE);
   }
   if (o.lsp_server) {
@@ -152,7 +154,7 @@ void handle_options(quick_lint_js::options o) {
   }
 
   quick_lint_js::any_error_reporter reporter =
-      quick_lint_js::any_error_reporter::make(o.output_format);
+      quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
     quick_lint_js::read_file_result source =
         quick_lint_js::read_file(file.path);
@@ -375,6 +377,9 @@ void print_help_message() {
 
   std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
             << "OPTIONS\n";
+  print_option("--exit-fail-on=[CODES]",
+               "Fail with a non-zero exit code if any of these");
+  print_option("", "errors are found (default: \"all\")");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
   print_option("", "gnu-like (default if omitted), vim-qflist-json");
