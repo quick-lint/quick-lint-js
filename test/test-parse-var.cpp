@@ -682,6 +682,12 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let;");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
+  }
 }
 
 TEST(test_parse, new_style_variables_cannot_be_named_let) {
