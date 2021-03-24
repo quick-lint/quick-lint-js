@@ -1250,6 +1250,15 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     }
 
     {
+      string8 code = name;
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{name}));
+    }
+
+    {
       string8 code = name + u8";";
       SCOPED_TRACE(out_string8(code));
       spy_visitor v = parse_and_visit_statement(code.c_str());
