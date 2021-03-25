@@ -162,6 +162,18 @@ if (ICU_FOUND)
   )
 endif ()
 
+find_package(PythonInterp 3.7)
+if (PYTHONINTERP_FOUND)
+  add_test(
+    NAME quick-lint-js-test-cli
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test-cli.py
+  )
+  set_property(
+    TEST quick-lint-js-test-cli
+    APPEND PROPERTY ENVIRONMENT QUICK_LINT_JS_EXE=$<TARGET_FILE:quick-lint-js>
+  )
+endif ()
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
