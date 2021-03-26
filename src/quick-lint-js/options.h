@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_OPTIONS_H
 #define QUICK_LINT_JS_OPTIONS_H
 
+#include <iosfwd>
 #include <optional>
 #include <vector>
 
@@ -28,6 +29,8 @@ struct options {
   std::vector<file_to_lint> files_to_lint;
 
   std::vector<const char *> error_unrecognized_options;
+
+  bool dump_errors(std::ostream&) const;
 };
 
 options parse_options(int argc, char **argv);

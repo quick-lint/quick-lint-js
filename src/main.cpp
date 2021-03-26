@@ -135,9 +135,7 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_SUCCESS);
   }
   if (!o.error_unrecognized_options.empty()) {
-    for (const auto &option : o.error_unrecognized_options) {
-      std::cerr << "error: unrecognized option: " << option << '\n';
-    }
+    o.dump_errors(std::cerr);
     std::exit(EXIT_FAILURE);
   }
   if (o.lsp_server) {

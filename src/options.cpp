@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -193,6 +194,13 @@ options parse_options(int argc, char** argv) {
 done_parsing_options:
 
   return o;
+}
+
+bool options::dump_errors(std::ostream& out) const {
+  for (const auto &option : this->error_unrecognized_options) {
+    out << "error: unrecognized option: " << option << '\n';
+  }
+  return !this->error_unrecognized_options.empty();
 }
 }
 

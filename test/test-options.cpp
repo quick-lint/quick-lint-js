@@ -7,6 +7,7 @@
 #include <iostream>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
+#include <sstream>
 #include <string_view>
 #include <vector>
 
@@ -247,6 +248,28 @@ TEST(test_options, invalid_option) {
     ASSERT_EQ(o.error_unrecognized_options.size(), 1);
     EXPECT_EQ(o.error_unrecognized_options[0], "-version"sv);
     EXPECT_THAT(o.files_to_lint, IsEmpty());
+  }
+}
+
+TEST(test_options, dump_errors) {
+  {
+    options o;
+    o.error_unrecognized_options.clear();
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    EXPECT_EQ(dumped_errors.str(), "");
+  }
+
+  {
+    options o;
+    o.error_unrecognized_options.push_back("--bad-option");
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_TRUE(have_errors);
+    EXPECT_EQ(dumped_errors.str(), "error: unrecognized option: --bad-option\n");
   }
 }
 }
