@@ -819,16 +819,16 @@ TEST(test_parse, parse_templates_in_expressions) {
   }
 }
 
-TEST(test_parse, DISABLED_parse_invalid_function_calls) {
+TEST(test_parse, parse_invalid_function_calls) {
   {
     spy_visitor v;
     padded_string code(u8"(x)f"_sv);
     parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    p.parse_and_visit_module(v);
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_identifier, where,
-                              offsets_matcher(&code, strlen(u8"(x)"), u8"f"))));
+                              error_missing_semicolon_after_statement, where,
+                              offsets_matcher(&code, strlen(u8"(x)"), u8""))));
 
     ASSERT_EQ(v.variable_uses.size(), 2);
     EXPECT_EQ(v.variable_uses[0].name, u8"x");
