@@ -17,8 +17,6 @@ TEST(test_assert, failing_assert_crashes) {
   };
   EXPECT_DEATH(check(), "everything_is_okay");
 }
-#else
-TEST(test_assert, DISABLED_failing_assert_crashes) { ADD_FAILURE(); }
 #endif
 
 TEST(test_assert, passing_assert_does_not_crash) { QLJS_ALWAYS_ASSERT(true); }

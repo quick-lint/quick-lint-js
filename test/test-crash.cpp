@@ -87,8 +87,6 @@ TEST(test_crash, crash_allowing_core_dump) {
   };
   EXPECT_EXIT(check(), crashed, "");
 }
-#else
-TEST(test_crash, DISABLED_crash_allowing_core_dump) { ADD_FAILURE(); }
 #endif
 
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
@@ -119,8 +117,6 @@ TEST(test_crash, crash_disallowing_core_dump) {
   };
   EXPECT_EXIT(check(), crashed_without_core_dump, "");
 }
-#else
-TEST(test_crash, DISABLED_crash_disallowing_core_dump) { ADD_FAILURE(); }
 #endif
 }
 }
