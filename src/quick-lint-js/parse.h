@@ -2846,6 +2846,10 @@ class parser {
     bool math_or_logical_or_assignment = true;
     bool commas = true;
     bool in_operator = true;
+
+    // If true, parse unexpected trailing identifiers as part of the expression
+    // (and emit an error).
+    bool trailing_identifiers = false;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>

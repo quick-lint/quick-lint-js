@@ -306,7 +306,8 @@ expression* parser::parse_expression(precedence prec) {
       }
     }
 
-    expression* child = this->parse_expression();
+    expression* child =
+        this->parse_expression(precedence{.trailing_identifiers = true});
     switch (this->peek().type) {
     case token_type::right_paren:
       this->skip();
@@ -684,8 +685,8 @@ next:
         this->skip();
         continue;
       }
-      call_children.emplace_back(
-          this->parse_expression(precedence{.commas = false}));
+      call_children.emplace_back(this->parse_expression(
+          precedence{.commas = false, .trailing_identifiers = true}));
       if (this->peek().type != token_type::comma) {
         break;
       }
@@ -816,7 +817,8 @@ next:
   case token_type::left_square: {
     source_code_span left_square_span = this->peek().span();
     this->skip();
-    expression* subscript = this->parse_expression();
+    expression* subscript =
+        this->parse_expression(precedence{.trailing_identifiers = true});
     switch (this->peek().type) {
     case token_type::right_square:
       if (subscript->kind() == expression_kind::_invalid) {
@@ -949,10 +951,27 @@ next:
     goto next;
   }
 
+  // x y    // Invalid.
+  //
+  // x    // ASI.
+  // y
+  case token_type::identifier:
+    if (prec.trailing_identifiers) {
+      this->error_reporter_->report(error_unexpected_identifier_in_expression{
+          .unexpected = this->peek().identifier_name(),
+      });
+
+      // Behave as if a comma appeared before the identifier.
+      expression* rhs = children.emplace_back(this->parse_expression(
+          precedence{.binary_operators = false, .commas = false}));
+      QLJS_ASSERT(rhs->kind() != expression_kind::_invalid);
+      goto next;
+    }
+    break;
+
   case token_type::bang:
   case token_type::colon:
   case token_type::end_of_file:
-  case token_type::identifier:
   case token_type::kw_as:
   case token_type::kw_async:
   case token_type::kw_await:

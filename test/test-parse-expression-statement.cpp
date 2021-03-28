@@ -251,16 +251,77 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
   }
 }
 
-TEST(test_parse, DISABLED_parse_invalid_math_expression_2) {
+TEST(test_parse, invalid_identifier_after_expression) {
   {
     spy_visitor v;
-    padded_string code(u8"ten ten"_sv);
+    padded_string code(u8"one two"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_semicolon_after_statement, where,
+                              offsets_matcher(&code, strlen(u8"one"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"(one two)"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_identifier, where,
-                    offsets_matcher(&code, strlen(u8"ten "), u8"ten"))));
+                    error_unexpected_identifier_in_expression, unexpected,
+                    offsets_matcher(&code, strlen(u8"(one "), u8"two"))));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"one"},
+                            spy_visitor::visited_variable_use{u8"two"}));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"f(one two)"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_identifier_in_expression, unexpected,
+                    offsets_matcher(&code, strlen(u8"f(one "), u8"two"))));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"f"},
+                            spy_visitor::visited_variable_use{u8"one"},
+                            spy_visitor::visited_variable_use{u8"two"}));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"xs[one two]"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_identifier_in_expression, unexpected,
+                    offsets_matcher(&code, strlen(u8"xs[one "), u8"two"))));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"xs"},
+                            spy_visitor::visited_variable_use{u8"one"},
+                            spy_visitor::visited_variable_use{u8"two"}));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"(a b c d)"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_FIELD(
+                        error_unexpected_identifier_in_expression, unexpected,
+                        offsets_matcher(&code, strlen(u8"(a "), u8"b")),
+                    ERROR_TYPE_FIELD(
+                        error_unexpected_identifier_in_expression, unexpected,
+                        offsets_matcher(&code, strlen(u8"(a b "), u8"c")),
+                    ERROR_TYPE_FIELD(
+                        error_unexpected_identifier_in_expression, unexpected,
+                        offsets_matcher(&code, strlen(u8"(a b c "), u8"d"))));
   }
 }
 
@@ -680,6 +741,15 @@ TEST(test_parse, asi_after_let) {
                                       "visit_variable_use",       // x
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+  }
+}
+
+TEST(test_parse, asi_between_identifiers) {
+  {
+    spy_visitor v = parse_and_visit_module(u8"a\nb"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // a
+                                      "visit_variable_use",  // b
                                       "visit_end_of_module"));
   }
 }

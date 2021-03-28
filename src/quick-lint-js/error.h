@@ -915,6 +915,14 @@
       error_unexpected_identifier, "E053", { source_code_span where; },        \
       .error(QLJS_TRANSLATABLE("unexpected identifier"), where))               \
                                                                                \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_identifier_in_expression, "E147",                       \
+      { identifier unexpected; },                                              \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "unexpected identifier in expression; missing operator before"), \
+          unexpected))                                                         \
+                                                                               \
   /* NOTE(strager): Try not to use this error. Find or make a more descriptive \
      and helpful error instead. */                                             \
   QLJS_ERROR_TYPE(                                                             \
