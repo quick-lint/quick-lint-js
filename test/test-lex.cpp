@@ -734,14 +734,14 @@ TEST_F(test_lex, lex_strings) {
                                  offsets_matcher(input, 10, 12))));
       });
 
-  // TODO(strager): Report invalid unicode escape sequences. For example:
+  // TODO(#187): Report invalid unicode escape sequences. For example:
   //
   // "hello\u"
   // "hello\u{110000}"
 
-  // TODO(strager): Report octal escape sequences in strict mode.
+  // TODO(#187): Report octal escape sequences in strict mode.
 
-  // TODO(strager): Report invalid octal escape sequences in non-strict mode.
+  // TODO(#187): Report invalid octal escape sequences in non-strict mode.
 }
 
 TEST_F(test_lex, lex_string_with_ascii_control_characters) {
@@ -865,7 +865,7 @@ world`)",
                                 offsets_matcher(input, 0, 14))));
       });
 
-  // TODO(strager): Report invalid escape sequences, like with plain string
+  // TODO(#187): Report invalid escape sequences, like with plain string
   // literals.
 }
 
@@ -979,7 +979,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"second");
   }
 
-  // TODO(strager): Report invalid escape sequences.
+  // TODO(#187): Report invalid escape sequences.
 
   // TODO(strager): Report invalid characters and mismatched brackets.
 }
