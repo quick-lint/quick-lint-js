@@ -430,13 +430,6 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
                                 error_unexpected_characters_in_octal_number,
                                 characters, offsets_matcher(input, 3, 4))));
       });
-  this->check_tokens_with_errors(
-      u8"0123n"_sv, {token_type::number},
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_octal_literal_may_not_be_big_int,
-                                characters, offsets_matcher(input, 4, 5))));
-      });
 }
 
 TEST_F(test_lex, lex_invalid_big_int_number) {
