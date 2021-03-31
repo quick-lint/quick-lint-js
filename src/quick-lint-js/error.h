@@ -442,6 +442,12 @@
              escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_legacy_octal_literal_may_not_be_big_int, "E032",                   \
+      { source_code_span characters; },                                        \
+      .error(QLJS_TRANSLATABLE("legacy octal literal may not be BigInt"),      \
+             characters))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_let_with_no_bindings, "E024", { source_code_span where; },         \
       .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
                                                                                \
@@ -743,12 +749,6 @@
       error_octal_literal_may_not_have_decimal, "E031",                        \
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATABLE("octal literal may not have decimal"),          \
-             characters))                                                      \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
-      error_octal_literal_may_not_be_big_int, "E032",                          \
-      { source_code_span characters; },                                        \
-      .error(QLJS_TRANSLATABLE("octal literal may not be BigInt"),             \
              characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \

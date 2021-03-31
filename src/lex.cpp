@@ -1017,7 +1017,7 @@ void lexer::parse_octal_number(octal_kind kind) {
   }
   if (*input == 'n') {
     input += 1;
-    this->error_reporter_->report(error_octal_literal_may_not_be_big_int{
+    this->error_reporter_->report(error_legacy_octal_literal_may_not_be_big_int{
         source_code_span(garbage_begin, input)});
     input = this->parse_octal_digits(input);
   }

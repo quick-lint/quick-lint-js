@@ -305,7 +305,7 @@ TEST_F(test_lex, fail_lex_octal_numbers) {
       u8"0123n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_octal_literal_may_not_be_big_int,
+                                error_legacy_octal_literal_may_not_be_big_int,
                                 characters, offsets_matcher(input, 4, 5))));
       });
 
@@ -466,7 +466,7 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
             errors,
             ElementsAre(
                 VariantWith<error_octal_literal_may_not_have_decimal>(_),
-                VariantWith<error_octal_literal_may_not_be_big_int>(_)));
+                VariantWith<error_legacy_octal_literal_may_not_be_big_int>(_)));
       });
 
   // Complain about everything. What a disaster.
@@ -478,7 +478,7 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
             ElementsAre(
                 VariantWith<error_octal_literal_may_not_have_decimal>(_),
                 VariantWith<error_octal_literal_may_not_have_exponent>(_),
-                VariantWith<error_octal_literal_may_not_be_big_int>(_)));
+                VariantWith<error_legacy_octal_literal_may_not_be_big_int>(_)));
       });
 }
 
