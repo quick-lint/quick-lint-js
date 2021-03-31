@@ -27,6 +27,13 @@ var testTodo = TestTodo{
 		// TODO(strager): Implement non-standard and new features.
 		"language/module-code/export-expname_FIXTURE.js",
 
+		// TODO(strager): Implement strict mode.
+		"language/directive-prologue/10.1.1-2gs.js",
+		"language/directive-prologue/10.1.1-5gs.js",
+		"language/directive-prologue/10.1.1-8gs.js",
+		"language/directive-prologue/14.1-4gs.js",
+		"language/directive-prologue/14.1-5gs.js",
+
 		// TODO(#153): Parse V8 %BuiltInFunctions
 		"v8/mjsunit/*.js",
 		"v8/mjsunit/*/*.js",
@@ -70,11 +77,13 @@ func main() {
 		os.Exit(2)
 	}
 
-	var testFiles []string
+	var testFiles []TestFile
 	for _, testDirectory := range flag.Args() {
 		FindTests(testDirectory, &testFiles)
 	}
-	sort.Strings(testFiles)
+	sort.Slice(testFiles, func(i int, j int) bool {
+		return testFiles[i].Path < testFiles[j].Path
+	})
 
 	threadCount := runtime.NumCPU()
 	queue := MakeWorkQueue(*quickLintJSExecutable, testFiles, threadCount, *stopOnFirstFailure)
@@ -113,7 +122,7 @@ func main() {
 // testing faster.
 type WorkQueue struct {
 	quickLintJSExecutable string
-	testFiles             []string
+	testFiles             []TestFile
 	threadCount           int
 	wg                    sync.WaitGroup
 	stopOnFirstFailure    bool
@@ -149,7 +158,7 @@ type WorkQueue struct {
 	failures []*LintResult
 }
 
-func MakeWorkQueue(quickLintJSExecutable string, testFiles []string, threadCount int, stopOnFirstFailure bool) *WorkQueue {
+func MakeWorkQueue(quickLintJSExecutable string, testFiles []TestFile, threadCount int, stopOnFirstFailure bool) *WorkQueue {
 	queue := WorkQueue{
 		failureIndexes:        make([]int, threadCount),
 		failures:              make([]*LintResult, threadCount),
@@ -171,8 +180,9 @@ func RunWorker(queue *WorkQueue, threadIndex int) {
 		if queue.stopOnFirstFailure && queue.HaveEarlierFailure(i) {
 			break
 		}
-		result := RunQuickLintJS(queue.quickLintJSExecutable, queue.testFiles[i])
-		if result.Crashed() {
+		testFile := queue.testFiles[i]
+		result := RunQuickLintJS(queue.quickLintJSExecutable, testFile.Path)
+		if result.Crashed() || (testFile.Expectations.EarlyError && result.ExitedWithCode(0)) {
 			queue.RecordFailure(threadIndex, i, &result)
 			if queue.stopOnFirstFailure {
 				break
@@ -209,7 +219,7 @@ func (queue *WorkQueue) RecordFailure(threadIndex int, index int, result *LintRe
 	}
 }
 
-func FindTests(test262FixtureDirectory string, testFiles *[]string) {
+func FindTests(test262FixtureDirectory string, testFiles *[]TestFile) {
 	err := filepath.Walk(test262FixtureDirectory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -217,7 +227,10 @@ func FindTests(test262FixtureDirectory string, testFiles *[]string) {
 		if !info.IsDir() && strings.HasSuffix(path, ".js") {
 			testExpectations := ReadTestExpectations(testTodo, path)
 			if !(testExpectations.IsTodoPath || testExpectations.NeedsTodoFeatures) {
-				*testFiles = append(*testFiles, path)
+				*testFiles = append(*testFiles, TestFile{
+					Path:         path,
+					Expectations: testExpectations,
+				})
 			}
 		}
 		return nil
@@ -232,7 +245,13 @@ type TestTodo struct {
 	TodoPaths    []string
 }
 
+type TestFile struct {
+	Path         string
+	Expectations TestExpectations
+}
+
 type TestExpectations struct {
+	EarlyError        bool
 	IsTodoPath        bool
 	NeedsTodoFeatures bool
 }
@@ -247,6 +266,7 @@ func ReadTestExpectations(testTodo TestTodo, path string) TestExpectations {
 
 func ParseTestExpectations(testTodo TestTodo, source []byte, path string) TestExpectations {
 	return TestExpectations{
+		EarlyError:        bytes.Contains(source, []byte("phase: parse")),
 		IsTodoPath:        pathMatchesAnyPattern(path, testTodo.TodoPaths),
 		NeedsTodoFeatures: testSourceRequiresFeatures(source, testTodo.TodoFeatures),
 	}
@@ -308,14 +328,29 @@ func (result *LintResult) Crashed() bool {
 	return !(result.exitStatus == nil || result.exitStatus.ExitCode() == 1)
 }
 
+func (result *LintResult) ExitedWithCode(exitCode int) bool {
+	if result.exitStatus == nil {
+		return exitCode == 0
+	} else {
+		return result.exitStatus.ExitCode() == exitCode
+	}
+}
+
 func (result *LintResult) UserRunnableCommand() string {
 	// TODO(strager): Escape components.
 	return strings.Join(result.command, " ")
 }
 
 func (result *LintResult) Dump(out *os.File) {
+	var failureDescription string
+	if result.Crashed() {
+		failureDescription = "command crashed"
+	} else {
+		failureDescription = "test failed"
+	}
 	_, _ = out.WriteString(fmt.Sprintf(
-		"error: command crashed: %s\n",
+		"error: %s: %s\n",
+		failureDescription,
 		result.UserRunnableCommand(),
 	))
 	_, _ = out.Write(result.output.Bytes())

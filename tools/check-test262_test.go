@@ -110,6 +110,12 @@ func TestReverseStringSlice(t *testing.T) {
 }
 
 func TestParseTestExpectations(t *testing.T) {
+	assertEarlyError := func(expectations TestExpectations, expected bool) {
+		if expectations.EarlyError != expected {
+			t.Errorf("expected EarlyError to be %#v, but got %#v", expected, expectations.EarlyError)
+		}
+	}
+
 	assertIsTodoPath := func(expectations TestExpectations, expected bool) {
 		if expectations.IsTodoPath != expected {
 			t.Errorf("expected IsTodoPath to be %#v, but got %#v", expected, expectations.IsTodoPath)
@@ -179,6 +185,7 @@ print("hello world");
 			[]byte("import.meta"),
 		}}
 		expectations := ParseTestExpectations(testTodo, source, "test.js")
+		assertEarlyError(expectations, false)
 		assertNeedsTodoFeatures(expectations, false)
 	})
 
@@ -200,6 +207,70 @@ print("hello world");
 		}}
 		expectations := ParseTestExpectations(testTodo, source, "rotten/banana.js")
 		assertIsTodoPath(expectations, true)
+	})
+
+	t.Run("error-less frontmatter", func(t *testing.T) {
+		source := []byte(`/*---
+es5id: test
+description: >
+    test
+---*/
+print("hello world");
+`)
+		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
+		assertEarlyError(expectations, false)
+	})
+
+	t.Run("early syntax error", func(t *testing.T) {
+		source := []byte(`/*---
+es5id: test
+description: >
+  test
+info: |
+  test
+negative:
+  phase: parse
+  type: SyntaxError
+---*/
+print("hello world"
+`)
+		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
+		assertEarlyError(expectations, true)
+	})
+
+	t.Run("resolution error", func(t *testing.T) {
+		source := []byte(`/*---
+description: >
+    test
+esid: test
+info: |
+    test
+negative:
+  phase: resolution
+  type: SyntaxError
+flags: [module]
+---*/
+import {} from "./module-with-syntax-error.mjs";
+`)
+		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
+		assertEarlyError(expectations, false)
+	})
+
+	t.Run("runtime error", func(t *testing.T) {
+		source := []byte(`/*---
+esid: test
+description: test
+info: |
+    test
+negative:
+  phase: runtime
+  type: SyntaxError
+flags: [noStrict]
+---*/
+eval('print("hello world"');
+`)
+		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
+		assertEarlyError(expectations, false)
 	})
 }
 
