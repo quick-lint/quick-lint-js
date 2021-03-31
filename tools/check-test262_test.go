@@ -109,6 +109,100 @@ func TestReverseStringSlice(t *testing.T) {
 	})
 }
 
+func TestParseTestExpectations(t *testing.T) {
+	assertIsTodoPath := func(expectations TestExpectations, expected bool) {
+		if expectations.IsTodoPath != expected {
+			t.Errorf("expected IsTodoPath to be %#v, but got %#v", expected, expectations.IsTodoPath)
+		}
+	}
+
+	assertNeedsTodoFeatures := func(expectations TestExpectations, expected bool) {
+		if expectations.NeedsTodoFeatures != expected {
+			t.Errorf("expected NeedsTodoFeatures to be %#v, but got %#v", expected, expectations.NeedsTodoFeatures)
+		}
+	}
+
+	t.Run("no features", func(t *testing.T) {
+		source := []byte(`/*---
+es5id: test
+description: >
+    test
+---*/
+print("hello world");
+`)
+		testTodo := TestTodo{TodoFeatures: [][]byte{
+			[]byte("async-iteration"),
+			[]byte("import.meta"),
+		}}
+		expectations := ParseTestExpectations(testTodo, source, "test.js")
+		assertNeedsTodoFeatures(expectations, false)
+	})
+
+	t.Run("no todo features", func(t *testing.T) {
+		source := []byte(`/*---
+es5id: test
+description: >
+    test
+features: [default-parameters, let]
+---*/
+print("hello world");
+`)
+		testTodo := TestTodo{TodoFeatures: [][]byte{
+			[]byte("async-iteration"),
+			[]byte("import.meta"),
+		}}
+		expectations := ParseTestExpectations(testTodo, source, "test.js")
+		assertNeedsTodoFeatures(expectations, false)
+	})
+
+	t.Run("needs todo features", func(t *testing.T) {
+		source := []byte(`/*---
+es5id: test
+description: >
+    test
+features: [async-iteration]
+---*/
+print("hello world");
+`)
+		testTodo := TestTodo{TodoFeatures: [][]byte{
+			[]byte("async-iteration"),
+			[]byte("import.meta"),
+		}}
+		expectations := ParseTestExpectations(testTodo, source, "test.js")
+		assertNeedsTodoFeatures(expectations, true)
+	})
+
+	t.Run("missing frontmatter", func(t *testing.T) {
+		source := []byte("print('hello world');\n")
+		testTodo := TestTodo{TodoFeatures: [][]byte{
+			[]byte("async-iteration"),
+			[]byte("import.meta"),
+		}}
+		expectations := ParseTestExpectations(testTodo, source, "test.js")
+		assertNeedsTodoFeatures(expectations, false)
+	})
+
+	t.Run("not todo path", func(t *testing.T) {
+		source := []byte("print('hello world');\n")
+		testTodo := TestTodo{TodoPaths: []string{
+			"orange.js",
+			"rotten/*.js",
+		}}
+		expectations := ParseTestExpectations(testTodo, source, "banana.js")
+		assertIsTodoPath(expectations, false)
+	})
+
+	t.Run("todo path", func(t *testing.T) {
+		source := []byte("print('hello world');\n")
+		testTodo := TestTodo{TodoPaths: []string{
+			"orange.js",
+			"rotten/*.js",
+		}}
+		expectations := ParseTestExpectations(testTodo, source, "rotten/banana.js")
+		assertIsTodoPath(expectations, true)
+	})
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //

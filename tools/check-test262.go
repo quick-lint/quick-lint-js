@@ -22,34 +22,35 @@ import "strings"
 import "sync"
 import "sync/atomic"
 
-var TodoTestFiles []string = []string{
-	// TODO(strager): Implement non-standard and new features.
-	"language/module-code/export-expname_FIXTURE.js",
+var testTodo = TestTodo{
+	TodoPaths: []string{
+		// TODO(strager): Implement non-standard and new features.
+		"language/module-code/export-expname_FIXTURE.js",
 
-	// TODO(#153): Parse V8 %BuiltInFunctions
-	"v8/mjsunit/*.js",
-	"v8/mjsunit/*/*.js",
-	"v8/mjsunit/*/*/*.js",
-	"v8/test262/detachArrayBuffer.js",
-}
-
-var TodoTestFeatures [][]byte = [][]byte{
-	// TODO(strager): Implement non-standard and new features.
-	[]byte("arbitrary-module-namespace-names"),
-	[]byte("async-iteration"),
-	[]byte("class-fields-private"),
-	[]byte("class-fields-public"),
-	[]byte("class-methods-private"),
-	[]byte("class-static-fields-private"),
-	[]byte("class-static-fields-public"),
-	[]byte("class-static-methods-private"),
-	[]byte("coalesce-expression"),
-	[]byte("import.meta"),
-	[]byte("logical-assignment-operators"),
-	[]byte("numeric-separator-literal"),
-	[]byte("optional-catch-binding"),
-	[]byte("optional-chaining"),
-	[]byte("top-level-await"),
+		// TODO(#153): Parse V8 %BuiltInFunctions
+		"v8/mjsunit/*.js",
+		"v8/mjsunit/*/*.js",
+		"v8/mjsunit/*/*/*.js",
+		"v8/test262/detachArrayBuffer.js",
+	},
+	TodoFeatures: [][]byte{
+		// TODO(strager): Implement non-standard and new features.
+		[]byte("arbitrary-module-namespace-names"),
+		[]byte("async-iteration"),
+		[]byte("class-fields-private"),
+		[]byte("class-fields-public"),
+		[]byte("class-methods-private"),
+		[]byte("class-static-fields-private"),
+		[]byte("class-static-fields-public"),
+		[]byte("class-static-methods-private"),
+		[]byte("coalesce-expression"),
+		[]byte("import.meta"),
+		[]byte("logical-assignment-operators"),
+		[]byte("numeric-separator-literal"),
+		[]byte("optional-catch-binding"),
+		[]byte("optional-chaining"),
+		[]byte("top-level-await"),
+	},
 }
 
 func main() {
@@ -213,8 +214,11 @@ func FindTests(test262FixtureDirectory string, testFiles *[]string) {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".js") && ShouldCheckTestFile(path) {
-			*testFiles = append(*testFiles, path)
+		if !info.IsDir() && strings.HasSuffix(path, ".js") {
+			testExpectations := ReadTestExpectations(testTodo, path)
+			if !(testExpectations.IsTodoPath || testExpectations.NeedsTodoFeatures) {
+				*testFiles = append(*testFiles, path)
+			}
 		}
 		return nil
 	})
@@ -223,12 +227,33 @@ func FindTests(test262FixtureDirectory string, testFiles *[]string) {
 	}
 }
 
-func ShouldCheckTestFile(testFile string) bool {
-	return !IsTodo(testFile) && !TestRequiresUnimplementedFeatures(testFile)
+type TestTodo struct {
+	TodoFeatures [][]byte
+	TodoPaths    []string
 }
 
-func IsTodo(path string) bool {
-	for _, pattern := range TodoTestFiles {
+type TestExpectations struct {
+	IsTodoPath        bool
+	NeedsTodoFeatures bool
+}
+
+func ReadTestExpectations(testTodo TestTodo, path string) TestExpectations {
+	source, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return ParseTestExpectations(testTodo, source, path)
+}
+
+func ParseTestExpectations(testTodo TestTodo, source []byte, path string) TestExpectations {
+	return TestExpectations{
+		IsTodoPath:        pathMatchesAnyPattern(path, testTodo.TodoPaths),
+		NeedsTodoFeatures: testSourceRequiresFeatures(source, testTodo.TodoFeatures),
+	}
+}
+
+func pathMatchesAnyPattern(path string, patterns []string) bool {
+	for _, pattern := range patterns {
 		if MatchPath(pattern, path) {
 			return true
 		}
@@ -236,13 +261,9 @@ func IsTodo(path string) bool {
 	return false
 }
 
-func TestRequiresUnimplementedFeatures(path string) bool {
-	testContent, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, testFeature := range TodoTestFeatures {
-		if bytes.Contains(testContent, testFeature) {
+func testSourceRequiresFeatures(source []byte, features [][]byte) bool {
+	for _, feature := range features {
+		if bytes.Contains(source, feature) {
 			return true
 		}
 	}
