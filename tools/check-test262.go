@@ -34,7 +34,104 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
 
+		// TODO(strager): Support BigInt hex, binary, and octal
+		// literals.
+		"built-ins/Atomics/*/bigint/good-views.js",
+		"built-ins/Atomics/*/bigint/no-spurious-wakeup-on-store.js",
+		"built-ins/BigInt/asIntN/arithmetic.js",
+		"built-ins/BigInt/asUintN/arithmetic.js",
+		"built-ins/DataView/prototype/getBigInt64/return-values-custom-offset.js",
+		"built-ins/DataView/prototype/getBigInt64/return-values.js",
+		"built-ins/DataView/prototype/getBigInt64/to-boolean-littleendian.js",
+		"built-ins/DataView/prototype/getBigInt64/toindex-byteoffset-toprimitive.js",
+		"built-ins/DataView/prototype/getBigInt64/toindex-byteoffset-wrapped-values.js",
+		"built-ins/DataView/prototype/getBigInt64/toindex-byteoffset.js",
+		"built-ins/DataView/prototype/getBigUint64/return-values-custom-offset.js",
+		"built-ins/DataView/prototype/getBigUint64/return-values.js",
+		"built-ins/DataView/prototype/getBigUint64/to-boolean-littleendian.js",
+		"built-ins/DataView/prototype/getBigUint64/toindex-byteoffset-toprimitive.js",
+		"built-ins/DataView/prototype/getBigUint64/toindex-byteoffset-wrapped-values.js",
+		"built-ins/DataView/prototype/getBigUint64/toindex-byteoffset.js",
+		"built-ins/DataView/prototype/setBigInt64/set-values-little-endian-order.js",
+		"built-ins/DataView/prototype/setBigInt64/to-boolean-littleendian.js",
+		"implementation-contributed/javascriptcore/stress/big-int-bitwise-*.js",
+		"implementation-contributed/javascriptcore/stress/big-int-left-shift-general.js",
+		"implementation-contributed/javascriptcore/stress/big-int-left-shift-wrapped-value.js",
+		"implementation-contributed/javascriptcore/stress/big-int-negate-jit.js",
+		"implementation-contributed/javascriptcore/stress/big-int-right-shift-general.js",
+		"implementation-contributed/javascriptcore/stress/big-int-right-shift-wrapped-value.js",
+		"implementation-contributed/javascriptcore/stress/big-int-value-op-update-gc-rules.js",
+		"implementation-contributed/javascriptcore/stress/value-*-big-int-prediction-propagation.js",
+		"implementation-contributed/javascriptcore/stress/value-*-big-int-untyped.js",
+		"implementation-contributed/javascriptcore/stress/value-add-big-int-and-string.js",
+		"language/expressions/*-shift/bigint-non-primitive.js",
+		"language/expressions/*-shift/bigint.js",
+		"language/expressions/*-than*/bigint-and-bigint.js",
+		"language/expressions/*-than*/bigint-and-number-extremes.js",
+		"language/expressions/*equals/bigint-and-bigint.js",
+		"language/expressions/*equals/bigint-and-number-extremes.js",
+		"language/expressions/*fix-*crement/bigint.js",
+		"language/expressions/addition/bigint-arithmetic.js",
+		"language/expressions/bitwise-*/bigint-non-primitive.js",
+		"language/expressions/bitwise-*/bigint.js",
+		"language/expressions/bitwise-not/bigint.js",
+		"language/expressions/division/bigint-arithmetic.js",
+		"language/expressions/exponentiation/bigint-arithmetic.js",
+		"language/expressions/modulus/bigint-arithmetic.js",
+		"language/expressions/multiplication/bigint-arithmetic.js",
+		"language/expressions/subtraction/bigint-arithmetic.js",
+		"language/expressions/unary-minus/bigint.js",
+		"language/expressions/unsigned-right-shift/bigint-non-primitive.js",
+
+		// TODO(strager): Fix bug with yield and spread.
+		"language/*/class/gen-method*/yield-spread-obj.js",
+		"language/*/generators/yield-identifier-spread-non-strict.js",
+		"language/*/generators/yield-spread-obj.js",
+		"language/expressions/generators/named-yield-identifier-spread-non-strict.js",
+		"language/expressions/generators/named-yield-spread-obj.js",
+		"language/expressions/object/method-definition/gen-yield-identifier-spread-non-strict.js",
+		"language/expressions/object/method-definition/gen-yield-spread-obj.js",
+
+		// TODO(strager): Fix ASI bugs.
+		"implementation-contributed/v8/intl/collator/de-sort.js",
+
+		// TODO(strager): Fix multiple definition detection in linter.
+		"annexB/language/*-code/if-decl-else-decl-*-*-no-skip-try.js",
+		"annexB/language/*-code/if-decl-else-decl-*-*-skip-early-err*.js",
+		"annexB/language/*-code/if-decl-else-decl-*-*-skip-early-err.js",
+		"annexB/language/*-code/if-decl-else-stmt-*-no-skip-try.js",
+		"annexB/language/*-code/if-decl-else-stmt-*-skip-early-err*.js",
+		"annexB/language/*-code/if-decl-no-else-*-no-skip-try.js",
+		"annexB/language/*-code/if-decl-no-else-*-skip-early-err*.js",
+		"annexB/language/*-code/if-stmt-else-decl-*-no-skip-try.js",
+		"annexB/language/*-code/if-stmt-else-decl-*-skip-early-err*.js",
+
+		// TODO(strager): Fix scope of declared names in class
+		// expressions.
+		"built-ins/Function/prototype/toString/class-expression-explicit-ctor.js",
+		"built-ins/Function/prototype/toString/class-expression-implicit-ctor.js",
+		"language/expressions/class/name.js",
+		"language/expressions/class/scope-name-lex-close.js",
+		"language/expressions/class/scope-name-lex-open-heritage.js",
+		"language/expressions/class/scope-name-lex-open-no-heritage.js",
+		"language/statements/class/definition/basics.js",
+		"language/statements/class/name-binding/in-extends-expression-assigned.js",
+
+		// TODO(strager): Fix various bugs.
+		"language/literals/numeric/octal.js",
+		"language/reserved-words/ident-name-keyword-accessor.js",
+		"language/statements/for-in/let-identifier-with-newline.js",
+		"language/statements/for-of/let-identifier-with-newline.js",
+		"language/statements/let/syntax/escaped-let.js",
+
+		// TODO(strager): Don't check result of tests with no
+		// frontmatter.
+		"language/module-code/*_FIXTURE.js",
+		"language/module-code/top-level-await/*_FIXTURE.js",
+
 		// TODO(#153): Parse V8 %BuiltInFunctions
+		"implementation-contributed/v8/intl/regress-903566.js",
+		"implementation-contributed/v8/intl/assert.js",
 		"v8/mjsunit/*.js",
 		"v8/mjsunit/*/*.js",
 		"v8/mjsunit/*/*/*.js",
@@ -181,8 +278,13 @@ func RunWorker(queue *WorkQueue, threadIndex int) {
 			break
 		}
 		testFile := queue.testFiles[i]
-		result := RunQuickLintJS(queue.quickLintJSExecutable, testFile.Path)
-		if result.Crashed() || (testFile.Expectations.EarlyError && result.ExitedWithCode(0)) {
+		// TODO(strager): Always ignore warnings.
+		ignoreWarnings := !testFile.Expectations.EarlyError
+
+		result := RunQuickLintJS(queue.quickLintJSExecutable, testFile.Path, ignoreWarnings)
+		if result.Crashed() ||
+			(!testFile.Expectations.EarlyError && !result.ExitedWithCode(0)) ||
+			(testFile.Expectations.EarlyError && result.ExitedWithCode(0)) {
 			queue.RecordFailure(threadIndex, i, &result)
 			if queue.stopOnFirstFailure {
 				break
@@ -290,8 +392,13 @@ func testSourceRequiresFeatures(source []byte, features [][]byte) bool {
 	return false
 }
 
-func RunQuickLintJS(quickLintJSExecutable string, jsFile string) LintResult {
-	command := []string{quickLintJSExecutable, "--", jsFile}
+func RunQuickLintJS(quickLintJSExecutable string, jsFile string, ignoreWarnings bool) LintResult {
+	command := []string{quickLintJSExecutable}
+	if ignoreWarnings {
+		command = append(command, "--exit-fail-on=-E002,-E003,-E057,-E058,-E059")
+	}
+	command = append(command, "--", jsFile)
+
 	process := exec.Command(command[0], command[1:]...)
 	var output bytes.Buffer
 	process.Stdout = &output
