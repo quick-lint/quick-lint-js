@@ -204,12 +204,8 @@ class lexer {
                                            error_reporter*);
 
   void parse_binary_number();
-
-  enum class octal_kind {
-    legacy,  // 0775, 09999, 08.24
-    modern,  // 0o775, 0o111_555
-  };
-  void parse_octal_number(octal_kind);
+  void parse_legacy_octal_number();  // 0775, 09999, 08.24
+  void parse_modern_octal_number();  // 0o775, 0o111_555
   void parse_hexadecimal_number();
   template <class Error>
   const char8* check_garbage_in_number_literal(const char8* input);

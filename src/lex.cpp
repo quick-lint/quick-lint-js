@@ -184,11 +184,11 @@ retry:
       case 'o':
       case 'O':
         this->input_ += 2;
-        this->parse_octal_number(octal_kind::modern);
+        this->parse_modern_octal_number();
         break;
       QLJS_CASE_DECIMAL_DIGIT:
         this->input_ += 1;
-        this->parse_octal_number(octal_kind::legacy);
+        this->parse_legacy_octal_number();
         break;
       case 'x':
       case 'X':
@@ -982,74 +982,72 @@ void lexer::parse_binary_number() {
   }
 }
 
-void lexer::parse_octal_number(octal_kind kind) {
-  if (kind == octal_kind::legacy) {
-    const char8* input = this->input_;
+void lexer::parse_legacy_octal_number() {
+  const char8* input = this->input_;
 
-  parse_digits_again:
-    input = this->parse_octal_digits(input);
-    if (*input == u8'_') {
-      const char8* underscores_start = input;
-      while (*input == '_') {
-        input += 1;
-      }
-      this->error_reporter_->report(
-          error_legacy_octal_literal_may_not_contain_underscores{
-              .underscores = source_code_span(underscores_start, input),
-          });
-      goto parse_digits_again;
-    }
-
-    if (is_digit(*input)) {
-      this->input_ = input;
-      this->parse_number();
-      return;
-    }
-
-    const char8* garbage_begin = input;
-    bool has_decimal_point = *input == '.';
-    if (has_decimal_point) {
+parse_digits_again:
+  input = this->parse_octal_digits(input);
+  if (*input == u8'_') {
+    const char8* underscores_start = input;
+    while (*input == '_') {
       input += 1;
-      this->error_reporter_->report(error_octal_literal_may_not_have_decimal{
-          source_code_span(garbage_begin, input)});
-      input = this->parse_octal_digits(input);
     }
-    bool has_exponent = *input == 'e' || *input == 'E';
-    if (has_exponent) {
-      input += 1;
-      if (*input == '-' || *input == '+') {
-        input += 1;
-      }
-      this->error_reporter_->report(error_octal_literal_may_not_have_exponent{
-          source_code_span(garbage_begin, input)});
-      input = this->parse_octal_digits(input);
-    }
-    if (*input == 'n') {
-      input += 1;
-      this->error_reporter_->report(
-          error_legacy_octal_literal_may_not_be_big_int{
-              source_code_span(garbage_begin, input)});
-      input = this->parse_octal_digits(input);
-    }
-
-    this->input_ = check_garbage_in_number_literal<
-        error_unexpected_characters_in_octal_number>(input);
-  } else {
-    const char8* input = this->input_;
-    input = this->parse_digits_and_underscores(
-        [](char8 character) -> bool { return is_octal_digit(character); },
-        input);
-    if (input == this->input_) {
-      this->error_reporter_->report(error_no_digits_in_octal_number{
-          source_code_span(this->last_token_.begin, input)});
-      return;
-    }
-    if (*input == u8'n') {
-      ++input;
-    }
-    this->input_ = check_garbage_in_number_literal<
-        error_unexpected_characters_in_octal_number>(input);
+    this->error_reporter_->report(
+        error_legacy_octal_literal_may_not_contain_underscores{
+            .underscores = source_code_span(underscores_start, input),
+        });
+    goto parse_digits_again;
   }
+
+  if (is_digit(*input)) {
+    this->input_ = input;
+    this->parse_number();
+    return;
+  }
+
+  const char8* garbage_begin = input;
+  bool has_decimal_point = *input == '.';
+  if (has_decimal_point) {
+    input += 1;
+    this->error_reporter_->report(error_octal_literal_may_not_have_decimal{
+        source_code_span(garbage_begin, input)});
+    input = this->parse_octal_digits(input);
+  }
+  bool has_exponent = *input == 'e' || *input == 'E';
+  if (has_exponent) {
+    input += 1;
+    if (*input == '-' || *input == '+') {
+      input += 1;
+    }
+    this->error_reporter_->report(error_octal_literal_may_not_have_exponent{
+        source_code_span(garbage_begin, input)});
+    input = this->parse_octal_digits(input);
+  }
+  if (*input == 'n') {
+    input += 1;
+    this->error_reporter_->report(error_legacy_octal_literal_may_not_be_big_int{
+        source_code_span(garbage_begin, input)});
+    input = this->parse_octal_digits(input);
+  }
+
+  this->input_ = check_garbage_in_number_literal<
+      error_unexpected_characters_in_octal_number>(input);
+}
+
+void lexer::parse_modern_octal_number() {
+  const char8* input = this->input_;
+  input = this->parse_digits_and_underscores(
+      [](char8 character) -> bool { return is_octal_digit(character); }, input);
+  if (input == this->input_) {
+    this->error_reporter_->report(error_no_digits_in_octal_number{
+        source_code_span(this->last_token_.begin, input)});
+    return;
+  }
+  if (*input == u8'n') {
+    ++input;
+  }
+  this->input_ = check_garbage_in_number_literal<
+      error_unexpected_characters_in_octal_number>(input);
 }
 
 void lexer::parse_number() {
