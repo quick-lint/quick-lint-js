@@ -206,9 +206,8 @@ class lexer {
   void parse_binary_number();
 
   enum class octal_kind {
-    sloppy,
-    // strict_0,
-    strict_0o,
+    legacy,  // 0775, 09999, 08.24
+    modern,  // 0o775, 0o111_555
   };
   void parse_octal_number(octal_kind);
   void parse_hexadecimal_number();

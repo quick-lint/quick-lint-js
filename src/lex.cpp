@@ -184,11 +184,11 @@ retry:
       case 'o':
       case 'O':
         this->input_ += 2;
-        this->parse_octal_number(octal_kind::strict_0o);
+        this->parse_octal_number(octal_kind::modern);
         break;
       QLJS_CASE_DECIMAL_DIGIT:
         this->input_ += 1;
-        this->parse_octal_number(octal_kind::sloppy);
+        this->parse_octal_number(octal_kind::legacy);
         break;
       case 'x':
       case 'X':
@@ -987,7 +987,7 @@ void lexer::parse_octal_number(octal_kind kind) {
 
   input = this->parse_octal_digits(input);
 
-  if (kind == octal_kind::sloppy && is_digit(*input)) {
+  if (kind == octal_kind::legacy && is_digit(*input)) {
     this->input_ = input;
     this->parse_number();
     return;
@@ -999,7 +999,7 @@ void lexer::parse_octal_number(octal_kind kind) {
     return;
   }
 
-  if (kind == octal_kind::strict_0o && *input == u8'n') {
+  if (kind == octal_kind::modern && *input == u8'n') {
     ++input;
   }
 
