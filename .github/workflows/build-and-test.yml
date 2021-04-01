@@ -55,6 +55,13 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: install dependencies
+        if: ${{ matrix.toolchain.runs_on == 'ubuntu-latest' && matrix.toolchain.CC == 'gcc-8' }}
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update
+          sudo apt-get install -y g++-8
+
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort

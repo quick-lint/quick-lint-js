@@ -48,9 +48,11 @@ jobs:
       - name: upgrade dependencies
         if: ${{ matrix.toolchain.archive_name == 'linux' }}
         run: |
-          # HACK(strager): Avoid error when collecting copyright information:
+          export DEBIAN_FRONTEND=noninteractive
+          # HACK(strager): Install libc6 to avoid error when collecting
+          # copyright information:
           # E: Can not find version '2.27-3ubuntu1.3' of package 'glibc'
-          sudo apt-get install libc6
+          sudo apt-get install -y g++-8 libc6
 
       - name: configure
         run: |
