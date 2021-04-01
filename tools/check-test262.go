@@ -48,17 +48,6 @@ var testTodo = TestTodo{
 		"annexB/language/*-code/if-stmt-else-decl-*-no-skip-try.js",
 		"annexB/language/*-code/if-stmt-else-decl-*-skip-early-err*.js",
 
-		// TODO(strager): Fix scope of declared names in class
-		// expressions.
-		"built-ins/Function/prototype/toString/class-expression-explicit-ctor.js",
-		"built-ins/Function/prototype/toString/class-expression-implicit-ctor.js",
-		"language/expressions/class/name.js",
-		"language/expressions/class/scope-name-lex-close.js",
-		"language/expressions/class/scope-name-lex-open-heritage.js",
-		"language/expressions/class/scope-name-lex-open-no-heritage.js",
-		"language/statements/class/definition/basics.js",
-		"language/statements/class/name-binding/in-extends-expression-assigned.js",
-
 		// TODO(strager): Fix various bugs.
 		"language/literals/numeric/octal.js",
 		"language/reserved-words/ident-name-keyword-accessor.js",

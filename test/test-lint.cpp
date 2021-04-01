@@ -2232,6 +2232,58 @@ TEST(test_lint, let_shadows_global_variable) {
   }
 }
 
+TEST(test_lint,
+     class_declared_inside_class_scope_is_not_accessible_outside_class_scope) {
+  {
+    // (class C {});
+    // C;             // ERROR
+    const char8 class_declaration[] = u8"C";
+    const char8 class_use[] = u8"C";
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration),
+                                 variable_kind::_class);
+    l.visit_exit_class_scope();
+    l.visit_variable_use(identifier_of(class_use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(class_use))));
+  }
+
+  {
+    // (class C {});
+    // class C {}
+    // (class C {});
+    const char8 class_declaration_1[] = u8"C";
+    const char8 class_declaration_2[] = u8"C";
+    const char8 class_declaration_3[] = u8"C";
+    error_collector v;
+    linter l(&v);
+
+    l.visit_enter_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration_1),
+                                 variable_kind::_class);
+    l.visit_exit_class_scope();
+
+    l.visit_variable_declaration(identifier_of(class_declaration_2),
+                                 variable_kind::_class);
+    l.visit_enter_class_scope();
+    l.visit_exit_class_scope();
+
+    l.visit_enter_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration_3),
+                                 variable_kind::_class);
+    l.visit_exit_class_scope();
+
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";

@@ -219,7 +219,7 @@ linter::linter(error_reporter *error_reporter)
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_class_scope() {}
+void linter::visit_enter_class_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
 
@@ -247,7 +247,20 @@ void linter::visit_exit_block_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_class_scope() {}
+void linter::visit_exit_class_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+
+  // No variable declarations should be propagatable to the parent scope.
+  for (const declared_variable &var :
+       this->current_scope().declared_variables) {
+    QLJS_ASSERT(var.kind() == variable_kind::_class);
+  }
+
+  this->scopes_.pop();
+}
 
 void linter::visit_exit_for_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
