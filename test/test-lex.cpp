@@ -266,11 +266,14 @@ TEST_F(test_lex, fail_lex_binary_number) {
       });
 }
 
-TEST_F(test_lex, lex_octal_numbers_strict) {
+TEST_F(test_lex, lex_legacy_octal_numbers_strict) {
   this->check_tokens(u8"000"_sv, {token_type::number});
   this->check_tokens(u8"001"_sv, {token_type::number});
   this->check_tokens(u8"00010101010101010"_sv, {token_type::number});
   this->check_tokens(u8"051"_sv, {token_type::number});
+}
+
+TEST_F(test_lex, lex_modern_octal_numbers) {
   this->check_tokens(u8"0o51"_sv, {token_type::number});
   this->check_tokens(u8"0o0"_sv, {token_type::number});
   this->check_tokens(u8"0O0"_sv, {token_type::number});
@@ -280,13 +283,13 @@ TEST_F(test_lex, lex_octal_numbers_strict) {
   this->check_tokens(u8"0o123n"_sv, {token_type::number});
 }
 
-TEST_F(test_lex, lex_octal_numbers_lax) {
+TEST_F(test_lex, lex_legacy_octal_numbers_lax) {
   this->check_tokens(u8"058"_sv, {token_type::number});
   this->check_tokens(u8"058.9"_sv, {token_type::number});
   this->check_tokens(u8"08"_sv, {token_type::number});
 }
 
-TEST_F(test_lex, fail_lex_octal_number_no_digits) {
+TEST_F(test_lex, fail_lex_modern_octal_number_no_digits) {
   this->check_tokens_with_errors(
       u8"0o"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
@@ -311,7 +314,7 @@ TEST_F(test_lex, fail_lex_octal_number_no_digits) {
       });
 }
 
-TEST_F(test_lex, fail_lex_octal_numbers) {
+TEST_F(test_lex, fail_lex_legacy_octal_numbers) {
   this->check_tokens_with_errors(
       u8"0123n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
@@ -319,7 +322,9 @@ TEST_F(test_lex, fail_lex_octal_numbers) {
                                 error_legacy_octal_literal_may_not_be_big_int,
                                 characters, offsets_matcher(input, 4, 5))));
       });
+}
 
+TEST_F(test_lex, fail_lex_modern_octal_numbers) {
   this->check_tokens_with_errors(
       u8"0o58"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
@@ -335,7 +340,9 @@ TEST_F(test_lex, fail_lex_octal_numbers) {
                                 error_unexpected_characters_in_octal_number,
                                 characters, offsets_matcher(input, 3, 6))));
       });
+}
 
+TEST_F(test_lex, fail_lex_legacy_octal_numbers_2) {
   this->check_tokens_with_errors(
       u8"052.2"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
@@ -345,8 +352,8 @@ TEST_F(test_lex, fail_lex_octal_numbers) {
       });
 }
 
-// TODO (👮🏾‍♀️) (when strict mode implemented) octal number literal
-// tests to fail in strict mode
+// TODO (👮🏾‍♀️) (when strict mode implemented) legacy octal number
+// literal tests to fail in strict mode
 
 TEST_F(test_lex, lex_hex_numbers) {
   this->check_tokens(u8"0x0"_sv, {token_type::number});
