@@ -2132,31 +2132,39 @@ class parser {
 
   template <class FunctionStatementNotAllowedError>
   void error_on_function_statement() {
-    switch (this->peek().type) {
-    // function f() {}  // Invalid.
-    case token_type::kw_function:
+    std::optional<source_code_span> function_keywords =
+        this->is_maybe_function_statement();
+    if (function_keywords.has_value()) {
       this->error_reporter_->report(FunctionStatementNotAllowedError{
-          .function_keywords = this->peek().span(),
+          .function_keywords = *function_keywords,
       });
-      break;
+    }
+  }
 
-    // async function f() {}  // Invalid.
+  std::optional<source_code_span> is_maybe_function_statement() {
+    switch (this->peek().type) {
+    // function f() {}
+    case token_type::kw_function:
+      return this->peek().span();
+
+    // async;
+    // async function f() {}
     case token_type::kw_async: {
       lexer_transaction transaction = this->lexer_.begin_transaction();
       const char8 *async_begin = this->peek().begin;
       this->skip();
       if (this->peek().type == token_type::kw_function) {
-        this->error_reporter_->report(FunctionStatementNotAllowedError{
-            .function_keywords =
-                source_code_span(async_begin, this->peek().end),
-        });
+        source_code_span span(async_begin, this->peek().end);
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        return span;
+      } else {
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        return std::nullopt;
       }
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      break;
     }
 
     default:
-      break;
+      return std::nullopt;
     }
   }
 
