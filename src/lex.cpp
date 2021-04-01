@@ -1090,10 +1090,15 @@ void lexer::parse_hexadecimal_number() {
   const char8* input = this->input_;
 
   input = parse_hex_digits_and_underscores(input);
+  bool found_digits = input != this->input_;
+  if (*input == u8'n') {
+    ++input;
+  }
 
-  if (input == this->input_) {
+  if (!found_digits) {
     this->error_reporter_->report(error_no_digits_in_hex_number{
         source_code_span(this->last_token_.begin, input)});
+    this->input_ = input;
   } else {
     this->input_ = check_garbage_in_number_literal<
         error_unexpected_characters_in_hex_number>(input);

@@ -350,6 +350,8 @@ TEST_F(test_lex, lex_hex_numbers) {
   this->check_tokens(u8"0x123456789abcdef"_sv, {token_type::number});
   this->check_tokens(u8"0X123456789ABCDEF"_sv, {token_type::number});
   this->check_tokens(u8"0X123_4567_89AB_CDEF"_sv, {token_type::number});
+  this->check_tokens(u8"0x1n"_sv, {token_type::number});
+  this->check_tokens(u8"0xfn"_sv, {token_type::number});
 }
 
 TEST_F(test_lex, fail_lex_hex_number_no_digits) {
@@ -359,6 +361,13 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_hex_number, characters,
                                 offsets_matcher(input, 0, 2))));
+      });
+  this->check_tokens_with_errors(
+      u8"0xn"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_hex_number, characters,
+                                offsets_matcher(input, 0, u8"0xn"))));
       });
   this->check_tokens_with_errors(
       u8"0x;"_sv, {token_type::number, token_type::semicolon},
