@@ -1095,13 +1095,13 @@ void lexer::parse_hexadecimal_number() {
     ++input;
   }
 
-  if (!found_digits) {
+  if (found_digits) {
+    this->input_ = check_garbage_in_number_literal<
+        error_unexpected_characters_in_hex_number>(input);
+  } else {
     this->error_reporter_->report(error_no_digits_in_hex_number{
         source_code_span(this->last_token_.begin, input)});
     this->input_ = input;
-  } else {
-    this->input_ = check_garbage_in_number_literal<
-        error_unexpected_characters_in_hex_number>(input);
   }
 }
 
