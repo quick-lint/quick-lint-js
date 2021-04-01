@@ -182,6 +182,7 @@ retry:
         this->parse_binary_number();
         break;
       case 'o':
+      case 'O':
         this->input_ += 2;
         this->parse_octal_number(octal_kind::strict_0o);
         break;

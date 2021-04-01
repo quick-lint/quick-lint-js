@@ -272,6 +272,8 @@ TEST_F(test_lex, lex_octal_numbers_strict) {
   this->check_tokens(u8"051"_sv, {token_type::number});
   this->check_tokens(u8"0o51"_sv, {token_type::number});
   this->check_tokens(u8"0o0"_sv, {token_type::number});
+  this->check_tokens(u8"0O0"_sv, {token_type::number});
+  this->check_tokens(u8"0O12345670"_sv, {token_type::number});
   this->check_tokens(u8"0o0n"_sv, {token_type::number});
   this->check_tokens(u8"0o01"_sv, {token_type::number});
   this->check_tokens(u8"0o123n"_sv, {token_type::number});
