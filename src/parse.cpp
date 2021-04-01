@@ -200,14 +200,14 @@ expression* parser::parse_expression(precedence prec) {
 
       case token_type::star: {
         this->skip();
-        expression* child = this->parse_expression();
+        expression* child = this->parse_expression(prec);
         return this->parse_expression_remainder(
             this->make_expression<expression::yield_many>(child, operator_span),
             prec);
       }
 
       default: {
-        expression* child = this->parse_expression();
+        expression* child = this->parse_expression(prec);
         return this->parse_expression_remainder(
             this->make_expression<expression::yield_one>(child, operator_span),
             prec);

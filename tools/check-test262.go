@@ -34,15 +34,6 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
 
-		// TODO(strager): Fix bug with yield and spread.
-		"language/*/class/gen-method*/yield-spread-obj.js",
-		"language/*/generators/yield-identifier-spread-non-strict.js",
-		"language/*/generators/yield-spread-obj.js",
-		"language/expressions/generators/named-yield-identifier-spread-non-strict.js",
-		"language/expressions/generators/named-yield-spread-obj.js",
-		"language/expressions/object/method-definition/gen-yield-identifier-spread-non-strict.js",
-		"language/expressions/object/method-definition/gen-yield-spread-obj.js",
-
 		// TODO(strager): Fix ASI bugs.
 		"implementation-contributed/v8/intl/collator/de-sort.js",
 

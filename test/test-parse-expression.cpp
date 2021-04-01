@@ -987,6 +987,15 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
     EXPECT_EQ(summarize(ast), "yield(var x)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p(u8"f(yield a, yield b, c)}"_sv);
+    auto generator_guard =
+        p.parser().enter_function(function_attributes::generator);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var f, yield(var a), yield(var b), var c)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST_F(test_parse_expression,
@@ -1000,6 +1009,16 @@ TEST_F(test_parse_expression,
     EXPECT_EQ(summarize(ast->child_0()), "var other");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 12);
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"f(yield *a, yield* b, c)}"_sv);
+    auto generator_guard =
+        p.parser().enter_function(function_attributes::generator);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "call(var f, yieldmany(var a), yieldmany(var b), var c)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
