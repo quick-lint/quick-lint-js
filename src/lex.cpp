@@ -966,10 +966,15 @@ void lexer::parse_binary_number() {
   while (this->is_binary_digit(*input)) {
     input += 1;
   }
+  bool found_digits = input != this->input_;
+  if (*input == u8'n') {
+    ++input;
+  }
 
-  if (input == this->input_) {
+  if (!found_digits) {
     this->error_reporter_->report(error_no_digits_in_binary_number{
         source_code_span(this->last_token_.begin, input)});
+    this->input_ = input;
   } else {
     this->input_ = check_garbage_in_number_literal<
         error_unexpected_characters_in_binary_number>(input);

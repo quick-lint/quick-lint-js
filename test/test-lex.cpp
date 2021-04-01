@@ -220,6 +220,7 @@ TEST_F(test_lex, lex_binary_numbers) {
   this->check_tokens(u8"0b1"_sv, {token_type::number});
   this->check_tokens(u8"0b010101010101010"_sv, {token_type::number});
   this->check_tokens(u8"0B010101010101010"_sv, {token_type::number});
+  this->check_tokens(u8"0b01n"_sv, {token_type::number});
 }
 
 TEST_F(test_lex, fail_lex_binary_number_no_digits) {
@@ -229,6 +230,13 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
         EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
                                 error_no_digits_in_binary_number, characters,
                                 offsets_matcher(input, 0, 2))));
+      });
+  this->check_tokens_with_errors(
+      u8"0bn"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_no_digits_in_binary_number, characters,
+                                offsets_matcher(input, 0, u8"0bn"))));
       });
   this->check_tokens_with_errors(
       u8"0b;"_sv, {token_type::number, token_type::semicolon},
