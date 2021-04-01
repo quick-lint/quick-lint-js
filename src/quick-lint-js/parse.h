@@ -2202,14 +2202,28 @@ class parser {
           error_expected_parenthesis_around_if_condition>(v);
     }
 
-    switch (this->peek().type) {
-    default: {
+    auto parse_and_visit_body = [this, &v]() -> void {
+      bool entered_block_scope = false;
+
+      if (this->is_maybe_function_statement()) {
+        v.visit_enter_block_scope();
+        entered_block_scope = true;
+      }
+
       bool parsed_if_body = this->parse_and_visit_statement(v);
       if (!parsed_if_body) {
         QLJS_PARSER_UNIMPLEMENTED();
       }
+
+      if (entered_block_scope) {
+        v.visit_exit_block_scope();
+      }
+    };
+
+    switch (this->peek().type) {
+    default:
+      parse_and_visit_body();
       break;
-    }
 
     case token_type::end_of_file:
     case token_type::kw_else:
@@ -2223,10 +2237,7 @@ class parser {
 
     if (this->peek().type == token_type::kw_else) {
       this->skip();
-      bool parsed_else_body = this->parse_and_visit_statement(v);
-      if (!parsed_else_body) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
+      parse_and_visit_body();
     }
   }
 

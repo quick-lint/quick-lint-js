@@ -655,6 +655,58 @@ TEST(test_parse, incomplete_function_body) {
   }
 }
 
+TEST(test_parse,
+     function_as_if_body_is_allowed_and_creates_implicit_block_scope) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"if (cond) function f() {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"if (cond) async function f() {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"if (cond) body; else function f() {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_use",          // body
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"if (cond) body; else async function f() {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_use",          // body
+                                      "visit_enter_block_scope",     //
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_exit_block_scope"));
+  }
+}
+
 TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
   {
     padded_string code(u8"do function f() {} while (cond);"_sv);
