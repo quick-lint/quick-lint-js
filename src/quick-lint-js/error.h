@@ -476,6 +476,13 @@
              characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_legacy_octal_literal_may_not_contain_underscores, "E152",          \
+      { source_code_span underscores; },                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "legacy octal literals may not contain underscores"),         \
+             underscores))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_let_with_no_bindings, "E024", { source_code_span where; },         \
       .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
                                                                                \

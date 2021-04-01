@@ -354,6 +354,28 @@ TEST_F(test_lex, fail_lex_legacy_octal_numbers) {
 // TODO (👮🏾‍♀️) (when strict mode implemented) legacy octal number
 // literal tests to fail in strict mode
 
+TEST_F(test_lex, legacy_octal_numbers_cannot_contain_underscores) {
+  this->check_tokens_with_errors(
+      u8"0775_775"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(
+                error_legacy_octal_literal_may_not_contain_underscores,
+                underscores, offsets_matcher(input, strlen(u8"0775"), u8"_"))));
+      });
+
+  this->check_tokens_with_errors(
+      u8"0775____775"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_legacy_octal_literal_may_not_contain_underscores,
+                        underscores,
+                        offsets_matcher(input, strlen(u8"0775"), u8"____"))));
+      });
+}
+
 TEST_F(test_lex, lex_hex_numbers) {
   this->check_tokens(u8"0x0"_sv, {token_type::number});
   this->check_tokens(u8"0x123456789abcdef"_sv, {token_type::number});

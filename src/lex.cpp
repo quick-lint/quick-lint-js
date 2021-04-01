@@ -985,8 +985,25 @@ void lexer::parse_binary_number() {
 void lexer::parse_octal_number(octal_kind kind) {
   const char8* input = this->input_;
 
-  input = this->parse_digits_and_underscores(
-      [](char8 character) -> bool { return is_octal_digit(character); }, input);
+  if (kind == octal_kind::legacy) {
+  parse_digits_again:
+    input = this->parse_octal_digits(input);
+    if (*input == u8'_') {
+      const char8* underscores_start = input;
+      while (*input == '_') {
+        input += 1;
+      }
+      this->error_reporter_->report(
+          error_legacy_octal_literal_may_not_contain_underscores{
+              .underscores = source_code_span(underscores_start, input),
+          });
+      goto parse_digits_again;
+    }
+  } else {
+    input = this->parse_digits_and_underscores(
+        [](char8 character) -> bool { return is_octal_digit(character); },
+        input);
+  }
 
   if (kind == octal_kind::legacy && is_digit(*input)) {
     this->input_ = input;
