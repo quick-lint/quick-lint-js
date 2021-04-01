@@ -1367,12 +1367,27 @@ expression* parser::parse_object_literal() {
       this->skip();
 
       if (this->peek().type == token_type::kw_function) {
+        // { set function() { } }
         // { async function f() { } }  // Invalid.
-        this->error_reporter_->report(
-            error_methods_should_not_use_function_keyword{
-                .function_token = this->peek().span(),
-            });
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+        source_code_span function_keyword_span = this->peek().span();
         this->skip();
+        switch (this->peek().type) {
+        // { set function() { } }
+        case token_type::left_paren:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          break;
+
+        // { async function f() { } }  // Invalid.
+        case token_type::identifier:
+        default:
+          this->lexer_.commit_transaction(std::move(transaction));
+          this->error_reporter_->report(
+              error_methods_should_not_use_function_keyword{
+                  .function_token = function_keyword_span,
+              });
+          break;
+        }
       }
 
       if (is_async && this->peek().type == token_type::star) {

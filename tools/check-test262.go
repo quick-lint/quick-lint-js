@@ -49,7 +49,6 @@ var testTodo = TestTodo{
 		"annexB/language/*-code/if-stmt-else-decl-*-skip-early-err*.js",
 
 		// TODO(strager): Fix various bugs.
-		"language/reserved-words/ident-name-keyword-accessor.js",
 		"language/statements/for-in/let-identifier-with-newline.js",
 		"language/statements/for-of/let-identifier-with-newline.js",
 		"language/statements/let/syntax/escaped-let.js",
