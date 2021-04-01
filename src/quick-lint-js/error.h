@@ -380,6 +380,34 @@
              finally_token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_function_statement_not_allowed_in_do_while_loop, "E149",           \
+      { source_code_span function_keywords; },                                 \
+      .error(QLJS_TRANSLATABLE("a function statement is not allowed as the "   \
+                               "body of a 'do-while' loop"),                   \
+             function_keywords))                                               \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_function_statement_not_allowed_in_for_loop, "E150",                \
+      { source_code_span function_keywords; },                                 \
+      .error(QLJS_TRANSLATABLE("a function statement is not allowed as the "   \
+                               "body of a 'for' loop"),                        \
+             function_keywords))                                               \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_function_statement_not_allowed_in_while_loop, "E148",              \
+      { source_code_span function_keywords; },                                 \
+      .error(QLJS_TRANSLATABLE("a function statement is not allowed as the "   \
+                               "body of a 'while' loop"),                      \
+             function_keywords))                                               \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_function_statement_not_allowed_in_with_statement, "E151",          \
+      { source_code_span function_keywords; },                                 \
+      .error(QLJS_TRANSLATABLE("a function statement is not allowed as the "   \
+                               "body of a 'with' statement"),                  \
+             function_keywords))                                               \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_generator_function_star_belongs_before_name, "E133",               \
       {                                                                        \
         source_code_span function_name;                                        \

@@ -654,6 +654,155 @@ TEST(test_parse, incomplete_function_body) {
                     offsets_matcher(&code, strlen(u8"function f() "), u8"{"))));
   }
 }
+
+TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
+  {
+    padded_string code(u8"do function f() {} while (cond);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_variable_use"));  // cond
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_function_statement_not_allowed_in_do_while_loop,
+                    function_keywords,
+                    offsets_matcher(&code, strlen(u8"do "), u8"function"))));
+  }
+
+  {
+    padded_string code(u8"do async function f() {} while (cond);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_variable_use"));  // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_function_statement_not_allowed_in_do_while_loop,
+            function_keywords,
+            offsets_matcher(&code, strlen(u8"do "), u8"async function"))));
+  }
+}
+
+TEST(test_parse, function_as_for_loop_body_is_disallowed) {
+  {
+    padded_string code(u8"for (;cond;) function f() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_function_statement_not_allowed_in_for_loop, function_keywords,
+            offsets_matcher(&code, strlen(u8"for (;cond;) "), u8"function"))));
+  }
+
+  {
+    padded_string code(u8"for (;cond;) async function f() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_function_statement_not_allowed_in_for_loop,
+                              function_keywords,
+                              offsets_matcher(&code, strlen(u8"for (;cond;) "),
+                                              u8"async function"))));
+  }
+}
+
+TEST(test_parse, function_as_while_loop_body_is_disallowed) {
+  {
+    padded_string code(u8"while (cond) function f() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_function_statement_not_allowed_in_while_loop,
+            function_keywords,
+            offsets_matcher(&code, strlen(u8"while (cond) "), u8"function"))));
+  }
+
+  {
+    padded_string code(u8"while (cond) async function f() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_function_statement_not_allowed_in_while_loop,
+                    function_keywords,
+                    offsets_matcher(&code, strlen(u8"while (cond) "),
+                                    u8"async function"))));
+  }
+}
+
+TEST(test_parse, function_as_with_statement_body_is_disallowed) {
+  {
+    padded_string code(u8"with (obj) function f() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // obj
+                                      "visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_function_statement_not_allowed_in_with_statement,
+            function_keywords,
+            offsets_matcher(&code, strlen(u8"with (obj) "), u8"function"))));
+  }
+
+  {
+    padded_string code(u8"with (obj) async function f() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // obj
+                                      "visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_enter_function_scope_body",  // f
+                                      "visit_exit_function_scope"));      // f
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_function_statement_not_allowed_in_with_statement,
+                    function_keywords,
+                    offsets_matcher(&code, strlen(u8"with (obj) "),
+                                    u8"async function"))));
+  }
+}
 }
 }
 

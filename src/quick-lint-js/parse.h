@@ -1712,6 +1712,8 @@ class parser {
 
     switch (this->peek().type) {
     default: {
+      this->error_on_function_statement<
+          error_function_statement_not_allowed_in_do_while_loop>();
       bool parsed_statement = this->parse_and_visit_statement(v);
       if (!parsed_statement) {
         QLJS_PARSER_UNIMPLEMENTED();
@@ -2082,6 +2084,8 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->skip();
 
+    this->error_on_function_statement<
+        error_function_statement_not_allowed_in_for_loop>();
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_for_statement{
@@ -2115,12 +2119,44 @@ class parser {
           error_expected_parenthesis_around_while_condition>(v);
     }
 
+    this->error_on_function_statement<
+        error_function_statement_not_allowed_in_while_loop>();
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_while_statement{
           .while_and_condition = source_code_span(
               while_token_span.begin(), this->lexer_.end_of_previous_token()),
       });
+    }
+  }
+
+  template <class FunctionStatementNotAllowedError>
+  void error_on_function_statement() {
+    switch (this->peek().type) {
+    // function f() {}  // Invalid.
+    case token_type::kw_function:
+      this->error_reporter_->report(FunctionStatementNotAllowedError{
+          .function_keywords = this->peek().span(),
+      });
+      break;
+
+    // async function f() {}  // Invalid.
+    case token_type::kw_async: {
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      const char8 *async_begin = this->peek().begin;
+      this->skip();
+      if (this->peek().type == token_type::kw_function) {
+        this->error_reporter_->report(FunctionStatementNotAllowedError{
+            .function_keywords =
+                source_code_span(async_begin, this->peek().end),
+        });
+      }
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      break;
+    }
+
+    default:
+      break;
     }
   }
 
@@ -2133,6 +2169,8 @@ class parser {
         error_expected_parentheses_around_with_expression,
         error_expected_parenthesis_around_with_expression>(v);
 
+    this->error_on_function_statement<
+        error_function_statement_not_allowed_in_with_statement>();
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
