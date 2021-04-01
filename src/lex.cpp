@@ -964,9 +964,9 @@ done_parsing_garbage:
 void lexer::parse_binary_number() {
   const char8* input = this->input_;
 
-  while (this->is_binary_digit(*input)) {
-    input += 1;
-  }
+  input = this->parse_digits_and_underscores(
+      [](char8 character) -> bool { return is_binary_digit(character); },
+      input);
   bool found_digits = input != this->input_;
   if (*input == u8'n') {
     ++input;

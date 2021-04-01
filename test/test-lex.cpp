@@ -220,6 +220,7 @@ TEST_F(test_lex, lex_binary_numbers) {
   this->check_tokens(u8"0b1"_sv, {token_type::number});
   this->check_tokens(u8"0b010101010101010"_sv, {token_type::number});
   this->check_tokens(u8"0B010101010101010"_sv, {token_type::number});
+  this->check_tokens(u8"0b01_11_00_10"_sv, {token_type::number});
   this->check_tokens(u8"0b01n"_sv, {token_type::number});
 }
 
