@@ -1035,6 +1035,10 @@ parse_digits_again:
 }
 
 void lexer::parse_modern_octal_number() {
+  // TODO(strager): Why does this look different from parse_binary_number and
+  // parse_hexadecimal_number? We should probably make them look the same and
+  // factor the common structure.
+
   const char8* input = this->input_;
   input = this->parse_digits_and_underscores(
       [](char8 character) -> bool { return is_octal_digit(character); }, input);
