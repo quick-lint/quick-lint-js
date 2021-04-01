@@ -550,6 +550,33 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
                         error_number_literal_contains_consecutive_underscores,
                         underscores, offsets_matcher(input, 3, 8))));
       });
+  this->check_tokens_with_errors(
+      u8"0xfee_____eed"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_consecutive_underscores,
+                        underscores,
+                        offsets_matcher(input, strlen(u8"0xfee"), u8"_____"))));
+      });
+  this->check_tokens_with_errors(
+      u8"0o777_____000"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_consecutive_underscores,
+                        underscores,
+                        offsets_matcher(input, strlen(u8"0o777"), u8"_____"))));
+      });
+  this->check_tokens_with_errors(
+      u8"0b111_____000"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_number_literal_contains_consecutive_underscores,
+                        underscores,
+                        offsets_matcher(input, strlen(u8"0b111"), u8"_____"))));
+      });
 }
 
 TEST_F(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
