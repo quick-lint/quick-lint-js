@@ -985,7 +985,8 @@ void lexer::parse_binary_number() {
 void lexer::parse_octal_number(octal_kind kind) {
   const char8* input = this->input_;
 
-  input = this->parse_octal_digits(input);
+  input = this->parse_digits_and_underscores(
+      [](char8 character) -> bool { return is_octal_digit(character); }, input);
 
   if (kind == octal_kind::legacy && is_digit(*input)) {
     this->input_ = input;

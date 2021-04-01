@@ -271,6 +271,7 @@ TEST_F(test_lex, lex_modern_octal_numbers) {
   this->check_tokens(u8"0o0"_sv, {token_type::number});
   this->check_tokens(u8"0O0"_sv, {token_type::number});
   this->check_tokens(u8"0O12345670"_sv, {token_type::number});
+  this->check_tokens(u8"0o775_775"_sv, {token_type::number});
   this->check_tokens(u8"0o0n"_sv, {token_type::number});
   this->check_tokens(u8"0o01"_sv, {token_type::number});
   this->check_tokens(u8"0o123n"_sv, {token_type::number});
