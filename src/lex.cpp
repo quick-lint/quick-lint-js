@@ -1629,6 +1629,7 @@ void lexer::skip_line_comment_body() {
       break;
     }
   }
+  this->last_token_.has_leading_newline = true;
 }
 
 bool lexer::is_eof(const char8* input) noexcept {

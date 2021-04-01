@@ -34,9 +34,6 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
 
-		// TODO(strager): Fix ASI bugs.
-		"implementation-contributed/v8/intl/collator/de-sort.js",
-
 		// TODO(strager): Fix multiple definition detection in linter.
 		"annexB/language/*-code/if-decl-else-decl-*-*-no-skip-try.js",
 		"annexB/language/*-code/if-decl-else-decl-*-*-skip-early-err*.js",
@@ -51,7 +48,6 @@ var testTodo = TestTodo{
 		// TODO(strager): Fix various bugs.
 		"language/statements/for-in/let-identifier-with-newline.js",
 		"language/statements/for-of/let-identifier-with-newline.js",
-		"language/statements/let/syntax/escaped-let.js",
 
 		// TODO(strager): Don't check result of tests with no
 		// frontmatter.

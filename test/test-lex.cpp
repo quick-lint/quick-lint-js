@@ -1830,6 +1830,16 @@ TEST_F(test_lex, lex_token_notes_leading_newline) {
   }
 }
 
+TEST_F(test_lex, lex_token_notes_leading_newline_after_single_line_comment) {
+  for (string8_view line_terminator : line_terminators) {
+    padded_string code(u8"a // hello" + string8(line_terminator) + u8"b");
+    lexer l(&code, &null_error_reporter::instance);
+    EXPECT_FALSE(l.peek().has_leading_newline);  // a
+    l.skip();
+    EXPECT_TRUE(l.peek().has_leading_newline);  // b
+  }
+}
+
 TEST_F(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
   for (string8_view line_terminator : line_terminators) {
     padded_string code(u8"a /*" + string8(line_terminator) + u8"*/ b");
