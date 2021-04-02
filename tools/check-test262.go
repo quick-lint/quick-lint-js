@@ -24,6 +24,18 @@ import "sync/atomic"
 
 var testTodo = TestTodo{
 	TodoPaths: []string{
+		// These files look like tests, but they are not.
+		// TODO(strager): Check these files for crashes anyway, but
+		// don't check their assertions.
+		"tools/generation/test/expected/glob*/normal/*-nested/*.js",
+		"tools/generation/test/expected/glob*/normal/*.js",
+		"tools/generation/test/expected/multiple/glob/*.js",
+		"tools/generation/test/expected/multiple/normal/*-nested/*.js",
+		"tools/generation/test/expected/multiple/normal/*.js",
+		"tools/generation/test/expected/normal/*.js",
+		"tools/generation/test/expected/normal/nested/*.js",
+		"tools/lint/test/fixtures/*.js",
+
 		// TODO(strager): Implement non-standard and new features.
 		"language/module-code/export-expname_FIXTURE.js",
 
