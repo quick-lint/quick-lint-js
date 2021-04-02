@@ -34,11 +34,6 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
 
-		// TODO(strager): Don't check result of tests with no
-		// frontmatter.
-		"language/module-code/*_FIXTURE.js",
-		"language/module-code/top-level-await/*_FIXTURE.js",
-
 		// TODO(#153): Parse V8 %BuiltInFunctions
 		"implementation-contributed/v8/intl/regress-903566.js",
 		"implementation-contributed/v8/intl/assert.js",
@@ -193,8 +188,8 @@ func RunWorker(queue *WorkQueue, threadIndex int) {
 
 		result := RunQuickLintJS(queue.quickLintJSExecutable, testFile.Path, ignoreWarnings)
 		if result.Crashed() ||
-			(!testFile.Expectations.EarlyError && !result.ExitedWithCode(0)) ||
-			(testFile.Expectations.EarlyError && result.ExitedWithCode(0)) {
+			(testFile.Expectations.IsTest && !testFile.Expectations.EarlyError && !result.ExitedWithCode(0)) ||
+			(testFile.Expectations.IsTest && testFile.Expectations.EarlyError && result.ExitedWithCode(0)) {
 			queue.RecordFailure(threadIndex, i, &result)
 			if queue.stopOnFirstFailure {
 				break
@@ -264,6 +259,7 @@ type TestFile struct {
 
 type TestExpectations struct {
 	EarlyError        bool
+	IsTest            bool
 	IsTodoPath        bool
 	NeedsTodoFeatures bool
 }
@@ -279,6 +275,7 @@ func ReadTestExpectations(testTodo TestTodo, path string) TestExpectations {
 func ParseTestExpectations(testTodo TestTodo, source []byte, path string) TestExpectations {
 	return TestExpectations{
 		EarlyError:        bytes.Contains(source, []byte("phase: parse")),
+		IsTest:            bytes.Contains(source, []byte("/*---")),
 		IsTodoPath:        pathMatchesAnyPattern(path, testTodo.TodoPaths),
 		NeedsTodoFeatures: testSourceRequiresFeatures(source, testTodo.TodoFeatures),
 	}

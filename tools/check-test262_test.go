@@ -116,6 +116,12 @@ func TestParseTestExpectations(t *testing.T) {
 		}
 	}
 
+	assertIsTest := func(expectations TestExpectations, expected bool) {
+		if expectations.IsTest != expected {
+			t.Errorf("expected IsTest to be %#v, but got %#v", expected, expectations.IsTest)
+		}
+	}
+
 	assertIsTodoPath := func(expectations TestExpectations, expected bool) {
 		if expectations.IsTodoPath != expected {
 			t.Errorf("expected IsTodoPath to be %#v, but got %#v", expected, expectations.IsTodoPath)
@@ -186,6 +192,7 @@ print("hello world");
 		}}
 		expectations := ParseTestExpectations(testTodo, source, "test.js")
 		assertEarlyError(expectations, false)
+		assertIsTest(expectations, false)
 		assertNeedsTodoFeatures(expectations, false)
 	})
 
@@ -219,6 +226,7 @@ print("hello world");
 `)
 		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
 		assertEarlyError(expectations, false)
+		assertIsTest(expectations, true)
 	})
 
 	t.Run("early syntax error", func(t *testing.T) {
@@ -236,6 +244,7 @@ print("hello world"
 `)
 		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
 		assertEarlyError(expectations, true)
+		assertIsTest(expectations, true)
 	})
 
 	t.Run("resolution error", func(t *testing.T) {
@@ -254,6 +263,7 @@ import {} from "./module-with-syntax-error.mjs";
 `)
 		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
 		assertEarlyError(expectations, false)
+		assertIsTest(expectations, true)
 	})
 
 	t.Run("runtime error", func(t *testing.T) {
@@ -271,6 +281,7 @@ eval('print("hello world"');
 `)
 		expectations := ParseTestExpectations(TestTodo{}, source, "test.js")
 		assertEarlyError(expectations, false)
+		assertIsTest(expectations, true)
 	})
 }
 
