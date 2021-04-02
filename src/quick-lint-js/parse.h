@@ -2135,7 +2135,9 @@ class parser {
     std::optional<source_code_span> function_keywords =
         this->is_maybe_function_statement();
     if (function_keywords.has_value()) {
+      const char8 *expected_body = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(FunctionStatementNotAllowedError{
+          .expected_body = source_code_span(expected_body, expected_body),
           .function_keywords = *function_keywords,
       });
     }

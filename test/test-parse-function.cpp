@@ -718,11 +718,13 @@ TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
                                       "visit_enter_function_scope_body",  // f
                                       "visit_exit_function_scope",        // f
                                       "visit_variable_use"));  // cond
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_function_statement_not_allowed_in_do_while_loop,
-                    function_keywords,
-                    offsets_matcher(&code, strlen(u8"do "), u8"function"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_function_statement_not_allowed_in_do_while_loop,
+            expected_body, offsets_matcher(&code, strlen(u8"do"), u8""),  //
+            function_keywords,
+            offsets_matcher(&code, strlen(u8"do "), u8"function"))));
   }
 
   {
@@ -757,8 +759,10 @@ TEST(test_parse, function_as_for_loop_body_is_disallowed) {
                                       "visit_exit_function_scope"));      // f
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_function_statement_not_allowed_in_for_loop, function_keywords,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_function_statement_not_allowed_in_for_loop, expected_body,
+            offsets_matcher(&code, strlen(u8"for (;cond;)"), u8""),  //
+            function_keywords,
             offsets_matcher(&code, strlen(u8"for (;cond;) "), u8"function"))));
   }
 
@@ -793,8 +797,9 @@ TEST(test_parse, function_as_while_loop_body_is_disallowed) {
                                       "visit_exit_function_scope"));      // f
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_function_statement_not_allowed_in_while_loop,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_function_statement_not_allowed_in_while_loop, expected_body,
+            offsets_matcher(&code, strlen(u8"while (cond)"), u8""),  //
             function_keywords,
             offsets_matcher(&code, strlen(u8"while (cond) "), u8"function"))));
   }
@@ -831,8 +836,10 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
                                       "visit_exit_function_scope"));      // f
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
+        ElementsAre(ERROR_TYPE_2_FIELDS(
             error_function_statement_not_allowed_in_with_statement,
+            expected_body,
+            offsets_matcher(&code, strlen(u8"with (obj)"), u8""),  //
             function_keywords,
             offsets_matcher(&code, strlen(u8"with (obj) "), u8"function"))));
   }
