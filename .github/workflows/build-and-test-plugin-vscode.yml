@@ -11,6 +11,7 @@ jobs:
   build:
     name: extension
     runs-on: ubuntu-latest
+    # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:

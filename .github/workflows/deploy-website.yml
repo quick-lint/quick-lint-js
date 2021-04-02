@@ -13,6 +13,7 @@ jobs:
   deploy:
     name: deploy
     runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: check out
         uses: actions/checkout@v1

@@ -8,6 +8,7 @@ jobs:
   tag-build:
     name: tag
     runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: create tag file
         run: |

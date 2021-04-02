@@ -11,6 +11,7 @@ jobs:
   check_format:
     name: check copyright
     runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2

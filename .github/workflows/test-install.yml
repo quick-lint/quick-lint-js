@@ -11,6 +11,7 @@ jobs:
   build:
     name: test install
     runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: checkout
         if: ${{ github.event_name == 'push' }}
@@ -20,12 +21,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: install dependencies
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update
-          sudo apt-get install -y g++-8
 
       - name: configure
         run: cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DBUILD_TESTING=OFF -S . -B .

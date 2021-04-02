@@ -18,6 +18,7 @@ jobs:
           - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", archive_extension: ".tar.gz", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: windows-latest, name: "Windows", archive_name: "windows", archive_extension: ".zip", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
     runs-on: ${{ matrix.toolchain.runs_on }}
+    container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1"]')[matrix.toolchain.runs_on == 'ubuntu-latest'] }}
     env:
       CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
       CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
@@ -38,21 +39,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: configure apt sources
-        if: ${{ matrix.toolchain.archive_name == 'linux' }}
-        run: |
-          sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list /etc/apt/sources.list.d/*.list | sudo tee /etc/apt/sources.list.d/quick-lint-js-sources.list
-          sudo apt-get update
-
-      - name: upgrade dependencies
-        if: ${{ matrix.toolchain.archive_name == 'linux' }}
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          # HACK(strager): Install libc6 to avoid error when collecting
-          # copyright information:
-          # E: Can not find version '2.27-3ubuntu1.3' of package 'glibc'
-          sudo apt-get install -y g++-8 libc6
 
       - name: configure
         run: |

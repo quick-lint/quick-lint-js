@@ -15,17 +15,18 @@ jobs:
       matrix:
         toolchain:
           - {runs_on: macos-10.15, name: "macOS Clang", CC: clang, CXX: clang++, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
-          - {runs_on: ubuntu-18.04, name: "Clang 9 libc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
+          - {runs_on: ubuntu-latest, name: "Clang 9 libc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "Clang 9 libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "Clang 9 ASAN+UBSAN libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "Clang 9 Release libstdc++", CC: clang-9, CXX: clang++-9, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{1}"}
           - {runs_on: ubuntu-latest, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
-          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
+          - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -fuse-ld=gold", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 Release", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 dev", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-DQUICK_LINT_JS_FEATURE_VECTOR_PROFILING=ON"}
           - {runs_on: windows-latest, name: "MSVC", CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: ""}
           - {runs_on: windows-latest, name: "MSVC Release", CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: ""}
     runs-on: ${{ matrix.toolchain.runs_on }}
+    container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1"]')[matrix.toolchain.runs_on == 'ubuntu-latest'] }}
     env:
       CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
@@ -54,13 +55,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: install dependencies
-        if: ${{ matrix.toolchain.runs_on == 'ubuntu-latest' && matrix.toolchain.CC == 'gcc-8' }}
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update
-          sudo apt-get install -y g++-8
 
       - name: configure
         run: |

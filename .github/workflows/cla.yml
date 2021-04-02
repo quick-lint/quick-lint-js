@@ -11,6 +11,7 @@ on:
 jobs:
   cla-assistant:
     runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: CLA Assistant
         if: |

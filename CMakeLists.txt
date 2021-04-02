@@ -18,6 +18,10 @@ quick_lint_js_enable_char8_t_if_supported()
 quick_lint_js_configure_exception_handling()
 quick_lint_js_work_around_implicit_link_directories()
 
+# HACK(strager): Work around issues with CI. We should consider using
+# find_package(Python3) instead.
+find_package(PythonInterp 3.7)
+
 find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 
 add_subdirectory(vendor)

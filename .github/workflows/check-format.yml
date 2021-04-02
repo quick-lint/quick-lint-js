@@ -11,6 +11,7 @@ jobs:
   check_format:
     name: check format
     runs-on: ubuntu-18.04
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2

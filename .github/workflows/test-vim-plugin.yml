@@ -14,9 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         vim:
-          - {name: "Neovim", packages: "neovim", version_command: "nvim --version", test_command: "./plugin/vim/test-nvim.sh"}
-          - {name: "Vim", packages: "vim", version_command: "vim --version", test_command: "./plugin/vim/test-vim.sh"}
+          - {name: "Neovim", version_command: "nvim --version", test_command: "./plugin/vim/test-nvim.sh"}
+          - {name: "Vim", version_command: "vim --version", test_command: "./plugin/vim/test-vim.sh"}
     runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: checkout
         if: ${{ github.event_name == 'push' }}
@@ -27,8 +28,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: install ${{ matrix.vim.name }}
-        run: sudo apt-get install ${{ matrix.vim.packages }}
       - name: version
         run: ${{ matrix.vim.version_command }}
 

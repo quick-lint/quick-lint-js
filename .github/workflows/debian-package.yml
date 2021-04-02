@@ -11,22 +11,8 @@ jobs:
   build-deb:
     name: build .deb
     runs-on: ubuntu-latest
-    container: ubuntu:16.04
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
-      - name: install build dependencies
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update
-          apt-get install -y apt-transport-https curl software-properties-common
-
-          curl 'https://apt.kitware.com/keys/kitware-archive-latest.asc' | apt-key add -
-          apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'
-          add-apt-repository -y ppa:git-core/ppa
-          add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          apt-get update
-
-          apt-get install -y cmake debhelper dpkg-dev gcc-9 g++-9 git lintian nodejs
-
       - name: checkout
         if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2
