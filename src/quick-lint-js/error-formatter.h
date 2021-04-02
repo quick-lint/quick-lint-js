@@ -14,6 +14,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
+#include <type_traits>
 #include <utility>
 
 namespace quick_lint_js {
@@ -47,6 +48,27 @@ class error_formatter_base {
     warning,
   };
 
+  enum class parameter_kind {
+    string_view,
+  };
+
+  struct parameter {
+    explicit parameter(string8_view string_view)
+        : kind(parameter_kind::string_view), string_view(string_view) {}
+
+    string8_view get_string_view() const noexcept {
+      QLJS_ASSERT(this->kind == parameter_kind::string_view);
+      return this->string_view;
+    }
+
+    parameter_kind kind;
+    union {
+      string8_view string_view;
+      static_assert(std::is_trivially_copyable_v<string8_view>);
+      static_assert(std::is_trivially_destructible_v<string8_view>);
+    };
+  };
+
  protected:
   static const source_code_span &to_span(const source_code_span &span) {
     return span;
@@ -54,14 +76,14 @@ class error_formatter_base {
 
   static source_code_span to_span(identifier ident) { return ident.span(); }
 
-  static string8_view to_string_view(string8_view s) { return s; }
+  static parameter to_parameter(string8_view s) { return parameter(s); }
 
-  static string8_view to_string_view(const source_code_span &span) {
-    return span.string_view();
+  static parameter to_parameter(const source_code_span &span) {
+    return parameter(span.string_view());
   }
 
-  static string8_view to_string_view(identifier ident) {
-    return ident.span().string_view();
+  static parameter to_parameter(identifier ident) {
+    return parameter(ident.span().string_view());
   }
 };
 
@@ -98,20 +120,20 @@ class error_formatter : public error_formatter_base {
   void add(severity sev, const gmo_message &message, const Origin &origin,
            Args &&... parameters) {
     this->add(sev, message, this->to_span(origin),
-              {this->to_string_view(origin),
-               this->to_string_view(std::forward<Args>(parameters))...});
+              {this->to_parameter(origin),
+               this->to_parameter(std::forward<Args>(parameters))...});
   }
 
   void add(severity, const gmo_message &message,
            const source_code_span &origin_span,
-           std::initializer_list<string8_view> parameters);
+           std::initializer_list<parameter> parameters);
 };
 
 template <class Derived>
 inline void error_formatter<Derived>::add(
     severity sev, const gmo_message &message,
     const source_code_span &origin_span,
-    std::initializer_list<string8_view> parameters) {
+    std::initializer_list<parameter> parameters) {
   static constexpr auto npos = string8_view::npos;
   using string8_pos = string8_view::size_type;
 
@@ -154,7 +176,8 @@ inline void error_formatter<Derived>::add(
       QLJS_UNREACHABLE();
     }
 
-    self->write_message_part(sev, *(parameters.begin() + index));
+    self->write_message_part(sev,
+                             (parameters.begin() + index)->get_string_view());
     remaining_message = remaining_message.substr(right_curly_index + 1);
   }
   self->write_message_part(sev, remaining_message);
