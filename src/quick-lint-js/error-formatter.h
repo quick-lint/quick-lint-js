@@ -39,19 +39,39 @@ inline void format_error(const Error &e, Formatter &&formatter) {
   f.format(std::forward<Formatter>(formatter));
 }
 
-template <class Derived>
-class error_formatter {
+class error_formatter_base {
  public:
-  // Assumed member functions in Derived:
-  // void write_before_message(severity, const source_code_span &origin);
-  // void write_message_part(severity, string8_view);
-  // void write_after_message(severity, const source_code_span &origin);
-
   enum class severity {
     error,
     note,
     warning,
   };
+
+ protected:
+  static const source_code_span &to_span(const source_code_span &span) {
+    return span;
+  }
+
+  static source_code_span to_span(identifier ident) { return ident.span(); }
+
+  static string8_view to_string_view(string8_view s) { return s; }
+
+  static string8_view to_string_view(const source_code_span &span) {
+    return span.string_view();
+  }
+
+  static string8_view to_string_view(identifier ident) {
+    return ident.span().string_view();
+  }
+};
+
+template <class Derived>
+class error_formatter : public error_formatter_base {
+ public:
+  // Assumed member functions in Derived:
+  // void write_before_message(severity, const source_code_span &origin);
+  // void write_message_part(severity, string8_view);
+  // void write_after_message(severity, const source_code_span &origin);
 
   template <class... Args>
   error_formatter &warning(const gmo_message &message, Args... parameters) {
@@ -85,22 +105,6 @@ class error_formatter {
   void add(severity, const gmo_message &message,
            const source_code_span &origin_span,
            std::initializer_list<string8_view> parameters);
-
-  static const source_code_span &to_span(const source_code_span &span) {
-    return span;
-  }
-
-  static source_code_span to_span(identifier ident) { return ident.span(); }
-
-  static string8_view to_string_view(string8_view s) { return s; }
-
-  static string8_view to_string_view(const source_code_span &span) {
-    return span.string_view();
-  }
-
-  static string8_view to_string_view(identifier ident) {
-    return ident.span().string_view();
-  }
 };
 
 template <class Derived>
