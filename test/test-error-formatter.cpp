@@ -9,6 +9,8 @@
 
 namespace quick_lint_js {
 namespace {
+source_code_span empty_span(nullptr, nullptr);
+
 class string_error_formatter : public error_formatter<string_error_formatter> {
  public:
   void write_before_message(severity, const source_code_span&) {}
@@ -25,23 +27,18 @@ class string_error_formatter : public error_formatter<string_error_formatter> {
 };
 
 TEST(test_error_formatter, single_span_simple_message) {
-  const char8* code = u8"hello world";
   string_error_formatter formatter;
 
-  formatter.error("something happened"_gmo_message,
-                  source_code_span(&code[0], &code[5]));
+  formatter.error("something happened"_gmo_message, empty_span);
 
   EXPECT_EQ(formatter.message, u8"something happened\n");
 }
 
 TEST(test_error_formatter, message_with_note) {
-  const char8* code = u8"hello world";
   string_error_formatter formatter;
 
-  formatter
-      .error("something happened"_gmo_message,
-             source_code_span(&code[0], &code[5]))
-      .note("see here"_gmo_message, source_code_span(&code[6], &code[11]));
+  formatter.error("something happened"_gmo_message, empty_span)
+      .note("see here"_gmo_message, empty_span);
 
   EXPECT_EQ(formatter.message,
             u8"something happened\n"
