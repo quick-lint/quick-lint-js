@@ -337,6 +337,9 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
   });
   erase_if(scope.variables_used_in_descendant_scope,
            [&](const used_variable &used_var) {
+             if (name.normalized_name() != used_var.name.normalized_name()) {
+               return false;
+             }
              switch (used_var.kind) {
              case used_variable_kind::assignment:
                this->report_error_if_assignment_is_illegal(
@@ -351,7 +354,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              case used_variable_kind::use:
                break;
              }
-             return name.normalized_name() == used_var.name.normalized_name();
+             return true;
            });
 }
 

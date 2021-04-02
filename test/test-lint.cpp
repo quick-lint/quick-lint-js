@@ -2284,6 +2284,35 @@ TEST(test_lint,
   }
 }
 
+TEST(
+    test_lint,
+    regression_assigning_to_variable_in_function_scope_does_not_interact_with_different_variable_in_parent_scope) {
+  // (function() {
+  //   b = null;
+  // });
+  // const a;
+  // let b;
+  const char8 a_declaration[] = u8"a";
+  const char8 b_declaration[] = u8"b";
+  const char8 b_assignment[] = u8"b";
+
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_assignment(identifier_of(b_assignment));
+  l.visit_exit_function_scope();
+  l.visit_variable_declaration(identifier_of(a_declaration),
+                               variable_kind::_const);
+  l.visit_variable_declaration(identifier_of(b_declaration),
+                               variable_kind::_let);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty())
+      << "assigning to 'b' should not be an error; 'a' should not be confused "
+         "with 'b'";
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";
