@@ -5,6 +5,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/gmo.h>
+#include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
 
 namespace quick_lint_js {
@@ -90,6 +91,78 @@ TEST(test_error_formatter, message_with_escaped_curlies) {
   formatter.error("a {{0} b }} c"_gmo_message, code_span);
 
   EXPECT_EQ(formatter.message, u8"a {0} b }} c\n");
+}
+
+TEST(test_error_formatter, statement_kind_placeholder) {
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
+                    statement_kind::do_while_loop);
+    EXPECT_EQ(formatter.message, u8"expected 'do-while' loop\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span,
+                    statement_kind::do_while_loop);
+    EXPECT_EQ(formatter.message, u8"expected a 'do-while' loop\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
+                    statement_kind::for_loop);
+    EXPECT_EQ(formatter.message, u8"expected 'for' loop\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span,
+                    statement_kind::for_loop);
+    EXPECT_EQ(formatter.message, u8"expected a 'for' loop\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
+                    statement_kind::if_statement);
+    EXPECT_EQ(formatter.message, u8"expected 'if' statement\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span,
+                    statement_kind::if_statement);
+    EXPECT_EQ(formatter.message, u8"expected an 'if' statement\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
+                    statement_kind::while_loop);
+    EXPECT_EQ(formatter.message, u8"expected 'while' loop\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span,
+                    statement_kind::while_loop);
+    EXPECT_EQ(formatter.message, u8"expected a 'while' loop\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
+                    statement_kind::with_statement);
+    EXPECT_EQ(formatter.message, u8"expected 'with' statement\n");
+  }
+
+  {
+    string_error_formatter formatter;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span,
+                    statement_kind::with_statement);
+    EXPECT_EQ(formatter.message, u8"expected a 'with' statement\n");
+  }
 }
 }
 }

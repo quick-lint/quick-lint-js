@@ -11,6 +11,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/gmo.h>
+#include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -20,6 +21,9 @@
 namespace quick_lint_js {
 template <class Error>
 struct error_formatter_detail;
+
+string8_view translated_headlinese_statement_kind(statement_kind) noexcept;
+string8_view translated_singular_statement_kind(statement_kind) noexcept;
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   template <>                                                 \
@@ -49,12 +53,21 @@ class error_formatter_base {
   };
 
   enum class parameter_kind {
+    statement_kind,
     string_view,
   };
 
   struct parameter {
+    explicit parameter(statement_kind sk)
+        : kind(parameter_kind::statement_kind), kind_of_statement(sk) {}
+
     explicit parameter(string8_view string_view)
         : kind(parameter_kind::string_view), string_view(string_view) {}
+
+    statement_kind get_statement_kind() const noexcept {
+      QLJS_ASSERT(this->kind == parameter_kind::statement_kind);
+      return this->kind_of_statement;
+    }
 
     string8_view get_string_view() const noexcept {
       QLJS_ASSERT(this->kind == parameter_kind::string_view);
@@ -63,6 +76,8 @@ class error_formatter_base {
 
     parameter_kind kind;
     union {
+      statement_kind kind_of_statement;
+
       string8_view string_view;
       static_assert(std::is_trivially_copyable_v<string8_view>);
       static_assert(std::is_trivially_destructible_v<string8_view>);
@@ -75,6 +90,8 @@ class error_formatter_base {
   }
 
   static source_code_span to_span(identifier ident) { return ident.span(); }
+
+  static parameter to_parameter(statement_kind sk) { return parameter(sk); }
 
   static parameter to_parameter(string8_view s) { return parameter(s); }
 
@@ -164,20 +181,26 @@ inline void error_formatter<Derived>::add(
                 "invalid message format: missing }");
     string8_view curly_content = remaining_message.substr(
         left_curly_index + 1, right_curly_index - (left_curly_index + 1));
-    std::size_t index;
+
+    string8_view expanded_parameter;
     if (curly_content == u8"0") {
-      index = 0;
+      expanded_parameter = (parameters.begin() + 0)->get_string_view();
     } else if (curly_content == u8"1") {
-      index = 1;
+      expanded_parameter = (parameters.begin() + 1)->get_string_view();
+    } else if (curly_content == u8"1:headlinese") {
+      expanded_parameter = translated_headlinese_statement_kind(
+          (parameters.begin() + 1)->get_statement_kind());
+    } else if (curly_content == u8"1:singular") {
+      expanded_parameter = translated_singular_statement_kind(
+          (parameters.begin() + 1)->get_statement_kind());
     } else if (curly_content == u8"2") {
-      index = 2;
+      expanded_parameter = (parameters.begin() + 2)->get_string_view();
     } else {
       QLJS_ASSERT(false && "invalid message format: unrecognized placeholder");
       QLJS_UNREACHABLE();
     }
 
-    self->write_message_part(sev,
-                             (parameters.begin() + index)->get_string_view());
+    self->write_message_part(sev, expanded_parameter);
     remaining_message = remaining_message.substr(right_curly_index + 1);
   }
   self->write_message_part(sev, remaining_message);

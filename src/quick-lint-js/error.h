@@ -385,12 +385,12 @@
         source_code_span expected_body;                                        \
         source_code_span function_keywords;                                    \
       },                                                                       \
-      .error(QLJS_TRANSLATABLE("missing body for 'do-while' loop"),            \
-             expected_body)                                                    \
+      .error(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),             \
+             expected_body, statement_kind::do_while_loop)                     \
           .note(                                                               \
               QLJS_TRANSLATABLE("a function statement is not allowed as the "  \
-                                "body of a 'do-while' loop"),                  \
-              function_keywords))                                              \
+                                "body of {1:singular}"),                       \
+              function_keywords, statement_kind::do_while_loop))               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_function_statement_not_allowed_in_for_loop, "E150",                \
@@ -398,11 +398,12 @@
         source_code_span expected_body;                                        \
         source_code_span function_keywords;                                    \
       },                                                                       \
-      .error(QLJS_TRANSLATABLE("missing body for 'for' loop"), expected_body)  \
+      .error(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),             \
+             expected_body, statement_kind::for_loop)                          \
           .note(                                                               \
               QLJS_TRANSLATABLE("a function statement is not allowed as the "  \
-                                "body of a 'for' loop"),                       \
-              function_keywords))                                              \
+                                "body of {1:singular}"),                       \
+              function_keywords, statement_kind::for_loop))                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_function_statement_not_allowed_in_while_loop, "E148",              \
@@ -410,12 +411,12 @@
         source_code_span expected_body;                                        \
         source_code_span function_keywords;                                    \
       },                                                                       \
-      .error(QLJS_TRANSLATABLE("missing body for 'while' loop"),               \
-             expected_body)                                                    \
+      .error(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),             \
+             expected_body, statement_kind::while_loop)                        \
           .note(                                                               \
               QLJS_TRANSLATABLE("a function statement is not allowed as the "  \
-                                "body of a 'while' loop"),                     \
-              function_keywords))                                              \
+                                "body of {1:singular}"),                       \
+              function_keywords, statement_kind::while_loop))                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_function_statement_not_allowed_in_with_statement, "E151",          \
@@ -423,12 +424,12 @@
         source_code_span expected_body;                                        \
         source_code_span function_keywords;                                    \
       },                                                                       \
-      .error(QLJS_TRANSLATABLE("missing body for 'with' statement"),           \
-             expected_body)                                                    \
+      .error(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),             \
+             expected_body, statement_kind::with_statement)                    \
           .note(                                                               \
               QLJS_TRANSLATABLE("a function statement is not allowed as the "  \
-                                "body of a 'with' statement"),                 \
-              function_keywords))                                              \
+                                "body of {1:singular}"),                       \
+              function_keywords, statement_kind::with_statement))              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_generator_function_star_belongs_before_name, "E133",               \

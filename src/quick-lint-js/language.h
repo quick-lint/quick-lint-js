@@ -7,6 +7,14 @@
 #include <iosfwd>
 
 namespace quick_lint_js {
+enum class statement_kind {
+  do_while_loop,
+  for_loop,  // TODO(strager): c_style_for_loop + for_in_loop + for_of_loop?
+  if_statement,
+  while_loop,
+  with_statement,
+};
+
 enum class variable_kind {
   _catch,
   _class,

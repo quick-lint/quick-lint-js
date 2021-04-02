@@ -32,6 +32,7 @@ quick_lint_js_add_library(
   char8.cpp
   cli-location.cpp
   crash.cpp
+  error-formatter.cpp
   error-list.cpp
   file-handle.cpp
   file.cpp
