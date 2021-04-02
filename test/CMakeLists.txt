@@ -33,6 +33,7 @@ quick_lint_js_add_executable(
   test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
+  test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
   test-file.cpp
