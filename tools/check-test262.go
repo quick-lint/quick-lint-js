@@ -47,8 +47,8 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-5gs.js",
 
 		// TODO(#153): Parse V8 %BuiltInFunctions
-		"implementation-contributed/v8/intl/regress-903566.js",
-		"implementation-contributed/v8/intl/assert.js",
+		"v8/intl/assert.js",
+		"v8/intl/regress-903566.js",
 		"v8/mjsunit/*.js",
 		"v8/mjsunit/*/*.js",
 		"v8/mjsunit/*/*/*.js",
