@@ -1714,6 +1714,7 @@ class parser {
     default: {
       this->error_on_class_statement(statement_kind::do_while_loop);
       this->error_on_function_statement(statement_kind::do_while_loop);
+      this->error_on_lexical_declaration(statement_kind::do_while_loop);
       bool parsed_statement = this->parse_and_visit_statement(v);
       if (!parsed_statement) {
         QLJS_PARSER_UNIMPLEMENTED();
@@ -2086,6 +2087,7 @@ class parser {
 
     this->error_on_class_statement(statement_kind::for_loop);
     this->error_on_function_statement(statement_kind::for_loop);
+    this->error_on_lexical_declaration(statement_kind::for_loop);
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_for_statement{
@@ -2121,6 +2123,7 @@ class parser {
 
     this->error_on_class_statement(statement_kind::while_loop);
     this->error_on_function_statement(statement_kind::while_loop);
+    this->error_on_lexical_declaration(statement_kind::while_loop);
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_while_statement{
@@ -2138,6 +2141,19 @@ class parser {
           .expected_body = source_code_span(expected_body, expected_body),
           .class_keyword = this->peek().span(),
       });
+    }
+  }
+
+  void error_on_lexical_declaration(statement_kind statement_kind) {
+    if (this->peek().type == token_type::kw_const ||
+        this->peek().type == token_type::kw_let) {
+      const char8 *expected_body = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(
+          error_lexical_declaration_not_allowed_in_body{
+              .kind_of_statement = statement_kind,
+              .expected_body = source_code_span(expected_body, expected_body),
+              .declaring_keyword = this->peek().span(),
+          });
     }
   }
 
@@ -2193,6 +2209,7 @@ class parser {
 
     this->error_on_class_statement(statement_kind::with_statement);
     this->error_on_function_statement(statement_kind::with_statement);
+    this->error_on_lexical_declaration(statement_kind::with_statement);
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -2220,6 +2237,7 @@ class parser {
       bool entered_block_scope = false;
 
       this->error_on_class_statement(statement_kind::if_statement);
+      this->error_on_lexical_declaration(statement_kind::if_statement);
       if (this->is_maybe_function_statement()) {
         v.visit_enter_block_scope();
         entered_block_scope = true;

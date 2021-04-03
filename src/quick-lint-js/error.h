@@ -486,6 +486,20 @@
       .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_lexical_declaration_not_allowed_in_body, "E150",                   \
+      {                                                                        \
+        statement_kind kind_of_statement;                                      \
+        source_code_span expected_body;                                        \
+        source_code_span declaring_keyword;                                    \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),             \
+             expected_body, kind_of_statement)                                 \
+          .note(                                                               \
+              QLJS_TRANSLATABLE("a lexical declaration is not allowed as the " \
+                                "body of {1:singular}"),                       \
+              declaring_keyword, kind_of_statement))                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_methods_should_not_use_function_keyword, "E072",                   \
       { source_code_span function_token; },                                    \
       .error(                                                                  \

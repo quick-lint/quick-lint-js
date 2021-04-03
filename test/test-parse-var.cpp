@@ -1358,6 +1358,162 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     }
   }
 }
+
+TEST(test_parse, lexical_declaration_as_do_while_loop_body_is_disallowed) {
+  for (string8 variable_kind : {u8"const", u8"let"}) {
+    padded_string code(u8"do " + variable_kind + u8" x = y; while (cond);");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use"));        // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+            statement_kind::do_while_loop,                                //
+            expected_body, offsets_matcher(&code, strlen(u8"do"), u8""),  //
+            declaring_keyword,
+            offsets_matcher(&code, strlen(u8"do "), variable_kind))));
+  }
+}
+
+TEST(test_parse, lexical_declaration_as_for_loop_body_is_disallowed) {
+  for (string8 variable_kind : {u8"const", u8"let"}) {
+    padded_string code(u8"for (;cond;) " + variable_kind + u8" x = y;");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                      "visit_variable_use",            // y
+                                      "visit_variable_declaration"));  // x
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+            statement_kind::for_loop,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"for (;cond;)"), u8""),  //
+            declaring_keyword,
+            offsets_matcher(&code, strlen(u8"for (;cond;) "), variable_kind))));
+  }
+}
+
+TEST(test_parse, lexical_declaration_as_if_statement_body_is_disallowed) {
+  for (string8 variable_kind : {u8"const", u8"let"}) {
+    {
+      padded_string code(u8"if (cond) " + variable_kind + u8" x = y;");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                        "visit_variable_use",            // y
+                                        "visit_variable_declaration"));  // x
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_3_FIELDS(
+              error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+              statement_kind::if_statement,  //
+              expected_body,
+              offsets_matcher(&code, strlen(u8"if (cond)"), u8""),  //
+              declaring_keyword,
+              offsets_matcher(&code, strlen(u8"if (cond) "), variable_kind))));
+    }
+
+    {
+      padded_string code(u8"if (cond) " + variable_kind + u8" x = y; else {}");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                        "visit_variable_use",          // y
+                                        "visit_variable_declaration",  // x
+                                        "visit_enter_block_scope",     // else
+                                        "visit_exit_block_scope"));    // else
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_3_FIELDS(
+              error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+              statement_kind::if_statement,  //
+              expected_body,
+              offsets_matcher(&code, strlen(u8"if (cond)"), u8""),  //
+              declaring_keyword,
+              offsets_matcher(&code, strlen(u8"if (cond) "), variable_kind))));
+    }
+
+    {
+      padded_string code(u8"if (cond) {} else " + variable_kind + u8" x = y;");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                        "visit_enter_block_scope",       // if
+                                        "visit_exit_block_scope",        // if
+                                        "visit_variable_use",            // y
+                                        "visit_variable_declaration"));  // x
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_3_FIELDS(
+              error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+              statement_kind::if_statement,  //
+              expected_body,
+              offsets_matcher(&code, strlen(u8"if (cond) {} else"), u8""),  //
+              declaring_keyword,
+              offsets_matcher(&code, strlen(u8"if (cond) {} else "),
+                              variable_kind))));
+    }
+  }
+}
+
+TEST(test_parse, lexical_declaration_as_while_loop_body_is_disallowed) {
+  for (string8 variable_kind : {u8"const", u8"let"}) {
+    padded_string code(u8"while (cond) " + variable_kind + u8" x = y;");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                      "visit_variable_use",            // y
+                                      "visit_variable_declaration"));  // x
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+            statement_kind::while_loop,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"while (cond)"), u8""),  //
+            declaring_keyword,
+            offsets_matcher(&code, strlen(u8"while (cond) "), variable_kind))));
+  }
+}
+
+TEST(test_parse, lexical_declaration_as_with_statement_body_is_disallowed) {
+  for (string8 variable_kind : {u8"const", u8"let"}) {
+    padded_string code(u8"with (obj) " + variable_kind + u8" x = y;");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // obj
+                                      "visit_variable_use",            // y
+                                      "visit_variable_declaration"));  // x
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+            statement_kind::with_statement,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"with (obj)"), u8""),  //
+            declaring_keyword,
+            offsets_matcher(&code, strlen(u8"with (obj) "), variable_kind))));
+  }
+}
 }
 }
 
