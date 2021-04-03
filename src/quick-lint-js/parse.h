@@ -192,6 +192,7 @@ class parser {
         expression *ast =
             this->parse_expression(precedence{.in_operator = true});
         this->visit_expression(ast, v, variable_context::rhs);
+        parse_expression_end();
       } else {
         // Variable declaration.
         this->lexer_.commit_transaction(std::move(transaction));
@@ -2145,8 +2146,26 @@ class parser {
   }
 
   void error_on_lexical_declaration(statement_kind statement_kind) {
-    if (this->peek().type == token_type::kw_const ||
-        this->peek().type == token_type::kw_let) {
+    bool is_lexical_declaration;
+    switch (this->peek().type) {
+    case token_type::kw_const:
+      is_lexical_declaration = true;
+      break;
+
+    case token_type::kw_let: {
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      is_lexical_declaration =
+          !this->is_let_token_a_variable_reference(this->peek());
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      break;
+    }
+
+    default:
+      is_lexical_declaration = false;
+      break;
+    }
+    if (is_lexical_declaration) {
       const char8 *expected_body = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(
           error_lexical_declaration_not_allowed_in_body{

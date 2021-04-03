@@ -1089,6 +1089,56 @@ TEST(test_parse, let_is_an_identifier_if_escaped) {
                             spy_visitor::visited_variable_use{u8"y"}));
   }
 }
+
+TEST(test_parse, let_expression_as_statement_body_is_allowed) {
+  // do-while loops, for loops, if statements, while loops, and with statements
+  // all disallow lexical declarations ('let x = y;') as their body. However,
+  // they do allow expression statements in their body, including expression
+  // statements starting with 'let'.
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"do let(); while (cond);");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // let
+                                      "visit_variable_use",  // cond
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"let"},
+                            spy_visitor::visited_variable_use{u8"cond"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"for (;cond;) let = y;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // cond
+                                      "visit_variable_use",         // y
+                                      "visit_variable_assignment",  // let
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"cond"},
+                            spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"let"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_module(u8"if (cond) let++; else let ? a : b;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // cond
+                                      "visit_variable_use",         // let
+                                      "visit_variable_assignment",  // let
+                                      "visit_variable_use",         // let
+                                      "visit_variable_use",         // a
+                                      "visit_variable_use",         // b
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"cond"},
+                            spy_visitor::visited_variable_use{u8"let"},
+                            spy_visitor::visited_variable_use{u8"let"},
+                            spy_visitor::visited_variable_use{u8"a"},
+                            spy_visitor::visited_variable_use{u8"b"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"let"}));
+  }
+}
 }
 }
 
