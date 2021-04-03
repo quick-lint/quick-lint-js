@@ -2706,6 +2706,7 @@ class parser {
       variable_name:
       case token_type::identifier:
       case token_type::kw_as:
+      case token_type::kw_async:
       case token_type::kw_from:
       case token_type::kw_get:
       case token_type::kw_let:
@@ -2755,7 +2756,6 @@ class parser {
         break;
       }
 
-      case token_type::kw_async:
       case token_type::left_curly:
       case token_type::left_square:
         this->parse_and_visit_binding_element(
