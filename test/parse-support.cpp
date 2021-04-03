@@ -6,7 +6,8 @@
 
 namespace quick_lint_js {
 template void parser::parse_and_visit_module<spy_visitor>(spy_visitor &v);
-template bool parser::parse_and_visit_statement<spy_visitor>(spy_visitor &v);
+template bool parser::parse_and_visit_statement<spy_visitor>(
+    spy_visitor &v, bool allow_declarations);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

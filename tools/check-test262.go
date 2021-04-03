@@ -34,10 +34,6 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
 
-		// TODO(strager): Fix various bugs.
-		"language/statements/for-in/let-identifier-with-newline.js",
-		"language/statements/for-of/let-identifier-with-newline.js",
-
 		// TODO(strager): Don't check result of tests with no
 		// frontmatter.
 		"language/module-code/*_FIXTURE.js",

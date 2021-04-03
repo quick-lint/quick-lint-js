@@ -198,6 +198,17 @@ TEST(test_parse, parse_let_with_array_destructuring) {
   }
 }
 
+TEST(test_parse, let_does_not_insert_semicolon_after_let_keyword) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"let\nx = y;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
+                                      "visit_variable_declaration"));  // x
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let}));
+  }
+}
+
 TEST(test_parse,
      variables_used_in_let_initializer_are_used_before_variable_declaration) {
   using namespace std::literals::string_view_literals;
@@ -1512,6 +1523,27 @@ TEST(test_parse, lexical_declaration_as_with_statement_body_is_disallowed) {
             offsets_matcher(&code, strlen(u8"with (obj)"), u8""),  //
             declaring_keyword,
             offsets_matcher(&code, strlen(u8"with (obj) "), variable_kind))));
+  }
+}
+
+TEST(test_parse, let_as_statement_body_does_not_allow_asi_before_left_square) {
+  {
+    padded_string code(u8"if (cond) let\n[x] = xs;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                      "visit_variable_use",            // xs
+                                      "visit_variable_declaration"));  // x
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_lexical_declaration_not_allowed_in_body, kind_of_statement,
+            statement_kind::if_statement,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"if (cond)"), u8""),  //
+            declaring_keyword,
+            offsets_matcher(&code, strlen(u8"if (cond) "), u8"let"))));
   }
 }
 }

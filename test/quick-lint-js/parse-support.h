@@ -19,7 +19,7 @@ namespace quick_lint_js {
 extern template void parser::parse_and_visit_module<spy_visitor>(
     spy_visitor &v);
 extern template bool parser::parse_and_visit_statement<spy_visitor>(
-    spy_visitor &v);
+    spy_visitor &v, bool allow_declarations);
 
 namespace {
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {

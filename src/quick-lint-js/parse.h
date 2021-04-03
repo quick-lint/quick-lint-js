@@ -136,7 +136,8 @@ class parser {
   // * no error is reported
   // * this function returns false
   template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement(Visitor &v) {
+  [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
+                                               bool allow_declarations = true) {
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
         this->error_reporter_->report(error_unmatched_parenthesis{
@@ -186,7 +187,8 @@ class parser {
         this->lexer_.commit_transaction(std::move(transaction));
         this->skip();
         goto parse_statement;
-      } else if (this->is_let_token_a_variable_reference(this->peek())) {
+      } else if (this->is_let_token_a_variable_reference(
+                     this->peek(), /*allow_declarations=*/allow_declarations)) {
         // Expression.
         this->lexer_.roll_back_transaction(std::move(transaction));
         expression *ast =
@@ -584,6 +586,12 @@ class parser {
     }
 
     return true;
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  [[nodiscard]] bool parse_and_visit_statement_disallowing_declaration(
+      Visitor &v) {
+    return this->parse_and_visit_statement(v, /*allow_declarations=*/false);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -1911,7 +1919,8 @@ class parser {
       this->skip();
       buffering_visitor lhs;
       if (declaring_token.type == token_type::kw_let &&
-          this->is_let_token_a_variable_reference(this->peek())) {
+          this->is_let_token_a_variable_reference(
+              this->peek(), /*allow_declarations=*/true)) {
         // for (let = expression; cond; up) {}
         // for (let(); cond; up) {}
         // for (let; cond; up) {}
@@ -2089,7 +2098,8 @@ class parser {
     this->error_on_class_statement(statement_kind::for_loop);
     this->error_on_function_statement(statement_kind::for_loop);
     this->error_on_lexical_declaration(statement_kind::for_loop);
-    bool parsed_body = this->parse_and_visit_statement(v);
+    bool parsed_body =
+        this->parse_and_visit_statement_disallowing_declaration(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_for_statement{
           .for_and_header = source_code_span(
@@ -2125,7 +2135,8 @@ class parser {
     this->error_on_class_statement(statement_kind::while_loop);
     this->error_on_function_statement(statement_kind::while_loop);
     this->error_on_lexical_declaration(statement_kind::while_loop);
-    bool parsed_body = this->parse_and_visit_statement(v);
+    bool parsed_body =
+        this->parse_and_visit_statement_disallowing_declaration(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_while_statement{
           .while_and_condition = source_code_span(
@@ -2155,8 +2166,8 @@ class parser {
     case token_type::kw_let: {
       lexer_transaction transaction = this->lexer_.begin_transaction();
       this->skip();
-      is_lexical_declaration =
-          !this->is_let_token_a_variable_reference(this->peek());
+      is_lexical_declaration = !this->is_let_token_a_variable_reference(
+          this->peek(), /*allow_declarations=*/false);
       this->lexer_.roll_back_transaction(std::move(transaction));
       break;
     }
@@ -2229,7 +2240,8 @@ class parser {
     this->error_on_class_statement(statement_kind::with_statement);
     this->error_on_function_statement(statement_kind::with_statement);
     this->error_on_lexical_declaration(statement_kind::with_statement);
-    bool parsed_body = this->parse_and_visit_statement(v);
+    bool parsed_body =
+        this->parse_and_visit_statement_disallowing_declaration(v);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -2262,7 +2274,8 @@ class parser {
         entered_block_scope = true;
       }
 
-      bool parsed_if_body = this->parse_and_visit_statement(v);
+      bool parsed_if_body =
+          this->parse_and_visit_statement_disallowing_declaration(v);
       if (!parsed_if_body) {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -2834,7 +2847,8 @@ class parser {
     }
   }
 
-  bool is_let_token_a_variable_reference(token following_token) noexcept {
+  bool is_let_token_a_variable_reference(token following_token,
+                                         bool allow_declarations) noexcept {
     switch (following_token.type) {
     QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
     QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
@@ -2864,8 +2878,15 @@ class parser {
         return following_token.has_leading_newline;
       }
 
-    default:
+    case token_type::left_square:
       return false;
+
+    default:
+      if (!allow_declarations) {
+        return this->peek().has_leading_newline;
+      } else {
+        return false;
+      }
     }
   }
 
