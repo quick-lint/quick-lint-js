@@ -174,9 +174,9 @@ options parse_options(int argc, char** argv) {
           from_chars(&arg_value[0], &arg_value[std::strlen(arg_value)], bufnr);
       if (*result.ptr != '\0' || result.ec != std::errc{}) {
         o.error_unrecognized_options.emplace_back(arg_value);
-      } else {
-        next_vim_file_bufnr = bufnr;
+        continue;
       }
+      next_vim_file_bufnr = bufnr;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--exit-fail-on"sv)) {
       o.exit_fail_on.add(parse_error_list(arg_value));

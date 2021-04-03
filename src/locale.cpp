@@ -37,16 +37,15 @@ locale_parts parse_locale(const char* locale_name) {
   auto find_next_separator = [](const char* c,
                                 const char* separators) -> found_separator {
     std::size_t length = std::strcspn(c, separators);
-    std::size_t which_separator;
     if (c[length] == '\0') {
-      which_separator = static_cast<std::size_t>(-1);
-    } else {
-      const char* separator = std::strchr(separators, c[length]);
-      QLJS_ASSERT(separator);
-      which_separator = narrow_cast<std::size_t>(separator - separators);
+      return found_separator{.length = length,
+                             .which_separator = static_cast<std::size_t>(-1)};
     }
-    return found_separator{.length = length,
-                           .which_separator = which_separator};
+    const char* separator = std::strchr(separators, c[length]);
+    QLJS_ASSERT(separator);
+    return found_separator{
+        .length = length,
+        .which_separator = narrow_cast<std::size_t>(separator - separators)};
   };
 
   locale_parts parts;

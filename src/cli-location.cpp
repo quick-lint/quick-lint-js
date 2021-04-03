@@ -51,13 +51,8 @@ cli_source_position cli_locator::position(const char8 *source) const noexcept {
   for (const char8 *c = this->input_.data();
        c != this->input_.null_terminator();) {
     if (*c == '\n' || *c == '\r') {
-      if (c[0] == '\r' && c[1] == '\n') {
-        c += 2;
-        add_beginning_of_line(c);
-      } else {
-        c += 1;
-        add_beginning_of_line(c);
-      }
+      c += (c[0] == '\r' && c[1] == '\n') ? 2 : 1;
+      add_beginning_of_line(c);
     } else if (static_cast<unsigned char>(c[0]) == 0xe2 &&
                static_cast<unsigned char>(c[1]) == 0x80) {
       switch (static_cast<unsigned char>(c[2])) {
