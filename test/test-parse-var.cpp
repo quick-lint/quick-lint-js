@@ -1352,6 +1352,16 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
 
     {
       spy_visitor v =
+          parse_and_visit_statement(u8"for (let " + name + u8" of xs) ;");
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      name, variable_kind::_let}));
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+    }
+
+    {
+      spy_visitor v =
           parse_and_visit_statement(u8"for (var " + name + u8" of xs) ;");
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{

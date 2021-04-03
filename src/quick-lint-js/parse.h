@@ -1932,11 +1932,29 @@ class parser {
         this->maybe_visit_assignment(ast, lhs);
       } else if (declaring_token.type == token_type::kw_let &&
                  this->peek().type == token_type::kw_of) {
+        this->skip();
+        switch (this->peek().type) {
         // for (let of xs) {}  // Invalid.
-        this->lexer_.commit_transaction(std::move(transaction));
-        this->error_reporter_->report(error_let_with_no_bindings{
-            .where = declaring_token.span(),
-        });
+        case token_type::identifier:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          this->skip();  // Re-parse 'let'.
+          this->error_reporter_->report(error_let_with_no_bindings{
+              .where = declaring_token.span(),
+          });
+          break;
+
+        // for (let of of xs) {}
+        // for (let of in xs) {}
+        // for (let of = 3; cond; update) {}
+        // for (let of; cond; update) {}
+        // for (let of, x; cond; update) {}
+        default:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          this->skip();  // Re-parse 'let'.
+          this->parse_and_visit_let_bindings(lhs, declaring_token,
+                                             /*allow_in_operator=*/false);
+          break;
+        }
       } else {
         // for (let i = 0; i < length; ++length) {}
         // for (let x of xs) {}
