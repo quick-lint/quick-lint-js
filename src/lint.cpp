@@ -311,29 +311,28 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         variables.end());
   };
   erase_if(scope.variables_used, [&](const used_variable &used_var) {
-    if (name.normalized_name() == used_var.name.normalized_name()) {
-      if (kind == variable_kind::_class || kind == variable_kind::_const ||
-          kind == variable_kind::_let) {
-        switch (used_var.kind) {
-        case used_variable_kind::assignment:
-          this->report_error_if_assignment_is_illegal(
-              declared, used_var.name,
-              /*is_assigned_before_declaration=*/true);
-          break;
-        case used_variable_kind::_typeof:
-        case used_variable_kind::use:
-          this->error_reporter_->report(
-              error_variable_used_before_declaration{used_var.name, name});
-          break;
-        case used_variable_kind::_export:
-          // Use before declaration is legal for variable exports.
-          break;
-        }
-      }
-      return true;
-    } else {
+    if (name.normalized_name() != used_var.name.normalized_name()) {
       return false;
     }
+    if (kind == variable_kind::_class || kind == variable_kind::_const ||
+        kind == variable_kind::_let) {
+      switch (used_var.kind) {
+      case used_variable_kind::assignment:
+        this->report_error_if_assignment_is_illegal(
+            declared, used_var.name,
+            /*is_assigned_before_declaration=*/true);
+        break;
+      case used_variable_kind::_typeof:
+      case used_variable_kind::use:
+        this->error_reporter_->report(
+            error_variable_used_before_declaration{used_var.name, name});
+        break;
+      case used_variable_kind::_export:
+        // Use before declaration is legal for variable exports.
+        break;
+      }
+    }
+    return true;
   });
   erase_if(scope.variables_used_in_descendant_scope,
            [&](const used_variable &used_var) {
