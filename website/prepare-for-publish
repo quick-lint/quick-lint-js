@@ -14,6 +14,7 @@ cd "$(dirname "${0}")"
 
 cp debian.svg "${output_directory}/"
 cp gnome-terminal.svg "${output_directory}/"
+cp hiring.html "${output_directory}/"
 cp homebrew.svg "${output_directory}/"
 cp index.html "${output_directory}/"
 cp install.html "${output_directory}/"
