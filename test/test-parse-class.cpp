@@ -559,6 +559,164 @@ TEST(test_parse, stray_keyword_in_class_body) {
                                 u8"instanceof"))));
   }
 }
+
+TEST(test_parse, class_statement_as_do_while_statement_body_is_disallowed) {
+  {
+    padded_string code(u8"do class C {} while (cond);"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope",      // C
+                                      "visit_variable_use"));        // cond
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::do_while_loop,                                //
+            expected_body, offsets_matcher(&code, strlen(u8"do"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"do "), u8"class"))));
+  }
+}
+
+TEST(test_parse, class_statement_as_if_statement_body_is_disallowed) {
+  {
+    padded_string code(u8"if (cond) class C {} after"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope",      // C
+                                      "visit_variable_use",          // after
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::if_statement,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"if (cond)"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"if (cond) "), u8"class"))));
+  }
+
+  {
+    padded_string code(u8"if (cond) class C {} else {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope",      // C
+                                      "visit_enter_block_scope",     // else
+                                      "visit_exit_block_scope",      // else
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::if_statement,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"if (cond)"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"if (cond) "), u8"class"))));
+  }
+
+  {
+    padded_string code(u8"if (cond) {} else class C {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_enter_block_scope",     // if
+                                      "visit_exit_block_scope",      // if
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope",      // C
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::if_statement,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"if (cond) {} else"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"if (cond) {} else "),
+                            u8"class"))));
+  }
+}
+
+TEST(test_parse, class_statement_as_for_statement_body_is_disallowed) {
+  {
+    padded_string code(u8"for (;cond;) class C {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::for_loop,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"for (;cond;)"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"for (;cond;) "), u8"class"))));
+  }
+}
+
+TEST(test_parse, class_statement_as_while_statement_body_is_disallowed) {
+  {
+    padded_string code(u8"while (cond) class C {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::while_loop,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"while (cond)"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"while (cond) "), u8"class"))));
+  }
+}
+
+TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
+  {
+    padded_string code(u8"with (obj) class C {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // obj
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_class_statement_not_allowed_in_body, kind_of_statement,
+            statement_kind::with_statement,  //
+            expected_body,
+            offsets_matcher(&code, strlen(u8"with (obj)"), u8""),  //
+            class_keyword,
+            offsets_matcher(&code, strlen(u8"with (obj) "), u8"class"))));
+  }
+}
 }
 }
 

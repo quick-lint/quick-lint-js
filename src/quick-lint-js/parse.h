@@ -1712,6 +1712,7 @@ class parser {
 
     switch (this->peek().type) {
     default: {
+      this->error_on_class_statement(statement_kind::do_while_loop);
       this->error_on_function_statement(statement_kind::do_while_loop);
       bool parsed_statement = this->parse_and_visit_statement(v);
       if (!parsed_statement) {
@@ -2083,6 +2084,7 @@ class parser {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     this->skip();
 
+    this->error_on_class_statement(statement_kind::for_loop);
     this->error_on_function_statement(statement_kind::for_loop);
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
@@ -2117,12 +2119,24 @@ class parser {
           error_expected_parenthesis_around_while_condition>(v);
     }
 
+    this->error_on_class_statement(statement_kind::while_loop);
     this->error_on_function_statement(statement_kind::while_loop);
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
       this->error_reporter_->report(error_missing_body_for_while_statement{
           .while_and_condition = source_code_span(
               while_token_span.begin(), this->lexer_.end_of_previous_token()),
+      });
+    }
+  }
+
+  void error_on_class_statement(statement_kind statement_kind) {
+    if (this->peek().type == token_type::kw_class) {
+      const char8 *expected_body = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(error_class_statement_not_allowed_in_body{
+          .kind_of_statement = statement_kind,
+          .expected_body = source_code_span(expected_body, expected_body),
+          .class_keyword = this->peek().span(),
       });
     }
   }
@@ -2177,6 +2191,7 @@ class parser {
         error_expected_parentheses_around_with_expression,
         error_expected_parenthesis_around_with_expression>(v);
 
+    this->error_on_class_statement(statement_kind::with_statement);
     this->error_on_function_statement(statement_kind::with_statement);
     bool parsed_body = this->parse_and_visit_statement(v);
     if (!parsed_body) {
@@ -2204,6 +2219,7 @@ class parser {
     auto parse_and_visit_body = [this, &v]() -> void {
       bool entered_block_scope = false;
 
+      this->error_on_class_statement(statement_kind::if_statement);
       if (this->is_maybe_function_statement()) {
         v.visit_enter_block_scope();
         entered_block_scope = true;

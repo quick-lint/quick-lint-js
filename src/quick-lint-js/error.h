@@ -168,6 +168,19 @@
              catch_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_class_statement_not_allowed_in_body, "E149",                       \
+      {                                                                        \
+        statement_kind kind_of_statement;                                      \
+        source_code_span expected_body;                                        \
+        source_code_span class_keyword;                                        \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),             \
+             expected_body, kind_of_statement)                                 \
+          .note(QLJS_TRANSLATABLE("a class statement is not allowed as the "   \
+                                  "body of {1:singular}"),                     \
+                class_keyword, kind_of_statement))                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_character_disallowed_in_identifiers, "E011",                       \
       { source_code_span character; },                                         \
       .error(QLJS_TRANSLATABLE("character is not allowed in identifiers"),     \
