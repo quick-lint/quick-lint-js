@@ -450,9 +450,17 @@ void linter::visit_end_of_module() {
   for (const used_variable &used_var :
        global_scope.variables_used_in_descendant_scope) {
     if (!is_variable_declared(used_var)) {
-      // TODO(strager): Should we check used_var.kind?
-      this->error_reporter_->report(
-          error_use_of_undeclared_variable{used_var.name});
+      switch (used_var.kind) {
+      case used_variable_kind::assignment:
+        this->error_reporter_->report(
+            error_assignment_to_undeclared_variable{used_var.name});
+        break;
+      // TODO(strager): Is 'default' correct here?
+      default:
+        this->error_reporter_->report(
+            error_use_of_undeclared_variable{used_var.name});
+        break;
+      }
     }
   }
 }

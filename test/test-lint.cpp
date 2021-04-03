@@ -1201,6 +1201,25 @@ TEST(test_lint, assign_to_undeclared_variable) {
                             span_matcher(assignment))));
 }
 
+TEST(test_lint, assign_inside_function_to_undeclared_variable) {
+  const char8 assignment[] = u8"x";
+
+  // (function() {
+  //   x = null;  // ERROR
+  // });
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                            error_assignment_to_undeclared_variable, assignment,
+                            span_matcher(assignment))));
+}
+
 TEST(test_lint, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
