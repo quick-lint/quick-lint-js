@@ -21,6 +21,15 @@ extern template void parser::parse_and_visit_module<spy_visitor>(
 extern template bool parser::parse_and_visit_statement<spy_visitor>(
     spy_visitor &v, bool allow_declarations);
 
+// Escape the first character in the given keyword with a JavaScript identifier
+// escape sequence (\u{..}).
+//
+// Example: break -> \u{62}reak
+//
+// The returned string will always be 5 bytes longer: +6 bytes for \u{??} and -1
+// byte for the replaced character.
+string8 escape_first_character_in_keyword(string8_view keyword);
+
 namespace {
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);

@@ -285,52 +285,54 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
   }
 
   struct test_case {
-    string8 name;
+    string8 keyword;
     string8 expected_identifier;
   };
 
-  // TODO(strager): test_case{u8"\\u{61}wait", u8"await"}
-  // TODO(strager): test_case{u8"\\u{79}ield", u8"yield"}
+  // TODO(strager): test_case{u8"await", u8"await"}
+  // TODO(strager): test_case{u8"yield", u8"yield"}
   for (test_case tc : {
-           test_case{u8"\\u{62}reak", u8"break"},
-           test_case{u8"\\u{63}ase", u8"case"},
-           test_case{u8"\\u{63}atch", u8"catch"},
-           test_case{u8"\\u{63}lass", u8"class"},
-           test_case{u8"\\u{63}onst", u8"const"},
-           test_case{u8"\\u{63}ontinue", u8"continue"},
-           test_case{u8"\\u{64}ebugger", u8"debugger"},
-           test_case{u8"\\u{64}efault", u8"default"},
-           test_case{u8"\\u{64}elete", u8"delete"},
-           test_case{u8"\\u{64}o", u8"do"},
-           test_case{u8"\\u{65}lse", u8"else"},
-           test_case{u8"\\u{65}num", u8"enum"},
-           test_case{u8"\\u{65}xport", u8"export"},
-           test_case{u8"\\u{65}xtends", u8"extends"},
-           test_case{u8"\\u{66}alse", u8"false"},
-           test_case{u8"\\u{66}inally", u8"finally"},
-           test_case{u8"\\u{66}or", u8"for"},
-           test_case{u8"\\u{66}unction", u8"function"},
-           test_case{u8"\\u{69}f", u8"if"},
-           test_case{u8"\\u{69}mport", u8"import"},
-           test_case{u8"\\u{69}n", u8"in"},
-           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
-           test_case{u8"\\u{6e}ew", u8"new"},
-           test_case{u8"\\u{6e}ull", u8"null"},
-           test_case{u8"\\u{72}eturn", u8"return"},
-           test_case{u8"\\u{73}uper", u8"super"},
-           test_case{u8"\\u{73}witch", u8"switch"},
-           test_case{u8"\\u{74}his", u8"this"},
-           test_case{u8"\\u{74}hrow", u8"throw"},
-           test_case{u8"\\u{74}rue", u8"true"},
-           test_case{u8"\\u{74}ry", u8"try"},
-           test_case{u8"\\u{74}ypeof", u8"typeof"},
-           test_case{u8"\\u{76}ar", u8"var"},
-           test_case{u8"\\u{76}oid", u8"void"},
-           test_case{u8"\\u{77}hile", u8"while"},
-           test_case{u8"\\u{77}ith", u8"with"},
+           test_case{u8"break", u8"break"},
+           test_case{u8"case", u8"case"},
+           test_case{u8"catch", u8"catch"},
+           test_case{u8"class", u8"class"},
+           test_case{u8"const", u8"const"},
+           test_case{u8"continue", u8"continue"},
+           test_case{u8"debugger", u8"debugger"},
+           test_case{u8"default", u8"default"},
+           test_case{u8"delete", u8"delete"},
+           test_case{u8"do", u8"do"},
+           test_case{u8"else", u8"else"},
+           test_case{u8"enum", u8"enum"},
+           test_case{u8"export", u8"export"},
+           test_case{u8"extends", u8"extends"},
+           test_case{u8"false", u8"false"},
+           test_case{u8"finally", u8"finally"},
+           test_case{u8"for", u8"for"},
+           test_case{u8"function", u8"function"},
+           test_case{u8"if", u8"if"},
+           test_case{u8"import", u8"import"},
+           test_case{u8"in", u8"in"},
+           test_case{u8"instanceof", u8"instanceof"},
+           test_case{u8"new", u8"new"},
+           test_case{u8"null", u8"null"},
+           test_case{u8"return", u8"return"},
+           test_case{u8"super", u8"super"},
+           test_case{u8"switch", u8"switch"},
+           test_case{u8"this", u8"this"},
+           test_case{u8"throw", u8"throw"},
+           test_case{u8"true", u8"true"},
+           test_case{u8"try", u8"try"},
+           test_case{u8"typeof", u8"typeof"},
+           test_case{u8"var", u8"var"},
+           test_case{u8"void", u8"void"},
+           test_case{u8"while", u8"while"},
+           test_case{u8"with", u8"with"},
        }) {
+    string8 exported_variable = escape_first_character_in_keyword(tc.keyword);
+
     {
-      padded_string code(u8"export {" + tc.name + u8"};");
+      padded_string code(u8"export {" + exported_variable + u8"};");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -346,7 +348,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     }
 
     {
-      padded_string code(u8"export {" + tc.name + u8" as thing};");
+      padded_string code(u8"export {" + exported_variable + u8" as thing};");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -814,52 +816,55 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
   }
 
   struct test_case {
-    string8 name;
+    string8 keyword;
     string8 expected_identifier;
   };
 
-  // TODO(strager): test_case{u8"\\u{61}wait", u8"await"}
-  // TODO(strager): test_case{u8"\\u{79}ield", u8"yield"}
+  // TODO(strager): test_case{u8"await", u8"await"}
+  // TODO(strager): test_case{u8"yield", u8"yield"}
   for (test_case tc : {
-           test_case{u8"\\u{62}reak", u8"break"},
-           test_case{u8"\\u{63}ase", u8"case"},
-           test_case{u8"\\u{63}atch", u8"catch"},
-           test_case{u8"\\u{63}lass", u8"class"},
-           test_case{u8"\\u{63}onst", u8"const"},
-           test_case{u8"\\u{63}ontinue", u8"continue"},
-           test_case{u8"\\u{64}ebugger", u8"debugger"},
-           test_case{u8"\\u{64}efault", u8"default"},
-           test_case{u8"\\u{64}elete", u8"delete"},
-           test_case{u8"\\u{64}o", u8"do"},
-           test_case{u8"\\u{65}lse", u8"else"},
-           test_case{u8"\\u{65}num", u8"enum"},
-           test_case{u8"\\u{65}xport", u8"export"},
-           test_case{u8"\\u{65}xtends", u8"extends"},
-           test_case{u8"\\u{66}alse", u8"false"},
-           test_case{u8"\\u{66}inally", u8"finally"},
-           test_case{u8"\\u{66}or", u8"for"},
-           test_case{u8"\\u{66}unction", u8"function"},
-           test_case{u8"\\u{69}f", u8"if"},
-           test_case{u8"\\u{69}mport", u8"import"},
-           test_case{u8"\\u{69}n", u8"in"},
-           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
-           test_case{u8"\\u{6e}ew", u8"new"},
-           test_case{u8"\\u{6e}ull", u8"null"},
-           test_case{u8"\\u{72}eturn", u8"return"},
-           test_case{u8"\\u{73}uper", u8"super"},
-           test_case{u8"\\u{73}witch", u8"switch"},
-           test_case{u8"\\u{74}his", u8"this"},
-           test_case{u8"\\u{74}hrow", u8"throw"},
-           test_case{u8"\\u{74}rue", u8"true"},
-           test_case{u8"\\u{74}ry", u8"try"},
-           test_case{u8"\\u{74}ypeof", u8"typeof"},
-           test_case{u8"\\u{76}ar", u8"var"},
-           test_case{u8"\\u{76}oid", u8"void"},
-           test_case{u8"\\u{77}hile", u8"while"},
-           test_case{u8"\\u{77}ith", u8"with"},
+           test_case{u8"break", u8"break"},
+           test_case{u8"case", u8"case"},
+           test_case{u8"catch", u8"catch"},
+           test_case{u8"class", u8"class"},
+           test_case{u8"const", u8"const"},
+           test_case{u8"continue", u8"continue"},
+           test_case{u8"debugger", u8"debugger"},
+           test_case{u8"default", u8"default"},
+           test_case{u8"delete", u8"delete"},
+           test_case{u8"do", u8"do"},
+           test_case{u8"else", u8"else"},
+           test_case{u8"enum", u8"enum"},
+           test_case{u8"export", u8"export"},
+           test_case{u8"extends", u8"extends"},
+           test_case{u8"false", u8"false"},
+           test_case{u8"finally", u8"finally"},
+           test_case{u8"for", u8"for"},
+           test_case{u8"function", u8"function"},
+           test_case{u8"if", u8"if"},
+           test_case{u8"import", u8"import"},
+           test_case{u8"in", u8"in"},
+           test_case{u8"instanceof", u8"instanceof"},
+           test_case{u8"new", u8"new"},
+           test_case{u8"null", u8"null"},
+           test_case{u8"return", u8"return"},
+           test_case{u8"super", u8"super"},
+           test_case{u8"switch", u8"switch"},
+           test_case{u8"this", u8"this"},
+           test_case{u8"throw", u8"throw"},
+           test_case{u8"true", u8"true"},
+           test_case{u8"try", u8"try"},
+           test_case{u8"typeof", u8"typeof"},
+           test_case{u8"var", u8"var"},
+           test_case{u8"void", u8"void"},
+           test_case{u8"while", u8"while"},
+           test_case{u8"with", u8"with"},
        }) {
+    string8 imported_variable = escape_first_character_in_keyword(tc.keyword);
+
     {
-      padded_string code(u8"import { " + tc.name + u8" } from 'other';");
+      padded_string code(u8"import { " + imported_variable +
+                         u8" } from 'other';");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -875,7 +880,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
     }
 
     {
-      padded_string code(u8"import { someFunction as " + tc.name +
+      padded_string code(u8"import { someFunction as " + imported_variable +
                          u8" } from 'other';");
       SCOPED_TRACE(code);
       spy_visitor v;
@@ -893,7 +898,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
     }
 
     {
-      padded_string code(u8"import " + tc.name + u8" from 'other';");
+      padded_string code(u8"import " + imported_variable + u8" from 'other';");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -909,7 +914,8 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
     }
 
     {
-      padded_string code(u8"import * as " + tc.name + u8" from 'other';");
+      padded_string code(u8"import * as " + imported_variable +
+                         u8" from 'other';");
       SCOPED_TRACE(code);
       spy_visitor v;
       parser p(&code, &v);
@@ -965,21 +971,18 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
 TEST(
     test_parse,
     imported_and_exported_names_can_be_reserved_keywords_with_escape_sequences) {
-  for (string8 exported_name : {
-           u8"\\u{61}wait",    u8"\\u{62}reak",      u8"\\u{63}ase",
-           u8"\\u{63}atch",    u8"\\u{63}lass",      u8"\\u{63}onst",
-           u8"\\u{63}ontinue", u8"\\u{64}ebugger",   u8"\\u{64}efault",
-           u8"\\u{64}elete",   u8"\\u{64}o",         u8"\\u{65}lse",
-           u8"\\u{65}num",     u8"\\u{65}xport",     u8"\\u{65}xtends",
-           u8"\\u{66}alse",    u8"\\u{66}inally",    u8"\\u{66}or",
-           u8"\\u{66}unction", u8"\\u{69}f",         u8"\\u{69}mport",
-           u8"\\u{69}n",       u8"\\u{69}nstanceof", u8"\\u{6e}ew",
-           u8"\\u{6e}ull",     u8"\\u{72}eturn",     u8"\\u{73}uper",
-           u8"\\u{73}witch",   u8"\\u{74}his",       u8"\\u{74}hrow",
-           u8"\\u{74}rue",     u8"\\u{74}ry",        u8"\\u{74}ypeof",
-           u8"\\u{76}ar",      u8"\\u{76}oid",       u8"\\u{77}hile",
-           u8"\\u{77}ith",     u8"\\u{79}ield",
+  for (string8 keyword : {
+           u8"await",  u8"break",    u8"case",       u8"catch",    u8"class",
+           u8"const",  u8"continue", u8"debugger",   u8"default",  u8"delete",
+           u8"do",     u8"else",     u8"enum",       u8"export",   u8"extends",
+           u8"false",  u8"finally",  u8"for",        u8"function", u8"if",
+           u8"import", u8"in",       u8"instanceof", u8"new",      u8"null",
+           u8"return", u8"super",    u8"switch",     u8"this",     u8"throw",
+           u8"true",   u8"try",      u8"typeof",     u8"var",      u8"void",
+           u8"while",  u8"with",     u8"yield",
        }) {
+    string8 exported_name = escape_first_character_in_keyword(keyword);
+
     {
       padded_string code(u8"import {" + exported_name +
                          u8" as someFunction} from 'somewhere';");

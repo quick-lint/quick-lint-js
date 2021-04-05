@@ -359,55 +359,56 @@ TEST(test_parse, class_statement_with_keyword_property) {
   }
 
   struct test_case {
-    string8 property;
+    string8 keyword;
     string8 expected_identifier;
   };
 
   for (test_case tc : {
-           test_case{u8"\\u{61}wait", u8"await"},
-           test_case{u8"\\u{62}reak", u8"break"},
-           test_case{u8"\\u{63}ase", u8"case"},
-           test_case{u8"\\u{63}atch", u8"catch"},
-           test_case{u8"\\u{63}lass", u8"class"},
-           test_case{u8"\\u{63}onst", u8"const"},
-           test_case{u8"\\u{63}ontinue", u8"continue"},
-           test_case{u8"\\u{64}ebugger", u8"debugger"},
-           test_case{u8"\\u{64}efault", u8"default"},
-           test_case{u8"\\u{64}elete", u8"delete"},
-           test_case{u8"\\u{64}o", u8"do"},
-           test_case{u8"\\u{65}lse", u8"else"},
-           test_case{u8"\\u{65}num", u8"enum"},
-           test_case{u8"\\u{65}xport", u8"export"},
-           test_case{u8"\\u{65}xtends", u8"extends"},
-           test_case{u8"\\u{66}alse", u8"false"},
-           test_case{u8"\\u{66}inally", u8"finally"},
-           test_case{u8"\\u{66}or", u8"for"},
-           test_case{u8"\\u{66}unction", u8"function"},
-           test_case{u8"\\u{69}f", u8"if"},
-           test_case{u8"\\u{69}mport", u8"import"},
-           test_case{u8"\\u{69}n", u8"in"},
-           test_case{u8"\\u{69}nstanceof", u8"instanceof"},
-           test_case{u8"\\u{6e}ew", u8"new"},
-           test_case{u8"\\u{6e}ull", u8"null"},
-           test_case{u8"\\u{72}eturn", u8"return"},
-           test_case{u8"\\u{73}uper", u8"super"},
-           test_case{u8"\\u{73}witch", u8"switch"},
-           test_case{u8"\\u{74}his", u8"this"},
-           test_case{u8"\\u{74}hrow", u8"throw"},
-           test_case{u8"\\u{74}rue", u8"true"},
-           test_case{u8"\\u{74}ry", u8"try"},
-           test_case{u8"\\u{74}ypeof", u8"typeof"},
-           test_case{u8"\\u{76}ar", u8"var"},
-           test_case{u8"\\u{76}oid", u8"void"},
-           test_case{u8"\\u{77}hile", u8"while"},
-           test_case{u8"\\u{77}ith", u8"with"},
-           test_case{u8"\\u{79}ield", u8"yield"},
+           test_case{u8"await", u8"await"},
+           test_case{u8"break", u8"break"},
+           test_case{u8"case", u8"case"},
+           test_case{u8"catch", u8"catch"},
+           test_case{u8"class", u8"class"},
+           test_case{u8"const", u8"const"},
+           test_case{u8"continue", u8"continue"},
+           test_case{u8"debugger", u8"debugger"},
+           test_case{u8"default", u8"default"},
+           test_case{u8"delete", u8"delete"},
+           test_case{u8"do", u8"do"},
+           test_case{u8"else", u8"else"},
+           test_case{u8"enum", u8"enum"},
+           test_case{u8"export", u8"export"},
+           test_case{u8"extends", u8"extends"},
+           test_case{u8"false", u8"false"},
+           test_case{u8"finally", u8"finally"},
+           test_case{u8"for", u8"for"},
+           test_case{u8"function", u8"function"},
+           test_case{u8"if", u8"if"},
+           test_case{u8"import", u8"import"},
+           test_case{u8"in", u8"in"},
+           test_case{u8"instanceof", u8"instanceof"},
+           test_case{u8"new", u8"new"},
+           test_case{u8"null", u8"null"},
+           test_case{u8"return", u8"return"},
+           test_case{u8"super", u8"super"},
+           test_case{u8"switch", u8"switch"},
+           test_case{u8"this", u8"this"},
+           test_case{u8"throw", u8"throw"},
+           test_case{u8"true", u8"true"},
+           test_case{u8"try", u8"try"},
+           test_case{u8"typeof", u8"typeof"},
+           test_case{u8"var", u8"var"},
+           test_case{u8"void", u8"void"},
+           test_case{u8"while", u8"while"},
+           test_case{u8"with", u8"with"},
+           test_case{u8"yield", u8"yield"},
        }) {
+    string8 property = escape_first_character_in_keyword(tc.keyword);
     for (string8 prefix :
          {u8"", u8"*", u8"async", u8"async *", u8"get", u8"set", u8"static",
           u8"static *", u8"static async", u8"static async *", u8"static get",
           u8"static set"}) {
-      padded_string code(u8"class C { " + prefix + u8" " + tc.property +
+      padded_string code(u8"class C { " + prefix + u8" " + property +
                          u8"(){} }");
       SCOPED_TRACE(code);
       spy_visitor v = parse_and_visit_statement(code.string_view());
