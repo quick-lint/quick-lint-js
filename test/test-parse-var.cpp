@@ -779,7 +779,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
   }
 
-  // TODO(strager): export implies strict mode (because modules imply strict
+  // TODO(#73): export implies strict mode (because modules imply strict
   // mode).
   if ((false)) {
     spy_visitor v;

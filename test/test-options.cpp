@@ -230,9 +230,9 @@ TEST(test_options, invalid_vim_file_bufnr) {
   }
 }
 
-// TODO(strager): Report warning for trailing (ununsed) --vim-file-bufnr.
+// TODO(#201): Report warning for trailing (ununsed) --vim-file-bufnr.
 
-// TODO(strager): Report warning for using --vim-file-bufnr without
+// TODO(#201): Report warning for using --vim-file-bufnr without
 // --output-format.
 
 TEST(test_options, invalid_option) {

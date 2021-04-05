@@ -352,7 +352,7 @@ TEST_F(test_lex, fail_lex_legacy_octal_numbers) {
       });
 }
 
-// TODO (👮🏾‍♀️) (when strict mode implemented) legacy octal number
+// TODO (#73) (when strict mode implemented) legacy octal number
 // literal tests to fail in strict mode
 
 TEST_F(test_lex, legacy_octal_numbers_cannot_contain_underscores) {
@@ -1050,7 +1050,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
 
   // TODO(#187): Report invalid escape sequences.
 
-  // TODO(strager): Report invalid characters and mismatched brackets.
+  // TODO(#203): Report invalid characters and mismatched brackets.
 }
 
 TEST_F(test_lex, lex_regular_expression_literal_with_digit_flag) {

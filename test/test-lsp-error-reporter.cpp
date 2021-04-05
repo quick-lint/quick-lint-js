@@ -85,7 +85,7 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
             "variable assigned before its declaration");
   EXPECT_EQ(diagnostics[0]["code"], "E001");
   EXPECT_EQ(diagnostics[0]["source"], "quick-lint-js");
-  // TODO(strager): Show the declaration as relatedInformation.
+  // TODO(#200): Show the declaration as relatedInformation.
 }
 
 TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {

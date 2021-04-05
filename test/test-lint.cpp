@@ -2536,7 +2536,7 @@ TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-// TODO(strager): 'arguments' should not be declared in arrow functions.
+// TODO(#204): 'arguments' should not be declared in arrow functions.
 
 TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
   const char8 use[] = u8"v";
