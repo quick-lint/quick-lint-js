@@ -11,9 +11,6 @@
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
-// TODO(strager): lsp_position::character should count UTF-16 code units, not
-// UTF-8 code units.
-
 namespace quick_lint_js {
 namespace {
 TEST(test_lsp_location, ranges_on_first_line) {
