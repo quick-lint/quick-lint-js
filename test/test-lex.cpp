@@ -1560,58 +1560,15 @@ TEST_F(test_lex, lex_contextual_keywords) {
 TEST_F(
     test_lex,
     lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences) {
-  struct test_case {
-    string8 keyword;
-    string8 expected_identifier;
-  };
-
-  for (test_case tc : {
-           test_case{u8"break", u8"break"},
-           test_case{u8"case", u8"case"},
-           test_case{u8"catch", u8"catch"},
-           test_case{u8"class", u8"class"},
-           test_case{u8"const", u8"const"},
-           test_case{u8"continue", u8"continue"},
-           test_case{u8"debugger", u8"debugger"},
-           test_case{u8"default", u8"default"},
-           test_case{u8"delete", u8"delete"},
-           test_case{u8"do", u8"do"},
-           test_case{u8"else", u8"else"},
-           test_case{u8"enum", u8"enum"},
-           test_case{u8"export", u8"export"},
-           test_case{u8"extends", u8"extends"},
-           test_case{u8"false", u8"false"},
-           test_case{u8"finally", u8"finally"},
-           test_case{u8"for", u8"for"},
-           test_case{u8"function", u8"function"},
-           test_case{u8"if", u8"if"},
-           test_case{u8"import", u8"import"},
-           test_case{u8"in", u8"in"},
-           test_case{u8"instanceof", u8"instanceof"},
-           test_case{u8"new", u8"new"},
-           test_case{u8"null", u8"null"},
-           test_case{u8"return", u8"return"},
-           test_case{u8"super", u8"super"},
-           test_case{u8"switch", u8"switch"},
-           test_case{u8"this", u8"this"},
-           test_case{u8"throw", u8"throw"},
-           test_case{u8"true", u8"true"},
-           test_case{u8"try", u8"try"},
-           test_case{u8"typeof", u8"typeof"},
-           test_case{u8"var", u8"var"},
-           test_case{u8"void", u8"void"},
-           test_case{u8"while", u8"while"},
-           test_case{u8"with", u8"with"},
-       }) {
-    padded_string code(escape_first_character_in_keyword(tc.keyword));
+  for (string8 keyword : disallowed_binding_identifier_keywords) {
+    padded_string code(escape_first_character_in_keyword(keyword));
     SCOPED_TRACE(code);
     error_collector errors;
     lexer& l = this->make_lexer(&code, &errors);
 
     EXPECT_THAT(l.peek().type,
                 token_type::reserved_keyword_with_escape_sequence);
-    EXPECT_THAT(l.peek().identifier_name().normalized_name(),
-                tc.expected_identifier);
+    EXPECT_THAT(l.peek().identifier_name().normalized_name(), keyword);
     EXPECT_THAT(errors.errors, IsEmpty());
 
     l.peek().report_errors_for_escape_sequences_in_keyword(&errors);
@@ -1625,27 +1582,11 @@ TEST_F(
 TEST_F(
     test_lex,
     lex_contextual_keywords_and_await_and_yield_can_contain_escape_sequences) {
-  struct test_case {
-    string8 keyword;
-    string8 expected_identifier;
-  };
-
-  for (test_case tc : {
-           test_case{u8"as", u8"as"},
-           test_case{u8"async", u8"async"},
-           test_case{u8"await", u8"await"},
-           test_case{u8"from", u8"from"},
-           test_case{u8"get", u8"get"},
-           test_case{u8"let", u8"let"},
-           test_case{u8"of", u8"of"},
-           test_case{u8"set", u8"set"},
-           test_case{u8"static", u8"static"},
-           test_case{u8"yield", u8"yield"},
-       }) {
-    string8 code = escape_first_character_in_keyword(tc.keyword);
+  for (string8 keyword : contextual_keywords) {
+    string8 code = escape_first_character_in_keyword(keyword);
     SCOPED_TRACE(out_string8(code));
-    SCOPED_TRACE(out_string8(tc.expected_identifier));
-    this->check_single_token(code, tc.expected_identifier);
+    SCOPED_TRACE(out_string8(keyword));
+    this->check_single_token(code, keyword);
   }
 }
 

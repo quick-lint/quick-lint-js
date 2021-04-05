@@ -284,52 +284,9 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
                     offsets_matcher(&code, strlen(u8"export {"), keyword))));
   }
 
-  struct test_case {
-    string8 keyword;
-    string8 expected_identifier;
-  };
-
-  // TODO(strager): test_case{u8"await", u8"await"}
-  // TODO(strager): test_case{u8"yield", u8"yield"}
-  for (test_case tc : {
-           test_case{u8"break", u8"break"},
-           test_case{u8"case", u8"case"},
-           test_case{u8"catch", u8"catch"},
-           test_case{u8"class", u8"class"},
-           test_case{u8"const", u8"const"},
-           test_case{u8"continue", u8"continue"},
-           test_case{u8"debugger", u8"debugger"},
-           test_case{u8"default", u8"default"},
-           test_case{u8"delete", u8"delete"},
-           test_case{u8"do", u8"do"},
-           test_case{u8"else", u8"else"},
-           test_case{u8"enum", u8"enum"},
-           test_case{u8"export", u8"export"},
-           test_case{u8"extends", u8"extends"},
-           test_case{u8"false", u8"false"},
-           test_case{u8"finally", u8"finally"},
-           test_case{u8"for", u8"for"},
-           test_case{u8"function", u8"function"},
-           test_case{u8"if", u8"if"},
-           test_case{u8"import", u8"import"},
-           test_case{u8"in", u8"in"},
-           test_case{u8"instanceof", u8"instanceof"},
-           test_case{u8"new", u8"new"},
-           test_case{u8"null", u8"null"},
-           test_case{u8"return", u8"return"},
-           test_case{u8"super", u8"super"},
-           test_case{u8"switch", u8"switch"},
-           test_case{u8"this", u8"this"},
-           test_case{u8"throw", u8"throw"},
-           test_case{u8"true", u8"true"},
-           test_case{u8"try", u8"try"},
-           test_case{u8"typeof", u8"typeof"},
-           test_case{u8"var", u8"var"},
-           test_case{u8"void", u8"void"},
-           test_case{u8"while", u8"while"},
-           test_case{u8"with", u8"with"},
-       }) {
-    string8 exported_variable = escape_first_character_in_keyword(tc.keyword);
+  // TODO(strager): Test u8"await" and u8"yield".
+  for (string8 keyword : disallowed_binding_identifier_keywords) {
+    string8 exported_variable = escape_first_character_in_keyword(keyword);
 
     {
       padded_string code(u8"export {" + exported_variable + u8"};");
@@ -338,8 +295,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{
-                      tc.expected_identifier}));
+                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -354,8 +310,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{
-                      tc.expected_identifier}));
+                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -815,52 +770,9 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
     }
   }
 
-  struct test_case {
-    string8 keyword;
-    string8 expected_identifier;
-  };
-
-  // TODO(strager): test_case{u8"await", u8"await"}
-  // TODO(strager): test_case{u8"yield", u8"yield"}
-  for (test_case tc : {
-           test_case{u8"break", u8"break"},
-           test_case{u8"case", u8"case"},
-           test_case{u8"catch", u8"catch"},
-           test_case{u8"class", u8"class"},
-           test_case{u8"const", u8"const"},
-           test_case{u8"continue", u8"continue"},
-           test_case{u8"debugger", u8"debugger"},
-           test_case{u8"default", u8"default"},
-           test_case{u8"delete", u8"delete"},
-           test_case{u8"do", u8"do"},
-           test_case{u8"else", u8"else"},
-           test_case{u8"enum", u8"enum"},
-           test_case{u8"export", u8"export"},
-           test_case{u8"extends", u8"extends"},
-           test_case{u8"false", u8"false"},
-           test_case{u8"finally", u8"finally"},
-           test_case{u8"for", u8"for"},
-           test_case{u8"function", u8"function"},
-           test_case{u8"if", u8"if"},
-           test_case{u8"import", u8"import"},
-           test_case{u8"in", u8"in"},
-           test_case{u8"instanceof", u8"instanceof"},
-           test_case{u8"new", u8"new"},
-           test_case{u8"null", u8"null"},
-           test_case{u8"return", u8"return"},
-           test_case{u8"super", u8"super"},
-           test_case{u8"switch", u8"switch"},
-           test_case{u8"this", u8"this"},
-           test_case{u8"throw", u8"throw"},
-           test_case{u8"true", u8"true"},
-           test_case{u8"try", u8"try"},
-           test_case{u8"typeof", u8"typeof"},
-           test_case{u8"var", u8"var"},
-           test_case{u8"void", u8"void"},
-           test_case{u8"while", u8"while"},
-           test_case{u8"with", u8"with"},
-       }) {
-    string8 imported_variable = escape_first_character_in_keyword(tc.keyword);
+  // TODO(strager): Test u8"await" and u8"yield".
+  for (string8 keyword : disallowed_binding_identifier_keywords) {
+    string8 imported_variable = escape_first_character_in_keyword(keyword);
 
     {
       padded_string code(u8"import { " + imported_variable +
@@ -871,7 +783,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
-                      tc.expected_identifier, variable_kind::_import}));
+                      keyword, variable_kind::_import}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -888,7 +800,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
-                      tc.expected_identifier, variable_kind::_import}));
+                      keyword, variable_kind::_import}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -905,7 +817,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
-                      tc.expected_identifier, variable_kind::_import}));
+                      keyword, variable_kind::_import}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -922,7 +834,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
-                      tc.expected_identifier, variable_kind::_import}));
+                      keyword, variable_kind::_import}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
