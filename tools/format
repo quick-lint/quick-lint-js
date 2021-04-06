@@ -10,7 +10,16 @@ set -u
 cd "$(dirname "${0}")/.."
 source tools/files.sh
 
-find_non_vendor_files | matching '\.(c|cpp|h)$' | xargs clang-format -i
+parallelism=$(nproc 2>/dev/null)
+if [[ -z "${parallelism}" ]]; then
+  parallelism=3
+fi
+
+files_to_parse=($(find_non_vendor_files | matching '\.(c|cpp|h)$'))
+chunk_size=$(((${#files_to_parse[@]} + ${parallelism} - 1) / ${parallelism}))
+
+printf '%s\n' "${files_to_parse[@]}" \
+  | xargs "-P${parallelism}" "-n${chunk_size}" clang-format -i
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
