@@ -86,6 +86,35 @@ TEST(test_parse, return_statement) {
   }
 }
 
+TEST(test_parse, return_statement_disallows_newline) {
+  {
+    padded_string code(u8"return\nx"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+
+    // Parse 'return'.
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+
+    // Parse 'x' (separate statement from 'return')
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"for (let x of []) return\nx"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_exit_for_scope",        //
+                            "visit_variable_use",          // x
+                            "visit_end_of_module"));
+  }
+}
+
 TEST(test_parse, throw_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"throw new Error('ouch');"_sv);

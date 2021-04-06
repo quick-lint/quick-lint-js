@@ -394,8 +394,12 @@ class parser {
         break;
 
       default:
-        this->parse_and_visit_expression(v);
-        parse_expression_end();
+        if (this->peek().has_leading_newline) {
+          // Insert a semicolon, then consume it.
+        } else {
+          this->parse_and_visit_expression(v);
+          parse_expression_end();
+        }
         break;
       }
       break;
