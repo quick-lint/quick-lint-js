@@ -13,11 +13,7 @@
 
 mkDerivation {
   pname = "quick-lint-js";
-  # nix conventions tell us to use a version string starting with
-  # a number or the "current" date. Since this is a rolling derivation
-  # we can't give a date, and we currently have no version numbers.
-  # FIXME as soon as we introduce version numbers.
-  version = "0";
+  version = "0.1.0";
 
   src = ../../.;
   unpackPhase = null;
