@@ -35,7 +35,7 @@ TEST(test_options, default_options_with_no_files) {
   EXPECT_FALSE(o.help);
   EXPECT_FALSE(o.version);
   EXPECT_FALSE(o.lsp_server);
-  EXPECT_EQ(o.output_format, output_format::gnu_like);
+  EXPECT_EQ(o.output_format, output_format::default_format);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
 
@@ -85,6 +85,12 @@ TEST(test_options, debug_parser_visits_shorthand) {
 
 TEST(test_options, output_format) {
   {
+    options o = parse_options({});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    EXPECT_EQ(o.output_format, output_format::default_format);
+  }
+
+  {
     options o = parse_options({"--output-format=gnu-like"});
     EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
     EXPECT_EQ(o.output_format, output_format::gnu_like);
@@ -101,7 +107,7 @@ TEST(test_options, invalid_output_format) {
   {
     options o = parse_options({"--output-format=unknown-garbage"});
     EXPECT_THAT(o.error_unrecognized_options, ElementsAre("unknown-garbage"sv));
-    EXPECT_EQ(o.output_format, output_format::gnu_like)
+    EXPECT_EQ(o.output_format, output_format::default_format)
         << "output_format should remain the default";
   }
 
@@ -313,6 +319,35 @@ TEST(test_options, dump_errors) {
     EXPECT_EQ(
         dumped_errors.str(),
         "error: --exit-fail-on must be given at least one category or code\n");
+  }
+
+  {
+    options o;
+    o.lsp_server = true;
+    o.output_format = output_format::default_format;
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    EXPECT_EQ(dumped_errors.str(), "");
+  }
+
+  {
+    for (const auto &format : {
+             /* default_format intentionally left out */
+             output_format::gnu_like,
+             output_format::vim_qflist_json,
+         }) {
+      options o;
+      o.lsp_server = true;
+      o.output_format = format;
+
+      std::ostringstream dumped_errors;
+      bool have_errors = o.dump_errors(dumped_errors);
+      EXPECT_FALSE(have_errors);
+      EXPECT_EQ(dumped_errors.str(),
+                "warning: --output-format ignored with --lsp-server\n");
+    }
   }
 }
 }

@@ -11,6 +11,7 @@
 
 namespace quick_lint_js {
 enum class output_format {
+  default_format,
   gnu_like,
   vim_qflist_json,
 };
@@ -26,7 +27,7 @@ struct options {
   bool print_parser_visits = false;
   bool lsp_server = false;
   quick_lint_js::output_format output_format =
-      quick_lint_js::output_format::gnu_like;
+      quick_lint_js::output_format::default_format;
   std::vector<file_to_lint> files_to_lint;
   compiled_error_list exit_fail_on;
 
