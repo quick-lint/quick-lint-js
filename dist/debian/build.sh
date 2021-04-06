@@ -12,20 +12,20 @@ cd "$(dirname "${0}")/../.."
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
 
-git archive --format tar.gz --prefix quick-lint-js-0.1.0/ --output dist/debian/quick-lint-js_0.1.0.orig.tar.gz HEAD
+git archive --format tar.gz --prefix quick-lint-js-0.2.0/ --output dist/debian/quick-lint-js_0.2.0.orig.tar.gz HEAD
 
 cd dist/debian/
-rm -rf quick-lint-js-0.1.0/
-tar xzf quick-lint-js_0.1.0.orig.tar.gz
-cp -a debian quick-lint-js-0.1.0/debian
+rm -rf quick-lint-js-0.2.0/
+tar xzf quick-lint-js_0.2.0.orig.tar.gz
+cp -a debian quick-lint-js-0.2.0/debian
 
-cd quick-lint-js-0.1.0/
+cd quick-lint-js-0.2.0/
 dpkg-buildpackage -rfakeroot -uc -us
 
 cd ../
-lintian quick-lint-js_0.1.0-1_amd64.deb
-lintian quick-lint-js-dbgsym_0.1.0-1_amd64.deb
-lintian quick-lint-js-vim_0.1.0-1_all.deb
+lintian quick-lint-js_0.2.0-1_amd64.deb
+lintian quick-lint-js-dbgsym_0.2.0-1_amd64.deb
+lintian quick-lint-js-vim_0.2.0-1_all.deb
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
