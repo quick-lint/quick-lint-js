@@ -201,6 +201,10 @@ done_parsing_options:
 
 bool options::dump_errors(std::ostream& out) const {
   bool have_errors = false;
+  if (this->lsp_server &&
+      this->output_format != output_format::default_format) {
+    out << "warning: --output-format ignored with --lsp-server\n";
+  }
   for (const auto& option : this->error_unrecognized_options) {
     out << "error: unrecognized option: " << option << '\n';
     have_errors = true;

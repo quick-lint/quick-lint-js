@@ -39,6 +39,7 @@ class any_error_reporter {
   static any_error_reporter make(output_format format,
                                  compiled_error_list *exit_fail_on) {
     switch (format) {
+    case output_format::default_format:
     case output_format::gnu_like:
       return any_error_reporter(error_tape<text_error_reporter>(
           text_error_reporter(std::cerr), exit_fail_on));
