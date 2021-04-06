@@ -7,7 +7,7 @@ set -e
 set -u
 
 ssh_args=()
-ssh_host=github-ci@45.33.43.217
+ssh_host=github-ci@c.quick-lint-js.com
 remote_releases_root=/var/www/c.quick-lint-js.com/releases
 remote_debian_root=/var/www/c.quick-lint-js.com/debian
 apt_suite=experimental
