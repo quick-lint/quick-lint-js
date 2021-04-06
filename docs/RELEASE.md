@@ -26,26 +26,24 @@ Follow the following steps to release a new version of quick-lint-js:
    * `https://c.quick-lint-js.com/builds/%YOUR_COMMIT_HASH%/vscode/quick-lint-js-%YOUR_VERSION_NUMBER%.vsix`
    * `https://c.quick-lint-js.com/builds/%YOUR_COMMIT_HASH%/npm/quick-lint-js-%YOUR_VERSION_NUMBER%.tgz`
 
-5. Open the `npm/quick-lint-js-*.tgz` artifact. Audit the copyright files.
-
-6. ssh into the artifact server (c.quick-lint-js.com). Copy
+5. ssh into the artifact server (c.quick-lint-js.com). Copy
    `/var/www/c.quick-lint-js.com/builds/%YOUR_COMMIT_HASH%` to
    `/var/www/c.quick-lint-js.com/releases/%YOUR_VERSION_NUMBER%`.
 
-7. Publish the packages:
+6. Publish the packages:
    * With the `vscode/quick-lint-js-*.vsix` artifact:
      `npx vsce publish --packagePath ./quick-lint-js-*.vsix`
    * With the `npm/quick-lint-js-*.tgz` artifact:
      `npm publish ./quick-lint-js-*.tgz`
    * Run the `dist/debian/sync-releases-to-apt` script.
 
-8. Publish the website:
+7. Publish the website:
    1. Visit
       https://github.com/quick-lint/quick-lint-js/actions/workflows/deploy-website.yml?query=workflow%3A%22deploy+website%22
    2. Click the "Run workflow" menu, select your branch, enter the commit's
       hash, then click "Run workflow" button.
 
-9. Create a Git tag named after the version number (e.g. `0.1.0`). Push it to
+8. Create a Git tag named after the version number (e.g. `0.1.0`). Push it to
    GitHub.
 
-10. Push the commit to the `master` branch on GitHub.
+9. Push the commit to the `master` branch on GitHub.
