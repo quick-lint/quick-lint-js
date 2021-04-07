@@ -712,8 +712,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     EXPECT_EQ(summarize(ast), "dot(dot(var x, p1), p2)");
   }
 
-  for (string8 keyword :
-       {u8"catch", u8"class", u8"default", u8"get", u8"try"}) {
+  for (string8 keyword : keywords) {
     SCOPED_TRACE(out_string8(keyword));
     string8 code = u8"promise." + keyword;
     expression* ast = this->parse_expression(code.c_str());
