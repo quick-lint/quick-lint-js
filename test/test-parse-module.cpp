@@ -883,16 +883,7 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
 TEST(
     test_parse,
     imported_and_exported_names_can_be_reserved_keywords_with_escape_sequences) {
-  for (string8 keyword : {
-           u8"await",  u8"break",    u8"case",       u8"catch",    u8"class",
-           u8"const",  u8"continue", u8"debugger",   u8"default",  u8"delete",
-           u8"do",     u8"else",     u8"enum",       u8"export",   u8"extends",
-           u8"false",  u8"finally",  u8"for",        u8"function", u8"if",
-           u8"import", u8"in",       u8"instanceof", u8"new",      u8"null",
-           u8"return", u8"super",    u8"switch",     u8"this",     u8"throw",
-           u8"true",   u8"try",      u8"typeof",     u8"var",      u8"void",
-           u8"while",  u8"with",     u8"yield",
-       }) {
+  for (string8 keyword : keywords) {
     string8 exported_name = escape_first_character_in_keyword(keyword);
 
     {
