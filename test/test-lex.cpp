@@ -1640,6 +1640,7 @@ TEST_F(test_lex, lex_multi_character_symbols) {
   this->check_tokens(u8"**="_sv, {token_type::star_star_equal});
   this->check_tokens(u8"&&="_sv, {token_type::ampersand_ampersand_equal});
   this->check_tokens(u8"&="_sv, {token_type::ampersand_equal});
+  this->check_tokens(u8"?."_sv, {token_type::question_dot});
   this->check_tokens(u8"??"_sv, {token_type::question_question});
   this->check_tokens(u8"?\x3f="_sv, {token_type::question_question_equal});
   this->check_tokens(u8"^="_sv, {token_type::circumflex_equal});
@@ -1667,8 +1668,18 @@ TEST_F(test_lex, lex_symbols_separated_by_whitespace) {
   this->check_tokens(u8"{ }"_sv,
                      {token_type::left_curly, token_type::right_curly});
   this->check_tokens(u8"< ="_sv, {token_type::less, token_type::equal});
+  this->check_tokens(u8"? ."_sv, {token_type::question, token_type::dot});
   this->check_tokens(u8". . ."_sv,
                      {token_type::dot, token_type::dot, token_type::dot});
+}
+
+TEST_F(test_lex, question_followed_by_number_is_not_question_dot) {
+  this->check_tokens(u8"?.3"_sv, {token_type::question, token_type::number});
+}
+
+TEST_F(test_lex, question_dot_followed_by_non_digit_is_question_dot) {
+  this->check_tokens(u8"?.e"_sv,
+                     {token_type::question_dot, token_type::identifier});
 }
 
 TEST_F(test_lex, lex_whitespace) {

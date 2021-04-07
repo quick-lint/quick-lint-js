@@ -275,6 +275,15 @@ retry:
         this->last_token_.type = token_type::question_question;
         this->input_ += 2;
       }
+    } else if (this->input_[1] == '.') {
+      if (this->is_digit(this->input_[2])) {
+        // '?.3' is '?' followed by '.3'.
+        this->last_token_.type = token_type::question;
+        this->input_ += 1;
+      } else {
+        this->last_token_.type = token_type::question_dot;
+        this->input_ += 2;
+      }
     } else {
       this->last_token_.type = token_type::question;
       this->input_ += 1;
@@ -1871,6 +1880,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(plus_equal)
     QLJS_CASE(plus_plus)
     QLJS_CASE(question)
+    QLJS_CASE(question_dot)
     QLJS_CASE(question_question)
     QLJS_CASE(question_question_equal)
     QLJS_CASE(regexp)

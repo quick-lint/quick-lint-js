@@ -207,6 +207,7 @@ enum class token_type {
   pipe_pipe_equal,                // ||=
   plus_equal,                     // +=
   plus_plus,                      // ++
+  question_dot,                   // ?.
   question_question,              // ??
   question_question_equal,        // ??=
   slash_equal,                    // /=
