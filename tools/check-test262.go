@@ -48,23 +48,14 @@ var testTodo = TestTodo{
 
 		// TODO(strager): Implement private fields.
 		"v8/mjsunit/harmony/private-fields*.js",
-
-		// TODO(strager): Implement class fields.
-		"v8/mjsunit/harmony/public-instance-class-fields.js",
-		"v8/mjsunit/harmony/public-static-class-fields.js",
-		"v8/mjsunit/regress/regress-7642.js",
-		"v8/mjsunit/regress/regress-899537.js",
-		"v8/mjsunit/stack-traces-class-fields.js",
 	},
 	TodoFeatures: [][]byte{
 		// TODO(strager): Implement non-standard and new features.
 		[]byte("arbitrary-module-namespace-names"),
 		[]byte("async-iteration"),
 		[]byte("class-fields-private"),
-		[]byte("class-fields-public"),
 		[]byte("class-methods-private"),
 		[]byte("class-static-fields-private"),
-		[]byte("class-static-fields-public"),
 		[]byte("class-static-methods-private"),
 		[]byte("coalesce-expression"),
 		[]byte("optional-catch-binding"),
