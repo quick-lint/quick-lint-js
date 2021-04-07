@@ -10,7 +10,6 @@ The following contributors are copyright holders of portions of quick-lint-js:
 
 ### Minor copyright holders
 
-* A-thanasios
 * Angel Avila; angel.j.avila@gmail.com
 * CodeItQuick; evanontario@hotmail.com
 * Dylan Elliott; dylanelliott27@hotmail.com
@@ -18,7 +17,6 @@ The following contributors are copyright holders of portions of quick-lint-js:
 * Eduardo Fuentes; jeduardo.fuentes@alumnos.udg.mx
 * Francis Laniel; laniel_francis@privacyrequired.com
 * Lee Wannacott; wannacottL@gmail.com
-* alessandrodebellis; aledeb95@gmail.com
 * catac1
 * spicyyboi
 * z3tr; m5tfi@pm.me
@@ -28,6 +26,8 @@ The following contributors are copyright holders of portions of quick-lint-js:
 In addition to the copyright holders listed above, the following contributors
 authored portions of quick-lint-js:
 
+* A-thanasios; https://github.com/A-thanasios; signed CLA-v1.md
+* Alessandro De Bellis; aledeb95@gmail.com; signed CLA-v1.md
 * Brandon Conway; brandoncc@gmail.com; signed CLA-v1.md
 * Erlliam Mejia; tommejas@gmail.com; signed CLA-v1.md
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
