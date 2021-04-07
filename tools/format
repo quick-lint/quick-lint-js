@@ -10,7 +10,7 @@ set -u
 cd "$(dirname "${0}")/.."
 source tools/files.sh
 
-parallelism=$(nproc 2>/dev/null)
+parallelism=$(nproc 2>/dev/null || :)
 if [[ -z "${parallelism}" ]]; then
   parallelism=3
 fi
