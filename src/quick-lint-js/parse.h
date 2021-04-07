@@ -1455,6 +1455,7 @@ class parser {
       QLJS_CASE_KEYWORD:
       case token_type::left_square:
       case token_type::number:
+      case token_type::star:
       case token_type::string:
         if (this->peek().has_leading_newline) {
           // class C {
@@ -1505,6 +1506,7 @@ class parser {
       case token_type::identifier:
       case token_type::left_square:
       case token_type::number:
+      case token_type::star:
       case token_type::string:
         if (this->peek().has_leading_newline) {
           v.visit_property_declaration();
@@ -1558,6 +1560,7 @@ class parser {
       case token_type::identifier:
       case token_type::left_square:
       case token_type::number:
+      case token_type::star:
       case token_type::string:
         if (this->peek().has_leading_newline) {
           v.visit_property_declaration();

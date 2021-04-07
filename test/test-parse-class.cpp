@@ -481,6 +481,7 @@ TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
 
   std::vector<string8> class_declarations{
       u8"method() {}",
+      u8"*method() {}",
       u8"[expr]() {}",
       u8"'method'() {}",
       u8"3.14() {}",
