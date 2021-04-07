@@ -1663,6 +1663,13 @@ class parser {
       }
       break;
 
+    case token_type::left_curly:
+      this->error_reporter_->report(error_unexpected_token{
+          .token = this->peek().span(),
+      });
+      this->skip();
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
