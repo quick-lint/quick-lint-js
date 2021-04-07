@@ -831,6 +831,10 @@ next:
       this->skip();
       goto next;
 
+    case token_type::left_square:
+      children.back() = this->parse_index_expression_remainder(children.back());
+      goto next;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;

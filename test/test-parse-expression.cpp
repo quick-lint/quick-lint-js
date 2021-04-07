@@ -823,6 +823,17 @@ TEST_F(test_parse_expression, parse_indexing_expression) {
   }
 }
 
+TEST_F(test_parse_expression, parse_optional_indexing_expression) {
+  {
+    test_parser p(u8"xs?.[i]"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"xs?.[i]"));
+  }
+}
+
 TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
   {
     test_parser p(u8"xs[i"_sv);
