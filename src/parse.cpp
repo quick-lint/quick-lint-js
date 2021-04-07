@@ -1382,8 +1382,20 @@ expression* parser::parse_object_literal() {
             break;
           }
         } else {
-          // {method*() {}}  // Invalid.
-          parse_method_entry(key_token.begin, key, function_attributes::normal);
+          lexer_transaction transaction = this->lexer_.begin_transaction();
+          this->skip();
+          if (this->peek().type == token_type::left_paren) {
+            // {method*() {}}  // Invalid.
+            this->lexer_.roll_back_transaction(std::move(transaction));
+            parse_method_entry(key_token.begin, key,
+                               function_attributes::normal);
+          } else {
+            // {someName *method() {}}  // Invalid.
+            this->lexer_.roll_back_transaction(std::move(transaction));
+            // We'll report error_missing_comma_between_object_literal_entries
+            // on the next iteration of the loop.
+            goto single_token_key_and_value;
+          }
         }
         break;
 

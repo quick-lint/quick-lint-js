@@ -1923,6 +1923,16 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   {
+    test_parser p(u8"{a *generator() {}}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var a, literal, function)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_comma_between_object_literal_entries, where,
+                    offsets_matcher(p.code(), strlen(u8"{a"), u8""))));
+  }
+
+  {
     test_parser p(u8"{async f}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, function)");
