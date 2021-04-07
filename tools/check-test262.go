@@ -67,7 +67,6 @@ var testTodo = TestTodo{
 		[]byte("class-static-fields-public"),
 		[]byte("class-static-methods-private"),
 		[]byte("coalesce-expression"),
-		[]byte("import.meta"),
 		[]byte("optional-catch-binding"),
 		[]byte("optional-chaining"),
 		[]byte("top-level-await"),

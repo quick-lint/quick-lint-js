@@ -686,6 +686,18 @@ TEST(test_parse, expression_statement) {
   }
 
   {
+    spy_visitor v;
+    padded_string code(u8"import.meta; secondStatement;"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use"));  // secondStatement
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"typeof x"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
   }

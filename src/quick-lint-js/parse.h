@@ -2423,6 +2423,8 @@ class parser {
     // import expression statement:
     //
     // import(url).then(() => { /* ... */ })
+    // import.meta
+    case token_type::dot:
     case token_type::left_paren: {
       expression *ast = this->parse_expression_remainder(
           this->make_expression<expression::import>(import_span), precedence{});
