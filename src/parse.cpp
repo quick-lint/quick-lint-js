@@ -670,49 +670,9 @@ next:
   }
 
   // f(x, y, z)  // Function call.
-  case token_type::left_paren: {
-    source_code_span left_paren_span = this->peek().span();
-    vector<expression*, 4> call_children(
-        "parse_expression_remainder call children", &children.back(),
-        &children.back() + 1);
-    this->skip();
-    while (this->peek().type != token_type::right_paren) {
-      if (this->peek().type == token_type::comma) {
-        this->error_reporter_->report(
-            error_extra_comma_not_allowed_between_arguments{
-                .comma = this->peek().span(),
-            });
-        this->skip();
-        continue;
-      }
-      call_children.emplace_back(this->parse_expression(
-          precedence{.commas = false, .trailing_identifiers = true}));
-      if (this->peek().type != token_type::comma) {
-        break;
-      }
-      this->skip();
-    }
-    const char8* call_span_end;
-    if (this->peek().type == token_type::right_paren) {
-      call_span_end = this->peek().end;
-      this->skip();
-    } else {
-      // { f(x }  // Invalid.
-      // f(x;     // Invalid.
-      call_span_end = this->lexer_.end_of_previous_token();
-      this->error_reporter_->report(
-          error_expected_right_paren_for_function_call{
-              .expected_right_paren =
-                  source_code_span(call_span_end, call_span_end),
-              .left_paren = left_paren_span,
-          });
-    }
-    children.back() = this->make_expression<expression::call>(
-        this->expressions_.make_array(std::move(call_children)),
-        /*left_paren_span=*/left_paren_span,
-        /*span_end=*/call_span_end);
+  case token_type::left_paren:
+    children.back() = this->parse_call_expression_remainder(children.back());
     goto next;
-  }
 
   // x += y
   // f().prop = other
@@ -1032,6 +992,46 @@ next:
   }
 
   return build_expression();
+}
+
+expression* parser::parse_call_expression_remainder(expression* callee) {
+  source_code_span left_paren_span = this->peek().span();
+  vector<expression*, 4> call_children(
+      "parse_expression_remainder call children", &callee, &callee + 1);
+  this->skip();
+  while (this->peek().type != token_type::right_paren) {
+    if (this->peek().type == token_type::comma) {
+      this->error_reporter_->report(
+          error_extra_comma_not_allowed_between_arguments{
+              .comma = this->peek().span(),
+          });
+      this->skip();
+      continue;
+    }
+    call_children.emplace_back(this->parse_expression(
+        precedence{.commas = false, .trailing_identifiers = true}));
+    if (this->peek().type != token_type::comma) {
+      break;
+    }
+    this->skip();
+  }
+  const char8* call_span_end;
+  if (this->peek().type == token_type::right_paren) {
+    call_span_end = this->peek().end;
+    this->skip();
+  } else {
+    // { f(x }  // Invalid.
+    // f(x;     // Invalid.
+    call_span_end = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_expected_right_paren_for_function_call{
+        .expected_right_paren = source_code_span(call_span_end, call_span_end),
+        .left_paren = left_paren_span,
+    });
+  }
+  return this->make_expression<expression::call>(
+      this->expressions_.make_array(std::move(call_children)),
+      /*left_paren_span=*/left_paren_span,
+      /*span_end=*/call_span_end);
 }
 
 expression* parser::parse_index_expression_remainder(expression* lhs) {

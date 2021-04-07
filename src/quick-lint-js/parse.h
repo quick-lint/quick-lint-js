@@ -3295,6 +3295,7 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   expression *parse_index_expression_remainder(expression *lhs);
+  expression *parse_call_expression_remainder(expression *callee);
 };
 }
 
