@@ -249,6 +249,27 @@ TEST(test_parse, export_list) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"one"},
                             spy_visitor::visited_variable_use{u8"three"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export {myVar as 'name'};"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myVar"}));
+  }
+}
+
+TEST(test_parse, exporting_by_string_name_is_only_allowed_for_export_from) {
+  {
+    padded_string code(u8"export {'name'};"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_exporting_string_name_only_allowed_for_export_from,
+                    export_name,
+                    offsets_matcher(&code, strlen(u8"export {"), u8"'name'"))));
+  }
 }
 
 TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
@@ -333,6 +354,12 @@ TEST(test_parse, export_from) {
   }
 
   {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export * as 'mother' from 'other';"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"export {} from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
@@ -373,6 +400,18 @@ TEST(test_parse, export_from) {
     // Keywords are legal, even if Unicode-escaped.
     spy_visitor v = parse_and_visit_statement(
         u8"export {\\u{76}ar as \\u{69}f} from 'fs';"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"export {'name'} from 'other';"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"export {'name' as 'othername'} from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
@@ -524,6 +563,14 @@ TEST(test_parse, parse_and_visit_import) {
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"rf");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"import {'read file sync' as readFileSync} from 'fs';"_sv);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"readFileSync", variable_kind::_import}));
   }
 
   {
@@ -693,6 +740,20 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
     }
 
     {
+      spy_visitor v = parse_and_visit_statement(u8"import { exportedName as " +
+                                                name + u8" } from 'other';");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+    }
+
+    {
+      spy_visitor v = parse_and_visit_statement(
+          u8"import { 'exportedName' as " + name + u8" } from 'other';");
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration"));  // (name)
+    }
+
+    {
       spy_visitor v =
           parse_and_visit_statement(u8"import " + name + u8" from 'other';");
       EXPECT_THAT(v.visits,
@@ -738,6 +799,24 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(ERROR_TYPE_FIELD(
               error_cannot_import_variable_named_keyword, import_name,
               offsets_matcher(&code, strlen(u8"import { someFunction as "),
+                              name))));
+    }
+
+    {
+      padded_string code(u8"import { 'someFunction' as " + name +
+                         u8" } from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      name, variable_kind::_import}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_cannot_import_variable_named_keyword, import_name,
+              offsets_matcher(&code, strlen(u8"import { 'someFunction' as "),
                               name))));
     }
 
@@ -806,6 +885,24 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(ERROR_TYPE_FIELD(
               error_keywords_cannot_contain_escape_sequences, escape_sequence,
               offsets_matcher(&code, strlen(u8"import { someFunction as "),
+                              u8"\\u{??}"))));
+    }
+
+    {
+      padded_string code(u8"import { 'someFunction' as " + imported_variable +
+                         u8" } from 'other';");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      keyword, variable_kind::_import}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_keywords_cannot_contain_escape_sequences, escape_sequence,
+              offsets_matcher(&code, strlen(u8"import { 'someFunction' as "),
                               u8"\\u{??}"))));
     }
 

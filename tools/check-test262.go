@@ -36,9 +36,6 @@ var testTodo = TestTodo{
 		"tools/generation/test/expected/normal/nested/*.js",
 		"tools/lint/test/fixtures/*.js",
 
-		// TODO(strager): Implement non-standard and new features.
-		"language/module-code/export-expname_FIXTURE.js",
-
 		// TODO(strager): Implement strict mode.
 		"language/directive-prologue/10.1.1-2gs.js",
 		"language/directive-prologue/10.1.1-5gs.js",
@@ -51,7 +48,6 @@ var testTodo = TestTodo{
 	},
 	TodoFeatures: [][]byte{
 		// TODO(strager): Implement non-standard and new features.
-		[]byte("arbitrary-module-namespace-names"),
 		[]byte("async-iteration"),
 		[]byte("class-fields-private"),
 		[]byte("class-methods-private"),

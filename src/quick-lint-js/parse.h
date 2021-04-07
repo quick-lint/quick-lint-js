@@ -862,6 +862,10 @@ class parser {
       if (this->peek().type == token_type::kw_as) {
         this->skip();
         switch (this->peek().type) {
+        case token_type::string:
+          // TODO(strager): Check that the string is valid Unicode
+          // (standard: IsStringWellFormedUnicode).
+          [[fallthrough]];
         QLJS_CASE_KEYWORD:
         case token_type::identifier:
         case token_type::reserved_keyword_with_escape_sequence:
@@ -883,9 +887,9 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor;
-      std::vector<token> exported_keywords;
+      std::vector<token> exported_bad_tokens;
       this->parse_and_visit_named_exports_for_export(
-          exports_visitor, /*out_exported_keywords=*/exported_keywords);
+          exports_visitor, /*out_exported_bad_tokens=*/exported_bad_tokens);
       if (this->peek().type == token_type::kw_from) {
         // export {a, b, c} from "module";
         this->skip();
@@ -894,16 +898,24 @@ class parser {
         // Ignore exported_keywords.
       } else {
         // export {a as default, b};
-        for (token &exported_keyword : exported_keywords) {
-          if (exported_keyword.type ==
-              token_type::reserved_keyword_with_escape_sequence) {
-            exported_keyword.report_errors_for_escape_sequences_in_keyword(
+        for (token &exported_bad_token : exported_bad_tokens) {
+          switch (exported_bad_token.type) {
+          case token_type::reserved_keyword_with_escape_sequence:
+            exported_bad_token.report_errors_for_escape_sequences_in_keyword(
                 this->error_reporter_);
-          } else {
+            break;
+          case token_type::string:
+            this->error_reporter_->report(
+                error_exporting_string_name_only_allowed_for_export_from{
+                    .export_name = exported_bad_token.span(),
+                });
+            break;
+          default:
             this->error_reporter_->report(
                 error_cannot_export_variable_named_keyword{
-                    .export_name = exported_keyword.identifier_name(),
+                    .export_name = exported_bad_token.identifier_name(),
                 });
+            break;
           }
         }
         exports_visitor.move_into(v);
@@ -2717,28 +2729,28 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_export(
-      Visitor &v, std::vector<token> &out_exported_keywords) {
+      Visitor &v, std::vector<token> &out_exported_bad_tokens) {
     this->parse_and_visit_named_exports(
-        v, /*out_exported_keywords=*/&out_exported_keywords);
+        v, /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_import(Visitor &v) {
-    this->parse_and_visit_named_exports(v, /*out_exported_keywords=*/nullptr);
+    this->parse_and_visit_named_exports(v, /*out_exported_bad_tokens=*/nullptr);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports(
-      Visitor &v, std::vector<token> *out_exported_keywords) {
-    bool is_export = out_exported_keywords != nullptr;
+      Visitor &v, std::vector<token> *out_exported_bad_tokens) {
+    bool is_export = out_exported_bad_tokens != nullptr;
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
       switch (this->peek().type) {
       QLJS_CASE_RESERVED_KEYWORD:
       case token_type::reserved_keyword_with_escape_sequence:
-        if (out_exported_keywords) {
-          out_exported_keywords->emplace_back(this->peek());
+        if (out_exported_bad_tokens) {
+          out_exported_bad_tokens->emplace_back(this->peek());
         }
         [[fallthrough]];
       QLJS_CASE_CONTEXTUAL_KEYWORD:
@@ -2749,6 +2761,10 @@ class parser {
         if (this->peek().type == token_type::kw_as) {
           this->skip();
           switch (this->peek().type) {
+          case token_type::string:
+            // TODO(strager): Check that the string is valid Unicode
+            // (standard: IsStringWellFormedUnicode).
+            [[fallthrough]];
           QLJS_CASE_KEYWORD:
           case token_type::identifier:
           case token_type::reserved_keyword_with_escape_sequence:
@@ -2798,6 +2814,65 @@ class parser {
         }
         break;
       }
+
+      // import {"export name" as varName} from "other";
+      // export {"export name"} from "other";
+      case token_type::string:
+        // TODO(strager): Check that the string is valid Unicode
+        // (standard: IsStringWellFormedUnicode).
+        if (is_export) {
+          if (out_exported_bad_tokens) {
+            out_exported_bad_tokens->emplace_back(this->peek());
+          }
+          this->skip();
+        } else {
+          this->skip();
+
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_as);
+          this->skip();
+
+          switch (this->peek().type) {
+          // import {'name' as bread} from 'other';
+          // import {'name' as let} from 'other';  // Invalid.
+          // import {'name' as static} from 'other';
+          QLJS_CASE_CONTEXTUAL_KEYWORD:
+          case token_type::identifier:
+            if (this->peek().type == token_type::kw_let) {
+              this->error_reporter_->report(
+                  error_cannot_import_let{.import_name = this->peek().span()});
+            }
+            v.visit_variable_declaration(this->peek().identifier_name(),
+                                         variable_kind::_import);
+            this->skip();
+            break;
+
+          // import {'name' as debugger} from 'other';  // Invalid.
+          QLJS_CASE_RESERVED_KEYWORD:
+            this->error_reporter_->report(
+                error_cannot_import_variable_named_keyword{
+                    .import_name = this->peek().identifier_name(),
+                });
+            v.visit_variable_declaration(this->peek().identifier_name(),
+                                         variable_kind::_import);
+            this->skip();
+            break;
+
+          // import {\u{76}ar} from 'other';  // Invalid.
+          case token_type::reserved_keyword_with_escape_sequence:
+            this->peek().report_errors_for_escape_sequences_in_keyword(
+                this->error_reporter_);
+            v.visit_variable_declaration(this->peek().identifier_name(),
+                                         variable_kind::_import);
+            this->skip();
+            break;
+
+          default:
+            QLJS_PARSER_UNIMPLEMENTED();
+            break;
+          }
+        }
+        break;
+
       case token_type::right_curly:
         goto done;
       default:

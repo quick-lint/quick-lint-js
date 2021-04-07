@@ -779,6 +779,38 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
   }
 
+  // import implies strict mode (because modules imply strict mode).
+  {
+    padded_string code(u8"import { someName as let } from 'weird';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_import_let, import_name,
+                    offsets_matcher(&code, strlen(u8"import { someName as "),
+                                    u8"let"))));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"let", variable_kind::_import}));
+  }
+
+  // import implies strict mode (because modules imply strict mode).
+  {
+    padded_string code(u8"import { 'someName' as let } from 'weird';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_import_let, import_name,
+                    offsets_matcher(&code, strlen(u8"import { 'someName' as "),
+                                    u8"let"))));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"let", variable_kind::_import}));
+  }
+
   // TODO(#73): export implies strict mode (because modules imply strict
   // mode).
   if ((false)) {

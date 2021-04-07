@@ -388,6 +388,13 @@
       .error(QLJS_TRANSLATABLE("exporting requires '{{' and '}'"), names))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_exporting_string_name_only_allowed_for_export_from, "E153",        \
+      { source_code_span export_name; },                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "forwarding exports are only allowed in export-from"),        \
+             export_name))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_finally_without_try, "E118", { source_code_span finally_token; },  \
       .error(QLJS_TRANSLATABLE("unexpected 'finally' without 'try'"),          \
              finally_token))                                                   \
