@@ -791,6 +791,26 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
   }
 }
 
+TEST_F(test_parse_expression, parse_optional_dot_expressions) {
+  {
+    test_parser p(u8"x?.prop"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(var x, prop)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x?.prop"));
+  }
+
+  for (string8 keyword : keywords) {
+    padded_string code(u8"obj?." + keyword);
+    SCOPED_TRACE(code);
+    expression* ast = this->parse_expression(code.string_view());
+    EXPECT_EQ(ast->kind(), expression_kind::dot);
+    EXPECT_EQ(summarize(ast->child_0()), "var obj");
+    EXPECT_EQ(ast->variable_identifier().normalized_name(), keyword);
+  }
+}
+
 TEST_F(test_parse_expression, parse_indexing_expression) {
   {
     test_parser p(u8"xs[i]"_sv);
@@ -2671,6 +2691,15 @@ TEST_F(test_parse_expression,
 
     {
       string8 code = u8"obj." + property;
+      SCOPED_TRACE(out_string8(code));
+      expression* ast = this->parse_expression(code);
+      EXPECT_EQ(ast->kind(), expression_kind::dot);
+      EXPECT_EQ(summarize(ast->child_0()), "var obj");
+      EXPECT_EQ(ast->variable_identifier().normalized_name(), keyword);
+    }
+
+    {
+      string8 code = u8"obj?." + property;
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
       EXPECT_EQ(ast->kind(), expression_kind::dot);

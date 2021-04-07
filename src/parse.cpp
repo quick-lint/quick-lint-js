@@ -819,6 +819,25 @@ next:
     break;
   }
 
+  // x?.y
+  case token_type::question_dot: {
+    this->skip();
+    switch (this->peek().type) {
+    case token_type::identifier:
+    case token_type::reserved_keyword_with_escape_sequence:
+    QLJS_CASE_KEYWORD:
+      children.back() = this->make_expression<expression::dot>(
+          children.back(), this->peek().identifier_name());
+      this->skip();
+      goto next;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    break;
+  }
+
   // o[key]  // Indexing expression.
   case token_type::left_square: {
     source_code_span left_square_span = this->peek().span();
