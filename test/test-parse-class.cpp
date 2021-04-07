@@ -462,6 +462,56 @@ TEST(test_parse, class_statement_with_fields) {
   // TODO(strager): 'set field=init' is an error.
 }
 
+TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { f\ng() {} }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // f
+                            "visit_property_declaration",       // g
+                            "visit_enter_function_scope",       // g
+                            "visit_enter_function_scope_body",  // g
+                            "visit_exit_function_scope",        // g
+                            "visit_exit_class_scope"));         // C
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"f"},
+                            spy_visitor::visited_property_declaration{u8"g"}));
+  }
+
+  std::vector<string8> class_declarations{
+      u8"method() {}",
+      u8"[expr]() {}",
+      u8"'method'() {}",
+      u8"3.14() {}",
+  };
+  for (string8 keyword : keywords) {
+    class_declarations.emplace_back(keyword + u8"() {}");
+  }
+  for (const string8& second_member : class_declarations) {
+    {
+      padded_string code(u8"class C { myField\n" + second_member + u8" }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_statement(code.string_view());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{u8"myField"},
+                      ::testing::_));
+    }
+
+    for (string8 first_member : {u8"3.14", u8"'bananas'", u8"[expr]"}) {
+      padded_string code(u8"class C { " + first_member + u8"\n" +
+                         second_member + u8" }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_statement(code.string_view());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{std::nullopt},
+                      ::testing::_));
+    }
+  }
+}
+
 TEST(test_parse, class_methods_should_not_use_function_keyword) {
   {
     spy_visitor v;

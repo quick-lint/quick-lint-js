@@ -1439,9 +1439,32 @@ class parser {
         break;
 
       case token_type::identifier:
-        this->error_reporter_->report(error_unexpected_token{
-            .token = property_name.span(),
-        });
+        if (this->peek().has_leading_newline) {
+          // class C {
+          //   field        // ASI
+          //   method() {}
+          // }
+          v.visit_property_declaration(property_name);
+        } else {
+          this->error_reporter_->report(error_unexpected_token{
+              .token = property_name.span(),
+          });
+        }
+        break;
+
+      QLJS_CASE_KEYWORD:
+      case token_type::left_square:
+      case token_type::number:
+      case token_type::string:
+        if (this->peek().has_leading_newline) {
+          // class C {
+          //   field        // ASI
+          //   [expr]() {}
+          // }
+          v.visit_property_declaration(property_name);
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
         break;
 
       default:
@@ -1472,6 +1495,22 @@ class parser {
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
         v.visit_property_declaration();
+        break;
+
+      // class C {
+      //   "field"      // ASI
+      //   method() {}
+      // }
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+      case token_type::left_square:
+      case token_type::number:
+      case token_type::string:
+        if (this->peek().has_leading_newline) {
+          v.visit_property_declaration();
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
         break;
 
       // "method"() {}
@@ -1509,6 +1548,22 @@ class parser {
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
         v.visit_property_declaration();
+        break;
+
+      // class C {
+      //   [fieldExpr]  // ASI
+      //   method() {}
+      // }
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+      case token_type::left_square:
+      case token_type::number:
+      case token_type::string:
+        if (this->peek().has_leading_newline) {
+          v.visit_property_declaration();
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
         break;
 
       // [expr]() {}
