@@ -480,11 +480,8 @@ TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
   }
 
   std::vector<string8> class_declarations{
-      u8"method() {}",
-      u8"*method() {}",
-      u8"[expr]() {}",
-      u8"'method'() {}",
-      u8"3.14() {}",
+      u8"method() {}",   u8"*method() {}", u8"[expr]() {}",
+      u8"'method'() {}", u8"3.14() {}",
   };
   for (string8 keyword : keywords) {
     class_declarations.emplace_back(keyword + u8"() {}");
@@ -744,6 +741,31 @@ TEST(test_parse, stray_identifier_before_class_method) {
   {
     spy_visitor v;
     padded_string code(u8"class C { junkIdentifier method(arg) { body; } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_variable_declaration",       // arg
+                            "visit_enter_function_scope_body",  // method
+                            "visit_variable_use",               // body
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_token, token,
+                              offsets_matcher(&code, strlen(u8"class C { "),
+                                              u8"junkIdentifier"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"class C { junkIdentifier *method(arg) { body; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
