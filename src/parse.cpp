@@ -785,6 +785,7 @@ next:
   case token_type::question_dot: {
     this->skip();
     switch (this->peek().type) {
+    // x?.y
     case token_type::identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
@@ -800,10 +801,12 @@ next:
       children.back() = this->parse_template(children.back());
       goto next;
 
+    // f?.(x, y)
     case token_type::left_paren:
       children.back() = this->parse_call_expression_remainder(children.back());
       goto next;
 
+    // array?.[index]
     case token_type::left_square:
       children.back() = this->parse_index_expression_remainder(children.back());
       goto next;
