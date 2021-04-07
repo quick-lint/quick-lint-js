@@ -1540,7 +1540,8 @@ class parser {
     case token_type::kw_function: {
       token function_token = this->peek();
       this->skip();
-      if (this->peek().type == token_type::left_paren) {
+      switch (this->peek().type) {
+      case token_type::left_paren: {
         // function() {}
         identifier method_name = function_token.identifier_name();
         v.visit_property_declaration(method_name);
@@ -1548,7 +1549,25 @@ class parser {
             v,
             /*name=*/method_name.span(), method_attributes);
         break;
-      } else {
+      }
+
+      // class C { function }   // Field named 'function'.
+      // class C { function; }  // Field named 'function'.
+      case token_type::right_curly:
+      case token_type::semicolon:
+        v.visit_property_declaration(function_token.identifier_name());
+        this->consume_semicolon();
+        break;
+
+      // function = init;  // Field named 'function'.
+      case token_type::equal:
+        this->skip();
+        this->parse_and_visit_expression(v);
+        v.visit_property_declaration(function_token.identifier_name());
+        this->consume_semicolon();
+        break;
+
+      default:
         // function f() {}  // Invalid.
         this->error_reporter_->report(
             error_methods_should_not_use_function_keyword{
@@ -1556,10 +1575,37 @@ class parser {
             });
         goto next;
       }
+      break;
     }
 
+    // async;  // Field named 'async'.
+    // ;       // Stray semicolon.
     case token_type::semicolon:
+      if (last_ident.has_value()) {
+        v.visit_property_declaration(*last_ident);
+      }
       this->skip();
+      break;
+
+    // class C { get }  // Field named 'get'
+    case token_type::right_curly:
+      if (last_ident.has_value()) {
+        v.visit_property_declaration(*last_ident);
+      } else {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+      break;
+
+    // get = init;
+    case token_type::equal:
+      if (last_ident.has_value()) {
+        this->skip();
+        this->parse_and_visit_expression(v);
+        v.visit_property_declaration(*last_ident);
+        this->consume_semicolon();
+      } else {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
       break;
 
     default:

@@ -460,7 +460,6 @@ TEST(test_parse, class_statement_with_fields) {
   // TODO(strager): 'async field=init' is an error.
   // TODO(strager): 'get field=init' is an error.
   // TODO(strager): 'set field=init' is an error.
-  // TODO(strager): Parse fields with keyword keys.
 }
 
 TEST(test_parse, class_methods_should_not_use_function_keyword) {
@@ -547,6 +546,33 @@ TEST(test_parse, class_statement_with_keyword_property) {
       spy_visitor v = parse_and_visit_statement(code.c_str());
       ASSERT_EQ(v.property_declarations.size(), 1);
       EXPECT_EQ(v.property_declarations[0].name, keyword);
+    }
+
+    {
+      string8 code = u8"class C { " + keyword + u8" }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    }
+
+    {
+      string8 code = u8"class C { " + keyword + u8"; }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    }
+
+    {
+      string8 code = u8"class C { " + keyword + u8" = init; }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_statement(code.c_str());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
     }
   }
 
