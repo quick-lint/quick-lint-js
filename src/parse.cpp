@@ -793,6 +793,13 @@ next:
       this->skip();
       goto next;
 
+    // tag?.`template`
+    // tag?.`template${goes}here`
+    case token_type::complete_template:
+    case token_type::incomplete_template:
+      children.back() = this->parse_template(children.back());
+      goto next;
+
     case token_type::left_paren:
       children.back() = this->parse_call_expression_remainder(children.back());
       goto next;

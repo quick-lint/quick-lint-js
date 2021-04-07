@@ -1436,6 +1436,19 @@ TEST_F(test_parse_expression, tagged_template_literal) {
   }
 }
 
+TEST_F(test_parse_expression, optional_tagged_template_literal) {
+  {
+    expression* ast = this->parse_expression(u8"hello?.`world`"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var hello)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"hello?.`template ${literal} thingy`"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var hello, var literal)");
+  }
+}
+
 TEST_F(test_parse_expression, array_literal) {
   {
     test_parser p(u8"[]"_sv);
