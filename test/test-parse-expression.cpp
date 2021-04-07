@@ -695,6 +695,13 @@ TEST_F(test_parse_expression, function_call_with_invalid_extra_commas) {
   }
 }
 
+TEST_F(test_parse_expression, parse_optional_function_call) {
+  {
+    expression* ast = this->parse_expression(u8"f?.(x,y)"_sv);
+    EXPECT_EQ(summarize(ast), "call(var f, var x, var y)");
+  }
+}
+
 TEST_F(test_parse_expression, parse_dot_expressions) {
   {
     test_parser p(u8"x.prop"_sv);

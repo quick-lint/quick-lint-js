@@ -780,6 +780,8 @@ next:
   }
 
   // x?.y
+  // array?.[index]
+  // f?.(x, y)
   case token_type::question_dot: {
     this->skip();
     switch (this->peek().type) {
@@ -789,6 +791,10 @@ next:
       children.back() = this->make_expression<expression::dot>(
           children.back(), this->peek().identifier_name());
       this->skip();
+      goto next;
+
+    case token_type::left_paren:
+      children.back() = this->parse_call_expression_remainder(children.back());
       goto next;
 
     case token_type::left_square:
