@@ -1485,6 +1485,7 @@ class parser {
       break;
 
     // [methodNameExpression]() {}
+    // [fieldNameExpression] = initialValue;
     case token_type::left_square:
       this->skip();
 
@@ -1493,9 +1494,32 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
       this->skip();
 
-      v.visit_property_declaration();
-      this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, method_attributes);
+      switch (this->peek().type) {
+      // [expr];
+      // class C { [expr] }
+      case token_type::right_curly:
+      case token_type::semicolon:
+        v.visit_property_declaration();
+        this->consume_semicolon();
+        break;
+
+      // [expr] = init;
+      case token_type::equal:
+        this->skip();
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon();
+        v.visit_property_declaration();
+        break;
+
+      // [expr]() {}
+      // TODO(strager): Is 'default' correct here?
+      default:
+        v.visit_property_declaration();
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/std::nullopt, method_attributes);
+        break;
+      }
+
       break;
 
     // async() {}
