@@ -903,17 +903,8 @@ next:
   }
 
   // html`<h1>My Website</h1>  // Template call.
-  case token_type::complete_template: {
-    source_code_span template_span = this->peek().span();
-    this->skip();
-    expression* tag = children.back();
-    children.back() =
-        this->make_expression<expression::tagged_template_literal>(
-            this->expressions_.make_array(&tag, &tag + 1), template_span);
-    goto next;
-  }
-
-  // html`<h1>${title}</h1>`  // Template call.
+  // html`<h1>${title}</h1>`   // Template call.
+  case token_type::complete_template:
   case token_type::incomplete_template: {
     expression* tag = children.back();
     children.back() = this->parse_template(tag);
@@ -1616,6 +1607,16 @@ expression* parser::parse_class_expression() {
 }
 
 expression* parser::parse_template(std::optional<expression*> tag) {
+  if (this->peek().type == token_type::complete_template) {
+    if (!tag.has_value()) {
+      QLJS_UNIMPLEMENTED();
+    }
+    source_code_span template_span = this->peek().span();
+    this->skip();
+    return this->make_expression<expression::tagged_template_literal>(
+        this->expressions_.make_array(&*tag, &*tag + 1), template_span);
+  }
+
   const char8* template_begin = this->peek().begin;
   vector<expression*> children("parse_template children");
   if (tag.has_value()) {
