@@ -737,6 +737,7 @@ next:
     default:
       QLJS_UNREACHABLE();
     }
+    source_code_span operator_span = this->peek().span();
     this->skip();
     expression* lhs = build_expression();
     switch (lhs->kind()) {
@@ -756,6 +757,11 @@ next:
     }
     expression* rhs = this->parse_expression(
         precedence{.commas = false, .in_operator = prec.in_operator});
+    if (rhs->kind() == expression_kind::_invalid) {
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = operator_span,
+      });
+    }
     children.clear();
     children.emplace_back(
         this->make_expression<expression::assignment>(kind, lhs, rhs));

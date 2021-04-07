@@ -132,6 +132,20 @@ TEST(test_parse, parse_invalid_math_expression) {
             ERROR_TYPE_FIELD(error_unmatched_parenthesis, where,
                              offsets_matcher(&code, strlen(u8"2 * "), u8"("))));
   }
+
+  {
+    padded_string code(u8"x += ;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use", "visit_variable_assignment"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, strlen(u8"x "), u8"+="))));
+  }
 }
 
 TEST(test_parse, stray_right_parenthesis) {
