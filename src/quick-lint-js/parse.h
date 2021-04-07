@@ -1453,12 +1453,35 @@ class parser {
 
     // "method"() {}
     // 9001() {}
+    // "fieldName" = init;
     case token_type::number:
     case token_type::string:
-      v.visit_property_declaration();
       this->skip();
-      this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/std::nullopt, method_attributes);
+      switch (this->peek().type) {
+      // "fieldName";
+      // class C { "fieldName" }
+      case token_type::right_curly:
+      case token_type::semicolon:
+        v.visit_property_declaration();
+        this->consume_semicolon();
+        break;
+
+      // "fieldName" = init;
+      case token_type::equal:
+        this->skip();
+        this->parse_and_visit_expression(v);
+        this->consume_semicolon();
+        v.visit_property_declaration();
+        break;
+
+      // "method"() {}
+      // TODO(strager): Is 'default' correct here?
+      default:
+        v.visit_property_declaration();
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/std::nullopt, method_attributes);
+        break;
+      }
       break;
 
     // [methodNameExpression]() {}

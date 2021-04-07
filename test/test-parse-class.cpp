@@ -345,13 +345,67 @@ TEST(test_parse, class_statement_with_fields) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
   }
 
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName'; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_property_declaration",  // 'fieldName'
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+  }
+
+  {
+    // ASI after field without initializer.
+    spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName' }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_property_declaration",  // 'fieldName'
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { 'fieldName' = init; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_variable_use",          // init
+                            "visit_property_declaration",  // 'fieldName'
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { 3.14 = pi; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_variable_use",          // pi
+                            "visit_property_declaration",  // 'fieldName'
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"pi"}));
+  }
+
   // TODO(strager): '*field=init' is an error.
   // TODO(strager): 'async field=init' is an error.
   // TODO(strager): 'get field=init' is an error.
   // TODO(strager): 'set field=init' is an error.
   // TODO(strager): Parse fields with computed keys.
-  // TODO(strager): Parse fields with string literal keys.
-  // TODO(strager): Parse fields with number literal keys.
   // TODO(strager): Parse fields with keyword keys.
 }
 
