@@ -271,6 +271,90 @@ TEST(test_parse, class_statement_with_methods) {
   }
 }
 
+TEST(test_parse, class_statement_with_fields) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class FruitBasket { banana; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // FruitBasket
+                            "visit_enter_class_scope",     //
+                            "visit_property_declaration",  // banana
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"banana"}));
+  }
+
+  {
+    // ASI after field without initializer.
+    spy_visitor v = parse_and_visit_statement(u8"class FruitBasket { banana }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // FruitBasket
+                            "visit_enter_class_scope",     //
+                            "visit_property_declaration",  // banana
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"banana"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { prop = init; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_variable_use",          // init
+                            "visit_property_declaration",  // prop
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+  }
+
+  {
+    // ASI after field with initializer.
+    spy_visitor v = parse_and_visit_statement(u8"class C { prop = init }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_variable_use",          // init
+                            "visit_property_declaration",  // prop
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { static prop = init }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  //
+                            "visit_enter_class_scope",     //
+                            "visit_variable_use",          // init
+                            "visit_property_declaration",  // prop
+                            "visit_exit_class_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+  }
+
+  // TODO(strager): '*field=init' is an error.
+  // TODO(strager): 'async field=init' is an error.
+  // TODO(strager): 'get field=init' is an error.
+  // TODO(strager): 'set field=init' is an error.
+  // TODO(strager): Parse fields with computed keys.
+  // TODO(strager): Parse fields with string literal keys.
+  // TODO(strager): Parse fields with number literal keys.
+  // TODO(strager): Parse fields with keyword keys.
+}
+
 TEST(test_parse, class_methods_should_not_use_function_keyword) {
   {
     spy_visitor v;
@@ -500,7 +584,8 @@ TEST(test_parse, stray_identifier_before_class_method) {
 TEST(test_parse, stray_keyword_in_class_body) {
   {
     spy_visitor v;
-    padded_string code(u8"class C { if method(arg) { body; } instanceof }"_sv);
+    padded_string code(
+        u8"class C { if method(arg) { body; } instanceof myField; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(

@@ -1401,24 +1401,46 @@ class parser {
       goto next;
 
     // method() {}
+    // field;
+    // field = initialValue;
     QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
     QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
     case token_type::identifier:
     case token_type::reserved_keyword_with_escape_sequence: {
-      identifier method_name = this->peek().identifier_name();
+      identifier property_name = this->peek().identifier_name();
       this->skip();
       switch (this->peek().type) {
+      // method() { }
+      // method { }  // Invalid (missing parameter list).
       case token_type::left_curly:
       case token_type::left_paren:
-        v.visit_property_declaration(method_name);
+        v.visit_property_declaration(property_name);
         this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/method_name.span(), method_attributes);
+            v, /*name=*/property_name.span(), method_attributes);
+        break;
+
+      // field;
+      case token_type::semicolon:
+        v.visit_property_declaration(property_name);
+        this->skip();
+        break;
+
+      // field = initialValue;
+      case token_type::equal:
+        this->skip();
+        this->parse_and_visit_expression(v);
+        v.visit_property_declaration(property_name);
+        this->consume_semicolon();
+        break;
+
+      // class C { field }
+      case token_type::right_curly:
+        v.visit_property_declaration(property_name);
         break;
 
       case token_type::identifier:
-      case token_type::right_curly:
         this->error_reporter_->report(error_unexpected_token{
-            .token = method_name.span(),
+            .token = property_name.span(),
         });
         break;
 
