@@ -840,33 +840,7 @@ next:
 
   // o[key]  // Indexing expression.
   case token_type::left_square: {
-    source_code_span left_square_span = this->peek().span();
-    this->skip();
-    expression* subscript =
-        this->parse_expression(precedence{.trailing_identifiers = true});
-    switch (this->peek().type) {
-    case token_type::right_square:
-      if (subscript->kind() == expression_kind::_invalid) {
-        // expr[]  // Invalid.
-        source_code_span right_square_span = this->peek().span();
-        this->error_reporter_->report(error_indexing_requires_expression{
-            .squares = source_code_span(left_square_span.begin(),
-                                        right_square_span.end()),
-        });
-      }
-      break;
-    case token_type::end_of_file:
-      this->error_reporter_->report(
-          error_unmatched_indexing_bracket{.left_square = left_square_span});
-      break;
-    default:
-      QLJS_PARSER_UNIMPLEMENTED();
-      break;
-    }
-
-    children.back() = this->make_expression<expression::index>(
-        children.back(), subscript, this->peek().end);
-    this->skip();
+    children.back() = parse_index_expression_remainder(children.back());
     goto next;
   }
 
@@ -1054,6 +1028,37 @@ next:
   }
 
   return build_expression();
+}
+
+expression* parser::parse_index_expression_remainder(expression* lhs) {
+  QLJS_ASSERT(this->peek().type == token_type::left_square);
+  source_code_span left_square_span = this->peek().span();
+  this->skip();
+  expression* subscript =
+      this->parse_expression(precedence{.trailing_identifiers = true});
+  switch (this->peek().type) {
+  case token_type::right_square:
+    if (subscript->kind() == expression_kind::_invalid) {
+      // expr[]  // Invalid.
+      source_code_span right_square_span = this->peek().span();
+      this->error_reporter_->report(error_indexing_requires_expression{
+          .squares = source_code_span(left_square_span.begin(),
+                                      right_square_span.end()),
+      });
+    }
+    break;
+  case token_type::end_of_file:
+    this->error_reporter_->report(
+        error_unmatched_indexing_bracket{.left_square = left_square_span});
+    break;
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+
+  const char8* end = this->peek().end;
+  this->skip();
+  return this->make_expression<expression::index>(lhs, subscript, end);
 }
 
 expression* parser::parse_arrow_function_body(
