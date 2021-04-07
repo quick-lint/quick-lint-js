@@ -296,6 +296,13 @@ TEST(test_parse, yield_in_generator_function) {
 
   {
     spy_visitor v =
+        parse_and_visit_statement(u8"({ async *f() { yield myValue; } })"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));
+  }
+
+  {
+    spy_visitor v =
         parse_and_visit_statement(u8"class C { *f() { yield myValue; } }"_sv);
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"myValue"}));

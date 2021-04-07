@@ -1433,6 +1433,8 @@ expression* parser::parse_object_literal() {
 
       if (is_async && this->peek().type == token_type::star) {
         // { async *generatorName() { } }
+        method_attributes = is_async ? function_attributes::async_generator
+                                     : function_attributes::generator;
         this->skip();
       }
 
