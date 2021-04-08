@@ -1327,6 +1327,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                   ElementsAre(spy_visitor::visited_variable_use{name}));
     }
 
+    // TODO(#215): Disallow 'await' as parameter to async arrow function.
     for (string8 code : {
              u8"(async " + name + u8" => null)",
              u8"(async (" + name + u8") => null)",

@@ -962,6 +962,9 @@ TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
     // TODO(strager): Announce the label with a visit?
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
   }
+
+  // TODO(#214): Disallow labels named 'await' in async functions.
+  // TODO(#214): Disallow labels named 'yield' in generator functions.
 }
 
 TEST(test_parse, enum_statement_not_yet_implemented) {
