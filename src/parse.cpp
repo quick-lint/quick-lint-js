@@ -81,6 +81,15 @@ parser::loop_guard parser::enter_loop() {
 }
 
 expression* parser::parse_expression(precedence prec) {
+  expression* ast = this->parse_primary_expression(prec);
+  if (!prec.binary_operators) {
+    return ast;
+  }
+  return this->parse_expression_remainder(ast, prec);
+}
+
+// TODO(strager): Why do we need precedence here? Could we get rid of prec?
+expression* parser::parse_primary_expression(precedence prec) {
   switch (this->peek().type) {
   // f  // Variable name.
   identifier:
@@ -95,10 +104,7 @@ expression* parser::parse_expression(precedence prec) {
     expression* ast = this->make_expression<expression::variable>(
         this->peek().identifier_name(), this->peek().type);
     this->skip();
-    if (!prec.binary_operators) {
-      return ast;
-    }
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // \u{69}\u{66} // 'if', but escaped.
@@ -120,10 +126,7 @@ expression* parser::parse_expression(precedence prec) {
     expression* ast =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
-    if (!prec.binary_operators) {
-      return ast;
-    }
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // import.meta
@@ -131,10 +134,7 @@ expression* parser::parse_expression(precedence prec) {
     expression* ast =
         this->make_expression<expression::import>(this->peek().span());
     this->skip();
-    if (!prec.binary_operators) {
-      return ast;
-    }
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // super()
@@ -142,19 +142,13 @@ expression* parser::parse_expression(precedence prec) {
     expression* ast =
         this->make_expression<expression::super>(this->peek().span());
     this->skip();
-    if (!prec.binary_operators) {
-      return ast;
-    }
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // `hello${world}`
   case token_type::incomplete_template: {
     expression* ast = this->parse_template(/*tag=*/std::nullopt);
-    if (!prec.binary_operators) {
-      return ast;
-    }
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // await            // Identifier.
@@ -185,10 +179,7 @@ expression* parser::parse_expression(precedence prec) {
         }
         expression* ast = this->make_expression<expression::variable>(
             await_token.identifier_name(), await_token.type);
-        if (!prec.binary_operators) {
-          return ast;
-        }
-        return this->parse_expression_remainder(ast, prec);
+        return ast;
       }
 
       // await might be an operator.
@@ -201,9 +192,7 @@ expression* parser::parse_expression(precedence prec) {
               .where = operator_span,
           });
         }
-        return this->parse_expression_remainder(
-            this->make_expression<expression::await>(child, operator_span),
-            prec);
+        return this->make_expression<expression::await>(child, operator_span);
       }
       }
       QLJS_UNREACHABLE();
@@ -233,22 +222,19 @@ expression* parser::parse_expression(precedence prec) {
       case token_type::comma:
       case token_type::kw_in:
       case token_type::question:
-        return this->parse_expression_remainder(
-            this->make_expression<expression::yield_none>(operator_span), prec);
+        return this->make_expression<expression::yield_none>(operator_span);
 
       case token_type::star: {
         this->skip();
         expression* child = this->parse_expression(prec);
-        return this->parse_expression_remainder(
-            this->make_expression<expression::yield_many>(child, operator_span),
-            prec);
+        return this->make_expression<expression::yield_many>(child,
+                                                             operator_span);
       }
 
       default: {
         expression* child = this->parse_expression(prec);
-        return this->parse_expression_remainder(
-            this->make_expression<expression::yield_one>(child, operator_span),
-            prec);
+        return this->make_expression<expression::yield_one>(child,
+                                                            operator_span);
       }
       }
     } else {
@@ -262,8 +248,7 @@ expression* parser::parse_expression(precedence prec) {
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* child = this->parse_expression(precedence{.commas = false});
-    return this->parse_expression_remainder(
-        this->make_expression<expression::spread>(child, operator_span), prec);
+    return this->make_expression<expression::spread>(child, operator_span);
   }
 
   // !x
@@ -292,7 +277,7 @@ expression* parser::parse_expression(precedence prec) {
             ? this->make_expression<expression::_typeof>(child, operator_span)
             : this->make_expression<expression::unary_operator>(child,
                                                                 operator_span);
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // --x
@@ -307,10 +292,8 @@ expression* parser::parse_expression(precedence prec) {
           .where = operator_span,
       });
     }
-    return this->parse_expression_remainder(
-        this->make_expression<expression::rw_unary_prefix>(child,
-                                                           operator_span),
-        prec);
+    return this->make_expression<expression::rw_unary_prefix>(child,
+                                                              operator_span);
   }
 
   // () => {}     // Arrow function.
@@ -328,7 +311,7 @@ expression* parser::parse_expression(precedence prec) {
         // Arrow function: () => expression-or-block
         expression* ast = this->parse_arrow_function_body(
             function_attributes::normal, left_paren_span.begin());
-        return this->parse_expression_remainder(ast, prec);
+        return ast;
       } else {
         // ()  // Invalid.
         this->error_reporter_->report(
@@ -337,10 +320,7 @@ expression* parser::parse_expression(precedence prec) {
                 .right_paren = right_paren_span,
             });
         expression* child = this->parse_expression();
-        if (!prec.binary_operators) {
-          return child;
-        }
-        return this->parse_expression_remainder(child, prec);
+        return child;
       }
     }
 
@@ -355,10 +335,7 @@ expression* parser::parse_expression(precedence prec) {
           error_unmatched_parenthesis{left_paren_span});
       break;
     }
-    if (!prec.binary_operators) {
-      return child;
-    }
-    return this->parse_expression_remainder(child, prec);
+    return child;
   }
 
   // async           // Identifer.
@@ -395,26 +372,26 @@ expression* parser::parse_expression(precedence prec) {
     expression* ast = this->make_expression<expression::array>(
         this->expressions_.make_array(std::move(children)),
         source_code_span(left_square_begin, right_square_end));
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // {k: v}  // Object literal.
   case token_type::left_curly: {
     expression* ast = this->parse_object_literal();
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // function() {}  // Function expression.
   case token_type::kw_function: {
     expression* function = this->parse_function_expression(
         function_attributes::normal, this->peek().begin);
-    return this->parse_expression_remainder(function, prec);
+    return function;
   }
 
   // class {}
   case token_type::kw_class: {
     expression* class_expression = this->parse_class_expression();
-    return this->parse_expression_remainder(class_expression, prec);
+    return class_expression;
   }
 
   // new XMLHttpRequest()
@@ -450,7 +427,7 @@ expression* parser::parse_expression(precedence prec) {
       this->skip();
       expression* ast = this->make_expression<expression::new_target>(
           source_code_span(operator_span.begin(), target_span.end()));
-      return this->parse_expression_remainder(ast, prec);
+      return ast;
     }
     }
     QLJS_UNREACHABLE();
@@ -468,10 +445,7 @@ expression* parser::parse_expression(precedence prec) {
     expression* regexp =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
-    if (!prec.binary_operators) {
-      return regexp;
-    }
-    return this->parse_expression_remainder(regexp, prec);
+    return regexp;
   }
 
   QLJS_CASE_BINARY_ONLY_OPERATOR:
@@ -487,7 +461,7 @@ expression* parser::parse_expression(precedence prec) {
     }
     this->error_reporter_->report(
         error_missing_operand_for_operator{this->peek().span()});
-    return this->parse_expression_remainder(ast, prec);
+    return ast;
   }
 
   // => expr  // Invalid. Treat as arrow function.
@@ -502,7 +476,7 @@ expression* parser::parse_expression(precedence prec) {
     expression* arrow_function = this->parse_arrow_function_body(
         function_attributes::normal,
         /*parameter_list_begin=*/arrow_span.begin());
-    return this->parse_expression_remainder(arrow_function, prec);
+    return arrow_function;
   }
 
   case token_type::colon:
