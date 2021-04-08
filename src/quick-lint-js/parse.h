@@ -1630,10 +1630,7 @@ class parser {
     // get() {}
     case token_type::left_paren:
       if (last_ident.has_value()) {
-        v.visit_property_declaration(*last_ident);
-        this->parse_and_visit_function_parameters_and_body(
-            v,
-            /*name=*/last_ident->span(), method_attributes);
+        parse_and_visit_field_or_method(*last_ident, method_attributes);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -1645,30 +1642,16 @@ class parser {
       token function_token = this->peek();
       this->skip();
       switch (this->peek().type) {
-      case token_type::left_paren: {
-        // function() {}
-        identifier method_name = function_token.identifier_name();
-        v.visit_property_declaration(method_name);
-        this->parse_and_visit_function_parameters_and_body(
-            v,
-            /*name=*/method_name.span(), method_attributes);
-        break;
-      }
-
+      // function() {}
       // class C { function }   // Field named 'function'.
       // class C { function; }  // Field named 'function'.
+      // function = init;       // Field named 'function'.
+      case token_type::equal:
+      case token_type::left_paren:
       case token_type::right_curly:
       case token_type::semicolon:
-        v.visit_property_declaration(function_token.identifier_name());
-        this->consume_semicolon();
-        break;
-
-      // function = init;  // Field named 'function'.
-      case token_type::equal:
-        this->skip();
-        this->parse_and_visit_expression(v);
-        v.visit_property_declaration(function_token.identifier_name());
-        this->consume_semicolon();
+        parse_and_visit_field_or_method(function_token.identifier_name(),
+                                        method_attributes);
         break;
 
       default:
@@ -1686,15 +1669,16 @@ class parser {
     // ;       // Stray semicolon.
     case token_type::semicolon:
       if (last_ident.has_value()) {
-        v.visit_property_declaration(*last_ident);
+        parse_and_visit_field_or_method(*last_ident, method_attributes);
+      } else {
+        this->skip();
       }
-      this->skip();
       break;
 
     // class C { get }  // Field named 'get'
     case token_type::right_curly:
       if (last_ident.has_value()) {
-        v.visit_property_declaration(*last_ident);
+        parse_and_visit_field_or_method(*last_ident, method_attributes);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -1703,10 +1687,7 @@ class parser {
     // get = init;
     case token_type::equal:
       if (last_ident.has_value()) {
-        this->skip();
-        this->parse_and_visit_expression(v);
-        v.visit_property_declaration(*last_ident);
-        this->consume_semicolon();
+        parse_and_visit_field_or_method(*last_ident, method_attributes);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
       }
