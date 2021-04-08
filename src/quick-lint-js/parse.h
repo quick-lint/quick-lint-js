@@ -1523,7 +1523,17 @@ class parser {
       }
     };
 
-  next:
+    switch (this->peek().type) {
+    // static f() {}
+    case token_type::kw_static:
+      last_ident = this->peek().identifier_name();
+      this->skip();
+      break;
+
+    default:
+      break;
+    }
+
     switch (this->peek().type) {
     // async f() {}
     case token_type::kw_async:
@@ -1532,33 +1542,38 @@ class parser {
       if (this->peek().type != token_type::left_paren) {
         method_attributes = function_attributes::async;
       }
-      goto next;
-
-    // static f() {}
-    case token_type::kw_static:
-      last_ident = this->peek().identifier_name();
-      this->skip();
-      goto next;
-
-    // *g() {}
-    case token_type::star:
-      method_attributes = function_attributes::generator;
-      this->skip();
-      goto next;
+      break;
 
     // get prop() {}
     case token_type::kw_get:
     case token_type::kw_set:
       last_ident = this->peek().identifier_name();
       this->skip();
+      break;
+
+    default:
+      break;
+    }
+
+  next:
+    switch (this->peek().type) {
+    // *g() {}
+    case token_type::star:
+      method_attributes = function_attributes::generator;
+      this->skip();
       goto next;
 
     // method() {}
+    // static() {}
     // field;
     // field = initialValue;
     QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
     QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
     case token_type::identifier:
+    case token_type::kw_async:
+    case token_type::kw_get:
+    case token_type::kw_set:
+    case token_type::kw_static:
     case token_type::reserved_keyword_with_escape_sequence: {
       identifier property_name = this->peek().identifier_name();
       this->skip();
