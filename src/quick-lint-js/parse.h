@@ -1626,16 +1626,6 @@ class parser {
       parse_and_visit_field_or_method_without_name_2(method_attributes);
       break;
 
-    // async() {}
-    // get() {}
-    case token_type::left_paren:
-      if (last_ident.has_value()) {
-        parse_and_visit_field_or_method(*last_ident, method_attributes);
-      } else {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
-      break;
-
     // function() {}
     // function f() {}  // Invalid.
     case token_type::kw_function: {
@@ -1675,17 +1665,13 @@ class parser {
       }
       break;
 
+    // async() {}
+    // get() {}
     // class C { get }  // Field named 'get'
-    case token_type::right_curly:
-      if (last_ident.has_value()) {
-        parse_and_visit_field_or_method(*last_ident, method_attributes);
-      } else {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
-      break;
-
     // get = init;
     case token_type::equal:
+    case token_type::left_paren:
+    case token_type::right_curly:
       if (last_ident.has_value()) {
         parse_and_visit_field_or_method(*last_ident, method_attributes);
       } else {
