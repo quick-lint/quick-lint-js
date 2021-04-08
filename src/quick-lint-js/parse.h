@@ -1474,6 +1474,8 @@ class parser {
       switch (this->peek().type) {
       // "fieldName";
       // class C { "fieldName" }
+      // [expr];
+      // class C { [expr] }
       case token_type::right_curly:
       case token_type::semicolon:
         v.visit_property_declaration();
@@ -1481,6 +1483,7 @@ class parser {
         break;
 
       // "fieldName" = init;
+      // [expr] = init;
       case token_type::equal:
         this->skip();
         this->parse_and_visit_expression(v);
@@ -1492,48 +1495,6 @@ class parser {
       //   "field"      // ASI
       //   method() {}
       // }
-      QLJS_CASE_KEYWORD:
-      case token_type::identifier:
-      case token_type::left_square:
-      case token_type::number:
-      case token_type::star:
-      case token_type::string:
-        if (this->peek().has_leading_newline) {
-          v.visit_property_declaration();
-        } else {
-          QLJS_PARSER_UNIMPLEMENTED();
-        }
-        break;
-
-      // "method"() {}
-      // TODO(strager): Is 'default' correct here?
-      default:
-        v.visit_property_declaration();
-        this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/std::nullopt, method_attributes);
-        break;
-      }
-    };
-
-    auto parse_and_visit_field_or_method_without_name_2 =
-        [this, &v](function_attributes method_attributes) -> void {
-      switch (this->peek().type) {
-      // [expr];
-      // class C { [expr] }
-      case token_type::right_curly:
-      case token_type::semicolon:
-        v.visit_property_declaration();
-        this->consume_semicolon();
-        break;
-
-      // [expr] = init;
-      case token_type::equal:
-        this->skip();
-        this->parse_and_visit_expression(v);
-        this->consume_semicolon();
-        v.visit_property_declaration();
-        break;
-
       // class C {
       //   [fieldExpr]  // ASI
       //   method() {}
@@ -1551,6 +1512,7 @@ class parser {
         }
         break;
 
+      // "method"() {}
       // [expr]() {}
       // TODO(strager): Is 'default' correct here?
       default:
@@ -1623,7 +1585,7 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
       this->skip();
 
-      parse_and_visit_field_or_method_without_name_2(method_attributes);
+      parse_and_visit_field_or_method_without_name(method_attributes);
       break;
 
     // function() {}
