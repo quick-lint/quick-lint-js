@@ -1395,48 +1395,15 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class_member(Visitor &v) {
+    QLJS_WARNING_PUSH
+    QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
+
     std::optional<identifier> last_ident;
     function_attributes method_attributes = function_attributes::normal;
 
-  next:
-    switch (this->peek().type) {
-    // async f() {}
-    case token_type::kw_async:
-      last_ident = this->peek().identifier_name();
-      this->skip();
-      if (this->peek().type != token_type::left_paren) {
-        method_attributes = function_attributes::async;
-      }
-      goto next;
-
-    // static f() {}
-    case token_type::kw_static:
-      last_ident = this->peek().identifier_name();
-      this->skip();
-      goto next;
-
-    // *g() {}
-    case token_type::star:
-      method_attributes = function_attributes::generator;
-      this->skip();
-      goto next;
-
-    // get prop() {}
-    case token_type::kw_get:
-    case token_type::kw_set:
-      last_ident = this->peek().identifier_name();
-      this->skip();
-      goto next;
-
-    // method() {}
-    // field;
-    // field = initialValue;
-    QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
-    QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
-    case token_type::identifier:
-    case token_type::reserved_keyword_with_escape_sequence: {
-      identifier property_name = this->peek().identifier_name();
-      this->skip();
+    auto parse_and_visit_field_or_method =
+        [this, &v](identifier property_name,
+                   function_attributes method_attributes) -> void {
       switch (this->peek().type) {
       // method() { }
       // method { }  // Invalid (missing parameter list).
@@ -1500,15 +1467,10 @@ class parser {
         QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
-      break;
-    }
+    };
 
-    // "method"() {}
-    // 9001() {}
-    // "fieldName" = init;
-    case token_type::number:
-    case token_type::string:
-      this->skip();
+    auto parse_and_visit_field_or_method_without_name =
+        [this, &v](function_attributes method_attributes) -> void {
       switch (this->peek().type) {
       // "fieldName";
       // class C { "fieldName" }
@@ -1551,18 +1513,10 @@ class parser {
             v, /*name=*/std::nullopt, method_attributes);
         break;
       }
-      break;
+    };
 
-    // [methodNameExpression]() {}
-    // [fieldNameExpression] = initialValue;
-    case token_type::left_square:
-      this->skip();
-
-      this->parse_and_visit_expression(v);
-
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
-      this->skip();
-
+    auto parse_and_visit_field_or_method_without_name_2 =
+        [this, &v](function_attributes method_attributes) -> void {
       switch (this->peek().type) {
       // [expr];
       // class C { [expr] }
@@ -1605,7 +1559,71 @@ class parser {
             v, /*name=*/std::nullopt, method_attributes);
         break;
       }
+    };
 
+  next:
+    switch (this->peek().type) {
+    // async f() {}
+    case token_type::kw_async:
+      last_ident = this->peek().identifier_name();
+      this->skip();
+      if (this->peek().type != token_type::left_paren) {
+        method_attributes = function_attributes::async;
+      }
+      goto next;
+
+    // static f() {}
+    case token_type::kw_static:
+      last_ident = this->peek().identifier_name();
+      this->skip();
+      goto next;
+
+    // *g() {}
+    case token_type::star:
+      method_attributes = function_attributes::generator;
+      this->skip();
+      goto next;
+
+    // get prop() {}
+    case token_type::kw_get:
+    case token_type::kw_set:
+      last_ident = this->peek().identifier_name();
+      this->skip();
+      goto next;
+
+    // method() {}
+    // field;
+    // field = initialValue;
+    QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
+    QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
+    case token_type::identifier:
+    case token_type::reserved_keyword_with_escape_sequence: {
+      identifier property_name = this->peek().identifier_name();
+      this->skip();
+      parse_and_visit_field_or_method(property_name, method_attributes);
+      break;
+    }
+
+    // "method"() {}
+    // 9001() {}
+    // "fieldName" = init;
+    case token_type::number:
+    case token_type::string:
+      this->skip();
+      parse_and_visit_field_or_method_without_name(method_attributes);
+      break;
+
+    // [methodNameExpression]() {}
+    // [fieldNameExpression] = initialValue;
+    case token_type::left_square:
+      this->skip();
+
+      this->parse_and_visit_expression(v);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+      this->skip();
+
+      parse_and_visit_field_or_method_without_name_2(method_attributes);
       break;
 
     // async() {}
@@ -1705,6 +1723,8 @@ class parser {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+
+    QLJS_WARNING_POP
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
