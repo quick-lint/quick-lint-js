@@ -3293,6 +3293,9 @@ class parser {
 
   expression *parse_expression_remainder(expression *, precedence);
 
+  expression *parse_call_expression_remainder(expression *callee);
+  expression *parse_index_expression_remainder(expression *lhs);
+
   expression *parse_arrow_function_body(function_attributes,
                                         const char8 *parameter_list_begin);
   expression *parse_arrow_function_body(
@@ -3394,8 +3397,6 @@ class parser {
   bool in_generator_function_ = false;
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
-  expression *parse_index_expression_remainder(expression *lhs);
-  expression *parse_call_expression_remainder(expression *callee);
 };
 }
 
