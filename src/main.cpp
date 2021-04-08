@@ -143,10 +143,6 @@ void handle_options(quick_lint_js::options o) {
   }
   if (o.lsp_server) {
     quick_lint_js::run_lsp_server();
-    if (!o.files_to_lint.empty()) {
-      std::cerr << "warning: ignoring files given on command line in "
-                   "--lsp-server mode\n";
-    }
     std::exit(EXIT_SUCCESS);
   }
   if (o.files_to_lint.empty()) {
