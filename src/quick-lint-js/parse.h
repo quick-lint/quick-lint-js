@@ -320,7 +320,7 @@ class parser {
     // await = value;
     // await: for(;;);
     case token_type::kw_await:
-      if (this->in_async_function_) {
+      if (this->in_async_function_ || this->in_top_level_) {
         this->parse_and_visit_expression(v);
         parse_expression_end();
         break;
@@ -3321,7 +3321,8 @@ class parser {
 
   class function_guard {
    public:
-    explicit function_guard(parser *, bool was_in_async_function,
+    explicit function_guard(parser *, bool was_in_top_level,
+                            bool was_in_async_function,
                             bool was_in_generator_function,
                             bool was_in_loop_statement,
                             bool was_in_switch_statement) noexcept;
@@ -3333,6 +3334,7 @@ class parser {
 
    private:
     parser *parser_;
+    bool was_in_top_level_;
     bool was_in_async_function_;
     bool was_in_generator_function_;
     bool was_in_loop_statement_;
@@ -3371,6 +3373,7 @@ class parser {
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
 
+  bool in_top_level_ = true;
   bool in_async_function_ = false;
   bool in_generator_function_ = false;
   bool in_loop_statement_ = false;

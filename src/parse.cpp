@@ -45,6 +45,7 @@ arrow_function_parameters arrow_function_parameters_from_lhs(expression*);
 }
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
+  bool was_in_top_level = this->in_top_level_;
   bool was_in_async_function = this->in_async_function_;
   bool was_in_generator_function = this->in_generator_function_;
   bool was_in_loop_statement = this->in_loop_statement_;
@@ -67,10 +68,12 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
     this->in_generator_function_ = false;
     break;
   }
+  this->in_top_level_ = false;
   this->in_loop_statement_ = false;
   this->in_switch_statement_ = false;
-  return function_guard(this, was_in_async_function, was_in_generator_function,
-                        was_in_loop_statement, was_in_switch_statement);
+  return function_guard(this, was_in_top_level, was_in_async_function,
+                        was_in_generator_function, was_in_loop_statement,
+                        was_in_switch_statement);
 }
 
 parser::loop_guard parser::enter_loop() {
@@ -157,18 +160,53 @@ expression* parser::parse_expression(precedence prec) {
   // await            // Identifier.
   // await myPromise
   case token_type::kw_await: {
-    if (this->in_async_function_) {
-      // await is a unary operator.
-      source_code_span operator_span = this->peek().span();
+    if (this->in_top_level_ || this->in_async_function_) {
+      // await is a unary operator (in modules) or an identifier (in scripts).
+      token await_token = this->peek();
       this->skip();
-      expression* child = this->parse_expression(prec);
-      if (child->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report(error_missing_operand_for_operator{
-            .where = operator_span,
-        });
+      switch (this->peek().type) {
+      // await can't be an operator, so treat it as an identifier.
+      QLJS_CASE_BINARY_ONLY_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      case token_type::comma:
+      case token_type::dot:
+      case token_type::end_of_file:
+      case token_type::equal:
+      case token_type::kw_in:
+      case token_type::question:
+      case token_type::question_dot:
+      case token_type::right_paren:
+      case token_type::semicolon: {
+        if (this->in_async_function_) {
+          // 'async' is supposed to always be an operator in async functions.
+          // There must be a syntax error.
+          goto await_as_operator;
+        }
+        expression* ast = this->make_expression<expression::variable>(
+            await_token.identifier_name(), await_token.type);
+        if (!prec.binary_operators) {
+          return ast;
+        }
+        return this->parse_expression_remainder(ast, prec);
       }
-      return this->parse_expression_remainder(
-          this->make_expression<expression::await>(child, operator_span), prec);
+
+      // await might be an operator.
+      await_as_operator:
+      default: {
+        source_code_span operator_span = await_token.span();
+        expression* child = this->parse_expression(prec);
+        if (child->kind() == expression_kind::_invalid) {
+          this->error_reporter_->report(error_missing_operand_for_operator{
+              .where = operator_span,
+          });
+        }
+        return this->parse_expression_remainder(
+            this->make_expression<expression::await>(child, operator_span),
+            prec);
+      }
+      }
+      QLJS_UNREACHABLE();
     } else {
       // await is an identifier.
       goto identifier;
@@ -1800,17 +1838,20 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
 
-parser::function_guard::function_guard(parser* p, bool was_in_async_function,
+parser::function_guard::function_guard(parser* p, bool was_in_top_level,
+                                       bool was_in_async_function,
                                        bool was_in_generator_function,
                                        bool was_in_loop_statement,
                                        bool was_in_switch_statement) noexcept
     : parser_(p),
+      was_in_top_level_(was_in_top_level),
       was_in_async_function_(was_in_async_function),
       was_in_generator_function_(was_in_generator_function),
       was_in_loop_statement_(was_in_loop_statement),
       was_in_switch_statement_(was_in_switch_statement) {}
 
 parser::function_guard::~function_guard() noexcept {
+  this->parser_->in_top_level_ = this->was_in_top_level_;
   this->parser_->in_async_function_ = this->was_in_async_function_;
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
