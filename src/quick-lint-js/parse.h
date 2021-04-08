@@ -1534,6 +1534,7 @@ class parser {
       break;
     }
 
+  next:
     switch (this->peek().type) {
     // async f() {}
     case token_type::kw_async:
@@ -1542,6 +1543,17 @@ class parser {
       if (this->peek().type != token_type::left_paren) {
         method_attributes = function_attributes::async;
       }
+      if (this->peek().type == token_type::star) {
+        // async *g() {}
+        method_attributes = function_attributes::async_generator;
+        this->skip();
+      }
+      break;
+
+    // *g() {}
+    case token_type::star:
+      method_attributes = function_attributes::generator;
+      this->skip();
       break;
 
     // get prop() {}
@@ -1555,14 +1567,7 @@ class parser {
       break;
     }
 
-  next:
     switch (this->peek().type) {
-    // *g() {}
-    case token_type::star:
-      method_attributes = function_attributes::generator;
-      this->skip();
-      goto next;
-
     // method() {}
     // static() {}
     // field;

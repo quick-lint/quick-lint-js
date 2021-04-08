@@ -245,8 +245,22 @@ TEST(test_parse, await_in_async_function) {
   }
 
   {
+    spy_visitor v =
+        parse_and_visit_statement(u8"({ async *f() { await myPromise; } })"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(
         u8"class C { async f() { await myPromise; } }");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"class C { async *f() { await myPromise; } }");
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
   }
