@@ -321,12 +321,23 @@ class parser {
     // await: for(;;);
     case token_type::kw_await:
       if (this->in_async_function_ || this->in_top_level_) {
-        this->parse_and_visit_expression(v);
-        parse_expression_end();
-        break;
+        token await_token = this->peek();
+        this->skip();
+        if (this->peek().type == token_type::colon) {
+          // Labelled statement.
+          this->skip();
+          goto parse_statement;
+        } else {
+          expression *ast =
+              this->parse_await_expression(await_token, precedence{});
+          ast = this->parse_expression_remainder(ast, precedence{});
+          this->visit_expression(ast, v, variable_context::rhs);
+          parse_expression_end();
+        }
       } else {
         goto parse_loop_label_or_expression_starting_with_identifier;
       }
+      break;
 
     // yield value;
     // yield = value;

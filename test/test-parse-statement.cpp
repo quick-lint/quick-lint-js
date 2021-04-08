@@ -956,11 +956,22 @@ TEST(test_parse, labelled_statement) {
 
 TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
   for (string8_view keyword : {u8"await"_sv, u8"yield"_sv}) {
-    SCOPED_TRACE(out_string8(keyword));
-    spy_visitor v = parse_and_visit_statement(string8(keyword) + u8": x;",
-                                              function_attributes::normal);
-    // TODO(strager): Announce the label with a visit?
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+    padded_string code(string8(keyword) + u8": x;");
+    SCOPED_TRACE(code);
+
+    {
+      // Top-level.
+      spy_visitor v = parse_and_visit_statement(code.string_view());
+      // TODO(strager): Announce the label with a visit?
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+    }
+
+    {
+      spy_visitor v = parse_and_visit_statement(code.string_view(),
+                                                function_attributes::normal);
+      // TODO(strager): Announce the label with a visit?
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+    }
   }
 
   // TODO(#214): Disallow labels named 'await' in async functions.
