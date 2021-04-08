@@ -2005,13 +2005,56 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                     offsets_matcher(p.code(), strlen(u8"{ "), u8"[x]"))));
   }
 
-  for (string8 op : {u8"*=", u8"/=", u8"%=", u8"+=", u8"-=", u8"<<=", u8">>=",
-                     u8">>>=", u8"&=", u8"^=", u8"|=", u8"**="}) {
+  for (string8 op : {
+           u8"!=",
+           u8"!==",
+           u8"%",
+           u8"%=",
+           u8"&",
+           u8"&&",
+           u8"&&=",
+           u8"&=",
+           // TODO(strager): Test '*' too.
+           u8"**",
+           u8"**=",
+           u8"*=",
+           u8"+",
+           u8"+=",
+           u8"-",
+           u8"-=",
+           u8".",
+           u8"/=",
+           u8"<<",
+           u8"<<=",
+           u8"<=",
+           u8"==",
+           u8"===",
+           u8">",
+           u8">=",
+           u8">>",
+           u8">>=",
+           u8">>>",
+           u8">>>=",
+           u8"?.",
+           u8"??",
+           u8"?\x3f=",
+           u8"^",
+           u8"^=",
+           u8"|",
+           u8"|=",
+           u8"||",
+           u8"||=",
+       }) {
     string8 code = u8"{one " + op + u8" two}";
     SCOPED_TRACE(out_string8(code));
     test_parser p(code);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, upassign(var one, var two))");
+    EXPECT_THAT(
+        summarize(ast),
+        ::testing::AnyOf("object(literal, binary(var one, var two))",
+                         "object(literal, condassign(var one, var two))",
+                         "object(literal, dot(var one, two))",
+                         "object(literal, upassign(var one, var two))"));
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unexpected_token, token,

@@ -1333,9 +1333,15 @@ expression* parser::parse_object_literal() {
       }
 
       // {x += y}  // Invalid.
+      QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      case token_type::dot:
+      case token_type::minus:
       case token_type::minus_minus:
+      case token_type::plus:
       case token_type::plus_plus:
+      case token_type::question_dot:
         this->error_reporter_->report(error_unexpected_token{
             .token = this->peek().span(),
         });

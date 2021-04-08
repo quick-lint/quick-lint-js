@@ -21,27 +21,30 @@
 #include <quick-lint-js/warning.h>
 #include <utility>
 
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL \
-  case token_type::ampersand:                 \
-  case token_type::ampersand_ampersand:       \
-  case token_type::bang_equal:                \
-  case token_type::bang_equal_equal:          \
-  case token_type::circumflex:                \
-  case token_type::equal_equal:               \
-  case token_type::equal_equal_equal:         \
-  case token_type::greater:                   \
-  case token_type::greater_equal:             \
-  case token_type::greater_greater:           \
-  case token_type::greater_greater_greater:   \
-  case token_type::less:                      \
-  case token_type::less_equal:                \
-  case token_type::less_less:                 \
-  case token_type::percent:                   \
-  case token_type::pipe:                      \
-  case token_type::pipe_pipe:                 \
-  case token_type::question_question:         \
-  case token_type::star:                      \
+#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR \
+  case token_type::ampersand:                                      \
+  case token_type::ampersand_ampersand:                            \
+  case token_type::bang_equal:                                     \
+  case token_type::bang_equal_equal:                               \
+  case token_type::circumflex:                                     \
+  case token_type::equal_equal:                                    \
+  case token_type::equal_equal_equal:                              \
+  case token_type::greater:                                        \
+  case token_type::greater_equal:                                  \
+  case token_type::greater_greater:                                \
+  case token_type::greater_greater_greater:                        \
+  case token_type::less_equal:                                     \
+  case token_type::less_less:                                      \
+  case token_type::percent:                                        \
+  case token_type::pipe:                                           \
+  case token_type::pipe_pipe:                                      \
+  case token_type::question_question:                              \
   case token_type::star_star
+
+#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL                 \
+  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR: \
+  case token_type::less:                                      \
+  case token_type::star
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR   \
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL: \
