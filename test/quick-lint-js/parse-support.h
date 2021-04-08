@@ -49,6 +49,17 @@ inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
   return v;
 }
 
+inline spy_visitor parse_and_visit_statement(string8_view raw_code,
+                                             function_attributes attributes) {
+  padded_string code(raw_code);
+  spy_visitor v;
+  parser p(&code, &v);
+  auto guard = p.enter_function(attributes);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  EXPECT_THAT(v.errors, ::testing::IsEmpty());
+  return v;
+}
+
 inline spy_visitor parse_and_visit_expression(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;
