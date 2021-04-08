@@ -433,10 +433,6 @@ expression* parser::parse_primary_expression(precedence prec) {
     QLJS_UNREACHABLE();
   }
 
-  case token_type::end_of_file:
-  case token_type::right_paren:
-    return this->make_expression<expression::_invalid>(this->peek().span());
-
   // /regexp/    // RegExp literal.
   // /=regexp/  // RegExp literal.
   case token_type::slash:
@@ -486,6 +482,7 @@ expression* parser::parse_primary_expression(precedence prec) {
     return this->make_expression<expression::_invalid>(token_span);
   }
 
+  case token_type::end_of_file:
   case token_type::kw_enum:
   case token_type::kw_for:
   case token_type::kw_if:
@@ -494,6 +491,7 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::kw_throw:
   case token_type::kw_while:
   case token_type::right_curly:
+  case token_type::right_paren:
   case token_type::right_square:
   case token_type::semicolon:
     return this->make_expression<expression::_invalid>(this->peek().span());
