@@ -572,50 +572,46 @@ expression* parser::parse_async_expression_only(token async_token) {
 }
 
 expression* parser::parse_await_expression(token await_token, precedence prec) {
-  if (this->in_top_level_ || this->in_async_function_) {
-    // await is a unary operator (in modules) or an identifier (in scripts).
-    switch (this->peek().type) {
-      // await can't be an operator, so treat it as an identifier.
-    QLJS_CASE_BINARY_ONLY_OPERATOR:
-    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
-    QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
-    case token_type::comma:
-    case token_type::dot:
-    case token_type::end_of_file:
-    case token_type::equal:
-    case token_type::kw_in:
-    case token_type::question:
-    case token_type::question_dot:
-    case token_type::right_paren:
-    case token_type::semicolon: {
-      if (this->in_async_function_) {
-        // 'async' is supposed to always be an operator in async functions.
-        // There must be a syntax error.
-        goto await_as_operator;
-      }
-      expression* ast = this->make_expression<expression::variable>(
-          await_token.identifier_name(), await_token.type);
-      return ast;
-    }
+  bool is_identifier = [this]() -> bool {
+    if (this->in_async_function_) {
+      return false;
+    } else if (this->in_top_level_) {
+      // await is a unary operator (in modules) or an identifier (in scripts).
+      switch (this->peek().type) {
+      QLJS_CASE_BINARY_ONLY_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      case token_type::comma:
+      case token_type::dot:
+      case token_type::end_of_file:
+      case token_type::equal:
+      case token_type::kw_in:
+      case token_type::question:
+      case token_type::question_dot:
+      case token_type::right_paren:
+      case token_type::semicolon:
+        return true;
 
-      // await might be an operator.
-    await_as_operator:
-    default: {
-      source_code_span operator_span = await_token.span();
-      expression* child = this->parse_expression(prec);
-      if (child->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report(error_missing_operand_for_operator{
-            .where = operator_span,
-        });
+      default:
+        return false;
       }
-      return this->make_expression<expression::await>(child, operator_span);
+    } else {
+      return true;
     }
-    }
-    QLJS_UNREACHABLE();
-  } else {
-    // await is an identifier.
+  }();
+
+  if (is_identifier) {
     return this->make_expression<expression::variable>(
         await_token.identifier_name(), await_token.type);
+  } else {
+    source_code_span operator_span = await_token.span();
+    expression* child = this->parse_expression(prec);
+    if (child->kind() == expression_kind::_invalid) {
+      this->error_reporter_->report(error_missing_operand_for_operator{
+          .where = operator_span,
+      });
+    }
+    return this->make_expression<expression::await>(child, operator_span);
   }
 }
 
