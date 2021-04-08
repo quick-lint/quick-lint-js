@@ -3276,6 +3276,7 @@ class parser {
 
   expression *parse_async_expression(token async_token, precedence);
   expression *parse_async_expression_only(token async_token);
+  expression *parse_await_expression(token await_token, precedence prec);
 
   expression *parse_expression_remainder(expression *, precedence);
 
