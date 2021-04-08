@@ -1332,6 +1332,7 @@ expression* parser::parse_object_literal() {
       }
 
       // {x += y}  // Invalid.
+      expression_without_key:
       QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
@@ -1401,11 +1402,18 @@ expression* parser::parse_object_literal() {
             parse_method_entry(key_token.begin, key,
                                function_attributes::normal);
           } else {
-            // {someName *method() {}}  // Invalid.
-            this->lexer_.roll_back_transaction(std::move(transaction));
-            // We'll report error_missing_comma_between_object_literal_entries
-            // on the next iteration of the loop.
-            goto single_token_key_and_value;
+            this->skip();
+            if (this->peek().type == token_type::left_paren) {
+              // {someName *method() {}}  // Invalid.
+              this->lexer_.roll_back_transaction(std::move(transaction));
+              // We'll report error_missing_comma_between_object_literal_entries
+              // on the next iteration of the loop.
+              goto single_token_key_and_value;
+            } else {
+              // {a * b + c}  // Invalid.
+              this->lexer_.roll_back_transaction(std::move(transaction));
+              goto expression_without_key;
+            }
           }
         }
         break;
