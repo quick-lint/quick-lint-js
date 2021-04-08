@@ -456,11 +456,10 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::question: {
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
-    if (!prec.binary_operators) {
-      return ast;
+    if (prec.binary_operators) {
+      this->error_reporter_->report(
+          error_missing_operand_for_operator{this->peek().span()});
     }
-    this->error_reporter_->report(
-        error_missing_operand_for_operator{this->peek().span()});
     return ast;
   }
 
