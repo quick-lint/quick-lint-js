@@ -45,15 +45,17 @@ var testTodo = TestTodo{
 
 		// TODO(strager): Implement private fields.
 		"v8/mjsunit/harmony/private-fields*.js",
+
+		// TODO(#140): Parse 'await' outside async functions.
+		"language/module-code/top-level-await/syntax/early-does-not-propagate-to-fn-declaration-params.js",
+		"language/module-code/top-level-await/syntax/early-does-not-propagate-to-fn-expr-params.js",
 	},
 	TodoFeatures: [][]byte{
 		// TODO(strager): Implement non-standard and new features.
-		[]byte("async-iteration"),
 		[]byte("class-fields-private"),
 		[]byte("class-methods-private"),
 		[]byte("class-static-fields-private"),
 		[]byte("class-static-methods-private"),
-		[]byte("top-level-await"),
 	},
 }
 
