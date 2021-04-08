@@ -998,6 +998,27 @@ TEST(test_parse, continue_statement) {
   }
 }
 
+TEST(test_parse,
+     break_and_continue_statements_do_not_allow_newline_before_label) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (;;) { break\nnotALabel; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  //
+                            "visit_variable_use",       // notALabel
+                            "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (;;) { continue\nnotALabel; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_block_scope",  //
+                            "visit_variable_use",       // notALabel
+                            "visit_exit_block_scope"));
+  }
+}
+
 TEST(test_parse, for_loop_async_arrow_with_of_parameter_is_init_expression) {
   spy_visitor v = parse_and_visit_statement(u8"for (async of => x; y; z);"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //

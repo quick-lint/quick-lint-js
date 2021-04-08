@@ -516,8 +516,13 @@ class parser {
       switch (this->peek().type) {
       // TODO(strager): Are contextual keywords allowed as labels?
       case token_type::identifier:
-        // Loop label.
-        this->skip();
+        if (this->peek().has_leading_newline) {
+          // ASI.
+          this->lexer_.insert_semicolon();
+        } else {
+          // Loop label.
+          this->skip();
+        }
         break;
       default:
         if (is_break) {
