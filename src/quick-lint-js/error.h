@@ -683,6 +683,13 @@
       .error(QLJS_TRANSLATABLE("missing for loop header"), where))             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_key_for_object_entry, "E154",                              \
+      { source_code_span expression; },                                        \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "unexpected expression; missing key for object entry"),       \
+             expression))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_name_in_function_statement, "E061",                        \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("missing name in function statement"), where))  \

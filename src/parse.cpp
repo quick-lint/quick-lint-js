@@ -1320,7 +1320,6 @@ expression* parser::parse_object_literal() {
         entries.emplace_back(key, parse_value_expression());
         break;
 
-      full_expression:
       case token_type::equal: {
         // TODO(strager): Only allow this for identifiers, not numbers or
         // strings.
@@ -1341,11 +1340,17 @@ expression* parser::parse_object_literal() {
       case token_type::minus_minus:
       case token_type::plus:
       case token_type::plus_plus:
-      case token_type::question_dot:
-        this->error_reporter_->report(error_unexpected_token{
-            .token = this->peek().span(),
+      case token_type::question_dot: {
+        expression* value = this->parse_expression_remainder(
+            this->make_expression<expression::variable>(
+                key_token.identifier_name(), key_token.type),
+            precedence{.commas = false});
+        entries.emplace_back(key, value);
+        this->error_reporter_->report(error_missing_key_for_object_entry{
+            .expression = value->span(),
         });
-        goto full_expression;
+        break;
+      }
 
       case token_type::left_paren:
         parse_method_entry(key_token.begin, key, function_attributes::normal);

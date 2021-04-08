@@ -2055,10 +2055,10 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                          "object(literal, condassign(var one, var two))",
                          "object(literal, dot(var one, two))",
                          "object(literal, upassign(var one, var two))"));
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_token, token,
-                    offsets_matcher(p.code(), strlen(u8"{one "), op))));
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_key_for_object_entry, expression,
+                                offsets_matcher(p.code(), strlen(u8"{"),
+                                                u8"one " + op + u8" two"))));
   }
 
   for (string8 op : {u8"++", u8"--"}) {
@@ -2071,8 +2071,9 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     EXPECT_THAT(
         p.errors(),
         UnorderedElementsAre(
-            ERROR_TYPE_FIELD(error_unexpected_token, token,
-                             offsets_matcher(p.code(), strlen(u8"{one "), op)),
+            ERROR_TYPE_FIELD(
+                error_missing_key_for_object_entry, expression,
+                offsets_matcher(p.code(), strlen(u8"{"), u8"one " + op)),
             // TODO(strager): Don't report
             // error_missing_comma_between_object_literal_entries.
             ::testing::VariantWith<
