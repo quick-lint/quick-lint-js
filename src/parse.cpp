@@ -154,10 +154,10 @@ expression* parser::parse_primary_expression(precedence prec) {
   // await            // Identifier.
   // await myPromise
   case token_type::kw_await: {
+    token await_token = this->peek();
+    this->skip();
     if (this->in_top_level_ || this->in_async_function_) {
       // await is a unary operator (in modules) or an identifier (in scripts).
-      token await_token = this->peek();
-      this->skip();
       switch (this->peek().type) {
       // await can't be an operator, so treat it as an identifier.
       QLJS_CASE_BINARY_ONLY_OPERATOR:
@@ -198,7 +198,8 @@ expression* parser::parse_primary_expression(precedence prec) {
       QLJS_UNREACHABLE();
     } else {
       // await is an identifier.
-      goto identifier;
+      return this->make_expression<expression::variable>(
+          await_token.identifier_name(), await_token.type);
     }
   }
 
