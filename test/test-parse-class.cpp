@@ -735,6 +735,30 @@ TEST(test_parse, class_method_without_parameter_list) {
             error_missing_function_parameter_list, function_name,
             offsets_matcher(&code, strlen(u8"class C { "), u8"method"))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { [method+name] { body; } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_function_parameter_list, function_name,
+                    offsets_matcher(&code, strlen(u8"class C { "),
+                                    u8"[method+name]"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { 'method name' { body; } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_function_parameter_list, function_name,
+                    offsets_matcher(&code, strlen(u8"class C { "),
+                                    u8"'method name'"))));
+  }
 }
 
 TEST(test_parse, stray_identifier_before_class_method) {

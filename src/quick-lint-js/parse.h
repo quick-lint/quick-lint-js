@@ -1470,7 +1470,8 @@ class parser {
     };
 
     auto parse_and_visit_field_or_method_without_name =
-        [this, &v](function_attributes method_attributes) -> void {
+        [this, &v](source_code_span name_span,
+                   function_attributes method_attributes) -> void {
       switch (this->peek().type) {
       // "fieldName";
       // class C { "fieldName" }
@@ -1518,7 +1519,7 @@ class parser {
       default:
         v.visit_property_declaration();
         this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/std::nullopt, method_attributes);
+            v, /*name=*/name_span, method_attributes);
         break;
       }
     };
@@ -1590,23 +1591,30 @@ class parser {
     // 9001() {}
     // "fieldName" = init;
     case token_type::number:
-    case token_type::string:
+    case token_type::string: {
+      source_code_span name_span = this->peek().span();
       this->skip();
-      parse_and_visit_field_or_method_without_name(method_attributes);
+      parse_and_visit_field_or_method_without_name(name_span,
+                                                   method_attributes);
       break;
+    }
 
     // [methodNameExpression]() {}
     // [fieldNameExpression] = initialValue;
-    case token_type::left_square:
+    case token_type::left_square: {
+      const char8 *name_begin = this->peek().begin;
       this->skip();
 
       this->parse_and_visit_expression(v);
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+      const char8 *name_end = this->peek().end;
       this->skip();
 
-      parse_and_visit_field_or_method_without_name(method_attributes);
+      parse_and_visit_field_or_method_without_name(
+          source_code_span(name_begin, name_end), method_attributes);
       break;
+    }
 
     // function() {}
     // function f() {}  // Invalid.
