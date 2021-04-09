@@ -1406,7 +1406,7 @@ class parser {
                    function_attributes method_attributes) -> void {
       switch (this->peek().type) {
       // method() { }
-      // method { }  // Invalid (missing parameter list).
+      // method { }    // Invalid (missing parameter list).
       case token_type::left_curly:
       case token_type::left_paren:
         v.visit_property_declaration(property_name);
@@ -1415,9 +1415,11 @@ class parser {
         break;
 
       // field;
+      // class C { field }
+      case token_type::right_curly:
       case token_type::semicolon:
         v.visit_property_declaration(property_name);
-        this->skip();
+        this->consume_semicolon();
         break;
 
       // field = initialValue;
@@ -1426,11 +1428,6 @@ class parser {
         this->parse_and_visit_expression(v);
         v.visit_property_declaration(property_name);
         this->consume_semicolon();
-        break;
-
-      // class C { field }
-      case token_type::right_curly:
-        v.visit_property_declaration(property_name);
         break;
 
       case token_type::identifier:
@@ -1473,6 +1470,16 @@ class parser {
         [this, &v](source_code_span name_span,
                    function_attributes method_attributes) -> void {
       switch (this->peek().type) {
+      // "method"() {}
+      // [expr]() {}
+      // "method" {}    // Invalid (missing parameter list).
+      // TODO(strager): Is 'default' correct here?
+      default:
+        v.visit_property_declaration();
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/name_span, method_attributes);
+        break;
+
       // "fieldName";
       // class C { "fieldName" }
       // [expr];
@@ -1511,15 +1518,6 @@ class parser {
         } else {
           QLJS_PARSER_UNIMPLEMENTED();
         }
-        break;
-
-      // "method"() {}
-      // [expr]() {}
-      // TODO(strager): Is 'default' correct here?
-      default:
-        v.visit_property_declaration();
-        this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/name_span, method_attributes);
         break;
       }
     };
