@@ -349,6 +349,24 @@ TEST(test_options, dump_errors) {
                 "warning: --output-format ignored with --lsp-server\n");
     }
   }
+
+  {
+    const file_to_lint file = {
+        .path = "file.js",
+        .vim_bufnr = std::optional<int>(),
+    };
+
+    options o;
+    o.lsp_server = true;
+    o.files_to_lint.emplace_back(file);
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    EXPECT_EQ(dumped_errors.str(),
+              "warning: ignoring files given on command line in "
+              "--lsp-server mode\n");
+  }
 }
 }
 }

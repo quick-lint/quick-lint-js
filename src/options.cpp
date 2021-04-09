@@ -201,9 +201,14 @@ done_parsing_options:
 
 bool options::dump_errors(std::ostream& out) const {
   bool have_errors = false;
-  if (this->lsp_server &&
-      this->output_format != output_format::default_format) {
-    out << "warning: --output-format ignored with --lsp-server\n";
+  if (this->lsp_server) {
+    if (this->output_format != output_format::default_format) {
+      out << "warning: --output-format ignored with --lsp-server\n";
+    }
+    if (!this->files_to_lint.empty()) {
+      out << "warning: ignoring files given on command line in "
+             "--lsp-server mode\n";
+    }
   }
   for (const auto& option : this->error_unrecognized_options) {
     out << "error: unrecognized option: " << option << '\n';
