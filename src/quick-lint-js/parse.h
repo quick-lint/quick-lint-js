@@ -1451,6 +1451,7 @@ class parser {
       QLJS_CASE_KEYWORD:
       case token_type::left_square:
       case token_type::number:
+      case token_type::private_identifier:
       case token_type::string:
         if (this->peek().has_leading_newline) {
           // class C {

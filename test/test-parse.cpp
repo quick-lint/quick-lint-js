@@ -224,6 +224,21 @@ TEST(test_parse, asi_between_expression_statements) {
     spy_visitor v = parse_and_visit_module(code.string_view());
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  {
+    padded_string code(u8"one\n#two\nthree"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"one"},
+                            spy_visitor::visited_variable_use{u8"three"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(::testing::VariantWith<
+                    error_cannot_refer_to_private_variable_without_object>(
+            ::testing::_)));
+  }
 }
 
 TEST(test_parse, asi_between_expression_statement_and_switch_label) {

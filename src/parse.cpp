@@ -1007,6 +1007,7 @@ next:
   case token_type::kw_yield:
   case token_type::left_curly:
   case token_type::number:
+  case token_type::private_identifier:
   case token_type::right_curly:
   case token_type::right_paren:
   case token_type::right_square:

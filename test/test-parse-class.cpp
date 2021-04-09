@@ -381,6 +381,25 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
+    // ASI after field name before private identifier.
+    spy_visitor v = parse_and_visit_statement(u8"class C { #first\n#second }");
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"#first"},
+                    spy_visitor::visited_property_declaration{u8"#second"}));
+  }
+
+  {
+    // ASI after initializer before private identifier.
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { #first = x\n#second }");
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"#first"},
+                    spy_visitor::visited_property_declaration{u8"#second"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName'; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",  //
