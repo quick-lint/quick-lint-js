@@ -130,6 +130,7 @@ identifier token::identifier_name() const noexcept {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
   case token_type::identifier:
+  case token_type::private_identifier:
   case token_type::reserved_keyword_with_escape_sequence:
     break;
   default:
@@ -545,6 +546,22 @@ retry:
       this->input_ += 2;
       this->skip_line_comment_body();
       goto retry;
+    } else if (this->is_initial_identifier_byte(this->input_[1])) {
+      // Private identifier: #alphaNumeric
+      parsed_identifier ident = this->parse_identifier(this->input_ + 1);
+      if (ident.normalized.data() == this->input_ + 1) {
+        // Include the '#'.
+        ident.normalized =
+            string8_view(this->input_, ident.normalized.size() + 1);
+      } else {
+        // parse_identifier called parse_identifier_slow, and it included the
+        // '#' already in normalized_name.
+        QLJS_ASSERT(ident.normalized[0] == u8'#');
+      }
+      this->input_ = ident.after;
+      this->last_token_.normalized_identifier = ident.normalized;
+      this->last_token_.end = ident.after;
+      this->last_token_.type = token_type::private_identifier;
     } else {
       this->error_reporter_->report(error_unexpected_hash_character{
           source_code_span(&this->input_[0], &this->input_[1])});
@@ -1276,11 +1293,18 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 lexer::parsed_identifier lexer::parse_identifier_slow(
     const char8* input, const char8* identifier_begin) {
+  bool is_private_identifier =
+      identifier_begin != this->original_input_.data() &&
+      identifier_begin[-1] == u8'#';
+  const char8* private_identifier_begin =
+      is_private_identifier ? &identifier_begin[-1] : identifier_begin;
+
   using lexer_string8 =
       std::basic_string<char8, std::char_traits<char8>,
                         boost::container::pmr::polymorphic_allocator<char8>>;
   lexer_string8* normalized = this->allocator_.new_object<lexer_string8>(
-      identifier_begin, input, this->allocator_.standard_allocator<char8>());
+      private_identifier_begin, input,
+      this->allocator_.standard_allocator<char8>());
 
   escape_sequence_list escape_sequences(
       this->allocator_.standard_allocator<source_code_span>());
@@ -1709,6 +1733,24 @@ bool lexer::is_hex_digit(char8 c) {
   }
 }
 
+bool lexer::is_initial_identifier_byte(char8 byte) {
+  switch (static_cast<std::uint8_t>(byte)) {
+  QLJS_CASE_IDENTIFIER_START:
+    // clang-format off
+  /* 0xc0 */ /* 0xc1 */ case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7:
+  case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcd: case 0xce: case 0xcf:
+  case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
+  case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf:
+  case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+  case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: /* 0xee */ case 0xef:
+  case 0xf0:
+    // clang-format on
+    return true;
+  default:
+    return false;
+  }
+}
+
 bool lexer::is_identifier_byte(char8 byte) {
   switch (static_cast<std::uint8_t>(byte)) {
   QLJS_CASE_DECIMAL_DIGIT:
@@ -1893,6 +1935,7 @@ const char* to_string(token_type type) {
     QLJS_CASE(plus)
     QLJS_CASE(plus_equal)
     QLJS_CASE(plus_plus)
+    QLJS_CASE(private_identifier)
     QLJS_CASE(question)
     QLJS_CASE(question_dot)
     QLJS_CASE(question_question)

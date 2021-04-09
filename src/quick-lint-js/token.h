@@ -121,6 +121,7 @@ enum class token_type {
   identifier,
   incomplete_template,  // `text${
   number,
+  private_identifier,  // #name
   regexp,
   string,
 

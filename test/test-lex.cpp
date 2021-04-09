@@ -1522,6 +1522,95 @@ TEST_F(test_lex, lex_identifiers_which_look_like_keywords) {
   this->check_tokens(u8"IF"_sv, {token_type::identifier});
 }
 
+TEST_F(test_lex, private_identifier) {
+  this->check_tokens(u8"#i"_sv, {token_type::private_identifier});
+  this->check_tokens(u8"#_"_sv, {token_type::private_identifier});
+  this->check_tokens(u8"#$"_sv, {token_type::private_identifier});
+  this->check_tokens(u8"#Mixed_Case_With_Underscores"_sv,
+                     {token_type::private_identifier});
+  this->check_tokens(u8"#digits0123456789"_sv,
+                     {token_type::private_identifier});
+
+  {
+    padded_string code(u8" #id "_sv);
+    std::vector<token> tokens = this->lex_to_eof(&code);
+    ASSERT_EQ(tokens.size(), 1);
+    identifier ident = tokens[0].identifier_name();
+    EXPECT_EQ(ident.span().string_view(), u8"#id"_sv);
+    EXPECT_EQ(ident.normalized_name(), u8"#id"_sv);
+  }
+
+  this->check_single_token(u8"#\u00b5"_sv, u8"#\u00b5");    // 2 UTF-8 bytes
+  this->check_single_token(u8"#\u05d0"_sv, u8"#\u05d0");    // 2 UTF-8 bytes
+  this->check_single_token(u8"#a\u0816"_sv, u8"#a\u0816");  // 3 UTF-8 bytes
+  this->check_single_token(u8"#\U0001e93f"_sv,
+                           u8"#\U0001e93f");  // 4 UTF-8 bytes
+
+  this->check_single_token(u8"#\\u{b5}"_sv, u8"#\u00b5");
+  this->check_single_token(u8"#a\\u0816"_sv, u8"#a\u0816");
+  this->check_single_token(u8"#\\u{0001e93f}"_sv, u8"#\U0001e93f");
+
+  {
+    padded_string code(u8" #\\u{78} "_sv);
+    std::vector<token> tokens = this->lex_to_eof(&code);
+    ASSERT_EQ(tokens.size(), 1);
+    identifier ident = tokens[0].identifier_name();
+    EXPECT_EQ(ident.span().string_view(), u8"#\\u{78}"_sv);
+    EXPECT_EQ(ident.normalized_name(), u8"#x"_sv);
+  }
+
+  // Keywords are allowed.
+  this->check_tokens(u8"#async"_sv, {token_type::private_identifier});
+  this->check_tokens(u8"#for"_sv, {token_type::private_identifier});
+  this->check_tokens(u8"#function"_sv, {token_type::private_identifier});
+  this->check_tokens(u8"#let"_sv, {token_type::private_identifier});
+}
+
+TEST_F(test_lex,
+       private_identifier_with_disallowed_non_ascii_initial_character) {
+  // TODO(strager): Should we treat the disallowed character as part of the
+  // identifier anyway? Or should we treat it as whitespace?
+  this->check_single_token_with_errors(
+      u8"#\u0816illegal", u8"#\u0816illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_character_disallowed_in_identifiers, character,
+                        offsets_matcher(input, strlen(u8"#"), u8"\u0816"))));
+      });
+
+  this->check_tokens_with_errors(
+      u8"#123", {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
+                                error_unexpected_hash_character, where,
+                                offsets_matcher(input, 0, u8"#"))));
+      });
+}
+
+TEST_F(test_lex, private_identifier_with_disallowed_escaped_initial_character) {
+  // Private identifiers cannot start with a digit.
+  this->check_single_token_with_errors(
+      u8"#\\u{30}illegal", u8"#\\u{30}illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(
+                error_escaped_character_disallowed_in_identifiers,
+                escape_sequence, offsets_matcher(input, 1, u8"\\u{30}"))));
+      });
+
+  this->check_single_token_with_errors(
+      u8"#\\u0816illegal", u8"#\\u0816illegal",
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(
+                error_escaped_character_disallowed_in_identifiers,
+                escape_sequence, offsets_matcher(input, 1, u8"\\u0816"))));
+      });
+}
+
 TEST_F(test_lex, lex_reserved_keywords) {
   this->check_tokens(u8"await"_sv, {token_type::kw_await});
   this->check_tokens(u8"break"_sv, {token_type::kw_break});
@@ -2094,6 +2183,28 @@ TEST_F(test_lex, insert_semicolon_after_rolling_back_transaction) {
   EXPECT_EQ(l.peek().type, token_type::number);
 }
 
+TEST_F(test_lex,
+       is_initial_identifier_byte_agrees_with_is_initial_identifier_character) {
+  constexpr char32_t min_code_point = U'\0';
+  constexpr char32_t max_code_point = U'\U0010ffff';
+
+  std::array<bool, 256> is_valid_byte = {};
+  is_valid_byte[u8'\\'] = true;
+  for (char32_t c = min_code_point; c <= max_code_point; ++c) {
+    if (lexer::is_initial_identifier_character(c)) {
+      char8 utf_8[10];
+      encode_utf_8(c, utf_8);
+      is_valid_byte[static_cast<std::uint8_t>(utf_8[0])] = true;
+    }
+  }
+
+  for (std::size_t byte = 0; byte < is_valid_byte.size(); ++byte) {
+    EXPECT_EQ(lexer::is_initial_identifier_byte(static_cast<char8>(byte)),
+              is_valid_byte[byte])
+        << "byte = 0x" << std::hex << byte;
+  }
+}
+
 TEST_F(test_lex, is_identifier_byte_agrees_with_is_identifier_character) {
   constexpr char32_t min_code_point = U'\0';
   constexpr char32_t max_code_point = U'\U0010ffff';
@@ -2138,10 +2249,13 @@ void test_lex::check_single_token_with_errors(
   std::vector<token> lexed_tokens = this->lex_to_eof(&code, errors);
 
   EXPECT_THAT_AT_CALLER(lexed_tokens,
-                        ElementsAre(::testing::Field("type", &token::type,
-                                                     token_type::identifier)));
+                        ElementsAre(::testing::Field(
+                            "type", &token::type,
+                            ::testing::AnyOf(token_type::identifier,
+                                             token_type::private_identifier))));
   if (lexed_tokens.size() == 1 &&
-      lexed_tokens[0].type == token_type::identifier) {
+      (lexed_tokens[0].type == token_type::identifier ||
+       lexed_tokens[0].type == token_type::private_identifier)) {
     EXPECT_EQ_AT_CALLER(lexed_tokens[0].identifier_name().normalized_name(),
                         expected_identifier_name);
   }
