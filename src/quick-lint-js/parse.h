@@ -1401,8 +1401,9 @@ class parser {
     std::optional<identifier> last_ident;
     function_attributes method_attributes = function_attributes::normal;
 
-    auto parse_and_visit_field_or_method =
-        [this, &v](identifier property_name,
+    auto parse_and_visit_field_or_method_impl =
+        [this, &v](std::optional<identifier> property_name,
+                   source_code_span property_name_span,
                    function_attributes method_attributes) -> void {
       switch (this->peek().type) {
       // method() { }
@@ -1411,7 +1412,7 @@ class parser {
       case token_type::left_paren:
         v.visit_property_declaration(property_name);
         this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/property_name.span(), method_attributes);
+            v, /*name=*/property_name_span, method_attributes);
         break;
 
       // field;
@@ -1440,7 +1441,7 @@ class parser {
           v.visit_property_declaration(property_name);
         } else {
           this->error_reporter_->report(error_unexpected_token{
-              .token = property_name.span(),
+              .token = property_name_span,
           });
         }
         break;
@@ -1466,77 +1467,18 @@ class parser {
       }
     };
 
+    auto parse_and_visit_field_or_method =
+        [&](identifier property_name,
+            function_attributes method_attributes) -> void {
+      parse_and_visit_field_or_method_impl(property_name, property_name.span(),
+                                           method_attributes);
+    };
+
     auto parse_and_visit_field_or_method_without_name =
-        [this, &v](source_code_span name_span,
-                   function_attributes method_attributes) -> void {
-      switch (this->peek().type) {
-      // "method"() {}
-      // [expr]() {}
-      // "method" {}    // Invalid (missing parameter list).
-      case token_type::left_curly:
-      case token_type::left_paren:
-        v.visit_property_declaration(std::nullopt);
-        this->parse_and_visit_function_parameters_and_body(
-            v, /*name=*/name_span, method_attributes);
-        break;
-
-      // "fieldName";
-      // class C { "fieldName" }
-      // [expr];
-      // class C { [expr] }
-      case token_type::right_curly:
-      case token_type::semicolon:
-        v.visit_property_declaration(std::nullopt);
-        this->consume_semicolon();
-        break;
-
-      // "fieldName" = init;
-      // [expr] = init;
-      case token_type::equal:
-        this->skip();
-        this->parse_and_visit_expression(v);
-        this->consume_semicolon();
-        v.visit_property_declaration(std::nullopt);
-        break;
-
-      case token_type::identifier:
-      case token_type::star:
-        if (this->peek().has_leading_newline) {
-          // class C {
-          //   "field"      // ASI
-          //   method() {}
-          // }
-          v.visit_property_declaration(std::nullopt);
-        } else {
-          this->error_reporter_->report(error_unexpected_token{
-              .token = name_span,
-          });
-        }
-        break;
-
-      // class C {
-      //   "field"      // ASI
-      //   method() {}
-      // }
-      // class C {
-      //   [fieldExpr]  // ASI
-      //   method() {}
-      // }
-      QLJS_CASE_KEYWORD:
-      case token_type::left_square:
-      case token_type::number:
-      case token_type::string:
-        if (this->peek().has_leading_newline) {
-          v.visit_property_declaration(std::nullopt);
-        } else {
-          QLJS_PARSER_UNIMPLEMENTED();
-        }
-        break;
-
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
+        [&](source_code_span name_span,
+            function_attributes method_attributes) -> void {
+      parse_and_visit_field_or_method_impl(std::nullopt, name_span,
+                                           method_attributes);
     };
 
     switch (this->peek().type) {
