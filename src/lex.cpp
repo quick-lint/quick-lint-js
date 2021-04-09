@@ -842,11 +842,8 @@ next:
 
   case '/': {
     ++c;
-    // TODO(strager): is_identifier_character is the wrong function to call
-    // here.
     // TODO(strager): Is the check for '\\' correct?
-    if (this->is_identifier_character(static_cast<char32_t>(*c)) ||
-        *c == u8'\\') {
+    if (this->is_identifier_byte(*c) || *c == u8'\\') {
       parsed_identifier ident = this->parse_identifier(c);
       c = ident.after;
       if (ident.escape_sequences) {
@@ -1197,10 +1194,8 @@ const char8* lexer::parse_hex_digits_and_underscores(
 
 lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
   const char8* identifier_begin = input;
-  // TODO(strager): is_identifier_character is the wrong function to call here.
   // TODO(strager): Is the check for '\\' correct?
-  QLJS_ASSERT(this->is_identifier_character(static_cast<char32_t>(*input)) ||
-              *input == u8'\\');
+  QLJS_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
 
 #if QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
@@ -1708,6 +1703,25 @@ bool lexer::is_hex_digit(char8 c) {
   case 'D':
   case 'E':
   case 'F':
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool lexer::is_identifier_byte(char8 byte) {
+  switch (static_cast<std::uint8_t>(byte)) {
+  QLJS_CASE_DECIMAL_DIGIT:
+  QLJS_CASE_IDENTIFIER_START:
+  // clang-format off
+  /* 0xc0 */ /* 0xc1 */ case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7:
+  case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
+  case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
+  case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf:
+  case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+  case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: /* 0xee */ case 0xef:
+  case 0xf0: /* 0xf1 */ /* 0xf2 */ case 0xf3:
+    // clang-format on
     return true;
   default:
     return false;

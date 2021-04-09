@@ -237,6 +237,13 @@ class lexer {
   static bool is_hex_digit(char8);
 
  public:
+  // Returns true if the given byte is the legal anywhere within an identifier,
+  // except for the following cases:
+  //
+  // * '{' or '}'
+  // * a byte which cannot be the first byte of a UTF-8 sequence
+  static bool is_identifier_byte(char8 byte);
+
   static bool is_initial_identifier_character(char32_t code_point);
   static bool is_identifier_character(char32_t code_point);
 

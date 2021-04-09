@@ -20,6 +20,7 @@
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/source-location.h>
 #include <quick-lint-js/token.h>
+#include <quick-lint-js/utf-8.h>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -1086,6 +1087,21 @@ TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
                   escape_sequence, offsets_matcher(&input, 7, 13))));
 }
 
+TEST_F(test_lex, lex_non_ascii_in_regular_expression_literal_flags) {
+  error_collector errors;
+  padded_string input(u8"/hello/\u05d0"_sv);
+
+  lexer l(&input, &errors);
+  l.reparse_as_regexp();
+  EXPECT_EQ(l.peek().type, token_type::regexp);
+  EXPECT_EQ(l.peek().begin, &input[0]);
+  EXPECT_EQ(l.peek().end, &input[input.size()]);
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+  // TODO(strager): Report an error, because '\u05d0' is an invalid flag.
+}
+
 TEST_F(test_lex,
        lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
@@ -1186,6 +1202,7 @@ TEST_F(test_lex, non_ascii_identifier) {
   this->check_single_token(u8"\U00013337"_sv, u8"\U00013337");
 
   this->check_single_token(u8"\u00b5"_sv, u8"\u00b5");          // 2 UTF-8 bytes
+  this->check_single_token(u8"\u05d0"_sv, u8"\u05d0");          // 3 UTF-8 bytes
   this->check_single_token(u8"a\u0816"_sv, u8"a\u0816");        // 3 UTF-8 bytes
   this->check_single_token(u8"\U0001e93f"_sv, u8"\U0001e93f");  // 4 UTF-8 bytes
 }
@@ -2075,6 +2092,27 @@ TEST_F(test_lex, insert_semicolon_after_rolling_back_transaction) {
 
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::number);
+}
+
+TEST_F(test_lex, is_identifier_byte_agrees_with_is_identifier_character) {
+  constexpr char32_t min_code_point = U'\0';
+  constexpr char32_t max_code_point = U'\U0010ffff';
+
+  std::array<bool, 256> is_valid_byte = {};
+  is_valid_byte[u8'\\'] = true;
+  for (char32_t c = min_code_point; c <= max_code_point; ++c) {
+    if (lexer::is_identifier_character(c)) {
+      char8 utf_8[10];
+      encode_utf_8(c, utf_8);
+      is_valid_byte[static_cast<std::uint8_t>(utf_8[0])] = true;
+    }
+  }
+
+  for (std::size_t byte = 0; byte < is_valid_byte.size(); ++byte) {
+    EXPECT_EQ(lexer::is_identifier_byte(static_cast<char8>(byte)),
+              is_valid_byte[byte])
+        << "byte = 0x" << std::hex << byte;
+  }
 }
 
 void test_lex::check_single_token(string8_view input,
