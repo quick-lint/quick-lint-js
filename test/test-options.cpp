@@ -367,6 +367,18 @@ TEST(test_options, dump_errors) {
               "warning: ignoring files given on command line in "
               "--lsp-server mode\n");
   }
+
+  {
+    options o;
+    o.lsp_server = true;
+    o.exit_fail_on.add(parse_error_list("E001"));
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    EXPECT_EQ(dumped_errors.str(),
+              "warning: --exit-fail-on ignored with --lsp-server\n");
+  }
 }
 }
 }

@@ -202,6 +202,9 @@ done_parsing_options:
 bool options::dump_errors(std::ostream& out) const {
   bool have_errors = false;
   if (this->lsp_server) {
+    if (this->exit_fail_on.is_user_provided()) {
+      out << "warning: --exit-fail-on ignored with --lsp-server\n";
+    }
     if (this->output_format != output_format::default_format) {
       out << "warning: --output-format ignored with --lsp-server\n";
     }
