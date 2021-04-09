@@ -43,20 +43,31 @@ var testTodo = TestTodo{
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
 
-		// TODO(strager): Implement private fields.
-		"v8/mjsunit/harmony/private-fields*.js",
+		// TODO(strager): Fix crashes with private identifiers.
+		"language/expressions/class/elements/grammar-private-field-optional-chaining.js",
+		"language/expressions/class/elements/syntax/early-errors/grammar-privatenames-same-line-error.js",
+		"language/expressions/class/elements/syntax/early-errors/grammar-private-field-on-object-destructuring.js",
+		"language/expressions/object/method-definition/private-name-early-error-gen.js",
+		"language/expressions/object/method-definition/private-name-early-error-set-method.js",
+		"language/expressions/object/method-definition/private-name-early-error-async-gen.js",
+		"language/expressions/object/method-definition/private-name-early-error-method.js",
+		"language/expressions/object/method-definition/private-name-early-error-method-inside-class.js",
+		"language/expressions/object/method-definition/private-name-early-error-get-method-inside-class.js",
+		"language/expressions/object/method-definition/private-name-early-error-gen-inside-class.js",
+		"language/expressions/object/method-definition/private-name-early-error-set-method-inside-class.js",
+		"language/expressions/object/method-definition/private-name-early-error-get-method.js",
+		"language/expressions/object/method-definition/private-name-early-error-async-gen-inside-class.js",
+		"language/statements/class/elements/grammar-private-field-optional-chaining.js",
+		"language/expressions/object/method-definition/private-name-early-error-async-fn-inside-class.js",
+		"language/expressions/object/method-definition/private-name-early-error-async-fn.js",
+		"language/statements/class/elements/syntax/early-errors/grammar-privatenames-same-line-error.js",
+		"language/statements/class/elements/syntax/early-errors/grammar-private-field-on-object-destructuring.js",
 
 		// TODO(#140): Parse 'await' outside async functions.
 		"language/module-code/top-level-await/syntax/early-does-not-propagate-to-fn-declaration-params.js",
 		"language/module-code/top-level-await/syntax/early-does-not-propagate-to-fn-expr-params.js",
 	},
-	TodoFeatures: [][]byte{
-		// TODO(strager): Implement non-standard and new features.
-		[]byte("class-fields-private"),
-		[]byte("class-methods-private"),
-		[]byte("class-static-fields-private"),
-		[]byte("class-static-methods-private"),
-	},
+	TodoFeatures: [][]byte{},
 }
 
 func main() {
