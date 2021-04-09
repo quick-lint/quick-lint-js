@@ -177,6 +177,7 @@ struct spy_visitor : public error_collector {
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(spy_visitor);
 
+void PrintTo(const spy_visitor::visited_property_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_use &, std::ostream *);

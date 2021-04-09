@@ -269,6 +269,32 @@ TEST(test_parse, class_statement_with_methods) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { #m() { } }"_sv);
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"#m"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { async #m() { } }"_sv);
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"#m"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { *#m() { } }"_sv);
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"#m"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { async *#m() { } }"_sv);
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"#m"}));
+  }
 }
 
 TEST(test_parse, class_statement_with_fields) {
@@ -341,6 +367,15 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { #prop = init; }");
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"#prop"}));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
   }

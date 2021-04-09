@@ -1528,8 +1528,10 @@ class parser {
     switch (this->peek().type) {
     // method() {}
     // static() {}
+    // #method() {}
     // field;
     // field = initialValue;
+    // #field = initialValue;
     QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
     QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
     case token_type::identifier:
@@ -1537,6 +1539,7 @@ class parser {
     case token_type::kw_get:
     case token_type::kw_set:
     case token_type::kw_static:
+    case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence: {
       identifier property_name = this->peek().identifier_name();
       this->skip();

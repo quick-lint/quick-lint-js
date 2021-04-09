@@ -6,6 +6,15 @@
 #include <quick-lint-js/spy-visitor.h>
 
 namespace quick_lint_js {
+void PrintTo(const spy_visitor::visited_property_declaration &d,
+             std::ostream *out) {
+  if (d.name.has_value()) {
+    *out << out_string8(*d.name);
+  } else {
+    *out << "(null)";
+  }
+}
+
 void PrintTo(const spy_visitor::visited_variable_assignment &x,
              std::ostream *out) {
   *out << out_string8(x.name);

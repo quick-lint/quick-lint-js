@@ -726,6 +726,11 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     EXPECT_EQ(summarize(ast),
               "dot(var promise, " + string8_to_string(keyword) + ")");
   }
+
+  {
+    expression* ast = this->parse_expression(u8"x.#private"_sv);
+    EXPECT_EQ(summarize(ast), "dot(var x, #private)");
+  }
 }
 
 TEST_F(test_parse_expression, invalid_dot_expression) {

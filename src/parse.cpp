@@ -744,6 +744,7 @@ next:
     this->skip();
     switch (this->peek().type) {
     case token_type::identifier:
+    case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
       children.back() = this->make_expression<expression::dot>(
