@@ -802,6 +802,7 @@ next:
   }
 
   // x?.y
+  // x?.#y
   // array?.[index]
   // f?.(x, y)
   case token_type::question_dot: {
@@ -809,6 +810,7 @@ next:
     switch (this->peek().type) {
     // x?.y
     case token_type::identifier:
+    case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
       children.back() = this->make_expression<expression::dot>(

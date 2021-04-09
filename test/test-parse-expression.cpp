@@ -836,6 +836,11 @@ TEST_F(test_parse_expression, parse_optional_dot_expressions) {
     EXPECT_EQ(summarize(ast->child_0()), "var obj");
     EXPECT_EQ(ast->variable_identifier().normalized_name(), keyword);
   }
+
+  {
+    expression* ast = this->parse_expression(u8"x?.#private"_sv);
+    EXPECT_EQ(summarize(ast), "dot(var x, #private)");
+  }
 }
 
 TEST_F(test_parse_expression, parse_indexing_expression) {
