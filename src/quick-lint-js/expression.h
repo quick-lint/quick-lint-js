@@ -57,6 +57,7 @@ enum class expression_kind {
   named_function,
   new_target,
   object,
+  private_variable,
   rw_unary_prefix,
   rw_unary_suffix,
   spread,
@@ -159,6 +160,7 @@ class expression {
   class named_function;
   class new_target;
   class object;
+  class private_variable;
   class rw_unary_prefix;
   class rw_unary_suffix;
   class spread;
@@ -909,6 +911,26 @@ class expression::object final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::object>);
 
+class expression::private_variable final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::private_variable;
+
+  explicit private_variable(identifier variable_identifier) noexcept
+      : expression(kind), variable_identifier_(variable_identifier) {}
+
+  identifier variable_identifier_impl() const noexcept {
+    return this->variable_identifier_;
+  }
+
+  source_code_span span_impl() const noexcept {
+    return this->variable_identifier_.span();
+  }
+
+ private:
+  identifier variable_identifier_;
+};
+static_assert(expression_arena::is_allocatable<expression::private_variable>);
+
 class expression::rw_unary_prefix final
     : public expression::expression_with_prefix_operator_base {
  public:
@@ -1145,6 +1167,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(named_function)
     QLJS_EXPRESSION_CASE(new_target)
     QLJS_EXPRESSION_CASE(object)
+    QLJS_EXPRESSION_CASE(private_variable)
     QLJS_EXPRESSION_CASE(rw_unary_prefix)
     QLJS_EXPRESSION_CASE(rw_unary_suffix)
     QLJS_EXPRESSION_CASE(spread)

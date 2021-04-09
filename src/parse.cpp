@@ -431,6 +431,17 @@ expression* parser::parse_primary_expression(precedence prec) {
     return arrow_function;
   }
 
+  case token_type::private_identifier: {
+    this->error_reporter_->report(
+        error_cannot_refer_to_private_variable_without_object{
+            .private_identifier = this->peek().identifier_name(),
+        });
+    expression* ast = this->make_expression<expression::private_variable>(
+        this->peek().identifier_name());
+    this->skip();
+    return ast;
+  }
+
   case token_type::colon:
   case token_type::kw_debugger: {
     source_code_span token_span = this->peek().span();

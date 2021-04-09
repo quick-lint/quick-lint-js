@@ -85,6 +85,7 @@ class test_parser {
     case expression_kind::import:
     case expression_kind::literal:
     case expression_kind::new_target:
+    case expression_kind::private_variable:
     case expression_kind::super:
     case expression_kind::variable:
     case expression_kind::yield_none:
@@ -253,6 +254,21 @@ TEST_F(test_parse_expression, keyword_variable_reference) {
   {
     expression* ast = this->parse_expression(u8"async(a, b).c"_sv);
     EXPECT_EQ(summarize(ast), "dot(call(var async, var a, var b), c)");
+  }
+}
+
+TEST_F(test_parse_expression, private_identifiers_are_not_valid_expressions) {
+  {
+    test_parser p(u8"#myPrivateField"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::private_variable);
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_refer_to_private_variable_without_object,
+                    private_identifier,
+                    offsets_matcher(p.code(), 0, u8"#myPrivateField"))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"#myPrivateField"));
   }
 }
 
@@ -2913,6 +2929,9 @@ std::string summarize(const expression& expression) {
     result += ")";
     return result;
   }
+  case expression_kind::private_variable:
+    return "var " + string8_to_string(
+                        expression.variable_identifier().normalized_name());
   case expression_kind::rw_unary_prefix:
     return "rwunary(" + summarize(expression.child_0()) + ")";
   case expression_kind::rw_unary_suffix:

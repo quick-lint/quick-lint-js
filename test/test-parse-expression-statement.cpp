@@ -737,6 +737,23 @@ TEST(test_parse, expression_statement) {
                                       "visit_variable_use",  // rhs
                                       "visit_exit_function_scope"));
   }
+
+  {
+    padded_string code(u8"#myArray[index] = rhs;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"index"},
+                            spy_visitor::visited_variable_use{u8"rhs"}));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // index
+                                      "visit_variable_use"));  // rhs
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(::testing::VariantWith<
+                    error_cannot_refer_to_private_variable_without_object>(
+            ::testing::_)));
+  }
 }
 
 TEST(test_parse, asi_plusplus_minusminus) {

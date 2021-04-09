@@ -307,6 +307,7 @@ class parser {
     case token_type::number:
     case token_type::plus:
     case token_type::plus_plus:
+    case token_type::private_identifier:
     case token_type::right_paren:
     case token_type::slash:
     case token_type::slash_equal:
@@ -589,7 +590,6 @@ class parser {
 
     case token_type::colon:
     case token_type::kw_extends:
-    case token_type::private_identifier:
     case token_type::question:
       this->error_reporter_->report(error_unexpected_token{
           .token = this->peek().span(),
@@ -649,6 +649,7 @@ class parser {
     case expression_kind::import:
     case expression_kind::literal:
     case expression_kind::new_target:
+    case expression_kind::private_variable:
     case expression_kind::super:
     case expression_kind::yield_none:
       break;

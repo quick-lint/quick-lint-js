@@ -28,7 +28,6 @@ namespace quick_lint_js {
 namespace {
 TEST(test_parse, statement_starting_with_invalid_token) {
   for (string8_view token : {
-           u8"#browns",
            u8":",
            u8"?",
        }) {

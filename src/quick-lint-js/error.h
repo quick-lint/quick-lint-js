@@ -150,6 +150,13 @@
              import_name))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_refer_to_private_variable_without_object, "E155",           \
+      { identifier private_identifier; },                                      \
+      .error(QLJS_TRANSLATABLE("cannot reference private variables without "   \
+                               "object; use 'this.'"),                         \
+             private_identifier))                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_update_variable_during_declaration, "E136",                 \
       {                                                                        \
         source_code_span declaring_token;                                      \
