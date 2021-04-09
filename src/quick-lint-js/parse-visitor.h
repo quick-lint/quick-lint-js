@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_PARSE_VISITOR_H
 #define QUICK_LINT_JS_PARSE_VISITOR_H
 
+#include <optional>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -42,8 +43,8 @@ concept parse_visitor = requires(Visitor v, identifier name,
   {v.visit_exit_class_scope()};
   {v.visit_exit_for_scope()};
   {v.visit_exit_function_scope()};
-  {v.visit_property_declaration()};
-  {v.visit_property_declaration(name)};
+  {v.visit_property_declaration(std::nullopt)};
+  {v.visit_property_declaration(std::optional<identifier>(name))};
   {v.visit_variable_assignment(name)};
   {v.visit_variable_declaration(name, var_kind)};
   {v.visit_variable_export_use(name)};

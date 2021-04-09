@@ -1475,7 +1475,7 @@ class parser {
       // "method" {}    // Invalid (missing parameter list).
       case token_type::left_curly:
       case token_type::left_paren:
-        v.visit_property_declaration();
+        v.visit_property_declaration(std::nullopt);
         this->parse_and_visit_function_parameters_and_body(
             v, /*name=*/name_span, method_attributes);
         break;
@@ -1486,7 +1486,7 @@ class parser {
       // class C { [expr] }
       case token_type::right_curly:
       case token_type::semicolon:
-        v.visit_property_declaration();
+        v.visit_property_declaration(std::nullopt);
         this->consume_semicolon();
         break;
 
@@ -1496,7 +1496,7 @@ class parser {
         this->skip();
         this->parse_and_visit_expression(v);
         this->consume_semicolon();
-        v.visit_property_declaration();
+        v.visit_property_declaration(std::nullopt);
         break;
 
       case token_type::identifier:
@@ -1506,7 +1506,7 @@ class parser {
           //   "field"      // ASI
           //   method() {}
           // }
-          v.visit_property_declaration();
+          v.visit_property_declaration(std::nullopt);
         } else {
           this->error_reporter_->report(error_unexpected_token{
               .token = name_span,
@@ -1527,7 +1527,7 @@ class parser {
       case token_type::number:
       case token_type::string:
         if (this->peek().has_leading_newline) {
-          v.visit_property_declaration();
+          v.visit_property_declaration(std::nullopt);
         } else {
           QLJS_PARSER_UNIMPLEMENTED();
         }

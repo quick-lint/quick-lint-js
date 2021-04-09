@@ -3,6 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <optional>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
@@ -40,7 +41,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_exit_class_scope();
   v.visit_exit_for_scope();
   v.visit_exit_function_scope();
-  v.visit_property_declaration();
+  v.visit_property_declaration(std::nullopt);
   v.visit_property_declaration(identifier_of(property_name));
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(identifier_of(variable_name),

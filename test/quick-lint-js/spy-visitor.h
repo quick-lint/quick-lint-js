@@ -79,13 +79,16 @@ struct spy_visitor : public error_collector {
   }
 
   void visit_property_declaration() {
-    this->property_declarations.emplace_back(visited_property_declaration());
     this->visits.emplace_back("visit_property_declaration");
   }
 
-  void visit_property_declaration(identifier name) {
-    this->property_declarations.emplace_back(
-        visited_property_declaration{string8(name.normalized_name())});
+  void visit_property_declaration(std::optional<identifier> name) {
+    if (name.has_value()) {
+      this->property_declarations.emplace_back(
+          visited_property_declaration{string8(name->normalized_name())});
+    } else {
+      this->property_declarations.emplace_back(visited_property_declaration());
+    }
     this->visits.emplace_back("visit_property_declaration");
   }
 

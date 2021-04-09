@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
@@ -201,11 +202,12 @@ class debug_visitor {
 
   void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
 
-  void visit_property_declaration() { std::cerr << "property declaration\n"; }
-
-  void visit_property_declaration(identifier name) {
-    std::cerr << "property declaration: " << out_string8(name.normalized_name())
-              << '\n';
+  void visit_property_declaration(std::optional<identifier> name) {
+    std::cerr << "property declaration";
+    if (name.has_value()) {
+      std::cerr << out_string8(name->normalized_name());
+    }
+    std::cerr << '\n';
   }
 
   void visit_variable_assignment(identifier name) {
@@ -296,12 +298,7 @@ class multi_visitor {
     this->visitor_2_->visit_exit_function_scope();
   }
 
-  void visit_property_declaration() {
-    this->visitor_1_->visit_property_declaration();
-    this->visitor_2_->visit_property_declaration();
-  }
-
-  void visit_property_declaration(identifier name) {
+  void visit_property_declaration(std::optional<identifier> name) {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
   }

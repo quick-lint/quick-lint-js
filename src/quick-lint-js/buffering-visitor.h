@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_BUFFERING_VISITOR_H
 #define QUICK_LINT_JS_BUFFERING_VISITOR_H
 
+#include <optional>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse-visitor.h>
@@ -58,7 +59,7 @@ class buffering_visitor {
         target.visit_property_declaration(v.name);
         break;
       case visit_kind::property_declaration_without_name:
-        target.visit_property_declaration();
+        target.visit_property_declaration(std::nullopt);
         break;
       case visit_kind::variable_assignment:
         target.visit_variable_assignment(v.name);
@@ -123,13 +124,13 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::exit_function_scope);
   }
 
-  void visit_property_declaration() {
-    this->visits_.emplace_back(visit_kind::property_declaration_without_name);
-  }
-
-  void visit_property_declaration(identifier name) {
-    this->visits_.emplace_back(visit_kind::property_declaration_with_name,
-                               name);
+  void visit_property_declaration(std::optional<identifier> name) {
+    if (name.has_value()) {
+      this->visits_.emplace_back(visit_kind::property_declaration_with_name,
+                                 *name);
+    } else {
+      this->visits_.emplace_back(visit_kind::property_declaration_without_name);
+    }
   }
 
   void visit_variable_assignment(identifier name) {
