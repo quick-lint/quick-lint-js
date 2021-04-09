@@ -1499,6 +1499,21 @@ class parser {
         v.visit_property_declaration();
         break;
 
+      case token_type::identifier:
+      case token_type::star:
+        if (this->peek().has_leading_newline) {
+          // class C {
+          //   "field"      // ASI
+          //   method() {}
+          // }
+          v.visit_property_declaration();
+        } else {
+          this->error_reporter_->report(error_unexpected_token{
+              .token = name_span,
+          });
+        }
+        break;
+
       // class C {
       //   "field"      // ASI
       //   method() {}
@@ -1508,10 +1523,8 @@ class parser {
       //   method() {}
       // }
       QLJS_CASE_KEYWORD:
-      case token_type::identifier:
       case token_type::left_square:
       case token_type::number:
-      case token_type::star:
       case token_type::string:
         if (this->peek().has_leading_newline) {
           v.visit_property_declaration();
