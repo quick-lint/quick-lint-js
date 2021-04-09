@@ -34,6 +34,8 @@ class compiled_error_list {
   template <class Error>
   bool is_present() const noexcept;
 
+  bool is_user_provided() const noexcept;
+
  private:
   bool is_present(const char* error_code) const noexcept;
 

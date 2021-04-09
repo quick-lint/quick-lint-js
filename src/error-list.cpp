@@ -207,6 +207,10 @@ bool compiled_error_list::is_present(const char* error_code) const noexcept {
   }
   return present;
 }
+
+bool compiled_error_list::is_user_provided() const noexcept {
+  return !parsed_error_lists_.empty();
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
