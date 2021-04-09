@@ -1473,8 +1473,8 @@ class parser {
       // "method"() {}
       // [expr]() {}
       // "method" {}    // Invalid (missing parameter list).
-      // TODO(strager): Is 'default' correct here?
-      default:
+      case token_type::left_curly:
+      case token_type::left_paren:
         v.visit_property_declaration();
         this->parse_and_visit_function_parameters_and_body(
             v, /*name=*/name_span, method_attributes);
@@ -1518,6 +1518,10 @@ class parser {
         } else {
           QLJS_PARSER_UNIMPLEMENTED();
         }
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
     };
