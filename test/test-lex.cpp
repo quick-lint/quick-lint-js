@@ -1885,6 +1885,20 @@ TEST_F(test_lex, lex_not_shebang) {
                               error_unexpected_hash_character, where,
                               offsets_matcher(&input, 2, 3))));
   }
+
+  {
+    error_collector v;
+    padded_string input(u8"#\\u{21}\n"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::private_identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"#\\u{21}");
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_escaped_character_disallowed_in_identifiers, escape_sequence,
+            offsets_matcher(&input, strlen(u8"#"), u8"\\u{21}"))));
+  }
 }
 
 TEST_F(test_lex, lex_invalid_common_characters_are_disallowed) {
