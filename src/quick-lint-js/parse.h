@@ -11,6 +11,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/expression.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -20,6 +21,10 @@
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
+
+#if QLJS_HAVE_SETJMP
+#include <csetjmp>
+#endif
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR \
   case token_type::ampersand:                                      \
@@ -104,6 +109,27 @@ class parser {
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
   [[nodiscard]] loop_guard enter_loop();
+
+#if QLJS_HAVE_SETJMP
+  // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
+  // called.
+  //
+  // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
+  template <QLJS_PARSE_VISITOR Visitor>
+  bool parse_and_visit_module_catching_unimplemented(Visitor &v) {
+    this->have_unimplemented_token_jmp_buf_ = true;
+    bool ok;
+    if (setjmp(this->unimplemented_token_jmp_buf_) == 0) {
+      this->parse_and_visit_module(v);
+      ok = true;
+    } else {
+      // QLJS_PARSER_UNIMPLEMENTED was called.
+      ok = false;
+    }
+    this->have_unimplemented_token_jmp_buf_ = false;
+    return ok;
+  }
+#endif
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_module(Visitor &v) {
@@ -3337,6 +3363,11 @@ class parser {
   bool in_generator_function_ = false;
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
+
+#if QLJS_HAVE_SETJMP
+  bool have_unimplemented_token_jmp_buf_ = false;
+  std::jmp_buf unimplemented_token_jmp_buf_;
+#endif
 };
 }
 

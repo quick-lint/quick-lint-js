@@ -14,9 +14,12 @@
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
 #include <vector>
+
+QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 using ::testing::_;
 using ::testing::ElementsAre;
@@ -490,6 +493,38 @@ TEST(test_parse,
     }
   }
 }
+
+// Update this with different JavaScript if tests start failing because the
+// syntax is now implemented. (Or delete this and related tests altogether if
+// QLJS_PARSER_UNIMPLEMENTED disappears.)
+padded_string unimplemented_token_code(u8"]"_sv);
+
+#if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
+TEST(test_parse, unimplemented_token_crashes) {
+  auto check = [] {
+    spy_visitor v;
+    parser p(&unimplemented_token_code, &v);
+    p.parse_and_visit_module(v);
+  };
+  EXPECT_DEATH(check(), "token not implemented");
+}
+#endif
+
+#if QLJS_HAVE_SETJMP
+TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
+  {
+    spy_visitor v;
+    parser p(&unimplemented_token_code, &v);
+    bool ok = p.parse_and_visit_module_catching_unimplemented(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_token, token,
+                    offsets_matcher(&unimplemented_token_code, 0, u8"]"))));
+  }
+}
+#endif
 
 TEST(test_escape_first_character_in_keyword,
      escaping_escapes_single_character) {

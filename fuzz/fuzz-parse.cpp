@@ -14,7 +14,8 @@ int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
   quick_lint_js::parser p(&source,
                           &quick_lint_js::null_error_reporter::instance);
   quick_lint_js::null_visitor visitor;
-  p.parse_and_visit_module(visitor);
+  [[maybe_unused]] bool ok =
+      p.parse_and_visit_module_catching_unimplemented(visitor);
 
   return 0;
 }

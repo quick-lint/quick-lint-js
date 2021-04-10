@@ -19,6 +19,8 @@ quick_lint_js_parse_and_lint_for_wasm_demo(const char8 *raw_input) {
   parser p(&input, error_reporter.get());
   linter l(error_reporter.get());
 
+  // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
+  // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
   p.parse_and_visit_module(l);
 
   const wasm_demo_error_reporter::error *errors = error_reporter->get_errors();

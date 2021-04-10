@@ -10,6 +10,7 @@
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
@@ -17,6 +18,10 @@
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
+
+#if QLJS_HAVE_SETJMP
+#include <csetjmp>
+#endif
 
 // parser is a recursive-descent parser.
 //
@@ -1836,6 +1841,16 @@ void parser::consume_semicolon() {
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
+#if QLJS_HAVE_SETJMP
+  if (this->have_unimplemented_token_jmp_buf_) {
+    this->error_reporter_->report(error_unexpected_token{
+        .token = this->peek().span(),
+    });
+    std::longjmp(this->unimplemented_token_jmp_buf_, 1);
+    QLJS_UNREACHABLE();
+  }
+#endif
+
   std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
                qljs_file_name, qljs_line, qljs_function_name,
                to_string(this->peek().type));

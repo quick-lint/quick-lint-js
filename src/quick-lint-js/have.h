@@ -258,6 +258,15 @@
 #define QLJS_HAVE_FTS_H 0
 #endif
 
+#if !defined(QLJS_HAVE_SETJMP) && defined(__has_include)
+#if !defined(__EMSCRIPTEN__) && __has_include(<csetjmp>)
+#define QLJS_HAVE_SETJMP 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_SETJMP)
+#define QLJS_HAVE_SETJMP 0
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
