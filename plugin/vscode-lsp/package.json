@@ -15,12 +15,12 @@
       "type": "object",
       "title": "quick-lint-js-lsp",
       "properties": {
-        "quick-lint-js.executablePath": {
+        "quick-lint-js-lsp.executablePath": {
           "type": "string",
           "description": "Path to the quick-lint-js executable.\n\nIf empty, \"quick-lint-js\" or \"quick-lint-js.exe\" is searched for according to the PATH environment variable.",
           "scope": "machine-overridable"
         },
-        "quick-lint-js.trace.server": {
+        "quick-lint-js-lsp.trace.server": {
           "scope": "window",
           "type": "string",
           "enum": [
