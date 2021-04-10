@@ -1254,6 +1254,13 @@ expression* parser::parse_object_literal() {
       QLJS_ASSERT(false);
       break;
 
+    // {#key: value}
+    case token_type::private_identifier:
+      this->error_reporter_->report(
+          error_private_properties_are_not_allowed_in_object_literals{
+              .private_identifier = this->peek().identifier_name(),
+          });
+      [[fallthrough]];
     // {key: value}
     // {"key": value}
     // {10: value}
@@ -1495,6 +1502,14 @@ expression* parser::parse_object_literal() {
       }
 
       switch (this->peek().type) {
+      // get #method() {}
+      case token_type::private_identifier:
+        this->error_reporter_->report(
+            error_private_properties_are_not_allowed_in_object_literals{
+                .private_identifier = this->peek().identifier_name(),
+            });
+        [[fallthrough]];
+      // get method() {}
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
       case token_type::number:
@@ -1599,6 +1614,14 @@ expression* parser::parse_object_literal() {
     case token_type::star: {
       this->skip();
       switch (this->peek().type) {
+      // *#method() {}
+      case token_type::private_identifier:
+        this->error_reporter_->report(
+            error_private_properties_are_not_allowed_in_object_literals{
+                .private_identifier = this->peek().identifier_name(),
+            });
+        [[fallthrough]];
+      // *method() {}
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
       case token_type::number:

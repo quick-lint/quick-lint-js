@@ -2073,6 +2073,32 @@ TEST_F(test_parse_expression, malformed_object_literal) {
             ::testing::VariantWith<
                 error_missing_comma_between_object_literal_entries>(_)));
   }
+
+  {
+    test_parser p(u8"{#key: value}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var value)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_private_properties_are_not_allowed_in_object_literals,
+                    private_identifier,
+                    offsets_matcher(p.code(), strlen(u8"{"), u8"#key"))));
+  }
+
+  for (string8 prefix :
+       {u8"", u8"async ", u8"get ", u8"set ", u8"*", u8"async *"}) {
+    padded_string code(u8"{ " + prefix + u8"#method() { } }");
+    SCOPED_TRACE(code);
+    test_parser p(code.string_view());
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_private_properties_are_not_allowed_in_object_literals,
+            private_identifier,
+            offsets_matcher(p.code(), (u8"{ " + prefix).size(), u8"#method"))));
+  }
 }
 
 // In some other languages, ';' separates entries similar to how ',' does in

@@ -821,6 +821,13 @@
              characters))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_private_properties_are_not_allowed_in_object_literals, "E156",     \
+      { identifier private_identifier; },                                      \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "private properties are not allowed in object literals"),     \
+             private_identifier))                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_redeclaration_of_global_variable, "E033",                          \
       { identifier redeclaration; },                                           \
       .error(QLJS_TRANSLATABLE("redeclaration of global variable"),            \
