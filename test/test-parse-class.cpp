@@ -841,6 +841,21 @@ TEST(test_parse, stray_identifier_before_class_method) {
   }
 
   {
+    padded_string code(
+        u8"class C { #junkIdentifier #method(arg) { body; } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"#method"}));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_token, token,
+                              offsets_matcher(&code, strlen(u8"class C { "),
+                                              u8"#junkIdentifier"))));
+  }
+
+  {
     spy_visitor v;
     padded_string code(
         u8"class C { junkIdentifier *method(arg) { body; } }"_sv);
