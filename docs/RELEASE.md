@@ -2,7 +2,8 @@
 
 Follow the following steps to release a new version of quick-lint-js:
 
-1. Update version number. Change these files containing version numbers:
+1. Update version number and release date. Change these files containing version
+   numbers:
    * dist/debian/README.md
    * dist/debian/build.sh
    * dist/debian/debian/changelog
@@ -15,6 +16,7 @@ Follow the following steps to release a new version of quick-lint-js:
    * plugin/vscode/BUILDING.md
    * plugin/vscode/package.json
    * src/quick-lint-js/version.h
+   * website/index.html
    * website/install.html
 
 2. Create a commit. Push it to GitHub on a non-main branch on
