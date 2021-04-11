@@ -3358,6 +3358,13 @@ class parser {
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
 
+  // Memory used for temporary memory allocations (e.g. vectors on the stack).
+  //
+  // TODO(strager): Pick a better (faster and less memory-hungry) allocator.
+  // We probably need boost::container::small_vector integration for in-place
+  // resizing to get good performance.
+  boost::container::pmr::monotonic_buffer_resource temporary_memory_;
+
   bool in_top_level_ = true;
   bool in_async_function_ = false;
   bool in_generator_function_ = false;

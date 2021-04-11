@@ -46,7 +46,8 @@ struct arrow_function_parameters {
   const char8* left_paren_begin = nullptr;
 };
 
-arrow_function_parameters arrow_function_parameters_from_lhs(expression*);
+arrow_function_parameters arrow_function_parameters_from_lhs(
+    expression*, boost::container::pmr::memory_resource* memory);
 }
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
@@ -314,7 +315,8 @@ expression* parser::parse_primary_expression(precedence prec) {
     const char8* right_square_end;
     this->skip();
 
-    vector<expression*> children("parse_expression array children");
+    vector<expression*> children("parse_expression array children",
+                                 &this->temporary_memory_);
     for (;;) {
       if (this->peek().type == token_type::right_square) {
         right_square_end = this->peek().end;
@@ -366,7 +368,8 @@ expression* parser::parse_primary_expression(precedence prec) {
     // new XMLHttpRequest()
     default: {
       expression* target = this->parse_expression(prec);
-      vector<expression*> children("parse_expression new children");
+      vector<expression*> children("parse_expression new children",
+                                   &this->temporary_memory_);
       if (target->kind() == expression_kind::call) {
         for (int i = 0; i < target->child_count(); ++i) {
           children.emplace_back(target->child(i));
@@ -502,7 +505,8 @@ expression* parser::parse_async_expression_only(token async_token) {
   // async()         // Function call.
   case token_type::left_paren: {
     vector<expression*> parameters(
-        "parse_expression async arrow function parameters");
+        "parse_expression async arrow function parameters",
+        &this->temporary_memory_);
     source_code_span left_paren_span = this->peek().span();
     this->skip();
 
@@ -537,7 +541,8 @@ expression* parser::parse_async_expression_only(token async_token) {
       // async as an identifier (variable reference)
       // Function call: async(arg)
       // TODO(strager): Reduce copying of the arguments.
-      vector<expression*> call_children("parse_expression async call children");
+      vector<expression*> call_children("parse_expression async call children",
+                                        &this->temporary_memory_);
       call_children.emplace_back(this->make_expression<expression::variable>(
           async_token.identifier_name(), async_token.type));
       for (std::size_t i = 0; i < parameters.size(); ++i) {
@@ -638,7 +643,8 @@ expression* parser::parse_expression_remainder(expression* ast,
   }
 
   vector<expression*, /*InSituCapacity=*/2> children(
-      "parse_expression_remainder children", &ast, &ast + 1);
+      "parse_expression_remainder children", &this->temporary_memory_, &ast,
+      &ast + 1);
   auto build_expression = [&]() {
     if (children.size() == 1) {
       return children.front();
@@ -931,7 +937,7 @@ next:
     }
     expression* lhs = children.back();
     arrow_function_parameters parameters =
-        arrow_function_parameters_from_lhs(lhs);
+        arrow_function_parameters_from_lhs(lhs, &this->temporary_memory_);
     expression* arrow_function = this->parse_arrow_function_body(
         function_attributes::normal,
         /*parameter_list_begin=*/parameters.left_paren_begin,
@@ -1034,7 +1040,8 @@ next:
 expression* parser::parse_call_expression_remainder(expression* callee) {
   source_code_span left_paren_span = this->peek().span();
   vector<expression*, 4> call_children(
-      "parse_expression_remainder call children", &callee, &callee + 1);
+      "parse_expression_remainder call children", &this->temporary_memory_,
+      &callee, &callee + 1);
   this->skip();
   while (this->peek().type != token_type::right_paren) {
     if (this->peek().type == token_type::comma) {
@@ -1179,7 +1186,8 @@ expression* parser::parse_object_literal() {
   const char8* right_curly_end;
   this->skip();
 
-  vector<object_property_value_pair> entries("parse_object_literal entries");
+  vector<object_property_value_pair> entries("parse_object_literal entries",
+                                             &this->temporary_memory_);
   auto parse_value_expression = [&]() {
     return this->parse_expression(precedence{.commas = false});
   };
@@ -1714,7 +1722,8 @@ expression* parser::parse_template(std::optional<expression*> tag) {
   }
 
   const char8* template_begin = this->peek().begin;
-  vector<expression*> children("parse_template children");
+  vector<expression*> children("parse_template children",
+                               &this->temporary_memory_);
   if (tag.has_value()) {
     children.emplace_back(*tag);
   }
@@ -1899,9 +1908,11 @@ parser::switch_guard::~switch_guard() noexcept {
 }
 
 namespace {
-arrow_function_parameters arrow_function_parameters_from_lhs(expression* lhs) {
+arrow_function_parameters arrow_function_parameters_from_lhs(
+    expression* lhs, boost::container::pmr::memory_resource* memory) {
   arrow_function_parameters result{
-      .parameters = vector<expression*>("arrow_function_parameters_from_lhs"),
+      .parameters =
+          vector<expression*>("arrow_function_parameters_from_lhs", memory),
   };
   switch (lhs->kind()) {
   case expression_kind::binary_operator:

@@ -4,6 +4,9 @@
 #ifndef QUICK_LINT_JS_VECTOR_H
 #define QUICK_LINT_JS_VECTOR_H
 
+#include <boost/container/pmr/monotonic_buffer_resource.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <boost/container/small_vector.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -67,9 +70,12 @@ class vector_instrumentation {
 template <class T, std::size_t InSituCapacity = 0>
 class vector {
  public:
-  explicit vector(const char *debug_owner [[maybe_unused]]) noexcept
+  explicit vector(const char *debug_owner [[maybe_unused]],
+                  boost::container::pmr::memory_resource *memory) noexcept
+      : data_(underlying_allocator(memory))
 #if QLJS_FEATURE_VECTOR_PROFILING
-      : debug_owner_(debug_owner)
+        ,
+        debug_owner_(debug_owner)
 #endif
   {
     this->add_instrumentation_entry(vector_instrumentation::event::create);
@@ -77,9 +83,10 @@ class vector {
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
-  explicit vector(const char *debug_owner [[maybe_unused]], const T *begin,
-                  const T *end)
-      : data_(begin, end)
+  explicit vector(const char *debug_owner [[maybe_unused]],
+                  boost::container::pmr::memory_resource *memory,
+                  const T *begin, const T *end)
+      : data_(begin, end, underlying_allocator(memory))
 #if QLJS_FEATURE_VECTOR_PROFILING
         ,
         debug_owner_(debug_owner)
@@ -164,7 +171,11 @@ class vector {
       vector_instrumentation::event) {}
 #endif
 
-  boost::container::small_vector<T, InSituCapacity> data_;
+  using underlying_vector = boost::container::small_vector<
+      T, InSituCapacity, boost::container::pmr::polymorphic_allocator<T>>;
+  using underlying_allocator = typename underlying_vector::allocator_type;
+
+  underlying_vector data_;
 #if QLJS_FEATURE_VECTOR_PROFILING
   const char *debug_owner_;
 #endif
