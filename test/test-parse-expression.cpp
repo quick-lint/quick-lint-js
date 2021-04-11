@@ -60,7 +60,6 @@ class test_parser {
   padded_string_view code() const noexcept { return &this->code_; }
 
   quick_lint_js::parser& parser() noexcept { return this->parser_; }
-  quick_lint_js::lexer& lexer() noexcept { return this->parser_.lexer(); }
 
  private:
   void clean_up_expressions() {
@@ -1366,10 +1365,6 @@ TEST_F(test_parse_expression, suffix_plusplus_minusminus_disallows_line_break) {
 
     expression* ast_1 = p.parse_expression();
     EXPECT_EQ(summarize(ast_1), "var x");
-
-    ASSERT_EQ(p.lexer().peek().type, token_type::semicolon)
-        << "Semicolon should be inserted (ASI)";
-    p.lexer().skip();
 
     expression* ast_2 = p.parse_expression();
     EXPECT_EQ(summarize(ast_2), "rwunary(var y)");

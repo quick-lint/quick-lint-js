@@ -382,6 +382,24 @@ TEST(test_parse, function_call_without_right_paren) {
             offsets_matcher(&code, strlen(u8"f(x"), u8""),  //
             left_paren, offsets_matcher(&code, strlen(u8"f"), u8"("))));
   }
+
+  {
+    padded_string code(u8"f(x\n--y;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // f
+                                      "visit_variable_use",         // x
+                                      "visit_variable_use",         // y
+                                      "visit_variable_assignment",  // y
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_expected_right_paren_for_function_call, expected_right_paren,
+            offsets_matcher(&code, strlen(u8"f(x"), u8""),  //
+            left_paren, offsets_matcher(&code, strlen(u8"f"), u8"("))));
+  }
 }
 
 TEST(test_parse, parse_assignment) {

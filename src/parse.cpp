@@ -878,9 +878,9 @@ next:
   case token_type::minus_minus:
   case token_type::plus_plus:
     if (this->peek().has_leading_newline) {
-      // Newline is not allowed before suffix ++ or --. Treat as a semicolon.
-      this->lexer_.insert_semicolon();
-      goto semicolon;
+      // Newline is not allowed before suffix ++ or --. Let
+      // parse_and_visit_statement insert a semicolon for us.
+      break;
     } else {
       source_code_span operator_span = this->peek().span();
       this->skip();
@@ -1042,7 +1042,6 @@ next:
   case token_type::right_square:
   case token_type::semicolon:
   case token_type::string:
-  semicolon:
     break;
 
   default:
