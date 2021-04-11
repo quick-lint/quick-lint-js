@@ -99,6 +99,13 @@
       article > h2 {
         padding-top: 4rem;
       }
+
+      .long-shell-command-line {
+        /* 4 = "$ ".length + 4 spaces of indentation */
+        padding-left: 6ch;
+        text-indent: -6ch;
+        white-space: normal;
+      }
     </style>
   </head>
   <body>
@@ -830,7 +837,7 @@ $ <kbd>quick-lint-js.cmd --help</kbd></code></pre>
         <p>Open a terminal, and run the following commands:</p>
         <blockquote>
           <pre><code>$ <kbd>curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -</kbd>
-$ <kbd>printf '\n# https://quick-lint-js.com/install.html#debian\ndeb https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd>
+<div class="long-shell-command-line">$ <kbd>printf '\n# https://quick-lint-js.com/install.html#debian\ndeb https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></div>
 $ <kbd>sudo apt-get update</kbd>
 
 # <img class="install-logo" src="gnome-terminal.svg" alt="" /> CLI and LSP server
@@ -868,7 +875,9 @@ quick-lint-js version 0.2.0</code></pre>
 
         <p>Open a terminal, and run the following command:</p>
         <blockquote>
-          <pre><code>$ <kbd>nix-env -f https://github.com/quick-lint/quick-lint-js/archive/master.tar.gz -iA quick-lint-js</kbd></code></pre>
+          <pre
+            class="long-shell-command-line"
+          ><code>$ <kbd>nix-env -f https://github.com/quick-lint/quick-lint-js/archive/master.tar.gz -iA quick-lint-js</kbd></code></pre>
         </blockquote>
 
         <p>
