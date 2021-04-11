@@ -107,13 +107,20 @@ class expression_arena {
   array_ptr<T> make_array(std::array<T, Size> &&);
 
   buffering_visitor_ptr make_buffering_visitor() {
-    // See matching 'delete' in delete_buffering_visitor.
-    return new buffering_visitor();
+    // See matching deallocation in delete_buffering_visitor.
+    boost::container::pmr::polymorphic_allocator<buffering_visitor> allocator(
+        &this->buffering_visitor_memory_);
+    buffering_visitor *result = allocator.allocate(1);
+    result = new (result) buffering_visitor();
+    return result;
   }
 
   void delete_buffering_visitor(buffering_visitor_ptr visitor) {
-    // See matching 'new' in make_buffering_visitor.
-    delete visitor;
+    // See matching allocation in make_buffering_visitor.
+    boost::container::pmr::polymorphic_allocator<buffering_visitor> allocator(
+        &this->buffering_visitor_memory_);
+    visitor->~buffering_visitor();
+    allocator.deallocate(visitor, 1);
   }
 
  private:
@@ -133,6 +140,9 @@ class expression_arena {
   }
 
   monotonic_allocator allocator_;
+
+  // TODO(strager): This shouldn't be monotonic.
+  boost::container::pmr::monotonic_buffer_resource buffering_visitor_memory_;
 };
 
 class expression {
