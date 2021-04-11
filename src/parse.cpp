@@ -946,20 +946,40 @@ next:
 
   // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
+    source_code_span arrow_span = this->peek().span();
     this->skip();
     if (children.size() != 1) {
       // TODO(strager): We should report an error for code like this:
       // a + b => c
     }
     expression* lhs = children.back();
-    arrow_function_parameters parameters =
-        arrow_function_parameters_from_lhs(lhs, &this->temporary_memory_);
-    expression* arrow_function = this->parse_arrow_function_body(
-        function_attributes::normal,
-        /*parameter_list_begin=*/parameters.left_paren_begin,
-        this->expressions_.make_array(std::move(parameters.parameters)));
-    children.back() =
-        this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
+    if (lhs->kind() == expression_kind::literal) {
+      this->error_reporter_->report(error_unexpected_arrow_after_literal{
+          .arrow = arrow_span,
+          .literal_parameter = lhs->span(),
+      });
+      if (this->peek().type == token_type::left_curly) {
+        // 42 => {}
+        expression* arrow_function = this->parse_arrow_function_body(
+            function_attributes::normal,
+            /*parameter_list_begin=*/lhs->span().begin());
+        children.back() = arrow_function;
+      } else {
+        // 42 => other
+        // Treat the '=>' as if it was a binary operator (like '>=').
+        children.emplace_back(this->parse_expression(
+            precedence{.binary_operators = false, .commas = false}));
+      }
+    } else {
+      arrow_function_parameters parameters =
+          arrow_function_parameters_from_lhs(lhs, &this->temporary_memory_);
+      expression* arrow_function = this->parse_arrow_function_body(
+          function_attributes::normal,
+          /*parameter_list_begin=*/parameters.left_paren_begin,
+          this->expressions_.make_array(std::move(parameters.parameters)));
+      children.back() = this->maybe_wrap_erroneous_arrow_function(
+          arrow_function, /*lhs=*/lhs);
+    }
     goto next;
   }
 

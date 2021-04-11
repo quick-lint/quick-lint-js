@@ -909,6 +909,17 @@
       .error(QLJS_TRANSLATABLE("unexpected '@'"), character))                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_arrow_after_literal, "E158",                            \
+      {                                                                        \
+        source_code_span arrow;                                                \
+        source_code_span literal_parameter;                                    \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("unexpected '{0}'"), arrow)                     \
+          .note(QLJS_TRANSLATABLE("expected parameter for arrow function, "    \
+                                  "but got a literal instead"),                \
+                literal_parameter))                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_backslash_in_identifier, "E043",                        \
       { source_code_span backslash; },                                         \
       .error(QLJS_TRANSLATABLE("unexpected '\\' in identifier"), backslash))   \
