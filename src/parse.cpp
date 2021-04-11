@@ -933,7 +933,8 @@ next:
   case token_type::equal_greater: {
     this->skip();
     if (children.size() != 1) {
-      QLJS_UNIMPLEMENTED();
+      // TODO(strager): We should report an error for code like this:
+      // a + b => c
     }
     expression* lhs = children.back();
     arrow_function_parameters parameters =
