@@ -1515,6 +1515,44 @@ TEST_F(test_parse_expression, array_literal) {
   }
 }
 
+TEST_F(test_parse_expression, malformed_array_literal) {
+  {
+    test_parser p(u8"[ "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_missing_array_close, left_square,
+                    offsets_matcher(p.code(), 0, u8"["),  //
+                    expected_right_square,
+                    offsets_matcher(p.code(), strlen(u8"["), u8""))));
+    EXPECT_EQ(summarize(ast), "array()");
+  }
+
+  {
+    test_parser p(u8"[ x "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_missing_array_close, left_square,
+                    offsets_matcher(p.code(), 0, u8"["),  //
+                    expected_right_square,
+                    offsets_matcher(p.code(), strlen(u8"[ x"), u8""))));
+    EXPECT_EQ(summarize(ast), "array(var x)");
+  }
+
+  {
+    test_parser p(u8"[\nif (true) {}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_missing_array_close, left_square,
+                    offsets_matcher(p.code(), 0, u8"["),  //
+                    expected_right_square,
+                    offsets_matcher(p.code(), strlen(u8"["), u8""))));
+    EXPECT_EQ(summarize(ast), "array()");
+  }
+}
+
 TEST_F(test_parse_expression, object_literal) {
   {
     test_parser p(u8"{}"_sv);

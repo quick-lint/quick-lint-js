@@ -521,6 +521,16 @@
           function_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_array_close, "E157",                                       \
+      {                                                                        \
+        source_code_span left_square;                                          \
+        source_code_span expected_right_square;                                \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("missing end of array; expected ']'"),          \
+             expected_right_square)                                            \
+          .note(QLJS_TRANSLATABLE("array started here"), left_square))         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_arrow_function_parameter_list, "E105",                     \
       { source_code_span arrow; },                                             \
       .error(QLJS_TRANSLATABLE("missing parameters for arrow function"),       \

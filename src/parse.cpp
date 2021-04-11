@@ -323,15 +323,30 @@ expression* parser::parse_primary_expression(precedence prec) {
         this->skip();
         break;
       }
+      // TODO(strager): Require commas between expressions.
       if (this->peek().type == token_type::comma) {
         this->skip();
         continue;
       }
-      if (this->peek().type == token_type::end_of_file) {
-        QLJS_PARSER_UNIMPLEMENTED();
+      const char8* child_begin = this->peek().begin;
+      expression* child = this->parse_expression(precedence{.commas = false});
+      if (this->peek().begin == child_begin) {
+        // parse_expression parsed nothing.
+        // TODO(strager): Should parse_expression return nullptr if it sees a
+        // keyword (instead of returning _invalid and forcing us to check if it
+        // parsed anything)?
+        const char8* expected_right_square =
+            this->lexer_.end_of_previous_token();
+        this->error_reporter_->report(error_missing_array_close{
+            .left_square =
+                source_code_span(left_square_begin, left_square_begin + 1),
+            .expected_right_square =
+                source_code_span(expected_right_square, expected_right_square),
+        });
+        right_square_end = expected_right_square;
+        break;
       }
-      children.emplace_back(
-          this->parse_expression(precedence{.commas = false}));
+      children.emplace_back(child);
     }
     expression* ast = this->make_expression<expression::array>(
         this->expressions_.make_array(std::move(children)),
