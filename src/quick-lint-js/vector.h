@@ -128,6 +128,9 @@ class vector {
   }
 
   QLJS_FORCE_INLINE T *data() noexcept { return this->data_.data(); }
+  QLJS_FORCE_INLINE const T *data() const noexcept {
+    return this->data_.data();
+  }
 
   QLJS_FORCE_INLINE std::size_t size() const noexcept {
     return this->data_.size();
@@ -144,8 +147,12 @@ class vector {
   QLJS_FORCE_INLINE T &back() noexcept { return this->data_.back(); }
 
   QLJS_FORCE_INLINE T *begin() noexcept { return this->data(); }
-
   QLJS_FORCE_INLINE T *end() noexcept { return this->begin() + this->size(); }
+
+  QLJS_FORCE_INLINE const T *begin() const noexcept { return this->data(); }
+  QLJS_FORCE_INLINE const T *end() const noexcept {
+    return this->begin() + this->size();
+  }
 
   template <class... Args>
   QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
