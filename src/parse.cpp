@@ -1070,8 +1070,55 @@ void parser::parse_arrow_function_expression_remainder(
           precedence{.binary_operators = false, .commas = false}));
     }
   } else {
-    arrow_function_parameters parameters =
-        this->arrow_function_parameters_from_lhs(lhs);
+    arrow_function_parameters parameters{
+        .parameters =
+            vector<expression*>("parse_arrow_function_expression_remainder",
+                                &this->temporary_memory_),
+    };
+    switch (lhs->kind()) {
+    case expression_kind::binary_operator:
+    case expression_kind::trailing_comma:
+      // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
+      // example.
+      for (int i = 0; i < lhs->child_count(); ++i) {
+        expression* parameter = lhs->child(i);
+        switch (parameter->kind()) {
+        case expression_kind::literal:
+          this->error_reporter_->report(
+              error_unexpected_literal_in_parameter_list{
+                  .literal = parameter->span(),
+              });
+          break;
+
+        // TODO(strager): Error on other kinds of invalid parameters.
+        default:
+          parameters.parameters.emplace_back(parameter);
+          break;
+        }
+      }
+      break;
+    case expression_kind::array:
+    case expression_kind::assignment:
+    case expression_kind::object:
+    case expression_kind::spread:
+    case expression_kind::variable:
+      parameters.parameters.emplace_back(lhs);
+      break;
+
+    // f(x, y) => {}
+    case expression_kind::call:
+      parameters.left_paren_begin =
+          expression_cast<expression::call>(lhs)->left_paren_span().begin();
+      for (int i = 1; i < lhs->child_count(); ++i) {
+        parameters.parameters.emplace_back(lhs->child(i));
+      }
+      break;
+
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
+    }
+
     expression* arrow_function = this->parse_arrow_function_body(
         function_attributes::normal,
         /*parameter_list_begin=*/parameters.left_paren_begin,
@@ -1958,58 +2005,6 @@ parser::switch_guard::switch_guard(parser* p,
 
 parser::switch_guard::~switch_guard() noexcept {
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
-}
-
-parser::arrow_function_parameters parser::arrow_function_parameters_from_lhs(
-    expression* lhs) {
-  arrow_function_parameters result{
-      .parameters = vector<expression*>("arrow_function_parameters_from_lhs",
-                                        &this->temporary_memory_),
-  };
-  switch (lhs->kind()) {
-  case expression_kind::binary_operator:
-  case expression_kind::trailing_comma:
-    // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
-    // example.
-    for (int i = 0; i < lhs->child_count(); ++i) {
-      expression* parameter = lhs->child(i);
-      switch (parameter->kind()) {
-      case expression_kind::literal:
-        this->error_reporter_->report(
-            error_unexpected_literal_in_parameter_list{
-                .literal = parameter->span(),
-            });
-        break;
-
-      // TODO(strager): Error on other kinds of invalid parameters.
-      default:
-        result.parameters.emplace_back(parameter);
-        break;
-      }
-    }
-    break;
-  case expression_kind::array:
-  case expression_kind::assignment:
-  case expression_kind::object:
-  case expression_kind::spread:
-  case expression_kind::variable:
-    result.parameters.emplace_back(lhs);
-    break;
-
-  // f(x, y) => {}
-  case expression_kind::call:
-    result.left_paren_begin =
-        expression_cast<expression::call>(lhs)->left_paren_span().begin();
-    for (int i = 1; i < lhs->child_count(); ++i) {
-      result.parameters.emplace_back(lhs->child(i));
-    }
-    break;
-
-  default:
-    QLJS_UNIMPLEMENTED();
-    break;
-  }
-  return result;
 }
 }
 
