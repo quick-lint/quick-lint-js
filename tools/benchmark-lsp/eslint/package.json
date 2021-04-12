@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "eslint-server": "^0.1.7"
+  }
+}

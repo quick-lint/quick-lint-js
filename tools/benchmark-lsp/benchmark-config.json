@@ -1,0 +1,33 @@
+{
+  "servers": [
+    {
+      "name": "eslint-server",
+      "command": ["node", "./node_modules/eslint-server/lib/index.js", "--stdio"],
+      "cwd": "eslint/"
+    },
+    {
+      "name": "Deno",
+      "command": ["deno", "lsp"]
+    },
+    {
+      "name": "Flow",
+      "command": ["node", "./node_modules/.bin/flow", "lsp"],
+      "cwd": "flow/",
+      "waitForEmptyDiagnosticsOnOpen": false
+    },
+    {
+      "name": "quick-lint-js",
+      "command": ["quick-lint-js", "--lsp-server"]
+    },
+    {
+      "name": "RSLint",
+      "command": ["rslint-lsp"]
+    },
+    {
+      "name": "TypeScript-Theia",
+      "command": ["node", "./node_modules/.bin/typescript-language-server", "--stdio"],
+      "cwd": "typescript/",
+      "needFilesOnDisk": true
+    }
+  ]
+}

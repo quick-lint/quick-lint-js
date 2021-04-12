@@ -12,14 +12,30 @@ source tools/files.sh
 
 check_file_copyright_header() {
   local file="${1}"
+  case "${file}" in
+    tools/benchmark-lsp/*) check_file_copyright_header_benchmark_lsp "${file}" ;;
+    *) check_file_copyright_header_quick_lint_js "${file}" ;;
+  esac
+}
+
+# quick-lint-js is GPLv3-licensed.
+check_file_copyright_header_quick_lint_js() {
+  local file="${1}"
   fgrep -q 'Copyright (C)' "${file}" && \
     fgrep -q 'This file is part of quick-lint-js.' "${file}" && \
     fgrep -q 'quick-lint-js finds bugs in JavaScript programs.' "${file}" && \
     fgrep -q 'quick-lint-js is free software' "${file}"
 }
 
+# quick-lint-js's benchmark-lsp subproject is BSD3-licensed.
+check_file_copyright_header_benchmark_lsp() {
+  local file="${1}"
+  fgrep -q 'Copyright' "${file}" && \
+    fgrep -q 'This file is part of quick-lint-js.' "${file}"
+}
+
 error=0
-for file in $(find_non_vendor_files | matching '(\<CMakeLists\.txt|\.bt|\.c|\.cmake|\.cpp|\.go|\.gperf|\.h|\.html|\.js|\.mjs|\.nix|\.po|\.pot|\.py|\.sh|\.vim|\.yaml)$'); do
+for file in $(find_non_vendor_files | matching '(\<CMakeLists\.txt|\.bt|\.c|\.cmake|\.cpp|\.go|\.gperf|\.h|\.hs|\.html|\.js|\.mjs|\.nix|\.po|\.pot|\.py|\.sh|\.vim|\.yaml)$'); do
   if ! check_file_copyright_header "${file}"; then
     printf 'error: file missing copyright: %s\n' "${file}"
     error=1
