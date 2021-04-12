@@ -78,13 +78,20 @@
         grid-area: windows;
       }
 
-      /* Make the entire cell clickable. */
+      /* Make the entire cell clickable. (How does this even work???) */
+      .install-comparison table {
+        height: 0;
+      }
+      .install-comparison td {
+        height: 100%;
+        padding: 0;
+      }
       .install-comparison td > a {
-        display: block;
+        align-items: center;
+        display: flex;
+        height: 100%;
+        justify-content: center;
         text-decoration: none;
-        /* See rule: .install-comparison td */
-        margin: -0.5em -1em;
-        padding: 0.5em 1em;
       }
       .install-comparison td > a:hover {
         background-color: rgba(0, 0, 0, 0.05);
@@ -227,12 +234,14 @@
               </td>
               <td class="meh">
                 <a href="#npm"
-                  ><span aria-label="installed">✅</span
                   ><span
-                    aria-label="not installed globally"
-                    title="not installed globally"
-                    class="footnote-marker"
-                    >&nbsp;*</span
+                    ><span aria-label="installed">✅</span
+                    ><span
+                      aria-label="not installed globally"
+                      title="not installed globally"
+                      class="footnote-marker"
+                      >&nbsp;*</span
+                    ></span
                   ></a
                 >
               </td>
