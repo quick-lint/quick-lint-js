@@ -1089,24 +1089,22 @@ void parser::parse_arrow_function_expression_remainder(
     }
     break;
 
-  case expression_kind::literal:
+  // 42 => {}
+  case expression_kind::literal: {
+    source_code_span literal_span = lhs->span();
+    left_paren_begin = literal_span.begin();
     this->error_reporter_->report(error_unexpected_arrow_after_literal{
         .arrow = arrow_span,
-        .literal_parameter = lhs->span(),
+        .literal_parameter = literal_span,
     });
-    if (this->peek().type == token_type::left_curly) {
-      // 42 => {}
-      expression* arrow_function = this->parse_arrow_function_body(
-          function_attributes::normal,
-          /*parameter_list_begin=*/lhs->span().begin());
-      children.back() = arrow_function;
-    } else {
-      // 42 => other
+    if (this->peek().type != token_type::left_curly) {
       // Treat the '=>' as if it was a binary operator (like '>=').
       children.emplace_back(this->parse_expression(
           precedence{.binary_operators = false, .commas = false}));
+      return;
     }
-    return;
+    break;
+  }
 
   default:
     QLJS_UNIMPLEMENTED();
