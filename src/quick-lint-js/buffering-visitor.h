@@ -25,6 +25,11 @@ class buffering_visitor {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void move_into(Visitor &target) {
+    this->copy_into(target);
+  }
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void copy_into(Visitor &target) {
     for (auto &v : this->visits_) {
       switch (v.kind) {
       case visit_kind::end_of_module:

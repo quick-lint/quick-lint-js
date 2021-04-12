@@ -38,7 +38,7 @@ void benchmark_lint(benchmark::State &state) {
 
   for (auto _ : state) {
     linter l(&null_error_reporter::instance);
-    visitor.move_into(l);
+    visitor.copy_into(l);
   }
 }
 BENCHMARK(benchmark_lint);
