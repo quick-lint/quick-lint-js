@@ -967,6 +967,13 @@
           default_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_literal_in_parameter_list, "E159",                      \
+      { source_code_span literal; },                                           \
+      .error(QLJS_TRANSLATABLE("unexpected literal in parameter list; "        \
+                               "expected parameter name"),                     \
+             literal))                                                         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_c_style_for_loop, "E102",                  \
       { source_code_span semicolon; },                                         \
       .error(QLJS_TRANSLATABLE("C-style for loops have only three "            \

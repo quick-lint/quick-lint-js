@@ -1946,10 +1946,23 @@ parser::arrow_function_parameters parser::arrow_function_parameters_from_lhs(
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
   case expression_kind::trailing_comma:
-    // TODO(strager): Validate the parameter list. Disallow '(2+3) => 5',
-    // for example.
+    // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
+    // example.
     for (int i = 0; i < lhs->child_count(); ++i) {
-      result.parameters.emplace_back(lhs->child(i));
+      expression* parameter = lhs->child(i);
+      switch (parameter->kind()) {
+      case expression_kind::literal:
+        this->error_reporter_->report(
+            error_unexpected_literal_in_parameter_list{
+                .literal = parameter->span(),
+            });
+        break;
+
+      // TODO(strager): Error on other kinds of invalid parameters.
+      default:
+        result.parameters.emplace_back(parameter);
+        break;
+      }
     }
     break;
   case expression_kind::array:

@@ -2707,6 +2707,16 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
                     offsets_matcher(p.code(), strlen(u8"42 "), u8"=>"),  //
                     literal_parameter, offsets_matcher(p.code(), 0, u8"42"))));
   }
+
+  {
+    test_parser p(u8"(x, 42, y) => {body();}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "arrowblock(var x, var y)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_literal_in_parameter_list, literal,
+                    offsets_matcher(p.code(), strlen(u8"(x, "), u8"42"))));
+  }
 }
 
 TEST_F(test_parse_expression, invalid_parentheses) {
