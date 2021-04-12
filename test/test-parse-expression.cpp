@@ -2009,9 +2009,9 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   for (string8 op : {
-           u8"!=", u8"!==", u8"%",  u8"&",  u8"&&", u8"*",   u8"**", u8"+",
-           u8"-",  u8".",   u8"<<", u8"<=", u8"==", u8"===", u8">",  u8">=",
-           u8">>", u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
+           u8"!=", u8"!==", u8"%",   u8"&",  u8"&&", u8"*",  u8"**",  u8"+",
+           u8"-",  u8".",   u8"<<",  u8"<=", u8"=",  u8"==", u8"===", u8">",
+           u8">=", u8">>",  u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
        }) {
     {
       string8 code = u8"{'one' " + op + u8" two}";
@@ -2019,7 +2019,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
       test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_THAT(summarize(ast),
-                  ::testing::AnyOf("object(literal, binary(literal, var two))",
+                  ::testing::AnyOf("object(literal, assign(literal, var two))",
+                                   "object(literal, binary(literal, var two))",
                                    "object(literal, dot(literal, two))"));
       EXPECT_THAT(p.errors(),
                   ElementsAre(ERROR_TYPE_FIELD(
@@ -2034,7 +2035,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
       test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_THAT(summarize(ast),
-                  ::testing::AnyOf("object(literal, binary(literal, var two))",
+                  ::testing::AnyOf("object(literal, assign(literal, var two))",
+                                   "object(literal, binary(literal, var two))",
                                    "object(literal, dot(literal, two))"));
       EXPECT_THAT(p.errors(),
                   ElementsAre(ERROR_TYPE_FIELD(

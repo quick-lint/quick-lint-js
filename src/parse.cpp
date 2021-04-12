@@ -1462,12 +1462,29 @@ expression* parser::parse_object_literal() {
         break;
 
       case token_type::equal: {
-        // TODO(strager): Only allow this for identifiers, not numbers or
-        // strings.
-        expression* value = this->parse_expression_remainder(
-            this->make_expression<expression::variable>(
-                key_token.identifier_name(), key_token.type),
-            precedence{.commas = false});
+        expression* lhs;
+        bool missing_key;
+        switch (key_token.type) {
+        case token_type::number:
+        case token_type::string:
+          lhs = this->make_expression<expression::literal>(key_token.span());
+          missing_key = true;
+          break;
+        default:
+          lhs = this->make_expression<expression::variable>(
+              key_token.identifier_name(), key_token.type);
+          missing_key = false;
+          break;
+        }
+        this->skip();
+        expression* rhs = this->parse_expression(precedence{.commas = false});
+        expression* value = this->make_expression<expression::assignment>(
+            expression_kind::assignment, lhs, rhs);
+        if (missing_key) {
+          this->error_reporter_->report(error_missing_key_for_object_entry{
+              .expression = value->span(),
+          });
+        }
         entries.emplace_back(key, value);
         break;
       }
