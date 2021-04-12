@@ -338,7 +338,7 @@ void process_file(padded_string_view input, error_reporter *error_reporter,
   // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
   // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
   if (print_parser_visits) {
-    buffering_visitor v;
+    buffering_visitor v(p.buffering_visitor_memory());
     p.parse_and_visit_module(v);
 
     debug_visitor logger;

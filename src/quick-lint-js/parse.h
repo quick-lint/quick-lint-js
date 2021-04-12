@@ -106,6 +106,11 @@ class parser {
     return this->expressions_;
   }
 
+  // HACK(strager): This shouldn't be public.
+  boost::container::pmr::memory_resource *buffering_visitor_memory() noexcept {
+    return this->expressions_.buffering_visitor_memory();
+  }
+
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
   [[nodiscard]] loop_guard enter_loop();
@@ -930,7 +935,7 @@ class parser {
     // export {a as default, b};
     // export {a, b, c} from "module";
     case token_type::left_curly: {
-      buffering_visitor exports_visitor;
+      buffering_visitor exports_visitor(this->buffering_visitor_memory());
       std::vector<token> exported_bad_tokens;
       this->parse_and_visit_named_exports_for_export(
           exports_visitor, /*out_exported_bad_tokens=*/exported_bad_tokens);
@@ -2095,7 +2100,7 @@ class parser {
 
       lexer_transaction transaction = this->lexer_.begin_transaction();
       this->skip();
-      buffering_visitor lhs;
+      buffering_visitor lhs(this->buffering_visitor_memory());
       if (declaring_token.type == token_type::kw_let &&
           this->is_let_token_a_variable_reference(
               this->peek(), /*allow_declarations=*/true)) {

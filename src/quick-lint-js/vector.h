@@ -143,6 +143,10 @@ class vector {
 
   QLJS_FORCE_INLINE T &back() noexcept { return this->data_.back(); }
 
+  QLJS_FORCE_INLINE T *begin() noexcept { return this->data(); }
+
+  QLJS_FORCE_INLINE T *end() noexcept { return this->begin() + this->size(); }
+
   template <class... Args>
   QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
     T &result = this->data_.emplace_back(std::forward<Args>(args)...);

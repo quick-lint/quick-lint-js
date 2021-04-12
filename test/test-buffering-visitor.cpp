@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <boost/container/pmr/global_resource.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>
@@ -10,6 +11,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/spy-visitor.h>
 
+using boost::container::pmr::new_delete_resource;
 using ::testing::ElementsAre;
 
 namespace quick_lint_js {
@@ -29,7 +31,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   const char8 property_name[] = u8"property";
   const char8 variable_name[] = u8"variable";
 
-  buffering_visitor v;
+  buffering_visitor v(new_delete_resource());
   v.visit_end_of_module();
   v.visit_enter_block_scope();
   v.visit_enter_class_scope();

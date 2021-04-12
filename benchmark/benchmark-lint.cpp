@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
+#include <boost/container/pmr/global_resource.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/buffering-visitor.h>
@@ -13,6 +14,8 @@
 #include <string>
 
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
+
+using boost::container::pmr::new_delete_resource;
 
 namespace quick_lint_js {
 namespace {
@@ -30,7 +33,7 @@ void benchmark_lint(benchmark::State &state) {
   source.exit_if_not_ok();
 
   parser p(&source.content, &null_error_reporter::instance);
-  buffering_visitor visitor;
+  buffering_visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
   for (auto _ : state) {
