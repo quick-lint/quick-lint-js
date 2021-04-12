@@ -40,15 +40,10 @@
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
 namespace quick_lint_js {
-namespace {
-struct arrow_function_parameters {
+struct parser::arrow_function_parameters {
   vector<expression*> parameters;
   const char8* left_paren_begin = nullptr;
 };
-
-arrow_function_parameters arrow_function_parameters_from_lhs(
-    expression*, boost::container::pmr::memory_resource* memory);
-}
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
@@ -972,7 +967,8 @@ next:
       }
     } else {
       arrow_function_parameters parameters =
-          arrow_function_parameters_from_lhs(lhs, &this->temporary_memory_);
+          this->arrow_function_parameters_from_lhs(lhs,
+                                                   &this->temporary_memory_);
       expression* arrow_function = this->parse_arrow_function_body(
           function_attributes::normal,
           /*parameter_list_begin=*/parameters.left_paren_begin,
@@ -1942,8 +1938,7 @@ parser::switch_guard::~switch_guard() noexcept {
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
 }
 
-namespace {
-arrow_function_parameters arrow_function_parameters_from_lhs(
+parser::arrow_function_parameters parser::arrow_function_parameters_from_lhs(
     expression* lhs, boost::container::pmr::memory_resource* memory) {
   arrow_function_parameters result{
       .parameters =
@@ -1980,7 +1975,6 @@ arrow_function_parameters arrow_function_parameters_from_lhs(
     break;
   }
   return result;
-}
 }
 }
 
