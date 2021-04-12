@@ -514,6 +514,10 @@ expression* parser::parse_async_expression_only(token async_token) {
   // async () => {}  // Arrow function.
   // async()         // Function call.
   case token_type::left_paren: {
+    if (this->peek().has_leading_newline) {
+      goto variable_reference;
+    }
+
     vector<expression*> parameters(
         "parse_expression async arrow function parameters",
         &this->temporary_memory_);
@@ -577,6 +581,10 @@ expression* parser::parse_async_expression_only(token async_token) {
   case token_type::identifier:
   case token_type::kw_await:
   case token_type::kw_yield: {
+    if (this->peek().has_leading_newline) {
+      goto variable_reference;
+    }
+
     std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
             identifier(this->peek().span()), this->peek().type)};
@@ -592,6 +600,7 @@ expression* parser::parse_async_expression_only(token async_token) {
   }
 
   // async  // Identifier (variable reference).
+  variable_reference:
   default: {
     expression* ast = this->make_expression<expression::variable>(
         async_token.identifier_name(), async_token.type);

@@ -1068,6 +1068,48 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
   }
 }
 
+TEST(test_parse, async_followed_by_newline_is_a_variable_reference) {
+  {
+    spy_visitor v = parse_and_visit_module(u8"x = async\na => b;");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // async
+                                      "visit_variable_assignment",  // x
+                                      "visit_enter_function_scope",
+                                      "visit_variable_declaration",  // a
+                                      "visit_enter_function_scope_body",
+                                      "visit_variable_use",         // b
+                                      "visit_exit_function_scope",  //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"async"},
+                            spy_visitor::visited_variable_use{u8"b"}));
+  }
+
+  {
+    padded_string code(u8"x = async\n(a) => b;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // async
+                                      "visit_enter_function_scope",
+                                      "visit_variable_declaration",  // a
+                                      "visit_enter_function_scope_body",
+                                      "visit_variable_use",         // b
+                                      "visit_exit_function_scope",  //
+                                      "visit_variable_assignment",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"async"},
+                            spy_visitor::visited_variable_use{u8"b"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<
+                error_missing_operator_between_expression_and_arrow_function>(
+                ::testing::_)))
+        << "errors should be the same as in 'x = f(a) => b;'";
+  }
+}
+
 TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
   {
     spy_visitor v;
