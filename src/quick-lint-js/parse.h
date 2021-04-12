@@ -3264,6 +3264,8 @@ class parser {
 
   expression *parse_expression_remainder(expression *, precedence);
 
+  void parse_arrow_function_expression_remainder(
+      vector<expression *, /*InSituCapacity=*/2> &children);
   expression *parse_call_expression_remainder(expression *callee);
   expression *parse_index_expression_remainder(expression *lhs);
 
