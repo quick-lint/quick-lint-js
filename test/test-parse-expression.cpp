@@ -2008,6 +2008,42 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                                                 u8"one " + op + u8" two"))));
   }
 
+  for (string8 op : {
+           u8"!=", u8"!==", u8"%",  u8"&",  u8"&&", u8"*",   u8"**", u8"+",
+           u8"-",  u8".",   u8"<<", u8"<=", u8"==", u8"===", u8">",  u8">=",
+           u8">>", u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
+       }) {
+    {
+      string8 code = u8"{'one' " + op + u8" two}";
+      SCOPED_TRACE(out_string8(code));
+      test_parser p(code);
+      expression* ast = p.parse_expression();
+      EXPECT_THAT(summarize(ast),
+                  ::testing::AnyOf("object(literal, binary(literal, var two))",
+                                   "object(literal, dot(literal, two))"));
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_missing_key_for_object_entry, expression,
+                      offsets_matcher(p.code(), strlen(u8"{"),
+                                      u8"'one' " + op + u8" two"))));
+    }
+
+    {
+      string8 code = u8"{1234 " + op + u8" two}";
+      SCOPED_TRACE(out_string8(code));
+      test_parser p(code);
+      expression* ast = p.parse_expression();
+      EXPECT_THAT(summarize(ast),
+                  ::testing::AnyOf("object(literal, binary(literal, var two))",
+                                   "object(literal, dot(literal, two))"));
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_missing_key_for_object_entry, expression,
+                      offsets_matcher(p.code(), strlen(u8"{"),
+                                      u8"1234 " + op + u8" two"))));
+    }
+  }
+
   for (string8 op : {u8"++", u8"--"}) {
     string8 code = u8"{one " + op + u8" two}";
     SCOPED_TRACE(out_string8(code));

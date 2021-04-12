@@ -1426,10 +1426,19 @@ expression* parser::parse_object_literal() {
       case token_type::plus:
       case token_type::plus_plus:
       case token_type::question_dot: {
-        expression* value = this->parse_expression_remainder(
-            this->make_expression<expression::variable>(
-                key_token.identifier_name(), key_token.type),
-            precedence{.commas = false});
+        expression* lhs;
+        switch (key_token.type) {
+        case token_type::number:
+        case token_type::string:
+          lhs = this->make_expression<expression::literal>(key_token.span());
+          break;
+        default:
+          lhs = this->make_expression<expression::variable>(
+              key_token.identifier_name(), key_token.type);
+          break;
+        }
+        expression* value =
+            this->parse_expression_remainder(lhs, precedence{.commas = false});
         entries.emplace_back(key, value);
         this->error_reporter_->report(error_missing_key_for_object_entry{
             .expression = value->span(),
