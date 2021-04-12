@@ -40,11 +40,6 @@
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
 namespace quick_lint_js {
-struct parser::arrow_function_parameters {
-  vector<expression*> parameters;
-  const char8* left_paren_begin = nullptr;
-};
-
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
   bool was_in_async_function = this->in_async_function_;
@@ -1070,11 +1065,9 @@ void parser::parse_arrow_function_expression_remainder(
           precedence{.binary_operators = false, .commas = false}));
     }
   } else {
-    arrow_function_parameters parameters{
-        .parameters =
-            vector<expression*>("parse_arrow_function_expression_remainder",
-                                &this->temporary_memory_),
-    };
+    vector<expression*> parameters("parse_arrow_function_expression_remainder",
+                                   &this->temporary_memory_);
+    const char8* left_paren_begin = nullptr;
     switch (lhs->kind()) {
     case expression_kind::binary_operator:
     case expression_kind::trailing_comma:
@@ -1092,7 +1085,7 @@ void parser::parse_arrow_function_expression_remainder(
 
         // TODO(strager): Error on other kinds of invalid parameters.
         default:
-          parameters.parameters.emplace_back(parameter);
+          parameters.emplace_back(parameter);
           break;
         }
       }
@@ -1102,15 +1095,15 @@ void parser::parse_arrow_function_expression_remainder(
     case expression_kind::object:
     case expression_kind::spread:
     case expression_kind::variable:
-      parameters.parameters.emplace_back(lhs);
+      parameters.emplace_back(lhs);
       break;
 
     // f(x, y) => {}
     case expression_kind::call:
-      parameters.left_paren_begin =
+      left_paren_begin =
           expression_cast<expression::call>(lhs)->left_paren_span().begin();
       for (int i = 1; i < lhs->child_count(); ++i) {
-        parameters.parameters.emplace_back(lhs->child(i));
+        parameters.emplace_back(lhs->child(i));
       }
       break;
 
@@ -1121,8 +1114,8 @@ void parser::parse_arrow_function_expression_remainder(
 
     expression* arrow_function = this->parse_arrow_function_body(
         function_attributes::normal,
-        /*parameter_list_begin=*/parameters.left_paren_begin,
-        this->expressions_.make_array(std::move(parameters.parameters)));
+        /*parameter_list_begin=*/left_paren_begin,
+        this->expressions_.make_array(std::move(parameters)));
     children.back() =
         this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
   }

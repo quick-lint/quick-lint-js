@@ -3293,8 +3293,6 @@ class parser {
 
   function_attributes parse_generator_star(function_attributes);
 
-  struct arrow_function_parameters;
-
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);
 
