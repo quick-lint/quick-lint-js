@@ -17,7 +17,6 @@ The following contributors are copyright holders of portions of quick-lint-js:
 * Francis Laniel; laniel_francis@privacyrequired.com
 * catac1
 * spicyyboi
-* z3tr; m5tfi@pm.me
 
 ## Authors
 
@@ -37,3 +36,4 @@ authored portions of quick-lint-js:
 * LiraNuna; signed CLA-v1.md
 * Matheus Sousa; msamuel@aluno.puc-rio.br; signed CLA-v1.md
 * Max Coplan; mchcopl@gmail.com; signed CLA-v1.md
+* Peter Khalil; https://github.com/m5tfi; signed CLA-v1.md
