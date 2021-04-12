@@ -1047,7 +1047,49 @@ void parser::parse_arrow_function_expression_remainder(
     // a + b => c
   }
   expression* lhs = children.back();
-  if (lhs->kind() == expression_kind::literal) {
+  vector<expression*> parameters("parse_arrow_function_expression_remainder",
+                                 &this->temporary_memory_);
+  const char8* left_paren_begin = nullptr;
+  switch (lhs->kind()) {
+  case expression_kind::binary_operator:
+  case expression_kind::trailing_comma:
+    // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
+    // example.
+    for (int i = 0; i < lhs->child_count(); ++i) {
+      expression* parameter = lhs->child(i);
+      switch (parameter->kind()) {
+      case expression_kind::literal:
+        this->error_reporter_->report(
+            error_unexpected_literal_in_parameter_list{
+                .literal = parameter->span(),
+            });
+        break;
+
+      // TODO(strager): Error on other kinds of invalid parameters.
+      default:
+        parameters.emplace_back(parameter);
+        break;
+      }
+    }
+    break;
+  case expression_kind::array:
+  case expression_kind::assignment:
+  case expression_kind::object:
+  case expression_kind::spread:
+  case expression_kind::variable:
+    parameters.emplace_back(lhs);
+    break;
+
+  // f(x, y) => {}
+  case expression_kind::call:
+    left_paren_begin =
+        expression_cast<expression::call>(lhs)->left_paren_span().begin();
+    for (int i = 1; i < lhs->child_count(); ++i) {
+      parameters.emplace_back(lhs->child(i));
+    }
+    break;
+
+  case expression_kind::literal:
     this->error_reporter_->report(error_unexpected_arrow_after_literal{
         .arrow = arrow_span,
         .literal_parameter = lhs->span(),
@@ -1064,61 +1106,19 @@ void parser::parse_arrow_function_expression_remainder(
       children.emplace_back(this->parse_expression(
           precedence{.binary_operators = false, .commas = false}));
     }
-  } else {
-    vector<expression*> parameters("parse_arrow_function_expression_remainder",
-                                   &this->temporary_memory_);
-    const char8* left_paren_begin = nullptr;
-    switch (lhs->kind()) {
-    case expression_kind::binary_operator:
-    case expression_kind::trailing_comma:
-      // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
-      // example.
-      for (int i = 0; i < lhs->child_count(); ++i) {
-        expression* parameter = lhs->child(i);
-        switch (parameter->kind()) {
-        case expression_kind::literal:
-          this->error_reporter_->report(
-              error_unexpected_literal_in_parameter_list{
-                  .literal = parameter->span(),
-              });
-          break;
+    return;
 
-        // TODO(strager): Error on other kinds of invalid parameters.
-        default:
-          parameters.emplace_back(parameter);
-          break;
-        }
-      }
-      break;
-    case expression_kind::array:
-    case expression_kind::assignment:
-    case expression_kind::object:
-    case expression_kind::spread:
-    case expression_kind::variable:
-      parameters.emplace_back(lhs);
-      break;
-
-    // f(x, y) => {}
-    case expression_kind::call:
-      left_paren_begin =
-          expression_cast<expression::call>(lhs)->left_paren_span().begin();
-      for (int i = 1; i < lhs->child_count(); ++i) {
-        parameters.emplace_back(lhs->child(i));
-      }
-      break;
-
-    default:
-      QLJS_UNIMPLEMENTED();
-      break;
-    }
-
-    expression* arrow_function = this->parse_arrow_function_body(
-        function_attributes::normal,
-        /*parameter_list_begin=*/left_paren_begin,
-        this->expressions_.make_array(std::move(parameters)));
-    children.back() =
-        this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
+  default:
+    QLJS_UNIMPLEMENTED();
+    break;
   }
+
+  expression* arrow_function = this->parse_arrow_function_body(
+      function_attributes::normal,
+      /*parameter_list_begin=*/left_paren_begin,
+      this->expressions_.make_array(std::move(parameters)));
+  children.back() =
+      this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
 }
 
 expression* parser::parse_call_expression_remainder(expression* callee) {
