@@ -1090,13 +1090,27 @@ void parser::parse_arrow_function_expression_remainder(
     break;
 
   // 42 => {}
+  case expression_kind::dot:
   case expression_kind::literal: {
-    source_code_span literal_span = lhs->span();
-    left_paren_begin = literal_span.begin();
-    this->error_reporter_->report(error_unexpected_arrow_after_literal{
-        .arrow = arrow_span,
-        .literal_parameter = literal_span,
-    });
+    source_code_span lhs_span = lhs->span();
+    left_paren_begin = lhs_span.begin();
+    switch (lhs->kind()) {
+    case expression_kind::dot:
+      this->error_reporter_->report(error_unexpected_arrow_after_expression{
+          .arrow = arrow_span,
+          .expression = lhs_span,
+      });
+      break;
+    case expression_kind::literal:
+      this->error_reporter_->report(error_unexpected_arrow_after_literal{
+          .arrow = arrow_span,
+          .literal_parameter = lhs_span,
+      });
+      break;
+    default:
+      QLJS_UNREACHABLE();
+    }
+
     if (this->peek().type != token_type::left_curly) {
       // Treat the '=>' as if it was a binary operator (like '>=').
       children.emplace_back(this->parse_expression(

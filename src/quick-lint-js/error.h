@@ -909,6 +909,17 @@
       .error(QLJS_TRANSLATABLE("unexpected '@'"), character))                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_arrow_after_expression, "E160",                         \
+      {                                                                        \
+        source_code_span arrow;                                                \
+        source_code_span expression;                                           \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("unexpected '{0}'"), arrow)                     \
+          .note(QLJS_TRANSLATABLE("expected parameter for arrow function, "    \
+                                  "but got an expression instead"),            \
+                expression))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_arrow_after_literal, "E158",                            \
       {                                                                        \
         source_code_span arrow;                                                \

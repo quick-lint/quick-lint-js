@@ -2665,6 +2665,28 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   }
 
   {
+    test_parser p(u8"x.p => rhs"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(dot(var x, p), var rhs)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unexpected_arrow_after_expression, arrow,
+                    offsets_matcher(p.code(), strlen(u8"x.p "), u8"=>"),  //
+                    expression, offsets_matcher(p.code(), 0, u8"x.p"))));
+  }
+
+  {
+    test_parser p(u8"x.p => {body();}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "arrowblock()");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unexpected_arrow_after_expression, arrow,
+                    offsets_matcher(p.code(), strlen(u8"x.p "), u8"=>"),  //
+                    expression, offsets_matcher(p.code(), 0, u8"x.p"))));
+  }
+
+  {
     test_parser p(u8"(x, 42, y) => {body();}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowblock(var x, var y)");
