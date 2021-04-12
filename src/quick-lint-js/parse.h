@@ -3288,8 +3288,7 @@ class parser {
 
   struct arrow_function_parameters;
 
-  arrow_function_parameters arrow_function_parameters_from_lhs(
-      expression *lhs, boost::container::pmr::memory_resource *memory);
+  arrow_function_parameters arrow_function_parameters_from_lhs(expression *lhs);
 
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);

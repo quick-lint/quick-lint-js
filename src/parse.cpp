@@ -967,8 +967,7 @@ next:
       }
     } else {
       arrow_function_parameters parameters =
-          this->arrow_function_parameters_from_lhs(lhs,
-                                                   &this->temporary_memory_);
+          this->arrow_function_parameters_from_lhs(lhs);
       expression* arrow_function = this->parse_arrow_function_body(
           function_attributes::normal,
           /*parameter_list_begin=*/parameters.left_paren_begin,
@@ -1939,10 +1938,10 @@ parser::switch_guard::~switch_guard() noexcept {
 }
 
 parser::arrow_function_parameters parser::arrow_function_parameters_from_lhs(
-    expression* lhs, boost::container::pmr::memory_resource* memory) {
+    expression* lhs) {
   arrow_function_parameters result{
-      .parameters =
-          vector<expression*>("arrow_function_parameters_from_lhs", memory),
+      .parameters = vector<expression*>("arrow_function_parameters_from_lhs",
+                                        &this->temporary_memory_),
   };
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
