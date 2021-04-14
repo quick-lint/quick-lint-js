@@ -13,17 +13,25 @@
         <nav>
             <ul>
                 <li>
-                    <a href="https://github.com/quick-lint/quick-lint-js">source code on GitHub</a
-            >
-          </li>
-        </ul>
-      </nav>
+                    <a href="https://github.com/quick-lint/quick-lint-js">source code on GitHub</a>
+                </li>
+            </ul>
+        </nav>
     </header>
     <main>
         <p></p>
         <h2>CLI Usage</h2>
+        <h3>Usage: quick-link-js [OPTIONS]... [FILE]...</h3>
+        <h4>Options:</h4>
         <ul>
-            
+            <li><strong>--exit-fail-on=[CODES]</strong>: Fail with a non-zero exit code if any of these errors are found (default: "all")
+            </li>
+            <li>
+                <strong>-output-format=[FORMAT]</strong>: Format to print feedback where FORMAT is one of: gnu-like (default if omitted), vim-qflist-json
+            </li>
+            <li><strong>-v, --version</strong>: Print version information</li>
+            <li><strong>--vim-file-bufnr=[NUMBER]<strong>: Select a vim buffer for outputting feedback</li>
+            <li><strong>-h, --help</strong>: Print help message</li>
         </ul>
     </main>
 </body>
