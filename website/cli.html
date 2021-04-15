@@ -53,24 +53,64 @@
                 </li>
                 <ul>
                     <li>
-                        LSP server mode. Start a Language Server Protocol server, communicating using stan‐ dard input and standard output. Use this mode to integrate with code editors sup‐ porting LSP.
+                        LSP server mode. Start a Language Server Protocol server, communicating using standard input and standard output. Use this mode to integrate with code editors supporting LSP.
                     </li>
                 </ul>
             </ul>
         </ul>
         <h3>Options</h3>
         <ul>
-            <li>--output-format=format Customize how errors are printed. format is one of the following: - gnu-like (default): a human-readable format similar to GCC. - vim-qflist-json: machine-readable JSON which can be given to Vim's setqflist func‐ tion.
-                Incompatible with --lsp-server.</li>
-            <li>--vim-file-bufnr=number Set the bufnr property for errors printed with the --output-format=vim-qflist-json option. --vim-file-bufnr applies only to files which are given later in the command line. Therefore, if multiple files are given, --vim-file-bufnr
-                can be specified multiple times.</li>
-            <li>--exit-fail-on=errors Cause quick-lint-js to exit with a non-zero exit code if any of the discovered er‐ rors is listed in errors. See the "ERROR LISTS" section for a description of the format for errors. Incompatible with --lsp-server.</li>
-            <li>--lsp, --lsp-server Run quick-lint-js in LSP server mode. Use this mode to integrate with code editors supporting LSP. An editor can send LSP requests and notifications to quick-lint-js via standard input, and receive LSP responses and notifications
-                from standard out‐ put. Incompatible with --output-format.</li>
-            <li>-h, --help Print a help message and exit. The output format is not intended to be machine-parsable and may change in the fu‐ ture.</li>
-            <li>
-                -v, --version Print version information and exit. The output format is not intended to be machine-parsable and may change in the fu‐ ture.
+            <li><strong>--output-format=format</strong></li>
+            <ul>
+                <li>Customize how errors are printed. <strong>format</strong> is one of the following:
+                </li>
+                <ul>
+                    <li>
+                        - gnu-like (default): a human-readable format similar to GCC.
+                    </li>
+                    <li>
+                        - vim-qflist-json: machine-readable JSON which can be given to Vim's setqflist func‐ tion. Incompatible with --lsp-server.
+                    </li>
+                </ul>
+            </ul>
+            <li><strong>--vim-file-bufnr=number</strong></li>
+            <ul>
+                <li>Set the bufnr property for errors printed with the --output-format=vim-qflist-json option. --vim-file-bufnr applies only to files which are given later in the command line. Therefore, if multiple files are given, --vim-file-bufnr can be
+                    specified multiple times.
+                </li>
+            </ul>
+
+            <li><strong>--exit-fail-on=errors</strong>
             </li>
+            <ul>
+                <li>
+                    Cause quick-lint-js to exit with a non-zero exit code if any of the discovered errors is listed in errors. See the "ERROR LISTS" section for a description of the format for errors. Incompatible with --lsp-server.
+                </li>
+            </ul>
+            </li>
+            <li><strong>--lsp, --lsp-server</strong>
+                <ul>
+                    <li>
+                        Run quick-lint-js in LSP server mode. Use this mode to integrate with code editors supporting LSP. An editor can send LSP requests and notifications to quick-lint-js via standard input, and receive LSP responses and notifications from standard out‐put.
+                        Incompatible with --output-format.
+                    </li>
+                </ul>
+                <li><strong>-h, --help</strong>
+                    <ul>
+                        <li>
+                            Print a help message and exit. The output format is not intended to be machine-parsable and may change in the future.
+                        </li>
+                    </ul>
+
+                    <li>
+                        <strong>-v, --version Print version information and exit.</strong>
+                        <ul>
+                            <li>
+                                The output format is not intended to be machine-parsable and may change in the future.
+                            </li>
+                        </ul>
+
+                    </li>
         </ul>
         <h3>Error Lists</h3>
         <ul>
