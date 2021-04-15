@@ -25,27 +25,37 @@
         <h2>CLI Usage</h2>
         <h3>Name</h3>
         <ul>
-            <li>quick-lint-js - find bugs in JavaScript programs</li>
+            <li><strong>quick-lint-js</strong> - find bugs in JavaScript programs</li>
         </ul>
         <h3>Synopsis</h3>
         <ul>
             <li>
-                quick-lint-js [--output-format=format] [&lt;options&gt;] file [file...]
+                <strong>quick-lint-js</strong> [--output-format=format] [&lt;options&gt;] file [file...]
             </li>
             <li>
-                quick-lint-js --lsp-server [&lt;options&gt;]
+                <strong>quick-lint-js</strong> --lsp-server [&lt;options&gt;]
             </li>
         </ul>
         <h3>Description</h3>
         <ul>
-            <li>quick-lint-js reads JavaScript files and reports syntax errors and other bugs.</li>
-            <br /> This Command has two modes:
+            <li><strong>quick-lint-js</strong> reads JavaScript files and reports syntax errors and other bugs.</li>
+            <br /> This Command has <strong>two modes</strong>:
             <ul>
-                <li>quick-lint-js [&lt;options&gt;] file [file...] Batch mode (default). Check the given files, and report errors to the terminal (standard error). --output-format can be used to customize how errors look.
+                <li><strong>quick-lint-js [&lt;options&gt;] file [file...]</strong>
                 </li>
+                <ul>
+                    <li>
+                        Batch mode (default). Check the given files, and report errors to the terminal (standard error). --output-format can be used to customize how errors look.
+                    </li>
+                </ul>
                 <li>
-                    quick-lint-js --lsp-server LSP server mode. Start a Language Server Protocol server, communicating using stan‐ dard input and standard output. Use this mode to integrate with code editors sup‐ porting LSP.
+                    <strong>quick-lint-js --lsp-server</strong>
                 </li>
+                <ul>
+                    <li>
+                        LSP server mode. Start a Language Server Protocol server, communicating using stan‐ dard input and standard output. Use this mode to integrate with code editors sup‐ porting LSP.
+                    </li>
+                </ul>
             </ul>
         </ul>
         <h3>Options</h3>
