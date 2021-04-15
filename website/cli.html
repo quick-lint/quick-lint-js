@@ -132,8 +132,13 @@
         <h3>Exit Status</h3>
         <ul>
             <li>
-                0 Batch mode: Linting succeeded with no errors or warnings. LSP server mode: The LSP client requested that the server shut down. This exit sta‐ tus may change in the future. non-0 Batch mode: Linting failed with at least one error or warning, or at least
-                one file could not be opened and read. The specific status code may change in the future.
+                <strong>Batch mode</strong>: Linting succeeded with no errors or warnings.
+            </li>
+            <li>
+                <strong>LSP server mode</strong>: The LSP client requested that the server shut down. This exit status may change in the future. The specific status code may change in the future.
+            </li>
+            <li>
+                <strong>non-0 Batch mode</strong>: Linting failed with at least one error or warning, or at least one file could not be opened and read.
             </li>
         </ul>
         <h3>Environment</h3>
