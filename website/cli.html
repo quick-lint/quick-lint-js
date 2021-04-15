@@ -74,6 +74,13 @@
                 All error codes, except for error code E102. E100,-E100,+E200 Only error code E200, excluding all other error codes. +E200,-E100,E100 Only error code E200, excluding all other error codes.
             </li>
         </ul>
+        <h3>Exit Status</h3>
+        <ul>
+            <li>
+                0 Batch mode: Linting succeeded with no errors or warnings. LSP server mode: The LSP client requested that the server shut down. This exit sta‐ tus may change in the future. non-0 Batch mode: Linting failed with at least one error or warning, or at least
+                one file could not be opened and read. The specific status code may change in the future.
+            </li>
+        </ul>
     </main>
 </body>
 
