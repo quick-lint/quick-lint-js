@@ -62,6 +62,18 @@
                 -v, --version Print version information and exit. The output format is not intended to be machine-parsable and may change in the fu‐ ture.
             </li>
         </ul>
+        <h3>Error Lists</h3>
+        <ul>
+            <li>
+                Some options, such as --exit-fail-on, accept an error list. An error list is a comma-sepa‐ rated list of error code predicates and error category predicates. An error lists can contain any number of include, exclude, and default predicates. An in‐ clude
+                predicate is a '+' followed by the name of an error code or error category. An ex‐ clude predicate is a '-' followed by the name of an error code or error category. An de‐ fault predicate is the name of an error code or error category
+                with no sigil. An error list containing only include and exclude predicates modifies a default set of er‐ ror codes. The default set is decided by the option, but is often the set of all error codes. An error list containing at least one
+                default predicate empties the set of error codes, then treats the default predicates as if they were include predicates. The order of predicates within an error list does not matter. Included predicates are pro‐ cessed first, adding to
+                the set of error codes. Excluded predicates are processed second, removing from the set of error codes. Error codes have the form E000, where 000 is three decimal digits (0-9). The following error categories are supported: all All error
+                codes. Example error lists: E102,E110 Only error codes E102 and E110, excluding all other error codes. -E102 The default set of error codes, except for error code E102. +E102 The default set of error codes, and also error code E102. all,-E102
+                All error codes, except for error code E102. E100,-E100,+E200 Only error code E200, excluding all other error codes. +E200,-E100,E100 Only error code E200, excluding all other error codes.
+            </li>
+        </ul>
     </main>
 </body>
 
