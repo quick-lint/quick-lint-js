@@ -21,20 +21,35 @@
         </nav>
     </header>
     <main>
-        <p> </p>
+        <p></p>
         <h2>CLI Usage</h2>
-        <h3>Usage: quick-link-js [OPTIONS]... [FILE]...</h3>
-        <h4>Options:</h4>
+        <h3>Name</h3>
         <ul>
-            <li><strong>--exit-fail-on=[CODES]</strong>: Fail with a non-zero exit code if any of these errors are found (default: "all")
+            <li>quick-lint-js - fund bugs in JavaScript programs</li>
+        </ul>
+        <h3>Synopsis</h3>
+        <ul>
+            <li>
+                quick-lint-js [--output-format=format] [&lt;options&gt;] file [file...]
             </li>
             <li>
-                <strong>-output-format=[FORMAT]</strong>: Format to print feedback where FORMAT is one of: gnu-like (default if omitted), vim-qflist-json
+                quick-lint-js --lsp-server [&lt;options&gt;]
             </li>
-            <li><strong>-v, --version</strong>: Print version information</li>
-            <li><strong>--vim-file-bufnr=[NUMBER]</strong>: Select a vim buffer for outputting feedback</li>
-            <li><strong>-h, --help</strong>: Print help message</li>
         </ul>
+        <h3>Description</h3>
+        <ul>
+            <li>quick-lint-js reads JavaScript files and reports syntax errors and other bugs.</li>
+            <br /> This Command has two modes:
+            <ul>
+                <li>quick-lint-js [&lt;options&gt;] file [file...] Batch mode (default). Check the given files, and report errors to the terminal (standard error). --output-format can be used to customize how errors look.
+                </li>
+                <li>
+                    quick-lint-js --lsp-server LSP server mode. Start a Language Server Protocol server, communicating using stan‐ dard input and standard output. Use this mode to integrate with code editors sup‐ porting LSP.
+                </li>
+            </ul>
+        </ul>
+        <h3>Options</h3>
+
     </main>
 </body>
 
