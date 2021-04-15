@@ -81,6 +81,22 @@
                 one file could not be opened and read. The specific status code may change in the future.
             </li>
         </ul>
+        <h3>Environment</h3>
+        <ul>
+            <li>
+                LC_ALL LC_MESSAGES Change the language used for error and warning messages. For example, set LC_ALL=en to see messages written in United States English.
+            </li>
+        </ul>
+        <h3>Example</h3>
+        <ul>
+            <li>
+                To lint a file called lib/index.js, writing error messages to the terminal: $ quick-lint-js lib/index.js lib/index.js:1:20: error: variable used before declaration: language [E058] lib/index.js:2:7: note: variable declared here [E058] lib/index.js:3:1:
+                error: assignment to const variable [E003] lib/index.js:1:7: note: const variable declared here [E003] lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057] To lint three files, writing machine-readable messages to /tmp/vim-qflist.json:
+                $ quick-lint-js --output-format=vim-qflist-json \ --vim-bufnr=3 lib/pizza-dough.js \ --vim-bufnr=4 lib/pizza-sauce.js \ --vim-bufnr=6 lib/pineapple.js \ >/tmp/vim-qflist.json Errors for lib/pizza-dough.js will include "bufnr":3 in the
+                output and errors for lib/pineapple.js will include "bufnr":6. To lint a file called bad.js, but don't fail on use-of-undeclared-variable errors: $ quick-lint-js --exit-fail-on=-E057 bad.js bad.js:5:25: warning: use of undeclared variable:
+                $ [E057] $ echo $? 0
+            </li>
+        </ul>
     </main>
 </body>
 
