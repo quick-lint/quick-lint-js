@@ -20,6 +20,11 @@
       "command": ["quick-lint-js", "--lsp-server"]
     },
     {
+      "name": "Rome",
+      "command": ["node", "./node_modules/.bin/rome", "lsp"],
+      "cwd": "rome/"
+    },
+    {
       "name": "RSLint",
       "command": ["rslint-lsp"]
     },
