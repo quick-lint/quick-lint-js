@@ -100,7 +100,6 @@
     * Scrolling in general works poorly when sub-pixel scrolling (e.g. when
       zoomed in).
     * Scrolling horizontally sometimes doesn't scroll the highlights.
-    * Resizing the editor breaks highlights.
     * Browser text search finds text in the shadow code input in addition to
       text in the user code input.
 
@@ -152,6 +151,8 @@ console.log(`Welcome, ${ocupation}!`);
         });
         synchronizeContent();
 
+        new ResizeObserver(synchronizeSize).observe(codeInputElement);
+
         loadQuickLintJS()
           .then((quickLintJS) => {
             function lintAndUpdate() {
@@ -180,6 +181,11 @@ console.log(`Welcome, ${ocupation}!`);
         function synchronizeScrolling() {
           shadowCodeInputElement.scrollLeft = codeInputElement.scrollLeft;
           shadowCodeInputElement.scrollTop = codeInputElement.scrollTop;
+        }
+
+        function synchronizeSize() {
+          shadowCodeInputElement.style.width = codeInputElement.style.width;
+          shadowCodeInputElement.style.height = codeInputElement.style.height;
         }
       </script>
     </main>
