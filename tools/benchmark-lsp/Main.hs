@@ -54,7 +54,8 @@ data JavaScriptCorpus =
 
 benchmarkLSPServer :: JavaScriptCorpus -> BenchmarkConfigServer -> Criterion.Benchmark
 benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..} =
-  Criterion.bgroup
+  bgroupIf
+    benchmarkConfigServerEnable
     benchmarkConfigServerName
     [ Criterion.bgroup
         "open-wait-close"
@@ -68,7 +69,8 @@ benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..}
         , benchChangeWait javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
         , benchChangeWait javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
         ]
-    , Criterion.bgroup
+    , bgroupIf
+        benchmarkConfigServerAllowIncrementalChanges
         "incremental-change-wait"
         [ benchIncrementalChangeWait
             javaScriptCorpusExpressRouterJS
@@ -291,6 +293,13 @@ waitForAllDiagnostics urisNeedingDiagnostics
             else fail "Expected no diagnostics but received some"
         | otherwise -> waitForAllDiagnostics urisNeedingDiagnostics
       Nothing -> return ()
+
+bgroupIf :: Bool -> String -> [Criterion.Benchmark] -> Criterion.Benchmark
+bgroupIf condition groupName benchmarks =
+  Criterion.bgroup groupName $
+  if condition
+    then benchmarks
+    else []
 -- Copyright 2021 Matthew Glazar
 --
 -- This file is part of quick-lint-js.

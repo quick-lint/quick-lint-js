@@ -3,7 +3,8 @@
     {
       "name": "eslint-server",
       "command": ["node", "./node_modules/eslint-server/lib/index.js", "--stdio"],
-      "cwd": "eslint/"
+      "cwd": "eslint/",
+      "allowIncrementalChanges": false
     },
     {
       "name": "Deno",
@@ -22,11 +23,13 @@
     {
       "name": "Rome",
       "command": ["node", "./node_modules/.bin/rome", "lsp"],
-      "cwd": "rome/"
+      "cwd": "rome/",
+      "enable": false
     },
     {
       "name": "RSLint",
-      "command": ["rslint-lsp"]
+      "command": ["rslint-lsp"],
+      "allowIncrementalChanges": false
     },
     {
       "name": "TypeScript-Theia",
