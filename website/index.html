@@ -338,42 +338,7 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
-            <tr>
-              <th>editor integration</th>
-              <td class="good quick-lint-js">
-                <a
-                  href="https://github.com/quick-lint/quick-lint-js/tree/master/plugin/vim"
-                  >Vim</a
-                ><br /><a
-                  href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
-                  >VS Code</a
-                ><br />LSP
-              </td>
-              <td class="good">
-                <a href="https://eslint.org/docs/user-guide/integrations"
-                  >yes</a
-                >
-              </td>
-              <td class="good">
-                <a href="https://jshint.com/install/">yes</a>
-              </td>
-              <td class="good">
-                <a href="https://rslint.org/guide/#running-in-vsc">VS Code</a>
-                <br /><a href="https://rslint.org/guide/#running-in-vsc">LSP</a>
-              </td>
-              <td class="meh">
-                <a
-                  href="https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno"
-                  >VS Code</a
-                >
-              </td>
-              <td class="meh">
-                <a
-                  href="https://marketplace.visualstudio.com/items?itemName=rome.rome"
-                  >VS Code</a
-                >
-              </td>
-            </tr>
+
             <tr>
               <th>lint rules</th>
               <td class="meh quick-lint-js">minimal</td>
@@ -404,6 +369,96 @@
               <td class="bad"><span aria-label="unstable">❌</span></td>
               <td class="bad"><span aria-label="unstable">❌</span></td>
               <td class="bad"><span aria-label="unstable">❌</span></td>
+            </tr>
+          </tbody>
+
+          <tbody>
+            <tr>
+              <th>feature</th>
+              <th class="quick-lint-js">quick-lint-js</th>
+              <th><a href="https://eslint.org/">ESLint</a></th>
+              <th><a href="https://jshint.com/">JSHint</a></th>
+              <th><a href="https://rslint.org/">RSLint</a></th>
+              <th><a href="https://lint.deno.land/">deno lint</a></th>
+              <th><a href="https://rome.tools/">Rome</a></th>
+            </tr>
+            <tr>
+              <th>VS Code extension</th>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
+              <th>Vim plugin</th>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>WebStorm plugin</th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Sublime Text plugin</th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Notepad++ plugin</th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Atom package</th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Emacs plugin</th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>LSP server</th>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
           </tbody>
         </table>
