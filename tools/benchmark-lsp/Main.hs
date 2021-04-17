@@ -56,14 +56,29 @@ benchmarkLSPServer :: JavaScriptCorpus -> BenchmarkConfigServer -> Criterion.Ben
 benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..} =
   Criterion.bgroup
     benchmarkConfigServerName
-    [ benchOpenWaitClose javaScriptCorpusTiny "tiny.js" serverConfig
-    , benchOpenWaitClose javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
-    , benchOpenWaitClose javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
-    , benchChangeWait javaScriptCorpusTiny "tiny.js" serverConfig
-    , benchChangeWait javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
-    , benchChangeWait javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
-    , benchIncrementalChangeWait javaScriptCorpusExpressRouterJS "express-router.js" expressRouterJSChanges serverConfig
-    , benchFullChangeWait javaScriptCorpusExpressRouterJS "express-router.js" modifyExpressRouterJS serverConfig
+    [ Criterion.bgroup
+        "open-wait-close"
+        [ benchOpenWaitClose javaScriptCorpusTiny "tiny.js" serverConfig
+        , benchOpenWaitClose javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
+        , benchOpenWaitClose javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
+        ]
+    , Criterion.bgroup
+        "change-wait"
+        [ benchChangeWait javaScriptCorpusTiny "tiny.js" serverConfig
+        , benchChangeWait javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
+        , benchChangeWait javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
+        ]
+    , Criterion.bgroup
+        "incremental-change-wait"
+        [ benchIncrementalChangeWait
+            javaScriptCorpusExpressRouterJS
+            "express-router.js"
+            expressRouterJSChanges
+            serverConfig
+        ]
+    , Criterion.bgroup
+        "full-change-wait"
+        [benchFullChangeWait javaScriptCorpusExpressRouterJS "express-router.js" modifyExpressRouterJS serverConfig]
     ]
       -- | In the "create Router#VERB functions" arrow function in
       -- express-router.js, replace 'method' (declaration and references) with
@@ -90,8 +105,7 @@ benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..}
 
 -- TODO(strager): Add a similar benchmark with a warmup phase.
 benchOpenWaitClose :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
-benchOpenWaitClose fileContent benchmarkName serverConfig =
-  benchmarkWithLSPServer ("open-wait-close/" ++ benchmarkName) serverConfig setUp run
+benchOpenWaitClose fileContent benchmarkName serverConfig = benchmarkWithLSPServer benchmarkName serverConfig setUp run
   where
     setUp :: Int64 -> StateT LSPClient.LSPClient IO (Int64, LSP.Uri)
     setUp batchSize = do
@@ -119,7 +133,7 @@ benchOpenWaitClose fileContent benchmarkName serverConfig =
 
 benchChangeWait :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
 benchChangeWait modifiedSource benchmarkName serverConfig@BenchmarkConfigServer {..} =
-  benchmarkWithLSPServer ("change-wait/" ++ benchmarkName) serverConfig setUp run
+  benchmarkWithLSPServer benchmarkName serverConfig setUp run
   where
     setUp :: Int64 -> StateT LSPClient.LSPClient IO [LSP.Uri]
     setUp batchSize = do
@@ -161,7 +175,7 @@ benchIncrementalChangeWait ::
   -> BenchmarkConfigServer
   -> Criterion.Benchmark
 benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig =
-  benchmarkWithLSPServer ("incremental-change-wait/" ++ benchmarkName) serverConfig setUp run
+  benchmarkWithLSPServer benchmarkName serverConfig setUp run
   where
     setUp :: Int64 -> StateT LSPClient.LSPClient IO (LSP.Uri, Int64, [LSP.Diagnostic])
     setUp batchSize = do
@@ -189,7 +203,7 @@ benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig
 
 benchFullChangeWait :: Text.Text -> String -> (Int64 -> Text.Text) -> BenchmarkConfigServer -> Criterion.Benchmark
 benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig =
-  benchmarkWithLSPServer ("full-change-wait/" ++ benchmarkName) serverConfig setUp run
+  benchmarkWithLSPServer benchmarkName serverConfig setUp run
   where
     setUp :: Int64 -> StateT LSPClient.LSPClient IO (LSP.Uri, Int64, [LSP.Diagnostic])
     setUp batchSize = do
