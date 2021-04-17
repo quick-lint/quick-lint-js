@@ -41,6 +41,7 @@ data LSPClient =
     , lspClientRequestMap :: LSP.RequestMap
     , lspClientNextRequestID :: Int
     , lspClientRootPath :: FilePath
+    , lspClientServerSyncKind :: LSP.TextDocumentSyncKind
     }
 
 data Logging
@@ -70,6 +71,7 @@ makeLSPClient serverStdin serverStdout rootPath logging = do
       , lspClientRequestMap = LSP.newRequestMap
       , lspClientNextRequestID = 0
       , lspClientRootPath = rootPath
+      , lspClientServerSyncKind = LSP.TdSyncNone
       }
 
 receiveMessage :: StateT LSPClient IO LSP.FromServerMessage

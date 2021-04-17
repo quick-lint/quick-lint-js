@@ -7,17 +7,18 @@
 
 module Main where
 
-import Control.Monad (forM, forM_, when)
+import Control.Monad (forM, forM_, unless, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State.Strict
 import qualified Criterion.Main as Criterion
 import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy.Char8 as BS
+import qualified Data.ByteString.Char8 as BS
 import Data.Function (fix)
 import qualified Data.HashSet as HashSet
 import Data.Int (Int64)
 import Data.Maybe (fromJust)
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
 import qualified Data.Text.IO as Text
 import LSPBenchmark
 import qualified LSPClient
@@ -25,6 +26,7 @@ import qualified Language.LSP.Types as LSP
 import qualified System.Exit as Exit
 import System.FilePath ((</>))
 import qualified System.IO as IO
+import qualified Text.Printf as Printf
 
 main :: IO ()
 main = do
@@ -60,7 +62,31 @@ benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..}
     , benchChangeWait javaScriptCorpusTiny "tiny.js" serverConfig
     , benchChangeWait javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
     , benchChangeWait javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
+    , benchIncrementalChangeWait javaScriptCorpusExpressRouterJS "express-router.js" expressRouterJSChanges serverConfig
+    , benchFullChangeWait javaScriptCorpusExpressRouterJS "express-router.js" modifyExpressRouterJS serverConfig
     ]
+      -- | In the "create Router#VERB functions" arrow function in
+      -- express-router.js, replace 'method' (declaration and references) with
+      -- 'm00001', then 'm00002', etc.
+  where
+    expressRouterJSChanges i = [makeChange 506 39, makeChange 507 8, makeChange 509 10]
+      where
+        newVariableName = Text.pack $ Printf.printf "m%05d" i
+        makeChange line startColumn =
+          LSP.TextDocumentContentChangeEvent
+            (Just $
+             LSP.Range (LSP.Position line startColumn) (LSP.Position line (startColumn + Text.length newVariableName)))
+            Nothing
+            newVariableName
+    modifyExpressRouterJS i =
+      Text.decodeUtf8 $
+      changeAt 11854 $ changeAt 11871 $ changeAt 11940 $ Text.encodeUtf8 javaScriptCorpusExpressRouterJS
+      where
+        newVariableName = Text.encodeUtf8 $ Text.pack $ Printf.printf "m%05d" i
+        changeAt byteOffset bytes = before <> newVariableName <> after
+          where
+            (before, oldVariableNameAndAfter) = BS.splitAt byteOffset bytes
+            (_oldVariableName, after) = BS.splitAt (BS.length newVariableName) oldVariableNameAndAfter
 
 -- TODO(strager): Add a similar benchmark with a warmup phase.
 benchOpenWaitClose :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
@@ -128,6 +154,71 @@ benchChangeWait modifiedSource benchmarkName serverConfig@BenchmarkConfigServer 
     initialSource :: Text.Text
     initialSource = ""
 
+benchIncrementalChangeWait ::
+     Text.Text
+  -> String
+  -> (Int64 -> [LSP.TextDocumentContentChangeEvent])
+  -> BenchmarkConfigServer
+  -> Criterion.Benchmark
+benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig =
+  benchmarkWithLSPServer ("incremental-change-wait/" ++ benchmarkName) serverConfig setUp run
+  where
+    setUp :: Int64 -> StateT LSPClient.LSPClient IO (LSP.Uri, Int64, [LSP.Diagnostic])
+    setUp batchSize = do
+      requireServerIncrementalSyncSupport
+      uri <- makeURI "test.js"
+      createFileOnDiskIfNeeded serverConfig uri
+      let version = 0
+      sendTextDocumentDidOpenNotification uri version "javascript" originalSource
+      diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
+      return (uri, batchSize, diagnostics)
+    run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> StateT LSPClient.LSPClient IO ()
+    run (uri, batchSize, expectedDiagnostics) =
+      forM_ [1 .. batchSize] $ \i -> do
+        let version = fromIntegral i :: Int
+        let changes = makeChanges (i - 1)
+        LSPClient.sendNotification LSP.STextDocumentDidChange $
+          LSP.DidChangeTextDocumentParams (LSP.VersionedTextDocumentIdentifier uri (Just version)) (LSP.List changes)
+        waitForDiagnosticsOrTimeout (secondsToMicroseconds 1) >>= \case
+          Nothing -> fail "Expected diagnostics but received none"
+          Just (LSP.PublishDiagnosticsParams _ _ (LSP.List diagnostics)) ->
+            unless (length diagnostics == length expectedDiagnostics) $
+            fail $
+            "Diagnostics unexpectedly changed:\nExpected: " ++
+            show expectedDiagnostics ++ "\nReceived: " ++ show diagnostics
+
+benchFullChangeWait :: Text.Text -> String -> (Int64 -> Text.Text) -> BenchmarkConfigServer -> Criterion.Benchmark
+benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig =
+  benchmarkWithLSPServer ("full-change-wait/" ++ benchmarkName) serverConfig setUp run
+  where
+    setUp :: Int64 -> StateT LSPClient.LSPClient IO (LSP.Uri, Int64, [LSP.Diagnostic])
+    setUp batchSize = do
+      uri <- makeURI "test.js"
+      createFileOnDiskIfNeeded serverConfig uri
+      let version = 0
+      sendTextDocumentDidOpenNotification uri version "javascript" originalSource
+      diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
+      return (uri, batchSize, diagnostics)
+    run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> StateT LSPClient.LSPClient IO ()
+    run (uri, batchSize, expectedDiagnostics) =
+      forM_ [1 .. batchSize] $ \i -> do
+        let version = fromIntegral i :: Int
+        let modifiedSource = makeModifiedSource (i - 1)
+        sendTextDocumentDidFullyChangeNotification uri version modifiedSource
+        diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
+        unless (length diagnostics == length expectedDiagnostics) $
+          fail $
+          "Diagnostics unexpectedly changed:\nExpected: " ++
+          show expectedDiagnostics ++ "\nReceived: " ++ show diagnostics
+
+requireServerIncrementalSyncSupport :: StateT LSPClient.LSPClient IO ()
+requireServerIncrementalSyncSupport = do
+  textDocumentSyncKind <- gets LSPClient.lspClientServerSyncKind
+  case textDocumentSyncKind of
+    LSP.TdSyncNone -> fail "LSP server does not support document syncing"
+    LSP.TdSyncIncremental -> return ()
+    LSP.TdSyncFull -> fail "LSP server does not support incremental document syncing"
+
 createFileOnDiskIfNeeded :: BenchmarkConfigServer -> LSP.Uri -> StateT LSPClient.LSPClient IO ()
 createFileOnDiskIfNeeded BenchmarkConfigServer {..} uri =
   when benchmarkConfigServerNeedFilesOnDisk $ liftIO $ BS.writeFile filePath BS.empty
@@ -162,6 +253,17 @@ waitForDiagnosticsOrTimeout timeoutMicroseconds =
       Just (matchMiscMessage -> Just handle) -> handle >> loop
       Nothing -> return Nothing
       _ -> fail "Unimplemented message"
+
+-- | HACK(strager): Some LSP servers, such as Flow and TypeScript-Theia, give us
+-- an empty list of diagnostics before giving us the real list of diagnostics.
+-- Skip the empty list and wait for the real list.
+waitUntilSomeDiagnosticsWithTimeout :: Int -> StateT LSPClient.LSPClient IO [LSP.Diagnostic]
+waitUntilSomeDiagnosticsWithTimeout timeoutMicroseconds =
+  fix $ \loop ->
+    waitForDiagnosticsOrTimeout timeoutMicroseconds >>= \case
+      Just (LSP.PublishDiagnosticsParams _ _ (LSP.List [])) -> loop
+      Just (LSP.PublishDiagnosticsParams _ _ (LSP.List diagnostics)) -> return diagnostics
+      Nothing -> fail "Expected diagnostics but received none"
 
 waitForAllDiagnostics :: HashSet.HashSet LSP.Uri -> StateT LSPClient.LSPClient IO ()
 waitForAllDiagnostics urisNeedingDiagnostics

@@ -151,15 +151,17 @@ initializeLSP = do
           return initializeResult
         (LSPClient.matchAnyNotification -> True) -> loop
         _ -> fail "Unimplemented message"
-  checkTextDocumentSyncKind initializeResult
+  textDocumentSyncKind <- checkTextDocumentSyncKind initializeResult
+  modify $ \client -> client {LSPClient.lspClientServerSyncKind = textDocumentSyncKind}
   LSPClient.sendNotification LSP.SInitialized $ Just LSP.InitializedParams
 
-checkTextDocumentSyncKind :: LSP.InitializeResult -> StateT LSPClient.LSPClient IO ()
-checkTextDocumentSyncKind initializeResult =
+checkTextDocumentSyncKind :: LSP.InitializeResult -> StateT LSPClient.LSPClient IO LSP.TextDocumentSyncKind
+checkTextDocumentSyncKind initializeResult = do
   case textDocumentSyncKind of
     LSP.TdSyncNone -> fail "LSP server does not support document syncing"
     LSP.TdSyncIncremental -> return ()
     LSP.TdSyncFull -> return ()
+  return textDocumentSyncKind
   where
     textDocumentSyncKind =
       case initializeResult ^. LSP.capabilities ^. LSP.textDocumentSync of
