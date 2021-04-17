@@ -46,6 +46,16 @@
         margin-bottom: 0.25em;
       }
 
+      /* Make editor logos appear close to the editor names. */
+      .feature-comparison .editors th:first-child:not([colspan="2"]) {
+        white-space: nowrap;
+        padding-right: 0.25em;
+      }
+      .feature-comparison .editors th:first-child:not([colspan="2"]) + th {
+        padding-left: 0.25em;
+        padding-right: 1em;
+      }
+
       .install-options {
         display: flex;
         flex-wrap: wrap;
@@ -193,7 +203,7 @@
         <table>
           <thead>
             <tr>
-              <th>feature</th>
+              <th colspan="2">feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
               <th><a href="https://jshint.com/">JSHint</a></th>
@@ -204,7 +214,7 @@
           </thead>
           <tbody>
             <tr>
-              <th>speed</th>
+              <th colspan="2">speed</th>
               <td class="good quick-lint-js">
                 <span aria-labelled-by="feature-speed-qljs-quick">🚀</span
                 ><br /><span id="feature-speed-qljs-quick">quick</span>
@@ -232,7 +242,7 @@
               </td>
             </tr>
             <tr>
-              <th>license</th>
+              <th colspan="2">license</th>
               <td class="good quick-lint-js">free<br />GPLv3</td>
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
@@ -241,7 +251,7 @@
               <td class="meh">open source<br />MIT</td>
             </tr>
             <tr>
-              <th>easy npm install</th>
+              <th colspan="2">easy npm install</th>
               <td class="good quick-lint-js">
                 <span aria-label="easy">✅</span>
               </td>
@@ -263,7 +273,7 @@
               <td class="good"><span aria-label="easy">✅</span></td>
             </tr>
             <tr>
-              <th>easy setup</th>
+              <th colspan="2">easy setup</th>
               <td class="good quick-lint-js">
                 <span aria-label="easy">✅</span><br />zero config
               </td>
@@ -282,7 +292,7 @@
               </td>
             </tr>
             <tr>
-              <th>JSX</th>
+              <th colspan="2">JSX</th>
               <td class="bad quick-lint-js">
                 <span aria-label="no">❌</span
                 ><span
@@ -315,7 +325,7 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>TypeScript</th>
+              <th colspan="2">TypeScript</th>
               <td class="bad quick-lint-js">
                 <span aria-label="no">❌</span
                 ><span
@@ -349,7 +359,7 @@
             </tr>
 
             <tr>
-              <th>lint rules</th>
+              <th colspan="2">lint rules</th>
               <td class="meh quick-lint-js">minimal</td>
               <td class="good">
                 <a href="https://eslint.org/docs/rules/">zillions</a>
@@ -369,7 +379,7 @@
               </td>
             </tr>
             <tr>
-              <th>stable</th>
+              <th colspan="2">stable</th>
               <td class="bad quick-lint-js">
                 <span aria-label="unstable">❌</span>
               </td>
@@ -381,9 +391,9 @@
             </tr>
           </tbody>
 
-          <tbody>
+          <tbody class="editors">
             <tr>
-              <th>feature</th>
+              <th colspan="2">feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
               <th><a href="https://jshint.com/">JSHint</a></th>
@@ -392,12 +402,8 @@
               <th><a href="https://rome.tools/">Rome</a></th>
             </tr>
             <tr>
-              <th>
-                <span class="logo-with-text"
-                  ><img class="plugin-logo" src="vscode.png" alt="" /> VS
-                  Code</span
-                >
-              </th>
+              <th>VS Code</th>
+              <th><img class="plugin-logo" src="vscode.png" alt="" /></th>
               <td class="good quick-lint-js">
                 <span aria-label="yes">✅</span>
               </td>
@@ -408,11 +414,8 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>
-                <span class="logo-with-text"
-                  ><img class="plugin-logo" src="vim.gif" alt="" /> Vim</span
-                >
-              </th>
+              <th>Vim</th>
+              <th><img class="plugin-logo" src="vim.gif" alt="" /></th>
               <td class="good quick-lint-js">
                 <span aria-label="yes">✅</span>
               </td>
@@ -423,12 +426,8 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>
-                <span class="logo-with-text"
-                  ><img class="plugin-logo" src="webstorm.svg" alt="" />
-                  WebStorm</span
-                >
-              </th>
+              <th>WebStorm</th>
+              <th><img class="plugin-logo" src="webstorm.svg" alt="" /></th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -437,12 +436,8 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>
-                <span class="logo-with-text"
-                  ><img class="plugin-logo" src="sublime-text.svg" alt="" />
-                  Sublime Text</span
-                >
-              </th>
+              <th>Sublime Text</th>
+              <th><img class="plugin-logo" src="sublime-text.svg" alt="" /></th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -451,16 +446,11 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
+              <th>Notepad++</th>
               <th>
-                <span class="logo-with-text"
-                  ><img
-                    class="plugin-logo"
-                    src="notepad-plus-plus.svg"
-                    alt=""
-                  />
-                  Notepad++</span
-                >
+                <img class="plugin-logo" src="notepad-plus-plus.svg" alt="" />
               </th>
+
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -469,11 +459,8 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>
-                <span class="logo-with-text"
-                  ><img class="plugin-logo" src="atom.svg" alt="" /> Atom</span
-                >
-              </th>
+              <th>Atom</th>
+              <th><img class="plugin-logo" src="atom.svg" alt="" /></th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -482,12 +469,8 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>
-                <span class="logo-with-text"
-                  ><img class="plugin-logo" src="emacs.svg" alt="" />
-                  Emacs</span
-                >
-              </th>
+              <th>Emacs</th>
+              <th><img class="plugin-logo" src="emacs.svg" alt="" /></th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -496,7 +479,7 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>LSP server</th>
+              <th colspan="2">LSP server</th>
               <td class="good quick-lint-js">
                 <span aria-label="yes">✅</span>
               </td>
