@@ -18,6 +18,7 @@ import qualified Data.HashSet as HashSet
 import Data.Int (Int64)
 import Data.Maybe (fromJust)
 import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
 import LSPBenchmark
 import qualified LSPClient
 import qualified Language.LSP.Types as LSP
@@ -34,15 +35,37 @@ main = do
         IO.hPutStrLn IO.stderr errorMessage
         Exit.exitFailure
       Right benchmarkConfig -> return benchmarkConfig
-  Criterion.defaultMain $ map benchmarkLSPServer (benchmarkConfigServers benchmarkConfig)
+  corpus <- loadCorpus
+  Criterion.defaultMain $ map (benchmarkLSPServer corpus) (benchmarkConfigServers benchmarkConfig)
 
-benchmarkLSPServer :: BenchmarkConfigServer -> Criterion.Benchmark
-benchmarkLSPServer serverConfig@BenchmarkConfigServer {..} =
-  Criterion.bgroup benchmarkConfigServerName [benchOpenWaitClose serverConfig, benchChangeWait serverConfig]
+loadCorpus :: IO JavaScriptCorpus
+loadCorpus =
+  JavaScriptCorpus <$> Text.readFile "corpus/tiny.js" <*> Text.readFile "corpus/edex-ui-filesystem.class.js" <*>
+  Text.readFile "corpus/express-router.js"
+
+data JavaScriptCorpus =
+  JavaScriptCorpus
+    { javaScriptCorpusTiny :: !Text.Text
+    , javaScriptCorpusEdexUIFilesystemClassJS :: !Text.Text
+    , javaScriptCorpusExpressRouterJS :: !Text.Text
+    }
+
+benchmarkLSPServer :: JavaScriptCorpus -> BenchmarkConfigServer -> Criterion.Benchmark
+benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..} =
+  Criterion.bgroup
+    benchmarkConfigServerName
+    [ benchOpenWaitClose javaScriptCorpusTiny "tiny.js" serverConfig
+    , benchOpenWaitClose javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
+    , benchOpenWaitClose javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
+    , benchChangeWait javaScriptCorpusTiny "tiny.js" serverConfig
+    , benchChangeWait javaScriptCorpusEdexUIFilesystemClassJS "edex-ui-filesystem.class.js" serverConfig
+    , benchChangeWait javaScriptCorpusExpressRouterJS "express-router.js" serverConfig
+    ]
 
 -- TODO(strager): Add a similar benchmark with a warmup phase.
-benchOpenWaitClose :: BenchmarkConfigServer -> Criterion.Benchmark
-benchOpenWaitClose serverConfig = benchmarkWithLSPServer "open-wait-close" serverConfig setUp run
+benchOpenWaitClose :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
+benchOpenWaitClose fileContent benchmarkName serverConfig =
+  benchmarkWithLSPServer ("open-wait-close/" ++ benchmarkName) serverConfig setUp run
   where
     setUp :: Int64 -> StateT LSPClient.LSPClient IO (Int64, LSP.Uri)
     setUp batchSize = do
@@ -56,7 +79,7 @@ benchOpenWaitClose serverConfig = benchmarkWithLSPServer "open-wait-close" serve
         -- after closing and reopening a document.
        -> do
         let version = fromIntegral i :: Int
-        sendTextDocumentDidOpenNotification uri version "javascript" source
+        sendTextDocumentDidOpenNotification uri version "javascript" fileContent
         fix $ \loop ->
           waitForDiagnosticsOrTimeout (secondsToMicroseconds 10) >>= \case
             Nothing -> fail "Expected diagnostics but received none"
@@ -67,11 +90,10 @@ benchOpenWaitClose serverConfig = benchmarkWithLSPServer "open-wait-close" serve
             Just _diagnostics -> return ()
         LSPClient.sendNotification LSP.STextDocumentDidClose $
           LSP.DidCloseTextDocumentParams (LSP.TextDocumentIdentifier uri)
-    source :: Text.Text
-    source = "let x, x;"
 
-benchChangeWait :: BenchmarkConfigServer -> Criterion.Benchmark
-benchChangeWait serverConfig@BenchmarkConfigServer {..} = benchmarkWithLSPServer "change-wait" serverConfig setUp run
+benchChangeWait :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
+benchChangeWait modifiedSource benchmarkName serverConfig@BenchmarkConfigServer {..} =
+  benchmarkWithLSPServer ("change-wait/" ++ benchmarkName) serverConfig setUp run
   where
     setUp :: Int64 -> StateT LSPClient.LSPClient IO [LSP.Uri]
     setUp batchSize = do
@@ -105,8 +127,6 @@ benchChangeWait serverConfig@BenchmarkConfigServer {..} = benchmarkWithLSPServer
             Nothing -> fail "Expected diagnostics but received none"
     initialSource :: Text.Text
     initialSource = ""
-    modifiedSource :: Text.Text
-    modifiedSource = "let x, x;"
 
 createFileOnDiskIfNeeded :: BenchmarkConfigServer -> LSP.Uri -> StateT LSPClient.LSPClient IO ()
 createFileOnDiskIfNeeded BenchmarkConfigServer {..} uri =

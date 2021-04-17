@@ -55,7 +55,7 @@ Setup (untimed):
 Work (timed):
 
 1. Repeat the following steps once for each opened document serially:
-   1. Change the document's contents to `"let x, x;"`.
+   1. Change the document's contents to the contents of *file*.
    2. Wait for diagnostics.
 
 ### open-wait-close
@@ -68,7 +68,7 @@ Setup (untimed):
 Work (timed):
 
 1. Repeat the following steps *N* times serially:
-   1. Open a document with contents `"let x, x;"`.
+   1. Open a document with contents to the contents of *file*.
    2. Wait for diagnostics.
    3. Close the opened document.
 
