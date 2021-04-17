@@ -9,6 +9,9 @@ Install the LSP servers you want to benchmark:
 * **Deno**: Install [Deno][]. Ensure the `deno` command is in `$PATH`.
 * **ESLint**: Run `npm install` in the `eslint/` directory.
 * **Flow**: Run `npm install` in the `flow/` directory.
+* **Rome**: Run `npm install` in the `rome/` directory.
+  * Also, in `benchmark-config.json`, change `"enable": false` to
+    `"enable": true` for Rome.
 * **RSLint**: Install [RSLint's rslint_lsp crate][install-rslint]. Ensure the
   `rslint-lsp` command is in `$PATH`.
 * **TypeScript**: Run `npm install` in the `typescript/` directory.
