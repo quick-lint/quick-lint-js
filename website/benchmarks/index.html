@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew Glazar -->
+<!-- See end of file for extended copyright information. -->
+<!-- This file was generated using generate-benchmark-html.py. -->
+<html>
+  <head>
+    <title>quick-lint-js: benchmarks</title>
+    <meta charset="utf-8" />
+    <meta
+      name="description"
+      content="quick-lint-js is faster than any other JavaScript linter."
+    />
+    <link href="../main.css" rel="stylesheet" />
+    <link href="benchmark.css" rel="stylesheet" />
+    <style>
+      #methodology strong {
+        color: hsla(var(--hue), 70%, 40%);
+        font-weight: bold;
+      }
+      @media (prefers-color-scheme: dark) {
+        #methodology strong {
+          color: hsla(var(--hue), 85%, 75%);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1><a href="../">quick-lint-js</a></h1>
+      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+      <nav>
+        <ul>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <p>
+        Which JavaScript linter is the <strong>fastest</strong> and consumes the
+        <strong>least energy</strong>? We benchmarked different JavaScript
+        linters to give you the answer.
+      </p>
+      <ul>
+        <li>
+          <a href="#full-change-wait-express-router-js"
+            >LSP: full-change-wait express-router.js</a
+          >
+        </li>
+        <li><a href="#methodology">Methodology</a></li>
+      </ul>
+
+      <article class="benchmark" id="full-change-wait-express-router-js">
+        <h2>LSP: full-change-wait express-router.js</h2>
+        <p>
+          This benchmark measures how long an LSP server takes to give
+          diagnostics to an editor.
+        </p>
+        <h3>Results</h3>
+
+        <div style="--chart-max-x: 1050" class="chart linear">
+          <span class="tick" style="--x: 0">
+            <span class="label linear-only">0 ms</span>
+            <span class="marker"></span>
+          </span>
+          <span class="tick lower" style="--x: 16.66666">
+            <span class="label" title="16.67 ms">60 FPS</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 150">
+            <span class="label">150 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 300">
+            <span class="label">300 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 450">
+            <span class="label">450 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 600">
+            <span class="label">600 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 750">
+            <span class="label">750 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 900">
+            <span class="label">900 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick linear-only" style="--x: 1050">
+            <span class="label">1050 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick log-only" style="--x: 0.1">
+            <span class="label">0.1 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick log-only" style="--x: 1">
+            <span class="label">1 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick log-only" style="--x: 10">
+            <span class="label">10 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick log-only" style="--x: 100">
+            <span class="label">100 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <span class="tick log-only" style="--x: 1050">
+            <span class="label">1050 ms</span>
+            <span class="marker"></span>
+          </span>
+
+          <div
+            data-series="quick-lint-js"
+            style="--hue: 0; --average-x: 0.414; --min-x: 0.412; --max-x: 0.415"
+            class="series"
+          >
+            <span class="label">quick-lint-js</span>
+            <span class="bar"></span>
+            <span class="error-bars"></span>
+          </div>
+
+          <div
+            data-series="RSLint"
+            style="
+              --hue: 120;
+              --average-x: 18.519;
+              --min-x: 18.497;
+              --max-x: 18.554;
+            "
+            class="series"
+          >
+            <span class="label">RSLint</span>
+            <span class="bar"></span>
+            <span class="error-bars"></span>
+          </div>
+
+          <div
+            data-series="Flow"
+            style="
+              --hue: 180;
+              --average-x: 36.999;
+              --min-x: 36.725;
+              --max-x: 37.519;
+            "
+            class="series"
+          >
+            <span class="label">Flow</span>
+            <span class="bar"></span>
+            <span class="error-bars"></span>
+          </div>
+
+          <div
+            data-series="eslint-server"
+            style="
+              --hue: 60;
+              --average-x: 83.232;
+              --min-x: 70.245;
+              --max-x: 114.321;
+            "
+            class="series"
+          >
+            <span class="label">eslint-server</span>
+            <span class="bar"></span>
+            <span class="error-bars"></span>
+          </div>
+
+          <div
+            data-series="Deno"
+            style="
+              --hue: 240;
+              --average-x: 440.962;
+              --min-x: 387.568;
+              --max-x: 559.737;
+            "
+            class="series"
+          >
+            <span class="label">Deno</span>
+            <span class="bar"></span>
+            <span class="error-bars"></span>
+          </div>
+
+          <div
+            data-series="TypeScript-Theia"
+            style="
+              --hue: 300;
+              --average-x: 621.951;
+              --min-x: 435.066;
+              --max-x: 984.357;
+            "
+            class="series"
+          >
+            <span class="label">TypeScript-Theia</span>
+            <span class="bar"></span>
+            <span class="error-bars"></span>
+          </div>
+
+          <div class="x-axis-label">response time (lower is better)</div>
+          <label
+            class="log-scale javascript-only"
+            title="checked: logarithmic X axis (emphasizing ratios).&#013;unchecked: linear X axis (emphasizing time)."
+            ><input type="checkbox" class="log-scale-select" /> log scale</label
+          >
+        </div>
+
+        <table class="benchmark-table">
+          <thead>
+            <tr>
+              <th rowspan="2">linter</th>
+              <th colspan="3">response time (milliseconds)</th>
+            </tr>
+            <tr>
+              <th class="numbers"><abbr title="minimum">min</abbr></th>
+              <th class="numbers"><abbr title="average">avg</abbr></th>
+              <th class="numbers"><abbr title="maximum">max</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="--hue: 0" data-series="quick-lint-js">
+              <th>quick-lint-js</th>
+              <td>0.41</td>
+              <td>0.41</td>
+              <td>0.42</td>
+            </tr>
+
+            <tr style="--hue: 120" data-series="RSLint">
+              <th>RSLint</th>
+              <td>18.50</td>
+              <td>18.52</td>
+              <td>18.55</td>
+            </tr>
+
+            <tr style="--hue: 180" data-series="Flow">
+              <th>Flow</th>
+              <td>36.73</td>
+              <td>37.00</td>
+              <td>37.52</td>
+            </tr>
+
+            <tr style="--hue: 60" data-series="eslint-server">
+              <th>eslint-server</th>
+              <td>70.24</td>
+              <td>83.23</td>
+              <td>114.32</td>
+            </tr>
+
+            <tr style="--hue: 240" data-series="Deno">
+              <th>Deno</th>
+              <td>387.57</td>
+              <td>440.96</td>
+              <td>559.74</td>
+            </tr>
+
+            <tr style="--hue: 300" data-series="TypeScript-Theia">
+              <th>TypeScript-Theia</th>
+              <td>435.07</td>
+              <td>621.95</td>
+              <td>984.36</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Setup (untimed)</h3>
+        <ol>
+          <li>Start the LSP server.</li>
+          <li>Wait for initialization to finish.</li>
+          <li>
+            Open one document with contents from
+            <a
+              href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
+              >express-router.js</a
+            >.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+
+        <h3>Work (timed)</h3>
+        <p>Repeat the following steps <var>N</var> times:</p>
+        <ol>
+          <li>
+            Change a few characters in the document, sending the entire new
+            document in an LSP message.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+      </article>
+
+      <article id="methodology">
+        <h2>Methodology</h2>
+        <p>These benchmarks measure the following linters:</p>
+        <ul>
+          <li><strong style="--hue: 0">quick-lint-js</strong> version 0.2.0</li>
+          <li>
+            <strong style="--hue: 120">RSLint</strong> version
+            b7a4eeb69dc00fedfee81eaed3cf2ad36bcb2e2e (unreleased) (with rustc
+            version 1.51.0)
+          </li>
+          <li><strong style="--hue: 180">Flow</strong> version 0.148.0</li>
+          <li>
+            <strong style="--hue: 60">ESLint</strong> version 5.16.0 (with
+            eslint-server version 0.1.7 and Node version v16.0.0)
+          </li>
+          <li>
+            <strong style="--hue: 240">Deno</strong> version 1.9.1 (with V8
+            version 9.1.269.5 and TypeScript version 4.2.2)
+          </li>
+          <li>
+            <strong style="--hue: 300">TypeScript</strong> version 4.2.4 (with
+            Theia's language server version 0.5.1 and Node version v16.0.0)
+          </li>
+        </ul>
+
+        <p>These benchmarks were measured on the following machine:</p>
+        <ul>
+          <li>strager's "straglum"; Purism Librem 13 Version 4 laptop</li>
+          <li>CPU: Intel Core i7-7500U CPU @ 2.70 GHz (2 cores, 4 threads)</li>
+          <li>
+            OS: Linux Mint 20 Ulyana; Linux 5.4.0-42-generic #46-Ubuntu SMP
+            x86_64 GNU/Linux
+          </li>
+          <li>Performance governor: performance; 400 MHz - 3.50 GHz</li>
+        </ul>
+      </article>
+    </main>
+
+    <footer>
+      <nav>
+        <ul>
+          <li><a href="..">quick-lint-js home page</a></li>
+          <li><a href="../hiring.html">we're hiring! get paid to code</a></li>
+          <li><a href="../demo/">try quick-lint-js in your browser</a></li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+          <li>
+            <a href="../license.html">copyright and license information</a>
+          </li>
+        </ul>
+      </nav>
+    </footer>
+
+    <script type="module" src="benchmark.mjs"></script>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

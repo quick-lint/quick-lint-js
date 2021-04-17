@@ -48,6 +48,11 @@ cp demo/dist/copyright.txt "${output_directory}/demo/dist/"
 cp demo/dist/quick-lint-js-wasm-demo.js "${output_directory}/demo/dist/"
 cp demo/dist/quick-lint-js-wasm-demo.wasm "${output_directory}/demo/dist/"
 
+mkdir -p "${output_directory}/benchmarks/"
+cp benchmarks/benchmark.css "${output_directory}/benchmarks/"
+cp benchmarks/benchmark.mjs "${output_directory}/benchmarks/"
+cp benchmarks/index.html "${output_directory}/benchmarks/"
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #

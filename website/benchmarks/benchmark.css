@@ -1,0 +1,368 @@
+/* Copyright (C) 2020  Matthew Glazar */
+/* See end of file for extended copyright information. */
+
+.javascript-only {
+  display: none;
+}
+
+body.javascript .javascript-only {
+  display: initial;
+}
+
+/* Animate the chart when toggling between log/linear. */
+.chart {
+  --transition-duration: 0.5s;
+}
+.chart .series .bar,
+.chart .series .label,
+.chart .series .error-bars,
+.chart .tick .label,
+.chart .tick .marker,
+.chart .tick {
+  transition-duration: var(--transition-duration);
+}
+.chart .series .bar {
+  transition-property: width;
+}
+.chart .series .label {
+  transition-property: color, left, text-shadow;
+}
+.chart .series .error-bars {
+  transition-property: left, right;
+}
+
+/* Allow JavaScript to disable animations. */
+.chart.disable-animations {
+  --transition-duration: 0s;
+}
+
+.chart {
+  --x-axis-label-line-height: 1.4em;
+  overflow: hidden;
+  position: relative;
+
+  /* Make space for the "0 ms" and "1000 ms" labels. */
+  --chart-padding-left: calc(4ch / 2);
+  --chart-padding-right: calc(7ch / 2);
+  padding-left: var(--chart-padding-left);
+  padding-right: var(--chart-padding-right);
+
+  /* Force bottom and top margins of .series to show by setting a non-zero
+     padding-bottom and padding-top. */
+  padding-top: 0.1px;
+
+  /* Make room for X-axis labels. */
+  padding-bottom: calc(var(--x-axis-label-line-height) * 3);
+}
+
+.chart .series {
+  height: 1.75em;
+  line-height: 1.75em;
+  margin: 0.25em 0;
+  position: relative;
+  width: 100%;
+
+  /* Cut off .error-bars on browsers which don't support max(). */
+  overflow-x: hidden;
+}
+
+.chart .series .label {
+  bottom: 0;
+  position: absolute;
+  top: 0;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+/* Move the series label inside or outside the bar. */
+.chart .series .label {
+  left: 0;
+}
+.chart .series .label.no-fit {
+  left: calc(100% * (var(--max-x) / var(--chart-max-x)));
+}
+
+/* Make the series label legible. */
+.chart .series .label {
+  color: #000;
+  text-shadow: 0 0 10px #fff;
+}
+.chart .series .label.no-fit {
+  color: #000;
+  text-shadow: 0 0 5px #fff, 0 0 5px #fff, 0 0 5px #fff, 0 0 5px #fff,
+    0 0 5px #fff, 0 0 5px #fff, 0 0 5px #fff, 0 0 5px #fff, 0 0 5px #fff;
+}
+.chart .series.selected .label,
+.chart.fitting .series .label {
+  font-weight: bold;
+}
+@media (prefers-color-scheme: dark) {
+  .chart .series .label {
+    color: #fff;
+    text-shadow: 0 0 10px #000, 0 0 5px rgba(0, 0, 0, 0.5);
+  }
+  .chart .series .label.no-fit {
+    color: #fff;
+    text-shadow: 0 0 5px #000, 0 0 5px #000, 0 0 5px #000;
+  }
+}
+
+.chart .series .bar {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: calc(
+    100% * (var(--average-x) / var(--chart-max-x)) - var(--border-width)
+  );
+}
+.chart .series .error-bars {
+  bottom: 25%;
+  position: absolute;
+  right: calc(100% - (100% * (var(--max-x) / var(--chart-max-x)) + 2px));
+  top: 25%;
+
+  /* NOTE(strager): Old versions of Chrome don't support max(). Provide an approximate fallback. */
+  left: calc(100% * (var(--min-x) / var(--chart-max-x)) - 2px);
+  left: max(0px, calc(100% * (var(--min-x) / var(--chart-max-x)) - 2px));
+}
+.chart .series .error-bars:before {
+  content: " ";
+  height: 3px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: calc(50% - (3px / 2));
+}
+
+/* Make the bars and error bars look pretty. */
+.chart .series .bar {
+  --border-width: 2px;
+  background-color: hsla(var(--hue), 70%, 70%);
+  border-color: hsla(var(--hue), 40%, 60%);
+  border-style: solid;
+  border-width: var(--border-width) var(--border-width) var(--border-width) 0;
+}
+.chart .series .error-bars {
+  --error-bar-color: hsla(var(--hue), 60%, 55%);
+  border-style: none solid;
+  border-width: 2px;
+  border-color: var(--error-bar-color);
+}
+.chart .series .error-bars:before {
+  background-color: var(--error-bar-color);
+}
+.chart .series.selected .bar {
+  background-color: hsla(var(--hue), 70%, 55%);
+  border-color: hsla(var(--hue), 40%, 45%);
+}
+.chart .series.selected .error-bars {
+  --error-bar-color: hsla(var(--hue), 90%, 40%);
+}
+@media (prefers-color-scheme: dark) {
+  .chart .series .bar {
+    background-color: hsla(var(--hue), 70%, 50%);
+    border-color: hsla(var(--hue), 55%, 35%);
+  }
+  .chart .series .error-bars {
+    --error-bar-color: hsla(var(--hue), 60%, 40%);
+  }
+  .chart .series.selected .bar {
+    background-color: hsla(var(--hue), 70%, 60%);
+    border-color: hsla(var(--hue), 40%, 45%);
+  }
+  .chart .series.selected .error-bars {
+    --error-bar-color: hsla(var(--hue), 70%, 45%);
+  }
+}
+
+/* Position tick labels at the bottom of the chart. */
+.chart .tick {
+  --tick-center: calc(
+    (
+        (100% - var(--chart-padding-left) - var(--chart-padding-right)) *
+          var(--x) / var(--chart-max-x)
+      ) + var(--chart-padding-left)
+  );
+}
+.chart .tick .label {
+  --label-width: 10em;
+  bottom: calc(2 * var(--x-axis-label-line-height));
+  left: calc(var(--tick-center) - var(--label-width) / 2);
+  line-height: var(--x-axis-label-line-height);
+  position: absolute;
+  text-align: center;
+  width: var(--label-width);
+}
+
+/* If the chart is not given enough space, rotate the labels so they don't
+   intersect one another. */
+.chart .tick .label {
+  transform: translate(0px, 0.25em) rotate(15deg);
+}
+@media only screen and (min-width: 560px) {
+  .chart .tick .label {
+    transform: unset;
+  }
+}
+
+/* Make a line going up and down the chart. */
+.chart .tick .marker {
+  border-left: 2px solid #000;
+  bottom: calc(3 * var(--x-axis-label-line-height));
+  left: var(--tick-center);
+  opacity: 0.3;
+  position: absolute;
+  top: 0;
+  width: 0;
+}
+@media (prefers-color-scheme: dark) {
+  .chart .tick .marker {
+    border-left-color: #fff;
+    opacity: 0.4;
+  }
+}
+
+/* Stylize FPS ticks differently for emphasis and to avoid confusing them
+   with ms ticks. */
+.chart .tick.lower .label {
+  bottom: var(--x-axis-label-line-height);
+}
+.chart .tick.lower .marker {
+  border-left-style: dashed;
+  bottom: calc(2 * var(--x-axis-label-line-height));
+}
+
+/* Hide log-chart-only elements when showing a linear chart, and hide
+   linear-chart-only elements when showing a log chart. */
+.chart.linear .tick .label.log-only,
+.chart.linear .tick.log-only .label,
+.chart.linear .tick.log-only .marker,
+.chart.log .tick .label.linear-only,
+.chart.log .tick.linear-only .label,
+.chart.log .tick.linear-only .marker {
+  opacity: 0;
+}
+
+.chart .x-axis-label {
+  bottom: 0;
+  font-weight: bold;
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+}
+
+.chart .log-scale {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+/* Make the "log scale" text legible on top of tick markers. */
+.chart .log-scale {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 5px #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .chart .log-scale {
+    background-color: rgba(0, 43, 54, 0.9);
+    box-shadow: 0 0 5px #002b36;
+  }
+}
+
+.chart .tick .marker {
+  z-index: 1;
+}
+.chart .series .bar {
+  z-index: 2;
+}
+.chart .series .error-bars {
+  z-index: 3;
+}
+.chart .tick .label {
+  z-index: 4;
+}
+.chart .series .label {
+  z-index: 5;
+}
+.chart .log-scale {
+  z-index: 6;
+}
+
+.benchmark-table {
+  border-collapse: collapse;
+  margin: 1em auto;
+}
+.benchmark-table td,
+.benchmark-table th {
+  padding: 0.25em 0.5em;
+  vertical-align: bottom;
+}
+.benchmark-table thead tr:first-child th:first-child {
+  text-align: left;
+}
+.benchmark-table tbody th {
+  text-align: left;
+}
+.benchmark-table th.numbers,
+.benchmark-table tbody td {
+  text-align: right;
+}
+
+.benchmark-table tbody tr {
+  background-color: hsla(var(--hue), 70%, 80%);
+}
+@media (prefers-color-scheme: dark) {
+  .benchmark-table tbody tr {
+    background-color: hsla(var(--hue), 70%, 30%);
+  }
+}
+
+/* Create a border around each row which is visible if a row is selected. (Only
+   one row can be selected at a time.) */
+.benchmark-table tbody tr td,
+.benchmark-table tbody tr th {
+  border: 2px solid transparent;
+}
+.benchmark-table tbody tr:not(:last-child) td,
+.benchmark-table tbody tr:not(:last-child) th {
+  border-bottom-width: 0;
+}
+.benchmark-table tbody tr td:not(:first-child),
+.benchmark-table tbody tr th:not(:first-child) {
+  border-left-width: 0;
+}
+.benchmark-table tbody tr td:not(:last-child),
+.benchmark-table tbody tr th:not(:last-child) {
+  border-right-width: 0;
+}
+.benchmark-table tbody tr.selected td,
+.benchmark-table tbody tr.selected th {
+  border-bottom-width: 2px;
+  border-color: hsla(var(--hue), 70%, 50%);
+}
+@media (prefers-color-scheme: dark) {
+  .benchmark-table tbody tr.selected td,
+  .benchmark-table tbody tr.selected th {
+    border-color: hsla(var(--hue), 70%, 40%);
+  }
+}
+
+/*
+ * quick-lint-js finds bugs in JavaScript programs.
+ * Copyright (C) 2020  Matthew Glazar
+ *
+ * quick-lint-js is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * quick-lint-js is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+ */
