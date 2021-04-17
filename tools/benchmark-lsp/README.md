@@ -28,10 +28,11 @@ Customize `benchmark-config.json` with the LSP servers you want to benchmark.
 Print a list of benchmarks:
 
     $ stack run -- --list
-    eslint-server/change-wait
-    eslint-server/open-wait-close
-    quick-lint-js/change-wait
-    quick-lint-js/open-wait-close
+    Deno/change-wait/edex-ui-filesystem.class.js
+    Deno/change-wait/express-router.js
+    ...
+    quick-lint-js/open-wait-close/express-router.js
+    quick-lint-js/open-wait-close/tiny.js
 
 Run the benchmarks and generate an HTML report with graphs:
 
