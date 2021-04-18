@@ -11,15 +11,12 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/pipe-reader.h>
 #include <quick-lint-js/pipe.h>
 #include <thread>
-
-#if QLJS_HAVE_PTHREAD_KILL
-#include <pthread.h>
-#include <signal.h>
-#endif
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
@@ -33,34 +30,13 @@ namespace quick_lint_js {
 namespace {
 std::size_t pipe_buffer_size(platform_file_ref);
 
-#if QLJS_HAVE_PTHREAD_KILL
-class sigaction_guard {
- public:
-  explicit sigaction_guard(int signal_number) : signal_number_(signal_number) {
-    int rc =
-        ::sigaction(this->signal_number_, nullptr, &this->saved_sigaction_);
-    QLJS_ALWAYS_ASSERT(rc == 0);
-  }
-
-  ~sigaction_guard() {
-    int rc =
-        ::sigaction(this->signal_number_, &this->saved_sigaction_, nullptr);
-    QLJS_ALWAYS_ASSERT(rc == 0);
-  }
-
-  sigaction_guard(const sigaction_guard &) = delete;
-  sigaction_guard &operator=(const sigaction_guard &) = delete;
-
- private:
-  int signal_number_;
-  struct sigaction saved_sigaction_;
-};
-#endif
-
 class test_lsp_pipe_writer : public ::testing::Test {
  public:
+  explicit test_lsp_pipe_writer() { this->pipe.writer.set_pipe_non_blocking(); }
+
   pipe_fds pipe = make_pipe();
-  lsp_pipe_writer writer{this->pipe.writer.ref()};
+  // @@@ hack: call set_pipe_non_blocking before ctor
+  lsp_pipe_writer writer {(this->pipe.writer.set_pipe_non_blocking(), this->pipe.writer.ref())};
 };
 
 byte_buffer byte_buffer_of(string8_view data) {
@@ -71,6 +47,7 @@ byte_buffer byte_buffer_of(string8_view data) {
 
 TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
   this->writer.send_message(byte_buffer_of(u8"hi"));
+  this->writer.flush();
   this->pipe.writer.close();
 
   read_file_result data = read_file("<pipe>", this->pipe.reader.ref());
@@ -87,6 +64,7 @@ TEST_F(test_lsp_pipe_writer, large_message_sends_fully) {
       u8"[" + string8(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x') +
       u8"]";
   this->writer.send_message(byte_buffer_of(message));
+  this->writer.flush();
   this->pipe.writer.close();
 
   read_file_result data = data_future.get();
@@ -96,52 +74,31 @@ TEST_F(test_lsp_pipe_writer, large_message_sends_fully) {
   EXPECT_NE(data_content.find(message), data_content.npos);
 }
 
-#if QLJS_HAVE_PTHREAD_KILL
-TEST_F(test_lsp_pipe_writer, large_message_sends_fully_with_interrupt) {
-  sigaction_guard signal_guard(SIGALRM);
-
-  ::pthread_t writer_thread_id = ::pthread_self();
-
-  ASSERT_NE(::signal(SIGALRM,
-                     [](int) {
-                       // Do nothing. Just interrupt syscalls.
-                     }),
-            SIG_ERR)
-      << std::strerror(errno);
-
-  std::future<read_file_result> data_future =
-      std::async(std::launch::async, [this, writer_thread_id]() {
-        int rc;
-
-        // Interrupt the write() syscall, causing it to return early.
-        std::this_thread::sleep_for(10ms);  // Wait for write() to execute.
-        rc = ::pthread_kill(writer_thread_id, SIGALRM);
-        EXPECT_EQ(rc, 0) << std::strerror(rc);
-        // The pipe's buffer should now be full.
-
-        // Interrupt the write() syscall again, causing it to restart. This
-        // write() call shouldn't have written anything, because the pipe's
-        // buffer is already full.
-        std::this_thread::sleep_for(1ms);  // Wait for write() to execute.
-        rc = ::pthread_kill(writer_thread_id, SIGALRM);
-        EXPECT_EQ(rc, 0) << std::strerror(rc);
-
-        return read_file("<pipe>", this->pipe.reader.ref());
-      });
-
+TEST_F(test_lsp_pipe_writer, large_message_with_no_reader_does_not_block) {
   string8 message =
       u8"[" + string8(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x') +
       u8"]";
-  this->writer.send_message(byte_buffer_of(message));
-  this->pipe.writer.close();
+  this->writer.send_message(byte_buffer_of(message));  // Shouldn't block.
+  std::this_thread::sleep_for(std::chrono::seconds(10)); // @@@
+  static std::promise<string8> received_message_promise;
+  received_message_promise = std::promise<string8>();
 
-  read_file_result data = data_future.get();
-  ASSERT_TRUE(data.ok()) << data.error;
+  // Read exactly as many bytes as needed to parse the message, then set
+  // received_message_promise.
+  std::future<void> receiving_thread = std::async(std::launch::async, [this] {
+    struct message_handler : lsp_message_parser<message_handler> {
+      void message_parsed(string8_view message_content) {
+        received_message_promise.set_value(string8(message_content));
+      }
+    };
+    pipe_reader<message_handler> reader(this->pipe.reader.ref());
+    reader.run();
+  });
 
-  string8_view data_content = data.content.string_view();
-  EXPECT_NE(data_content.find(message), data_content.npos);
+  string8 data = received_message_promise.get_future().get();
+  this->pipe.writer.close();  // Stop receiving_thread ASAP.
+  EXPECT_EQ(data, message);
 }
-#endif
 
 std::size_t pipe_buffer_size([[maybe_unused]] platform_file_ref pipe) {
 #if QLJS_HAVE_F_GETPIPE_SZ

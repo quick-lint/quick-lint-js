@@ -128,6 +128,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_POLL)
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#define QLJS_HAVE_POLL 1
+#else
+#define QLJS_HAVE_POLL 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_SETRLIMIT)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
     (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \

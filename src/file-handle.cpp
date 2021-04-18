@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <array>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -20,6 +21,10 @@
 
 #if QLJS_HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+
+#if QLJS_HAVE_POLL
+#include <poll.h>
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -83,6 +88,75 @@ std::optional<int> windows_handle_file_ref::write(const void *buffer,
   return narrow_cast<int>(write_size);
 }
 
+bool windows_handle_file_ref::is_pipe_non_blocking() {
+  DWORD state;
+  BOOL ok = ::GetNamedPipeHandleStateA(this->get(),
+                                       /*lpState=*/&state,
+                                       /*lpCurInstances=*/nullptr,
+                                       /*lpMaxCollectionCount=*/nullptr,
+                                       /*lpCollectDataTimeout=*/nullptr,
+                                       /*lpUserName=*/nullptr,
+                                       /*nMaxUserNameSize=*/0);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return (state & PIPE_NOWAIT) == PIPE_NOWAIT;
+}
+
+void windows_handle_file_ref::set_pipe_non_blocking() {
+  DWORD mode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
+  BOOL ok = ::SetNamedPipeHandleState(this->get(), /*lpMode=*/&mode,
+                                      /*lpMaxCollectionCount=*/nullptr,
+                                      /*lpCollectDataTimeout=*/nullptr);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+}
+
+void windows_handle_file_ref::block_until_pipe_is_writeable_or_broken() {
+  DWORD mode = PIPE_READMODE_BYTE;
+  BOOL ok = ::SetNamedPipeHandleState(this->get(), /*lpMode=*/&mode,
+                                      /*lpMaxCollectionCount=*/nullptr,
+                                      /*lpCollectDataTimeout=*/nullptr);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+
+  char buffer[1];
+  DWORD write_size;
+  if (!::WriteFile(this->handle_, &buffer, /*nNumberOfBytesToWrite=*/0,
+                   &write_size,
+                   /*lpOverlapped=*/nullptr)) {
+    QLJS_UNIMPLEMENTED();
+  }
+  QLJS_ASSERT(write_size == 0);
+
+  DWORD mode2 = PIPE_READMODE_BYTE | PIPE_NOWAIT;
+  BOOL ok2 = ::SetNamedPipeHandleState(this->get(), /*lpMode=*/&mode2,
+                                      /*lpMaxCollectionCount=*/nullptr,
+                                      /*lpCollectDataTimeout=*/nullptr);
+  if (!ok2) {
+    QLJS_UNIMPLEMENTED();
+  }
+
+  //DWORD rc = ::WaitForSingleObject(this->get(), /*dwMilliseconds=*/INFINITE);
+  //switch (rc) {
+  //case WAIT_OBJECT_0:
+  //  break;
+  //case WAIT_ABANDONED:
+  //  QLJS_UNIMPLEMENTED();
+  //  break;
+  //case WAIT_TIMEOUT:
+  //  QLJS_ASSERT(false);
+  //  break;
+  //case WAIT_FAILED:
+  //  QLJS_UNIMPLEMENTED();
+  //  break;
+  //}
+  // @@@ we should block yo. but how?
+  // https://docs.microsoft.com/en-us/windows/win32/ipc/named-pipe-type-read-and-wait-modes
+}
+
 std::string windows_handle_file_ref::get_last_error_message() {
   return windows_error_message(::GetLastError());
 }
@@ -139,6 +213,51 @@ std::optional<int> posix_fd_file_ref::write(const void *buffer,
     return std::nullopt;
   }
   return narrow_cast<int>(written_size);
+}
+
+bool posix_fd_file_ref::is_pipe_non_blocking() {
+#if QLJS_HAVE_FCNTL_H
+  int rc = ::fcntl(this->get(), F_GETFL, O_NONBLOCK);
+  if (rc == -1) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return rc != 0;
+#else
+#error "Unsupported platform"
+#endif
+}
+
+void posix_fd_file_ref::set_pipe_non_blocking() {
+#if QLJS_HAVE_FCNTL_H
+  int rc = ::fcntl(this->get(), F_SETFL, O_NONBLOCK);
+  if (rc != 0) {
+    QLJS_UNIMPLEMENTED();
+  }
+#else
+#error "Unsupported platform"
+#endif
+}
+
+void posix_fd_file_ref::block_until_pipe_is_writeable_or_broken() {
+#if QLJS_HAVE_POLL
+retry:
+  std::array<::pollfd, 1> fds;
+  fds[0].fd = this->get();
+  fds[0].events = POLLOUT;
+  int rc =
+      ::poll(fds.data(), narrow_cast<::nfds_t>(fds.size()), /*timeout=*/-1);
+  if (rc == -1) {
+    if (errno == EAGAIN || errno == EINTR) {
+      goto retry;
+    }
+    QLJS_UNIMPLEMENTED();
+  }
+  QLJS_ASSERT(rc != 0);  // Shouldn't time out.
+  QLJS_ASSERT(rc == 1);
+  QLJS_ASSERT((fds[0].revents & (POLLOUT | POLLERR | POLLHUP)) != 0);
+#else
+#error "Unsupported platform"
+#endif
 }
 
 std::string posix_fd_file_ref::get_last_error_message() {

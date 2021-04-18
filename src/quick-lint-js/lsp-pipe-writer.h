@@ -4,8 +4,11 @@
 #ifndef QUICK_LINT_JS_LSP_PIPE_WRITER_H
 #define QUICK_LINT_JS_LSP_PIPE_WRITER_H
 
+#include <condition_variable>
+#include <mutex>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
+#include <thread>
 
 namespace quick_lint_js {
 class byte_buffer;
@@ -14,11 +17,26 @@ class byte_buffer;
 // a pipe or socket.
 //
 // lsp_pipe_writer satisfies lsp_endpoint_remote.
+//
+// lsp_pipe_writer is not thread-safe.
 class lsp_pipe_writer {
  public:
+  // Precondition: pipe is non-blocking
   explicit lsp_pipe_writer(platform_file_ref pipe);
 
-  void send_message(const byte_buffer&);
+  lsp_pipe_writer(const lsp_pipe_writer &) = delete;
+  lsp_pipe_writer &operator=(const lsp_pipe_writer &) = delete;
+
+  ~lsp_pipe_writer();
+
+  // send_message is non-blocking. It might defer the work of sending to a
+  // separate thread.
+  void send_message(const byte_buffer &);
+
+  // Block waiting for previous calls to send_message to fully complete. After
+  // flush returns, lsp_pipe_writer won't write data to the pipe until
+  // send_message is called again.
+  void flush();
 
  private:
   template <class T>
@@ -26,7 +44,21 @@ class lsp_pipe_writer {
 
   void write(string8_view);
 
+  string8_view write_as_much_as_possible_now(string8_view);
+
+  void start_flushing_thread_if_needed();
+  void run_flushing_thread();
+
   platform_file_ref pipe_;
+
+  std::thread flushing_thread_;
+  std::mutex mutex_;
+  std::condition_variable data_is_pending_;
+  std::condition_variable data_is_flushed_;
+
+  // Protected by mutex_:
+  byte_buffer pending_;
+  bool stop_ = false;
 };
 }
 
