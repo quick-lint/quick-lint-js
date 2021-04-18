@@ -225,6 +225,9 @@ void byte_buffer::delete_chunk(byte_buffer_chunk&& c) {
   delete[] chunk_begin(c);
 }
 
+byte_buffer_iovec::byte_buffer_iovec()
+    : byte_buffer_iovec(std::vector<byte_buffer_chunk>()) {}
+
 byte_buffer_iovec::byte_buffer_iovec(std::vector<byte_buffer_chunk>&& chunks)
     : chunks_(std::move(chunks)), first_chunk_index_(0) {
   if (this->chunks_.empty()) {

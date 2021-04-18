@@ -8,16 +8,36 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/have.h>
+#include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/lsp-pipe-writer.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/pipe-reader.h>
 #include <quick-lint-js/pipe.h>
 #include <thread>
+
+#if QLJS_HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
+using ::testing::ElementsAre;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
 class test_lsp_pipe_writer : public ::testing::Test {
  public:
-  pipe_fds pipe = make_pipe();
+  pipe_fds pipe = make_pipe_for_pipe_writer();
   lsp_pipe_writer writer{this->pipe.writer.ref()};
+
+ private:
+  static pipe_fds make_pipe_for_pipe_writer() {
+    pipe_fds pipe = make_pipe();
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD
+    pipe.writer.set_pipe_non_blocking();
+#endif
+    return pipe;
+  }
 };
 
 byte_buffer byte_buffer_of(string8_view data) {
@@ -28,6 +48,7 @@ byte_buffer byte_buffer_of(string8_view data) {
 
 TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
   this->writer.send_message(byte_buffer_of(u8"hi"));
+  this->writer.flush();
   this->pipe.writer.close();
 
   read_file_result data = read_file("<pipe>", this->pipe.reader.ref());

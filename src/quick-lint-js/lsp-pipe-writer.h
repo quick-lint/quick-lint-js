@@ -6,6 +6,7 @@
 
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe-writer.h>
 
 namespace quick_lint_js {
@@ -15,14 +16,19 @@ class byte_buffer;
 // a pipe or socket.
 //
 // lsp_pipe_writer satisfies lsp_endpoint_remote.
-class lsp_pipe_writer {
+//
+// lsp_pipe_writer is not thread-safe.
+class lsp_pipe_writer : private pipe_writer {
  public:
   explicit lsp_pipe_writer(platform_file_ref pipe);
 
-  void send_message(byte_buffer&&);
+  void send_message(byte_buffer &&);
 
- private:
-  pipe_writer writer_;
+  using pipe_writer::flush;
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
+  using pipe_writer::get_pollfd;
+  using pipe_writer::on_poll_event;
+#endif
 };
 }
 

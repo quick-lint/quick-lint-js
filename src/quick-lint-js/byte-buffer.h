@@ -116,6 +116,7 @@ class byte_buffer_iovec {
  public:
   using size_type = byte_buffer::size_type;
 
+  explicit byte_buffer_iovec();
   explicit byte_buffer_iovec(std::vector<byte_buffer_chunk>&&);
 
   byte_buffer_iovec(byte_buffer_iovec&&);
@@ -125,6 +126,8 @@ class byte_buffer_iovec {
 
   const byte_buffer_chunk* iovec() const noexcept;
   int iovec_count() const noexcept;
+
+  bool empty() const noexcept { return this->iovec_count() == 0; }
 
   // After calling this->append(bb), do not call any other member function on
   // the given byte_buffer (aside from the destructor).

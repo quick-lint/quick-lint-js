@@ -25,14 +25,14 @@ char8* make_header(std::size_t message_size, char8* out) {
 }
 }
 
-lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : writer_(pipe) {}
+lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_writer(pipe) {}
 
 void lsp_pipe_writer::send_message(byte_buffer&& message) {
   std::array<char8, max_header_size> header;
   char8* header_end = make_header(message.size(), header.data());
   message.prepend_copy(string8_view(
       header.data(), narrow_cast<std::size_t>(header_end - header.data())));
-  this->writer_.write(std::move(message).to_iovec());
+  this->write(std::move(message));
 }
 }
 

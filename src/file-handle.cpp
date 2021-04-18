@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <array>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -14,6 +15,7 @@
 #include <quick-lint-js/string-view.h>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
@@ -84,12 +86,31 @@ std::optional<int> windows_handle_file_ref::write(const void *buffer,
   return narrow_cast<int>(write_size);
 }
 
+bool windows_handle_file_ref::is_pipe_non_blocking() {
+  DWORD state;
+  BOOL ok = ::GetNamedPipeHandleStateA(this->get(),
+                                       /*lpState=*/&state,
+                                       /*lpCurInstances=*/nullptr,
+                                       /*lpMaxCollectionCount=*/nullptr,
+                                       /*lpCollectDataTimeout=*/nullptr,
+                                       /*lpUserName=*/nullptr,
+                                       /*nMaxUserNameSize=*/0);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return (state & PIPE_NOWAIT) == PIPE_NOWAIT;
+}
+
 std::string windows_handle_file_ref::get_last_error_message() {
   return windows_error_message(::GetLastError());
 }
 
 windows_handle_file::windows_handle_file(HANDLE handle) noexcept
     : windows_handle_file_ref(handle) {}
+
+windows_handle_file::windows_handle_file(windows_handle_file &&other) noexcept
+    : windows_handle_file_ref(
+          std::exchange(other.handle_, this->invalid_handle)) {}
 
 windows_handle_file::~windows_handle_file() {
   if (this->handle_ != this->invalid_handle) {
@@ -142,6 +163,29 @@ std::optional<int> posix_fd_file_ref::write(const void *buffer,
   return narrow_cast<int>(written_size);
 }
 
+bool posix_fd_file_ref::is_pipe_non_blocking() {
+#if QLJS_HAVE_FCNTL_H
+  int rc = ::fcntl(this->get(), F_GETFL);
+  if (rc == -1) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return (rc & O_NONBLOCK) != 0;
+#else
+#error "Unsupported platform"
+#endif
+}
+
+void posix_fd_file_ref::set_pipe_non_blocking() {
+#if QLJS_HAVE_FCNTL_H
+  int rc = ::fcntl(this->get(), F_SETFL, O_NONBLOCK);
+  if (rc != 0) {
+    QLJS_UNIMPLEMENTED();
+  }
+#else
+#error "Unsupported platform"
+#endif
+}
+
 std::string posix_fd_file_ref::get_last_error_message() {
   return std::strerror(errno);
 }
@@ -149,6 +193,9 @@ std::string posix_fd_file_ref::get_last_error_message() {
 posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {
   QLJS_ASSERT(fd != invalid_fd);
 }
+
+posix_fd_file::posix_fd_file(posix_fd_file &&other) noexcept
+    : posix_fd_file_ref(std::exchange(other.fd_, this->invalid_fd)) {}
 
 posix_fd_file::~posix_fd_file() {
   if (this->fd_ != invalid_fd) {

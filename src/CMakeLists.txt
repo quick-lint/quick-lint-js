@@ -13,6 +13,12 @@ option(
   FALSE
 )
 
+set(NEED_THREADS TRUE)
+
+if (NEED_THREADS)
+  find_package(Threads REQUIRED)
+endif ()
+
 quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
@@ -146,6 +152,10 @@ target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
 if (WIN32)
   target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
+endif ()
+target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (NEED_THREADS)
+  target_link_libraries(quick-lint-js-lib PRIVATE Threads::Threads)
 endif ()
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(

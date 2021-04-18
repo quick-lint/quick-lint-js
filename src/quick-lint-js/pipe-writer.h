@@ -4,21 +4,107 @@
 #ifndef QUICK_LINT_JS_PIPE_WRITER_H
 #define QUICK_LINT_JS_PIPE_WRITER_H
 
+#include <condition_variable>
+#include <mutex>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/have.h>
+#include <thread>
+
+#if QLJS_HAVE_POLL
+#include <poll.h>
+#endif
+
+#if defined(_WIN32)
+#define QLJS_PIPE_WRITER_SEPARATE_THREAD 1
+#else
+// TODO(strager): Use non-blocking I/O after we change the LSP server to use an
+// event loop.
+#define QLJS_PIPE_WRITER_SEPARATE_THREAD 1
+#endif
 
 namespace quick_lint_js {
 class byte_buffer_iovec;
 
-class pipe_writer {
+#if QLJS_PIPE_WRITER_SEPARATE_THREAD
+class background_thread_pipe_writer {
  public:
-  explicit pipe_writer(platform_file_ref pipe);
+  // Precondition: pipe is blocking
+  explicit background_thread_pipe_writer(platform_file_ref pipe);
 
-  void write(byte_buffer_iovec&&);
+  background_thread_pipe_writer(const background_thread_pipe_writer &) = delete;
+  background_thread_pipe_writer &operator=(
+      const background_thread_pipe_writer &) = delete;
+
+  ~background_thread_pipe_writer();
+
+  // write is non-blocking. It will defer the work to a separate thread.
+  void write(byte_buffer &&);
+
+  // Block waiting for previous calls to send_message to fully complete. After
+  // flush returns, background_thread_pipe_writer won't write data to the pipe
+  // until send_message is called again.
+  //
+  // For testing purposes only.
+  void flush();
 
  private:
+  void write_all_now_blocking(byte_buffer_iovec &);
+
+  void run_flushing_thread();
+
   platform_file_ref pipe_;
+
+  std::thread flushing_thread_;
+  std::mutex mutex_;
+  std::condition_variable data_is_pending_;
+  std::condition_variable data_is_flushed_;
+
+  // Protected by mutex_:
+  byte_buffer_iovec pending_;
+  bool stop_ = false;
 };
+#endif
+
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD
+class non_blocking_pipe_writer {
+ public:
+  // Precondition: pipe is non-blocking
+  explicit non_blocking_pipe_writer(platform_file_ref pipe);
+
+  non_blocking_pipe_writer(const non_blocking_pipe_writer &) = delete;
+  non_blocking_pipe_writer &operator=(const non_blocking_pipe_writer &) =
+      delete;
+
+  // write is non-blocking. It writes as much data as possible immediately. Call
+  // on_poll_event to write remaining data.
+  void write(byte_buffer &&);
+
+  // Block waiting for previous calls to send_message to fully complete. After
+  // flush returns, non_blocking_pipe_writer won't write data to the pipe until
+  // send_message is called again.
+  //
+  // For testing purposes only.
+  void flush();
+
+#if QLJS_HAVE_POLL
+  ::pollfd get_pollfd() noexcept;
+  void on_poll_event(const ::pollfd &);
+#endif
+
+ private:
+  void write_as_much_as_possible_now_non_blocking(byte_buffer_iovec &);
+
+  platform_file_ref pipe_;
+  byte_buffer_iovec pending_;
+};
+#endif
+
+#if QLJS_PIPE_WRITER_SEPARATE_THREAD
+using pipe_writer = background_thread_pipe_writer;
+#else
+using pipe_writer = non_blocking_pipe_writer;
+#endif
 }
 
 #endif
