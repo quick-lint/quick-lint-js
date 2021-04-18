@@ -13,6 +13,8 @@ option(
   FALSE
 )
 
+find_package(Threads REQUIRED)
+
 quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
@@ -129,7 +131,14 @@ quick_lint_js_add_library(
   wasm-demo-location.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
-target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+target_link_libraries(
+  quick-lint-js-lib
+  PUBLIC
+  boost_container
+  simdjson
+  PRIVATE
+  Threads::Threads
+)
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-lib
