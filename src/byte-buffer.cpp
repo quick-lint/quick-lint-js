@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -25,6 +26,22 @@ void byte_buffer::append_copy(string8_view data) {
 void byte_buffer::append_copy(char8 data) {
   void* out = this->append(1);
   std::memcpy(out, &data, 1);
+}
+
+void byte_buffer::prepend_copy(string8_view data) {
+  // TODO(strager): As an optimization, reserve one slot in the vector for
+  // prepending. (We expect one prepend per byte_buffer by lsp_pipe_writer.)
+  // TODO(strager): If there's space in the current chunk, use it instead of
+  // making a new chunk.
+
+  const std::byte* data_bytes = reinterpret_cast<const std::byte*>(data.data());
+
+  chunk prefix_chunk(data.size());
+  const std::byte* end =
+      std::copy_n(data_bytes, data.size(), prefix_chunk.begin());
+  QLJS_ASSERT(end == prefix_chunk.end());
+
+  this->chunks_.insert(this->chunks_.begin(), std::move(prefix_chunk));
 }
 
 byte_buffer::size_type byte_buffer::size() const noexcept {

@@ -31,10 +31,10 @@ string8_view make_header(std::size_t message_size, header_buffer* out) {
 
 lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_(pipe) {}
 
-void lsp_pipe_writer::send_message(const byte_buffer& message) {
+void lsp_pipe_writer::send_message(byte_buffer&& message) {
   header_buffer header;
   string8_view header_span = make_header(message.size(), &header);
-  this->write(header_span);
+  message.prepend_copy(header_span);
 
   // TODO(strager): Don't copy. Write all the chunks with writev if possible.
   string8 message_string;

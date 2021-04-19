@@ -132,6 +132,61 @@ TEST(test_byte_buffer, append_integer) {
   bb.copy_to(data.data());
   EXPECT_EQ(data, u8"420");
 }
+
+TEST(test_byte_buffer, prepend_copy_on_empty_behaves_like_append_copy) {
+  byte_buffer bb;
+
+  bb.prepend_copy(u8"hello world");
+
+  EXPECT_EQ(bb.size(), 11);
+  string8 data;
+  data.resize(bb.size());
+  bb.copy_to(data.data());
+  EXPECT_EQ(data, u8"hello world");
+}
+
+TEST(test_byte_buffer, prepend_copy_on_non_empty) {
+  byte_buffer bb;
+
+  bb.append_copy(u8" w");
+  bb.append_copy(u8"orld");
+  bb.prepend_copy(u8"hello");
+
+  EXPECT_EQ(bb.size(), 11);
+  string8 data;
+  data.resize(bb.size());
+  bb.copy_to(data.data());
+  EXPECT_EQ(data, u8"hello world");
+}
+
+TEST(test_byte_buffer, prepend_copy_multiple_times) {
+  byte_buffer bb;
+
+  bb.prepend_copy(u8"rld");
+  bb.prepend_copy(u8" wo");
+  bb.prepend_copy(u8"lo");
+  bb.prepend_copy(u8"hel");
+
+  EXPECT_EQ(bb.size(), 11);
+  string8 data;
+  data.resize(bb.size());
+  bb.copy_to(data.data());
+  EXPECT_EQ(data, u8"hello world");
+}
+
+TEST(test_byte_buffer, append_copy_after_prepend_copy) {
+  byte_buffer bb;
+
+  bb.append_copy(u8" wor");
+  bb.prepend_copy(u8"hello");
+  bb.append_copy(u8"ld");
+
+  EXPECT_EQ(bb.size(), 11);
+  string8 data;
+  data.resize(bb.size());
+  bb.copy_to(data.data());
+  EXPECT_EQ(data, u8"hello world");
+}
 }
 }
 
