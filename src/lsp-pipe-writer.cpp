@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <array>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
@@ -11,26 +12,35 @@
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {
+namespace {
+constexpr string8_view header_prefix = u8"Content-Length: ";
+constexpr string8_view header_suffix = u8"\r\n\r\n";
+using header_buffer = std::array<char8, header_prefix.size() +
+                                            integer_string_length<std::size_t> +
+                                            header_suffix.size()>;
+
+string8_view make_header(std::size_t message_size, header_buffer* out) {
+  char8* begin = out->data();
+  char8* end = begin;
+  end = std::copy(header_prefix.begin(), header_prefix.end(), end);
+  end = quick_lint_js::write_integer(message_size, end);
+  end = std::copy(header_suffix.begin(), header_suffix.end(), end);
+  return string8_view(begin, narrow_cast<std::size_t>(end - begin));
+}
+}
+
 lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_(pipe) {}
 
 void lsp_pipe_writer::send_message(const byte_buffer& message) {
-  this->write(u8"Content-Length: ");
-  this->write_integer(message.size());
-  this->write(u8"\r\n\r\n");
+  header_buffer header;
+  string8_view header_span = make_header(message.size(), &header);
+  this->write(header_span);
 
   // TODO(strager): Don't copy. Write all the chunks with writev if possible.
   string8 message_string;
   message_string.resize(message.size());
   message.copy_to(message_string.data());
   this->write(message_string);
-}
-
-template <class T>
-void lsp_pipe_writer::write_integer(T value) {
-  std::array<char8, integer_string_length<T>> buffer;
-  char8* end = quick_lint_js::write_integer(value, buffer.data());
-  this->write(string8_view(buffer.data(),
-                           narrow_cast<std::size_t>(end - buffer.data())));
 }
 
 void lsp_pipe_writer::write(string8_view message) {
