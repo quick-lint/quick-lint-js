@@ -8,9 +8,9 @@ packages:
 
 extra-deps:
 # Direct dependencies:
-- github: quick-lint/haskell-lsp
+- github: haskell/lsp
   # https://github.com/haskell/lsp/pull/321
-  commit: 225adabb5983c03d0284cbce6d2589ffc5ae707f
+  commit: 802d8072020d9de3864e1ea6d135fec07a101d2e
   subdirs:
   - lsp-test
   - lsp-types

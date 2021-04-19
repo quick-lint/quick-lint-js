@@ -5,31 +5,31 @@
 
 packages:
 - completed:
-    size: 138386
+    size: 138871
     subdir: lsp-test
-    url: https://github.com/quick-lint/haskell-lsp/archive/225adabb5983c03d0284cbce6d2589ffc5ae707f.tar.gz
+    url: https://github.com/haskell/lsp/archive/802d8072020d9de3864e1ea6d135fec07a101d2e.tar.gz
     name: lsp-test
     version: 0.14.0.0
-    sha256: 67d965f237e4f847aa90ec0aec79f1cd17647dac16a8b9c1b3ae5ea87a97b757
+    sha256: 68e1bbb71ef68b8d729574b89fe27f582683a085417eede0bbccf05f948adfe5
     pantry-tree:
       size: 2061
-      sha256: 648a22a1a98ae016ec69f873355862c846f8164400a5731f87da83985adfba59
+      sha256: c092a135432b55b2b241a7db0de327fa15e5646210620116f8c536652e23cf16
   original:
     subdir: lsp-test
-    url: https://github.com/quick-lint/haskell-lsp/archive/225adabb5983c03d0284cbce6d2589ffc5ae707f.tar.gz
+    url: https://github.com/haskell/lsp/archive/802d8072020d9de3864e1ea6d135fec07a101d2e.tar.gz
 - completed:
-    size: 138386
+    size: 138871
     subdir: lsp-types
-    url: https://github.com/quick-lint/haskell-lsp/archive/225adabb5983c03d0284cbce6d2589ffc5ae707f.tar.gz
+    url: https://github.com/haskell/lsp/archive/802d8072020d9de3864e1ea6d135fec07a101d2e.tar.gz
     name: lsp-types
     version: 1.2.0.0
-    sha256: 67d965f237e4f847aa90ec0aec79f1cd17647dac16a8b9c1b3ae5ea87a97b757
+    sha256: 68e1bbb71ef68b8d729574b89fe27f582683a085417eede0bbccf05f948adfe5
     pantry-tree:
       size: 3984
-      sha256: a4fda7c4a02b6829676b48f079026b245f89f5db01582a09864294ee45a20b91
+      sha256: fed994498f8ec8753ea2b40baec554397b938b6f032c2c8fb9e0063e687f5bd8
   original:
     subdir: lsp-types
-    url: https://github.com/quick-lint/haskell-lsp/archive/225adabb5983c03d0284cbce6d2589ffc5ae707f.tar.gz
+    url: https://github.com/haskell/lsp/archive/802d8072020d9de3864e1ea6d135fec07a101d2e.tar.gz
 - completed:
     hackage: constraints-extras-0.3.1.0@sha256:12016ebb91ad5ed2c82bf7e48c6bd6947d164d33c9dca5ac3965de1bb6c780c0,1777
     pantry-tree:
