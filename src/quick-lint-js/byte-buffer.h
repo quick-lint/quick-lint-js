@@ -20,10 +20,12 @@ class byte_buffer {
 
   static constexpr size_type default_chunk_size = 4096;
 
-  explicit byte_buffer() = default;
+  explicit byte_buffer();
 
-  byte_buffer(byte_buffer&&) = default;
+  byte_buffer(byte_buffer&&);
   byte_buffer& operator=(byte_buffer&&) = delete;  // Not yet implemented.
+
+  ~byte_buffer();
 
   void* append(size_type byte_count);
 
@@ -58,19 +60,8 @@ class byte_buffer {
   void copy_to(void* raw_out) const;
 
  private:
-  class chunk {
-   public:
-    explicit chunk() : chunk(default_chunk_size) {}
-
-    explicit chunk(size_type size) : data(new std::byte[size]), size(size) {}
-
-    std::byte* begin() noexcept { return this->data.get(); }
-
-    const std::byte* begin() const noexcept { return this->data.get(); }
-
-    std::byte* end() noexcept { return this->begin() + this->size; }
-
-    std::unique_ptr<std::byte[]> data;
+  struct chunk {
+    std::byte* data;
     size_type size;
   };
 
@@ -81,9 +72,20 @@ class byte_buffer {
 
   void add_new_chunk(size_type chunk_size);
 
-  std::vector<chunk> chunks_{1};
-  std::byte* cursor_ = this->chunks_.back().begin();
-  std::byte* current_chunk_end_ = this->chunks_.back().end();
+  static chunk make_chunk();
+  static chunk make_chunk(size_type size);
+  static void delete_chunk(chunk&&);
+
+  static const std::byte* chunk_begin(const chunk&) noexcept;
+  static std::byte* chunk_begin(chunk&) noexcept;
+  static const std::byte* chunk_end(const chunk&) noexcept;
+  static std::byte* chunk_end(chunk&) noexcept;
+  static size_type chunk_size(const chunk&) noexcept;
+  static size_type& chunk_size(chunk&) noexcept;
+
+  std::vector<chunk> chunks_;
+  std::byte* cursor_;
+  std::byte* current_chunk_end_;
 };
 }
 
