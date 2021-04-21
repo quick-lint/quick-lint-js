@@ -109,15 +109,22 @@ class byte_buffer {
 #if QLJS_HAVE_WRITEV
 class byte_buffer_iovec {
  public:
+  using size_type = byte_buffer::size_type;
+
   explicit byte_buffer_iovec(std::vector<::iovec>&&);
 
   ~byte_buffer_iovec();
 
-  const ::iovec* iovec() noexcept;
-  int iovec_count() noexcept;
+  const ::iovec* iovec() const noexcept;
+  int iovec_count() const noexcept;
+
+  // Remove count bytes from the beginning of this byte_buffer_iovec.
+  void remove_front(size_type count);
 
  private:
   std::vector<::iovec> chunks_;
+  std::vector<::iovec>::iterator first_chunk_;
+  ::iovec first_chunk_allocation_;
 };
 #endif
 }

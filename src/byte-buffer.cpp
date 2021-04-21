@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
@@ -206,20 +207,62 @@ byte_buffer::size_type& byte_buffer::chunk_size(chunk& c) noexcept {
 
 #if QLJS_HAVE_WRITEV
 byte_buffer_iovec::byte_buffer_iovec(std::vector<::iovec>&& chunks)
-    : chunks_(std::move(chunks)) {}
-
-byte_buffer_iovec::~byte_buffer_iovec() {
-  for (::iovec& c : this->chunks_) {
-    byte_buffer::delete_chunk(std::move(c));
+    : chunks_(std::move(chunks)), first_chunk_(this->chunks_.begin()) {
+  if (this->chunks_.empty()) {
+    this->first_chunk_allocation_ = ::iovec{.iov_base = nullptr, .iov_len = 0};
+  } else {
+    this->first_chunk_allocation_ = this->chunks_.front();
   }
 }
 
-const ::iovec* byte_buffer_iovec::iovec() noexcept {
-  return this->chunks_.data();
+byte_buffer_iovec::~byte_buffer_iovec() {
+  if (this->first_chunk_ != this->chunks_.end()) {
+    // The first chunk might have been split. Deallocate the original
+    // allocation, not the advanced pointer.
+    byte_buffer::delete_chunk(std::move(this->first_chunk_allocation_));
+    for (auto it = std::next(this->first_chunk_); it != this->chunks_.end();
+         ++it) {
+      byte_buffer::delete_chunk(std::move(*it));
+    }
+  }
 }
 
-int byte_buffer_iovec::iovec_count() noexcept {
-  return narrow_cast<int>(this->chunks_.size());
+const ::iovec* byte_buffer_iovec::iovec() const noexcept {
+  if (this->first_chunk_ == this->chunks_.end()) {
+    // Returned pointer doesn't matter (because iovec_count() == 0), but we
+    // can't dereference this->first_chunk_.
+    return nullptr;
+  } else {
+    return &*this->first_chunk_;
+  }
+}
+
+int byte_buffer_iovec::iovec_count() const noexcept {
+  return narrow_cast<int>(this->chunks_.end() - this->first_chunk_);
+}
+
+void byte_buffer_iovec::remove_front(size_type size) {
+  while (size != 0) {
+    QLJS_ASSERT(this->first_chunk_ != this->chunks_.end());
+
+    ::iovec& c = *this->first_chunk_;
+    size_type chunk_size = c.iov_len;
+    if (size < chunk_size) {
+      // Split this chunk.
+      c.iov_base = reinterpret_cast<std::byte*>(c.iov_base) + size;
+      c.iov_len = chunk_size - size;
+      size = 0;
+    } else {
+      // Delete this entire chunk. It may have been split, so delete the
+      // original, unsplit chunk.
+      byte_buffer::delete_chunk(std::move(this->first_chunk_allocation_));
+      size -= chunk_size;
+      ++this->first_chunk_;
+      if (this->first_chunk_ != this->chunks_.end()) {
+        this->first_chunk_allocation_ = *this->first_chunk_;
+      }
+    }
+  }
 }
 #endif
 }
