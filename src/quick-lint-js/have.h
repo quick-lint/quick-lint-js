@@ -146,6 +146,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_WRITEV)
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#define QLJS_HAVE_WRITEV 1
+#else
+#define QLJS_HAVE_WRITEV 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_CHARCONV_HEADER) && defined(__has_include)
 // std::to_chars on libc++ version 7.0.0 is buggy on macOS x86_64.
 #if __has_include(<charconv>) && \

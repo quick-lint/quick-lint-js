@@ -8,12 +8,19 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <utility>
 #include <vector>
 
+#if QLJS_HAVE_WRITEV
+#include <sys/uio.h>
+#endif
+
 namespace quick_lint_js {
+class byte_buffer_iovec;
+
 class byte_buffer {
  public:
   using size_type = std::size_t;
@@ -59,13 +66,22 @@ class byte_buffer {
 
   void copy_to(void* raw_out) const;
 
+#if QLJS_HAVE_WRITEV
+  byte_buffer_iovec to_iovec() &&;
+#endif
+
  private:
+#if QLJS_HAVE_WRITEV
+  using chunk = ::iovec;
+#else
   struct chunk {
     std::byte* data;
     size_type size;
   };
+#endif
 
   void reserve(size_type extra_byte_count);
+  void update_current_chunk_size() noexcept;
 
   size_type bytes_remaining_in_current_chunk() const noexcept;
   size_type bytes_used_in_current_chunk() const noexcept;
@@ -86,7 +102,24 @@ class byte_buffer {
   std::vector<chunk> chunks_;
   std::byte* cursor_;
   std::byte* current_chunk_end_;
+
+  friend class byte_buffer_iovec;
 };
+
+#if QLJS_HAVE_WRITEV
+class byte_buffer_iovec {
+ public:
+  explicit byte_buffer_iovec(std::vector<::iovec>&&);
+
+  ~byte_buffer_iovec();
+
+  const ::iovec* iovec() noexcept;
+  int iovec_count() noexcept;
+
+ private:
+  std::vector<::iovec> chunks_;
+};
+#endif
 }
 
 #endif

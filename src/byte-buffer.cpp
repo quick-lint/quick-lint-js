@@ -7,9 +7,14 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <utility>
 #include <vector>
+
+#if QLJS_HAVE_WRITEV
+#include <sys/uio.h>
+#endif
 
 namespace quick_lint_js {
 byte_buffer::byte_buffer() { this->add_new_chunk(this->default_chunk_size); }
@@ -106,12 +111,22 @@ void byte_buffer::copy_to(void* raw_out) const {
   }
 }
 
+#if QLJS_HAVE_WRITEV
+byte_buffer_iovec byte_buffer::to_iovec() && {
+  this->update_current_chunk_size();
+  return byte_buffer_iovec(std::move(this->chunks_));
+}
+#endif
+
 void byte_buffer::reserve(size_type extra_byte_count) {
   if (this->bytes_remaining_in_current_chunk() < extra_byte_count) {
-    this->chunk_size(this->chunks_.back()) =
-        this->bytes_used_in_current_chunk();
+    this->update_current_chunk_size();
     this->add_new_chunk(std::max(default_chunk_size, extra_byte_count));
   }
+}
+
+void byte_buffer::update_current_chunk_size() noexcept {
+  this->chunk_size(this->chunks_.back()) = this->bytes_used_in_current_chunk();
 }
 
 byte_buffer::size_type byte_buffer::bytes_remaining_in_current_chunk() const
@@ -137,33 +152,76 @@ byte_buffer::chunk byte_buffer::make_chunk() {
 
 byte_buffer::chunk byte_buffer::make_chunk(size_type size) {
   // See corresponding deallocation in delete_chunk.
+#if QLJS_HAVE_WRITEV
+  return chunk{.iov_base = new std::byte[size], .iov_len = size};
+#else
   return chunk{.data = new std::byte[size], .size = size};
+#endif
 }
 
 void byte_buffer::delete_chunk(chunk&& c) {
   // See corresponding allocation in make_chunk.
-  delete[] c.data;
+  delete[] chunk_begin(c);
 }
 
 const std::byte* byte_buffer::chunk_begin(const chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return reinterpret_cast<const std::byte*>(c.iov_base);
+#else
   return c.data;
+#endif
 }
 
-std::byte* byte_buffer::chunk_begin(chunk& c) noexcept { return c.data; }
+std::byte* byte_buffer::chunk_begin(chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return reinterpret_cast<std::byte*>(c.iov_base);
+#else
+  return c.data;
+#endif
+}
 
 const std::byte* byte_buffer::chunk_end(const chunk& c) noexcept {
-  return c.data + c.size;
+  return chunk_begin(c) + chunk_size(c);
 }
 
-std::byte* byte_buffer::chunk_end(chunk& c) noexcept { return c.data + c.size; }
+std::byte* byte_buffer::chunk_end(chunk& c) noexcept {
+  return chunk_begin(c) + chunk_size(c);
+}
 
 byte_buffer::size_type byte_buffer::chunk_size(const chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return c.iov_len;
+#else
   return c.size;
+#endif
 }
 
 byte_buffer::size_type& byte_buffer::chunk_size(chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return c.iov_len;
+#else
   return c.size;
+#endif
 }
+
+#if QLJS_HAVE_WRITEV
+byte_buffer_iovec::byte_buffer_iovec(std::vector<::iovec>&& chunks)
+    : chunks_(std::move(chunks)) {}
+
+byte_buffer_iovec::~byte_buffer_iovec() {
+  for (::iovec& c : this->chunks_) {
+    byte_buffer::delete_chunk(std::move(c));
+  }
+}
+
+const ::iovec* byte_buffer_iovec::iovec() noexcept {
+  return this->chunks_.data();
+}
+
+int byte_buffer_iovec::iovec_count() noexcept {
+  return narrow_cast<int>(this->chunks_.size());
+}
+#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

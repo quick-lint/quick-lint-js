@@ -6,7 +6,12 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/have.h>
 #include <vector>
+
+#if QLJS_HAVE_WRITEV
+#include <sys/uio.h>
+#endif
 
 namespace quick_lint_js {
 namespace {
@@ -221,6 +226,36 @@ TEST(test_byte_buffer, clear_then_append) {
   bb.copy_to(data.data());
   EXPECT_EQ(data, u8"world");
 }
+
+#if QLJS_HAVE_WRITEV
+TEST(test_byte_buffer, iovec) {
+  byte_buffer bb;
+
+  string8 expected_data;
+
+  string8 small_data = u8"hello world";
+  bb.append_copy(small_data);
+  expected_data.append(small_data);
+  bb.append_copy(small_data);
+  expected_data.append(small_data);
+
+  string8 big_data(bb.default_chunk_size * 2, u8'A');
+  bb.append_copy(big_data);
+  expected_data.append(big_data);
+
+  bb.append_copy(small_data);
+  expected_data.append(small_data);
+
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  string8 actual_data;
+  for (int i = 0; i < iovec.iovec_count(); ++i) {
+    const ::iovec& chunk = iovec.iovec()[i];
+    actual_data.append(reinterpret_cast<const char8*>(chunk.iov_base),
+                       chunk.iov_len);
+  }
+  EXPECT_EQ(actual_data, expected_data);
+}
+#endif
 }
 }
 
