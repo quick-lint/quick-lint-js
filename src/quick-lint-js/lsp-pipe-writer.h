@@ -6,6 +6,7 @@
 
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/have.h>
 
 namespace quick_lint_js {
 class byte_buffer;
@@ -22,6 +23,9 @@ class lsp_pipe_writer {
 
  private:
   void write(string8_view);
+#if QLJS_HAVE_WRITEV
+  void write(byte_buffer_iovec&&);
+#endif
 
   platform_file_ref pipe_;
 };
