@@ -13,8 +13,8 @@ source tools/files.sh
 check_file_copyright_header() {
   local file="${1}"
   case "${file}" in
-    tools/benchmark-lsp/corpus/*) ;;
-    tools/benchmark-lsp/*) check_file_copyright_header_benchmark_lsp "${file}" ;;
+    benchmark/benchmark-lsp/corpus/*) ;;
+    benchmark/benchmark-lsp/*) check_file_copyright_header_benchmark_lsp "${file}" ;;
     *) check_file_copyright_header_quick_lint_js "${file}" ;;
   esac
 }
