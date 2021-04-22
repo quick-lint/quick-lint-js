@@ -1860,6 +1860,56 @@ TEST_F(test_parse_expression, object_literal_with_number_key) {
   }
 }
 
+TEST_F(test_parse_expression, incomplete_object_literal) {
+  {
+    test_parser p(u8"{ p1 "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unclosed_object_literal, object_open,
+                    offsets_matcher(p.code(), 0, u8"{"),  //
+                    expected_object_close,
+                    offsets_matcher(p.code(), strlen(u8"{ p1"), u8""))));
+  }
+
+  {
+    test_parser p(u8"{ p1, "_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unclosed_object_literal, object_open,
+                    offsets_matcher(p.code(), 0, u8"{"),  //
+                    expected_object_close,
+                    offsets_matcher(p.code(), strlen(u8"{ p1,"), u8""))));
+  }
+
+  {
+    test_parser p(u8"({ p1, )"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unclosed_object_literal, object_open,
+                    offsets_matcher(p.code(), strlen(u8"("), u8"{"),  //
+                    expected_object_close,
+                    offsets_matcher(p.code(), strlen(u8"({ p1,"), u8""))));
+  }
+
+  {
+    test_parser p(u8"[{ p1, ]"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "array(object(literal, var p1))");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unclosed_object_literal, object_open,
+                    offsets_matcher(p.code(), strlen(u8"["), u8"{"),  //
+                    expected_object_close,
+                    offsets_matcher(p.code(), strlen(u8"[{ p1,"), u8""))));
+  }
+}
+
 TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{p1: v1 p2}"_sv);

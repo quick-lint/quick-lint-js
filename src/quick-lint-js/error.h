@@ -890,6 +890,17 @@
              escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unclosed_object_literal, "E161",                                   \
+      {                                                                        \
+        source_code_span object_open;                                          \
+        source_code_span expected_object_close;                                \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("unclosed object literal; expected '}'"),       \
+             expected_object_close)                                            \
+          .note(QLJS_TRANSLATABLE("object literal started here"),              \
+                object_open))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_regexp_literal, "E039",                                   \
       { source_code_span regexp_literal; },                                    \
       .error(QLJS_TRANSLATABLE("unclosed regexp literal"), regexp_literal))    \

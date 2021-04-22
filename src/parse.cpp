@@ -1344,14 +1344,28 @@ expression* parser::parse_object_literal() {
       expect_comma_or_end = false;
       continue;
     }
+    switch (this->peek().type) {
+    // ({x) // Invalid.
+    case token_type::end_of_file:
+    case token_type::right_paren:
+    case token_type::right_square:
+      right_curly_end = this->lexer_.end_of_previous_token();
+      this->error_reporter_->report(error_unclosed_object_literal{
+          .object_open =
+              source_code_span(left_curly_begin, left_curly_begin + 1),
+          .expected_object_close =
+              source_code_span(right_curly_end, right_curly_end),
+      });
+      goto done;
+
+    default:
+      break;
+    }
     if (expect_comma_or_end) {
       const char8* comma_location = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(
           error_missing_comma_between_object_literal_entries{
               source_code_span(comma_location, comma_location)});
-    }
-    if (this->peek().type == token_type::end_of_file) {
-      QLJS_PARSER_UNIMPLEMENTED();
     }
 
   parse_entry:
@@ -1585,6 +1599,12 @@ expression* parser::parse_object_literal() {
         }
         break;
 
+      // {x  // Invalid.
+      case token_type::end_of_file:
+        // We'll report error_unclosed_object_literal later when we look for the
+        // comma or closing '}'.
+        goto single_token_key_and_value;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -1798,6 +1818,7 @@ expression* parser::parse_object_literal() {
     }
     expect_comma_or_end = true;
   }
+done:
   return this->make_expression<expression::object>(
       this->expressions_.make_array(std::move(entries)),
       source_code_span(left_curly_begin, right_curly_end));
