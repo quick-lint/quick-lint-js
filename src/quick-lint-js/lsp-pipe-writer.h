@@ -18,12 +18,9 @@ class lsp_pipe_writer {
  public:
   explicit lsp_pipe_writer(platform_file_ref pipe);
 
-  void send_message(const byte_buffer&);
+  void send_message(byte_buffer&&);
 
  private:
-  template <class T>
-  void write_integer(T);
-
   void write(string8_view);
 
   platform_file_ref pipe_;

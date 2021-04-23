@@ -26,8 +26,8 @@
 namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Remote>
-concept lsp_endpoint_remote = requires(Remote r, const byte_buffer message) {
-  {r.send_message(message)};
+concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
+  {r.send_message(std::move(message))};
 };
 
 template <class Handler>
@@ -81,7 +81,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       byte_buffer error_json;
       error_json.append_copy(
           u8R"({"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}})");
-      this->remote_.send_message(error_json);
+      this->remote_.send_message(std::move(error_json));
       return;
     }
 
@@ -112,10 +112,10 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
 
     if (!response_json.empty()) {
-      this->remote_.send_message(response_json);
+      this->remote_.send_message(std::move(response_json));
     }
     if (!notification_json.empty()) {
-      this->remote_.send_message(notification_json);
+      this->remote_.send_message(std::move(notification_json));
     }
   }
 

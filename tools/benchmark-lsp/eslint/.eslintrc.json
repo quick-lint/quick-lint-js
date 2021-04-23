@@ -1,0 +1,18 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "no-unused-vars": ["error", {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "ignoreRestSiblings": false,
+        "vars": "all",
+        "varsIgnorePattern": "^_"
+      }]
+    }
+}

@@ -1,0 +1,211 @@
+#!/usr/bin/env python
+
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+import argparse
+import html
+import io
+import json
+import math
+import pathlib
+import string
+import sys
+import typing
+
+
+def main() -> None:
+    arg_parser = argparse.ArgumentParser(__doc__)
+    arg_parser.add_argument(
+        "html_template_file",
+        metavar="TEMPLATE-FILE",
+        help="HTML file containing ${benchmark.json} references to substitute (input)",
+    )
+    arg_parser.add_argument(
+        "output_html_file", metavar="FILE", help="HTML file to generate (output)"
+    )
+    args = arg_parser.parse_args()
+
+    html_template_file = pathlib.Path(args.html_template_file)
+    output_html_file = pathlib.Path(args.output_html_file)
+
+    template = HTMLTemplate(html_template_file.read_text())
+    html = template.substitute(HTMLTemplateVariables(html_template_file.parent))
+    output_html_file.write_text(html)
+
+
+class HTMLTemplate(string.Template):
+    braceidpattern = r".*"
+
+
+class HTMLTemplateVariables:
+    def __init__(self, base_path: pathlib.Path) -> None:
+        self._base_path = base_path
+
+    def __getitem__(self, key: str) -> str:
+        if key == "generated_message":
+            return "This file was generated using generate-benchmark-html.py."
+        elif key.endswith(".json"):
+            benchmark_results_file = self._base_path / key
+            seriess = parse_criterion_json(benchmark_results_file)
+            output = io.StringIO()
+            make_benchmark_html(seriess, output)
+            return output.getvalue()
+        else:
+            raise KeyError(f"Unexpected key: {key}")
+
+
+def make_benchmark_html(seriess: typing.List["Series"], output) -> None:
+    max_ms = max(series.max_ms for series in seriess)
+
+    linear_tick_count = 7  # Excluding the 0 tick.
+    ms_per_linear_tick = math.ceil((max_ms / linear_tick_count) / 25) * 25
+    linear_ticks_ms = [(i + 1) * ms_per_linear_tick for i in range(linear_tick_count)]
+    assert len(linear_ticks_ms) == linear_tick_count
+
+    chart_max_ms = linear_ticks_ms[-1]
+    log_ticks_ms = [0.1, 1, 10, 100, chart_max_ms]
+
+    output.write(
+        f"""
+            <div style="--chart-max-x: {chart_max_ms:.3f};" class="chart linear">
+                <span class="tick" style="--x: 0;">
+                    <span class="label linear-only">0 ms</span>
+                    <span class="marker"></span>
+                </span>
+                <span class="tick lower" style="--x: 16.66666;">
+                    <span class="label" title="16.67 ms">60 FPS</span>
+                    <span class="marker"></span>
+                </span>
+        """
+    )
+
+    for tick_ms in linear_ticks_ms:
+        output.write(
+            f"""
+                <span class="tick linear-only" style="--x: {tick_ms:.3f};">
+                    <span class="label">{tick_ms:g} ms</span>
+                    <span class="marker"></span>
+                </span>
+            """
+        )
+    for tick_ms in log_ticks_ms:
+        output.write(
+            f"""
+                <span class="tick log-only" style="--x: {tick_ms:.3f};">
+                    <span class="label">{tick_ms:g} ms</span>
+                    <span class="marker"></span>
+                </span>
+            """
+        )
+
+    for series in seriess:
+        output.write(
+            f"""
+                <div data-series="{html.escape(series.name)}" style="--hue: {series.hue:.1f}; --average-x: {series.avg_ms:.3f}; --min-x: {series.min_ms:.3f}; --max-x: {series.max_ms:.3f};" class="series">
+                    <span class="label">{html.escape(series.name)}</span>
+                    <span class="bar"></span>
+                    <span class="error-bars"></span>
+                </div>
+            """
+        )
+
+    output.write(
+        """
+                <div class="x-axis-label">response time (lower is better)</div>
+                <label class="log-scale javascript-only" title="checked: logarithmic X axis (emphasizing ratios).&#013;unchecked: linear X axis (emphasizing time)."
+                    ><input type="checkbox" class="log-scale-select"> log scale</label>
+            </div>
+
+            <table class="benchmark-table">
+                <thead>
+                    <tr>
+                        <th rowspan=2>linter</th>
+                        <th colspan=3>response time (milliseconds)</th>
+                    </tr>
+                    <tr>
+                        <th class="numbers"><abbr title="minimum">min</abbr></th>
+                        <th class="numbers"><abbr title="average">avg</abbr></th>
+                        <th class="numbers"><abbr title="maximum">max</abbr></th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+    )
+
+    for series in seriess:
+        output.write(
+            f"""
+                    <tr style="--hue: {series.hue:.1f};" data-series="{html.escape(series.name)}">
+                        <th>{html.escape(series.name)}</th>
+                        <td>{series.min_ms:.2f}</td>
+                        <td>{series.avg_ms:.2f}</td>
+                        <td>{series.max_ms:.2f}</td>
+                    </tr>
+            """
+        )
+
+    output.write(
+        """
+                </tbody>
+            </table>
+        """
+    )
+
+
+def parse_criterion_json(criterion_json_file: pathlib.Path) -> typing.List["Series"]:
+    with open(criterion_json_file, "r") as f:
+        criterion = json.load(f)
+    seriess = []
+    for series in criterion[2]:
+        name = series["reportName"].split("/")[0]
+        mean_data = series["reportAnalysis"]["anMean"]
+        mean = mean_data["estPoint"]
+        min = mean - mean_data["estError"]["confIntLDX"]
+        max = mean + mean_data["estError"]["confIntUDX"]
+        seriess.append(
+            Series(name=name, min_ms=min * 1000, avg_ms=mean * 1000, max_ms=max * 1000)
+        )
+    seriess.sort(key=lambda series: series.avg_ms)
+    return seriess
+
+
+class Series(typing.NamedTuple):
+    name: str
+    min_ms: float
+    avg_ms: float
+    max_ms: float
+
+    @property
+    def hue(self) -> float:
+        hues = {
+            "quick-lint-js": 0.0,
+            "eslint-server": 60.0,
+            "RSLint": 120.0,
+            "Flow": 180.0,
+            "Deno": 240.0,
+            "TypeScript-Theia": 300.0,
+        }
+        return hues[self.name]
+
+
+if __name__ == "__main__":
+    main()
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

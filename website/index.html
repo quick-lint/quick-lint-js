@@ -3,7 +3,7 @@
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <title>quick-lint-js finds JavaScript bugs</title>
+    <title>quick-lint-js: find JavaScript bugs</title>
     <meta charset="utf-8" />
     <meta
       name="description"
@@ -44,6 +44,16 @@
       .feature-comparison figcaption p {
         margin-top: 0.25em;
         margin-bottom: 0.25em;
+      }
+
+      /* Make editor logos appear close to the editor names. */
+      .feature-comparison .editors th:first-child:not([colspan="2"]) {
+        white-space: nowrap;
+        padding-right: 0.25em;
+      }
+      .feature-comparison .editors th:first-child:not([colspan="2"]) + th {
+        padding-left: 0.25em;
+        padding-right: 1em;
       }
 
       .install-options {
@@ -87,6 +97,15 @@
         height: 1.2em;
         width: 1.2em;
         vertical-align: text-bottom;
+      }
+
+      .plugin-logo {
+        height: 1.2em;
+        width: 1.2em;
+        vertical-align: text-bottom;
+      }
+      .logo-with-text {
+        white-space: nowrap;
       }
     </style>
   </head>
@@ -184,7 +203,7 @@
         <table>
           <thead>
             <tr>
-              <th>feature</th>
+              <th colspan="2">feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
               <th><a href="https://jshint.com/">JSHint</a></th>
@@ -195,7 +214,7 @@
           </thead>
           <tbody>
             <tr>
-              <th>speed</th>
+              <th colspan="2">speed</th>
               <td class="good quick-lint-js">
                 <span aria-labelled-by="feature-speed-qljs-quick">🚀</span
                 ><br /><span id="feature-speed-qljs-quick">quick</span>
@@ -223,7 +242,7 @@
               </td>
             </tr>
             <tr>
-              <th>license</th>
+              <th colspan="2">license</th>
               <td class="good quick-lint-js">free<br />GPLv3</td>
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
@@ -232,7 +251,7 @@
               <td class="meh">open source<br />MIT</td>
             </tr>
             <tr>
-              <th>easy npm install</th>
+              <th colspan="2">easy npm install</th>
               <td class="good quick-lint-js">
                 <span aria-label="easy">✅</span>
               </td>
@@ -254,7 +273,7 @@
               <td class="good"><span aria-label="easy">✅</span></td>
             </tr>
             <tr>
-              <th>easy setup</th>
+              <th colspan="2">easy setup</th>
               <td class="good quick-lint-js">
                 <span aria-label="easy">✅</span><br />zero config
               </td>
@@ -273,7 +292,7 @@
               </td>
             </tr>
             <tr>
-              <th>JSX</th>
+              <th colspan="2">JSX</th>
               <td class="bad quick-lint-js">
                 <span aria-label="no">❌</span
                 ><span
@@ -306,7 +325,7 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>TypeScript</th>
+              <th colspan="2">TypeScript</th>
               <td class="bad quick-lint-js">
                 <span aria-label="no">❌</span
                 ><span
@@ -338,52 +357,9 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
+
             <tr>
-              <th>editor integration</th>
-              <td class="good quick-lint-js">
-                <a
-                  href="https://github.com/quick-lint/quick-lint-js/tree/master/plugin/vim"
-                  >Vim</a
-                ><br /><a
-                  href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
-                  >VS Code</a
-                ><br />LSP
-              </td>
-              <td class="good">
-                <a href="https://eslint.org/docs/user-guide/integrations"
-                  >yes</a
-                >
-              </td>
-              <td class="good">
-                <a href="https://jshint.com/install/">yes</a>
-              </td>
-              <td class="bad">
-                <span aria-label="no">❌</span
-                ><span
-                  aria-label="planned"
-                  title="planned"
-                  class="footnote-marker"
-                  >&nbsp;<a
-                    href="https://old.reddit.com/r/rust/comments/j4z1ud/rslint_an_extremely_fast_and_user_friendly/g7oka27/?context=1"
-                    >*</a
-                  ></span
-                >
-              </td>
-              <td class="meh">
-                <a
-                  href="https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno"
-                  >VS Code</a
-                >
-              </td>
-              <td class="meh">
-                <a
-                  href="https://marketplace.visualstudio.com/items?itemName=rome.rome"
-                  >VS Code</a
-                >
-              </td>
-            </tr>
-            <tr>
-              <th>lint rules</th>
+              <th colspan="2">lint rules</th>
               <td class="meh quick-lint-js">minimal</td>
               <td class="good">
                 <a href="https://eslint.org/docs/rules/">zillions</a>
@@ -403,7 +379,7 @@
               </td>
             </tr>
             <tr>
-              <th>stable</th>
+              <th colspan="2">stable</th>
               <td class="bad quick-lint-js">
                 <span aria-label="unstable">❌</span>
               </td>
@@ -412,6 +388,106 @@
               <td class="bad"><span aria-label="unstable">❌</span></td>
               <td class="bad"><span aria-label="unstable">❌</span></td>
               <td class="bad"><span aria-label="unstable">❌</span></td>
+            </tr>
+          </tbody>
+
+          <tbody class="editors">
+            <tr>
+              <th colspan="2">feature</th>
+              <th class="quick-lint-js">quick-lint-js</th>
+              <th><a href="https://eslint.org/">ESLint</a></th>
+              <th><a href="https://jshint.com/">JSHint</a></th>
+              <th><a href="https://rslint.org/">RSLint</a></th>
+              <th><a href="https://lint.deno.land/">deno lint</a></th>
+              <th><a href="https://rome.tools/">Rome</a></th>
+            </tr>
+            <tr>
+              <th>VS Code</th>
+              <th><img class="plugin-logo" src="vscode.png" alt="" /></th>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
+              <th>Vim</th>
+              <th><img class="plugin-logo" src="vim.gif" alt="" /></th>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>WebStorm</th>
+              <th><img class="plugin-logo" src="webstorm.svg" alt="" /></th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Sublime Text</th>
+              <th><img class="plugin-logo" src="sublime-text.svg" alt="" /></th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Notepad++</th>
+              <th>
+                <img class="plugin-logo" src="notepad-plus-plus.svg" alt="" />
+              </th>
+
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Atom</th>
+              <th><img class="plugin-logo" src="atom.svg" alt="" /></th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th>Emacs</th>
+              <th><img class="plugin-logo" src="emacs.svg" alt="" /></th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+            </tr>
+            <tr>
+              <th colspan="2">LSP server</th>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
           </tbody>
         </table>
@@ -432,6 +508,7 @@
         <ul>
           <li><a href="demo/">try quick-lint-js in your browser</a></li>
           <li><a href="hiring.html">we're hiring! get paid to code</a></li>
+          <li><a href="benchmarks/">benchmarks vs other linters</a></li>
           <li>
             <a href="https://github.com/quick-lint/quick-lint-js"
               >source code on GitHub</a

@@ -12,7 +12,9 @@ output_directory="$(cd "${output_directory}" && pwd)"
 
 cd "$(dirname "${0}")"
 
+cp atom.svg "${output_directory}/"
 cp debian.svg "${output_directory}/"
+cp emacs.svg "${output_directory}/"
 cp gnome-terminal.svg "${output_directory}/"
 cp hiring.html "${output_directory}/"
 cp homebrew.svg "${output_directory}/"
@@ -23,13 +25,16 @@ cp linux.svg "${output_directory}/"
 cp macos.svg "${output_directory}/"
 cp main.css "${output_directory}/"
 cp nix.svg "${output_directory}/"
+cp notepad-plus-plus.svg "${output_directory}/"
 cp npm.svg "${output_directory}/"
+cp sublime-text.svg "${output_directory}/"
 cp ubuntu.svg "${output_directory}/"
 cp vim.gif "${output_directory}/"
 cp vscode-demo.mp4 "${output_directory}/"
 cp vscode-demo.png "${output_directory}/"
 cp vscode-demo.webp "${output_directory}/"
 cp vscode.png "${output_directory}/"
+cp webstorm.svg "${output_directory}/"
 cp windows.svg "${output_directory}/"
 
 mkdir -p "${output_directory}/demo/"
@@ -42,6 +47,11 @@ mkdir -p "${output_directory}/demo/dist/"
 cp demo/dist/copyright.txt "${output_directory}/demo/dist/"
 cp demo/dist/quick-lint-js-wasm-demo.js "${output_directory}/demo/dist/"
 cp demo/dist/quick-lint-js-wasm-demo.wasm "${output_directory}/demo/dist/"
+
+mkdir -p "${output_directory}/benchmarks/"
+cp benchmarks/benchmark.css "${output_directory}/benchmarks/"
+cp benchmarks/benchmark.mjs "${output_directory}/benchmarks/"
+cp benchmarks/index.html "${output_directory}/benchmarks/"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

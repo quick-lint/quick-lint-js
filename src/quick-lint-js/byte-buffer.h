@@ -42,6 +42,8 @@ class byte_buffer {
   void append_copy(string8_view data);
   void append_copy(char8 data);
 
+  void prepend_copy(string8_view data);
+
   size_type size() const noexcept;
 
   bool empty() const noexcept;

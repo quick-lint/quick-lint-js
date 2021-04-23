@@ -3,7 +3,7 @@
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <title>quick-lint-js web demo</title>
+    <title>quick-lint-js: try in your browser</title>
     <meta charset="utf-8" />
     <link href="../main.css" rel="stylesheet" />
     <style>
@@ -68,12 +68,24 @@
         position: absolute;
       }
 
+      #shadow-code-input {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      footer {
+        border-top: 0;
+      }
+
       @media (prefers-color-scheme: dark) {
         #code-input {
           color: white;
         }
         mark {
           background-color: #7a1965;
+        }
+
+        #shadow-code-input {
+          background-color: rgba(0, 0, 0, 0.2);
         }
       }
     </style>
@@ -88,7 +100,6 @@
     * Scrolling in general works poorly when sub-pixel scrolling (e.g. when
       zoomed in).
     * Scrolling horizontally sometimes doesn't scroll the highlights.
-    * Resizing the editor breaks highlights.
     * Browser text search finds text in the shadow code input in addition to
       text in the user code input.
 
@@ -140,6 +151,8 @@ console.log(`Welcome, ${ocupation}!`);
         });
         synchronizeContent();
 
+        new ResizeObserver(synchronizeSize).observe(codeInputElement);
+
         loadQuickLintJS()
           .then((quickLintJS) => {
             function lintAndUpdate() {
@@ -169,6 +182,11 @@ console.log(`Welcome, ${ocupation}!`);
           shadowCodeInputElement.scrollLeft = codeInputElement.scrollLeft;
           shadowCodeInputElement.scrollTop = codeInputElement.scrollTop;
         }
+
+        function synchronizeSize() {
+          shadowCodeInputElement.style.width = codeInputElement.style.width;
+          shadowCodeInputElement.style.height = codeInputElement.style.height;
+        }
       </script>
     </main>
 
@@ -177,6 +195,7 @@ console.log(`Welcome, ${ocupation}!`);
         <ul>
           <li><a href="../">quick-lint-js home page</a></li>
           <li><a href="../hiring.html">we're hiring! get paid to code</a></li>
+          <li><a href="../benchmarks/">benchmarks vs other linters</a></li>
           <li>
             <a href="https://github.com/quick-lint/quick-lint-js"
               >source code on GitHub</a
