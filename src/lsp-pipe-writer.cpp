@@ -45,42 +45,41 @@ void lsp_pipe_writer::send_message(byte_buffer&& message) {
   this->write(std::move(message).to_iovec());
 #else
   // TODO(strager): Avoid std::basic_string's bloat. (SSO will never kick in.)
-  string8 message_string;
+  string8 data;
   std::size_t message_size = message.size();
-  message_string.resize(message_size + max_header_size);
-  char8* out = message_string.data();
+  data.resize(message_size + max_header_size);
+  char8* out = data.data();
 
   out = make_header(message_size, out);
   message.copy_to(out);
   out += message_size;
 
   this->write(
-      string8_view(message_string.data(),
-                   narrow_cast<std::size_t>(out - message_string.data())));
+      string8_view(data.data(), narrow_cast<std::size_t>(out - data.data())));
 #endif
 }
 
-void lsp_pipe_writer::write(string8_view message) {
-  while (!message.empty()) {
+void lsp_pipe_writer::write(string8_view data) {
+  while (!data.empty()) {
     std::optional<int> bytes_written =
-        this->pipe_.write(message.data(), narrow_cast<int>(message.size()));
+        this->pipe_.write(data.data(), narrow_cast<int>(data.size()));
     if (!bytes_written.has_value()) {
       QLJS_UNIMPLEMENTED();
     }
-    message = message.substr(narrow_cast<std::size_t>(*bytes_written));
+    data = data.substr(narrow_cast<std::size_t>(*bytes_written));
   }
 }
 
 #if QLJS_HAVE_WRITEV
-void lsp_pipe_writer::write(byte_buffer_iovec&& message) {
-  while (message.iovec_count() != 0) {
+void lsp_pipe_writer::write(byte_buffer_iovec&& data) {
+  while (data.iovec_count() != 0) {
     ::ssize_t bytes_written =
-        ::writev(this->pipe_.get(), message.iovec(), message.iovec_count());
+        ::writev(this->pipe_.get(), data.iovec(), data.iovec_count());
     if (bytes_written < 0) {
       QLJS_UNIMPLEMENTED();
     }
     QLJS_ASSERT(bytes_written != 0);
-    message.remove_front(narrow_cast<std::size_t>(bytes_written));
+    data.remove_front(narrow_cast<std::size_t>(bytes_written));
   }
 }
 #endif
