@@ -25,13 +25,11 @@ using header_buffer = std::array<char8, header_prefix.size() +
                                             integer_string_length<std::size_t> +
                                             header_suffix.size()>;
 
-string8_view make_header(std::size_t message_size, header_buffer* out) {
-  char8* begin = out->data();
-  char8* end = begin;
-  end = std::copy(header_prefix.begin(), header_prefix.end(), end);
-  end = quick_lint_js::write_integer(message_size, end);
-  end = std::copy(header_suffix.begin(), header_suffix.end(), end);
-  return string8_view(begin, narrow_cast<std::size_t>(end - begin));
+char8* make_header(std::size_t message_size, char8* out) {
+  out = std::copy(header_prefix.begin(), header_prefix.end(), out);
+  out = quick_lint_js::write_integer(message_size, out);
+  out = std::copy(header_suffix.begin(), header_suffix.end(), out);
+  return out;
 }
 }
 
@@ -39,8 +37,9 @@ lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_(pipe) {}
 
 void lsp_pipe_writer::send_message(byte_buffer&& message) {
   header_buffer header;
-  string8_view header_span = make_header(message.size(), &header);
-  message.prepend_copy(header_span);
+  char8* header_end = make_header(message.size(), header.data());
+  message.prepend_copy(string8_view(
+      header.data(), narrow_cast<std::size_t>(header_end - header.data())));
 
 #if QLJS_HAVE_WRITEV
   this->write(std::move(message).to_iovec());
