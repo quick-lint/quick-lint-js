@@ -4,6 +4,7 @@
 "use strict";
 
 let assert = require("assert");
+const { debug } = require("console");
 let vscode = require("vscode");
 let {
   DiagnosticSeverity,
@@ -373,6 +374,10 @@ async function activateAsync() {
 
   toDispose.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
+      console.log(event)
+      if (event === undefined) {
+        console.log('stop here')
+      }
       if (event.contentChanges.length !== 0){
         logAsyncErrors(
           (async () => {
