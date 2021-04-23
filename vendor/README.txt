@@ -28,6 +28,10 @@ libraries.
 
 Many directories and files have been deleted to reduce storage consumption.
 
+The following patches have been manually applied:
+
+* boost-static-var.patch
+
 Copyright: various
 Download URL: https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
 Download date: August 25, 2020

@@ -1,0 +1,18 @@
+boost doesn't declare storage for initial_next_buffer_size. This causes uses of
+the variable to fail to compile. Make this variable 'inline' so storage doesn't
+need to be separately declared.
+
+diff --git vendor/boost/boost/container/pmr/monotonic_buffer_resource.hpp vendor/boost/boost/container/pmr/monotonic_buffer_resource.hpp
+index 89a796ec..16489152 100644
+--- vendor/boost/boost/container/pmr/monotonic_buffer_resource.hpp
++++ vendor/boost/boost/container/pmr/monotonic_buffer_resource.hpp
+@@ -70,7 +70,7 @@ class BOOST_CONTAINER_DECL monotonic_buffer_resource
+    //! to the upstream allocator
+    //!
+    //! <b>Note</b>: Non-standard extension.
+-   static const std::size_t initial_next_buffer_size = 32u*sizeof(void*);
++   static inline const std::size_t initial_next_buffer_size = 32u*sizeof(void*);
+ 
+    //! <b>Requires</b>: `upstream` shall be the address of a valid memory resource or `nullptr`
+    //!
+
