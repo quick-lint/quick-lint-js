@@ -1,6 +1,6 @@
 # quick-lint-js
 
-quick-lint-js finds bugs in JavaScript programs.
+[quick-lint-js][] finds bugs in JavaScript programs.
 
 **Warning**: This is pre-release software. quick-lint-js is under active
 development and is unstable. Use at your own risk.
@@ -52,3 +52,4 @@ development.
 
 [freenode]: https://freenode.net/
 [quick-lint-js-irc-web]: https://webchat.freenode.net/#quick-lint-js
+[quick-lint-js]: https://quick-lint-js.com/
