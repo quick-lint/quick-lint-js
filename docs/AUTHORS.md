@@ -30,6 +30,7 @@ authored portions of quick-lint-js:
 * Erlliam Mejia; tommejas@gmail.com; signed CLA-v1.md
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
 * Jesus Gil; jesusgil.dev@gmail.com; signed CLA-v1.md
+* Jimmy Qiu; bottlewater072@gmail.com; signed CLA-v1.md
 * Justin Welenofsky; welenofsky@gmail.com; signed CLA-v1.md
 * Lee Wannacott; wannacottL@gmail.com; signed CLA-v1.md
 * LiraNuna; signed CLA-v1.md
