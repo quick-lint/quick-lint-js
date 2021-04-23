@@ -21,9 +21,10 @@ namespace quick_lint_js {
 namespace {
 constexpr string8_view header_prefix = u8"Content-Length: ";
 constexpr string8_view header_suffix = u8"\r\n\r\n";
-using header_buffer = std::array<char8, header_prefix.size() +
-                                            integer_string_length<std::size_t> +
-                                            header_suffix.size()>;
+constexpr std::size_t max_header_size = header_prefix.size() +
+                                        integer_string_length<std::size_t> +
+                                        header_suffix.size();
+using header_buffer = std::array<char8, max_header_size>;
 
 char8* make_header(std::size_t message_size, char8* out) {
   out = std::copy(header_prefix.begin(), header_prefix.end(), out);
@@ -36,19 +37,26 @@ char8* make_header(std::size_t message_size, char8* out) {
 lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_(pipe) {}
 
 void lsp_pipe_writer::send_message(byte_buffer&& message) {
+#if QLJS_HAVE_WRITEV
   header_buffer header;
   char8* header_end = make_header(message.size(), header.data());
   message.prepend_copy(string8_view(
       header.data(), narrow_cast<std::size_t>(header_end - header.data())));
-
-#if QLJS_HAVE_WRITEV
   this->write(std::move(message).to_iovec());
 #else
   // TODO(strager): Avoid std::basic_string's bloat. (SSO will never kick in.)
   string8 message_string;
-  message_string.resize(message.size());
-  message.copy_to(message_string.data());
-  this->write(message_string);
+  std::size_t message_size = message.size();
+  message_string.resize(message_size + max_header_size);
+  char8* out = message_string.data();
+
+  out = make_header(message_size, out);
+  message.copy_to(out);
+  out += message_size;
+
+  this->write(
+      string8_view(message_string.data(),
+                   narrow_cast<std::size_t>(out - message_string.data())));
 #endif
 }
 
