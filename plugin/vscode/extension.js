@@ -374,6 +374,11 @@ async function activateAsync() {
 
   toDispose.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
+      /*
+      Event fires twice on first character input event of the open file. 
+      First one is caused by dirty-state change and the secibd is the actual character change.
+      Below is the implementation of a suggested workaround by maintainer: https://github.com/Microsoft/vscode/issues/50344
+      */
       if (event.contentChanges.length !== 0){
         logAsyncErrors(
           (async () => {
