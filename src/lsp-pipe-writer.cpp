@@ -24,7 +24,6 @@ constexpr string8_view header_suffix = u8"\r\n\r\n";
 constexpr std::size_t max_header_size = header_prefix.size() +
                                         integer_string_length<std::size_t> +
                                         header_suffix.size();
-using header_buffer = std::array<char8, max_header_size>;
 
 char8* make_header(std::size_t message_size, char8* out) {
   out = std::copy(header_prefix.begin(), header_prefix.end(), out);
@@ -38,7 +37,7 @@ lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_(pipe) {}
 
 void lsp_pipe_writer::send_message(byte_buffer&& message) {
 #if QLJS_HAVE_WRITEV
-  header_buffer header;
+  std::array<char8, max_header_size> header;
   char8* header_end = make_header(message.size(), header.data());
   message.prepend_copy(string8_view(
       header.data(), narrow_cast<std::size_t>(header_end - header.data())));
