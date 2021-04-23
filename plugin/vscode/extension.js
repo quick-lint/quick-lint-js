@@ -373,15 +373,17 @@ async function activateAsync() {
 
   toDispose.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
-      logAsyncErrors(
-        (async () => {
-          if (isLintable(event.document)) {
-            await linters
-              .getLinter(event.document)
-              .textChangedAsync(event.contentChanges);
-          }
-        })()
-      );
+      if (event.contentChanges.length !== 0){
+        logAsyncErrors(
+          (async () => {
+            if (isLintable(event.document)) {
+              await linters
+                .getLinter(event.document)
+                .textChangedAsync(event.contentChanges);
+            }
+          })()
+        );
+      }
     })
   );
 
