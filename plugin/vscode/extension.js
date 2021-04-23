@@ -373,15 +373,24 @@ async function activateAsync() {
 
   toDispose.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
-      logAsyncErrors(
-        (async () => {
-          if (isLintable(event.document)) {
-            await linters
-              .getLinter(event.document)
-              .textChangedAsync(event.contentChanges);
-          }
-        })()
-      );
+      /*
+      Event fires twice on first character input event of the open file. 
+      First one is caused by dirty-state change and the second is the actual character change.
+      isBogusEvent ensures that event only fires on second event trigger. 
+      Implementation is a suggested workaround by maintainer: https://github.com/Microsoft/vscode/issues/50344
+      */
+      let isBogusEvent = event.contentChanges.length === 0;
+      if (!(isBogusEvent)) {
+        logAsyncErrors(
+          (async () => {
+            if (isLintable(event.document)) {
+              await linters
+                .getLinter(event.document)
+                .textChangedAsync(event.contentChanges);
+            }
+          })()
+        );
+      }
     })
   );
 
