@@ -33,7 +33,7 @@ class test_lsp_error_reporter : public ::testing::Test {
     bool ok = quick_lint_js::parse_json(json, &root, &errors);
     EXPECT_TRUE(ok) << errors;
 
-    this->buffer_ = byte_buffer();
+    this->buffer_.clear();
     return root;
   }
 

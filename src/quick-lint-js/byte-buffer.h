@@ -20,6 +20,11 @@ class byte_buffer {
 
   static constexpr size_type default_chunk_size = 4096;
 
+  explicit byte_buffer() = default;
+
+  byte_buffer(byte_buffer&&) = default;
+  byte_buffer& operator=(byte_buffer&&) = delete;  // Not yet implemented.
+
   void* append(size_type byte_count);
 
   template <class Func>
@@ -43,6 +48,8 @@ class byte_buffer {
   void append_copy(char8 data);
 
   void prepend_copy(string8_view data);
+
+  void clear();
 
   size_type size() const noexcept;
 

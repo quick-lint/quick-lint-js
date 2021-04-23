@@ -44,6 +44,12 @@ void byte_buffer::prepend_copy(string8_view data) {
   this->chunks_.insert(this->chunks_.begin(), std::move(prefix_chunk));
 }
 
+void byte_buffer::clear() {
+  this->chunks_.erase(this->chunks_.begin(), std::prev(this->chunks_.end()));
+  QLJS_ASSERT(this->chunks_.size() == 1);
+  this->cursor_ = this->chunks_.back().begin();
+}
+
 byte_buffer::size_type byte_buffer::size() const noexcept {
   size_type total_size = 0;
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;

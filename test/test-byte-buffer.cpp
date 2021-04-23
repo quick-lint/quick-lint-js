@@ -187,6 +187,40 @@ TEST(test_byte_buffer, append_copy_after_prepend_copy) {
   bb.copy_to(data.data());
   EXPECT_EQ(data, u8"hello world");
 }
+
+TEST(test_byte_buffer, clear_after_small_appends) {
+  byte_buffer bb;
+
+  bb.append_copy(u8"hello ");
+  bb.append_copy(u8"world");
+  bb.clear();
+
+  EXPECT_EQ(bb.size(), 0);
+}
+
+TEST(test_byte_buffer, clear_after_big_appends) {
+  byte_buffer bb;
+
+  bb.append_copy(string8(byte_buffer::default_chunk_size * 3, 'x'));
+  bb.append_copy(string8(byte_buffer::default_chunk_size * 3, 'y'));
+  bb.append_copy(string8(byte_buffer::default_chunk_size * 3, 'z'));
+  bb.clear();
+
+  EXPECT_EQ(bb.size(), 0);
+}
+
+TEST(test_byte_buffer, clear_then_append) {
+  byte_buffer bb;
+
+  bb.append_copy(u8"hello ");
+  bb.clear();
+  bb.append_copy(u8"world");
+
+  string8 data;
+  data.resize(bb.size());
+  bb.copy_to(data.data());
+  EXPECT_EQ(data, u8"world");
+}
 }
 }
 
