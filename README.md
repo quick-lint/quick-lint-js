@@ -14,14 +14,10 @@ quick-lint-js finds many bugs, including:
 
 ![Demonstration of quick-lint-js in Visual Studio Code](plugin/vscode/demo.webp)
 
-## Building
+## Installing
 
-### Without CMake (macOS and Linux only)
-
-    $ c++ -o quick-lint-js -std=gnu++17 -I src -I vendor/boost -I vendor/simdjson/include -I vendor/simdjson/src -D_LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=1 -D_LIBCPP_INLINE_VISIBILITY="__attribute__((internal_linkage))" src/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c vendor/simdjson/src/simdjson.cpp
-    $ ./quick-lint-js path/to/my-file.js
-
-### With CMake
+See [installation instructions](https://quick-lint-js.com/install.html) for how
+to install quick-lint-js' CLI, LSP server, and editor plugins.
 
 See [build instructions](docs/BUILDING.md) for how to build quick-lint-js for
 development.
