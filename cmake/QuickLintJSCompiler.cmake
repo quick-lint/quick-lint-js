@@ -11,6 +11,13 @@ function (quick_lint_js_check_designated_initializers OUT)
   )
 endfunction ()
 
+function (quick_lint_js_check_designated_initializers_with_defaults OUT)
+  check_cxx_source_compiles(
+    "struct s { int a = 1; int b; int c = 3; }; int main() { s x{.b = 0}; return x.c; }"
+    "${OUT}"
+  )
+endfunction ()
+
 function (quick_lint_js_enable_char8_t_if_supported)
   check_cxx_compiler_flag(-fchar8_t QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
   if (QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG)
@@ -73,6 +80,15 @@ function (quick_lint_js_set_cxx_standard)
       message(
         FATAL_ERROR
         "C++ compiler does not support designated initializers (either GNU extension or C++20)"
+      )
+    endif ()
+    quick_lint_js_check_designated_initializers_with_defaults(
+      QUICK_LINT_JS_COMPILER_SUPPORTS_DESIGNATED_INITIALIZERS_WITH_DEFAULTS
+    )
+    if (NOT "${QUICK_LINT_JS_COMPILER_SUPPORTS_DESIGNATED_INITIALIZERS_WITH_DEFAULTS}")
+      message(
+        FATAL_ERROR
+        "C++ compiler does not support designated initializers with default values (either GNU extension or C++20)"
       )
     endif ()
   endif ()
