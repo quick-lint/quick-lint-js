@@ -26,6 +26,11 @@ quick-lint-js finds many bugs, including:
 See [build instructions](docs/BUILDING.md) for how to build quick-lint-js for
 development.
 
+## Contact
+
+**IRC**: ask questions in [#quick-lint-js][quick-lint-js-irc-web] on
+[freenode][]
+
 ## Values
 
 * **Performance**. You use quick-lint-js in text editors and IDEs to show bugs
@@ -44,3 +49,6 @@ development.
     your code.
   * **No configuration**. quick-lint-js works out-of-the-box. You don't need
     configuration files to tell quick-lint-js what buggy code looks like.
+
+[freenode]: https://freenode.net/
+[quick-lint-js-irc-web]: https://webchat.freenode.net/#quick-lint-js
