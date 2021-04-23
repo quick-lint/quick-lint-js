@@ -4,7 +4,6 @@
 "use strict";
 
 let assert = require("assert");
-const { debug } = require("console");
 let vscode = require("vscode");
 let {
   DiagnosticSeverity,
@@ -376,10 +375,12 @@ async function activateAsync() {
     vscode.workspace.onDidChangeTextDocument((event) => {
       /*
       Event fires twice on first character input event of the open file. 
-      First one is caused by dirty-state change and the secibd is the actual character change.
-      Below is the implementation of a suggested workaround by maintainer: https://github.com/Microsoft/vscode/issues/50344
+      First one is caused by dirty-state change and the second is the actual character change.
+      isBogusEvent ensures that event only fires on second event trigger. 
+      Implementation is a suggested workaround by maintainer: https://github.com/Microsoft/vscode/issues/50344
       */
-      if (event.contentChanges.length !== 0){
+      let isBogusEvent = event.contentChanges.length === 0
+      if (!(isBogusEvent)) {
         logAsyncErrors(
           (async () => {
             if (isLintable(event.document)) {
