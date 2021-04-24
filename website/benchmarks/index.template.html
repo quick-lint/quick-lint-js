@@ -13,12 +13,11 @@
     <link href="../main.css" rel="stylesheet" />
     <link href="benchmark.css" rel="stylesheet" />
     <style>
-      #methodology strong {
+      .linter-name {
         color: hsla(var(--hue), 70%, 40%);
-        font-weight: bold;
       }
       @media (prefers-color-scheme: dark) {
-        #methodology strong {
+        .linter-name {
           color: hsla(var(--hue), 85%, 75%);
         }
       }
@@ -92,24 +91,32 @@
         <h2>Methodology</h2>
         <p>These benchmarks measure the following linters:</p>
         <ul>
-          <li><strong style="--hue: 0">quick-lint-js</strong> version 0.2.0</li>
           <li>
-            <strong style="--hue: 120">RSLint</strong> version
-            b7a4eeb69dc00fedfee81eaed3cf2ad36bcb2e2e (unreleased) (with rustc
-            version 1.51.0)
-          </li>
-          <li><strong style="--hue: 180">Flow</strong> version 0.148.0</li>
-          <li>
-            <strong style="--hue: 60">ESLint</strong> version 5.16.0 (with
-            eslint-server version 0.1.7 and Node version v16.0.0)
+            <strong class="linter-name" style="--hue: 0">quick-lint-js</strong>
+            version 0.2.0
           </li>
           <li>
-            <strong style="--hue: 240">Deno</strong> version 1.9.1 (with V8
-            version 9.1.269.5 and TypeScript version 4.2.2)
+            <strong class="linter-name" style="--hue: 120">RSLint</strong>
+            version b7a4eeb69dc00fedfee81eaed3cf2ad36bcb2e2e (unreleased) (with
+            rustc version 1.51.0)
           </li>
           <li>
-            <strong style="--hue: 300">TypeScript</strong> version 4.2.4 (with
-            Theia's language server version 0.5.1 and Node version v16.0.0)
+            <strong class="linter-name" style="--hue: 180">Flow</strong> version
+            0.148.0
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 60">ESLint</strong>
+            version 5.16.0 (with eslint-server version 0.1.7 and Node version
+            v16.0.0)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 240">Deno</strong> version
+            1.9.1 (with V8 version 9.1.269.5 and TypeScript version 4.2.2)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 300">TypeScript</strong>
+            version 4.2.4 (with Theia's language server version 0.5.1 and Node
+            version v16.0.0)
           </li>
         </ul>
 
