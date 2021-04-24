@@ -13,7 +13,6 @@ The following contributors are copyright holders of portions of quick-lint-js:
 * CodeItQuick; evanontario@hotmail.com
 * Dylan Elliott; dylanelliott27@hotmail.com
 * EdTheDagger
-* Eduardo Fuentes; jeduardo.fuentes@alumnos.udg.mx
 * Francis Laniel; laniel_francis@privacyrequired.com
 * spicyyboi
 
@@ -30,6 +29,7 @@ authored portions of quick-lint-js:
 * Erlliam Mejia; tommejas@gmail.com; signed CLA-v1.md
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
 * Jesus Gil; jesusgil.dev@gmail.com; signed CLA-v1.md
+* Jesús Eduardo; jeduardo.fuentes@alumnos.udg.mx; signed CLA-v1.md
 * Jimmy Qiu; bottlewater072@gmail.com; signed CLA-v1.md
 * Justin Welenofsky; welenofsky@gmail.com; signed CLA-v1.md
 * Lee Wannacott; wannacottL@gmail.com; signed CLA-v1.md
