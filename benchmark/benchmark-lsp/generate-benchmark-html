@@ -66,6 +66,8 @@ def make_benchmark_html(seriess: typing.List["Series"], output) -> None:
     chart_max_ms = linear_ticks_ms[-1]
     log_ticks_ms = [0.1, 1, 10, 100, chart_max_ms]
 
+    qljs_series = [series for series in seriess if series.name == "quick-lint-js"][0]
+
     output.write(
         f"""
             <div style="--chart-max-x: {chart_max_ms:.3f};" class="chart linear">
@@ -121,12 +123,16 @@ def make_benchmark_html(seriess: typing.List["Series"], output) -> None:
                 <thead>
                     <tr>
                         <th rowspan=2>linter</th>
-                        <th colspan=3>response time (milliseconds)</th>
+                        <th colspan=4>response time (milliseconds)</th>
                     </tr>
                     <tr>
                         <th class="numbers"><abbr title="minimum">min</abbr></th>
                         <th class="numbers"><abbr title="average">avg</abbr></th>
                         <th class="numbers"><abbr title="maximum">max</abbr></th>
+                        <th class="numbers">
+                            <abbr title="slowdown compared to">÷</abbr>
+                            <span style="--hue: 0;" class="linter-name">quick-lint-js</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,6 +147,7 @@ def make_benchmark_html(seriess: typing.List["Series"], output) -> None:
                         <td>{series.min_ms:.2f}</td>
                         <td>{series.avg_ms:.2f}</td>
                         <td>{series.max_ms:.2f}</td>
+                        <td>{series.avg_ms / qljs_series.avg_ms:.1f}×</td>
                     </tr>
             """
         )

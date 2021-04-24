@@ -229,12 +229,16 @@
           <thead>
             <tr>
               <th rowspan="2">linter</th>
-              <th colspan="3">response time (milliseconds)</th>
+              <th colspan="4">response time (milliseconds)</th>
             </tr>
             <tr>
               <th class="numbers"><abbr title="minimum">min</abbr></th>
               <th class="numbers"><abbr title="average">avg</abbr></th>
               <th class="numbers"><abbr title="maximum">max</abbr></th>
+              <th class="numbers">
+                <abbr title="slowdown compared to">÷</abbr>
+                <span style="--hue: 0" class="linter-name">quick-lint-js</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -243,6 +247,7 @@
               <td>0.41</td>
               <td>0.41</td>
               <td>0.42</td>
+              <td>1.0×</td>
             </tr>
 
             <tr style="--hue: 120" data-series="RSLint">
@@ -250,6 +255,7 @@
               <td>18.50</td>
               <td>18.52</td>
               <td>18.55</td>
+              <td>44.8×</td>
             </tr>
 
             <tr style="--hue: 180" data-series="Flow">
@@ -257,6 +263,7 @@
               <td>36.73</td>
               <td>37.00</td>
               <td>37.52</td>
+              <td>89.4×</td>
             </tr>
 
             <tr style="--hue: 60" data-series="eslint-server">
@@ -264,6 +271,7 @@
               <td>70.24</td>
               <td>83.23</td>
               <td>114.32</td>
+              <td>201.2×</td>
             </tr>
 
             <tr style="--hue: 240" data-series="Deno">
@@ -271,6 +279,7 @@
               <td>387.57</td>
               <td>440.96</td>
               <td>559.74</td>
+              <td>1065.9×</td>
             </tr>
 
             <tr style="--hue: 300" data-series="TypeScript-Theia">
@@ -278,6 +287,7 @@
               <td>435.07</td>
               <td>621.95</td>
               <td>984.36</td>
+              <td>1503.4×</td>
             </tr>
           </tbody>
         </table>
