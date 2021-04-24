@@ -610,7 +610,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
   bool is_identifier = [this]() -> bool {
     if (this->in_async_function_) {
       return false;
-    } else if (this->in_top_level_) {
+    } else {
       // await is a unary operator (in modules) or an identifier (in scripts).
       switch (this->peek().type) {
       QLJS_CASE_BINARY_ONLY_OPERATOR:
@@ -632,11 +632,45 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       case token_type::slash:
         return true;
 
+      case token_type::kw_of:
+        // HACK(strager): This works around for-of parsing. Remove this case
+        // when for-of parsing is fixed.
+        [[fallthrough]];
+      case token_type::minus_minus:
+      case token_type::plus_plus:
+        // TODO(strager): Parse 'await--x' and 'await--;' correctly.
+        [[fallthrough]];
+      case token_type::complete_template:
+      case token_type::incomplete_template:
+      case token_type::left_paren:
+      case token_type::left_square:
+      case token_type::minus:
+      case token_type::plus:
+        return !this->in_top_level_;
+
+      case token_type::bang:
+      case token_type::dot_dot_dot:
+      case token_type::identifier:
+      case token_type::kw_as:
+      case token_type::kw_async:
+      case token_type::kw_await:
+      case token_type::kw_from:
+      case token_type::kw_function:
+      case token_type::kw_get:
+      case token_type::kw_let:
+      case token_type::kw_set:
+      case token_type::kw_static:
+      case token_type::kw_yield:
+      case token_type::left_curly:
+      case token_type::number:
+      case token_type::private_identifier:
+      case token_type::regexp:
+      case token_type::reserved_keyword_with_escape_sequence:
+      case token_type::string:
+      case token_type::tilde:
       default:
         return false;
       }
-    } else {
-      return true;
     }
   }();
 
@@ -645,6 +679,12 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         await_token.identifier_name(), await_token.type);
   } else {
     source_code_span operator_span = await_token.span();
+    if (!(this->in_async_function_ || this->in_top_level_)) {
+      this->error_reporter_->report(error_await_operator_outside_async{
+          .await_operator = operator_span,
+      });
+    }
+
     expression* child = this->parse_expression(prec);
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{

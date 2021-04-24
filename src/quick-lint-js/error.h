@@ -61,6 +61,12 @@
                assignment))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_await_operator_outside_async, "E162",                              \
+      { source_code_span await_operator; },                                    \
+      .error(QLJS_TRANSLATABLE("'await' is only allowed in async functions"),  \
+             await_operator))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E005",                    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),       \

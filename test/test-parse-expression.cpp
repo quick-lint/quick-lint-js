@@ -874,7 +874,7 @@ TEST_F(test_parse_expression,
   };
 
   for (test_case test : {
-           // clang-format off
+         // clang-format off
            test_case
 
            // 'await' is either an identifier or a unary operator:
@@ -973,17 +973,46 @@ TEST_F(test_parse_expression,
            {u8"await++;"_sv,            "rwunarysuffix(var await)",      nullptr},
            {u8"await--;"_sv,            "rwunarysuffix(var await)",      nullptr},
 #endif
-           // clang-format on
+         // clang-format on
        }) {
     SCOPED_TRACE(out_string8(test.code));
 
-    if (test.expected_normal_function) {
+    {
       // Normal function:
       test_parser p(test.code);
       auto guard = p.parser().enter_function(function_attributes::normal);
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), test.expected_normal_function);
-      EXPECT_THAT(p.errors(), IsEmpty());
+
+      if (test.code == u8"await--x" || test.code == u8"await++x" ||
+          test.code == u8"await of") {
+        // TODO(strager): Make these test cases pass.
+      } else if (test.expected_normal_function) {
+        // 'await' should look like an identifier.
+        EXPECT_EQ(summarize(ast), test.expected_normal_function);
+        EXPECT_THAT(p.errors(), IsEmpty());
+      } else {
+        // 'await' doesn't look like an identifier. We should report an error
+        // and recover as if 'await' was an operator.
+        EXPECT_EQ(summarize(ast), test.expected_async_function);
+        if (test.code == u8"await await x") {
+          EXPECT_THAT(
+              p.errors(),
+              ElementsAre(
+                  ERROR_TYPE_FIELD(error_await_operator_outside_async,
+                                   await_operator,
+                                   offsets_matcher(p.code(), 0, u8"await")),  //
+                  ERROR_TYPE_FIELD(error_await_operator_outside_async,
+                                   await_operator,
+                                   offsets_matcher(p.code(), strlen(u8"await "),
+                                                   u8"await"))));
+        } else {
+          std::size_t await_offset = test.code.find(u8"await");
+          EXPECT_THAT(p.errors(),
+                      ElementsAre(ERROR_TYPE_FIELD(
+                          error_await_operator_outside_async, await_operator,
+                          offsets_matcher(p.code(), await_offset, u8"await"))));
+        }
+      }
     }
 
     if (test.expected_async_function) {
@@ -1014,6 +1043,19 @@ TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var await, var x)");
     EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
+TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
+  {
+    test_parser p(u8"await myPromise"_sv);
+    auto guard = p.parser().enter_function(function_attributes::normal);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "await(var myPromise)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_await_operator_outside_async, await_operator,
+                    offsets_matcher(p.code(), 0, u8"await"))));
   }
 }
 
