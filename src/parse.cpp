@@ -616,15 +616,20 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       QLJS_CASE_BINARY_ONLY_OPERATOR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      case token_type::colon:
       case token_type::comma:
       case token_type::dot:
       case token_type::end_of_file:
       case token_type::equal:
+      case token_type::equal_greater:
       case token_type::kw_in:
       case token_type::question:
       case token_type::question_dot:
+      case token_type::right_curly:
       case token_type::right_paren:
+      case token_type::right_square:
       case token_type::semicolon:
+      case token_type::slash:
         return true;
 
       default:
