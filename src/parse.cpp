@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -607,14 +608,14 @@ expression* parser::parse_async_expression_only(token async_token) {
 }
 
 expression* parser::parse_await_expression(token await_token, precedence prec) {
-  bool is_identifier = [this]() -> bool {
+  bool is_identifier = [&]() -> bool {
     if (this->in_async_function_) {
       return false;
     } else {
       // await is a unary operator (in modules) or an identifier (in scripts).
       switch (this->peek().type) {
       QLJS_CASE_BINARY_ONLY_OPERATOR:
-      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
       QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
       case token_type::colon:
       case token_type::comma:
@@ -629,8 +630,41 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       case token_type::right_paren:
       case token_type::right_square:
       case token_type::semicolon:
-      case token_type::slash:
         return true;
+
+      // await /regexp/;
+      // await / rhs;
+      case token_type::slash:
+      case token_type::slash_equal: {
+        buffering_error_reporter temp_error_reporter;
+        error_reporter* old_error_reporter =
+            std::exchange(this->error_reporter_, &temp_error_reporter);
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+
+        if (this->in_top_level_) {
+          // Try to parse the / as a regular expression literal.
+          [[maybe_unused]] expression* ast = this->parse_expression(prec);
+        } else {
+          // Try to parse the / as a binary division operator.
+          [[maybe_unused]] expression* ast = this->parse_expression_remainder(
+              this->make_expression<expression::variable>(
+                  await_token.identifier_name(), await_token.type),
+              prec);
+        }
+        bool parsed_ok = temp_error_reporter.empty() &&
+                         !this->lexer_.transaction_has_lex_errors(transaction);
+
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        this->error_reporter_ = old_error_reporter;
+
+        if (this->in_top_level_) {
+          bool parsed_slash_as_regexp = parsed_ok;
+          return !parsed_slash_as_regexp;
+        } else {
+          bool parsed_slash_as_divide = parsed_ok;
+          return parsed_slash_as_divide;
+        }
+      }
 
       case token_type::kw_of:
         // HACK(strager): This works around for-of parsing. Remove this case

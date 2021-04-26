@@ -140,6 +140,10 @@ class lexer {
   // been reported if it weren't for begin_transaction.
   void roll_back_transaction(lexer_transaction&&);
 
+  // transaction_has_lex_errors can only be called while the given transaction
+  // is the most recent active transaction.
+  bool transaction_has_lex_errors(const lexer_transaction&) const noexcept;
+
   void insert_semicolon();
 
   // Do not call this after calling insert_semicolon, unless skip has been

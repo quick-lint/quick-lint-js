@@ -924,6 +924,13 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->error_reporter_ = transaction.old_error_reporter;
 }
 
+bool lexer::transaction_has_lex_errors(const lexer_transaction&) const
+    noexcept {
+  buffering_error_reporter* buffered_errors =
+      static_cast<buffering_error_reporter*>(this->error_reporter_);
+  return !buffered_errors->empty();
+}
+
 void lexer::insert_semicolon() {
   QLJS_ASSERT(this->last_last_token_end_ != nullptr);
   this->input_ = this->last_last_token_end_;
