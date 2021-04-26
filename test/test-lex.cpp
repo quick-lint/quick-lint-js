@@ -2083,7 +2083,7 @@ TEST_F(test_lex, transaction_buffers_errors_until_commit) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::number);
   EXPECT_THAT(errors.errors, IsEmpty())
-      << "0o999 error shouldn't be written to error reporter";
+      << "0b error shouldn't be written to error reporter";
 
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::identifier);
