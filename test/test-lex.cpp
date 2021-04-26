@@ -2095,6 +2095,91 @@ TEST_F(test_lex, transaction_buffers_errors_until_commit) {
                                            characters, testing::_)));
 }
 
+TEST_F(test_lex, nested_transaction_buffers_errors_until_outer_commit) {
+  padded_string code(u8"x y 0b z"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // x
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // y
+
+  lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);  // 0b
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0b error shouldn't be written to error reporter";
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // z
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.commit_transaction(std::move(inner_transaction));
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "committing inner_transaction should not report 0b error";
+
+  l.commit_transaction(std::move(outer_transaction));
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(error_no_digits_in_binary_number,
+                                           characters, testing::_)))
+      << "committing outer_transaction should report 0b error";
+}
+
+TEST_F(test_lex, rolled_back_inner_transaction_discards_errors) {
+  padded_string code(u8"x y 0b z"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // x
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // y
+
+  lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);  // 0b
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // z
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.roll_back_transaction(std::move(inner_transaction));
+  l.commit_transaction(std::move(outer_transaction));
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0b error shouldn't be written to error reporter";
+}
+
+TEST_F(test_lex, rolled_back_outer_transaction_discards_errors) {
+  padded_string code(u8"x y 0b z"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // x
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // y
+
+  lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);  // 0b
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // z
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.commit_transaction(std::move(inner_transaction));
+  l.roll_back_transaction(std::move(outer_transaction));
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0b error shouldn't be written to error reporter";
+}
+
 TEST_F(test_lex, errors_after_transaction_commit_are_reported_unbuffered) {
   padded_string code(u8"x 'y' 0b"_sv);
   error_collector errors;

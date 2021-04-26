@@ -113,11 +113,11 @@ class lexer {
   // After calling begin_transaction, you must call either commit_transaction or
   // roll_back_transaction with the returned transaction.
   //
-  // You cannot call begin_transaction again before calling commit_transaction
-  // or roll_back_transaction. In other words, transactions may not be nested.
+  // You can call begin_transaction again before calling commit_transaction
+  // or roll_back_transaction. Doing so begins a nested transaction.
   //
   // Inside a transaction, errors are not reported until commit_transaction is
-  // called.
+  // called for the outer-most nested transaction.
   lexer_transaction begin_transaction();
 
   // After calling commit_transaction, it's almost as if you never called
