@@ -503,7 +503,7 @@
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_let_with_no_bindings, "E024", { source_code_span where; },         \
-      .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
+      .error(QLJS_TRANSLATABLE("{0} with no bindings"), where))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_lexical_declaration_not_allowed_in_body, "E150",                   \
