@@ -3037,7 +3037,6 @@ class parser {
 
         switch (this->peek().type) {
         // let switch = 3;  // Invalid.
-        case token_type::end_of_file:
         case token_type::equal:
         case token_type::semicolon:
           this->lexer_.commit_transaction(std::move(transaction));
