@@ -31,8 +31,7 @@ const char8* lsp_message_parser_base::find_content_begin(
 
 lsp_message_parser_base::parsed_message_headers
 lsp_message_parser_base::parse_message_headers(const char8* headers_begin) {
-  // TODO(strager): Use std::optional<std::size_t> instead.
-  std::optional<int> content_length;
+  std::optional<std::size_t> content_length;
   for (const char8* c = headers_begin;;) {
     parsed_header header = parse_header(c);
     c = header.next;
@@ -58,8 +57,7 @@ lsp_message_parser_base::parse_message_headers(const char8* headers_begin) {
   if (!content_length.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
-  return parsed_message_headers{.content_length =
-                                    narrow_cast<std::size_t>(*content_length)};
+  return parsed_message_headers{.content_length = *content_length};
 }
 
 lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
