@@ -2,7 +2,7 @@
 import argparse
 import re
 import sys
-import threading
+import concurrent.futures
 import urllib.request
 from urllib.error import HTTPError
 from urllib.parse import urldefrag, urljoin, urlparse
@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 allow_mails = ["strager.nds@gmail.com"]
 
-_allowed_file_ext_for_soup_ = [
+allowed_file_ext_for_soup = [
     "html",
     "js",
 ]
@@ -46,13 +46,13 @@ def worker(parent_url, url):
 
 
 class Crawler:
-    def __init__(self, site, allowed_file_ext_for_soup=_allowed_file_ext_for_soup_):
+    def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
         self.site = site
         self.allowed_file_ext_for_soup = allowed_file_ext_for_soup
         self.site_namespace = urlparse(self.site).netloc
         self.visted_urls = []
         self.visted_urls_soup = {}
-        self.threads = list()
+        self.external_links_to_check = list()
 
         try:
             result = requests.get(self.site)
@@ -74,10 +74,17 @@ class Crawler:
 
     def start_crawl(self):
         self.crawl_and_report(self.site, self.urls)
-        for thread in self.threads:
-            thread.start()
-        for thread in self.threads:
-            thread.join()
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.external_links_to_check)
+        ) as executor:
+            future_to_url = {
+                executor.submit(worker, *url) for url in self.external_links_to_check
+            }
+            for future in future_to_url:
+                try:
+                    data = future.result()
+                except Exception as e:
+                    print("%r generated an exception: %s" % (url, exc))
 
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
@@ -93,10 +100,7 @@ class Crawler:
                     if defraged_url not in self.visted_urls_soup:
                         # TODO(emadflash) add cmd option to check external links
                         if not self.in_namespace(defraged_url):
-                            thread = threading.Thread(
-                                target=worker, args=(parent_url, defraged_url)
-                            )
-                            self.threads.append(thread)
+                            self.external_links_to_check.append([parent_url, url])
                             self.visted_urls_soup[defraged_url] = None
                         else:
                             response = requests.head(defraged_url)
