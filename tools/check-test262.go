@@ -42,10 +42,6 @@ var testTodo = TestTodo{
 		"language/directive-prologue/10.1.1-8gs.js",
 		"language/directive-prologue/14.1-4gs.js",
 		"language/directive-prologue/14.1-5gs.js",
-
-		// TODO(#140): Parse 'await' outside async functions.
-		"language/module-code/top-level-await/syntax/early-does-not-propagate-to-fn-declaration-params.js",
-		"language/module-code/top-level-await/syntax/early-does-not-propagate-to-fn-expr-params.js",
 	},
 	TodoFeatures: [][]byte{},
 }
