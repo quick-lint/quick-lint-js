@@ -45,13 +45,13 @@ def worker(parent_url, url):
         print(f"({e.code} error) {parent_url}, {url}")
 
 
-class Crawler:
-    def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
+class initialize_crawler:
+    def __init__(self, site, allowed_file_ext_for_soup):
         self.site = site
         self.allowed_file_ext_for_soup = allowed_file_ext_for_soup
         self.site_namespace = urlparse(self.site).netloc
-        self.visted_urls = []
-        self.visted_urls_soup = {}
+        self.visted_urls = list()
+        self.visted_urls_soup = dict()
         self.external_links_to_check = list()
 
         try:
@@ -60,6 +60,11 @@ class Crawler:
             self.urls = self.get_urls_from_page(soup)
         except requests.exceptions.ConnectionError:
             print("(error) failed to get", self.site)
+
+
+class Crawler(initialize_crawler):
+    def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
+        super().__init__(site, allowed_file_ext_for_soup)
 
     def in_namespace(self, url) -> bool:
         return urlparse(url).netloc == self.site_namespace
