@@ -426,6 +426,8 @@ let tests = {
           assert.strictEqual(messages.length, 1, messages);
           assert.ok(
             messages[0] === "let with no bindings" ||
+              messages[0] === "const with no bindings" ||
+              messages[0] === "var with no bindings" ||
               messages[0] === "redeclaration of variable: x",
             messages
           );
