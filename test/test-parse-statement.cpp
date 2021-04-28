@@ -955,7 +955,7 @@ TEST(test_parse, labelled_statement) {
 }
 
 TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
-  for (string8_view keyword : {u8"await"_sv, u8"yield"_sv}) {
+  for (string8_view keyword : contextual_keywords) {
     padded_string code(string8(keyword) + u8": x;");
     SCOPED_TRACE(code);
 

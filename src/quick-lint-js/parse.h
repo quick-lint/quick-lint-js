@@ -318,17 +318,11 @@ class parser {
     case token_type::equal:
     case token_type::equal_greater:
     case token_type::incomplete_template:
-    case token_type::kw_as:
     case token_type::kw_delete:
     case token_type::kw_false:
-    case token_type::kw_from:
-    case token_type::kw_get:
     case token_type::kw_in:
     case token_type::kw_new:
     case token_type::kw_null:
-    case token_type::kw_of:
-    case token_type::kw_set:
-    case token_type::kw_static:
     case token_type::kw_super:
     case token_type::kw_this:
     case token_type::kw_true:
@@ -386,6 +380,12 @@ class parser {
     // console.log("hello");
     // label: for(;;);
     parse_loop_label_or_expression_starting_with_identifier:
+    case token_type::kw_as:
+    case token_type::kw_from:
+    case token_type::kw_get:
+    case token_type::kw_of:
+    case token_type::kw_set:
+    case token_type::kw_static:
     case token_type::identifier: {
       identifier ident = this->peek().identifier_name();
       this->skip();
@@ -549,7 +549,7 @@ class parser {
       source_code_span token_span = this->peek().span();
       this->skip();
       switch (this->peek().type) {
-      // TODO(strager): Are contextual keywords allowed as labels?
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
         if (this->peek().has_leading_newline) {
           // ASI.
