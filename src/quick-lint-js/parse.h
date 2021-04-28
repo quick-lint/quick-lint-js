@@ -1281,7 +1281,7 @@ class parser {
 
       switch (this->peek().type) {
       case token_type::kw_await:
-        // TODO(strager): Disallow parameters named 'await' for async functions.
+        // TODO(#241): Disallow parameters named 'await' for async functions.
         [[fallthrough]];
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::dot_dot_dot:
