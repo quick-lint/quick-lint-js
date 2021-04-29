@@ -1059,7 +1059,10 @@
      and helpful error instead. */                                             \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_token, "E054", { source_code_span token; },             \
-      .error(QLJS_TRANSLATABLE("unexpected token"), token))                    \
+      .error(QLJS_TRANSLATABLE(                                                \
+          "const fields are only allowed in TypeScript,"                       \
+          "not JavaScript [E054]"),                                            \
+          token))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_token_after_export, "E112",                             \
