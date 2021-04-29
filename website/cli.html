@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew Glazar -->
+<!-- See end of file for extended copyright information. -->
+<!-- This file was generated using generate-cli-docs. -->
+<html lang="en">
+  <head>
+    <title>quick-lint-js: CLI documentation</title>
+    <meta charset="utf-8" />
+    <link href="main.css" rel="stylesheet" />
+  </head>
+  <body class="article">
+    <div id="header">
+      <header>
+        <h1><a href=".">quick-lint-js</a></h1>
+        <nav>
+          <ul>
+            <li>
+              <a href="https://github.com/quick-lint/quick-lint-js"
+                >source code on GitHub</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </header>
+      <p>This page documents the quick-lint-js command-line interface (CLI).</p>
+      <div id="toc" class="toc">
+        <div id="toctitle">Table of Contents</div>
+        <ul class="sectlevel1">
+          <li><a href="#_name">Name</a></li>
+          <li><a href="#_synopsis">Synopsis</a></li>
+          <li><a href="#_description">Description</a></li>
+          <li><a href="#_options">Options</a></li>
+          <li><a href="#_error_lists">Error lists</a></li>
+          <li><a href="#_exit_status">Exit status</a></li>
+          <li><a href="#_environment">Environment</a></li>
+          <li><a href="#_example">Example</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="content">
+      <div class="sect1">
+        <h2 id="_name">Name</h2>
+        <div class="sectionbody">
+          <div class="paragraph">
+            <p>quick-lint-js - find bugs in JavaScript programs</p>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_synopsis">Synopsis</h2>
+        <div class="sectionbody">
+          <div class="paragraph">
+            <p>
+              <strong>quick-lint-js</strong>
+              [<strong>--output-format</strong>=<em>format</em>]
+              [&lt;options&gt;]
+              <em>file</em> [<em>file</em>&#8230;&#8203;]<br />
+              <strong>quick-lint-js</strong>
+              <strong>--lsp-server</strong> [&lt;options&gt;]
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_description">Description</h2>
+        <div class="sectionbody">
+          <div class="paragraph">
+            <p>
+              <strong>quick-lint-js</strong> reads JavaScript files and reports
+              syntax errors and other bugs.
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>This command has two modes:</p>
+          </div>
+          <div class="dlist">
+            <dl>
+              <dt class="hdlist1">
+                <strong>quick-lint-js</strong> [&lt;options&gt;]
+                <em>file</em> [<em>file</em>&#8230;&#8203;]
+              </dt>
+              <dd>
+                <p>
+                  Batch mode (default). Check the given files, and report errors
+                  to the terminal (standard error). --output-format can be used
+                  to customize how errors look.
+                </p>
+              </dd>
+              <dt class="hdlist1">
+                <strong>quick-lint-js</strong> --lsp-server
+              </dt>
+              <dd>
+                <p>
+                  LSP server mode. Start a Language Server Protocol server,
+                  communicating using standard input and standard output. Use
+                  this mode to integrate with code editors supporting LSP.
+                </p>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_options">Options</h2>
+        <div class="sectionbody">
+          <div class="dlist">
+            <dl>
+              <dt class="hdlist1">
+                <strong>--output-format</strong>=<em>format</em>
+              </dt>
+              <dd>
+                <p>
+                  Customize how errors are printed. <em>format</em> is one of
+                  the following:
+                </p>
+                <div class="paragraph">
+                  <p>
+                    - <strong>gnu-like</strong> (default): a human-readable
+                    format similar to GCC.
+                  </p>
+                </div>
+                <div class="paragraph">
+                  <p>
+                    - <strong>vim-qflist-json</strong>: machine-readable JSON
+                    which can be given to Vim&#8217;s
+                    <em>setqflist</em> function.
+                  </p>
+                </div>
+                <div class="paragraph">
+                  <p>Incompatible with <strong>--lsp-server</strong>.</p>
+                </div>
+              </dd>
+              <dt class="hdlist1">
+                <strong>--vim-file-bufnr</strong>=<em>number</em>
+              </dt>
+              <dd>
+                <p>
+                  Set the <em>bufnr</em> property for errors printed with the
+                  <strong>--output-format=vim-qflist-json</strong> option.
+                  <strong>--vim-file-bufnr</strong> applies only to files which
+                  are given later in the command line. Therefore, if multiple
+                  files are given, <strong>--vim-file-bufnr</strong> can be
+                  specified multiple times.
+                </p>
+              </dd>
+              <dt class="hdlist1">
+                <strong>--exit-fail-on</strong>=<em>errors</em>
+              </dt>
+              <dd>
+                <p>
+                  Cause <strong>quick-lint-js</strong> to exit with a non-zero
+                  exit code if any of the discovered errors is listed in
+                  <em>errors</em>.
+                </p>
+                <div class="paragraph">
+                  <p>
+                    See the "ERROR LISTS" section for a description of the
+                    format for <em>errors</em>.
+                  </p>
+                </div>
+                <div class="paragraph">
+                  <p>Incompatible with <strong>--lsp-server</strong>.</p>
+                </div>
+              </dd>
+              <dt class="hdlist1"><strong>--lsp</strong></dt>
+              <dt class="hdlist1"><strong>--lsp-server</strong></dt>
+              <dd>
+                <p>
+                  Run <strong>quick-lint-js</strong> in LSP server mode. Use
+                  this mode to integrate with code editors supporting LSP. An
+                  editor can send LSP requests and notifications to
+                  <strong>quick-lint-js</strong> via standard input, and receive
+                  LSP responses and notifications from standard output.
+                </p>
+                <div class="paragraph">
+                  <p>Incompatible with <strong>--output-format</strong>.</p>
+                </div>
+              </dd>
+              <dt class="hdlist1"><strong>-h</strong></dt>
+              <dt class="hdlist1"><strong>--help</strong></dt>
+              <dd>
+                <p>Print a help message and exit.</p>
+                <div class="paragraph">
+                  <p>
+                    The output format is not intended to be machine-parsable and
+                    may change in the future.
+                  </p>
+                </div>
+              </dd>
+              <dt class="hdlist1"><strong>-v</strong></dt>
+              <dt class="hdlist1"><strong>--version</strong></dt>
+              <dd>
+                <p>Print version information and exit.</p>
+                <div class="paragraph">
+                  <p>
+                    The output format is not intended to be machine-parsable and
+                    may change in the future.
+                  </p>
+                </div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_error_lists">Error lists</h2>
+        <div class="sectionbody">
+          <div class="paragraph">
+            <p>
+              Some options, such as <strong>--exit-fail-on</strong>, accept an
+              error list. An error list is a comma-separated list of error code
+              predicates and error category predicates.
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>
+              An error lists can contain any number of include, exclude, and
+              default predicates. An include predicate is a '+' followed by the
+              name of an error code or error category. An exclude predicate is a
+              '-' followed by the name of an error code or error category. An
+              default predicate is the name of an error code or error category
+              with no sigil.
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>
+              An error list containing only include and exclude predicates
+              modifies a default set of error codes. The default set is decided
+              by the option, but is often the set of all error codes. An error
+              list containing at least one default predicate empties the set of
+              error codes, then treats the default predicates as if they were
+              include predicates.
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>
+              The order of predicates within an error list does not matter.
+              Included predicates are processed first, adding to the set of
+              error codes. Excluded predicates are processed second, removing
+              from the set of error codes.
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>
+              Error codes have the form <strong>E000</strong>, where
+              <em>000</em> is three decimal digits (0-9).
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>The following error categories are supported:</p>
+          </div>
+          <div class="dlist">
+            <dl>
+              <dt class="hdlist1"><strong>all</strong></dt>
+              <dd>
+                <p>All error codes.</p>
+              </dd>
+            </dl>
+          </div>
+          <div class="paragraph">
+            <p>Example error lists:</p>
+          </div>
+          <div class="dlist">
+            <dl>
+              <dt class="hdlist1"><strong>E102,E110</strong></dt>
+              <dd>
+                <p>
+                  Only error codes E102 and E110, excluding all other error
+                  codes.
+                </p>
+              </dd>
+              <dt class="hdlist1"><strong>-E102</strong></dt>
+              <dd>
+                <p>
+                  The default set of error codes, except for error code E102.
+                </p>
+              </dd>
+              <dt class="hdlist1"><strong>+E102</strong></dt>
+              <dd>
+                <p>The default set of error codes, and also error code E102.</p>
+              </dd>
+              <dt class="hdlist1"><strong>all,-E102</strong></dt>
+              <dd>
+                <p>All error codes, except for error code E102.</p>
+              </dd>
+              <dt class="hdlist1"><strong>E100,-E100,+E200</strong></dt>
+              <dd>
+                <p>Only error code E200, excluding all other error codes.</p>
+              </dd>
+              <dt class="hdlist1"><strong>+E200,-E100,E100</strong></dt>
+              <dd>
+                <p>Only error code E200, excluding all other error codes.</p>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_exit_status">Exit status</h2>
+        <div class="sectionbody">
+          <div class="dlist">
+            <dl>
+              <dt class="hdlist1"><strong>0</strong></dt>
+              <dd>
+                <p>Batch mode: Linting succeeded with no errors or warnings.</p>
+                <div class="paragraph">
+                  <p>
+                    LSP server mode: The LSP client requested that the server
+                    shut down. This exit status may change in the future.
+                  </p>
+                </div>
+              </dd>
+              <dt class="hdlist1"><strong>non-0</strong></dt>
+              <dd>
+                <p>
+                  Batch mode: Linting failed with at least one error or warning,
+                  or at least one <em>file</em> could not be opened and read.
+                </p>
+                <div class="paragraph">
+                  <p>The specific status code may change in the future.</p>
+                </div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_environment">Environment</h2>
+        <div class="sectionbody">
+          <div class="dlist">
+            <dl>
+              <dt class="hdlist1"><strong>LC_ALL</strong></dt>
+              <dt class="hdlist1"><strong>LC_MESSAGES</strong></dt>
+              <dd>
+                <p>
+                  Change the language used for error and warning messages. For
+                  example, set <strong>LC_ALL=en</strong> to see messages
+                  written in United States English.
+                </p>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="sect1">
+        <h2 id="_example">Example</h2>
+        <div class="sectionbody">
+          <div class="paragraph">
+            <p>
+              To lint a file called <em>lib/index.js</em>, writing error
+              messages to the terminal:
+            </p>
+          </div>
+          <div class="quoteblock">
+            <blockquote>
+              <div class="listingblock">
+                <div class="content">
+                  <pre>
+$ <strong>quick-lint-js</strong> lib/index.js
+lib/index.js:1:20: error: variable used before declaration: language [E058]
+lib/index.js:2:7: note: variable declared here [E058]
+lib/index.js:3:1: error: assignment to const variable [E003]
+lib/index.js:1:7: note: const variable declared here [E003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]</pre
+                  >
+                </div>
+              </div>
+            </blockquote>
+          </div>
+          <div class="paragraph">
+            <p>
+              To lint three files, writing machine-readable messages to
+              <em>/tmp/vim-qflist.json</em>:
+            </p>
+          </div>
+          <div class="quoteblock">
+            <blockquote>
+              <div class="listingblock">
+                <div class="content">
+                  <pre>
+$ <strong>quick-lint-js</strong> --output-format=vim-qflist-json \
+    --vim-bufnr=3 lib/pizza-dough.js \
+    --vim-bufnr=4 lib/pizza-sauce.js \
+    --vim-bufnr=6 lib/pineapple.js \
+    &gt;/tmp/vim-qflist.json</pre
+                  >
+                </div>
+              </div>
+            </blockquote>
+          </div>
+          <div class="paragraph">
+            <p>
+              Errors for <em>lib/pizza-dough.js</em> will include
+              <em>"bufnr":3</em> in the output and errors for
+              <em>lib/pineapple.js</em> will include <em>"bufnr":6</em>.
+            </p>
+          </div>
+          <div class="paragraph">
+            <p>
+              To lint a file called <em>bad.js</em>, but don&#8217;t fail on
+              use-of-undeclared-variable errors:
+            </p>
+          </div>
+          <div class="quoteblock">
+            <blockquote>
+              <div class="listingblock">
+                <div class="content">
+                  <pre>
+$ <strong>quick-lint-js</strong> --exit-fail-on=-E057 bad.js
+bad.js:5:25: warning: use of undeclared variable: $ [E057]
+$ echo $?
+0</pre
+                  >
+                </div>
+              </div>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <nav>
+        <ul>
+          <li><a href=".">quick-lint-js home page</a></li>
+          <li><a href="hiring.html">we're hiring! get paid to code</a></li>
+          <li><a href="benchmarks/">benchmarks vs other linters</a></li>
+          <li><a href="demo/">try quick-lint-js in your browser</a></li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+          <li><a href="license.html">copyright and license information</a></li>
+        </ul>
+      </nav>
+    </footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

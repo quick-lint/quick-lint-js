@@ -13,6 +13,7 @@ output_directory="$(cd "${output_directory}" && pwd)"
 cd "$(dirname "${0}")"
 
 cp atom.svg "${output_directory}/"
+cp cli.html "${output_directory}/"
 cp debian.svg "${output_directory}/"
 cp emacs.svg "${output_directory}/"
 cp gnome-terminal.svg "${output_directory}/"
