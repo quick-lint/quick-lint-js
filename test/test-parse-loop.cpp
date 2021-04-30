@@ -904,7 +904,6 @@ TEST(test_parse, break_statement) {
                             "visit_exit_block_scope"));
   }
 
-  // TODO(strager): Are contextual keywords allowed as labels?
   // TODO(#72): Visit the label.
   {
     spy_visitor v = parse_and_visit_statement(u8"break label;"_sv);
@@ -990,7 +989,6 @@ TEST(test_parse, continue_statement) {
                             "visit_exit_block_scope"));
   }
 
-  // TODO(strager): Are contextual keywords allowed as labels?
   // TODO(#72): Visit the label.
   {
     spy_visitor v = parse_and_visit_statement(u8"continue label;"_sv);
