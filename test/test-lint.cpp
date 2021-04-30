@@ -524,55 +524,49 @@ TEST(
 }
 
 TEST(test_lint, var_variable_use_before_declaration_in_block_scope) {
-  for (variable_kind kind : {variable_kind::_var}) {
-    const char8 declaration[] = u8"x";
-    const char8 use[] = u8"x";
+  const char8 declaration[] = u8"x";
+  const char8 use[] = u8"x";
 
-    // x;
-    // {
-    //   var x;  // x is hoisted
-    // }
-    error_collector v;
-    linter l(&v);
-    l.visit_variable_use(identifier_of(use));
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(identifier_of(declaration), kind);
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
+  // x;
+  // {
+  //   var x;  // x is hoisted
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use));
+  l.visit_enter_block_scope();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var);
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
-  for (variable_kind kind : {variable_kind::_function}) {
-    const char8 declaration[] = u8"f";
-    const char8 use[] = u8"f";
+  const char8 declaration[] = u8"f";
+  const char8 use[] = u8"f";
 
-    // f();
-    // {
-    //   function f() {}
-    // }
-    error_collector v;
-    linter l(&v);
-    l.visit_variable_use(identifier_of(use));
-    l.visit_enter_function_scope();
-    l.visit_exit_function_scope();
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 variable_kind::_function);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_exit_function_scope();
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
+  // f();
+  // {
+  //   function f() {}
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_variable_use(identifier_of(use));
+  l.visit_enter_block_scope();
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_function);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_exit_function_scope();
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_FIELDS(
-                    error_function_call_before_declaration_in_blocked_scope,  //
-                    use, span_matcher(use),                                   //
-                    declaration, span_matcher(declaration))));
-  }
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_2_FIELDS(
+                  error_function_call_before_declaration_in_blocked_scope,  //
+                  use, span_matcher(use),                                   //
+                  declaration, span_matcher(declaration))));
 }
 
 TEST(test_lint,
@@ -619,8 +613,6 @@ TEST(test_lint,
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
-    l.visit_enter_function_scope();
-    l.visit_exit_function_scope();
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_function);
