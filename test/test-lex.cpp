@@ -1066,7 +1066,7 @@ TEST_F(test_lex, lex_regular_expression_literal_with_digit_flag) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  // TODO(strager): Report an error, because '3' is an invalid flag.
+  // TODO(#47): Report an error, because '3' is an invalid flag.
 }
 
 TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
@@ -1099,7 +1099,7 @@ TEST_F(test_lex, lex_non_ascii_in_regular_expression_literal_flags) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  // TODO(strager): Report an error, because '\u05d0' is an invalid flag.
+  // TODO(#47): Report an error, because '\u05d0' is an invalid flag.
 }
 
 TEST_F(test_lex,
