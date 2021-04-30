@@ -1362,8 +1362,6 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
 }
 
 TEST_F(test_lex, lex_identifier_with_out_of_range_utf_8_sequence) {
-  // TODO(strager): Should we treat the invalid sequence as part of the
-  // identifier? Or should we treat it as whitespace?
   // f4 90 80 80 is U+110000
   this->check_single_token_with_errors(
       "too\xf4\x90\x80\x80\x62ig"_s8v, "too\xf4\x90\x80\x80\x62ig"_s8v,
@@ -1375,8 +1373,6 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_utf_8_sequence) {
 }
 
 TEST_F(test_lex, lex_identifier_with_malformed_utf_8_sequence) {
-  // TODO(strager): Should we treat the invalid sequence as part of the
-  // identifier? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
       "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
@@ -1452,8 +1448,6 @@ TEST_F(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_character) {
-  // TODO(strager): Should we treat the disallowed character as part of the
-  // identifier anyway? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       u8"illegal\U0010ffff", u8"illegal\U0010ffff",
       [](padded_string_view input, const auto& errors) {
@@ -1495,8 +1489,6 @@ TEST_F(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
-  // TODO(strager): Should we treat the disallowed character as part of the
-  // identifier anyway? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       u8"\u0816illegal", u8"\u0816illegal",
       [](padded_string_view input, const auto& errors) {
@@ -1568,8 +1560,6 @@ TEST_F(test_lex, private_identifier) {
 
 TEST_F(test_lex,
        private_identifier_with_disallowed_non_ascii_initial_character) {
-  // TODO(strager): Should we treat the disallowed character as part of the
-  // identifier anyway? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       u8"#\u0816illegal", u8"#\u0816illegal",
       [](padded_string_view input, const auto& errors) {
