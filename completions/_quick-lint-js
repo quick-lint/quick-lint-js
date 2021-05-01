@@ -1,0 +1,22 @@
+#compdef _quick-lint-js quick-lint-js
+typeset -A opt_args
+
+function _quick-lint-js() {
+	integer ret=1
+	local I="-h --help -v --version"
+	local -a args
+
+	args+=(
+	"($I --lsp --lsp-server)"{--lsp,--lsp-server}'[Run quick-lint-js in LSP server mode]'
+	"($I)*--exit-fail-on[Fail with a non-zero exit code if any of these errors are found (default: \"all\")]:errors"
+	"($I)*--output-format[Format to print feedback where FORMAT is one of: gnu-like (default if omitted), vim-qflist-json]:format"
+	"($I)*--vim-file-bufnr[Select a vim buffer for outputting feedback]:number"
+	'(- *)'{-h,--help}'[Print help message]'
+	'(- *)'{-v,--version}'[Print version information]' )
+
+	_arguments -C -S $args[@] && ret=0
+
+	return ret
+}
+
+# vim: ft=zsh:
