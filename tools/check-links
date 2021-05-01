@@ -3,10 +3,7 @@ import argparse
 import re
 import sys
 import concurrent.futures
-import urllib.request
-from urllib.error import HTTPError
 from urllib.parse import urldefrag, urljoin, urlparse
-from urllib.request import Request, urlopen
 
 import requests
 from bs4 import BeautifulSoup
@@ -37,12 +34,26 @@ def get_mail_address(link) -> str:
     return link.split(":")[1]
 
 
-def worker(parent_url, url):
-    try:
-        req = urllib.request.Request(url, headers=headers)
-        response = urlopen(req)
-    except HTTPError as e:
-        print(f"({e.code} error) {parent_url}, {url}")
+class UrlPacket(object):
+    def __init__(self, parent, url):
+        self.parent = parent
+        self.url = url
+
+
+class UrlNotFound(Exception):
+    """Raised when requests returns error code other than 200"""
+
+    pass
+
+
+def log(error, UrlPacket) -> None:
+    print(f"({error}) {UrlPacket.parent}, {UrlPacket.url}")
+
+
+def print_if_url_broken(url_packet):
+    response = requests.head(url_packet.url, headers=headers, allow_redirects=True)
+    if not response.ok:
+        log(response.status_code, url_packet)
 
 
 class initialize_crawler:
@@ -60,6 +71,25 @@ class initialize_crawler:
             self.urls = self.get_urls_from_page(soup)
         except requests.exceptions.ConnectionError:
             print("(error) failed to get", self.site)
+            exit(0)
+
+
+class CheckExternalLinks(list):
+    """list of UrlPacket"""
+
+    def __init__(self, urls):
+        super().__init__(urls)
+
+    def check(self):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(self)) as executor:
+            future_to_url = {
+                executor.submit(print_if_url_broken, packet) for packet in self
+            }
+            for future in future_to_url:
+                try:
+                    data = future.result()
+                except Exception as e:
+                    print("%r generated an exception: %s" % (self, e))
 
 
 class Crawler(initialize_crawler):
@@ -79,17 +109,7 @@ class Crawler(initialize_crawler):
 
     def start_crawl(self):
         self.crawl_and_report(self.site, self.urls)
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=len(self.external_links_to_check)
-        ) as executor:
-            future_to_url = {
-                executor.submit(worker, *url) for url in self.external_links_to_check
-            }
-            for future in future_to_url:
-                try:
-                    data = future.result()
-                except Exception as e:
-                    print("%r generated an exception: %s" % (url, exc))
+        CheckExternalLinks(self.external_links_to_check).check()
 
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
@@ -105,7 +125,9 @@ class Crawler(initialize_crawler):
                     if defraged_url not in self.visted_urls_soup:
                         # TODO(emadflash) add cmd option to check external links
                         if not self.in_namespace(defraged_url):
-                            self.external_links_to_check.append([parent_url, url])
+                            self.external_links_to_check.append(
+                                UrlPacket(parent_url, url)
+                            )
                             self.visted_urls_soup[defraged_url] = None
                         else:
                             response = requests.head(defraged_url)
@@ -141,7 +163,7 @@ class Crawler(initialize_crawler):
                             print("(fragment missing)", parent_url, url, fragment)
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("site", type=str)
     if len(sys.argv) == 1:
@@ -150,3 +172,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     crawler = Crawler(args.site)
     crawler.start_crawl()
+
+
+if __name__ == "__main__":
+    main()
