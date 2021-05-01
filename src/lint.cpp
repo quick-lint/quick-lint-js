@@ -312,6 +312,14 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
     if (name.normalized_name() != used_var.name.normalized_name()) {
       return false;
     }
+    if (kind == variable_kind::_function &&
+        declared_scope ==
+            declared_variable_scope::declared_in_descendant_scope &&
+        used_var.kind == used_variable_kind::use) {
+      this->error_reporter_->report(
+          error_function_call_before_declaration_in_blocked_scope{used_var.name,
+                                                                  name});
+    }
     if (kind == variable_kind::_class || kind == variable_kind::_const ||
         kind == variable_kind::_let) {
       switch (used_var.kind) {

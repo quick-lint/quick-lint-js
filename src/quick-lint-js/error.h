@@ -1104,6 +1104,18 @@
           .note(QLJS_TRANSLATABLE("variable declared here"), declaration))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_function_call_before_declaration_in_blocked_scope, "E077",         \
+      {                                                                        \
+        identifier use;                                                        \
+        identifier declaration;                                                \
+      },                                                                       \
+      .warning(                                                                \
+          QLJS_TRANSLATABLE(                                                   \
+              "function called before declaration in blocked scope: {0}"),     \
+          use)                                                                 \
+          .note(QLJS_TRANSLATABLE("function declared here"), declaration))     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_break, "E200", { source_code_span break_statement; },      \
       .error(QLJS_TRANSLATABLE(                                                \
                  "break can only be used inside of a loop or switch"),         \
