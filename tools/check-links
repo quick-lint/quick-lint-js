@@ -43,17 +43,26 @@ class UrlPacket(object):
 class UrlNotFound(Exception):
     """Raised when requests returns error code other than 200"""
 
-    pass
+    def __init__(self, error_code):
+        self.error_code = error_code
 
 
 def log(error, UrlPacket) -> None:
     print(f"({error}) {UrlPacket.parent}, {UrlPacket.url}")
 
 
-def print_if_url_broken(url_packet):
-    response = requests.head(url_packet.url, headers=headers, allow_redirects=True)
+def check_response(url):
+    response = requests.head(url, headers=headers, allow_redirects=True)
     if not response.ok:
-        log(response.status_code, url_packet)
+        raise UrlNotFound(response.status_code)
+    return response.url
+
+
+def print_if_url_broken(url_packet):
+    try:
+        check_response(url_packet.url)
+    except UrlNotFound as e:
+        log(e.error_code, url_packet)
 
 
 class initialize_crawler:
@@ -92,6 +101,8 @@ class CheckExternalLinks(list):
                     print("%r generated an exception: %s" % (self, e))
 
 
+
+
 class Crawler(initialize_crawler):
     def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
         super().__init__(site, allowed_file_ext_for_soup)
@@ -111,6 +122,41 @@ class Crawler(initialize_crawler):
         self.crawl_and_report(self.site, self.urls)
         CheckExternalLinks(self.external_links_to_check).check()
 
+    def get_urls_to_crawl(self, defraged_url, url, parent_url, fragment) -> list:
+        urls_from_page = list()
+        if self.in_allowed_file_soup(url):
+            result = requests.get(defraged_url)
+            self.visted_urls_soup[defraged_url] = BeautifulSoup(
+                result.text, "html.parser"
+            )
+            if not check_fragment(
+                self.visted_urls_soup[defraged_url], fragment
+            ):
+                print(
+                    "(fragment missing)",
+                    parent_url,
+                    url,
+                    fragment,
+                )
+            urls_from_page = self.get_urls_from_page(
+                self.visted_urls_soup[defraged_url]
+            )
+        return urls_from_page
+
+    def CheckInternalLinks(self, defraged_url, url, parent_url, fragment):
+        try:
+            _url = check_response(defraged_url)
+            urls_from_page = self.get_urls_to_crawl(defraged_url, url, parent_url, fragment)
+            if len(urls_from_page) != 0:
+                self.crawl_and_report(
+                    _url, urls_from_page
+                )
+        except UrlNotFound as e:
+            print(
+                f"({e.error_code} error) {parent_url}, {url}"
+            )
+
+
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
             if is_mailto_link(link):
@@ -123,45 +169,19 @@ class Crawler(initialize_crawler):
                     self.visted_urls.append(url)
                     defraged_url, fragment = urldefrag(url)
                     if defraged_url not in self.visted_urls_soup:
-                        # TODO(emadflash) add cmd option to check external links
                         if not self.in_namespace(defraged_url):
                             self.external_links_to_check.append(
                                 UrlPacket(parent_url, url)
                             )
                             self.visted_urls_soup[defraged_url] = None
                         else:
-                            response = requests.head(defraged_url)
-                            if response.ok:
-                                if self.in_allowed_file_soup(url):
-                                    result = requests.get(defraged_url)
-                                    self.visted_urls_soup[defraged_url] = BeautifulSoup(
-                                        result.text, "html.parser"
-                                    )
-                                    if not check_fragment(
-                                        self.visted_urls_soup[defraged_url], fragment
-                                    ):
-                                        print(
-                                            "(fragment missing)",
-                                            parent_url,
-                                            url,
-                                            fragment,
-                                        )
-                                    urls_from_page = self.get_urls_from_page(
-                                        self.visted_urls_soup[defraged_url]
-                                    )
-                                    if len(urls_from_page) != 0:
-                                        self.crawl_and_report(
-                                            response.url, urls_from_page
-                                        )
-                            else:
-                                print(
-                                    f"({response.status_code} error) {parent_url}, {url}"
-                                )
+                            self.CheckInternalLinks(defraged_url, url, parent_url, fragment)
                     else:
                         soup = self.visted_urls_soup[defraged_url]
                         if soup is not None and not check_fragment(soup, fragment):
                             print("(fragment missing)", parent_url, url, fragment)
-
+    
+        
 
 def main() -> None:
     parser = argparse.ArgumentParser()
