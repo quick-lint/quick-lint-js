@@ -1,22 +1,44 @@
 #compdef _quick-lint-js quick-lint-js
+
+# Copyright (C) 2021 Shivam Mehta
+# See end of file for extended copyright information.
+
 typeset -A opt_args
 
 function _quick-lint-js() {
-	integer ret=1
-	local I="-h --help -v --version"
-	local -a args
+        local -i ret=1
+        local -a args
 
-	args+=(
-	"($I --lsp --lsp-server)"{--lsp,--lsp-server}'[Run quick-lint-js in LSP server mode]'
-	"($I)*--exit-fail-on[Fail with a non-zero exit code if any of these errors are found (default: \"all\")]:errors"
-	"($I)*--output-format[Format to print feedback where FORMAT is one of: gnu-like (default if omitted), vim-qflist-json]:format"
-	"($I)*--vim-file-bufnr[Select a vim buffer for outputting feedback]:number"
-	'(- *)'{-h,--help}'[Print help message]'
-	'(- *)'{-v,--version}'[Print version information]' )
+        args+=(
+         '*: :_files'
+        '(-h --help )'{-h,--help}'[Print help message]'
+        '(-v --version)'{-v,--version}'[Print version information]'
+        '(--lsp --lsp-server)'{--lsp,--lsp-server}'[Run quick-lint-js in LSP server mode]'
+        '--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default: "all")]'
+        '--output-format=[Format to print feedback where FORMAT is one of: gnu-like (default if omitted), vim-qflist-json]'
+        '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
 
-	_arguments -C -S $args[@] && ret=0
+        _arguments -C -S "${args[@]}" && ret=0
 
-	return ret
+        return ret
 }
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2021 Shivam Mehta
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 
 # vim: ft=zsh:
