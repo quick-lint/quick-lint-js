@@ -87,6 +87,23 @@ Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.4
 Release date: September 25, 2020
 Version: 1.9.4
 
+## md4c
+
+The md4c directory contains MD4C, a C library for parsing and rendering
+Markdown.
+
+Copyright: Copyright © 2016-2020 Martin Mitáš
+Download URL: https://github.com/mity/md4c/archive/refs/tags/release-0.4.7.tar.gz
+Download date: May 3, 2021
+Git commit: aa63198b80f999effed125b55ac16d1cbc9ab21c
+License file: md4c/LICENSE.md
+License type: MIT
+Location: md4c
+Project URL: https://github.com/mity/md4c
+Release URL: https://github.com/mity/md4c/releases/tag/release-0.4.7
+Release date: December 24, 2020
+Version: 0.4.7
+
 ## simdjson
 
 The simdjson directory contains simdjson, a C++ library for parsing JSON.
