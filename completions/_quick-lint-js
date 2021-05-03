@@ -1,30 +1,44 @@
 #compdef _quick-lint-js quick-lint-js
 
-# Copyright (C) 2021 Shivam Mehta
+# Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
+
+# This script is used to provide command line completion for
+# quick-lint-js when using zsh shell
 
 typeset -A opt_args
 
 function _quick-lint-js() {
+        local curcontext="$curcontext" state line
         local -i ret=1
         local -a args
 
+        # don't autocomplete these if other arguments are present
+        local I1="-h --help -v --version"
+        local I2="--output-format"
+        local I3="--lsp --lsp-server"
+
         args+=(
-         '*: :_files'
-        '(-h --help )'{-h,--help}'[Print help message]'
-        '(-v --version)'{-v,--version}'[Print version information]'
-        '(--lsp --lsp-server)'{--lsp,--lsp-server}'[Run quick-lint-js in LSP server mode]'
-        '--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default: "all")]'
-        '--output-format=[Format to print feedback where FORMAT is one of: gnu-like (default if omitted), vim-qflist-json]'
-        '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
+        "(- *)"{-h,--help}"[Print help message]"
+        "(- *)"{-v,--version}"[Print version information]"
+        "($I1 $I2 --lsp --lsp-server)"{--lsp,--lsp-server}"[Run quick-lint-js in LSP server mode]"
+        "($I1 $I3)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: \"all\")]"
+        "($I1 $I3)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json]:format:->format"
+        "($I1)--vim-file-bufnr=[Select a vim buffer for outputting feedback]")
 
-        _arguments -C -S "${args[@]}" && ret=0
+        _arguments -C -S -s "${args[@]}" '*:file:_files' && ret=0
 
+        case "$state" in
+                format)
+                        formats=( 'vim-qflist-json' 'gnu-like' )
+                        _describe 'format' formats && ret=0
+                        ;;
+        esac
         return ret
 }
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2021 Shivam Mehta
+# Copyright (C) 2020  Matthew Glazar
 #
 # This file is part of quick-lint-js.
 #
