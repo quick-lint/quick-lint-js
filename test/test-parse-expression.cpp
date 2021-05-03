@@ -406,8 +406,13 @@ TEST_F(test_parse_expression, parse_typeof_unary_operator) {
 
 TEST_F(test_parse_expression, delete_unary_operator) {
   {
-    expression* ast = this->parse_expression(u8"delete variable"_sv);
+    test_parser p(u8"delete variable");
+    expression* ast = p.parse_expression();
+    // expression* ast = this->parse_expression(u8"delete variable"_sv);
     EXPECT_EQ(summarize(ast), "unary(var variable)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_redundant_delete_statement, where,
+                                offsets_matcher(p.code(), 0, u8"delete"))));
   }
 
   {
@@ -1011,10 +1016,15 @@ TEST_F(test_parse_expression,
                                                    u8"await"))));
         } else {
           std::size_t await_offset = test.code.find(u8"await");
-          EXPECT_THAT(p.errors(),
-                      ElementsAre(ERROR_TYPE_FIELD(
-                          error_await_operator_outside_async, await_operator,
-                          offsets_matcher(p.code(), await_offset, u8"await"))));
+          EXPECT_THAT(
+              p.errors(),
+              ElementsAre(
+                  ERROR_TYPE_FIELD(
+                      error_await_operator_outside_async, await_operator,
+                      offsets_matcher(p.code(), await_offset, u8"await")),
+                  ERROR_TYPE_FIELD(
+                      error_redundant_delete_statement, where,
+                      offsets_matcher(p.code(), await_offset, u8"delete"))));
         }
       }
     }
