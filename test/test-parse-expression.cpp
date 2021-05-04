@@ -409,10 +409,11 @@ TEST_F(test_parse_expression, delete_unary_operator) {
     test_parser p(u8"delete variable");
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(var variable)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_redundant_delete_statement_on_variable, where,
-                    offsets_matcher(p.code(), 0, u8"delete"))));
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(p.code(), 0, u8"delete variable"))));
   }
 
   {
