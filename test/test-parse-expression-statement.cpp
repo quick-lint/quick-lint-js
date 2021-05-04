@@ -756,8 +756,8 @@ TEST(test_parse, expression_statement) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_redundant_delete_statement, where,
-                              offsets_matcher(&code, 0, u8"delete"))));
+                              error_redundant_delete_statement_on_variable,
+                              where, offsets_matcher(&code, 0, u8"delete"))));
   }
 
   {
