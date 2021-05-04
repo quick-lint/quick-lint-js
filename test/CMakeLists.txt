@@ -7,14 +7,12 @@ include(QuickLintJSTarget)
 
 quick_lint_js_add_executable(
   quick-lint-js-test
-  error-collector.cpp
   error-matcher.cpp
   parse-json.cpp
   parse-support.cpp
   pipe.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h
-  quick-lint-js/error-collector.h
   quick-lint-js/error-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
