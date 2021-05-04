@@ -748,6 +748,12 @@
       .error(QLJS_TRANSLATABLE("missing operand for operator"), where))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_redundant_delete_statement_on_variable, "E086",                    \
+      { source_code_span delete_expression; },                                 \
+      .warning(QLJS_TRANSLATABLE("redundant delete statement on variable"),    \
+               delete_expression))                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_operator_between_expression_and_arrow_function, "E063",    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE(                                                \

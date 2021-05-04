@@ -406,8 +406,14 @@ TEST_F(test_parse_expression, parse_typeof_unary_operator) {
 
 TEST_F(test_parse_expression, delete_unary_operator) {
   {
-    expression* ast = this->parse_expression(u8"delete variable"_sv);
+    test_parser p(u8"delete variable");
+    expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(var variable)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(p.code(), 0, u8"delete variable"))));
   }
 
   {
@@ -907,7 +913,7 @@ TEST_F(test_parse_expression,
          {u8"await super"_sv,          nullptr, "await(super)"},
          {u8"await typeof x"_sv,       nullptr, "await(typeof(var x))"},
          {u8"await !x"_sv,             nullptr, "await(unary(var x))"},
-         {u8"await delete x"_sv,       nullptr, "await(unary(var x))"},
+         {u8"await delete x.p"_sv,     nullptr, "await(unary(dot(var x, p)))"},
          {u8"await void x"_sv,         nullptr, "await(unary(var x))"},
          {u8"await ~x"_sv,             nullptr, "await(unary(var x))"},
          {u8"await as"_sv,             nullptr, "await(var as)"},
