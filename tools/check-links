@@ -35,8 +35,10 @@ def is_mailto_link(link) -> bool:
     return True if re.search(r"^mailto:*", link) else False
 
 
-def get_mail_address(link) -> str:
-    return link.split(":")[1]
+def check_mail_link(link: str, parent: str) -> None:
+    mail = link.partition(":")[-1]
+    if mail not in allow_mails:
+        print(f"(unknown mail) {parent}, {mail}")
 
 
 class UrlPacket(object):
@@ -59,7 +61,7 @@ def log(error, UrlPacket) -> None:
 
 
 def check_response(url):
-    response = requests.head(url, headers=headers, allow_redirects=True)
+    response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
     if not response.ok:
         raise UrlNotFound(response.status_code)
     return response.url
@@ -87,10 +89,10 @@ class initialize_crawler:
             self.urls = self.get_urls_from_page(soup)
         except requests.exceptions.ConnectionError:
             print("(error) failed to get", self.site)
-            exit(0)
+            exit(1)
 
 
-class CheckExternalLinks(list):
+class check_external_links(list):
     """list of UrlPacket"""
 
     def __init__(self, urls):
@@ -125,7 +127,7 @@ class Crawler(initialize_crawler):
 
     def start_crawl(self):
         self.crawl_and_report(self.site, self.urls)
-        CheckExternalLinks(self.external_links_to_check).check()
+        check_external_links(self.external_links_to_check).check()
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
@@ -148,7 +150,7 @@ class Crawler(initialize_crawler):
             )
         return urls_from_page
 
-    def CheckInternalLinks(self, packet):
+    def check_internal_links(self, packet):
         try:
             _url = check_response(packet.defraged_url)
             urls_from_page = self.get_urls_to_crawl(packet)
@@ -160,9 +162,7 @@ class Crawler(initialize_crawler):
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
             if is_mailto_link(link):
-                mail_link = get_mail_address(link)
-                if mail_link not in allow_mails:
-                    print(f"(unknown mail) {parent_url}, {mail_link}")
+                check_mail_link(link, parent_url)
             else:
                 url = urljoin(parent_url, link)
                 if url not in self.visted_urls:
@@ -175,7 +175,7 @@ class Crawler(initialize_crawler):
                             )
                             self.visted_urls_soup[defraged_url] = None
                         else:
-                            self.CheckInternalLinks(
+                            self.check_internal_links(
                                 UrlPacket(parent_url, url, defraged_url, fragment)
                             )
                     else:
