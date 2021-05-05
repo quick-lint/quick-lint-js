@@ -2120,21 +2120,6 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
 }
-
-parser::loop_guard::loop_guard(parser* p, bool was_in_loop_statement) noexcept
-    : parser_(p), was_in_loop_statement_(was_in_loop_statement) {}
-
-parser::loop_guard::~loop_guard() noexcept {
-  this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
-}
-
-parser::switch_guard::switch_guard(parser* p,
-                                   bool was_in_switch_statement) noexcept
-    : parser_(p), was_in_switch_statement_(was_in_switch_statement) {}
-
-parser::switch_guard::~switch_guard() noexcept {
-  this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
-}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

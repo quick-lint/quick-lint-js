@@ -94,9 +94,10 @@ namespace quick_lint_js {
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
  private:
+  template <bool parser::*Member>
+  class bool_guard;
+
   class function_guard;
-  class loop_guard;
-  class switch_guard;
 
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
@@ -116,7 +117,6 @@ class parser {
 
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
-  [[nodiscard]] loop_guard enter_loop();
 
 #if QLJS_HAVE_SETJMP
   // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
@@ -3336,32 +3336,20 @@ class parser {
     bool was_in_switch_statement_;
   };
 
-  class loop_guard {
+  template <bool parser::*Member>
+  class bool_guard {
    public:
-    explicit loop_guard(parser *, bool was_in_loop_statement) noexcept;
+    explicit bool_guard(parser *p, bool old_value) noexcept
+        : parser_(p), old_value_(old_value) {}
 
-    loop_guard(const loop_guard &) = delete;
-    loop_guard &operator=(const loop_guard &) = delete;
+    bool_guard(const bool_guard &) = delete;
+    bool_guard &operator=(const bool_guard &) = delete;
 
-    ~loop_guard() noexcept;
+    ~bool_guard() noexcept { this->parser_->*Member = this->old_value_; }
 
    private:
     parser *parser_;
-    bool was_in_loop_statement_;
-  };
-
-  class switch_guard {
-   public:
-    explicit switch_guard(parser *, bool was_in_switch_statement) noexcept;
-
-    switch_guard(const switch_guard &) = delete;
-    switch_guard &operator=(const switch_guard &) = delete;
-
-    ~switch_guard() noexcept;
-
-   private:
-    parser *parser_;
-    bool was_in_switch_statement_;
+    bool old_value_;
   };
 
   quick_lint_js::lexer lexer_;
@@ -3385,6 +3373,13 @@ class parser {
   bool have_unimplemented_token_jmp_buf_ = false;
   std::jmp_buf unimplemented_token_jmp_buf_;
 #endif
+
+  using loop_guard = bool_guard<&parser::in_loop_statement_>;
+  using switch_guard = bool_guard<&parser::in_switch_statement_>;
+
+ public:
+  // For testing and internal use only.
+  [[nodiscard]] loop_guard enter_loop();
 };
 }
 
