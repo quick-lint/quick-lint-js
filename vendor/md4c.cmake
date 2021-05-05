@@ -1,36 +1,15 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-cmake_minimum_required(VERSION 3.10)
-include(GNUInstallDirs)
+include(QuickLintJSCompiler)
 
-add_executable(
-  quick-lint-js-generate-error-docs
-  generate-error-docs.cpp
-)
-target_link_libraries(
-  quick-lint-js-generate-error-docs
-  PRIVATE
-  quick-lint-js-lib
-  quick-lint-js-docs-lib
-)
-
-add_library(
-  quick-lint-js-docs-lib
-  error-documentation.cpp
-)
-target_include_directories(quick-lint-js-docs-lib PUBLIC .)
-target_link_libraries(
-  quick-lint-js-docs-lib
-  PUBLIC
-  quick-lint-js-lib
-  PRIVATE
+add_library(md4c STATIC md4c/src/md4c.c)
+target_compile_definitions(md4c PRIVATE MD4C_USE_ASCII)
+target_include_directories(md4c PUBLIC md4c/src)
+quick_lint_js_add_warning_options_if_supported(
   md4c
-)
-
-install(
-  FILES quick-lint-js.1
-  DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+  PRIVATE
+  -Wno-unused-parameter
 )
 
 # quick-lint-js finds bugs in JavaScript programs.

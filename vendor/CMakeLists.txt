@@ -9,6 +9,7 @@ endif ()
 include(boost.cmake)
 include(googletest.cmake)
 include(jsoncpp.cmake)
+include(md4c.cmake)
 include(simdjson.cmake)
 
 # quick-lint-js finds bugs in JavaScript programs.

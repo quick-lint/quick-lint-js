@@ -41,6 +41,7 @@ inline string8_view out_string8(string8_view sv) noexcept { return sv; }
 #endif
 
 string8 to_string8(const std::string &);
+std::string to_string(const string8_view &);
 
 std::size_t strlen(const char8 *);
 const char8 *strchr(const char8 *haystack, char8 needle);

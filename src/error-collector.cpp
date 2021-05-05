@@ -20,6 +20,17 @@ QLJS_X_ERROR_TYPES
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
+const char *error_collector::error::error_code() const noexcept {
+  switch (this->kind_) {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  case error_collector::error::kind::kind_##name:             \
+    return code;
+    QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+  }
+  QLJS_UNREACHABLE();
+}
+
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call)              \
   template <>                                                              \
   bool holds_alternative<name>(const error_collector::error &e) noexcept { \
