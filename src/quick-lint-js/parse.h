@@ -1114,6 +1114,12 @@ class parser {
     named_function:
     QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier: {
+      if (this->peek().type == token_type::kw_let &&
+          require_name == name_requirement::required_for_export) {
+        this->error_reporter_->report(error_cannot_export_let{
+            .export_name = this->peek().span(),
+        });
+      }
       identifier function_name = this->peek().identifier_name();
       v.visit_variable_declaration(function_name, variable_kind::_function);
       this->skip();

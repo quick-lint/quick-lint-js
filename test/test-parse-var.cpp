@@ -811,9 +811,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
                     u8"let", variable_kind::_import}));
   }
 
-  // TODO(#73): export implies strict mode (because modules imply strict
-  // mode).
-  if ((false)) {
+  {
     spy_visitor v;
     padded_string code(u8"export function let() {}"_sv);
     parser p(&code, &v);
