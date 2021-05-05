@@ -13,11 +13,18 @@ import requests
 from bs4 import BeautifulSoup
 
 
-allow_mails = ["strager.nds@gmail.com"]
+allow_mails = [
+    "strager.nds@gmail.com",
+    "nicolas@petton.fr",
+    "lewing@isc.tamu.edu",
+    "don.h@free.fr",
+    "Bram@vim.org",
+    "maintainer@vim.org",
+    "marketing@jetbrains.com",
+]
 
 allowed_file_ext_for_soup = [
     "html",
-    "js",
 ]
 
 headers = {
@@ -56,10 +63,6 @@ class UrlNotFound(Exception):
         self.response_code = response_code
 
 
-def log(error, UrlPacket) -> None:
-    print(f"({error}) {UrlPacket.parent}, {UrlPacket.url}")
-
-
 def check_response(url):
     response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
     if not response.ok:
@@ -67,11 +70,11 @@ def check_response(url):
     return response.url
 
 
-def print_if_url_broken(url_packet):
+def is_url_broken(url_packet):
     try:
         check_response(url_packet.url)
     except UrlNotFound as e:
-        log(e.response_code, url_packet)
+        print(e.response_code, url_packet.parent, url_packet.url)
 
 
 class initialize_crawler:
@@ -82,6 +85,7 @@ class initialize_crawler:
         self.visted_urls = list()
         self.visted_urls_soup = dict()
         self.external_links_to_check = list()
+        self.broken_links = list()
 
         try:
             result = requests.get(self.site)
@@ -89,7 +93,7 @@ class initialize_crawler:
             self.urls = self.get_urls_from_page(soup)
         except requests.exceptions.ConnectionError:
             print("(error) failed to get", self.site)
-            exit(1)
+            sys.exit(1)
 
 
 class check_external_links(list):
@@ -100,9 +104,7 @@ class check_external_links(list):
 
     def check(self):
         with Pool(max_workers=len(self)) as executor:
-            future_to_url = {
-                executor.submit(print_if_url_broken, packet) for packet in self
-            }
+            future_to_url = {executor.submit(is_url_broken, packet) for packet in self}
             for future in future_to_url:
                 try:
                     data = future.result()
@@ -125,6 +127,10 @@ class Crawler(initialize_crawler):
     def in_allowed_file_soup(self, url) -> bool:
         return urlparse(url).path.split(".")[-1] in self.allowed_file_ext_for_soup
 
+    def report_error(self, error, packet):
+        self.broken_links.append(packet.url)
+        print(f"({error}) {packet.parent}, {packet.url}")
+
     def start_crawl(self):
         self.crawl_and_report(self.site, self.urls)
         check_external_links(self.external_links_to_check).check()
@@ -139,12 +145,7 @@ class Crawler(initialize_crawler):
             if not check_fragment(
                 self.visted_urls_soup[packet.defraged_url], packet.fragment
             ):
-                print(
-                    "(fragment missing)",
-                    packet.parent_url,
-                    packet.url,
-                    packet.fragment,
-                )
+                self.report_error("fragment missing", packet)
             urls_from_page = self.get_urls_from_page(
                 self.visted_urls_soup[packet.defraged_url]
             )
@@ -157,7 +158,7 @@ class Crawler(initialize_crawler):
             if len(urls_from_page) != 0:
                 self.crawl_and_report(_url, urls_from_page)
         except UrlNotFound as e:
-            print(f"({e.response_code} error) {packet.parent}, {packet.url}")
+            self.report_error(f"{e.response_code} error", packet)
 
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
@@ -181,7 +182,10 @@ class Crawler(initialize_crawler):
                     else:
                         soup = self.visted_urls_soup[defraged_url]
                         if soup is not None and not check_fragment(soup, fragment):
-                            print("(fragment missing)", parent_url, url, fragment)
+                            self.report_error(
+                                "fragment missing",
+                                UrlPacket(parent_url, url, fragment=fragment),
+                            )
 
 
 def main() -> None:
@@ -193,6 +197,9 @@ def main() -> None:
     args = parser.parse_args()
     crawler = Crawler(args.site)
     crawler.start_crawl()
+
+    if len(crawler.broken_links) > 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
