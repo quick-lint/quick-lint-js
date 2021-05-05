@@ -1,12 +1,18 @@
-# Shell completions
+# quick-lint-js completions
 
-To get automatic completions for quick-lint-js's options you can install the provided shell completions.
+## Using cmake
 
-## Zsh
+```sh
+cmake .
+make
+sudo make install
+```
 
-To install the completions for zsh, you can place the `completions/_quick-lint-js` file in any
-directory referenced by `$fpath`.
+## Manual installation
 
+### Zsh
+
+You can place the `completions/_quick-lint-js` file in any directory referenced by `$fpath`.
 If you do not already have such a directory registered through your `~/.zshrc`, you can add one like this:
 
 ```sh
@@ -20,7 +26,7 @@ Then copy the completion file to this directory:
 cp completions/_quick-lint-js ${ZDOTDIR:-~}/.zsh_functions/_quick-lint-js
 ```
 
-## Bash
+### Bash
 
 To install the completions for bash, you can `source` the `completions/quick-lint-js.bash` file
 in your `~/.bashrc` file.
@@ -39,9 +45,7 @@ cp completions/quick-lint-js.bash ~/.bash_completion/quick-lint-js
 echo "source ~/.bash_completion/quick-lint-js" >> ~/.bashrc
 ```
 
-## Fish
-
-To install the completions for fish, run
+### Fish
 
 ```sh
 mkdir -p $fish_complete_path[1]
