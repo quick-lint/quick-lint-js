@@ -65,6 +65,7 @@ quick_lint_js_add_executable(
   test-parse-statement.cpp
   test-parse-var.cpp
   test-parse.cpp
+  test-string-view.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
   test-utf-16.cpp

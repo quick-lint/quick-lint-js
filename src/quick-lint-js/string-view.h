@@ -11,6 +11,20 @@ inline bool starts_with(std::string_view haystack,
                         std::string_view needle) noexcept {
   return haystack.substr(0, needle.size()) == needle;
 }
+
+inline bool ends_with(std::string_view haystack,
+                      std::string_view needle) noexcept {
+  return haystack.size() >= needle.size() &&
+         haystack.substr(haystack.size() - needle.size()) == needle;
+}
+
+inline std::string_view remove_suffix_if_present(
+    std::string_view s, std::string_view suffix) noexcept {
+  if (ends_with(s, suffix)) {
+    s.remove_suffix(suffix.size());
+  }
+  return s;
+}
 }
 
 #endif
