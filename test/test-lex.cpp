@@ -1876,6 +1876,18 @@ TEST_F(test_lex, lex_not_shebang) {
                               offsets_matcher(&input, 2, 3))));
   }
 
+  // BOM must not appear before '#!'.
+  {
+    error_collector v;
+    padded_string input(u8"\ufeff#!notashebang\n"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file) << "# should be skipped";
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_bom_before_shebang, where,
+                              offsets_matcher(&input, 0, 2))));
+  }
+
   {
     error_collector v;
     padded_string input(u8"#\\u{21}\n"_sv);
