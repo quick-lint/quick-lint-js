@@ -1,12 +1,14 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-documentation.h>
+#include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/parse.h>
@@ -127,13 +129,20 @@ void analyze_error_documentation(const error_documentation& doc,
 int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
-  if (argc != 2) {
-    std::cerr << "error: expected exactly 1 arguments, but got " << (argc - 1)
+  if (argc != 4) {
+    std::cerr << "error: expected exactly 3 arguments, but got " << (argc - 1)
               << '\n';
-    std::cerr << "usage: " << argv[0] << " docs/errors/\n";
+    std::cerr << "usage: " << argv[0]
+              << " docs/errors/ website/errors/index.template.html "
+                 "website/errors/index.html\n";
     return EXIT_FAILURE;
   }
   const char* documentation_directory_path = argv[1];
+  const char* html_template_path = argv[2];
+  const char* html_output_path = argv[3];
+
+  read_file_result html_template = read_file(html_template_path);
+  html_template.exit_if_not_ok();
 
   std::vector<error_documentation> documents =
       load_error_documentation_files(documentation_directory_path);
@@ -142,12 +151,46 @@ int main(int argc, char** argv) {
               << '\n';
     return EXIT_FAILURE;
   }
+  std::sort(
+      documents.begin(), documents.end(),
+      [](const error_documentation& a, const error_documentation& b) -> bool {
+        return a.file_path_error_code() < b.file_path_error_code();
+      });
 
   bool found_problems = false;
   for (const error_documentation& doc : documents) {
     analyze_error_documentation(doc, &found_problems);
   }
-  return found_problems ? EXIT_FAILURE : EXIT_SUCCESS;
+  if (found_problems) {
+    return EXIT_FAILURE;
+  }
+
+  string8 html_error_documentation;
+  html_error_documentation.append(u8"<ul class='table-of-contents'>");
+  for (const error_documentation& doc : documents) {
+    html_error_documentation.append(u8"<li><a href='#");
+    html_error_documentation.append(to_string8(doc.title_error_code));
+    html_error_documentation.append(u8"'>");
+    // TODO(strager): HTML-escape.
+    html_error_documentation.append(to_string8(doc.title_error_code));
+    html_error_documentation.append(u8": ");
+    html_error_documentation.append(doc.title_error_description);
+    html_error_documentation.append(u8"</a></li>");
+  }
+  html_error_documentation.append(u8"</ul>");
+  for (const error_documentation& doc : documents) {
+    html_error_documentation.append(u8"<article id='");
+    html_error_documentation.append(to_string8(doc.title_error_code));
+    html_error_documentation.append(u8"'>");
+    doc.to_html(&html_error_documentation);
+    html_error_documentation.append(u8"</article>");
+  }
+
+  string8 html = substitute_error_documentation_template(
+      html_template.content.string_view(), html_error_documentation);
+  write_file(html_output_path, html);
+
+  return EXIT_SUCCESS;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -122,6 +122,28 @@ wasn't that neat?\n)");
   EXPECT_THAT(doc.code_blocks,
               ElementsAre(u8"first\n"_sv, u8"second\n"_sv, u8"third\n"_sv));
 }
+
+TEST(test_error_documentation, substitute_template_with_no_substitutions) {
+  string8 out = substitute_error_documentation_template(
+      u8"hello world"_sv, u8"(error documentation)");
+  EXPECT_EQ(out, u8"hello world"_sv);
+}
+
+TEST(test_error_documentation,
+     substitute_template_with_generated_substitution) {
+  string8 out = substitute_error_documentation_template(
+      u8"hello ${generated_message} world"_sv, u8"(error documentation)");
+  EXPECT_EQ(
+      out,
+      u8"hello This file was generated using generate-error-docs.cpp. world"_sv);
+}
+
+TEST(test_error_documentation,
+     substitute_template_with_error_documentation_substitution) {
+  string8 out = substitute_error_documentation_template(
+      u8"hello ${error_documentation} world"_sv, u8"(error documentation)");
+  EXPECT_EQ(out, u8"hello (error documentation) world"_sv);
+}
 }
 }
 

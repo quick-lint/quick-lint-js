@@ -54,6 +54,9 @@ cp benchmarks/benchmark.css "${output_directory}/benchmarks/"
 cp benchmarks/benchmark.mjs "${output_directory}/benchmarks/"
 cp benchmarks/index.html "${output_directory}/benchmarks/"
 
+mkdir -p "${output_directory}/errors/"
+cp errors/index.html "${output_directory}/errors/"
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #

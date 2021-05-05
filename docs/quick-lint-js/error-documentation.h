@@ -10,17 +10,23 @@
 
 namespace quick_lint_js {
 struct error_documentation {
+  padded_string markdown;
   std::string file_path;
   std::string title_error_code;
   string8 title_error_description;
   std::vector<padded_string> code_blocks;
 
   std::string_view file_path_error_code() const;
+
+  void to_html(string8* out) const;
 };
 
 error_documentation parse_error_documentation(std::string&& file_path,
                                               string8_view markdown);
 error_documentation parse_error_documentation_file(std::string&& file_path);
+
+string8 substitute_error_documentation_template(
+    string8_view template_string, string8_view error_documentation);
 }
 
 #endif

@@ -60,6 +60,56 @@ int md_html(const MD_CHAR* input, MD_SIZE input_size,
             void (*process_output)(const MD_CHAR*, MD_SIZE, void*),
             void* userdata, unsigned parser_flags, unsigned renderer_flags);
 
+/* Create an MD_PARSER which renders Markdown into HTML.
+ *
+ * The caller is responsible for allocating enough memory to store the
+ * returned MD_PARSER. This size might be greater than sizeof(md_parser), so
+ * callers must ensure enough memory is allocated. To determine the size,
+ * first call md_html_create with *out_renderer_size equal to 0.
+ *
+ * Before deallcoating memory used for the returned MD_PARSER, call
+ * md_html_destroy.
+ *
+ * See md4c-html-example.c for example usage.
+ *
+ * Note only contents of <body> tag is generated. Caller must generate
+ * HTML header/footer manually before/after using the parser
+ * returned by md_html_create.
+ *
+ * Param out_renderer is initialized if *out_renderer_size is large enough.
+ * Param out_renderer_size points to the size of the allocation pointed to
+ * by out_renderer (in chars). If *out_renderer_size is too small,
+ * md_html_create modifies *out_renderer_size with the expected size then
+ * returns -1.
+ * Callback process_output() gets called with chunks of HTML output.
+ * (Typical implementation may just output the bytes to a file or append to
+ * some buffer) as parsing occurs.
+ * Param userdata is just propgated back to process_output() callback.
+ * Param parser_flags are flags from md4c.h propagated to md_parse().
+ * Param render_flags is bitmask of MD_HTML_FLAG_xxxx.
+ *
+ * Do not specify MD_HTML_FLAG_SKIP_UTF8_BOM in render_flag. Currently,
+ * md_html_create ignores this flag, but this behavior might change in the
+ * future.
+ *
+ * Returns -1 and modifies *out_renderer_size if *out_renderer_size is too
+ * small.
+ * Returns -1 and does not modify *out_renderer_size if another error
+ * occurs.
+ * Returns 0 and modifies *out_renderer_size on success.
+ */
+int md_html_create(MD_PARSER* out_renderer, MD_SIZE* out_renderer_size,
+                   void (*process_output)(const MD_CHAR*, MD_SIZE, void*),
+                   void* userdata,
+                   unsigned parser_flags, unsigned renderer_flags);
+
+/* Clean up resources allocated by md_html_create.
+ *
+ * Returns -1 on error.
+ * Returns 0 on success.
+ */
+int md_html_destroy(MD_PARSER* renderer, MD_SIZE renderer_size);
+
 
 #ifdef __cplusplus
     }  /* extern "C" { */

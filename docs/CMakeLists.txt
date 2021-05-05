@@ -11,8 +11,9 @@ add_executable(
 target_link_libraries(
   quick-lint-js-generate-error-docs
   PRIVATE
-  quick-lint-js-lib
+  md4c
   quick-lint-js-docs-lib
+  quick-lint-js-lib
 )
 
 add_library(

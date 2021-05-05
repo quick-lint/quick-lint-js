@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -49,6 +50,7 @@
 
 typedef struct MD_HTML_tag MD_HTML;
 struct MD_HTML_tag {
+    MD_PARSER parser;
     void (*process_output)(const MD_CHAR*, MD_SIZE, void*);
     void* userdata;
     unsigned flags;
@@ -533,30 +535,15 @@ md_html(const MD_CHAR* input, MD_SIZE input_size,
         void (*process_output)(const MD_CHAR*, MD_SIZE, void*),
         void* userdata, unsigned parser_flags, unsigned renderer_flags)
 {
-    MD_HTML render = { process_output, userdata, renderer_flags, 0, { 0 } };
-    int i;
-
-    MD_PARSER parser = {
-        0,
-        parser_flags,
-        enter_block_callback,
-        leave_block_callback,
-        enter_span_callback,
-        leave_span_callback,
-        text_callback,
-        debug_log_callback,
-        NULL
-    };
-
-    /* Build map of characters which need escaping. */
-    for(i = 0; i < 256; i++) {
-        unsigned char ch = (unsigned char) i;
-
-        if(strchr("\"&<>", ch) != NULL)
-            render.escape_map[i] |= NEED_HTML_ESC_FLAG;
-
-        if(!ISALNUM(ch)  &&  strchr("-_.+!*(),%#@?=;:/,+$", ch) == NULL)
-            render.escape_map[i] |= NEED_URL_ESC_FLAG;
+    int rc;
+    MD_HTML renderer;
+    MD_SIZE renderer_size = sizeof(renderer);
+    rc = md_html_create(&renderer.parser, &renderer_size,
+                        process_output, userdata,
+                        parser_flags, renderer_flags);
+    assert(renderer_size == sizeof(renderer));
+    if (rc != 0) {
+        return rc;
     }
 
     /* Consider skipping UTF-8 byte order mark (BOM). */
@@ -568,6 +555,67 @@ md_html(const MD_CHAR* input, MD_SIZE input_size,
         }
     }
 
-    return md_parse(input, input_size, &parser, (void*) &render);
+    rc = md_parse(input, input_size, &renderer.parser, &renderer);
+
+    md_html_destroy(&renderer.parser, renderer_size);
+    return rc;
+}
+
+int md_html_create(MD_PARSER* out_renderer, MD_SIZE* out_renderer_size,
+                   void (*process_output)(const MD_CHAR*, MD_SIZE, void*),
+                   void* userdata,
+                   unsigned parser_flags, unsigned renderer_flags)
+{
+#if __STDC_VERSION__ >= 201112L
+    static_assert(_Alignof(MD_HTML) <= _Alignof(MD_PARSER),
+                  "Alignment of MD_HTML should be no more strict than alignment of md_parser");
+#endif
+    MD_HTML* renderer;
+    int i;
+
+    if (out_renderer == NULL || *out_renderer_size < sizeof(MD_HTML)) {
+        *out_renderer_size = sizeof(MD_HTML);
+        return -1;
+    }
+
+    renderer = (MD_HTML*)out_renderer;
+    *renderer = (MD_HTML){
+        {
+            0,
+            parser_flags,
+            enter_block_callback,
+            leave_block_callback,
+            enter_span_callback,
+            leave_span_callback,
+            text_callback,
+            debug_log_callback,
+            NULL
+        },
+        process_output,
+        userdata,
+        renderer_flags,
+        0,
+        { 0 }
+    };
+
+    /* Build map of characters which need escaping. */
+    for(i = 0; i < 256; i++) {
+        unsigned char ch = (unsigned char) i;
+
+        if(strchr("\"&<>", ch) != NULL)
+            renderer->escape_map[i] |= NEED_HTML_ESC_FLAG;
+
+        if(!ISALNUM(ch)  &&  strchr("-_.+!*(),%#@?=;:/,+$", ch) == NULL)
+            renderer->escape_map[i] |= NEED_URL_ESC_FLAG;
+    }
+
+    *out_renderer_size = sizeof(MD_HTML);
+    return 0;
+}
+
+int md_html_destroy(MD_PARSER* renderer, MD_SIZE renderer_size)
+{
+    assert(renderer_size == sizeof(MD_HTML));
+    return 0;
 }
 

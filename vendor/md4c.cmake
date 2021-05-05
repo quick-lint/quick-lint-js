@@ -3,7 +3,7 @@
 
 include(QuickLintJSCompiler)
 
-add_library(md4c STATIC md4c/src/md4c.c)
+add_library(md4c STATIC md4c/src/entity.c md4c/src/md4c.c md4c/src/md4c-html.c)
 target_compile_definitions(md4c PRIVATE MD4C_USE_ASCII)
 target_include_directories(md4c PUBLIC md4c/src)
 quick_lint_js_add_warning_options_if_supported(

@@ -92,6 +92,10 @@ Version: 1.9.4
 The md4c directory contains MD4C, a C library for parsing and rendering
 Markdown.
 
+The following patches have been manually applied:
+
+* md4c-custom-html.patch
+
 Copyright: Copyright © 2016-2020 Martin Mitáš
 Download URL: https://github.com/mity/md4c/archive/refs/tags/release-0.4.7.tar.gz
 Download date: May 3, 2021

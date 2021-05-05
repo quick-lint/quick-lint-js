@@ -29,6 +29,11 @@ set_target_properties(md4c-html PROPERTIES
 )
 target_link_libraries(md4c-html md4c)
 
+# Build rules for example programs
+
+add_executable(md4c-html-example md4c-html-example.c)
+target_link_libraries(md4c-html-example md4c-html)
+
 
 # Install rules
 
