@@ -70,13 +70,6 @@ def check_response(url):
     return response.url
 
 
-def is_url_broken(url_packet):
-    try:
-        check_response(url_packet.url)
-    except UrlNotFound as e:
-        print(e.response_code, url_packet.parent, url_packet.url)
-
-
 class initialize_crawler:
     def __init__(self, site, allowed_file_ext_for_soup):
         self.site = site
@@ -95,21 +88,6 @@ class initialize_crawler:
             print("(error) failed to get", self.site)
             sys.exit(1)
 
-
-class check_external_links(list):
-    """list of UrlPacket"""
-
-    def __init__(self, urls):
-        super().__init__(urls)
-
-    def check(self):
-        with Pool(max_workers=len(self)) as executor:
-            future_to_url = {executor.submit(is_url_broken, packet) for packet in self}
-            for future in future_to_url:
-                try:
-                    data = future.result()
-                except Exception as e:
-                    pass
 
 
 class Crawler(initialize_crawler):
@@ -133,7 +111,7 @@ class Crawler(initialize_crawler):
 
     def start_crawl(self):
         self.crawl_and_report(self.site, self.urls)
-        check_external_links(self.external_links_to_check).check()
+        self.check_external_links(self.external_links_to_check)
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
@@ -159,6 +137,21 @@ class Crawler(initialize_crawler):
                 self.crawl_and_report(_url, urls_from_page)
         except UrlNotFound as e:
             self.report_error(f"{e.response_code} error", packet)
+
+    def check_external_links(self, urls):
+        def is_url_broken(url_packet):
+            try:
+                check_response(url_packet.url)
+            except UrlNotFound as e:
+                self.report_error(f"{e.response_code} error", url_packet)
+
+        with Pool(max_workers=len(urls)) as executor:
+            future_to_url = {executor.submit(is_url_broken, packet) for packet in urls}
+            for future in future_to_url:
+                try:
+                    data = future.result()
+                except Exception as e:
+                    pass
 
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
@@ -190,12 +183,12 @@ class Crawler(initialize_crawler):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("site", type=str)
+    parser.add_argument("url", type=str)
     if len(sys.argv) == 1:
         parser.print_help()
-        exit(1)
+        sys.exit(1)
     args = parser.parse_args()
-    crawler = Crawler(args.site)
+    crawler = Crawler(args.url)
     crawler.start_crawl()
 
     if len(crawler.broken_links) > 0:
