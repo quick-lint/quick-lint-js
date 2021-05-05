@@ -1054,7 +1054,8 @@
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE(                                                \
                  "unicode byte order mark (BOM) cannot appear before #! "      \
-                 "at beginning of script"), where))                            \
+                 "at beginning of script"),                                    \
+             where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_identifier, "E053", { source_code_span where; },        \
