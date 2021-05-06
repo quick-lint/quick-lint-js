@@ -30,6 +30,9 @@ header nav li {
   padding: 0;
   margin: 0;
 }
+header nav li.side-bar-only {
+  display: none;
+}
 header nav li > a {
   padding: 0;
 }
@@ -106,6 +109,92 @@ main > h2:first-child {
   .comparison td.good {
     color: rgb(255, 255, 255);
     background-color: #226622;
+  }
+}
+
+/* Side-bar navigation, if the viewport is wide enough. */
+/* HACK(strager): max-width in this query should equal body's max-width, but we
+   need to add a little bit in case of a scroll bar. */
+@media only screen and (min-width: 51em) {
+  body.side-bar-nav {
+    max-width: 50em;
+    --side-bar-width: 7rem;
+  }
+
+  /* Move the main content to the right to make room for the side bar. */
+  .side-bar-nav > #content,
+  .side-bar-nav > #header,
+  .side-bar-nav > footer,
+  .side-bar-nav > header,
+  .side-bar-nav > main {
+    margin-left: calc(var(--side-bar-width) + 0.5rem);
+  }
+
+  /* Make the side bar colors inverted from the main content's colors. */
+  .side-bar-nav header nav {
+    background-color: #073642;
+    color: #93a1a1;
+  }
+  .side-bar-nav header nav a:link,
+  .side-bar-nav header nav a:visited {
+    color: #eee8d5;
+  }
+  .side-bar-nav header nav li a:hover {
+    background-color: #586e75;
+  }
+  @media (prefers-color-scheme: dark) {
+    .side-bar-nav header nav {
+      background-color: #93a1a1;
+      color: #586e75;
+    }
+    .side-bar-nav header nav a:link,
+    .side-bar-nav header nav a:visited {
+      color: #073642;
+    }
+    .side-bar-nav header nav li a:hover {
+      background-color: #839496;
+    }
+  }
+
+  /* Move the side bar to the left of the content. */
+  .side-bar-nav header nav {
+    bottom: 0;
+    left: 0;
+    margin-top: 0;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    width: calc((100% - 50em) / 2 + var(--side-bar-width));
+  }
+
+  .side-bar-nav header nav {
+    word-break: break-word;
+    padding-top: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .side-bar-nav header nav ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+  .side-bar-nav header nav ul li {
+    padding: 0;
+  }
+
+  .side-bar-nav header nav li a:link,
+  .side-bar-nav header nav li.current-page {
+    display: block;
+    padding: 0.5em;
+    text-decoration: none;
+  }
+
+  .side-bar-nav header nav li.current-page {
+    font-weight: bold;
+  }
+
+  .side-bar-nav header nav li.side-bar-only {
+    display: unset;
   }
 }
 

@@ -118,8 +118,16 @@ along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
   <h1><a href=".">quick-lint-js</a></h1>
   <nav>
     <ul>
+      <li class="side-bar-only"><a href=".">Home</a></li>
+      <li><a href="install.html">Install</a></li>
+      <li><a href="demo/">Try online</a></li>
+      <li><a href="errors/">Error docs</a></li>
+      <li class="current-page">CLI docs</li>
+      <li><a href="benchmarks/">Benchmarks</a></li>
       <li>
-        <a href="https://github.com/quick-lint/quick-lint-js">source code on GitHub</a>
+        <a href="https://github.com/quick-lint/quick-lint-js"
+          >Code on GitHub</a
+        >
       </li>
     </ul>
   </nav>
@@ -145,6 +153,7 @@ along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
     contents = re.sub(r"(?s)<head>(.*?)</head>", head, contents)
     contents = re.sub(r"(?s)<h1>(.*?)</h1>", header, contents)
     contents = re.sub(r'(?s)<div id="footer">(.*?)</div>\n</div>', footer, contents)
+    contents = contents.replace('<body class="article">', '<body class="article side-bar-nav">')
 
     file_path.write_text(contents)
 
