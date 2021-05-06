@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -309,17 +311,26 @@ void delete_directory_recursive(const std::string &path) {
 #endif
 
 void write_file(const std::string &path, const std::string &content) {
-  std::ofstream file(path, std::ofstream::binary | std::ofstream::out);
+  FILE *file = std::fopen(path.c_str(), "wb");
   if (!file) {
-    std::cerr << "failed to open file for writing\n";
+    std::cerr << "fatal: failed to open file " << path
+              << " for writing: " << std::strerror(errno) << '\n';
     std::abort();
   }
-  file << content;
-  file.close();
-  if (!file) {
-    std::cerr << "failed to write file content\n";
+
+  std::size_t written = std::fwrite(content.data(), 1, content.size(), file);
+  if (written != content.size()) {
+    std::cerr << "fatal: failed to write entirely of file " << path << '\n';
     std::abort();
   }
+  std::fflush(file);
+  if (std::ferror(file)) {
+    std::cerr << "fatal: failed to write file " << path << ": "
+              << std::strerror(errno) << '\n';
+    std::abort();
+  }
+
+  std::fclose(file);
 }
 }
 }
