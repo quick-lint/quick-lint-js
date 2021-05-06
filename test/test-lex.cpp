@@ -1891,6 +1891,20 @@ TEST_F(test_lex, lex_not_shebang) {
   }
 }
 
+TEST_F(test_lex, lex_unexpected_bom_before_shebang) {
+  // BOM must not appear before '#!'.
+  {
+    error_collector v;
+    padded_string input(u8"\ufeff#!notashebang\n"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file) << "# should be skipped";
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_bom_before_shebang, bom,
+                              offsets_matcher(&input, 0, u8"\ufeff"))));
+  }
+}
+
 TEST_F(test_lex, lex_invalid_common_characters_are_disallowed) {
   {
     error_collector v;

@@ -199,6 +199,7 @@ class lexer {
     escape_sequence_list* escape_sequences;
   };
 
+  void parse_bom_before_shebang();
   void parse_current_token();
 
   const char8* parse_string_literal() noexcept;

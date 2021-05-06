@@ -162,7 +162,26 @@ lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
       error_reporter_(error_reporter),
       original_input_(input) {
   this->last_token_.end = this->input_;
+  this->parse_bom_before_shebang();
   this->parse_current_token();
+}
+
+void lexer::parse_bom_before_shebang() {
+  const char8* input = this->input_;
+  if (static_cast<unsigned char>(input[0]) == 0xef &&
+      static_cast<unsigned char>(input[1]) == 0xbb &&
+      static_cast<unsigned char>(input[2]) == 0xbf) {
+    input += 3;
+    if (static_cast<unsigned char>(input[0]) == '#' &&
+        static_cast<unsigned char>(input[1]) == '!') {
+      this->error_reporter_->report(error_unexpected_bom_before_shebang{
+          source_code_span(&this->input_[0], &this->input_[3])});
+      input += 2;
+      this->skip_line_comment_body();
+    } else {
+      this->input_ = input;
+    }
+  }
 }
 
 void lexer::parse_current_token() {
