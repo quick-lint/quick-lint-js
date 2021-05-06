@@ -175,7 +175,7 @@ void lexer::parse_bom_before_shebang() {
     if (static_cast<unsigned char>(input[0]) == '#' &&
         static_cast<unsigned char>(input[1]) == '!') {
       this->error_reporter_->report(error_unexpected_bom_before_shebang{
-          source_code_span(&this->input_[0], &this->input_[2])});
+          source_code_span(&this->input_[0], &this->input_[3])});
       input += 2;
       this->skip_line_comment_body();
     } else {

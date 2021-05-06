@@ -1050,12 +1050,11 @@
       .error(QLJS_TRANSLATABLE("unexpected '#'"), where))                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_bom_before_shebang, "E095",                             \
-      { source_code_span where; },                                             \
+      error_unexpected_bom_before_shebang, "E095", { source_code_span bom; },  \
       .error(QLJS_TRANSLATABLE(                                                \
                  "unicode byte order mark (BOM) cannot appear before #! "      \
                  "at beginning of script"),                                    \
-             where))                                                           \
+             bom))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_identifier, "E053", { source_code_span where; },        \
