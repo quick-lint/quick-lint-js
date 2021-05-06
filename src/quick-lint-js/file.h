@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_FILE_H
 #define QUICK_LINT_JS_FILE_H
 
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
@@ -22,6 +23,9 @@ struct read_file_result {
 read_file_result read_file(const char *path);
 
 read_file_result read_file(const char *path, platform_file_ref);
+
+void write_file(const std::string &path, string8_view content);
+void write_file(const char *path, string8_view content);
 }
 
 #endif

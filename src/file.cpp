@@ -225,6 +225,33 @@ read_file_result read_file(const char *path) {
   return read_file(path, file.ref());
 }
 #endif
+
+void write_file(const std::string &path, string8_view content) {
+  write_file(path.c_str(), content);
+}
+
+void write_file(const char *path, string8_view content) {
+  FILE *file = std::fopen(path, "wb");
+  if (!file) {
+    std::fprintf(stderr, "fatal: failed to open file %s for writing: %s\n",
+                 path, std::strerror(errno));
+    std::abort();
+  }
+
+  std::size_t written = std::fwrite(content.data(), 1, content.size(), file);
+  if (written != content.size()) {
+    std::fprintf(stderr, "fatal: failed to write entirely of file %s\n", path);
+    std::abort();
+  }
+  std::fflush(file);
+  if (std::ferror(file)) {
+    std::fprintf(stderr, "fatal: failed to write file %s: %s\n", path,
+                 std::strerror(errno));
+    std::abort();
+  }
+
+  std::fclose(file);
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

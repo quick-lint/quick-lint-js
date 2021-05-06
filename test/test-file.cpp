@@ -48,7 +48,6 @@ namespace quick_lint_js {
 namespace {
 std::string make_temporary_directory();
 void delete_directory_recursive(const std::string &path);
-void write_file(const std::string &path, const std::string &content);
 
 class test_file : public ::testing::Test {
  public:
@@ -70,7 +69,7 @@ class test_file : public ::testing::Test {
 
 TEST_F(test_file, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file(temp_file_path, "hello\nworld!\n");
+  write_file(temp_file_path, u8"hello\nworld!\n");
 
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error;
@@ -107,7 +106,7 @@ TEST_F(test_file, read_fifo) {
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
-      [&]() { write_file(temp_file_path, "hello from fifo"); });
+      [&]() { write_file(temp_file_path, u8"hello from fifo"); });
 
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error;
@@ -309,29 +308,6 @@ void delete_directory_recursive(const std::string &path) {
   std::filesystem::remove_all(std::filesystem::path(path));
 }
 #endif
-
-void write_file(const std::string &path, const std::string &content) {
-  FILE *file = std::fopen(path.c_str(), "wb");
-  if (!file) {
-    std::cerr << "fatal: failed to open file " << path
-              << " for writing: " << std::strerror(errno) << '\n';
-    std::abort();
-  }
-
-  std::size_t written = std::fwrite(content.data(), 1, content.size(), file);
-  if (written != content.size()) {
-    std::cerr << "fatal: failed to write entirely of file " << path << '\n';
-    std::abort();
-  }
-  std::fflush(file);
-  if (std::ferror(file)) {
-    std::cerr << "fatal: failed to write file " << path << ": "
-              << std::strerror(errno) << '\n';
-    std::abort();
-  }
-
-  std::fclose(file);
-}
 }
 }
 
