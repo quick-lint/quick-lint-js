@@ -2,21 +2,21 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
-project(quick-lint-js-completions)
+include(GNUInstallDirs)
 
 install(
   FILES _quick-lint-js
-  DESTINATION "/usr/share/zsh/site-functions"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/zsh/site-functions"
 )
 
 install(
   FILES quick-lint-js.bash
-  DESTINATION "/usr/share/bash-completion/completions"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/bash-completion/completions"
 )
 
 install(
   FILES quick-lint-js.fish
-  DESTINATION "/usr/share/fish/completions"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/fish/completions"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.

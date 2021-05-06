@@ -13,20 +13,15 @@ function _quick-lint-js() {
         local -i ret=1
         local -a args
 
-        # don't autocomplete these if other arguments are present
-        local I1="-h --help -v --version"
-        local I2="--output-format"
-        local I3="--lsp --lsp-server"
-
         args+=(
         "(- *)"{-h,--help}"[Print help message]"
         "(- *)"{-v,--version}"[Print version information]"
-        "($I1 $I2 --lsp --lsp-server)"{--lsp,--lsp-server}"[Run quick-lint-js in LSP server mode]"
-        "($I1 $I3)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: \"all\")]"
-        "($I1 $I3)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json]:format:->format"
-        "($I1)--vim-file-bufnr=[Select a vim buffer for outputting feedback]")
+	"(--exit-fail-on --lsp --lsp-server --vim-file-bufnr)"{--lsp,--lsp-server}"[Run quick-lint-js in LSP server mode]"
+        "(--lsp --lsp-server)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: \"all\")]"
+        "(--lsp --lsp-server --output-format)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json]:format:->format"
+        "(--lsp --lsp-server)--vim-file-bufnr=[Select a vim buffer for outputting feedback]")
 
-        _arguments -C -S -s "${args[@]}" '*:file:_files' && ret=0
+        _arguments -C -S "${args[@]}" '*:file:_files' && ret=0
 
         case "$state" in
                 format)
