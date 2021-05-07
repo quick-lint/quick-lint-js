@@ -1,0 +1,46 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+name: check error docs
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check_format:
+    name: check error docs
+    runs-on: ubuntu-18.04
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    steps:
+      - if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v2
+      - if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: configure
+        run: CC=gcc-8 CXX=g++-8 cmake -DBUILD_TESTING=NO -S . -B build
+      - name: build
+        run: cmake --build build --config Debug
+      - name: generate docs
+        run: ./build/docs/quick-lint-js-generate-error-docs docs/errors/ website/errors/index.template.html website/errors/index.html
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
