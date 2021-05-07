@@ -102,6 +102,8 @@ class Crawler:
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
+        if packet.url[-1] == '/':
+            packet.url = urljoin(packet.url, 'index.html')
         if self.in_allowed_file_soup(packet.url):
             result = requests.get(packet.defraged_url)
             self.visted_urls_soup[packet.defraged_url] = BeautifulSoup(
