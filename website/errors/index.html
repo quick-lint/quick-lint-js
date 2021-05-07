@@ -90,6 +90,12 @@
         <li>
           <a href="#E086">E086: redundant delete statement on variable</a>
         </li>
+        <li>
+          <a href="#E095"
+            >E095: Unicode byte order mark (BOM) cannot appear before #! at
+            beginning of script</a
+          >
+        </li>
       </ul>
       <article id="E001">
         <h2>
@@ -498,6 +504,31 @@ console.log(x);
         <p>To fix this warning, remove the delete statement:</p>
         <figure>
           <pre><code>let x = 3;
+console.log(x);
+</code></pre>
+        </figure>
+      </article>
+      <article id="E095">
+        <h2>
+          <a class="self-reference" href="#E095"
+            >E095: Unicode byte order mark (BOM) cannot appear before #! at
+            beginning of script</a
+          >
+        </h2>
+        <p>
+          A script cannot have Unicode byte order mark (BOM) before
+          <code>#!</code>
+        </p>
+        <figure>
+          <pre><code>﻿#!/usr/bin/env node
+let x = 3;
+console.log(x);
+</code></pre>
+        </figure>
+        <p>To fix this error, remove the Unicode BOM before <code>#!</code></p>
+        <figure>
+          <pre><code>#!/usr/bin/env node
+let x = 3;
 console.log(x);
 </code></pre>
         </figure>
