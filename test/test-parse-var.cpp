@@ -1723,8 +1723,10 @@ TEST(test_parse, lexical_declaration_as_with_statement_body_is_disallowed) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // obj
+                                      "visit_enter_with_scope",        // with
                                       "visit_variable_use",            // y
-                                      "visit_variable_declaration"));  // x
+                                      "visit_variable_declaration",    // x
+                                      "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_FIELDS(
