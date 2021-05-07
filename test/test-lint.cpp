@@ -2386,6 +2386,23 @@ TEST(
          "with 'b'";
 }
 
+TEST(test_lint, with_does_not_propagate_variable_uses) {
+  const char8 use[] = u8"f";
+
+  // with({}) {
+  //   f;
+  // }
+  error_collector v;
+  linter l(&v);
+  l.visit_enter_with_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_with_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty())
+      << "use of undeclared variable should not be an error inside with scope";
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";
