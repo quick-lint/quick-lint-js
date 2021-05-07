@@ -12,7 +12,6 @@ from urllib.parse import urldefrag, urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
-
 allow_mails = [
     "strager.nds@gmail.com",
     "nicolas@petton.fr",
@@ -42,12 +41,6 @@ def is_mailto_link(link) -> bool:
     return True if re.search(r"^mailto:*", link) else False
 
 
-def check_mail_link(link: str, parent: str) -> None:
-    mail = link.partition(":")[-1]
-    if mail not in allow_mails:
-        print(f"(unknown mail) {parent}, {mail}")
-
-
 class UrlPacket(object):
     def __init__(self, parent, url, defraged_url=None, fragment=None):
         self.parent = parent
@@ -57,7 +50,7 @@ class UrlPacket(object):
 
 
 class UrlNotFound(Exception):
-    """Raised when requests returns error code other than 200"""
+    """Raised when requests returns response code other than 200"""
 
     def __init__(self, response_code):
         self.response_code = response_code
@@ -70,8 +63,8 @@ def check_response(url):
     return response.url
 
 
-class initialize_crawler:
-    def __init__(self, site, allowed_file_ext_for_soup):
+class Crawler:
+    def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
         self.site = site
         self.allowed_file_ext_for_soup = allowed_file_ext_for_soup
         self.site_namespace = urlparse(self.site).netloc
@@ -87,12 +80,6 @@ class initialize_crawler:
         except requests.exceptions.ConnectionError:
             print("(error) failed to get", self.site)
             sys.exit(1)
-
-
-
-class Crawler(initialize_crawler):
-    def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
-        super().__init__(site, allowed_file_ext_for_soup)
 
     def in_namespace(self, url) -> bool:
         return urlparse(url).netloc == self.site_namespace
@@ -129,6 +116,11 @@ class Crawler(initialize_crawler):
             )
         return urls_from_page
 
+    def check_mail_link(self, packet):
+        mail = packet.url.partition(":")[-1]
+        if mail not in allow_mails:
+            self.report_error("unknown mail", packet)
+
     def check_internal_links(self, packet):
         try:
             _url = check_response(packet.defraged_url)
@@ -139,24 +131,21 @@ class Crawler(initialize_crawler):
             self.report_error(f"{e.response_code} error", packet)
 
     def check_external_links(self, urls):
-        def is_url_broken(url_packet):
-            try:
-                check_response(url_packet.url)
-            except UrlNotFound as e:
-                self.report_error(f"{e.response_code} error", url_packet)
-
         with Pool(max_workers=len(urls)) as executor:
-            future_to_url = {executor.submit(is_url_broken, packet) for packet in urls}
+            future_to_url = {executor.submit(check_response, packet.url): packet for packet in urls}
             for future in future_to_url:
+                packet = future_to_url[future]
                 try:
-                    data = future.result()
-                except Exception as e:
-                    pass
+                    future.result()
+                except UrlNotFound as e:
+                    self.report_error(f"{e.response_code} error", packet)
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (packet.url, exc))
 
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
             if is_mailto_link(link):
-                check_mail_link(link, parent_url)
+                self.check_mail_link(UrlPacket(parent_url, link))
             else:
                 url = urljoin(parent_url, link)
                 if url not in self.visted_urls:
