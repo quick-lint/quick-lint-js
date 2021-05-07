@@ -6,7 +6,7 @@
 :mansource: quick-lint-js version {version}
 :toc:
 :reproducible:
-:stylesheet: main.css
+:stylesheet: ../main.css
 :linkcss:
 
 == Name

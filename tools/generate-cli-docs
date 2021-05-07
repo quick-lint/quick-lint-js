@@ -33,7 +33,7 @@ def main():
             "-D",
             "website/",
             "-o",
-            "cli.html",
+            "cli/index.html",
             "docs/cli.adoc",
         ]
     )
@@ -80,7 +80,7 @@ def process_man():
 
 
 def process_html():
-    file_path = pathlib.Path("website/cli.html")
+    file_path = pathlib.Path("website/cli/index.html")
     contents = file_path.read_text()
 
     top = """<!-- Copyright (C) 2020  Matthew Glazar -->
@@ -112,18 +112,18 @@ along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
     head = """<head>
   <title>quick-lint-js: CLI documentation</title>
   <meta charset="utf-8" />
-  <link href="main.css" rel="stylesheet" />
+  <link href="../main.css" rel="stylesheet" />
 </head>"""
     header = """<header>
-  <h1><a href=".">quick-lint-js</a></h1>
+  <h1><a href="..">quick-lint-js</a></h1>
   <nav>
     <ul>
-      <li class="side-bar-only"><a href=".">Home</a></li>
-      <li><a href="install.html">Install</a></li>
-      <li><a href="demo/">Try online</a></li>
-      <li><a href="errors/">Error docs</a></li>
+      <li class="side-bar-only"><a href="..">Home</a></li>
+      <li><a href="../install/">Install</a></li>
+      <li><a href="../demo/">Try online</a></li>
+      <li><a href="../errors/">Error docs</a></li>
       <li class="current-page">CLI docs</li>
-      <li><a href="benchmarks/">Benchmarks</a></li>
+      <li><a href="../benchmarks/">Benchmarks</a></li>
       <li>
         <a href="https://github.com/quick-lint/quick-lint-js"
           >Code on GitHub</a
@@ -136,14 +136,14 @@ along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
     footer = """<footer>
   <nav>
     <ul>
-      <li><a href=".">quick-lint-js home page</a></li>
-      <li><a href="hiring.html">we're hiring! get paid to code</a></li>
-      <li><a href="benchmarks/">benchmarks vs other linters</a></li>
-      <li><a href="demo/">try quick-lint-js in your browser</a></li>
+      <li><a href="..">quick-lint-js home page</a></li>
+      <li><a href="../hiring/">we're hiring! get paid to code</a></li>
+      <li><a href="../benchmarks/">benchmarks vs other linters</a></li>
+      <li><a href="../demo/">try quick-lint-js in your browser</a></li>
       <li>
         <a href="https://github.com/quick-lint/quick-lint-js">source code on GitHub</a>
       </li>
-      <li><a href="license.html">copyright and license information</a></li>
+      <li><a href="../license/">copyright and license information</a></li>
     </ul>
   </nav>
 </footer>"""
