@@ -122,6 +122,18 @@ void error_documentation::to_html(string8* out) const {
           .text = [](::MD_TEXTTYPE type, const ::MD_CHAR* text, ::MD_SIZE size,
                      void* userdata) -> int {
             parser* p = reinterpret_cast<parser*>(userdata);
+
+            // Wrap BOM in a <span>.
+            if (size >= 3 && static_cast<unsigned char>(text[0]) == 0xef &&
+                static_cast<unsigned char>(text[1]) == 0xbb &&
+                static_cast<unsigned char>(text[2]) == 0xbf) {
+              // U+FEFF Zero Width No-Break Space (Byte Order Mark)
+              // Assumption: the BOM won't be split into multiple pieces.
+              p->out->append(u8"<span class='unicode-bom'>\ufeff</span>");
+              text += 3;
+              size -= 3;
+            }
+
             p->html_renderer->text(type, text, size, p->html_renderer);
             return 0;
           },

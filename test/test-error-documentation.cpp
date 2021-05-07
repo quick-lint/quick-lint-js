@@ -8,6 +8,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -121,6 +122,16 @@ second
 wasn't that neat?\n)");
   EXPECT_THAT(doc.code_blocks,
               ElementsAre(u8"first\n"_sv, u8"second\n"_sv, u8"third\n"_sv));
+}
+
+TEST(test_error_documentation, html_wraps_byte_order_mark) {
+  error_documentation doc =
+      parse_error_documentation("file.md", u8"code:\n\n    \ufeff--BOM\n");
+  string8 html;
+  doc.to_html(&html);
+  EXPECT_THAT(to_string(html),
+              HasSubstr(to_string(
+                  u8"<code><span class='unicode-bom'>\ufeff</span>--BOM")));
 }
 
 TEST(test_error_documentation, substitute_template_with_no_substitutions) {
