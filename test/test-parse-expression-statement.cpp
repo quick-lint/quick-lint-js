@@ -1340,9 +1340,9 @@ TEST(test_parse, let_as_statement_body_allows_asi) {
 
   {
     spy_visitor v = parse_and_visit_module(u8"with (obj) let\nx = y;");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // obj
-                                      "visit_enter_with_scope",     // with
-                                      "visit_variable_use",         // let
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",      // obj
+                                      "visit_enter_with_scope",  // with
+                                      "visit_variable_use",      // let
                                       "visit_exit_with_scope",
                                       "visit_variable_use",         // y
                                       "visit_variable_assignment",  // x
