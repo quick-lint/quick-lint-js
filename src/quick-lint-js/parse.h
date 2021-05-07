@@ -2443,8 +2443,6 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_with);
     this->skip();
 
-    v.visit_enter_with_scope();
-
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_with_expression,
         error_expected_parenthesis_around_with_expression>(v);
@@ -2452,6 +2450,8 @@ class parser {
     this->error_on_class_statement(statement_kind::with_statement);
     this->error_on_function_statement(statement_kind::with_statement);
     this->error_on_lexical_declaration(statement_kind::with_statement);
+
+    v.visit_enter_with_scope();
     bool parsed_body =
         this->parse_and_visit_statement_disallowing_declaration(v);
     if (!parsed_body) {
