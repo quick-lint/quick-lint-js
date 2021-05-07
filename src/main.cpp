@@ -180,6 +180,8 @@ class debug_visitor {
 
   void visit_enter_block_scope() { std::cerr << "entered block scope\n"; }
 
+  void visit_enter_with_scope() { std::cerr << "entered with scope\n"; }
+
   void visit_enter_class_scope() { std::cerr << "entered class scope\n"; }
 
   void visit_enter_for_scope() { std::cerr << "entered for scope\n"; }
@@ -195,6 +197,8 @@ class debug_visitor {
   }
 
   void visit_exit_block_scope() { std::cerr << "exited block scope\n"; }
+
+  void visit_exit_with_scope() { std::cerr << "exited with scope\n"; }
 
   void visit_exit_class_scope() { std::cerr << "exited class scope\n"; }
 
@@ -253,6 +257,11 @@ class multi_visitor {
     this->visitor_2_->visit_enter_block_scope();
   }
 
+  void visit_enter_with_scope() {
+    this->visitor_1_->visit_enter_with_scope();
+    this->visitor_2_->visit_enter_with_scope();
+  }
+
   void visit_enter_class_scope() {
     this->visitor_1_->visit_enter_class_scope();
     this->visitor_2_->visit_enter_class_scope();
@@ -281,6 +290,11 @@ class multi_visitor {
   void visit_exit_block_scope() {
     this->visitor_1_->visit_exit_block_scope();
     this->visitor_2_->visit_exit_block_scope();
+  }
+
+  void visit_exit_with_scope() {
+    this->visitor_1_->visit_exit_with_scope();
+    this->visitor_2_->visit_exit_with_scope();
   }
 
   void visit_exit_class_scope() {

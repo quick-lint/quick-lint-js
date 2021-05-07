@@ -2443,6 +2443,8 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::kw_with);
     this->skip();
 
+    v.visit_enter_with_scope();
+
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_with_expression,
         error_expected_parenthesis_around_with_expression>(v);
@@ -2455,6 +2457,7 @@ class parser {
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
+    v.visit_exit_with_scope();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
