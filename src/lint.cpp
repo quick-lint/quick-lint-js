@@ -251,6 +251,7 @@ void linter::visit_exit_block_scope() {
 
 void linter::visit_exit_with_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
+  // Don't propagate variable uses, only declarations
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
