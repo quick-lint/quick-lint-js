@@ -1,9 +1,21 @@
 {
   "scripts": {
+    "build": "node --experimental-modules run-build.mjs www",
     "fmt": "prettier --write '**/*.css' '**/*.html' '**/*.js' '**/*.mjs'",
+    "start": "node --experimental-modules run-server.mjs 9001",
     "test": "node --experimental-modules run-tests.mjs"
   },
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "mime": "^2.5.2",
+    "morgan": "^1.10.0"
+  },
   "devDependencies": {
+    "axios": "^0.21.1",
     "colors": "^1.4.0",
     "jasmine": "^3.7.0",
     "jsdom": "16.4.0",

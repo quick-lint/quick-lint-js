@@ -25,8 +25,11 @@ jobs:
           name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
           path: website/public/demo/dist/
           workflow: build-and-test-web-demo.yml
+
+      - name: install build dependencies
+        run: cd website && yarn install --production
       - name: build site
-        run: website/prepare-for-publish ./website-build
+        run: cd website && yarn build
 
       - name: publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -36,7 +39,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           keep_files: false
           publish_branch: gh-pages
-          publish_dir: ./website-build
+          publish_dir: ./website/www
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
