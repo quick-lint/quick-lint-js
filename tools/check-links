@@ -87,9 +87,9 @@ class Crawler:
     def get_urls_from_page(self, soup) -> list:
         href_tags = soup.find_all(href=True)
         hrefs = [tag.get("href") for tag in href_tags]
-        scripts = list(map(lambda x: x.get('src'), soup.findAll('script')))
-        if None not in scripts:
-            hrefs.extend(scripts)
+        script_srcs = list(map(lambda x: x.get("src"), soup.findAll("script")))
+        if None not in script_srcs:
+            hrefs.extend(script_srcs)
         return hrefs
 
     def in_allowed_file_soup(self, url) -> bool:
@@ -105,8 +105,8 @@ class Crawler:
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
-        if packet.url[-1] == '/':
-            packet.url = urljoin(packet.url, 'index.html')
+        if packet.url[-1] == "/":
+            packet.url = urljoin(packet.url, "index.html")
         if self.in_allowed_file_soup(packet.url):
             result = requests.get(packet.defraged_url)
             self.visted_urls_soup[packet.defraged_url] = BeautifulSoup(
@@ -137,15 +137,18 @@ class Crawler:
 
     def check_external_links(self, urls):
         with Pool(max_workers=len(urls)) as executor:
-            future_to_url = {executor.submit(check_response, packet.url): packet for packet in urls}
+            future_to_url = {
+                executor.submit(check_response, packet.url): packet for packet in urls
+            }
             for future in future_to_url:
                 packet = future_to_url[future]
                 try:
                     future.result()
                 except UrlNotFound as e:
-                    self.report_error(f"{e.response_code} error", packet)
-                except Exception as exc:
-                    print('%r generated an exception: %s' % (packet.url, exc))
+                    if not requests.get(packet.url).ok:
+                        self.report_error(f"{e.response_code} error", packet)
+                except Exception as e:
+                    print(f"{packet.parent}, {packet.url} generated an exception: {e}")
 
     def crawl_and_report(self, parent_url, urls):
         for link in urls:
