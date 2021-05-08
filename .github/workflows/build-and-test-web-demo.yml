@@ -41,9 +41,9 @@ jobs:
         run: emmake cmake --install build --component wasm-demo --prefix website/demo
 
       - name: JS configure
-        run: cd website/demo && yarn
+        run: cd website && yarn
       - name: JS test
-        run: cd website/demo && yarn test
+        run: cd website && yarn test demo/test-demo.mjs
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
