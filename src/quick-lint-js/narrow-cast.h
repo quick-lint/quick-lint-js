@@ -57,14 +57,12 @@ constexpr bool in_range([[maybe_unused]] In x) noexcept {
   using unsigned_out = make_unsigned_t<Out>;
   if constexpr (std::is_same_v<In, Out>) {
     return true;
-  } else if constexpr (std::is_signed_v<In> && std::is_signed_v<Out>) {
+  } else if constexpr (std::is_signed_v<In> == std::is_signed_v<Out>) {
     return out_limits::lowest() <= x && x <= (out_limits::max)();
   } else if constexpr (std::is_signed_v<In> && !std::is_signed_v<Out>) {
     return 0 <= x && static_cast<unsigned_in>(x) <= (out_limits::max)();
   } else if constexpr (!std::is_signed_v<In> && std::is_signed_v<Out>) {
     return x <= unsigned_out{(out_limits::max)()};
-  } else if constexpr (!std::is_signed_v<In> && !std::is_signed_v<Out>) {
-    return x <= (out_limits::max)();
   }
 }
 
