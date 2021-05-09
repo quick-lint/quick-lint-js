@@ -61,6 +61,12 @@
                assignment))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_await_operator_outside_async, "E162",                              \
+      { source_code_span await_operator; },                                    \
+      .error(QLJS_TRANSLATABLE("'await' is only allowed in async functions"),  \
+             await_operator))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E005",                    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),       \
@@ -497,7 +503,7 @@
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_let_with_no_bindings, "E024", { source_code_span where; },         \
-      .error(QLJS_TRANSLATABLE("let with no bindings"), where))                \
+      .error(QLJS_TRANSLATABLE("{0} with no bindings"), where))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_lexical_declaration_not_allowed_in_body, "E150",                   \
@@ -740,6 +746,12 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_operand_for_operator, "E026", { source_code_span where; }, \
       .error(QLJS_TRANSLATABLE("missing operand for operator"), where))        \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_redundant_delete_statement_on_variable, "E086",                    \
+      { source_code_span delete_expression; },                                 \
+      .warning(QLJS_TRANSLATABLE("redundant delete statement on variable"),    \
+               delete_expression))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_operator_between_expression_and_arrow_function, "E063",    \
@@ -1038,6 +1050,13 @@
       .error(QLJS_TRANSLATABLE("unexpected '#'"), where))                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_bom_before_shebang, "E095", { source_code_span bom; },  \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "unicode byte order mark (BOM) cannot appear before #! "      \
+                 "at beginning of script"),                                    \
+             bom))                                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_identifier, "E053", { source_code_span where; },        \
       .error(QLJS_TRANSLATABLE("unexpected identifier"), where))               \
                                                                                \
@@ -1096,6 +1115,18 @@
       },                                                                       \
       .error(QLJS_TRANSLATABLE("variable used before declaration: {0}"), use)  \
           .note(QLJS_TRANSLATABLE("variable declared here"), declaration))     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_function_call_before_declaration_in_blocked_scope, "E077",         \
+      {                                                                        \
+        identifier use;                                                        \
+        identifier declaration;                                                \
+      },                                                                       \
+      .warning(                                                                \
+          QLJS_TRANSLATABLE(                                                   \
+              "function called before declaration in blocked scope: {0}"),     \
+          use)                                                                 \
+          .note(QLJS_TRANSLATABLE("function declared here"), declaration))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_break, "E200", { source_code_span break_statement; },      \

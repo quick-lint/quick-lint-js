@@ -207,7 +207,7 @@ TEST(test_parse, c_style_for_loop) {
                             spy_visitor::visited_variable_use{u8"after"}));
   }
 
-  for (const char8 *variable_kind : {u8"const", u8"let"}) {
+  for (const char8* variable_kind : {u8"const", u8"let"}) {
     SCOPED_TRACE(out_string8(variable_kind));
     string8 code =
         string8(u8"for (") + variable_kind + u8" i = 0; cond; after) { body; }";
@@ -904,7 +904,6 @@ TEST(test_parse, break_statement) {
                             "visit_exit_block_scope"));
   }
 
-  // TODO(strager): Are contextual keywords allowed as labels?
   // TODO(#72): Visit the label.
   {
     spy_visitor v = parse_and_visit_statement(u8"break label;"_sv);
@@ -990,7 +989,6 @@ TEST(test_parse, continue_statement) {
                             "visit_exit_block_scope"));
   }
 
-  // TODO(strager): Are contextual keywords allowed as labels?
   // TODO(#72): Visit the label.
   {
     spy_visitor v = parse_and_visit_statement(u8"continue label;"_sv);
@@ -1017,6 +1015,32 @@ TEST(test_parse,
                             "visit_variable_use",       // notALabel
                             "visit_exit_block_scope"));
   }
+}
+
+TEST(test_parse,
+     break_and_continue_statements_allows_contextual_keyword_as_label) {
+  for (const char8* statement : {u8"break", u8"continue"}) {
+    for (string8 keyword : contextual_keywords) {
+      padded_string code(keyword + u8": for (;;) { " + statement + u8" " +
+                         keyword + u8"; }");
+      SCOPED_TRACE(code);
+
+      {
+        // Top-level.
+        spy_visitor v = parse_and_visit_statement(code.string_view());
+        EXPECT_THAT(v.errors, IsEmpty());
+      }
+
+      {
+        spy_visitor v = parse_and_visit_statement(code.string_view(),
+                                                  function_attributes::normal);
+        EXPECT_THAT(v.errors, IsEmpty());
+      }
+    }
+  }
+
+  // TODO(#214): Disallow labels named 'await' in async functions.
+  // TODO(#214): Disallow labels named 'yield' in generator functions.
 }
 
 TEST(test_parse, for_loop_async_arrow_with_of_parameter_is_init_expression) {

@@ -13,27 +13,32 @@
     <link href="../main.css" rel="stylesheet" />
     <link href="benchmark.css" rel="stylesheet" />
     <style>
-      #methodology strong {
+      .linter-name {
         color: hsla(var(--hue), 70%, 40%);
-        font-weight: bold;
       }
       @media (prefers-color-scheme: dark) {
-        #methodology strong {
+        .linter-name {
           color: hsla(var(--hue), 85%, 75%);
         }
       }
     </style>
   </head>
 
-  <body>
+  <body class="side-bar-nav">
     <header>
       <h1><a href="../">quick-lint-js</a></h1>
       <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
       <nav>
         <ul>
+          <li class="side-bar-only"><a href="..">Home</a></li>
+          <li><a href="../install/">Install</a></li>
+          <li><a href="../demo/">Try online</a></li>
+          <li><a href="../errors/">Error docs</a></li>
+          <li><a href="../cli/">CLI docs</a></li>
+          <li class="current-page">Benchmarks</li>
           <li>
             <a href="https://github.com/quick-lint/quick-lint-js"
-              >source code on GitHub</a
+              >Code on GitHub</a
             >
           </li>
         </ul>
@@ -230,12 +235,16 @@
           <thead>
             <tr>
               <th rowspan="2">linter</th>
-              <th colspan="3">response time (milliseconds)</th>
+              <th colspan="4">response time (milliseconds)</th>
             </tr>
             <tr>
               <th class="numbers"><abbr title="minimum">min</abbr></th>
               <th class="numbers"><abbr title="average">avg</abbr></th>
               <th class="numbers"><abbr title="maximum">max</abbr></th>
+              <th class="numbers">
+                <abbr title="slowdown compared to">÷</abbr>
+                <span style="--hue: 0" class="linter-name">quick-lint-js</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -244,6 +253,7 @@
               <td>0.41</td>
               <td>0.41</td>
               <td>0.42</td>
+              <td>1.0×</td>
             </tr>
 
             <tr style="--hue: 120" data-series="RSLint">
@@ -251,6 +261,7 @@
               <td>18.50</td>
               <td>18.52</td>
               <td>18.55</td>
+              <td>44.8×</td>
             </tr>
 
             <tr style="--hue: 180" data-series="Flow">
@@ -258,6 +269,7 @@
               <td>36.73</td>
               <td>37.00</td>
               <td>37.52</td>
+              <td>89.4×</td>
             </tr>
 
             <tr style="--hue: 60" data-series="eslint-server">
@@ -265,6 +277,7 @@
               <td>70.24</td>
               <td>83.23</td>
               <td>114.32</td>
+              <td>201.2×</td>
             </tr>
 
             <tr style="--hue: 240" data-series="Deno">
@@ -272,6 +285,7 @@
               <td>387.57</td>
               <td>440.96</td>
               <td>559.74</td>
+              <td>1065.9×</td>
             </tr>
 
             <tr style="--hue: 300" data-series="TypeScript-Theia">
@@ -279,6 +293,7 @@
               <td>435.07</td>
               <td>621.95</td>
               <td>984.36</td>
+              <td>1503.4×</td>
             </tr>
           </tbody>
         </table>
@@ -312,24 +327,32 @@
         <h2>Methodology</h2>
         <p>These benchmarks measure the following linters:</p>
         <ul>
-          <li><strong style="--hue: 0">quick-lint-js</strong> version 0.2.0</li>
           <li>
-            <strong style="--hue: 120">RSLint</strong> version
-            b7a4eeb69dc00fedfee81eaed3cf2ad36bcb2e2e (unreleased) (with rustc
-            version 1.51.0)
-          </li>
-          <li><strong style="--hue: 180">Flow</strong> version 0.148.0</li>
-          <li>
-            <strong style="--hue: 60">ESLint</strong> version 5.16.0 (with
-            eslint-server version 0.1.7 and Node version v16.0.0)
+            <strong class="linter-name" style="--hue: 0">quick-lint-js</strong>
+            version 0.2.0
           </li>
           <li>
-            <strong style="--hue: 240">Deno</strong> version 1.9.1 (with V8
-            version 9.1.269.5 and TypeScript version 4.2.2)
+            <strong class="linter-name" style="--hue: 120">RSLint</strong>
+            version b7a4eeb69dc00fedfee81eaed3cf2ad36bcb2e2e (unreleased) (with
+            rustc version 1.51.0)
           </li>
           <li>
-            <strong style="--hue: 300">TypeScript</strong> version 4.2.4 (with
-            Theia's language server version 0.5.1 and Node version v16.0.0)
+            <strong class="linter-name" style="--hue: 180">Flow</strong> version
+            0.148.0
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 60">ESLint</strong>
+            version 5.16.0 (with eslint-server version 0.1.7 and Node version
+            v16.0.0)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 240">Deno</strong> version
+            1.9.1 (with V8 version 9.1.269.5 and TypeScript version 4.2.2)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 300">TypeScript</strong>
+            version 4.2.4 (with Theia's language server version 0.5.1 and Node
+            version v16.0.0)
           </li>
         </ul>
 
@@ -350,7 +373,7 @@
       <nav>
         <ul>
           <li><a href="..">quick-lint-js home page</a></li>
-          <li><a href="../hiring.html">we're hiring! get paid to code</a></li>
+          <li><a href="../hiring/">we're hiring! get paid to code</a></li>
           <li><a href="../demo/">try quick-lint-js in your browser</a></li>
           <li>
             <a href="https://github.com/quick-lint/quick-lint-js"
@@ -358,7 +381,7 @@
             >
           </li>
           <li>
-            <a href="../license.html">copyright and license information</a>
+            <a href="../license/">copyright and license information</a>
           </li>
         </ul>
       </nav>

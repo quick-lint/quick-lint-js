@@ -28,6 +28,10 @@ class monotonic_allocator {
     return boost::container::pmr::polymorphic_allocator<T>(&this->memory_);
   }
 
+  boost::container::pmr::monotonic_buffer_resource *memory_resource() noexcept {
+    return &this->memory_;
+  }
+
  private:
   boost::container::pmr::monotonic_buffer_resource memory_;
 };

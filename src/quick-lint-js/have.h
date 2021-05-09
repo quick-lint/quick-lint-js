@@ -102,6 +102,14 @@
 #include <unistd.h>
 #endif
 
+#if !defined(QLJS_HAVE_DIRENT_H)
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#define QLJS_HAVE_DIRENT_H 1
+#else
+#define QLJS_HAVE_DIRENT_H 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_MKDTEMP)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
     (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \

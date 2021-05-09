@@ -28,6 +28,10 @@ libraries.
 
 Many directories and files have been deleted to reduce storage consumption.
 
+The following patches have been manually applied:
+
+* boost-static-var.patch
+
 Copyright: various
 Download URL: https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
 Download date: August 25, 2020
@@ -82,6 +86,27 @@ Project URL: https://github.com/open-source-parsers/jsoncpp
 Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.4
 Release date: September 25, 2020
 Version: 1.9.4
+
+## md4c
+
+The md4c directory contains MD4C, a C library for parsing and rendering
+Markdown.
+
+The following patches have been manually applied:
+
+* md4c-custom-html.patch
+
+Copyright: Copyright © 2016-2020 Martin Mitáš
+Download URL: https://github.com/mity/md4c/archive/refs/tags/release-0.4.7.tar.gz
+Download date: May 3, 2021
+Git commit: aa63198b80f999effed125b55ac16d1cbc9ab21c
+License file: md4c/LICENSE.md
+License type: MIT
+Location: md4c
+Project URL: https://github.com/mity/md4c
+Release URL: https://github.com/mity/md4c/releases/tag/release-0.4.7
+Release date: December 24, 2020
+Version: 0.4.7
 
 ## simdjson
 

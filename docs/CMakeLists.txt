@@ -4,6 +4,31 @@
 cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 
+add_executable(
+  quick-lint-js-generate-error-docs
+  generate-error-docs.cpp
+)
+target_link_libraries(
+  quick-lint-js-generate-error-docs
+  PRIVATE
+  md4c
+  quick-lint-js-docs-lib
+  quick-lint-js-lib
+)
+
+add_library(
+  quick-lint-js-docs-lib
+  error-documentation.cpp
+)
+target_include_directories(quick-lint-js-docs-lib PUBLIC .)
+target_link_libraries(
+  quick-lint-js-docs-lib
+  PUBLIC
+  quick-lint-js-lib
+  PRIVATE
+  md4c
+)
+
 install(
   FILES quick-lint-js.1
   DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"

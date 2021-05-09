@@ -11,6 +11,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/string-view.h>
 #include <string>
 #include <string_view>
 
@@ -169,16 +170,6 @@ posix_fd_file_ref posix_fd_file::ref() noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-namespace {
-std::string_view remove_suffix_if_present(std::string_view s,
-                                          std::string_view suffix) noexcept {
-  if (s.ends_with(suffix)) {
-    s.remove_suffix(suffix.size());
-  }
-  return s;
-}
-}
-
 std::string windows_error_message(DWORD error) {
   // TODO(strager): Use FormatMessageW.
   LPSTR get_last_error_message;

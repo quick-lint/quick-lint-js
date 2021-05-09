@@ -1,0 +1,208 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+= quick-lint-js(1)
+:version: 0.2.0
+:mansource: quick-lint-js version {version}
+:toc:
+:reproducible:
+:stylesheet: ../main.css
+:linkcss:
+
+== Name
+
+quick-lint-js - find bugs in JavaScript programs
+
+== Synopsis
+
+*quick-lint-js* [*--output-format*=_format_] [<options>] _file_ [_file_...] +
+*quick-lint-js* *--lsp-server* [<options>]
+
+== Description
+
+*quick-lint-js* reads JavaScript files and reports syntax errors and other bugs.
+
+This command has two modes:
+
+*quick-lint-js* [<options>] _file_ [_file_...]::
+  Batch mode (default).
+  Check the given files, and report errors to the terminal (standard error).
+  --output-format can be used to customize how errors look.
+
+*quick-lint-js* --lsp-server::
+  LSP server mode.
+  Start a Language Server Protocol server, communicating using standard input and standard output.
+  Use this mode to integrate with code editors supporting LSP.
+
+== Options
+
+*--output-format*=_format_::
+  Customize how errors are printed. _format_ is one of the following:
++
+pass:[-] *gnu-like* (default): a human-readable format similar to GCC.
++
+pass:[-] *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
++
+Incompatible with *--lsp-server*.
+
+*--vim-file-bufnr*=_number_::
+  Set the _bufnr_ property for errors printed with the *--output-format=vim-qflist-json* option.
+  *--vim-file-bufnr* applies only to files which are given later in the command line.
+  Therefore, if multiple files are given, *--vim-file-bufnr* can be specified multiple times.
+
+*--exit-fail-on*=_errors_::
+  Cause *quick-lint-js* to exit with a non-zero exit code if any of the discovered errors is listed in _errors_.
++
+See the "ERROR LISTS" section for a description of the format for _errors_.
++
+Incompatible with *--lsp-server*.
+
+*--lsp*::
+*--lsp-server*::
+  Run *quick-lint-js* in LSP server mode.
+  Use this mode to integrate with code editors supporting LSP.
+  An editor can send LSP requests and notifications to *quick-lint-js* via standard input, and receive LSP responses and notifications from standard output.
++
+Incompatible with *--output-format*.
+
+*-h*::
+*--help*::
+  Print a help message and exit.
++
+The output format is not intended to be machine-parsable and may change in the future.
+
+*-v*::
+*--version*::
+  Print version information and exit.
++
+The output format is not intended to be machine-parsable and may change in the future.
+
+== Error lists
+
+Some options, such as *--exit-fail-on*, accept an error list.
+An error list is a comma-separated list of error code predicates and error category predicates.
+
+An error lists can contain any number of include, exclude, and default predicates.
+An include predicate is a '+' followed by the name of an error code or error category.
+An exclude predicate is a '-' followed by the name of an error code or error category.
+An default predicate is the name of an error code or error category with no sigil.
+
+An error list containing only include and exclude predicates modifies a default set of error codes.
+The default set is decided by the option, but is often the set of all error codes.
+An error list containing at least one default predicate empties the set of error codes, then treats the default predicates as if they were include predicates.
+
+The order of predicates within an error list does not matter.
+Included predicates are processed first, adding to the set of error codes.
+Excluded predicates are processed second, removing from the set of error codes.
+
+Error codes have the form *E000*, where _000_ is three decimal digits (0-9).
+
+The following error categories are supported:
+
+*all*::
+  All error codes.
+
+Example error lists:
+
+*E102,E110*::
+  Only error codes E102 and E110, excluding all other error codes.
+
+*-E102*::
+  The default set of error codes, except for error code E102.
+
+*+E102*::
+  The default set of error codes, and also error code E102.
+
+*all,-E102*::
+  All error codes, except for error code E102.
+
+*E100,-E100,+E200*::
+  Only error code E200, excluding all other error codes.
+
+*+E200,-E100,E100*::
+  Only error code E200, excluding all other error codes.
+
+== Exit status
+
+*0*::
+  Batch mode: Linting succeeded with no errors or warnings.
++
+LSP server mode: The LSP client requested that the server shut down.
+This exit status may change in the future.
+
+*non-0*::
+  Batch mode: Linting failed with at least one error or warning, or at least one _file_ could not be opened and read.
++
+The specific status code may change in the future.
+
+== Environment
+
+*LC_ALL*::
+*LC_MESSAGES*::
+  Change the language used for error and warning messages.
+  For example, set *LC_ALL=en* to see messages written in United States English.
+
+== Example
+
+To lint a file called _lib/index.js_, writing error messages to the terminal:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* lib/index.js
+lib/index.js:1:20: error: variable used before declaration: language [E058]
+lib/index.js:2:7: note: variable declared here [E058]
+lib/index.js:3:1: error: assignment to const variable [E003]
+lib/index.js:1:7: note: const variable declared here [E003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
+----
+____
+
+To lint three files, writing machine-readable messages to _/tmp/vim-qflist.json_:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* --output-format=vim-qflist-json \
+    --vim-bufnr=3 lib/pizza-dough.js \
+    --vim-bufnr=4 lib/pizza-sauce.js \
+    --vim-bufnr=6 lib/pineapple.js \
+    >/tmp/vim-qflist.json
+----
+____
+Errors for _lib/pizza-dough.js_ will include _"bufnr":3_ in the output and errors for _lib/pineapple.js_ will include _"bufnr":6_.
+
+To lint a file called _bad.js_, but don't fail on use-of-undeclared-variable errors:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* --exit-fail-on=-E057 bad.js
+bad.js:5:25: warning: use of undeclared variable: $ [E057]
+$ echo $?
+0
+----
+____
+
+ifdef::backend-manpage[]
+
+== See also
+
+*eslint*(1)
+
+endif::backend-manpage[]
+
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This file is part of quick-lint-js.
+//
+// quick-lint-js is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// quick-lint-js is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

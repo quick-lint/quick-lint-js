@@ -1,0 +1,113 @@
+.TH MD2HTML 1 "June 2019" "" "General Commands Manual"
+.nh
+.ad l
+.
+.SH NAME
+.
+md2html \- convert Markdown to HTML
+.
+.SH SYNOPSIS
+.
+.B md2html
+.RI [ OPTION ]...\&
+.RI [ FILE ]
+.
+.SH OPTIONS
+.
+.SS General options:
+.
+.TP
+.BR -o ", " --output= \fIOUTFILE\fR
+Write output to \fIOUTFILE\fR instead of \fBstdout\fR(3)
+.
+.TP
+.BR -f ", " --full-html
+Generate full HTML document, including header
+.
+.TP
+.BR -s ", " --stat
+Measure time of input parsing
+.
+.TP
+.BR -h ", " --help
+Display help and exit
+.
+.TP
+.BR -v ", " --version
+Display version and exit
+.
+.SS Markdown dialect options:
+.
+.TP
+.B --commonmark
+CommonMark (the default)
+.
+.TP
+.B --github
+Github Flavored Markdown
+.
+.PP
+Note: dialect options are equivalent to some combination of flags below.
+.
+.SS Markdown extension options:
+.
+.TP
+.B --fcollapse-whitespace
+Collapse non-trivial whitespace
+.
+.TP
+.B --fverbatim-entities
+Do not translate entities
+.
+.TP
+.B --fpermissive-atx-headers
+Allow ATX headers without delimiting space
+.
+.TP
+.B --fpermissive-url-autolinks
+Allow URL autolinks without "<" and ">" delimiters
+.
+.TP
+.B --fpermissive-www-autolinks
+Allow WWW autolinks without any scheme (e.g. "www.example.com")
+.
+.TP
+.B --fpermissive-email-autolinks
+Allow e-mail autolinks without "<", ">" and "mailto:"
+.
+.TP
+.B --fpermissive-autolinks
+Enable all 3 of the above permissive autolinks options
+.
+.TP
+.B --fno-indented-code
+Disable indented code blocks
+.
+.TP
+.B --fno-html-blocks
+Disable raw HTML blocks
+.
+.TP
+.B --fno-html-spans
+Disable raw HTML spans
+.
+.TP
+.B --fno-html
+Same as \fB--fno-html-blocks --fno-html-spans\fR
+.
+.TP
+.B --ftables
+Enable tables
+.
+.TP
+.B --fstrikethrough
+Enable strikethrough spans
+.
+.TP
+.B --ftasklists
+Enable task lists
+.
+.SH SEE ALSO
+.
+https://github.com/mity/md4c
+.

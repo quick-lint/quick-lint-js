@@ -1,141 +1,123 @@
 .\" Copyright (C) 2020  Matthew Glazar
 .\" See end of file for extended copyright information.
+.\" This file was generated using generate-cli-docs.
 .
 .\" Manual page for the 'man' utility.
 .
 .
-.TH QUICK\-LINT\-JS 1 "" "quick\-lint\-js version 0.2.0"
-.
-.
-.\" BEGIN_AN_EXT_TMAC -----------------------------------------------------------
-.\" The following macros are taken from groff's an-ext.tmac file.
-.\" Copyright (C) 2007-2018 Free Software Foundation, Inc.
-.\" Written by Eric S. Raymond <esr@thyrsus.com>
-.\"            Werner Lemberg <wl@gnu.org>
-.\" You may freely use, modify and/or distribute portions of this file between
-.\" BEGIN_AN_EXT_TMAC and END_AN_EXT_TMAC.
-.
-.\" Continuation line for .TP header.
-.de TQ
-.  br
-.  ns
-.  TP \\$1\" no doublequotes around argument!
+'\" t
+.\"     Title: quick-lint-js
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.10
+.\"    Manual: \ \&
+.\"    Source: quick-lint-js version 0.2.0
+.\"  Language: English
+.\"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version 0.2.0" "\ \&"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
 ..
-.
-.\" Start example.
-.de EX
-.  do ds mF \\n[.fam]
-.  nr mE \\n(.f
-.  nf
-.  nh
-.  do fam C
-.  ft CW
-..
-.
-.\" End example.
-.de EE
-.  do fam \\*(mF
-.  ft \\n(mE
-.  fi
-.  hy \\n(HY
-..
-.\" END_AN_EXT_TMAC -------------------------------------------------------------
-.
-.
-.SH NAME
-.B quick\-lint\-js
-\- find bugs in JavaScript programs
-.
-.
-.SH SYNOPSIS
-.nf
-\fBquick\-lint\-js\fR [\fB\-\-output\-format\fR=\fIformat\fR] [<options>] \fIfile\fR [\fIfile\fR...]
-\fBquick\-lint\-js\fR \fB\-\-lsp\-server\fR [<options>]
-.fi
-.
-.
-.SH DESCRIPTION
-\fBquick\-lint\-js\fR reads JavaScript files and reports syntax errors and other bugs.
-.PP
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+quick\-lint\-js \- find bugs in JavaScript programs
+.SH "SYNOPSIS"
+.sp
+\fBquick\-lint\-js\fP [\fB\-\-output\-format\fP=\fIformat\fP] [<options>] \fIfile\fP [\fIfile\fP...]
+.br
+\fBquick\-lint\-js\fP \fB\-\-lsp\-server\fP [<options>]
+.SH "DESCRIPTION"
+.sp
+\fBquick\-lint\-js\fP reads JavaScript files and reports syntax errors and other bugs.
+.sp
 This command has two modes:
-.
-.TP
-.nf
-\fBquick\-lint\-js\fR [<options>] \fIfile\fR [\fIfile\fR...]
-.fi
+.sp
+\fBquick\-lint\-js\fP [<options>] \fIfile\fP [\fIfile\fP...]
+.RS 4
 Batch mode (default).
 Check the given files, and report errors to the terminal (standard error).
 \-\-output\-format can be used to customize how errors look.
-.
-.TP
-.nf
-\fBquick\-lint\-js\fR \-\-lsp\-server
-.fi
+.RE
+.sp
+\fBquick\-lint\-js\fP \-\-lsp\-server
+.RS 4
 LSP server mode.
 Start a Language Server Protocol server, communicating using standard input and standard output.
 Use this mode to integrate with code editors supporting LSP.
 .RE
-.
-.
-.SH OPTIONS
-.TP
-.BR \-\-output\-format\fR=\fIformat\fR
-Customize how errors are printed. \fIformat\fR is one of the following:
-.RS
-.IP \- 2
-\fBgnu-like\fR (default): a human-readable format similar to GCC.
-.IP \- 2
-\fBvim-qflist-json\fR: machine-readable JSON which can be given to Vim's \fIsetqflist\fR function.
-.RE
-.RS
+.SH "OPTIONS"
 .sp
-Incompatible with \fB\-\-lsp\-server\fR.
-.RE
-.
-.TP
-.BR \-\-vim-file-bufnr\fR=\fInumber\fR
-Set the \fIbufnr\fR property for errors printed with the \fB\-\-output\-format=vim-qflist-json\fR option.
-\fB\-\-vim\-file\-bufnr\fR applies only to files which are given later in the command line.
-Therefore, if multiple files are given, \fB-\-vim\-file\-bufnr\fR can be specified multiple times.
-.
-.TP
-.BR \-\-exit\-fail\-on\fR=\fIerrors\fR
-Cause \fBquick\-lint\-js\fR to exit with a non-zero exit code if any of the discovered errors is listed in \fIerrors\fR.
+\fB\-\-output\-format\fP=\fIformat\fP
+.RS 4
+Customize how errors are printed. \fIformat\fP is one of the following:
 .sp
-See the "ERROR LISTS" section for a description of the format for \fIerrors\fR.
+\- \fBgnu\-like\fP (default): a human\-readable format similar to GCC.
 .sp
-Incompatible with \fB\-\-lsp\-server\fR.
+\- \fBvim\-qflist\-json\fP: machine\-readable JSON which can be given to Vim\(cqs \fIsetqflist\fP function.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
 .RE
-.
-.TP
-.BR \-\-lsp ", " \-\-lsp-server
-Run \fBquick\-lint\-js\fR in LSP server mode.
+.sp
+\fB\-\-vim\-file\-bufnr\fP=\fInumber\fP
+.RS 4
+Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=vim\-qflist\-json\fP option.
+\fB\-\-vim\-file\-bufnr\fP applies only to files which are given later in the command line.
+Therefore, if multiple files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
+.RE
+.sp
+\fB\-\-exit\-fail\-on\fP=\fIerrors\fP
+.RS 4
+Cause \fBquick\-lint\-js\fP to exit with a non\-zero exit code if any of the discovered errors is listed in \fIerrors\fP.
+.sp
+See the "ERROR LISTS" section for a description of the format for \fIerrors\fP.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.RE
+.sp
+\fB\-\-lsp\fP, \fB\-\-lsp\-server\fP
+.RS 4
+Run \fBquick\-lint\-js\fP in LSP server mode.
 Use this mode to integrate with code editors supporting LSP.
-An editor can send LSP requests and notifications to \fBquick\-lint\-js\fR via standard input, and receive LSP responses and notifications from standard output.
+An editor can send LSP requests and notifications to \fBquick\-lint\-js\fP via standard input, and receive LSP responses and notifications from standard output.
 .sp
-Incompatible with \fB\-\-output\-format\fR.
-.
-.TP
-.BR \-h ", " \-\-help
+Incompatible with \fB\-\-output\-format\fP.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
 Print a help message and exit.
 .sp
-The output format is not intended to be machine-parsable and may change in the future.
-.
-.TP
-.BR \-v ", " \-\-version
+The output format is not intended to be machine\-parsable and may change in the future.
+.RE
+.sp
+\fB\-v\fP, \fB\-\-version\fP
+.RS 4
 Print version information and exit.
 .sp
-The output format is not intended to be machine-parsable and may change in the future.
+The output format is not intended to be machine\-parsable and may change in the future.
 .RE
-.
-.
-.SH ERROR LISTS
-Some options, such as \fB\-\-exit\-fail\-on\fR, accept an error list.
-An error list is a comma-separated list of error code predicates and error category predicates.
+.SH "ERROR LISTS"
+.sp
+Some options, such as \fB\-\-exit\-fail\-on\fP, accept an error list.
+An error list is a comma\-separated list of error code predicates and error category predicates.
 .sp
 An error lists can contain any number of include, exclude, and default predicates.
-An include predicate is a '+' followed by the name of an error code or error category.
-An exclude predicate is a '\-' followed by the name of an error code or error category.
+An include predicate is a \(aq+\(aq followed by the name of an error code or error category.
+An exclude predicate is a \(aq\-\(aq followed by the name of an error code or error category.
 An default predicate is the name of an error code or error category with no sigil.
 .sp
 An error list containing only include and exclude predicates modifies a default set of error codes.
@@ -146,104 +128,126 @@ The order of predicates within an error list does not matter.
 Included predicates are processed first, adding to the set of error codes.
 Excluded predicates are processed second, removing from the set of error codes.
 .sp
-Error codes have the form \fBE000\fR, where \fI000\fR is three decimal digits (0-9).
+Error codes have the form \fBE000\fP, where \fI000\fP is three decimal digits (0\-9).
 .sp
 The following error categories are supported:
-.TP
-.B all
+.sp
+\fBall\fP
+.RS 4
 All error codes.
 .RE
 .sp
 Example error lists:
-.TP
-.B "E102,E110"
+.sp
+\fBE102,E110\fP
+.RS 4
 Only error codes E102 and E110, excluding all other error codes.
-.TP
-.B "-E102"
+.RE
+.sp
+\fB\-E102\fP
+.RS 4
 The default set of error codes, except for error code E102.
-.TP
-.B "+E102"
+.RE
+.sp
+\fB+E102\fP
+.RS 4
 The default set of error codes, and also error code E102.
-.TP
-.B "all,-E102"
+.RE
+.sp
+\fBall,\-E102\fP
+.RS 4
 All error codes, except for error code E102.
-.TP
-.B "E100,-E100,+E200"
-Only error code E200, excluding all other error codes.
-.TP
-.B "+E200,-E100,E100"
+.RE
+.sp
+\fBE100,\-E100,+E200\fP
+.RS 4
 Only error code E200, excluding all other error codes.
 .RE
-.
-.
-.SH EXIT STATUS
-.TP
-.B 0
+.sp
+\fB+E200,\-E100,E100\fP
+.RS 4
+Only error code E200, excluding all other error codes.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fB0\fP
+.RS 4
 Batch mode: Linting succeeded with no errors or warnings.
 .sp
 LSP server mode: The LSP client requested that the server shut down.
 This exit status may change in the future.
-.
-.TP
-.B non-0
-Batch mode: Linting failed with at least one error or warning, or at least one \fIfile\fR could not be opened and read.
+.RE
+.sp
+\fBnon\-0\fP
+.RS 4
+Batch mode: Linting failed with at least one error or warning, or at least one \fIfile\fP could not be opened and read.
 .sp
 The specific status code may change in the future.
-.
-.
-.SH ENVIRONMENT
-.TP
-.B LC_ALL
-.TQ
-.B LC_MESSAGES
+.RE
+.SH "ENVIRONMENT"
+.sp
+\fBLC_ALL\fP, \fBLC_MESSAGES\fP
+.RS 4
 Change the language used for error and warning messages.
-For example, set \fBLC_ALL=en\fR to see messages written in United States English.
-.
-.
-.SH EXAMPLE
-To lint a file called \fIlib/index.js\fR, writing error messages to the terminal:
-.PP
-.RS
-.EX
-$ \fBquick-lint-js\fR lib/index.js
+For example, set \fBLC_ALL=en\fP to see messages written in United States English.
+.RE
+.SH "EXAMPLE"
+.sp
+To lint a file called \fIlib/index.js\fP, writing error messages to the terminal:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+$ \fBquick\-lint\-js\fP lib/index.js
 lib/index.js:1:20: error: variable used before declaration: language [E058]
 lib/index.js:2:7: note: variable declared here [E058]
 lib/index.js:3:1: error: assignment to const variable [E003]
 lib/index.js:1:7: note: const variable declared here [E003]
 lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
-.EE
+.fi
+.if n .RE
+.br
 .RE
-.
-.PP
-To lint three files, writing machine-readable messages to \fI/tmp/vim\-qflist.json\fR:
-.PP
-.RS
-.EX
-$ \fBquick-lint-js\fR --output-format=vim-qflist-json \\
-    --vim-bufnr=3 lib/pizza-dough.js \\
-    --vim-bufnr=4 lib/pizza-sauce.js \\
-    --vim-bufnr=6 lib/pineapple.js \\
-    >/tmp/vim-qflist.json
-.EE
+.ll
+.sp
+To lint three files, writing machine\-readable messages to \fI/tmp/vim\-qflist.json\fP:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+$ \fBquick\-lint\-js\fP \-\-output\-format=vim\-qflist\-json \(rs
+    \-\-vim\-bufnr=3 lib/pizza\-dough.js \(rs
+    \-\-vim\-bufnr=4 lib/pizza\-sauce.js \(rs
+    \-\-vim\-bufnr=6 lib/pineapple.js \(rs
+    >/tmp/vim\-qflist.json
+.fi
+.if n .RE
+.br
 .RE
-.PP
-Errors for \fIlib/pizza\-dough.js\fR will include \fI"bufnr":3\fR in the output and errors for \fIlib/pineapple.js\fR will include \fI"bufnr":6\fR.
-.
-.PP
-To lint a file called \fIbad.js\fR, but don't fail on use-of-undeclared-variable errors:
-.PP
-.RS
-.EX
-$ \fBquick-lint-js\fR --exit-fail-on=-E057 bad.js
+.ll
+.sp
+Errors for \fIlib/pizza\-dough.js\fP will include \fI"bufnr":3\fP in the output and errors for \fIlib/pineapple.js\fP will include \fI"bufnr":6\fP.
+.sp
+To lint a file called \fIbad.js\fP, but don\(cqt fail on use\-of\-undeclared\-variable errors:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+$ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E057 bad.js
 bad.js:5:25: warning: use of undeclared variable: $ [E057]
 $ echo $?
 0
-.EE
+.fi
+.if n .RE
+.br
 .RE
-.
-.
-.SH SEE ALSO
-.BR eslint (1)
+.ll
+.SH "SEE ALSO"
+.sp
+\fBeslint\fP(1)
 
 .\" quick-lint-js finds bugs in JavaScript programs.
 .\" Copyright (C) 2020  Matthew Glazar

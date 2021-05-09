@@ -113,11 +113,11 @@ class lexer {
   // After calling begin_transaction, you must call either commit_transaction or
   // roll_back_transaction with the returned transaction.
   //
-  // You cannot call begin_transaction again before calling commit_transaction
-  // or roll_back_transaction. In other words, transactions may not be nested.
+  // You can call begin_transaction again before calling commit_transaction
+  // or roll_back_transaction. Doing so begins a nested transaction.
   //
   // Inside a transaction, errors are not reported until commit_transaction is
-  // called.
+  // called for the outer-most nested transaction.
   lexer_transaction begin_transaction();
 
   // After calling commit_transaction, it's almost as if you never called
@@ -139,6 +139,10 @@ class lexer {
   // Calling roll_back_transaction will not report lexer errors which might have
   // been reported if it weren't for begin_transaction.
   void roll_back_transaction(lexer_transaction&&);
+
+  // transaction_has_lex_errors can only be called while the given transaction
+  // is the most recent active transaction.
+  bool transaction_has_lex_errors(const lexer_transaction&) const noexcept;
 
   void insert_semicolon();
 
@@ -195,6 +199,7 @@ class lexer {
     escape_sequence_list* escape_sequences;
   };
 
+  void parse_bom_before_shebang();
   void parse_current_token();
 
   const char8* parse_string_literal() noexcept;

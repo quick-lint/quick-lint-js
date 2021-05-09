@@ -32,6 +32,7 @@ quick_lint_js_add_library(
   char8.cpp
   cli-location.cpp
   crash.cpp
+  error-collector.cpp
   error-formatter.cpp
   error-list.cpp
   file-handle.cpp
@@ -65,6 +66,7 @@ quick_lint_js_add_library(
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/error-collector.h
   quick-lint-js/error-formatter.h
   quick-lint-js/error-list.h
   quick-lint-js/error-tape.h

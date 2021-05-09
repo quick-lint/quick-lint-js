@@ -10,7 +10,7 @@ Follow the following steps to release a new version of quick-lint-js:
    * dist/nix/quick-lint-js.nix
    * dist/npm/BUILDING.md
    * dist/npm/package.json
-   * docs/quick-lint-js.1
+   * docs/cli.adoc
    * plugin/vscode-lsp/README.md
    * plugin/vscode-lsp/package.json
    * plugin/vscode/BUILDING.md

@@ -1,0 +1,92 @@
+
+# Permissive URL Autolinks
+
+With the flag `MD_FLAG_PERMISSIVEURLAUTOLINKS`, MD4C enables more permissive recognition
+of URLs and transform them to autolinks, even if they do not exactly follow the syntax
+of autolink as specified in CommonMark specification.
+
+This is a standard CommonMark autolink:
+
+```````````````````````````````` example
+Homepage: <https://github.com/mity/md4c>
+.
+<p>Homepage: <a href="https://github.com/mity/md4c">https://github.com/mity/md4c</a></p>
+````````````````````````````````
+
+With the permissive autolinks enabled, this is sufficient:
+
+```````````````````````````````` example
+Homepage: https://github.com/mity/md4c
+.
+<p>Homepage: <a href="https://github.com/mity/md4c">https://github.com/mity/md4c</a></p>
+````````````````````````````````
+
+But this permissive autolink feature can work only for very widely used URL
+schemes, in alphabetical order `ftp:`, `http:`, `https:`.
+
+That's why this is not a permissive autolink:
+
+```````````````````````````````` example
+ssh://root@example.com
+.
+<p>ssh://root@example.com</p>
+````````````````````````````````
+
+The same rules for path validation as for permissivve WWW autolinks apply.
+Therefore the final question mark here is not part of the autolink:
+
+```````````````````````````````` example
+Have you ever visited http://www.zombo.com?
+.
+<p>Have you ever visited <a href="http://www.zombo.com">http://www.zombo.com</a>?</p>
+````````````````````````````````
+
+But in contrast, in this example it is:
+
+```````````````````````````````` example
+http://www.bing.com/search?q=md4c
+.
+<p><a href="http://www.bing.com/search?q=md4c">http://www.bing.com/search?q=md4c</a></p>
+````````````````````````````````
+
+And finally one complex example:
+
+```````````````````````````````` example
+http://commonmark.org
+
+(Visit https://encrypted.google.com/search?q=Markup+(business))
+
+Anonymous FTP is available at ftp://foo.bar.baz.
+.
+<p><a href="http://commonmark.org">http://commonmark.org</a></p>
+<p>(Visit <a href="https://encrypted.google.com/search?q=Markup+(business)">https://encrypted.google.com/search?q=Markup+(business)</a>)</p>
+<p>Anonymous FTP is available at <a href="ftp://foo.bar.baz">ftp://foo.bar.baz</a>.</p>
+````````````````````````````````
+
+
+## GitHub Issues
+
+### [Issue 53](https://github.com/mity/md4c/issues/53)
+
+```````````````````````````````` example
+This is [link](http://github.com/).
+.
+<p>This is <a href="http://github.com/">link</a>.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+This is [link](http://github.com/)X
+.
+<p>This is <a href="http://github.com/">link</a>X</p>
+````````````````````````````````
+
+
+## [Issue 76](https://github.com/mity/md4c/issues/76)
+
+```````````````````````````````` example
+*(http://example.com)*
+.
+<p><em>(<a href="http://example.com">http://example.com</a>)</em></p>
+````````````````````````````````
+
+

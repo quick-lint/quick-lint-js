@@ -55,19 +55,22 @@
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL: \
   case token_type::kw_instanceof
 
-#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR    \
-  case token_type::ampersand_equal:               \
-  case token_type::circumflex_equal:              \
-  case token_type::greater_greater_equal:         \
-  case token_type::greater_greater_greater_equal: \
-  case token_type::less_less_equal:               \
-  case token_type::minus_equal:                   \
-  case token_type::percent_equal:                 \
-  case token_type::pipe_equal:                    \
-  case token_type::plus_equal:                    \
-  case token_type::slash_equal:                   \
-  case token_type::star_equal:                    \
+#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL \
+  case token_type::ampersand_equal:                               \
+  case token_type::circumflex_equal:                              \
+  case token_type::greater_greater_equal:                         \
+  case token_type::greater_greater_greater_equal:                 \
+  case token_type::less_less_equal:                               \
+  case token_type::minus_equal:                                   \
+  case token_type::percent_equal:                                 \
+  case token_type::pipe_equal:                                    \
+  case token_type::plus_equal:                                    \
+  case token_type::star_equal:                                    \
   case token_type::star_star_equal
+
+#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR \
+  case token_type::slash_equal:                \
+    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL
 
 #define QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR \
   case token_type::ampersand_ampersand_equal:     \
@@ -91,9 +94,10 @@ namespace quick_lint_js {
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
  private:
+  template <bool parser::*Member>
+  class bool_guard;
+
   class function_guard;
-  class loop_guard;
-  class switch_guard;
 
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
@@ -113,7 +117,6 @@ class parser {
 
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
-  [[nodiscard]] loop_guard enter_loop();
 
 #if QLJS_HAVE_SETJMP
   // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
@@ -315,17 +318,11 @@ class parser {
     case token_type::equal:
     case token_type::equal_greater:
     case token_type::incomplete_template:
-    case token_type::kw_as:
     case token_type::kw_delete:
     case token_type::kw_false:
-    case token_type::kw_from:
-    case token_type::kw_get:
     case token_type::kw_in:
     case token_type::kw_new:
     case token_type::kw_null:
-    case token_type::kw_of:
-    case token_type::kw_set:
-    case token_type::kw_static:
     case token_type::kw_super:
     case token_type::kw_this:
     case token_type::kw_true:
@@ -383,6 +380,12 @@ class parser {
     // console.log("hello");
     // label: for(;;);
     parse_loop_label_or_expression_starting_with_identifier:
+    case token_type::kw_as:
+    case token_type::kw_from:
+    case token_type::kw_get:
+    case token_type::kw_of:
+    case token_type::kw_set:
+    case token_type::kw_static:
     case token_type::identifier: {
       identifier ident = this->peek().identifier_name();
       this->skip();
@@ -546,7 +549,7 @@ class parser {
       source_code_span token_span = this->peek().span();
       this->skip();
       switch (this->peek().type) {
-      // TODO(strager): Are contextual keywords allowed as labels?
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
         if (this->peek().has_leading_newline) {
           // ASI.
@@ -1111,6 +1114,12 @@ class parser {
     named_function:
     QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier: {
+      if (this->peek().type == token_type::kw_let &&
+          require_name == name_requirement::required_for_export) {
+        this->error_reporter_->report(error_cannot_export_let{
+            .export_name = this->peek().span(),
+        });
+      }
       identifier function_name = this->peek().identifier_name();
       v.visit_variable_declaration(function_name, variable_kind::_function);
       this->skip();
@@ -1278,7 +1287,7 @@ class parser {
 
       switch (this->peek().type) {
       case token_type::kw_await:
-        // TODO(strager): Disallow parameters named 'await' for async functions.
+        // TODO(#241): Disallow parameters named 'await' for async functions.
         [[fallthrough]];
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::dot_dot_dot:
@@ -3333,32 +3342,20 @@ class parser {
     bool was_in_switch_statement_;
   };
 
-  class loop_guard {
+  template <bool parser::*Member>
+  class bool_guard {
    public:
-    explicit loop_guard(parser *, bool was_in_loop_statement) noexcept;
+    explicit bool_guard(parser *p, bool old_value) noexcept
+        : parser_(p), old_value_(old_value) {}
 
-    loop_guard(const loop_guard &) = delete;
-    loop_guard &operator=(const loop_guard &) = delete;
+    bool_guard(const bool_guard &) = delete;
+    bool_guard &operator=(const bool_guard &) = delete;
 
-    ~loop_guard() noexcept;
+    ~bool_guard() noexcept { this->parser_->*Member = this->old_value_; }
 
    private:
     parser *parser_;
-    bool was_in_loop_statement_;
-  };
-
-  class switch_guard {
-   public:
-    explicit switch_guard(parser *, bool was_in_switch_statement) noexcept;
-
-    switch_guard(const switch_guard &) = delete;
-    switch_guard &operator=(const switch_guard &) = delete;
-
-    ~switch_guard() noexcept;
-
-   private:
-    parser *parser_;
-    bool was_in_switch_statement_;
+    bool old_value_;
   };
 
   quick_lint_js::lexer lexer_;
@@ -3382,6 +3379,13 @@ class parser {
   bool have_unimplemented_token_jmp_buf_ = false;
   std::jmp_buf unimplemented_token_jmp_buf_;
 #endif
+
+  using loop_guard = bool_guard<&parser::in_loop_statement_>;
+  using switch_guard = bool_guard<&parser::in_switch_statement_>;
+
+ public:
+  // For testing and internal use only.
+  [[nodiscard]] loop_guard enter_loop();
 };
 }
 

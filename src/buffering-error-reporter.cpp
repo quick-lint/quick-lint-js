@@ -67,6 +67,10 @@ void buffering_error_reporter::move_into(error_reporter *other) {
     }
   }
 }
+
+bool buffering_error_reporter::empty() const noexcept {
+  return this->impl_->errors_.empty();
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

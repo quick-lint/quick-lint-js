@@ -25,8 +25,6 @@ TEST(test_json, escapes_newlines) {
   write_json_escaped_string(json, string8_view(u8"hello\nworld"));
   EXPECT_EQ(json.str(), R"(hello\nworld)");
 }
-
-// TODO(strager): Should we escape other characters too? \t? \r?
 }
 }
 

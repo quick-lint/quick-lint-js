@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -230,6 +231,13 @@ expression* parser::parse_primary_expression(precedence prec) {
             ? this->make_expression<expression::_typeof>(child, operator_span)
             : this->make_expression<expression::unary_operator>(child,
                                                                 operator_span);
+    if (type == token_type::kw_delete &&
+        child->kind() == expression_kind::variable) {
+      this->error_reporter_->report(
+          error_redundant_delete_statement_on_variable{
+              .delete_expression = ast->span(),
+          });
+    }
     return ast;
   }
 
@@ -607,31 +615,103 @@ expression* parser::parse_async_expression_only(token async_token) {
 }
 
 expression* parser::parse_await_expression(token await_token, precedence prec) {
-  bool is_identifier = [this]() -> bool {
+  bool is_identifier = [&]() -> bool {
     if (this->in_async_function_) {
       return false;
-    } else if (this->in_top_level_) {
+    } else {
       // await is a unary operator (in modules) or an identifier (in scripts).
       switch (this->peek().type) {
       QLJS_CASE_BINARY_ONLY_OPERATOR:
-      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
       QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      case token_type::colon:
       case token_type::comma:
       case token_type::dot:
       case token_type::end_of_file:
       case token_type::equal:
+      case token_type::equal_greater:
       case token_type::kw_in:
       case token_type::question:
       case token_type::question_dot:
+      case token_type::right_curly:
       case token_type::right_paren:
+      case token_type::right_square:
       case token_type::semicolon:
         return true;
 
+      // await /regexp/;
+      // await / rhs;
+      case token_type::slash:
+      case token_type::slash_equal: {
+        buffering_error_reporter temp_error_reporter;
+        error_reporter* old_error_reporter =
+            std::exchange(this->error_reporter_, &temp_error_reporter);
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+
+        if (this->in_top_level_) {
+          // Try to parse the / as a regular expression literal.
+          [[maybe_unused]] expression* ast = this->parse_expression(prec);
+        } else {
+          // Try to parse the / as a binary division operator.
+          [[maybe_unused]] expression* ast = this->parse_expression_remainder(
+              this->make_expression<expression::variable>(
+                  await_token.identifier_name(), await_token.type),
+              prec);
+        }
+        bool parsed_ok = temp_error_reporter.empty() &&
+                         !this->lexer_.transaction_has_lex_errors(transaction);
+
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        this->error_reporter_ = old_error_reporter;
+
+        if (this->in_top_level_) {
+          bool parsed_slash_as_regexp = parsed_ok;
+          return !parsed_slash_as_regexp;
+        } else {
+          bool parsed_slash_as_divide = parsed_ok;
+          return parsed_slash_as_divide;
+        }
+      }
+
+      case token_type::kw_of:
+        // HACK(strager): This works around for-of parsing. Remove this case
+        // when for-of parsing is fixed.
+        [[fallthrough]];
+      case token_type::minus_minus:
+      case token_type::plus_plus:
+        // TODO(strager): Parse 'await--x' and 'await--;' correctly.
+        [[fallthrough]];
+      case token_type::complete_template:
+      case token_type::incomplete_template:
+      case token_type::left_paren:
+      case token_type::left_square:
+      case token_type::minus:
+      case token_type::plus:
+        return !this->in_top_level_;
+
+      case token_type::bang:
+      case token_type::dot_dot_dot:
+      case token_type::identifier:
+      case token_type::kw_as:
+      case token_type::kw_async:
+      case token_type::kw_await:
+      case token_type::kw_from:
+      case token_type::kw_function:
+      case token_type::kw_get:
+      case token_type::kw_let:
+      case token_type::kw_set:
+      case token_type::kw_static:
+      case token_type::kw_yield:
+      case token_type::left_curly:
+      case token_type::number:
+      case token_type::private_identifier:
+      case token_type::regexp:
+      case token_type::reserved_keyword_with_escape_sequence:
+      case token_type::string:
+      case token_type::tilde:
       default:
         return false;
       }
-    } else {
-      return true;
     }
   }();
 
@@ -640,6 +720,12 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         await_token.identifier_name(), await_token.type);
   } else {
     source_code_span operator_span = await_token.span();
+    if (!(this->in_async_function_ || this->in_top_level_)) {
+      this->error_reporter_->report(error_await_operator_outside_async{
+          .await_operator = operator_span,
+      });
+    }
+
     expression* child = this->parse_expression(prec);
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -2032,21 +2118,6 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_async_function_ = this->was_in_async_function_;
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
-  this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
-}
-
-parser::loop_guard::loop_guard(parser* p, bool was_in_loop_statement) noexcept
-    : parser_(p), was_in_loop_statement_(was_in_loop_statement) {}
-
-parser::loop_guard::~loop_guard() noexcept {
-  this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
-}
-
-parser::switch_guard::switch_guard(parser* p,
-                                   bool was_in_switch_statement) noexcept
-    : parser_(p), was_in_switch_statement_(was_in_switch_statement) {}
-
-parser::switch_guard::~switch_guard() noexcept {
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
 }
 }

@@ -70,7 +70,7 @@ class BOOST_CONTAINER_DECL monotonic_buffer_resource
    //! to the upstream allocator
    //!
    //! <b>Note</b>: Non-standard extension.
-   static const std::size_t initial_next_buffer_size = 32u*sizeof(void*);
+   static inline const std::size_t initial_next_buffer_size = 32u*sizeof(void*);
 
    //! <b>Requires</b>: `upstream` shall be the address of a valid memory resource or `nullptr`
    //!

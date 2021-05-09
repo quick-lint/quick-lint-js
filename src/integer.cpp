@@ -9,6 +9,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
+#include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -23,6 +24,12 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 namespace quick_lint_js {
 #if QLJS_HAVE_CHARCONV_HEADER
 from_chars_result from_chars(const char *begin, const char *end, int &value) {
+  std::from_chars_result result = std::from_chars(begin, end, value);
+  return from_chars_result{.ptr = result.ptr, .ec = result.ec};
+}
+
+from_chars_result from_chars(const char *begin, const char *end,
+                             std::size_t &value) {
   std::from_chars_result result = std::from_chars(begin, end, value);
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
@@ -74,6 +81,32 @@ from_chars_result from_chars(const char *begin, const char *end, int &value) {
   }
   value = static_cast<int>(long_value);
   return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
+}
+
+from_chars_result from_chars(const char *begin, const char *end,
+                             std::size_t &value) {
+  std::string buffer(begin, end);
+  if (!(buffer.size() >= 1 && is_decimal_digit(buffer[0]))) {
+    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
+  }
+  const char *c = begin;
+  auto out_of_range = [&c, end]() -> from_chars_result {
+    for (; is_decimal_digit(*c) && c != end; ++c) {
+      // Skip digits.
+    }
+    return from_chars_result{.ptr = c, .ec = std::errc::result_out_of_range};
+  };
+
+  std::size_t result = 0;
+  for (; is_decimal_digit(*c) && c != end; ++c) {
+    std::size_t new_result = result * 10 + (*c - '0');
+    if (new_result < result) {
+      return out_of_range();
+    }
+    result = new_result;
+  }
+  value = result;
+  return from_chars_result{.ptr = c, .ec = std::errc{0}};
 }
 
 from_chars_result from_chars_hex(const char *begin, const char *end,

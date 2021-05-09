@@ -16,7 +16,8 @@ Nygard][ADR-bible].
 * [ADR004: Generated sources](ADR004-Generated-sources.md)
 * [ADR005: Incremental lexing](ADR005-Incremental-lexing.md)
 * [ADR006: Location tracking](ADR006-Location-tracking.md)
-* [ADR008: Exceptions](ADR010-Exceptions.md)
+* [ADR008: Exceptions](ADR008-Exceptions.md)
+* [ADR009: Website](ADR009-Website.md)
 
 ## Rejected ADRs
 

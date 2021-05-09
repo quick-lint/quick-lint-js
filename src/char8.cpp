@@ -32,6 +32,14 @@ string8 to_string8(const std::string &s) { return s; }
 #endif
 
 #if QLJS_HAVE_CHAR8_T
+std::string to_string(const string8_view &s) {
+  return std::string(reinterpret_cast<const char *>(s.data()), s.size());
+}
+#else
+std::string to_string(const string8_view &s) { return std::string(s); }
+#endif
+
+#if QLJS_HAVE_CHAR8_T
 std::size_t strlen(const char8 *s) {
   return std::strlen(reinterpret_cast<const char *>(s));
 }

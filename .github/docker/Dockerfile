@@ -29,6 +29,7 @@ RUN \
       coreutils \
       debhelper \
       dpkg-dev \
+      emacs-nox \
       fakeroot \
       g++-8 \
       g++-9 \

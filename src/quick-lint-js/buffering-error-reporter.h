@@ -25,6 +25,8 @@ class buffering_error_reporter final : public error_reporter {
 
   void move_into(error_reporter *other);
 
+  bool empty() const noexcept;
+
  private:
   struct impl;
 

@@ -1066,7 +1066,7 @@ TEST_F(test_lex, lex_regular_expression_literal_with_digit_flag) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  // TODO(strager): Report an error, because '3' is an invalid flag.
+  // TODO(#47): Report an error, because '3' is an invalid flag.
 }
 
 TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
@@ -1099,7 +1099,7 @@ TEST_F(test_lex, lex_non_ascii_in_regular_expression_literal_flags) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  // TODO(strager): Report an error, because '\u05d0' is an invalid flag.
+  // TODO(#47): Report an error, because '\u05d0' is an invalid flag.
 }
 
 TEST_F(test_lex,
@@ -1362,8 +1362,6 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
 }
 
 TEST_F(test_lex, lex_identifier_with_out_of_range_utf_8_sequence) {
-  // TODO(strager): Should we treat the invalid sequence as part of the
-  // identifier? Or should we treat it as whitespace?
   // f4 90 80 80 is U+110000
   this->check_single_token_with_errors(
       "too\xf4\x90\x80\x80\x62ig"_s8v, "too\xf4\x90\x80\x80\x62ig"_s8v,
@@ -1375,8 +1373,6 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_utf_8_sequence) {
 }
 
 TEST_F(test_lex, lex_identifier_with_malformed_utf_8_sequence) {
-  // TODO(strager): Should we treat the invalid sequence as part of the
-  // identifier? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
       "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
@@ -1452,8 +1448,6 @@ TEST_F(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_character) {
-  // TODO(strager): Should we treat the disallowed character as part of the
-  // identifier anyway? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       u8"illegal\U0010ffff", u8"illegal\U0010ffff",
       [](padded_string_view input, const auto& errors) {
@@ -1495,8 +1489,6 @@ TEST_F(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
 }
 
 TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
-  // TODO(strager): Should we treat the disallowed character as part of the
-  // identifier anyway? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       u8"\u0816illegal", u8"\u0816illegal",
       [](padded_string_view input, const auto& errors) {
@@ -1568,8 +1560,6 @@ TEST_F(test_lex, private_identifier) {
 
 TEST_F(test_lex,
        private_identifier_with_disallowed_non_ascii_initial_character) {
-  // TODO(strager): Should we treat the disallowed character as part of the
-  // identifier anyway? Or should we treat it as whitespace?
   this->check_single_token_with_errors(
       u8"#\u0816illegal", u8"#\u0816illegal",
       [](padded_string_view input, const auto& errors) {
@@ -1901,6 +1891,20 @@ TEST_F(test_lex, lex_not_shebang) {
   }
 }
 
+TEST_F(test_lex, lex_unexpected_bom_before_shebang) {
+  // BOM must not appear before '#!'.
+  {
+    error_collector v;
+    padded_string input(u8"\ufeff#!notashebang\n"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file) << "# should be skipped";
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unexpected_bom_before_shebang, bom,
+                              offsets_matcher(&input, 0, u8"\ufeff"))));
+  }
+}
+
 TEST_F(test_lex, lex_invalid_common_characters_are_disallowed) {
   {
     error_collector v;
@@ -2083,7 +2087,7 @@ TEST_F(test_lex, transaction_buffers_errors_until_commit) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::number);
   EXPECT_THAT(errors.errors, IsEmpty())
-      << "0o999 error shouldn't be written to error reporter";
+      << "0b error shouldn't be written to error reporter";
 
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2093,6 +2097,91 @@ TEST_F(test_lex, transaction_buffers_errors_until_commit) {
   EXPECT_THAT(errors.errors,
               ElementsAre(ERROR_TYPE_FIELD(error_no_digits_in_binary_number,
                                            characters, testing::_)));
+}
+
+TEST_F(test_lex, nested_transaction_buffers_errors_until_outer_commit) {
+  padded_string code(u8"x y 0b z"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // x
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // y
+
+  lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);  // 0b
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0b error shouldn't be written to error reporter";
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // z
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.commit_transaction(std::move(inner_transaction));
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "committing inner_transaction should not report 0b error";
+
+  l.commit_transaction(std::move(outer_transaction));
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(error_no_digits_in_binary_number,
+                                           characters, testing::_)))
+      << "committing outer_transaction should report 0b error";
+}
+
+TEST_F(test_lex, rolled_back_inner_transaction_discards_errors) {
+  padded_string code(u8"x y 0b z"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // x
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // y
+
+  lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);  // 0b
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // z
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.roll_back_transaction(std::move(inner_transaction));
+  l.commit_transaction(std::move(outer_transaction));
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0b error shouldn't be written to error reporter";
+}
+
+TEST_F(test_lex, rolled_back_outer_transaction_discards_errors) {
+  padded_string code(u8"x y 0b z"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // x
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // y
+
+  lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::number);  // 0b
+
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier);  // z
+  EXPECT_THAT(errors.errors, IsEmpty());
+
+  l.commit_transaction(std::move(inner_transaction));
+  l.roll_back_transaction(std::move(outer_transaction));
+  EXPECT_THAT(errors.errors, IsEmpty())
+      << "0b error shouldn't be written to error reporter";
 }
 
 TEST_F(test_lex, errors_after_transaction_commit_are_reported_unbuffered) {

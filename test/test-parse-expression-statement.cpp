@@ -662,15 +662,6 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"delete x;"_sv);
-    // TODO(strager): Should this be visit_variable_assignment instead? Or
-    // something else?
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
-  }
-
-  {
     spy_visitor v = parse_and_visit_statement(u8R"("use strict";)");
     EXPECT_THAT(v.visits, IsEmpty());
   }
@@ -754,6 +745,20 @@ TEST(test_parse, expression_statement) {
                                       "visit_enter_function_scope_body",
                                       "visit_variable_use",  // rhs
                                       "visit_exit_function_scope"));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"delete x;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_redundant_delete_statement_on_variable,
+                              delete_expression,
+                              offsets_matcher(&code, 0, u8"delete x"))));
   }
 
   {

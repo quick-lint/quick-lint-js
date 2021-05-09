@@ -7,14 +7,12 @@ include(QuickLintJSTarget)
 
 quick_lint_js_add_executable(
   quick-lint-js-test
-  error-collector.cpp
   error-matcher.cpp
   parse-json.cpp
   parse-support.cpp
   pipe.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h
-  quick-lint-js/error-collector.h
   quick-lint-js/error-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
@@ -33,6 +31,7 @@ quick_lint_js_add_executable(
   test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
+  test-error-documentation.cpp
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
@@ -54,6 +53,7 @@ quick_lint_js_add_executable(
   test-lsp-pipe-writer.cpp
   test-lsp-server.cpp
   test-math-overflow.cpp
+  test-monotonic-allocator.cpp
   test-narrow-cast.cpp
   test-options.cpp
   test-padded-string.cpp
@@ -66,6 +66,7 @@ quick_lint_js_add_executable(
   test-parse-statement.cpp
   test-parse-var.cpp
   test-parse.cpp
+  test-string-view.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
   test-utf-16.cpp
@@ -87,6 +88,7 @@ target_link_libraries(
   gmock_main
   gtest
   jsoncpp_static
+  quick-lint-js-docs-lib
   quick-lint-js-lib
 )
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)

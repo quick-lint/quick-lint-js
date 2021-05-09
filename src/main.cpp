@@ -33,6 +33,10 @@
 #include <tuple>
 #include <variant>
 
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 namespace quick_lint_js {
 namespace {
 class any_error_reporter {
@@ -376,6 +380,8 @@ void print_help_message() {
   print_option("--exit-fail-on=[CODES]",
                "Fail with a non-zero exit code if any of these");
   print_option("", "errors are found (default: \"all\")");
+  print_option("--lsp, --lsp-server",
+               "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
   print_option("", "gnu-like (default if omitted), vim-qflist-json");
@@ -383,6 +389,18 @@ void print_help_message() {
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
   print_option("-h, --help", "Print help message");
+
+  bool mention_man_page = false;
+#if defined(_POSIX2_VERSION)
+  mention_man_page = true;
+#endif
+  if (mention_man_page) {
+    std::cout << "\nFor more information, run 'man quick-lint-js' or visit\n"
+                 "https://quick-lint-js.com/cli.html\n";
+  } else {
+    std::cout
+        << "\nFor more information, visit https://quick-lint-js.com/cli.html\n";
+  }
 }
 
 void print_version_information() {

@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -46,7 +48,6 @@ namespace quick_lint_js {
 namespace {
 std::string make_temporary_directory();
 void delete_directory_recursive(const std::string &path);
-void write_file(const std::string &path, const std::string &content);
 
 class test_file : public ::testing::Test {
  public:
@@ -68,7 +69,7 @@ class test_file : public ::testing::Test {
 
 TEST_F(test_file, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file(temp_file_path, "hello\nworld!\n");
+  write_file(temp_file_path, u8"hello\nworld!\n");
 
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error;
@@ -105,7 +106,7 @@ TEST_F(test_file, read_fifo) {
   ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
 
   std::thread writer_thread(
-      [&]() { write_file(temp_file_path, "hello from fifo"); });
+      [&]() { write_file(temp_file_path, u8"hello from fifo"); });
 
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error;
@@ -307,20 +308,6 @@ void delete_directory_recursive(const std::string &path) {
   std::filesystem::remove_all(std::filesystem::path(path));
 }
 #endif
-
-void write_file(const std::string &path, const std::string &content) {
-  std::ofstream file(path, std::ofstream::binary | std::ofstream::out);
-  if (!file) {
-    std::cerr << "failed to open file for writing\n";
-    std::abort();
-  }
-  file << content;
-  file.close();
-  if (!file) {
-    std::cerr << "failed to write file content\n";
-    std::abort();
-  }
-}
 }
 }
 

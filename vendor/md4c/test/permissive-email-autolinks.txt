@@ -1,0 +1,50 @@
+
+# Permissive E-mail Autolinks
+
+With the flag `MD_FLAG_PERMISSIVEEMAILAUTOLINKS`, MD4C enables more permissive
+recognition of e-mail addresses and transforms them to autolinks, even if they
+do not exactly follow the syntax of autolink as specified in CommonMark
+specification.
+
+This is standard CommonMark e-mail autolink:
+
+```````````````````````````````` example
+E-mail: <mailto:john.doe@gmail.com>
+.
+<p>E-mail: <a href="mailto:john.doe@gmail.com">mailto:john.doe@gmail.com</a></p>
+````````````````````````````````
+
+With the permissive autolinks enabled, this is sufficient:
+
+```````````````````````````````` example
+E-mail: john.doe@gmail.com
+.
+<p>E-mail: <a href="mailto:john.doe@gmail.com">john.doe@gmail.com</a></p>
+````````````````````````````````
+
+`+` can occur before the `@`, but not after.
+
+```````````````````````````````` example
+hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
+.
+<p>hello@mail+xyz.example isn't valid, but <a href="mailto:hello+xyz@mail.example">hello+xyz@mail.example</a> is.</p>
+````````````````````````````````
+
+`.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
+the end of the email address, in which case it will not be considered part of
+the address:
+
+```````````````````````````````` example
+a.b-c_d@a.b
+
+a.b-c_d@a.b.
+
+a.b-c_d@a.b-
+
+a.b-c_d@a.b_
+.
+<p><a href="mailto:a.b-c_d@a.b">a.b-c_d@a.b</a></p>
+<p><a href="mailto:a.b-c_d@a.b">a.b-c_d@a.b</a>.</p>
+<p>a.b-c_d@a.b-</p>
+<p>a.b-c_d@a.b_</p>
+````````````````````````````````
