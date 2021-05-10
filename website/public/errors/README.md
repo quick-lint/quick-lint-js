@@ -2,7 +2,7 @@
 
 This directory contains documentation on quick-lint-js' warnings and errors.
 
-The source documents can be found in [docs/errors/](../../docs/errors/). This
+The source documents can be found in [docs/errors/](../../../docs/errors/). This
 directory contains HTML generated from those source documents.
 
 ## Generating
@@ -13,4 +13,4 @@ directory contains HTML generated from those source documents.
 
     $ # Generate index.html:
     $ ./build/docs/quick-lint-js-generate-error-docs \
-      docs/errors/ website/errors/index.template.html website/errors/index.html
+      docs/errors/ website/public/errors/index.template.html website/public/errors/index.html

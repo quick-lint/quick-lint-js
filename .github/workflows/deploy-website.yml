@@ -23,7 +23,7 @@ jobs:
         with:
           commit: ${{ github.event.inputs.build_commit_id }}
           name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
-          path: website/demo/dist/
+          path: website/public/demo/dist/
           workflow: build-and-test-web-demo.yml
       - name: build site
         run: website/prepare-for-publish ./website-build

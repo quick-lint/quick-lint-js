@@ -25,7 +25,7 @@ jobs:
       - name: build
         run: cmake --build build --config Debug
       - name: generate docs
-        run: ./build/docs/quick-lint-js-generate-error-docs docs/errors/ website/errors/index.template.html website/errors/index.html
+        run: ./build/docs/quick-lint-js-generate-error-docs docs/errors/ website/public/errors/index.template.html website/public/errors/index.html
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

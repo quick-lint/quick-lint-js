@@ -31,7 +31,7 @@ def main():
             "-b",
             "html5",
             "-D",
-            "website/",
+            "website/public/",
             "-o",
             "cli/index.html",
             "docs/cli.adoc",
@@ -80,7 +80,7 @@ def process_man():
 
 
 def process_html():
-    file_path = pathlib.Path("website/cli/index.html")
+    file_path = pathlib.Path("website/public/cli/index.html")
     contents = file_path.read_text()
 
     top = """<!-- Copyright (C) 2020  Matthew Glazar -->
