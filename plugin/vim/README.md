@@ -14,6 +14,7 @@ this plugin to work:
 
 * [ALE - Asynchronous Lint Engine][ALE] v2.1.1 or newer, or version v3.0.0 or
   newer
+* [nvim-lspconfig][nvim-lspconfig]
 
 ## Installation
 
@@ -71,7 +72,21 @@ Add the following line to your `vimrc` file between `call vundle#begin(...)` and
 
 Then, restart Vim, then run `:PluginInstall` in Vim.
 
+### Install with Packer
+
+This option requires [Neovim][] 0.5 or newer and [Packer][] 
+
+Add the following line to your `init.lua` file between
+`require('packer').startup(function()` and `end)`:
+
+    use('strager/quick-lint-js', rtp = 'plugin/vim/quick-lint-js.vim')
+
+Then, restart Neovim, then run `:PackerInstall` in Neovim.
+
 [ALE]: https://github.com/dense-analysis/ale
+[Neovim]: https://neovim.io/
+[nvim-lspconfig]: https://github.com/neovim/nvim-lspconfig
+[Packer]: https://github.com/wbthomason/packer.nvim
 [Pathogen]: https://github.com/tpope/vim-pathogen
 [Vim-Plug]: https://github.com/junegunn/vim-plug
 [Vim]: https://www.vim.org/
