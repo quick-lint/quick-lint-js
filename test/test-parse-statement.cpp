@@ -861,7 +861,8 @@ TEST(test_parse, with_statement) {
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // body
-                            "visit_exit_block_scope", "visit_exit_with_scope"));
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
   }
 }
 
@@ -876,7 +877,8 @@ TEST(test_parse, with_statement_without_parens) {
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // body
-                            "visit_exit_block_scope", "visit_exit_with_scope"));
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -894,7 +896,8 @@ TEST(test_parse, with_statement_without_parens) {
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // body
-                            "visit_exit_block_scope", "visit_exit_with_scope"));
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -913,7 +916,8 @@ TEST(test_parse, with_statement_without_parens) {
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // body
-                            "visit_exit_block_scope", "visit_exit_with_scope"));
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_2_FIELDS(
                     error_expected_parenthesis_around_with_expression,       //
