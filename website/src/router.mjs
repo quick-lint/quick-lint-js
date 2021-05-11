@@ -113,8 +113,24 @@ export class Router {
   }
 
   async renderEJSFile(ejsFilePath) {
+    ejsFilePath = path.resolve(ejsFilePath);
     let ejsHTML = await fs.promises.readFile(ejsFilePath, "utf-8");
-    return ejs.render(ejsHTML);
+
+    let oldCWD = process.cwd();
+    process.chdir(path.dirname(ejsFilePath));
+    try {
+      return await ejs.render(
+        ejsHTML,
+        {},
+        {
+          async: true,
+          compileDebug: true,
+          filename: ejsFilePath,
+        }
+      );
+    } finally {
+      process.chdir(oldCWD);
+    }
   }
 }
 

@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew Glazar -->
 <!-- See end of file for extended copyright information. -->
-<!-- ${generated_message} -->
 <html>
   <head>
+    <script>
+      //<%
+      let url = await import("url");
+      let moduleCacheBust = "#" + Date.now();
+
+      let { parseCriterionJSON, makeBenchmarkHTML } = await import(
+        url.pathToFileURL("criterion-json-to-html.mjs") + moduleCacheBust
+      );
+      //%>
+    </script>
     <title>quick-lint-js: benchmarks</title>
     <meta charset="utf-8" />
     <meta
@@ -67,7 +76,9 @@
           diagnostics to an editor.
         </p>
         <h3>Results</h3>
-        ${open-wait-close-express-router-js.json}
+        <%-
+        makeBenchmarkHTML(parseCriterionJSON("open-wait-close-express-router-js.json"));
+        %>
         <h3>Setup (untimed)</h3>
         <ol>
           <li>Start the LSP server.</li>
