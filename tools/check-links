@@ -33,7 +33,10 @@ headers = {
 
 def check_fragment(soup, fragment) -> bool:
     if fragment:
-        return True if soup.select(f"#{fragment}") else False
+        try:
+            return bool(soup.select(f"#{fragment}"))
+        except:
+            return False
     return True
 
 
@@ -42,7 +45,7 @@ def is_mailto_link(link) -> bool:
 
 
 class UrlPacket(object):
-    def __init__(self, parent, url, defraged_url=None, fragment=None):
+    def __init__(self, parent, url, defraged_url=None, fragment=None) -> None:
         self.parent = parent
         self.url = url
         self.defraged_url = defraged_url
@@ -56,15 +59,18 @@ class UrlNotFound(Exception):
         self.response_code = response_code
 
 
-def check_response(url):
+def check_response(url) -> None:
     response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
     if not response.ok:
-        raise UrlNotFound(response.status_code)
+        if not requests.get(url).ok:
+            raise UrlNotFound(response.status_code)
     return response.url
 
 
 class Crawler:
-    def __init__(self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup):
+    def __init__(
+        self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup
+    ) -> None:
         self.site = site
         self.allowed_file_ext_for_soup = allowed_file_ext_for_soup
         self.site_namespace = urlparse(self.site).netloc
@@ -95,11 +101,11 @@ class Crawler:
     def in_allowed_file_soup(self, url) -> bool:
         return urlparse(url).path.split(".")[-1] in self.allowed_file_ext_for_soup
 
-    def report_error(self, error, packet):
+    def report_error(self, error, packet) -> None:
         self.broken_links.append(packet.url)
         print(f"({error}) {packet.parent}, {packet.url}")
 
-    def start_crawl(self):
+    def start_crawl(self) -> None:
         self.crawl_and_report(self.site, self.urls)
         self.check_external_links(self.external_links_to_check)
 
@@ -121,12 +127,12 @@ class Crawler:
             )
         return urls_from_page
 
-    def check_mail_link(self, packet):
+    def check_mail_link(self, packet) -> None:
         mail = packet.url.partition(":")[-1]
         if mail not in allow_mails:
             self.report_error("unknown mail", packet)
 
-    def check_internal_links(self, packet):
+    def check_internal_links(self, packet) -> None:
         try:
             _url = check_response(packet.defraged_url)
             urls_from_page = self.get_urls_to_crawl(packet)
@@ -135,7 +141,7 @@ class Crawler:
         except UrlNotFound as e:
             self.report_error(f"{e.response_code} error", packet)
 
-    def check_external_links(self, urls):
+    def check_external_links(self, urls) -> None:
         with Pool(max_workers=len(urls)) as executor:
             future_to_url = {
                 executor.submit(check_response, packet.url): packet for packet in urls
@@ -145,12 +151,11 @@ class Crawler:
                 try:
                     future.result()
                 except UrlNotFound as e:
-                    if not requests.get(packet.url).ok:
-                        self.report_error(f"{e.response_code} error", packet)
+                    self.report_error(f"{e.response_code} error", packet)
                 except Exception as e:
                     print(f"{packet.parent}, {packet.url} generated an exception: {e}")
 
-    def crawl_and_report(self, parent_url, urls):
+    def crawl_and_report(self, parent_url, urls) -> None:
         for link in urls:
             if is_mailto_link(link):
                 self.check_mail_link(UrlPacket(parent_url, link))
