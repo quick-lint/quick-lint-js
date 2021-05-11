@@ -2386,6 +2386,110 @@ TEST(
          "with 'b'";
 }
 
+TEST(test_lint, with_does_not_propagate_variable_uses) {
+  const char8 declaration[] = u8"a";
+  const char8 assignment[] = u8"a";
+  const char8 use[] = u8"a";
+
+  {
+    // with({})
+    //   a;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "use of undeclared variable should not "
+                                        "be an error inside with scope";
+  }
+
+  {
+    // const a = 1;
+    // with ({})
+    //   a = 2;
+
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_const);
+    l.visit_enter_with_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "assigning to 'a' should not "
+                                        "be an error inside with scope";
+  }
+
+  {
+    // with ({})
+    //   a = 2;
+    // let a;
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_with_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "assigning to 'a' should not "
+                                        "be an error inside with scope";
+  }
+
+  {
+    // with ({}) {
+    //   const a = 1;
+    //   a = 2;
+    // }
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_const);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
+                              error_assignment_to_const_variable,      //
+                              assignment, span_matcher(assignment),    //
+                              declaration, span_matcher(declaration),  //
+                              var_kind, variable_kind::_const)));
+  }
+
+  {
+    // with ({}) {
+    //   function f() {
+    //     a;
+    //   }
+    // }
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_enter_block_scope();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_exit_block_scope();
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "use of undeclared variable should not "
+                                        "be an error inside a function inside a"
+                                        "with scope";
+  }
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";

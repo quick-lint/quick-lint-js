@@ -34,12 +34,14 @@ concept parse_visitor = requires(Visitor v, identifier name,
                                  variable_kind var_kind) {
   {v.visit_end_of_module()};
   {v.visit_enter_block_scope()};
+  {v.visit_enter_with_scope()};
   {v.visit_enter_class_scope()};
   {v.visit_enter_for_scope()};
   {v.visit_enter_function_scope()};
   {v.visit_enter_function_scope_body()};
   {v.visit_enter_named_function_scope(name)};
   {v.visit_exit_block_scope()};
+  {v.visit_exit_with_scope()};
   {v.visit_exit_class_scope()};
   {v.visit_exit_for_scope()};
   {v.visit_exit_function_scope()};

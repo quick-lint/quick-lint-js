@@ -219,6 +219,8 @@ linter::linter(error_reporter *error_reporter)
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 
+void linter::visit_enter_with_scope() { this->scopes_.push(); }
+
 void linter::visit_enter_class_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
@@ -243,6 +245,13 @@ void linter::visit_exit_block_scope() {
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
+  this->propagate_variable_declarations_to_parent_scope();
+  this->scopes_.pop();
+}
+
+void linter::visit_exit_with_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  // Don't propagate variable uses, only declarations
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
