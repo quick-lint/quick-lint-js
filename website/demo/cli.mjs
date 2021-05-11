@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-import { loadQuickLintJS } from "./quick-lint-js.mjs";
+import { loadQuickLintJS } from "../public/demo/quick-lint-js.mjs";
 import fs from "fs";
 
 async function main() {

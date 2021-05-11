@@ -43,7 +43,7 @@ jobs:
       - name: JS configure
         run: cd website && yarn
       - name: JS test
-        run: cd website && yarn test public/demo/test-demo.mjs
+        run: cd website && yarn test demo/test-demo.mjs
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
