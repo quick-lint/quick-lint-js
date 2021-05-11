@@ -3,8 +3,8 @@
 
 import assert from "assert";
 import jsdom from "jsdom";
-import { markEditorText, sanitizeMarks } from "./editor.mjs";
-import { loadQuickLintJS } from "./quick-lint-js.mjs";
+import { markEditorText, sanitizeMarks } from "../public/demo/editor.mjs";
+import { loadQuickLintJS } from "../public/demo/quick-lint-js.mjs";
 
 let dom = new jsdom.JSDOM("");
 
