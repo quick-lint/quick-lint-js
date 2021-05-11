@@ -334,6 +334,19 @@ describe("server", () => {
       );
     });
   });
+
+  describe("EJS", () => {
+    it("exception causes 500 error", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.ejs.html"),
+        "<%= variableDoesNotExist %>"
+      );
+
+      let response = await request.get("/");
+      expect(response.status).toBe(500);
+      expect(response.data).toContain("variableDoesNotExist");
+    });
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.

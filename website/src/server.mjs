@@ -30,10 +30,17 @@ export function makeServer({ htmlRedirects, wwwRootPath }) {
         return;
 
       case "build-ejs":
+        let out = null;
+        try {
+          out = await router.renderEJSFile(
+            path.join(router.wwwRootPath, classifiedDirectory.path)
+          );
+        } catch (error) {
+          response.writeHeader(500, { "content-type": "text/plain" });
+          response.end(error.stack);
+          return;
+        }
         response.writeHeader(200, { "content-type": "text/html" });
-        let out = await router.renderEJSFile(
-          path.join(router.wwwRootPath, classifiedDirectory.path)
-        );
         response.end(out);
         return;
 
