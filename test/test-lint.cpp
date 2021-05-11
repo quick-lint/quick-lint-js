@@ -2477,6 +2477,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     l.visit_enter_with_scope();
     l.visit_enter_block_scope();
     l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
     l.visit_exit_function_scope();
     l.visit_exit_block_scope();
