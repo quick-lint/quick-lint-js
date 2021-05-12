@@ -33,10 +33,7 @@ headers = {
 
 def check_fragment(soup, fragment) -> bool:
     if fragment:
-        try:
-            return bool(soup.select(f"#{fragment}"))
-        except:
-            return False
+        return bool(soup.find_all(id=fragment))
     return True
 
 
