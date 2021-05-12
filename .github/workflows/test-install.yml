@@ -14,13 +14,7 @@ jobs:
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
       - name: checkout
-        if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2
-      - name: checkout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: configure
         run: cmake -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DBUILD_TESTING=OFF -S . -B .
