@@ -280,11 +280,23 @@ void linter::visit_exit_for_scope() {
   this->scopes_.pop();
 }
 
+[[nodiscard]] bool linter::is_eval_used() {
+  scope &current_scope = this->current_scope();
+  for (const used_variable &used_var : current_scope.variables_used) {
+    if (used_var.name.normalized_name() == u8"eval") {
+      return true;
+    }
+  }
+  return false;
+}
+
 void linter::visit_exit_function_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
-  this->propagate_variable_uses_to_parent_scope(
-      /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true);
+  if (!is_eval_used()) {
+    this->propagate_variable_uses_to_parent_scope(
+        /*allow_variable_use_before_declaration=*/true,
+        /*consume_arguments=*/true);
+  }
   this->scopes_.pop();
 }
 
@@ -413,10 +425,12 @@ void linter::visit_end_of_module() {
 
   linter::global_scope &global_scope = this->global_scope_;
 
-  this->propagate_variable_uses_to_parent_scope(
-      /*parent_scope=*/global_scope,
-      /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+  if (!is_eval_used()) {
+    this->propagate_variable_uses_to_parent_scope(
+        /*parent_scope=*/global_scope,
+        /*allow_variable_use_before_declaration=*/false,
+        /*consume_arguments=*/false);
+  }
 
   std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : global_scope.variables_used) {

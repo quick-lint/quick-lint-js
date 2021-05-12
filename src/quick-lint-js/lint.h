@@ -38,6 +38,7 @@ class linter {
   void visit_exit_class_scope();
   void visit_exit_for_scope();
   void visit_exit_function_scope();
+  [[nodiscard]] bool is_eval_used();
   void visit_property_declaration(std::optional<identifier>);
   void visit_variable_declaration(identifier name, variable_kind kind);
   void visit_variable_assignment(identifier name);
