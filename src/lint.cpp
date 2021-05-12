@@ -103,7 +103,6 @@ linter::declared_variable_set linter::make_global_variables() {
       u8"decodeURIComponent",
       u8"encodeURI",
       u8"encodeURIComponent",
-      u8"eval",
       u8"isFinite",
       u8"isNaN",
       u8"parseFloat",
@@ -280,23 +279,11 @@ void linter::visit_exit_for_scope() {
   this->scopes_.pop();
 }
 
-[[nodiscard]] bool linter::is_eval_used() {
-  scope &current_scope = this->current_scope();
-  for (const used_variable &used_var : current_scope.variables_used) {
-    if (used_var.name.normalized_name() == u8"eval") {
-      return true;
-    }
-  }
-  return false;
-}
-
 void linter::visit_exit_function_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
-  if (!is_eval_used()) {
-    this->propagate_variable_uses_to_parent_scope(
-        /*allow_variable_use_before_declaration=*/true,
-        /*consume_arguments=*/true);
-  }
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/true,
+      /*consume_arguments=*/true);
   this->scopes_.pop();
 }
 
@@ -425,11 +412,22 @@ void linter::visit_end_of_module() {
 
   linter::global_scope &global_scope = this->global_scope_;
 
-  if (!is_eval_used()) {
-    this->propagate_variable_uses_to_parent_scope(
-        /*parent_scope=*/global_scope,
-        /*allow_variable_use_before_declaration=*/false,
-        /*consume_arguments=*/false);
+  this->propagate_variable_uses_to_parent_scope(
+      /*parent_scope=*/global_scope,
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+
+  bool has_eval = false;
+  for (const used_variable &used_var :
+       global_scope.variables_used_in_descendant_scope) {
+    if (used_var.name.normalized_name() == u8"eval") {
+      has_eval = true;
+    }
+  }
+  for (const used_variable &used_var : global_scope.variables_used) {
+    if (used_var.name.normalized_name() == u8"eval") {
+      has_eval = true;
+    }
   }
 
   std::vector<identifier> typeof_variables;
@@ -457,7 +455,7 @@ void linter::visit_end_of_module() {
   };
 
   for (const used_variable &used_var : global_scope.variables_used) {
-    if (!is_variable_declared(used_var)) {
+    if (!is_variable_declared(used_var) && !has_eval) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
@@ -477,7 +475,7 @@ void linter::visit_end_of_module() {
   }
   for (const used_variable &used_var :
        global_scope.variables_used_in_descendant_scope) {
-    if (!is_variable_declared(used_var)) {
+    if (!is_variable_declared(used_var) && !has_eval) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
