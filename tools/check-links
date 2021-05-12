@@ -23,7 +23,7 @@ allow_mails = [
 ]
 
 allowed_file_ext_for_soup = [
-    "html",
+    "text/html",
 ]
 
 headers = {
@@ -61,7 +61,7 @@ def check_response(url) -> None:
     if not response.ok:
         if not requests.get(url).ok:
             raise UrlNotFound(response.status_code)
-    return response.url
+    return response
 
 
 class Crawler:
@@ -97,11 +97,11 @@ class Crawler:
             hrefs.extend(script_srcs)
         return hrefs
 
-    def in_allowed_file_soup(self, url) -> bool:
-        if url[-1] == "/":
+    def in_allowed_file_soup(self, url_response) -> bool:
+        if url_response.url[-1] == "/":
             return True
         else:
-            return urlparse(url).path.split(".")[-1] in self.allowed_file_ext_for_soup
+            return url_response.headers['Content-type'] in self.allowed_file_ext_for_soup
 
     def report_error(self, error, packet) -> None:
         self.broken_links.append(packet.url)
@@ -113,17 +113,16 @@ class Crawler:
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
-        if self.in_allowed_file_soup(packet.url):
-            result = requests.get(packet.defraged_url)
-            self.visted_urls_soup[packet.defraged_url] = BeautifulSoup(
-                result.text, "html.parser"
-            )
-            if not check_fragment(
-                self.visted_urls_soup[packet.defraged_url], packet.fragment
-            ):
-                self.report_error("fragment missing", packet)
-            urls_from_page = self.get_urls_from_page(
-                self.visted_urls_soup[packet.defraged_url]
+        result = requests.get(packet.defraged_url)
+        self.visted_urls_soup[packet.defraged_url] = BeautifulSoup(
+            result.text, "html.parser"
+        )
+        if not check_fragment(
+            self.visted_urls_soup[packet.defraged_url], packet.fragment
+        ):
+            self.report_error("fragment missing", packet)
+        urls_from_page = self.get_urls_from_page(
+            self.visted_urls_soup[packet.defraged_url]
             )
         return urls_from_page
 
@@ -134,10 +133,11 @@ class Crawler:
 
     def check_internal_links(self, packet) -> None:
         try:
-            _url = check_response(packet.defraged_url)
-            urls_from_page = self.get_urls_to_crawl(packet)
-            if len(urls_from_page) != 0:
-                self.crawl_and_report(_url, urls_from_page)
+            response = check_response(packet.defraged_url)
+            if self.in_allowed_file_soup(response):
+                urls_from_page = self.get_urls_to_crawl(packet)
+                if len(urls_from_page) != 0:
+                    self.crawl_and_report(response.url, urls_from_page)
         except UrlNotFound as e:
             self.report_error(f"{e.response_code} error", packet)
 
