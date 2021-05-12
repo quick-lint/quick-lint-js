@@ -35,6 +35,7 @@ TEST(test_options, default_options_with_no_files) {
   EXPECT_FALSE(o.help);
   EXPECT_FALSE(o.version);
   EXPECT_FALSE(o.lsp_server);
+  EXPECT_FALSE(o.stdinput);
   EXPECT_EQ(o.output_format, output_format::default_format);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
@@ -173,6 +174,25 @@ TEST(test_options, lsp_server) {
   {
     options o = parse_options({"--lsp"});
     EXPECT_TRUE(o.lsp_server);
+  }
+}
+
+TEST(test_options, stdinput) {
+  {
+    options o = parse_options({"--stdin"});
+    EXPECT_TRUE(o.stdinput);
+  }
+  {
+    options o = parse_options({"--s"});
+    EXPECT_TRUE(o.stdinput);
+  }
+}
+
+TEST(test_options, single_hypen_is_argument) {
+  {
+    options o = parse_options({"one.js", "-", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_TRUE(o.stdinput);
   }
 }
 

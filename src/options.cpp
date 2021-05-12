@@ -99,6 +99,10 @@ class arg_parser {
       this->is_ignoring_options_ = true;
       this->option_ = std::nullopt;
     } else if (this->current_arg()[0] == '-') {
+      if (std::strcmp(this->current_arg(), "-") == 0) {
+        this->option_ = std::nullopt;
+        return;
+      }
       const char* equal = std::strchr(this->current_arg(), '=');
       option o;
       o.arg_has_equal = equal != nullptr;
@@ -152,6 +156,10 @@ options parse_options(int argc, char** argv) {
   arg_parser parser(argc, argv);
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
+      if (std::strcmp(argument, "-") == 0) {
+        o.stdinput = true;
+        continue;
+      }
       file_to_lint file{.path = argument, .vim_bufnr = next_vim_file_bufnr};
       o.files_to_lint.emplace_back(file);
       next_vim_file_bufnr = std::nullopt;
@@ -188,6 +196,8 @@ options parse_options(int argc, char** argv) {
       o.version = true;
     } else if (parser.match_flag_option("--lsp-server"sv, "--lsp"sv)) {
       o.lsp_server = true;
+    } else if (parser.match_flag_option("--stdin"sv, "--s"sv)) {
+      o.stdinput = true;
     } else {
       const char* unrecognized = parser.match_anything();
       o.error_unrecognized_options.emplace_back(unrecognized);

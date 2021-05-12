@@ -150,13 +150,20 @@ void handle_options(quick_lint_js::options o) {
     quick_lint_js::run_lsp_server();
     std::exit(EXIT_SUCCESS);
   }
-  if (o.files_to_lint.empty()) {
+  if (o.files_to_lint.empty() && !o.stdinput) {
     std::cerr << "error: expected file name\n";
     std::exit(EXIT_FAILURE);
   }
 
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
+  if (o.stdinput) {
+    quick_lint_js::read_file_result source = quick_lint_js::read_stdin();
+    file_to_lint fstdin{.path = "<stdin>", .vim_bufnr = std::nullopt};
+    reporter.set_source(&source.content, fstdin);
+    quick_lint_js::process_file(&source.content, reporter.get(),
+                                o.print_parser_visits);
+  }
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
     quick_lint_js::read_file_result source =
         quick_lint_js::read_file(file.path);
@@ -394,6 +401,7 @@ void print_help_message() {
   print_option("--exit-fail-on=[CODES]",
                "Fail with a non-zero exit code if any of these");
   print_option("", "errors are found (default: \"all\")");
+  print_option("--s, --stdin", "Read standard input as a javascript file");
   print_option("--lsp, --lsp-server",
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
