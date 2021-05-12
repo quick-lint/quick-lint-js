@@ -5,9 +5,8 @@ class Benchmark {
   constructor(rootElement) {
     this.chartElement = rootElement.querySelector(".chart");
     this.tableElement = rootElement.querySelector(".benchmark-table");
-    this.logScaleCheckboxElement = this.chartElement.querySelector(
-      ".log-scale-select"
-    );
+    this.logScaleCheckboxElement =
+      this.chartElement.querySelector(".log-scale-select");
   }
 
   setUp() {

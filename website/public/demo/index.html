@@ -148,9 +148,8 @@ console.log(`Welcome, ${ocupation}!`);
         import { loadQuickLintJS } from "./quick-lint-js.mjs";
 
         let codeInputElement = document.getElementById("code-input");
-        let shadowCodeInputElement = document.getElementById(
-          "shadow-code-input"
-        );
+        let shadowCodeInputElement =
+          document.getElementById("shadow-code-input");
 
         codeInputElement.addEventListener("scroll", (event) => {
           synchronizeScrolling();
