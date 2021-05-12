@@ -27,13 +27,7 @@ jobs:
 
     steps:
       - name: checkout
-        if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2
-      - name: checkout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: 0. Install build dependencies
         run: ${{ matrix.toolchain.install_dependencies_script }}
