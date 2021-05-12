@@ -82,6 +82,8 @@ class Crawler:
         try:
             result = requests.get(self.site)
             soup = BeautifulSoup(result.text, "html.parser")
+            self.visted_urls.append(self.site)
+            self.visted_urls_soup[self.site] = soup
             self.urls = self.get_urls_from_page(soup)
         except requests.exceptions.ConnectionError:
             print("(error) failed to get", self.site)
@@ -99,7 +101,10 @@ class Crawler:
         return hrefs
 
     def in_allowed_file_soup(self, url) -> bool:
-        return urlparse(url).path.split(".")[-1] in self.allowed_file_ext_for_soup
+        if url[-1] == "/":
+            return True
+        else:
+            return urlparse(url).path.split(".")[-1] in self.allowed_file_ext_for_soup
 
     def report_error(self, error, packet) -> None:
         self.broken_links.append(packet.url)
@@ -111,8 +116,6 @@ class Crawler:
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
-        if packet.url[-1] == "/":
-            packet.url = urljoin(packet.url, "index.html")
         if self.in_allowed_file_soup(packet.url):
             result = requests.get(packet.defraged_url)
             self.visted_urls_soup[packet.defraged_url] = BeautifulSoup(
