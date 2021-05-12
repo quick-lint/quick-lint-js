@@ -13,14 +13,23 @@ jobs:
     runs-on: ubuntu-18.04
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
+      - uses: mymindstorm/setup-emsdk@v7
+        with:
+          version: 2.0.4
       - uses: actions/checkout@v2
 
-      - name: configure
-        run: CC=gcc-8 CXX=g++-8 cmake -DBUILD_TESTING=NO -S . -B build
-      - name: build
-        run: cmake --build build --config Debug
-      - name: generate docs
-        run: ./build/docs/quick-lint-js-generate-error-docs docs/errors/ website/public/errors/index.template.html website/public/errors/index.html
+      - name: C++ configure
+        run: emcmake cmake -S . -B build -G Ninja
+      - name: C++ build
+        run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
+      - name: C++ install
+        run: emmake cmake --install build --component vscode --prefix wasm
+
+      - name: JS configure
+        run: cd website && yarn install --production
+
+      - name: check
+        run: node website/check-error-documentation.mjs
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

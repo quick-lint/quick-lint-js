@@ -1,9 +1,27 @@
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew Glazar -->
 <!-- See end of file for extended copyright information. -->
-<!-- ${generated_message} -->
 <html>
   <head>
+    <script>
+      //<%
+      let url = await import("url");
+      let moduleCacheBust = "#" + Date.now();
+
+      let {
+        documentationDirectoryPath,
+        loadErrorDocumentationFilesAsync,
+        reportProblemsInDocumentsAsync,
+      } = await import(
+        url.pathToFileURL("../../src/error-documentation.mjs") + moduleCacheBust
+      );
+
+      let documents = await loadErrorDocumentationFilesAsync(
+        documentationDirectoryPath
+      );
+      await reportProblemsInDocumentsAsync(documents);
+      //%>
+    </script>
     <title>quick-lint-js: errors and warnings</title>
     <meta charset="utf-8" />
     <meta
@@ -64,7 +82,18 @@
       <p>
         quick-lint-js can find the following warnings and errors in your code:
       </p>
-      ${error_documentation}
+
+      <ul class="table-of-contents">
+        <% for (let doc of documents) { %>
+        <li>
+          <a href="#<%= doc.titleErrorCode %>"
+            ><%= doc.titleErrorCode %>: <%= doc.titleErrorDescription %></a
+          >
+        </li>
+        <% } %>
+      </ul>
+
+      <% for (let doc of documents) { %> <%- doc.toHTML() %> <% } %>
     </main>
 
     <footer>
