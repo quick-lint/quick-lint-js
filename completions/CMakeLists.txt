@@ -16,7 +16,7 @@ install(
 
 install(
   FILES quick-lint-js.fish
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/fish/completions"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/fish/vendor_completions.d"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.

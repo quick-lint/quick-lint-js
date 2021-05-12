@@ -1,24 +1,32 @@
-#/usr/bin/env bash
-
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
 _quick-lint-js () {
-        local cur prev opts
+        local cur opts
+        _init_completion -n = || return
 
-        COMPREPLY=()
-        cur="${COMP_WORDS[COMP_CWORD]}"
-        prev="${COMP_WORDS[COMP_CWORD-1]}"
-        opts="-h --help -v --version --lsp --lsp-server --exit-fail-on --output-format --vim-file-bufnr"
+        opts='--help --version --lsp-server --exit-fail-on= --output-format= --vim-file-bufnr='
+
+        case $cur in
+                --output-format=*)
+                        COMPREPLY=($(compgen -W 'gnu-like vim-qflint-json' -- "${cur#*=}"))
+                        return
+                        ;;
+                --exit-fail-on=*|--vim-file-bufnr=*)
+                        return
+                        ;;
+        esac
 
         if [[ $cur == -* ]]; then
-                COMPREPLY=($(compgen -W '${opts}' -- "$cur"))
+                COMPREPLY=($(compgen -W '${opts}' -- $cur))
                 [[ ${COMPREPLY-} == *= ]] && compopt -o nospace
-                return 0
+                return
+        else
+                _filedir
         fi
 }
 
-complete -o default -F _quick-lint-js quick-lint-js
+complete -F _quick-lint-js quick-lint-js
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
