@@ -98,10 +98,7 @@ class Crawler:
         return hrefs
 
     def in_allowed_file_soup(self, url_response) -> bool:
-        if url_response.url[-1] == "/":
-            return True
-        else:
-            return url_response.headers['Content-type'] in self.allowed_file_ext_for_soup
+        return url_response.headers['Content-type'] in self.allowed_file_ext_for_soup
 
     def report_error(self, error, packet) -> None:
         self.broken_links.append(packet.url)
