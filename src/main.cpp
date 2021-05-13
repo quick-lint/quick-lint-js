@@ -401,7 +401,7 @@ void print_help_message() {
   print_option("--exit-fail-on=[CODES]",
                "Fail with a non-zero exit code if any of these");
   print_option("", "errors are found (default: \"all\")");
-  print_option("--s, --stdin", "Read standard input as a javascript file");
+  print_option("--stdin", "Read standard input as a JavaScript file");
   print_option("--lsp, --lsp-server",
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
