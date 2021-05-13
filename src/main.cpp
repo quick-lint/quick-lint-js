@@ -150,23 +150,20 @@ void handle_options(quick_lint_js::options o) {
     quick_lint_js::run_lsp_server();
     std::exit(EXIT_SUCCESS);
   }
-  if (o.files_to_lint.empty() && !o.stdinput) {
+  if (o.files_to_lint.empty()) {
     std::cerr << "error: expected file name\n";
     std::exit(EXIT_FAILURE);
   }
 
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
-  if (o.stdinput) {
-    quick_lint_js::read_file_result source = quick_lint_js::read_stdin();
-    file_to_lint fstdin{.path = "<stdin>", .vim_bufnr = std::nullopt};
-    reporter.set_source(&source.content, fstdin);
-    quick_lint_js::process_file(&source.content, reporter.get(),
-                                o.print_parser_visits);
-  }
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    quick_lint_js::read_file_result source =
-        quick_lint_js::read_file(file.path);
+    quick_lint_js::read_file_result source;
+    if (file.is_stdin) {
+      source = quick_lint_js::read_stdin();
+    } else {
+      source = quick_lint_js::read_file(file.path);
+    }
     source.exit_if_not_ok();
     reporter.set_source(&source.content, file);
     quick_lint_js::process_file(&source.content, reporter.get(),
