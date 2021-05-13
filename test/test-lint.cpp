@@ -33,7 +33,6 @@ constexpr const char8 *writable_global_variables[] = {
     u8"decodeURIComponent",
     u8"encodeURI",
     u8"encodeURIComponent",
-    u8"eval",
     u8"isFinite",
     u8"isNaN",
     u8"parseFloat",
@@ -207,7 +206,6 @@ constexpr const char8 *nodejs_global_variables[] = {
     u8"encodeURI",
     u8"encodeURIComponent",
     u8"escape",
-    u8"eval",
     u8"global",
     u8"globalThis",
     u8"isFinite",
@@ -2810,6 +2808,201 @@ TEST(
                                            name, span_matcher(use_before)),
                           ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
                                            name, span_matcher(use_after))));
+}
+
+TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+  {
+    // eval("var x = 42");
+    // x;
+    // x = 10;
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // {
+    //   eval("var x = 42");
+    // }
+    // x;
+    // x = 10;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_block_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_block_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // eval("var x = 42");
+    // function f() {
+    //   x;
+    //   x = 10;
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // function f() {
+    //   x;
+    //   x = 10;
+    // }
+    // eval("var x = 42");
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // function f() {
+    //   x;
+    //   x = 10;
+    //   eval("var x = 42;");
+    //   x;
+    //   x = 10;
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // function f() {
+    //   x;
+    //   x = 10;
+    //   {
+    //     eval("var x = 42;");
+    //   }
+    //   x;
+    //   x = 10;
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_enter_block_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_block_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+  {
+    // function f() {
+    //   eval("var x = 42;");
+    // }
+    // function g() {
+    //   x;
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_function_scope();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(use))));
+  }
+
+  {
+    // function f() {
+    //   eval("var x = 42;");
+    // }
+    // x;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(use))));
+  }
+
+  {
+    // function f() {
+    //   function g() {
+    //     eval("var x = 42;");
+    //   }
+    //   x;
+    //   x = 10;
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable, name,
+                                     span_matcher(use)),
+                    ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
+                                     assignment, span_matcher(use))));
+  }
 }
 }
 }
