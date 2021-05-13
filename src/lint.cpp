@@ -103,6 +103,7 @@ linter::declared_variable_set linter::make_global_variables() {
       u8"decodeURIComponent",
       u8"encodeURI",
       u8"encodeURIComponent",
+      u8"eval",
       u8"isFinite",
       u8"isNaN",
       u8"parseFloat",
@@ -448,8 +449,7 @@ void linter::visit_end_of_module() {
   };
 
   for (const used_variable &used_var : global_scope.variables_used) {
-    if (!is_variable_declared(used_var) &&
-        (used_var.name.normalized_name() != u8"eval")) {
+    if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
@@ -469,8 +469,7 @@ void linter::visit_end_of_module() {
   }
   for (const used_variable &used_var :
        global_scope.variables_used_in_descendant_scope) {
-    if (!is_variable_declared(used_var) &&
-        (used_var.name.normalized_name() != u8"eval")) {
+    if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
