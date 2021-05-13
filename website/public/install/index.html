@@ -239,8 +239,18 @@
                 />
               </td>
 
-              <td class="good">
-                <a href="#npm"><span aria-label="installed">✅</span></a>
+              <td class="meh">
+                <a href="#npm">
+                  <span
+                    ><span aria-label="installed">✅</span
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      class="footnote-marker"
+                      >&nbsp;*</span
+                    ></span
+                  >
+                </a>
               </td>
               <td class="meh">
                 <a href="#npm"
@@ -250,7 +260,7 @@
                       aria-label="not installed globally"
                       title="not installed globally"
                       class="footnote-marker"
-                      >&nbsp;*</span
+                      >&nbsp;**</span
                     ></span
                   ></a
                 >
@@ -450,8 +460,18 @@
                 />
               </td>
 
-              <td class="good">
-                <a href="#manual"><span aria-label="installed">✅</span></a>
+              <td class="meh">
+                <a href="#manual"
+                  ><span
+                    ><span aria-label="installed">✅</span
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      class="footnote-marker"
+                      >&nbsp;*</span
+                    ></span
+                  ></a
+                >
               </td>
               <td class="good">
                 <a href="#manual"><span aria-label="installed">✅</span></a>
@@ -537,7 +557,11 @@
         </table>
         <figcaption>
           <p>
-            <span aria-labeled-by="footnote-lsp-not-global">*</span> The LSP
+            <span>*</span> This installation method might not install extras
+            such as documentation or shell completion plugins.
+          </p>
+          <p>
+            <span aria-labeled-by="footnote-lsp-not-global">**</span> The LSP
             server is not installed globally with this installation method, so
             some editors might not be able to access it.
           </p>
