@@ -69,18 +69,6 @@ class arg_parser {
     return matches;
   }
 
-  bool match_flag_option(std::string_view option_name) noexcept {
-    if (!this->option_.has_value()) {
-      return false;
-    }
-    bool matches = option_name == this->option_->arg_key;
-
-    if (matches) {
-      this->advance(1);
-    }
-    return matches;
-  }
-
   const char* match_argument() noexcept {
     if (this->option_.has_value()) {
       return nullptr;
@@ -217,7 +205,7 @@ options parse_options(int argc, char** argv) {
       o.version = true;
     } else if (parser.match_flag_option("--lsp-server"sv, "--lsp"sv)) {
       o.lsp_server = true;
-    } else if (parser.match_flag_option("--stdin"sv)) {
+    } else if (parser.match_flag_option("--stdin"sv, ""sv)) {
       if (!has_stdin) {
         file_to_lint file{.path = "<stdin>",
                           .is_stdin = true,
