@@ -213,8 +213,8 @@ read_file_result read_file(const char *path) {
 }
 
 read_file_result read_stdin() {
-  windows_handle_file file(::GetStdHandle(STD_INPUT_HANDLE));
-  return read_file("<stdin>", file.ref());
+  windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
+  return read_file("<stdin>", file);
 }
 #endif
 
@@ -231,8 +231,8 @@ read_file_result read_file(const char *path) {
 }
 
 read_file_result read_stdin() {
-  posix_fd_file file(STDIN_FILENO);
-  return read_file("<stdin>", file.ref());
+  posix_fd_file_ref file(STDIN_FILENO);
+  return read_file("<stdin>", file);
 }
 #endif
 
