@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <cstddef>
+#include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
@@ -10,11 +11,10 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/vscode-error-reporter.h>
-#include <quick-lint-js/vscode.h>
 
-struct qljs_vscode_parser {
+struct qljs_parser {
  public:
-  const qljs_vscode_diagnostic* lint() {
+  const qljs_vscode_diagnostic* lint_vscode() {
     return this->error_reporter_.get_diagnostics();
   }
 
@@ -45,18 +45,17 @@ struct qljs_vscode_parser {
   quick_lint_js::vscode_error_reporter error_reporter_;
 };
 
-qljs_vscode_parser* qljs_vscode_create_parser(void) {
-  qljs_vscode_parser* p = new qljs_vscode_parser();
+qljs_parser* qljs_create_parser(void) {
+  qljs_parser* p = new qljs_parser();
   return p;
 }
 
-void qljs_vscode_destroy_parser(qljs_vscode_parser* p) { delete p; }
+void qljs_destroy_parser(qljs_parser* p) { delete p; }
 
-void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
-                              int start_character, int end_line,
-                              int end_character,
-                              const void* replacement_text_utf_8,
-                              size_t replacement_text_byte_count) {
+void qljs_replace_text(qljs_parser* p, int start_line, int start_character,
+                       int end_line, int end_character,
+                       const void* replacement_text_utf_8,
+                       size_t replacement_text_byte_count) {
   p->replace_text(
       start_line, start_character, end_line, end_character,
       quick_lint_js::string8_view(
@@ -64,8 +63,8 @@ void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
           replacement_text_byte_count));
 }
 
-const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
-  return p->lint();
+const qljs_vscode_diagnostic* qljs_lint_vscode(qljs_parser* p) {
+  return p->lint_vscode();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

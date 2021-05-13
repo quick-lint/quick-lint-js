@@ -115,20 +115,20 @@ class Process {
     this._malloc = wrap(wasmInstance.exports.malloc, "malloc");
     this._free = wrap(wasmInstance.exports.free, "free");
     this._createParser = wrap(
-      wasmInstance.exports.qljs_vscode_create_parser,
-      "qljs_vscode_create_parser"
+      wasmInstance.exports.qljs_create_parser,
+      "qljs_create_parser"
     );
     this._destroyParser = wrap(
-      wasmInstance.exports.qljs_vscode_destroy_parser,
-      "qljs_vscode_destroy_parser"
+      wasmInstance.exports.qljs_destroy_parser,
+      "qljs_destroy_parser"
     );
     this._replaceText = wrap(
-      wasmInstance.exports.qljs_vscode_replace_text,
-      "qljs_vscode_replace_text"
+      wasmInstance.exports.qljs_replace_text,
+      "qljs_replace_text"
     );
-    this._lint = wrap(
-      wasmInstance.exports.qljs_vscode_lint,
-      "qljs_vscode_lint"
+    this._lintVSCode = wrap(
+      wasmInstance.exports.qljs_lint_vscode,
+      "qljs_lint_vscode"
     );
   }
 
@@ -161,7 +161,7 @@ class Parser {
   }
 
   lint() {
-    let diagnosticsPointer = this._process._lint(this._parser);
+    let diagnosticsPointer = this._process._lintVSCode(this._parser);
 
     let rawDiagnosticsU32 = new Uint32Array(
       this._process._heap,

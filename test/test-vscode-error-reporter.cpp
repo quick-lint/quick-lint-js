@@ -3,10 +3,10 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/vscode-error-reporter.h>
-#include <quick-lint-js/vscode.h>
 
 namespace quick_lint_js {
 namespace {
@@ -85,17 +85,17 @@ TEST(test_vscode_error_reporter, multiple_errors) {
   EXPECT_EQ(errors[0].start_character, 0);
   EXPECT_EQ(errors[0].end_character, 1);
   EXPECT_NE(errors[0].message, nullptr);
-  EXPECT_EQ(errors[0].severity, qljs_vscode_severity_error);
+  EXPECT_EQ(errors[0].severity, qljs_severity_error);
 
   EXPECT_EQ(errors[1].start_character, 1);
   EXPECT_EQ(errors[1].end_character, 2);
   EXPECT_NE(errors[1].message, nullptr);
-  EXPECT_EQ(errors[1].severity, qljs_vscode_severity_error);
+  EXPECT_EQ(errors[1].severity, qljs_severity_error);
 
   EXPECT_EQ(errors[2].start_character, 2);
   EXPECT_EQ(errors[2].end_character, 3);
   EXPECT_NE(errors[2].message, nullptr);
-  EXPECT_EQ(errors[2].severity, qljs_vscode_severity_warning);
+  EXPECT_EQ(errors[2].severity, qljs_severity_warning);
 
   EXPECT_EQ(errors[3].message, nullptr);
 }
