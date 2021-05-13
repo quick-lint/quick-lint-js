@@ -40,5 +40,8 @@
     "prettier": "2.1.2",
     "tape": "5.0.1",
     "vscode-test": "1.4.1"
+  },
+  "dependencies": {
+    "quick-lint-js-wasm": "../../wasm"
   }
 }

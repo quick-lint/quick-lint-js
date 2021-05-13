@@ -10,7 +10,7 @@ require("module").Module._initPaths();
 
 let assert = require("assert");
 let extension = require("../extension.js");
-let qljs = require("../quick-lint-js.js");
+let qljs = require("quick-lint-js-wasm/quick-lint-js.js");
 let vscode = require("./mock/vscode.js");
 let { testMainAsync } = require("./test-support.js");
 

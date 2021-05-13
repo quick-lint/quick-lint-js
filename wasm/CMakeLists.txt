@@ -6,6 +6,7 @@ include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
 if (EMSCRIPTEN)
+  # TODO(strager): Rename.
   quick_lint_js_add_executable(quick-lint-js-vscode empty.cpp)
   target_link_libraries(
     quick-lint-js-vscode

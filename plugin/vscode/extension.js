@@ -9,7 +9,7 @@ let {
   DiagnosticSeverity,
   ProcessCrashed,
   createProcessFactoryAsync,
-} = require("./quick-lint-js.js");
+} = require("quick-lint-js-wasm/quick-lint-js.js");
 
 // TODO(strager): Allow developers to reload the .wasm file.
 let processFactoryPromise = createProcessFactoryAsync();

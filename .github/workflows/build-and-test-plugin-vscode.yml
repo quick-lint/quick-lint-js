@@ -32,7 +32,7 @@ jobs:
       - name: C++ build
         run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
-        run: emmake cmake --install build --component vscode --prefix plugin/vscode
+        run: emmake cmake --install build --component vscode --prefix wasm
 
       - name: JS configure
         run: cd plugin/vscode && yarn
