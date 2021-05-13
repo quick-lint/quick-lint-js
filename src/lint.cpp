@@ -229,7 +229,8 @@ void linter::visit_enter_function_scope() { this->scopes_.push(); }
 void linter::visit_enter_function_scope_body() {
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true);
+      /*consume_arguments=*/true,
+      /*propagate_eval_use*/ false);
 }
 
 void linter::visit_enter_named_function_scope(identifier function_name) {
@@ -243,7 +244,8 @@ void linter::visit_exit_block_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use*/ true);
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
@@ -259,7 +261,8 @@ void linter::visit_exit_class_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use*/ false);
 
   // No variable declarations should be propagatable to the parent scope.
   for (const declared_variable &var :
@@ -274,7 +277,8 @@ void linter::visit_exit_for_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use*/ true);
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
@@ -283,7 +287,8 @@ void linter::visit_exit_function_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true);
+      /*consume_arguments=*/true,
+      /*propagate_eval_use*/ false);
   this->scopes_.pop();
 }
 
@@ -415,20 +420,8 @@ void linter::visit_end_of_module() {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/global_scope,
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
-
-  bool has_eval = false;
-  for (const used_variable &used_var :
-       global_scope.variables_used_in_descendant_scope) {
-    if (used_var.name.normalized_name() == u8"eval") {
-      has_eval = true;
-    }
-  }
-  for (const used_variable &used_var : global_scope.variables_used) {
-    if (used_var.name.normalized_name() == u8"eval") {
-      has_eval = true;
-    }
-  }
+      /*consume_arguments=*/false,
+      /*propagate_eval_use*/ false);
 
   std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : global_scope.variables_used) {
@@ -455,7 +448,8 @@ void linter::visit_end_of_module() {
   };
 
   for (const used_variable &used_var : global_scope.variables_used) {
-    if (!is_variable_declared(used_var) && !has_eval) {
+    if (!is_variable_declared(used_var) &&
+        (used_var.name.normalized_name() != u8"eval")) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
@@ -475,7 +469,8 @@ void linter::visit_end_of_module() {
   }
   for (const used_variable &used_var :
        global_scope.variables_used_in_descendant_scope) {
-    if (!is_variable_declared(used_var) && !has_eval) {
+    if (!is_variable_declared(used_var) &&
+        (used_var.name.normalized_name() != u8"eval")) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
@@ -491,19 +486,32 @@ void linter::visit_end_of_module() {
   }
 }
 
+[[nodiscard]] bool linter::is_eval_used() {
+  scope &current_scope = this->current_scope();
+  for (const used_variable used_var : current_scope.variables_used) {
+    if (used_var.name.normalized_name() == u8"eval") {
+      return true;
+    }
+  }
+  return false;
+}
+
 void linter::propagate_variable_uses_to_parent_scope(
-    bool allow_variable_use_before_declaration, bool consume_arguments) {
+    bool allow_variable_use_before_declaration, bool consume_arguments,
+    bool propagate_eval_use) {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/this->parent_scope(),
       /*allow_variable_use_before_declaration=*/
       allow_variable_use_before_declaration,
-      /*consume_arguments=*/consume_arguments);
+      /*consume_arguments=*/
+      consume_arguments,
+      /*propagate_eval_use*/ propagate_eval_use);
 }
 
 template <class Scope>
 void linter::propagate_variable_uses_to_parent_scope(
     Scope &parent_scope, bool allow_variable_use_before_declaration,
-    bool consume_arguments) {
+    bool consume_arguments, bool propagate_eval_use) {
   scope &current_scope = this->current_scope();
 
   auto is_current_scope_function_name = [&](const used_variable &var) {
@@ -512,11 +520,21 @@ void linter::propagate_variable_uses_to_parent_scope(
                var.name.normalized_name();
   };
 
+  bool has_eval = this->is_eval_used();
   for (const used_variable &used_var : current_scope.variables_used) {
     QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
     const declared_variable *var =
         parent_scope.declared_variables.find(used_var.name);
-    if (var) {
+    if (used_var.name.normalized_name() == u8"eval") {
+      if (propagate_eval_use) {
+        (allow_variable_use_before_declaration
+             ? parent_scope.variables_used_in_descendant_scope
+             : parent_scope.variables_used)
+            .emplace_back(used_var);
+      }
+      break;
+    } else if (has_eval) {
+    } else if (var) {
       // This variable was declared in the parent scope. Don't propagate.
       if (used_var.kind == used_variable_kind::assignment) {
         this->report_error_if_assignment_is_illegal(
@@ -540,7 +558,16 @@ void linter::propagate_variable_uses_to_parent_scope(
        current_scope.variables_used_in_descendant_scope) {
     const declared_variable *var =
         parent_scope.declared_variables.find(used_var.name);
-    if (var) {
+    if (used_var.name.normalized_name() == u8"eval") {
+      if (propagate_eval_use) {
+        (allow_variable_use_before_declaration
+             ? parent_scope.variables_used_in_descendant_scope
+             : parent_scope.variables_used)
+            .emplace_back(used_var);
+      }
+      break;
+    } else if (has_eval) {
+    } else if (var) {
       // This variable was declared in the parent scope. Don't propagate.
       if (used_var.kind == used_variable_kind::assignment) {
         this->report_error_if_assignment_is_illegal(
