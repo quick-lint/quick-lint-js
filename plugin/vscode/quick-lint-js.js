@@ -4,7 +4,7 @@
 "use strict";
 
 // TODO(strager): Make this configurable.
-// For build instructions, see plugin/vscode/README.md.
+// For build instructions, see plugin/vscode/BUILDING.md.
 let VSCODE_WASM_MODULE_PATH = "./dist/quick-lint-js-vscode.wasm";
 
 let assert = require("assert");
