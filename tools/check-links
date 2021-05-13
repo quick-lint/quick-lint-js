@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+import argparse
+import re
+import sys
+from concurrent.futures import ThreadPoolExecutor as Pool
+from urllib.parse import urldefrag, urljoin, urlparse
+
+import requests
+from bs4 import BeautifulSoup
+
+allow_mails = [
+    "strager.nds@gmail.com",
+    "nicolas@petton.fr",
+    "lewing@isc.tamu.edu",
+    "don.h@free.fr",
+    "Bram@vim.org",
+    "maintainer@vim.org",
+    "marketing@jetbrains.com",
+]
+
+allowed_file_ext_for_soup = [
+    "text/html",
+]
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3"
+}
+
+
+def check_fragment(soup, fragment) -> bool:
+    if fragment:
+        return bool(soup.find_all(id=fragment))
+    return True
+
+
+def is_mailto_link(link) -> bool:
+    return True if re.search(r"^mailto:*", link) else False
+
+
+class UrlPacket(object):
+    def __init__(self, parent, url, defraged_url=None, fragment=None) -> None:
+        self.parent = parent
+        self.url = url
+        self.defraged_url = defraged_url
+        self.fragment = fragment
+
+
+class UrlNotFound(Exception):
+    """Raised when requests returns response code other than 200"""
+
+    def __init__(self, response_code):
+        self.response_code = response_code
+
+
+def check_response(url) -> None:
+    response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
+    if not response.ok:
+        if not requests.get(url).ok:
+            raise UrlNotFound(response.status_code)
+    return response
+
+
+class Crawler:
+    def __init__(
+        self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup
+    ) -> None:
+        self.site = site
+        self.allowed_file_ext_for_soup = allowed_file_ext_for_soup
+        self.site_namespace = urlparse(self.site).netloc
+        self.visted_urls = list()
+        self.visted_urls_soup = dict()
+        self.external_links_to_check = list()
+        self.broken_links = list()
+
+        try:
+            result = requests.get(self.site)
+            soup = BeautifulSoup(result.text, "html.parser")
+            self.visted_urls.append(self.site)
+            self.visted_urls_soup[self.site] = soup
+            self.urls = self.get_urls_from_page(soup)
+        except requests.exceptions.ConnectionError:
+            print("(error) failed to get", self.site)
+            sys.exit(1)
+
+    def in_namespace(self, url) -> bool:
+        return urlparse(url).netloc == self.site_namespace
+
+    def get_urls_from_page(self, soup) -> list:
+        href_tags = soup.find_all(href=True)
+        hrefs = [tag.get("href") for tag in href_tags]
+        script_srcs = list(map(lambda x: x.get("src"), soup.findAll("script")))
+        if None not in script_srcs:
+            hrefs.extend(script_srcs)
+        return hrefs
+
+    def in_allowed_file_soup(self, url_response) -> bool:
+        return url_response.headers['Content-type'] in self.allowed_file_ext_for_soup
+
+    def report_error(self, error, packet) -> None:
+        self.broken_links.append(packet.url)
+        print(f"({error}) {packet.parent}, {packet.url}")
+
+    def start_crawl(self) -> None:
+        self.crawl_and_report(self.site, self.urls)
+        self.check_external_links(self.external_links_to_check)
+
+    def get_urls_to_crawl(self, packet) -> list:
+        urls_from_page = list()
+        result = requests.get(packet.defraged_url)
+        self.visted_urls_soup[packet.defraged_url] = BeautifulSoup(
+            result.text, "html.parser"
+        )
+        if not check_fragment(
+            self.visted_urls_soup[packet.defraged_url], packet.fragment
+        ):
+            self.report_error("fragment missing", packet)
+        urls_from_page = self.get_urls_from_page(
+            self.visted_urls_soup[packet.defraged_url]
+            )
+        return urls_from_page
+
+    def check_mail_link(self, packet) -> None:
+        mail = packet.url.partition(":")[-1]
+        if mail not in allow_mails:
+            self.report_error("unknown mail", packet)
+
+    def check_internal_links(self, packet) -> None:
+        try:
+            response = check_response(packet.defraged_url)
+            if self.in_allowed_file_soup(response):
+                urls_from_page = self.get_urls_to_crawl(packet)
+                if len(urls_from_page) != 0:
+                    self.crawl_and_report(response.url, urls_from_page)
+        except UrlNotFound as e:
+            self.report_error(f"{e.response_code} error", packet)
+
+    def check_external_links(self, urls) -> None:
+        with Pool(max_workers=len(urls)) as executor:
+            future_to_url = {
+                executor.submit(check_response, packet.url): packet for packet in urls
+            }
+            for future in future_to_url:
+                packet = future_to_url[future]
+                try:
+                    future.result()
+                except UrlNotFound as e:
+                    self.report_error(f"{e.response_code} error", packet)
+                except Exception as e:
+                    print(f"{packet.parent}, {packet.url} generated an exception: {e}")
+
+    def crawl_and_report(self, parent_url, urls) -> None:
+        for link in urls:
+            if is_mailto_link(link):
+                self.check_mail_link(UrlPacket(parent_url, link))
+            else:
+                url = urljoin(parent_url, link)
+                if url not in self.visted_urls:
+                    self.visted_urls.append(url)
+                    defraged_url, fragment = urldefrag(url)
+                    if defraged_url not in self.visted_urls_soup:
+                        if not self.in_namespace(defraged_url):
+                            self.external_links_to_check.append(
+                                UrlPacket(parent_url, url)
+                            )
+                            self.visted_urls_soup[defraged_url] = None
+                        else:
+                            self.check_internal_links(
+                                UrlPacket(parent_url, url, defraged_url, fragment)
+                            )
+                    else:
+                        soup = self.visted_urls_soup[defraged_url]
+                        if soup is not None and not check_fragment(soup, fragment):
+                            self.report_error(
+                                "fragment missing",
+                                UrlPacket(parent_url, url, fragment=fragment),
+                            )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("url", type=str)
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+    args = parser.parse_args()
+    crawler = Crawler(args.url)
+    crawler.start_crawl()
+
+    if len(crawler.broken_links) > 0:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
