@@ -381,7 +381,7 @@ async function activateAsync() {
       Implementation is a suggested workaround by maintainer: https://github.com/Microsoft/vscode/issues/50344
       */
       let isBogusEvent = event.contentChanges.length === 0;
-      if (!(isBogusEvent)) {
+      if (!isBogusEvent) {
         logAsyncErrors(
           (async () => {
             if (isLintable(event.document)) {
