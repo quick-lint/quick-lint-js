@@ -487,7 +487,7 @@ void linter::visit_end_of_module() {
 
 [[nodiscard]] bool linter::is_eval_used() {
   scope &current_scope = this->current_scope();
-  for (const used_variable used_var : current_scope.variables_used) {
+  for (const used_variable &used_var : current_scope.variables_used) {
     if (used_var.name.normalized_name() == u8"eval") {
       return true;
     }
