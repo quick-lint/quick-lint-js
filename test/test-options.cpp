@@ -193,18 +193,21 @@ TEST(test_options, dash_dash_stdin) {
     options o = parse_options({"--stdin", "one.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_TRUE(o.files_to_lint[0].is_stdin);
+    EXPECT_FALSE(o.has_multiple_stdin);
   }
 
   {
     options o = parse_options({"one.js", "--stdin"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_TRUE(o.files_to_lint[1].is_stdin);
+    EXPECT_FALSE(o.has_multiple_stdin);
   }
 
   {
     options o = parse_options({"-"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_TRUE(o.files_to_lint[0].is_stdin);
+    EXPECT_FALSE(o.has_multiple_stdin);
   }
 }
 
@@ -212,10 +215,12 @@ TEST(test_options, is_stdin_emplaced_only_once) {
   {
     options o = parse_options({"--stdin", "one.js", "-", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
+    EXPECT_TRUE(o.has_multiple_stdin);
   }
   {
     options o = parse_options({"one.js", "-", "two.js", "-"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
+    EXPECT_TRUE(o.has_multiple_stdin);
   }
 }
 

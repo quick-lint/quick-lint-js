@@ -33,6 +33,7 @@ struct options {
   compiled_error_list exit_fail_on;
 
   std::vector<const char *> error_unrecognized_options;
+  bool has_multiple_stdin = false;
 
   bool dump_errors(std::ostream &) const;
 };
