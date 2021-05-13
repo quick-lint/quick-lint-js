@@ -35,7 +35,6 @@ TEST(test_options, default_options_with_no_files) {
   EXPECT_FALSE(o.help);
   EXPECT_FALSE(o.version);
   EXPECT_FALSE(o.lsp_server);
-  EXPECT_FALSE(o.stdinput);
   EXPECT_EQ(o.output_format, output_format::default_format);
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
@@ -158,6 +157,18 @@ TEST(test_options, vim_file_bufnr) {
   }
 
   {
+    options o = parse_options({"--vim-file-bufnr=42", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 42);
+  }
+
+  {
+    options o = parse_options({"one.js", "--vim-file-bufnr=42", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, 42);
+  }
+
+  {
     options o = parse_options({"--vim-file-bufnr=1", "--", "one.js", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
@@ -177,22 +188,41 @@ TEST(test_options, lsp_server) {
   }
 }
 
-TEST(test_options, stdinput) {
+TEST(test_options, dash_dash_stdin) {
   {
-    options o = parse_options({"--stdin"});
-    EXPECT_TRUE(o.stdinput);
+    options o = parse_options({"--stdin", "one.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_TRUE(o.files_to_lint[0].is_stdin);
   }
+
   {
-    options o = parse_options({"--s"});
-    EXPECT_TRUE(o.stdinput);
+    options o = parse_options({"one.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_TRUE(o.files_to_lint[1].is_stdin);
+  }
+
+  {
+    options o = parse_options({"-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_TRUE(o.files_to_lint[0].is_stdin);
   }
 }
 
-TEST(test_options, single_hypen_is_argument) {
+TEST(test_options, is_stdin_emplaced_only_once) {
+  {
+    options o = parse_options({"--stdin", "one.js", "-", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 3);
+  }
+  {
+    options o = parse_options({"one.js", "-", "two.js", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 3);
+  }
+}
+
+TEST(test_options, single_hyphen_is_argument) {
   {
     options o = parse_options({"one.js", "-", "two.js"});
-    ASSERT_EQ(o.files_to_lint.size(), 2);
-    EXPECT_TRUE(o.stdinput);
+    ASSERT_EQ(o.files_to_lint.size(), 3);
   }
 }
 
@@ -373,6 +403,7 @@ TEST(test_options, dump_errors) {
   {
     const file_to_lint file = {
         .path = "file.js",
+        .is_stdin = false,
         .vim_bufnr = std::optional<int>(),
     };
 
