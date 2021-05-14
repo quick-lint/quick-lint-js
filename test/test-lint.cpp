@@ -3109,8 +3109,8 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
     // let eval = () => {};
     // (function() {
     //   eval("var x = 42;");
-    //   x;  // should be ERROR (use of undeclared variable)
-    //   x = 10;  // should be ERROR (assignment to undeclared variable)
+    //   x;  // TODO: ERROR (use of undeclared variable)
+    //   x = 10;  // TODO: ERROR (assignment to undeclared variable)
     // });
     error_collector v;
     linter l(&v);
@@ -3135,7 +3135,7 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
     //   const x = 42;
     //   {
     //     eval("var x = 0");
-    //     x = 3;  // should be ERROR (assignment to const variable)
+    //     x = 3;  // TODO: ERROR (assignment to const variable)
     //   }
     // });
     error_collector v;
