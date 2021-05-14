@@ -2506,9 +2506,10 @@ class parser {
     case token_type::end_of_file:
     case token_type::kw_else:
     case token_type::right_curly:
+      const char8* end_prev_token = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_if_statement{
-          .if_and_condition = source_code_span(
-              if_token_span.begin(), this->lexer_.end_of_previous_token()),
+          .if_and_condition = 
+              source_code_span(end_prev_token, end_prev_token + 1),
       });
       break;
     }
