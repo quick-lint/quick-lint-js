@@ -4,9 +4,15 @@
 cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 
+# zsh on Arch Linux and on Homebrew on macOS search in this path:
 install(
   FILES _quick-lint-js
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/zsh/site-functions"
+)
+# zsh on Linux Mint searches in this path:
+install(
+  FILES _quick-lint-js
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/zsh/vendor-completions"
 )
 
 install(
