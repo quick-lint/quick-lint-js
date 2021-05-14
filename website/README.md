@@ -33,4 +33,4 @@ Then, run `yarn build`:
 Look at the copied and generated files in `website/www/`.
 
 For instructions on deploying to quick-lint-js.com, see the [release
-documentation](docs/RELEASE.md).
+documentation](../docs/RELEASE.md).

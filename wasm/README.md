@@ -20,3 +20,7 @@ and [Node.js][], then run the following commands:
 To manually test this package, [build](#Building), then run `cli.js`:
 
     $ node wasm/cli.js PATH_TO_YOUR_JS_FILE.js
+
+[Ninja]: https://ninja-build.org/
+[Node.js]: https://nodejs.org/
+[emscripten-sdk]: https://emscripten.org/docs/getting_started/downloads.html
