@@ -2815,6 +2815,7 @@ TEST(
 TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
+
   {
     // eval("var x = 42");
     // x;
@@ -2849,10 +2850,10 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
 
   {
     // eval("var x = 42");
-    // function f() {
+    // (function() {
     //   x;
     //   x = 10;
-    // }
+    // });
     error_collector v;
     linter l(&v);
     l.visit_variable_use(identifier_of(use_eval));
@@ -2867,10 +2868,10 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 
   {
-    // function f() {
+    // (function() {
     //   x;
     //   x = 10;
-    // }
+    // });
     // eval("var x = 42");
     error_collector v;
     linter l(&v);
@@ -2886,13 +2887,13 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 
   {
-    // function f() {
+    // (function() {
     //   x;
     //   x = 10;
     //   eval("var x = 42;");
     //   x;
     //   x = 10;
-    // }
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -2909,7 +2910,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 
   {
-    // function f() {
+    // (function() {
     //   x;
     //   x = 10;
     //   {
@@ -2917,7 +2918,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     //   }
     //   x;
     //   x = 10;
-    // }
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -2934,13 +2935,20 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
+}
+
+TEST(test_lint_eval,
+     disable_variable_lookup_in_presence_of_eval_for_limited_scope) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+
   {
-    // function f() {
+    // (function() {
     //   eval("var x = 42;");
-    // }
-    // function g() {
-    //   x;
-    // }
+    // });
+    // (function() {
+    //   x;  // ERROR (use of undeclared variable)
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -2959,10 +2967,10 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 
   {
-    // function f() {
+    // (function() {
     //   eval("var x = 42;");
-    // }
-    // x;
+    // });
+    // x;  // ERROR (use of undeclared variable)
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -2978,13 +2986,13 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   }
 
   {
-    // function f() {
-    //   function g() {
+    // (function() {
+    //   (function() {
     //     eval("var x = 42;");
-    //   }
-    //   x;
-    //   x = 10;
-    // }
+    //   });
+    //   x;      // ERROR (use of undeclared variable)
+    //   x = 10; // ERROR (assignment to undeclared variable)
+    // });
     error_collector v;
     linter l(&v);
     l.visit_enter_function_scope();
@@ -3004,6 +3012,146 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
                                      span_matcher(use)),
                     ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
                                      assignment, span_matcher(use))));
+  }
+
+  {
+    const char8 parameter_declaration[] = u8"a";
+    const char8 function_declaration[] = u8"f";
+
+    // function f(a = eval('var x = 42;')) {
+    //   x;
+    // }
+    // x; // ERROR (use of undeclared variable)
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_named_function_scope(identifier_of(function_declaration));
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(use))));
+  }
+
+  {
+    const char8 eval_declaration[] = u8"eval";
+
+    // let eval = console.log;
+    // eval("var x = 42;");
+    // x;  // ERROR (use of undeclared variable)
+    // x = 10;  // ERROR (assignment to undeclared variable)
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(eval_declaration),
+                                 variable_kind::_let);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable, name,
+                                     span_matcher(use)),
+                    ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
+                                     assignment, span_matcher(use))));
+  }
+
+  {
+    const char8 eval_declaration[] = u8"eval";
+
+    // function f() {
+    //   eval = console.log;
+    //   eval("var x = 42;");
+    //   x;  // ERROR (use of undeclared variable)
+    //   x = 10;  // ERROR (assignment to undeclared variable)
+    //   {
+    //     var eval;
+    //   }
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_assignment(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(eval_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_block_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable, name,
+                                     span_matcher(use)),
+                    ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
+                                     assignment, span_matcher(use))));
+  }
+}
+
+TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+
+  {
+    const char8 eval_declaration[] = u8"eval";
+
+    // let eval = console.log;
+    // (function() {
+    //   eval("var x = 42;");
+    //   x;  // should be ERROR (use of undeclared variable)
+    //   x = 10;  // should be ERROR (assignment to undeclared variable)
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(eval_declaration),
+                                 variable_kind::_let);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const char8 const_declaration[] = u8"x";
+    const char8 const_assignment[] = u8"x";
+
+    // (function() {
+    //   const x = 42;
+    //   {
+    //     eval("var x = 0");
+    //     x = 3;  // should be ERROR (assignment to const variable)
+    //   }
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(const_declaration),
+                                 variable_kind::_const);
+    l.visit_enter_block_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_assignment(identifier_of(const_assignment));
+    l.visit_exit_block_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 }
