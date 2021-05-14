@@ -24,6 +24,8 @@ read_file_result read_file(const char *path);
 
 read_file_result read_file(const char *path, platform_file_ref);
 
+read_file_result read_stdin(void);
+
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
 }

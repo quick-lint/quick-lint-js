@@ -18,6 +18,7 @@ enum class output_format {
 
 struct file_to_lint {
   const char *path;
+  bool is_stdin;
   std::optional<int> vim_bufnr;
 };
 
@@ -32,6 +33,7 @@ struct options {
   compiled_error_list exit_fail_on;
 
   std::vector<const char *> error_unrecognized_options;
+  bool has_multiple_stdin = false;
 
   bool dump_errors(std::ostream &) const;
 };
