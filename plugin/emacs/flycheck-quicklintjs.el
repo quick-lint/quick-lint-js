@@ -51,15 +51,15 @@
 https://quick-lint-js.com"
   :command	("quick-lint-js"
 			 "--output-format=gnu-like"
-			 (eval flycheck-quicklintjs-args)
-			 source)
-  :standard-input 't
+			 "--stdin"
+			 (eval flycheck-quicklintjs-args))
+  :standard-input t
   :error-patterns ((error
-                    line-start (file-name) ":" line ":" column ":"
+                    line-start "<stdin>:" line ":" column ":"
                     (zero-or-more whitespace) "error:" (zero-or-more whitespace)
                     (message) line-end)
                    (warning
-                    line-start (file-name) ":" line ":" column ":"
+                    line-start "<stdin>:" line ":" column ":"
                     (zero-or-more whitespace) "warning:" (zero-or-more whitespace)
                     (message) line-end))
   :modes js-mode)
