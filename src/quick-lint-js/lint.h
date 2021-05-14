@@ -209,8 +209,6 @@ class linter {
                         declared_variable_scope declared_scope);
   void visit_variable_use(identifier name, used_variable_kind);
 
-  [[nodiscard]] bool is_eval_used();
-
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments,
       bool propagate_eval_use);
