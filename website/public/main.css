@@ -6,6 +6,8 @@ body {
   margin-left: auto;
   margin-right: auto;
   max-width: 45rem;
+  padding-left: .5rem;
+  padding-right: .5rem;
 }
 
 figure {
@@ -113,12 +115,14 @@ main > h2:first-child {
 }
 
 /* Side-bar navigation, if the viewport is wide enough. */
-/* HACK(strager): max-width in this query should equal body's max-width, but we
-   need to add a little bit in case of a scroll bar. */
+/* HACK(strager): max-width in this query should equal body's max-width (plus
+   padding-left and padding-right), but we need to add a little bit in case of a
+   scroll bar. 1em seems to be enough. */
 @media only screen and (min-width: 51em) {
   body.side-bar-nav {
-    max-width: 50em;
+    --page-width: 49em;
     --side-bar-width: 7rem;
+    max-width: var(--page-width);
   }
 
   /* Move the main content to the right to make room for the side bar. */
@@ -164,7 +168,7 @@ main > h2:first-child {
     overflow-y: auto;
     position: fixed;
     top: 0;
-    width: calc((100% - 50em) / 2 + var(--side-bar-width));
+    width: calc((100% - var(--page-width)) / 2 + var(--side-bar-width));
   }
 
   .side-bar-nav header nav {
