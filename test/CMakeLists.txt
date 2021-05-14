@@ -32,7 +32,6 @@ quick_lint_js_add_executable(
   test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
-  test-error-documentation.cpp
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
@@ -88,7 +87,6 @@ target_link_libraries(
   gmock_main
   gtest
   jsoncpp_static
-  quick-lint-js-docs-lib
   quick-lint-js-lib
 )
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
