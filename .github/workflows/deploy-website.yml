@@ -18,18 +18,13 @@ jobs:
       - name: check out
         uses: actions/checkout@v1
 
-      - name: download demo build
+      - name: download website
         uses: dawidd6/action-download-artifact@v2
         with:
           commit: ${{ github.event.inputs.build_commit_id }}
-          name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
-          path: website/public/demo/dist/
-          workflow: build-and-test-web-demo.yml
-
-      - name: install build dependencies
-        run: cd website && yarn install --production
-      - name: build site
-        run: cd website && yarn build
+          name: website-${{ github.event.inputs.build_commit_id }}
+          path: website/www/
+          workflow: build-website.yml
 
       - name: publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
