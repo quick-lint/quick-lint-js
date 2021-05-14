@@ -16,9 +16,15 @@ browser.
 
 If you want to work on the demo, see [demo documentation](demo/README.md).
 
+If you want to work on the error documentation, see [errors
+documentation](public/errors/README.md).
+
 ## Packaging for deployment
 
-Prepare the website for publishing on GitHub pages by running `yarn build`:
+Prepare the website for publishing on GitHub pages by first building the [web
+demo](demo/README.md) and [quick-lint-js-wasm](../wasm/README.md).
+
+Then, run `yarn build`:
 
     $ cd website  # Navigate to this directory.
     $ yarn        # Install dependencies.
