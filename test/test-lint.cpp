@@ -3042,7 +3042,7 @@ TEST(test_lint_eval,
   {
     const char8 eval_declaration[] = u8"eval";
 
-    // let eval = console.log;
+    // let eval = () => {};
     // eval("var x = 42;");
     // x;  // ERROR (use of undeclared variable)
     // x = 10;  // ERROR (assignment to undeclared variable)
@@ -3067,7 +3067,7 @@ TEST(test_lint_eval,
     const char8 eval_declaration[] = u8"eval";
 
     // function f() {
-    //   eval = console.log;
+    //   eval = () => {};
     //   eval("var x = 42;");
     //   x;  // ERROR (use of undeclared variable)
     //   x = 10;  // ERROR (assignment to undeclared variable)
@@ -3106,7 +3106,7 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
   {
     const char8 eval_declaration[] = u8"eval";
 
-    // let eval = console.log;
+    // let eval = () => {};
     // (function() {
     //   eval("var x = 42;");
     //   x;  // should be ERROR (use of undeclared variable)
