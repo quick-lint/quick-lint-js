@@ -6,8 +6,8 @@
 (require 'package)
 
 (defconst cache-dir-name (concat
-                           (expand-file-name default-directory)
-                           ".melpa-cache/"))
+                          (expand-file-name default-directory)
+                          ".melpa-cache/"))
 
 (defun quicklintjs-test-main ()
   (setq package-user-dir cache-dir-name
@@ -17,14 +17,14 @@
   (package-initialize)
 
   (unless package-archive-contents
-	(package-refresh-contents))
+    (package-refresh-contents))
 
   (unless (package-installed-p 'flycheck)
-	;; the DONT-SELECT argument is only available and make sense
-	;; in emacs 25 and above.
-	(if (> emacs-major-version 24)
-		(package-install 'flycheck t)
-	  (package-install 'flycheck)))
+    ;; the DONT-SELECT argument is only available and make sense
+    ;; in emacs 25 and above.
+    (if (> emacs-major-version 24)
+        (package-install 'flycheck t)
+      (package-install 'flycheck)))
 
   (require 'flycheck)
   (require 'flycheck-ert)
@@ -36,25 +36,27 @@
   (should (member 'javascript-quicklintjs flycheck-checkers)))
 
 (defun def-flycheck-tests ()
-  (flycheck-ert-def-checker-test javascript-quicklintjs javascript error
-    (let ((flycheck-checker 'javascript-quicklintjs)
-      (inhibit-message t))
-      (flycheck-ert-should-syntax-check
-        "test/error.js" '(js-mode)
-        '(1 1 error "missing name in function statement [E061]"
-          :checker javascript-quicklintjs)
-        '(1 12 error "unclosed code block; expected '}' by end of file [E134]"
-          :checker javascript-quicklintjs)
-        '(2 7 error "unexpected token in variable declaration; expected variable name [E114]"
-          :checker javascript-quicklintjs))))
+  (flycheck-ert-def-checker-test
+   javascript-quicklintjs javascript error
+   (let ((flycheck-checker 'javascript-quicklintjs)
+         (inhibit-message t))
+     (flycheck-ert-should-syntax-check
+      "test/error.js" '(js-mode)
+      '(1 1 error "missing name in function statement"
+          :id "E061" :checker javascript-quicklintjs)
+      '(1 12 error "unclosed code block; expected '}' by end of file"
+          :id "E134" :checker javascript-quicklintjs)
+      '(2 7 error "unexpected token in variable declaration; expected variable name"
+          :id "E114" :checker javascript-quicklintjs))))
 
-  (flycheck-ert-def-checker-test javascript-quicklintjs javascript warning
-    (let ((flycheck-checker 'javascript-quicklintjs)
-      (inhibit-message t))
-      (flycheck-ert-should-syntax-check
-        "test/warning.js" '(js-mode)
-        '(1 1 warning "assignment to undeclared variable [E059]"
-          :checker javascript-quicklintjs)))))
+  (flycheck-ert-def-checker-test
+   javascript-quicklintjs javascript warning
+   (let ((flycheck-checker 'javascript-quicklintjs)
+         (inhibit-message t))
+     (flycheck-ert-should-syntax-check
+      "test/warning.js" '(js-mode)
+      '(1 1 warning "assignment to undeclared variable"
+          :id "E059":checker javascript-quicklintjs)))))
 
 ;; quick-lint-js finds bugs in JavaScript programs.
 ;; Copyright (C) 2020  Matthew "strager" Glazar
