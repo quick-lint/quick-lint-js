@@ -552,9 +552,8 @@ void linter::propagate_variable_uses_to_parent_scope(
   current_scope.variables_used.clear();
 
   bool has_eval_in_descendant_scope =
-      has_eval_in_current_scope
-          ? true
-          : has_eval(current_scope.variables_used_in_descendant_scope);
+      has_eval_in_current_scope ||
+      has_eval(current_scope.variables_used_in_descendant_scope);
   if (!has_eval_in_descendant_scope) {
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
