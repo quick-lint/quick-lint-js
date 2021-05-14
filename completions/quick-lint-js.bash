@@ -5,7 +5,7 @@ _quick-lint-js () {
         local cur opts
         _init_completion -n = || return
 
-        opts='--help --version --lsp-server --exit-fail-on= --output-format= --vim-file-bufnr='
+        opts='--help --version --lsp-server --stdin --exit-fail-on= --output-format= --vim-file-bufnr='
 
         case $cur in
                 --output-format=*)
