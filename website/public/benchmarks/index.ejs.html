@@ -3,6 +3,7 @@
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
+    <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
       let url = await import("url");
@@ -14,7 +15,6 @@
       //%>
     </script>
     <title>quick-lint-js: benchmarks</title>
-    <meta charset="utf-8" />
     <meta
       name="description"
       content="quick-lint-js is faster than any other JavaScript linter."
