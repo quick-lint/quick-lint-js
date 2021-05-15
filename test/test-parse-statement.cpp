@@ -458,8 +458,8 @@ TEST(test_parse, if_without_body) {
                                       "visit_variable_use"));  // e
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, if_and_condition,
-                    offsets_matcher(&code, 0, u8"if (a)"))));
+                    error_missing_body_for_if_statement, expected_body,
+                    offsets_matcher(&code, strlen(u8"if (a)"), u8""))));
   }
 
   {
@@ -472,8 +472,8 @@ TEST(test_parse, if_without_body) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, if_and_condition,
-                    offsets_matcher(&code, strlen(u8"{\n"), u8"if (a)"))));
+                    error_missing_body_for_if_statement, expected_body,
+                    offsets_matcher(&code, strlen(u8"{\nif (a)"), u8""))));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
@@ -490,8 +490,8 @@ TEST(test_parse, if_without_body) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, if_and_condition,
-                    offsets_matcher(&code, 0, u8"if (a)"))));
+                    error_missing_body_for_if_statement, expected_body,
+                    offsets_matcher(&code, strlen(u8"if (a)"), u8""))));
   }
 }
 
