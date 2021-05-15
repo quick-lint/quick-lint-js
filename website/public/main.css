@@ -73,8 +73,13 @@ main > h2:first-child {
   a:visited {
     color: #979ef8;
   }
+  html,
   body {
-    background-color: #002b36;
+    /* HACK(strager): !important on html is needed to work around quirks in the
+       Dark Reader browser extension (https://darkreader.org/). */
+    background-color: #002b36 !important;
+  }
+  body {
     color: white;
   }
   .os-logo[src="macos.svg"] {
