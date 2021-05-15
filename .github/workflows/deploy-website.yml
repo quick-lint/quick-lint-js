@@ -30,10 +30,11 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           cname: quick-lint-js.com
+          external_repository: quick-lint/quick-lint-js.com
           full_commit_message: "Website: deploy build ${{ github.event.inputs.build_commit_id }} source ${{ github.sha }}"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           keep_files: false
-          publish_branch: gh-pages
+          personal_token: ${{ secrets.QUICK_LINT_JS_COM_PERSONAL_ACCESS_TOKEN }}
+          publish_branch: master
           publish_dir: ./website/www
 
 # quick-lint-js finds bugs in JavaScript programs.
