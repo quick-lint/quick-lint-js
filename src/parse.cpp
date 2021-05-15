@@ -1381,6 +1381,32 @@ expression* parser::parse_object_literal() {
     this->skip();
     return property_name;
   };
+  auto parse_equal = [&](token key_token, expression* key) {
+    expression* lhs;
+    bool missing_key;
+    switch (key_token.type) {
+    case token_type::number:
+    case token_type::string:
+      lhs = this->make_expression<expression::literal>(key_token.span());
+      missing_key = true;
+      break;
+    default:
+      lhs = this->make_expression<expression::variable>(
+          key_token.identifier_name(), key_token.type);
+      missing_key = false;
+      break;
+    }
+    this->skip();
+    expression* rhs = this->parse_expression(precedence{.commas = false});
+    expression* value = this->make_expression<expression::assignment>(
+        expression_kind::assignment, lhs, rhs);
+    if (missing_key) {
+      this->error_reporter_->report(error_missing_key_for_object_entry{
+          .expression = value->span(),
+      });
+    }
+    entries.emplace_back(key, value);
+  };
   auto parse_method_entry = [&](const char8* key_span_begin, expression* key,
                                 function_attributes attributes) -> void {
     buffering_visitor* v = this->expressions_.make_buffering_visitor();
@@ -1562,30 +1588,7 @@ expression* parser::parse_object_literal() {
         break;
 
       case token_type::equal: {
-        expression* lhs;
-        bool missing_key;
-        switch (key_token.type) {
-        case token_type::number:
-        case token_type::string:
-          lhs = this->make_expression<expression::literal>(key_token.span());
-          missing_key = true;
-          break;
-        default:
-          lhs = this->make_expression<expression::variable>(
-              key_token.identifier_name(), key_token.type);
-          missing_key = false;
-          break;
-        }
-        this->skip();
-        expression* rhs = this->parse_expression(precedence{.commas = false});
-        expression* value = this->make_expression<expression::assignment>(
-            expression_kind::assignment, lhs, rhs);
-        if (missing_key) {
-          this->error_reporter_->report(error_missing_key_for_object_entry{
-              .expression = value->span(),
-          });
-        }
-        entries.emplace_back(key, value);
+        parse_equal(key_token, key);
         break;
       }
 
@@ -1707,7 +1710,7 @@ expression* parser::parse_object_literal() {
       bool is_async = this->peek().type == token_type::kw_async;
       function_attributes method_attributes =
           is_async ? function_attributes::async : function_attributes::normal;
-      identifier keyword_ident = this->peek().identifier_name();
+      token keyword_token = this->peek();
       source_code_span keyword_span = this->peek().span();
       token_type keyword_type = this->peek().type;
       this->skip();
@@ -1775,30 +1778,7 @@ expression* parser::parse_object_literal() {
       case token_type::equal: {
         expression* key =
             this->make_expression<expression::literal>(keyword_span);
-        expression* lhs;
-        bool missing_key;
-        switch (keyword_type) {
-        case token_type::number:
-        case token_type::string:
-          lhs = this->make_expression<expression::literal>(keyword_span);
-          missing_key = true;
-          break;
-        default:
-          lhs = this->make_expression<expression::variable>(keyword_ident,
-                                                            keyword_type);
-          missing_key = false;
-          break;
-        }
-        this->skip();
-        expression* rhs = this->parse_expression(precedence{.commas = false});
-        expression* value = this->make_expression<expression::assignment>(
-            expression_kind::assignment, lhs, rhs);
-        if (missing_key) {
-          this->error_reporter_->report(error_missing_key_for_object_entry{
-              .expression = value->span(),
-          });
-        }
-        entries.emplace_back(key, value);
+        parse_equal(keyword_token, key);
         break;
       }
 
