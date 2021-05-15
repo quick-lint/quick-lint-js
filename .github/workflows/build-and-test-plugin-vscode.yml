@@ -19,13 +19,7 @@ jobs:
         with:
           version: 2.0.4
       - name: checkout
-        if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2
-      - name: checkout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: install build dependencies
         run: |
@@ -38,7 +32,7 @@ jobs:
       - name: C++ build
         run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
-        run: emmake cmake --install build --component vscode --prefix plugin/vscode
+        run: emmake cmake --install build --component vscode --prefix wasm
 
       - name: JS configure
         run: cd plugin/vscode && yarn

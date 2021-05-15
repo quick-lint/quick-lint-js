@@ -2386,6 +2386,110 @@ TEST(
          "with 'b'";
 }
 
+TEST(test_lint, with_does_not_propagate_variable_uses) {
+  const char8 declaration[] = u8"a";
+  const char8 assignment[] = u8"a";
+  const char8 use[] = u8"a";
+
+  {
+    // with({})
+    //   a;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "use of undeclared variable should not "
+                                        "be an error inside with scope";
+  }
+
+  {
+    // const a = 1;
+    // with ({})
+    //   a = 2;
+
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_const);
+    l.visit_enter_with_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "assigning to 'a' should not "
+                                        "be an error inside with scope";
+  }
+
+  {
+    // with ({})
+    //   a = 2;
+    // let a;
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_with_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "assigning to 'a' should not "
+                                        "be an error inside with scope";
+  }
+
+  {
+    // with ({}) {
+    //   const a = 1;
+    //   a = 2;
+    // }
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_const);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
+                              error_assignment_to_const_variable,      //
+                              assignment, span_matcher(assignment),    //
+                              declaration, span_matcher(declaration),  //
+                              var_kind, variable_kind::_const)));
+  }
+
+  {
+    // with ({}) {
+    //   function f() {
+    //     a;
+    //   }
+    // }
+
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_with_scope();
+    l.visit_enter_block_scope();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_exit_block_scope();
+    l.visit_exit_with_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty()) << "use of undeclared variable should not "
+                                        "be an error inside a function inside a"
+                                        "with scope";
+  }
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";
@@ -2706,6 +2810,349 @@ TEST(
                                            name, span_matcher(use_before)),
                           ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
                                            name, span_matcher(use_after))));
+}
+
+TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+
+  {
+    // eval("var x = 42");
+    // x;
+    // x = 10;
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // {
+    //   eval("var x = 42");
+    // }
+    // x;
+    // x = 10;
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_block_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_block_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // eval("var x = 42");
+    // (function() {
+    //   x;
+    //   x = 10;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (function() {
+    //   x;
+    //   x = 10;
+    // });
+    // eval("var x = 42");
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (function() {
+    //   x;
+    //   x = 10;
+    //   eval("var x = 42;");
+    //   x;
+    //   x = 10;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (function() {
+    //   x;
+    //   x = 10;
+    //   {
+    //     eval("var x = 42;");
+    //   }
+    //   x;
+    //   x = 10;
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_enter_block_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_block_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint_eval,
+     disable_variable_lookup_in_presence_of_eval_for_limited_scope) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+
+  {
+    // (function() {
+    //   eval("var x = 42;");
+    // });
+    // (function() {
+    //   x;  // ERROR (use of undeclared variable)
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_function_scope();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(use))));
+  }
+
+  {
+    // (function() {
+    //   eval("var x = 42;");
+    // });
+    // x;  // ERROR (use of undeclared variable)
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(use))));
+  }
+
+  {
+    // (function() {
+    //   (function() {
+    //     eval("var x = 42;");
+    //   });
+    //   x;      // ERROR (use of undeclared variable)
+    //   x = 10; // ERROR (assignment to undeclared variable)
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable, name,
+                                     span_matcher(use)),
+                    ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
+                                     assignment, span_matcher(use))));
+  }
+
+  {
+    const char8 parameter_declaration[] = u8"a";
+    const char8 function_declaration[] = u8"f";
+
+    // function f(a = eval('var x = 42;')) {
+    //   x;
+    // }
+    // x; // ERROR (use of undeclared variable)
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_named_function_scope(identifier_of(function_declaration));
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_parameter);
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_variable_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable,
+                                             name, span_matcher(use))));
+  }
+
+  {
+    const char8 eval_declaration[] = u8"eval";
+
+    // let eval = () => {};
+    // eval("var x = 42;");
+    // x;  // ERROR (use of undeclared variable)
+    // x = 10;  // ERROR (assignment to undeclared variable)
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(eval_declaration),
+                                 variable_kind::_let);
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable, name,
+                                     span_matcher(use)),
+                    ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
+                                     assignment, span_matcher(use))));
+  }
+
+  {
+    const char8 eval_declaration[] = u8"eval";
+
+    // function f() {
+    //   eval = () => {};
+    //   eval("var x = 42;");
+    //   x;  // ERROR (use of undeclared variable)
+    //   x = 10;  // ERROR (assignment to undeclared variable)
+    //   {
+    //     var eval;
+    //   }
+    // }
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_assignment(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(eval_declaration),
+                                 variable_kind::_var);
+    l.visit_exit_block_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(error_use_of_undeclared_variable, name,
+                                     span_matcher(use)),
+                    ERROR_TYPE_FIELD(error_assignment_to_undeclared_variable,
+                                     assignment, span_matcher(use))));
+  }
+}
+
+TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
+  const char8 use_eval[] = u8"eval";
+  const char8 use[] = u8"x";
+
+  {
+    const char8 eval_declaration[] = u8"eval";
+
+    // let eval = () => {};
+    // (function() {
+    //   eval("var x = 42;");
+    //   x;  // TODO: ERROR (use of undeclared variable)
+    //   x = 10;  // TODO: ERROR (assignment to undeclared variable)
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_variable_declaration(identifier_of(eval_declaration),
+                                 variable_kind::_let);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_use(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const char8 const_declaration[] = u8"x";
+    const char8 const_assignment[] = u8"x";
+
+    // (function() {
+    //   const x = 42;
+    //   {
+    //     eval("var x = 0");
+    //     x = 3;  // TODO: ERROR (assignment to const variable)
+    //   }
+    // });
+    error_collector v;
+    linter l(&v);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(const_declaration),
+                                 variable_kind::_const);
+    l.visit_enter_block_scope();
+    l.visit_variable_use(identifier_of(use_eval));
+    l.visit_variable_assignment(identifier_of(const_assignment));
+    l.visit_exit_block_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 }
 }

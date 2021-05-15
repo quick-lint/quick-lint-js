@@ -2450,11 +2450,14 @@ class parser {
     this->error_on_class_statement(statement_kind::with_statement);
     this->error_on_function_statement(statement_kind::with_statement);
     this->error_on_lexical_declaration(statement_kind::with_statement);
+
+    v.visit_enter_with_scope();
     bool parsed_body =
         this->parse_and_visit_statement_disallowing_declaration(v);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
+    v.visit_exit_with_scope();
   }
 
   template <QLJS_PARSE_VISITOR Visitor>

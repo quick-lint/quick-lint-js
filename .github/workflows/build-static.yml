@@ -32,13 +32,7 @@ jobs:
 
     steps:
       - name: checkout
-        if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2
-      - name: checkout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: configure
         run: |
@@ -137,13 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v2
-      - name: checkout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: actions/download-artifact@v2
         with:

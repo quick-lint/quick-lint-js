@@ -38,6 +38,9 @@ class buffering_visitor {
       case visit_kind::enter_block_scope:
         target.visit_enter_block_scope();
         break;
+      case visit_kind::enter_with_scope:
+        target.visit_enter_with_scope();
+        break;
       case visit_kind::enter_class_scope:
         target.visit_enter_class_scope();
         break;
@@ -55,6 +58,9 @@ class buffering_visitor {
         break;
       case visit_kind::exit_block_scope:
         target.visit_exit_block_scope();
+        break;
+      case visit_kind::exit_with_scope:
+        target.visit_exit_with_scope();
         break;
       case visit_kind::exit_class_scope:
         target.visit_exit_class_scope();
@@ -98,6 +104,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::enter_block_scope);
   }
 
+  void visit_enter_with_scope() {
+    this->visits_.emplace_back(visit_kind::enter_with_scope);
+  }
+
   void visit_enter_class_scope() {
     this->visits_.emplace_back(visit_kind::enter_class_scope);
   }
@@ -120,6 +130,10 @@ class buffering_visitor {
 
   void visit_exit_block_scope() {
     this->visits_.emplace_back(visit_kind::exit_block_scope);
+  }
+
+  void visit_exit_with_scope() {
+    this->visits_.emplace_back(visit_kind::exit_with_scope);
   }
 
   void visit_exit_class_scope() {
@@ -167,12 +181,14 @@ class buffering_visitor {
   enum class visit_kind {
     end_of_module,
     enter_block_scope,
+    enter_with_scope,
     enter_class_scope,
     enter_for_scope,
     enter_function_scope,
     enter_function_scope_body,
     enter_named_function_scope,
     exit_block_scope,
+    exit_with_scope,
     exit_class_scope,
     exit_for_scope,
     exit_function_scope,

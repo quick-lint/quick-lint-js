@@ -18,25 +18,24 @@ jobs:
       - name: check out
         uses: actions/checkout@v1
 
-      - name: download demo build
+      - name: download website
         uses: dawidd6/action-download-artifact@v2
         with:
           commit: ${{ github.event.inputs.build_commit_id }}
-          name: web-demo-dist-${{ github.event.inputs.build_commit_id }}
-          path: website/demo/dist/
-          workflow: build-and-test-web-demo.yml
-      - name: build site
-        run: website/prepare-for-publish ./website-build
+          name: website-${{ github.event.inputs.build_commit_id }}
+          path: website/www/
+          workflow: build-website.yml
 
       - name: publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           cname: quick-lint-js.com
+          external_repository: quick-lint/quick-lint-js.com
           full_commit_message: "Website: deploy build ${{ github.event.inputs.build_commit_id }} source ${{ github.sha }}"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           keep_files: false
-          publish_branch: gh-pages
-          publish_dir: ./website-build
+          personal_token: ${{ secrets.QUICK_LINT_JS_COM_PERSONAL_ACCESS_TOKEN }}
+          publish_branch: master
+          publish_dir: ./website/www
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

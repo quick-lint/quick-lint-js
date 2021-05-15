@@ -9,7 +9,7 @@ let {
   DiagnosticSeverity,
   ProcessCrashed,
   createProcessFactoryAsync,
-} = require("./quick-lint-js.js");
+} = require("quick-lint-js-wasm/quick-lint-js.js");
 
 // TODO(strager): Allow developers to reload the .wasm file.
 let processFactoryPromise = createProcessFactoryAsync();
@@ -130,11 +130,13 @@ class DocumentLinter {
     switch (this._state) {
       case DocumentLinterState.NO_PARSER:
         await this._createParser();
-        return await this.editorChangedVisibilityAsync();
+        await this.editorChangedVisibilityAsync();
+        break;
 
       case DocumentLinterState.CREATING_PARSER:
         await this._parserPromise;
-        return await this.editorChangedVisibilityAsync();
+        await this.editorChangedVisibilityAsync();
+        break;
 
       case DocumentLinterState.PARSER_UNINITIALIZED:
         await this._initializeParserAsync();
@@ -347,7 +349,6 @@ class DocumentLinterCollection {
   }
 
   async disposeAsync() {
-    let linters = this._linters;
     this._linters = new Map();
     for (let [_uri, linter] of this._linters) {
       await linter.disposeAsync();
@@ -380,7 +381,7 @@ async function activateAsync() {
       Implementation is a suggested workaround by maintainer: https://github.com/Microsoft/vscode/issues/50344
       */
       let isBogusEvent = event.contentChanges.length === 0;
-      if (!(isBogusEvent)) {
+      if (!isBogusEvent) {
         logAsyncErrors(
           (async () => {
             if (isLintable(event.document)) {

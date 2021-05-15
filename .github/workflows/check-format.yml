@@ -13,12 +13,7 @@ jobs:
     runs-on: ubuntu-18.04
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
-      - if: ${{ github.event_name == 'push' }}
-        uses: actions/checkout@v2
-      - if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@v2
 
       - run: clang-format --version
       - run: ./tools/format

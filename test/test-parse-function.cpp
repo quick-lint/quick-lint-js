@@ -859,11 +859,13 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // obj
-                                      "visit_variable_declaration",       // f
-                                      "visit_enter_function_scope",       // f
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // obj
+                                      "visit_enter_with_scope",      // with
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
                                       "visit_enter_function_scope_body",  // f
-                                      "visit_exit_function_scope"));      // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_FIELDS(
@@ -880,11 +882,13 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // obj
-                                      "visit_variable_declaration",       // f
-                                      "visit_enter_function_scope",       // f
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // obj
+                                      "visit_enter_with_scope",      // with
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
                                       "visit_enter_function_scope_body",  // f
-                                      "visit_exit_function_scope"));      // f
+                                      "visit_exit_function_scope",        // f
+                                      "visit_exit_with_scope"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
                               error_function_statement_not_allowed_in_body,
                               kind_of_statement,

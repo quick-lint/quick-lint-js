@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <memory>
+#include <quick-lint-js/c-api.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp-location.h>
@@ -12,7 +13,6 @@
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vscode-error-reporter.h>
-#include <quick-lint-js/vscode.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -79,16 +79,16 @@ void vscode_error_formatter::write_message_part(severity sev,
 
 void vscode_error_formatter::write_after_message(
     severity sev, const source_code_span &origin) {
-  qljs_vscode_severity diag_severity = qljs_vscode_severity_error;
+  qljs_severity diag_severity = qljs_severity_error;
   switch (sev) {
   case severity::note:
     // Don't write notes. Only write the main message.
     return;
   case severity::error:
-    diag_severity = qljs_vscode_severity_error;
+    diag_severity = qljs_severity_error;
     break;
   case severity::warning:
-    diag_severity = qljs_vscode_severity_warning;
+    diag_severity = qljs_severity_warning;
     break;
   }
   qljs_vscode_diagnostic &diag = this->reporter_->diagnostics_.emplace_back();

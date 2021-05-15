@@ -157,6 +157,18 @@ TEST(test_options, vim_file_bufnr) {
   }
 
   {
+    options o = parse_options({"--vim-file-bufnr=42", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 42);
+  }
+
+  {
+    options o = parse_options({"one.js", "--vim-file-bufnr=42", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[1].vim_bufnr, 42);
+  }
+
+  {
     options o = parse_options({"--vim-file-bufnr=1", "--", "one.js", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
@@ -173,6 +185,49 @@ TEST(test_options, lsp_server) {
   {
     options o = parse_options({"--lsp"});
     EXPECT_TRUE(o.lsp_server);
+  }
+}
+
+TEST(test_options, dash_dash_stdin) {
+  {
+    options o = parse_options({"--stdin", "one.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_TRUE(o.files_to_lint[0].is_stdin);
+    EXPECT_FALSE(o.has_multiple_stdin);
+  }
+
+  {
+    options o = parse_options({"one.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_TRUE(o.files_to_lint[1].is_stdin);
+    EXPECT_FALSE(o.has_multiple_stdin);
+  }
+
+  {
+    options o = parse_options({"-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_TRUE(o.files_to_lint[0].is_stdin);
+    EXPECT_FALSE(o.has_multiple_stdin);
+  }
+}
+
+TEST(test_options, is_stdin_emplaced_only_once) {
+  {
+    options o = parse_options({"--stdin", "one.js", "-", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 3);
+    EXPECT_TRUE(o.has_multiple_stdin);
+  }
+  {
+    options o = parse_options({"one.js", "-", "two.js", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 3);
+    EXPECT_TRUE(o.has_multiple_stdin);
+  }
+}
+
+TEST(test_options, single_hyphen_is_argument) {
+  {
+    options o = parse_options({"one.js", "-", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 3);
   }
 }
 
@@ -353,6 +408,7 @@ TEST(test_options, dump_errors) {
   {
     const file_to_lint file = {
         .path = "file.js",
+        .is_stdin = false,
         .vim_bufnr = std::optional<int>(),
     };
 

@@ -211,6 +211,11 @@ read_file_result read_file(const char *path) {
   windows_handle_file file(handle);
   return read_file(path, file.ref());
 }
+
+read_file_result read_stdin() {
+  windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
+  return read_file("<stdin>", file);
+}
 #endif
 
 #if defined(QLJS_FILE_POSIX)
@@ -223,6 +228,11 @@ read_file_result read_file(const char *path) {
   }
   posix_fd_file file(fd);
   return read_file(path, file.ref());
+}
+
+read_file_result read_stdin() {
+  posix_fd_file_ref file(STDIN_FILENO);
+  return read_file("<stdin>", file);
 }
 #endif
 

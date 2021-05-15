@@ -52,19 +52,18 @@ struct numeric_limits<char8_t> {
 // TODO(strager): Use std::in_range if supported.
 template <class Out, class In>
 constexpr bool in_range([[maybe_unused]] In x) noexcept {
-  using out_limits = numeric_limits<Out>;
+  [[maybe_unused]] constexpr Out min_out = numeric_limits<Out>::lowest();
+  [[maybe_unused]] constexpr Out max_out = (numeric_limits<Out>::max)();
   using unsigned_in = make_unsigned_t<In>;
   using unsigned_out = make_unsigned_t<Out>;
   if constexpr (std::is_same_v<In, Out>) {
     return true;
-  } else if constexpr (std::is_signed_v<In> && std::is_signed_v<Out>) {
-    return out_limits::lowest() <= x && x <= (out_limits::max)();
+  } else if constexpr (std::is_signed_v<In> == std::is_signed_v<Out>) {
+    return min_out <= x && x <= max_out;
   } else if constexpr (std::is_signed_v<In> && !std::is_signed_v<Out>) {
-    return 0 <= x && static_cast<unsigned_in>(x) <= (out_limits::max)();
+    return 0 <= x && static_cast<unsigned_in>(x) <= max_out;
   } else if constexpr (!std::is_signed_v<In> && std::is_signed_v<Out>) {
-    return x <= unsigned_out{(out_limits::max)()};
-  } else if constexpr (!std::is_signed_v<In> && !std::is_signed_v<Out>) {
-    return x <= (out_limits::max)();
+    return x <= unsigned_out{max_out};
   }
 }
 

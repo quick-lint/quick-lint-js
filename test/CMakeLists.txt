@@ -28,10 +28,10 @@ quick_lint_js_add_executable(
   test-buffering-error-reporter.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
+  test-c-api.cpp
   test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
-  test-error-documentation.cpp
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
@@ -75,7 +75,6 @@ quick_lint_js_add_executable(
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
   test-vscode-error-reporter.cpp
-  test-vscode.cpp
   test-wasm-demo-error-reporter.cpp
   test-wasm-demo-location.cpp
   test-write-integer.cpp
@@ -88,7 +87,6 @@ target_link_libraries(
   gmock_main
   gtest
   jsoncpp_static
-  quick-lint-js-docs-lib
   quick-lint-js-lib
 )
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)

@@ -98,6 +98,8 @@ class arg_parser {
       }
       this->is_ignoring_options_ = true;
       this->option_ = std::nullopt;
+    } else if (this->current_arg() == "-"sv) {
+      this->option_ = std::nullopt;
     } else if (this->current_arg()[0] == '-') {
       const char* equal = std::strchr(this->current_arg(), '=');
       option o;
@@ -148,12 +150,28 @@ options parse_options(int argc, char** argv) {
   options o;
 
   std::optional<int> next_vim_file_bufnr;
+  bool has_stdin = false;
 
   arg_parser parser(argc, argv);
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
-      file_to_lint file{.path = argument, .vim_bufnr = next_vim_file_bufnr};
-      o.files_to_lint.emplace_back(file);
+      if (argument == "-"sv) {
+        if (has_stdin) {
+          o.has_multiple_stdin = true;
+          continue;
+        }
+        file_to_lint file{.path = "<stdin>",
+                          .is_stdin = true,
+                          .vim_bufnr = next_vim_file_bufnr};
+        has_stdin = true;
+        o.files_to_lint.emplace_back(file);
+      } else {
+        file_to_lint file{.path = argument,
+                          .is_stdin = false,
+                          .vim_bufnr = next_vim_file_bufnr};
+        o.files_to_lint.emplace_back(file);
+      }
+
       next_vim_file_bufnr = std::nullopt;
     } else if (parser.match_flag_option("--debug-parser-visits"sv,
                                         "--debug-p"sv)) {
@@ -188,6 +206,17 @@ options parse_options(int argc, char** argv) {
       o.version = true;
     } else if (parser.match_flag_option("--lsp-server"sv, "--lsp"sv)) {
       o.lsp_server = true;
+    } else if (parser.match_flag_option("--stdin"sv, ""sv)) {
+      if (has_stdin) {
+        o.has_multiple_stdin = true;
+        continue;
+      }
+      file_to_lint file{.path = "<stdin>",
+                        .is_stdin = true,
+                        .vim_bufnr = next_vim_file_bufnr};
+      o.files_to_lint.emplace_back(file);
+      has_stdin = true;
+      next_vim_file_bufnr = std::nullopt;
     } else {
       const char* unrecognized = parser.match_anything();
       o.error_unrecognized_options.emplace_back(unrecognized);
@@ -212,6 +241,9 @@ bool options::dump_errors(std::ostream& out) const {
       out << "warning: ignoring files given on command line in "
              "--lsp-server mode\n";
     }
+  }
+  if (this->has_multiple_stdin) {
+    out << "warning: multiple standard input given on command line\n";
   }
   for (const auto& option : this->error_unrecognized_options) {
     out << "error: unrecognized option: " << option << '\n';

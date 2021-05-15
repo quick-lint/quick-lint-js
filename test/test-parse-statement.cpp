@@ -848,16 +848,21 @@ TEST(test_parse, switch_clause_outside_switch_statement) {
 TEST(test_parse, with_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"with (cond) body;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // cond
-                                      "visit_variable_use"));  // body
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",      // cond
+                                      "visit_enter_with_scope",  // with
+                                      "visit_variable_use",      // body
+                                      "visit_exit_with_scope"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"with (cond) { body; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
-                                      "visit_enter_block_scope",  //
-                                      "visit_variable_use",       // body
-                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_with_scope",   // with
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // body
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
   }
 }
 
@@ -867,10 +872,13 @@ TEST(test_parse, with_statement_without_parens) {
     padded_string code(u8"with cond { body; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
-                                      "visit_enter_block_scope",  //
-                                      "visit_variable_use",       // body
-                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_with_scope",   // with
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // body
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -883,10 +891,13 @@ TEST(test_parse, with_statement_without_parens) {
     padded_string code(u8"with (cond { body; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
-                                      "visit_enter_block_scope",  //
-                                      "visit_variable_use",       // body
-                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_with_scope",   // with
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // body
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -900,10 +911,13 @@ TEST(test_parse, with_statement_without_parens) {
     padded_string code(u8"with cond) { body; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
-                                      "visit_enter_block_scope",  //
-                                      "visit_variable_use",       // body
-                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_with_scope",   // with
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // body
+                            "visit_exit_block_scope",   //
+                            "visit_exit_with_scope"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_2_FIELDS(
                     error_expected_parenthesis_around_with_expression,       //
