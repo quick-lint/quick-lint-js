@@ -1,8 +1,10 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <iterator>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -1321,9 +1323,17 @@ TEST(test_parse, declare_yield_in_generator_function) {
 }
 
 TEST(test_parse, variables_can_be_named_contextual_keywords) {
-  for (string8 name :
-       {u8"as", u8"async", u8"await", u8"from", u8"get", u8"of", u8"private",
-        u8"protected", u8"public", u8"set", u8"static", u8"yield"}) {
+  std::vector<const char8*> variable_names;
+  std::copy_if(contextual_keywords.begin(), contextual_keywords.end(),
+               std::back_inserter(variable_names),
+               [](const char8* keyword) { return keyword != u8"let"_sv; });
+  variable_names.push_back(u8"await");
+  variable_names.push_back(u8"private");
+  variable_names.push_back(u8"protected");
+  variable_names.push_back(u8"public");
+  variable_names.push_back(u8"yield");
+
+  for (string8 name : variable_names) {
     SCOPED_TRACE(out_string8(name));
 
     {
