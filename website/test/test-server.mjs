@@ -346,6 +346,34 @@ describe("server", () => {
       expect(response.status).toBe(500);
       expect(response.data).toContain("variableDoesNotExist");
     });
+
+    it("currentURI refers to relative URI", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "subdir"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.ejs.html"),
+        "<%- currentURI %>"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "subdir", "index.ejs.html"),
+        "<%- currentURI %>"
+      );
+
+      let response = await request.get("/");
+      expect(response.data).toBe("/");
+
+      response = await request.get("/subdir/");
+      expect(response.data).toBe("/subdir/");
+    });
+
+    it("currentURI ignores query parameters", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.ejs.html"),
+        "<%- currentURI %>"
+      );
+
+      let response = await request.get("/?key=value");
+      expect(response.data).toBe("/");
+    });
   });
 });
 

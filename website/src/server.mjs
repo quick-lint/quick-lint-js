@@ -33,7 +33,8 @@ export function makeServer({ htmlRedirects, wwwRootPath }) {
         let out = null;
         try {
           out = await router.renderEJSFile(
-            path.join(router.wwwRootPath, classifiedDirectory.path)
+            path.join(router.wwwRootPath, classifiedDirectory.path),
+            { currentURI: request.path }
           );
         } catch (error) {
           response.writeHeader(500, { "content-type": "text/plain" });

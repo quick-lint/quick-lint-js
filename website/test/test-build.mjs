@@ -39,6 +39,9 @@ describe("build", () => {
         type: "build-ejs",
         sourcePath: "index.ejs.html",
         destinationPath: "index.html",
+        ejsVariables: {
+          currentURI: "/",
+        },
       },
     ]);
   });
@@ -85,6 +88,9 @@ describe("build", () => {
         type: "build-ejs",
         sourcePath: "subdir/index.ejs.html",
         destinationPath: "subdir/index.html",
+        ejsVariables: {
+          currentURI: "/subdir/",
+        },
       },
     ]);
   });

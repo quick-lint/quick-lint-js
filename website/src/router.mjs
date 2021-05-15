@@ -112,7 +112,7 @@ export class Router {
     return { type: "static", contentType: contentType };
   }
 
-  async renderEJSFile(ejsFilePath) {
+  async renderEJSFile(ejsFilePath, { currentURI }) {
     ejsFilePath = path.resolve(ejsFilePath);
     let ejsHTML = await fs.promises.readFile(ejsFilePath, "utf-8");
 
@@ -121,7 +121,9 @@ export class Router {
     try {
       return await ejs.render(
         ejsHTML,
-        {},
+        {
+          currentURI: currentURI,
+        },
         {
           async: true,
           compileDebug: true,

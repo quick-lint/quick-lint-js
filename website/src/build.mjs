@@ -73,6 +73,9 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
         type: "build-ejs",
         sourcePath: classifiedDirectory.path,
         destinationPath: path.join(basePath, "index.html"),
+        ejsVariables: {
+          currentURI: basePath === "" ? "/" : `/${basePath}/`,
+        },
       });
       break;
 
