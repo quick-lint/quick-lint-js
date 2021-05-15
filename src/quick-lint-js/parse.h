@@ -2508,7 +2508,7 @@ class parser {
     case token_type::right_curly:
       const char8 *end_of_if_condition = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_if_statement{
-          .after_if_condition =
+          .expected_body =
               source_code_span(end_of_if_condition, end_of_if_condition),
       });
       break;

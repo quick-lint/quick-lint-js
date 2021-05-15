@@ -572,10 +572,9 @@
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_if_statement, "E064",                             \
-      { source_code_span after_if_condition; },                                \
+      { source_code_span expected_body; },                                     \
       .error(QLJS_TRANSLATABLE("missing body for 'if' statement"),             \
-             source_code_span(after_if_condition.end(),                        \
-                              after_if_condition.end())))                      \
+             expected_body))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_switch_statement, "E106",                         \

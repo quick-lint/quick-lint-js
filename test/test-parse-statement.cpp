@@ -456,11 +456,10 @@ TEST(test_parse, if_without_body) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use"));  // e
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_body_for_if_statement, after_if_condition,
-            offsets_matcher(&code, strlen(u8"if (a)"), strlen(u8"if (a)")))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_body_for_if_statement, expected_body,
+                    offsets_matcher(&code, strlen(u8"if (a)"), u8""))));
   }
 
   {
@@ -473,9 +472,8 @@ TEST(test_parse, if_without_body) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, after_if_condition,
-                    offsets_matcher(&code, strlen(u8"{\nif (a)"),
-                                    strlen(u8"{\nif (a)")))));
+                    error_missing_body_for_if_statement, expected_body,
+                    offsets_matcher(&code, strlen(u8"{\nif (a)"), u8""))));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
@@ -490,11 +488,10 @@ TEST(test_parse, if_without_body) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // a
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_body_for_if_statement, after_if_condition,
-            offsets_matcher(&code, strlen(u8"if (a)"), strlen(u8"if (a)")))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_body_for_if_statement, expected_body,
+                    offsets_matcher(&code, strlen(u8"if (a)"), u8""))));
   }
 }
 
