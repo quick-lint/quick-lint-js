@@ -51,7 +51,7 @@ TEST(test_parse, parse_simple_let) {
     EXPECT_EQ(v.variable_declarations[4].name, u8"e");
     EXPECT_EQ(v.variable_declarations[5].name, u8"f");
     EXPECT_EQ(v.variable_declarations[6].name, u8"g");
-    for (const auto &declaration : v.variable_declarations) {
+    for (const auto& declaration : v.variable_declarations) {
       EXPECT_EQ(declaration.kind, variable_kind::_let);
     }
   }
