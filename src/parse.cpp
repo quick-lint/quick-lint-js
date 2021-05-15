@@ -1707,6 +1707,7 @@ expression* parser::parse_object_literal() {
       bool is_async = this->peek().type == token_type::kw_async;
       function_attributes method_attributes =
           is_async ? function_attributes::async : function_attributes::normal;
+      identifier keyword_ident = this->peek().identifier_name();
       source_code_span keyword_span = this->peek().span();
       token_type keyword_type = this->peek().type;
       this->skip();
@@ -1768,6 +1769,36 @@ expression* parser::parse_object_literal() {
         source_code_span left_square_span = this->peek().span();
         expression* key = parse_computed_property_name();
         parse_method_entry(left_square_span.begin(), key, method_attributes);
+        break;
+      }
+
+      case token_type::equal: {
+        expression* key =
+            this->make_expression<expression::literal>(keyword_span);
+        expression* lhs;
+        bool missing_key;
+        switch (keyword_type) {
+        case token_type::number:
+        case token_type::string:
+          lhs = this->make_expression<expression::literal>(keyword_span);
+          missing_key = true;
+          break;
+        default:
+          lhs = this->make_expression<expression::variable>(keyword_ident,
+                                                            keyword_type);
+          missing_key = false;
+          break;
+        }
+        this->skip();
+        expression* rhs = this->parse_expression(precedence{.commas = false});
+        expression* value = this->make_expression<expression::assignment>(
+            expression_kind::assignment, lhs, rhs);
+        if (missing_key) {
+          this->error_reporter_->report(error_missing_key_for_object_entry{
+              .expression = value->span(),
+          });
+        }
+        entries.emplace_back(key, value);
         break;
       }
 
