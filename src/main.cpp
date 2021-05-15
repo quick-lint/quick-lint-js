@@ -158,8 +158,12 @@ void handle_options(quick_lint_js::options o) {
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    quick_lint_js::read_file_result source =
-        quick_lint_js::read_file(file.path);
+    quick_lint_js::read_file_result source;
+    if (file.is_stdin) {
+      source = quick_lint_js::read_stdin();
+    } else {
+      source = quick_lint_js::read_file(file.path);
+    }
     source.exit_if_not_ok();
     reporter.set_source(&source.content, file);
     quick_lint_js::process_file(&source.content, reporter.get(),
@@ -180,6 +184,8 @@ class debug_visitor {
 
   void visit_enter_block_scope() { std::cerr << "entered block scope\n"; }
 
+  void visit_enter_with_scope() { std::cerr << "entered with scope\n"; }
+
   void visit_enter_class_scope() { std::cerr << "entered class scope\n"; }
 
   void visit_enter_for_scope() { std::cerr << "entered for scope\n"; }
@@ -195,6 +201,8 @@ class debug_visitor {
   }
 
   void visit_exit_block_scope() { std::cerr << "exited block scope\n"; }
+
+  void visit_exit_with_scope() { std::cerr << "exited with scope\n"; }
 
   void visit_exit_class_scope() { std::cerr << "exited class scope\n"; }
 
@@ -253,6 +261,11 @@ class multi_visitor {
     this->visitor_2_->visit_enter_block_scope();
   }
 
+  void visit_enter_with_scope() {
+    this->visitor_1_->visit_enter_with_scope();
+    this->visitor_2_->visit_enter_with_scope();
+  }
+
   void visit_enter_class_scope() {
     this->visitor_1_->visit_enter_class_scope();
     this->visitor_2_->visit_enter_class_scope();
@@ -281,6 +294,11 @@ class multi_visitor {
   void visit_exit_block_scope() {
     this->visitor_1_->visit_exit_block_scope();
     this->visitor_2_->visit_exit_block_scope();
+  }
+
+  void visit_exit_with_scope() {
+    this->visitor_1_->visit_exit_with_scope();
+    this->visitor_2_->visit_exit_with_scope();
   }
 
   void visit_exit_class_scope() {
@@ -380,6 +398,7 @@ void print_help_message() {
   print_option("--exit-fail-on=[CODES]",
                "Fail with a non-zero exit code if any of these");
   print_option("", "errors are found (default: \"all\")");
+  print_option("--stdin", "Read standard input as a JavaScript file");
   print_option("--lsp, --lsp-server",
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",

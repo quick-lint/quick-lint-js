@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../common-head.ejs.html") %>
+    <script>
+      //<%
+      let url = await import("url");
+      let moduleCacheBust = "#" + Date.now();
+
+      let { parseCriterionJSON, makeBenchmarkHTML } = await import(
+        url.pathToFileURL("criterion-json-to-html.mjs") + moduleCacheBust
+      );
+      //%>
+    </script>
+    <title>quick-lint-js: benchmarks</title>
+    <meta
+      name="description"
+      content="quick-lint-js is faster than any other JavaScript linter."
+    />
+    <link href="../main.css" rel="stylesheet" />
+    <link href="benchmark.css" rel="stylesheet" />
+    <style>
+      .linter-name {
+        color: hsla(var(--hue), 70%, 40%);
+      }
+      @media (prefers-color-scheme: dark) {
+        .linter-name {
+          color: hsla(var(--hue), 85%, 75%);
+        }
+      }
+    </style>
+  </head>
+
+  <body class="side-bar-nav">
+    <header>
+      <h1><a href="../">quick-lint-js</a></h1>
+      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+      <nav>
+        <ul>
+          <li class="side-bar-only"><a href="..">Home</a></li>
+          <li><a href="../install/">Install</a></li>
+          <li><a href="../demo/">Try online</a></li>
+          <li><a href="../errors/">Error docs</a></li>
+          <li><a href="../cli/">CLI docs</a></li>
+          <li class="current-page">Benchmarks</li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >Code on GitHub</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <p>
+        Which JavaScript linter is the <strong>fastest</strong> and consumes the
+        <strong>least energy</strong>? We benchmarked different JavaScript
+        linters to give you the answer.
+      </p>
+      <ul>
+        <li>
+          <a href="#full-change-wait-express-router-js"
+            >LSP: full-change-wait express-router.js</a
+          >
+        </li>
+        <li><a href="#methodology">Methodology</a></li>
+      </ul>
+
+      <article class="benchmark" id="full-change-wait-express-router-js">
+        <h2>LSP: full-change-wait express-router.js</h2>
+        <p>
+          This benchmark measures how long an LSP server takes to give
+          diagnostics to an editor.
+        </p>
+        <h3>Results</h3>
+        <%-
+        makeBenchmarkHTML(parseCriterionJSON("open-wait-close-express-router-js.json"));
+        %>
+        <h3>Setup (untimed)</h3>
+        <ol>
+          <li>Start the LSP server.</li>
+          <li>Wait for initialization to finish.</li>
+          <li>
+            Open one document with contents from
+            <a
+              href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
+              >express-router.js</a
+            >.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+
+        <h3>Work (timed)</h3>
+        <p>Repeat the following steps <var>N</var> times:</p>
+        <ol>
+          <li>
+            Change a few characters in the document, sending the entire new
+            document in an LSP message.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+      </article>
+
+      <article id="methodology">
+        <h2>Methodology</h2>
+        <p>These benchmarks measure the following linters:</p>
+        <ul>
+          <li>
+            <strong class="linter-name" style="--hue: 0">quick-lint-js</strong>
+            version 0.2.0
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 120">RSLint</strong>
+            version b7a4eeb69dc00fedfee81eaed3cf2ad36bcb2e2e (unreleased) (with
+            rustc version 1.51.0)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 180">Flow</strong> version
+            0.148.0
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 60">ESLint</strong>
+            version 5.16.0 (with eslint-server version 0.1.7 and Node version
+            v16.0.0)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 240">Deno</strong> version
+            1.9.1 (with V8 version 9.1.269.5 and TypeScript version 4.2.2)
+          </li>
+          <li>
+            <strong class="linter-name" style="--hue: 300">TypeScript</strong>
+            version 4.2.4 (with Theia's language server version 0.5.1 and Node
+            version v16.0.0)
+          </li>
+        </ul>
+
+        <p>These benchmarks were measured on the following machine:</p>
+        <ul>
+          <li>strager's "straglum"; Purism Librem 13 Version 4 laptop</li>
+          <li>CPU: Intel Core i7-7500U CPU @ 2.70 GHz (2 cores, 4 threads)</li>
+          <li>
+            OS: Linux Mint 20 Ulyana; Linux 5.4.0-42-generic #46-Ubuntu SMP
+            x86_64 GNU/Linux
+          </li>
+          <li>Performance governor: performance; 400 MHz - 3.50 GHz</li>
+        </ul>
+      </article>
+    </main>
+
+    <footer>
+      <nav>
+        <ul>
+          <li><a href="..">quick-lint-js home page</a></li>
+          <li><a href="../hiring/">we're hiring! get paid to code</a></li>
+          <li><a href="../demo/">try quick-lint-js in your browser</a></li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+          <li>
+            <a href="../license/">copyright and license information</a>
+          </li>
+        </ul>
+      </nav>
+    </footer>
+
+    <script type="module" src="benchmark.mjs"></script>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

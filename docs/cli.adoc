@@ -57,6 +57,11 @@ See the "ERROR LISTS" section for a description of the format for _errors_.
 +
 Incompatible with *--lsp-server*.
 
+*--stdin*::
+  Read standard input as a JavaScript file.
++
+Incompatible with *--lsp-server*.
+
 *--lsp*::
 *--lsp-server*::
   Run *quick-lint-js* in LSP server mode.

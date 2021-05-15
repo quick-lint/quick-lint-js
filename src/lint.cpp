@@ -219,6 +219,8 @@ linter::linter(error_reporter *error_reporter)
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 
+void linter::visit_enter_with_scope() { this->scopes_.push(); }
+
 void linter::visit_enter_class_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
@@ -228,7 +230,8 @@ void linter::visit_enter_function_scope() { this->scopes_.push(); }
 void linter::visit_enter_function_scope_body() {
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true);
+      /*consume_arguments=*/true,
+      /*propagate_eval_use=*/true);
 }
 
 void linter::visit_enter_named_function_scope(identifier function_name) {
@@ -242,7 +245,15 @@ void linter::visit_exit_block_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use=*/true);
+  this->propagate_variable_declarations_to_parent_scope();
+  this->scopes_.pop();
+}
+
+void linter::visit_exit_with_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  // Don't propagate variable uses, only declarations
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
@@ -251,7 +262,8 @@ void linter::visit_exit_class_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use=*/false);
 
   // No variable declarations should be propagatable to the parent scope.
   for (const declared_variable &var :
@@ -266,7 +278,8 @@ void linter::visit_exit_for_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use=*/true);
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
@@ -275,7 +288,8 @@ void linter::visit_exit_function_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true);
+      /*consume_arguments=*/true,
+      /*propagate_eval_use=*/false);
   this->scopes_.pop();
 }
 
@@ -407,7 +421,8 @@ void linter::visit_end_of_module() {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/global_scope,
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false);
+      /*consume_arguments=*/false,
+      /*propagate_eval_use=*/false);
 
   std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : global_scope.variables_used) {
@@ -471,18 +486,21 @@ void linter::visit_end_of_module() {
 }
 
 void linter::propagate_variable_uses_to_parent_scope(
-    bool allow_variable_use_before_declaration, bool consume_arguments) {
+    bool allow_variable_use_before_declaration, bool consume_arguments,
+    bool propagate_eval_use) {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/this->parent_scope(),
       /*allow_variable_use_before_declaration=*/
       allow_variable_use_before_declaration,
-      /*consume_arguments=*/consume_arguments);
+      /*consume_arguments=*/
+      consume_arguments,
+      /*propagate_eval_use=*/propagate_eval_use);
 }
 
 template <class Scope>
 void linter::propagate_variable_uses_to_parent_scope(
     Scope &parent_scope, bool allow_variable_use_before_declaration,
-    bool consume_arguments) {
+    bool consume_arguments, bool propagate_eval_use) {
   scope &current_scope = this->current_scope();
 
   auto is_current_scope_function_name = [&](const used_variable &var) {
@@ -491,44 +509,67 @@ void linter::propagate_variable_uses_to_parent_scope(
                var.name.normalized_name();
   };
 
-  for (const used_variable &used_var : current_scope.variables_used) {
-    QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
-    const declared_variable *var =
-        parent_scope.declared_variables.find(used_var.name);
-    if (var) {
-      // This variable was declared in the parent scope. Don't propagate.
-      if (used_var.kind == used_variable_kind::assignment) {
-        this->report_error_if_assignment_is_illegal(
-            var, used_var.name, /*is_assigned_before_declaration=*/false);
+  auto has_eval = [&](const std::vector<used_variable> &variables_used) {
+    for (const used_variable &used_var : variables_used) {
+      if (used_var.name.normalized_name() == u8"eval") {
+        if (propagate_eval_use) {
+          (allow_variable_use_before_declaration
+               ? parent_scope.variables_used_in_descendant_scope
+               : parent_scope.variables_used)
+              .emplace_back(used_var);
+        }
+        return true;
       }
-    } else if (consume_arguments &&
-               used_var.name.normalized_name() == u8"arguments") {
-      // Treat this variable as declared in the current scope.
-    } else if (is_current_scope_function_name(used_var)) {
-      // Treat this variable as declared in the current scope.
-    } else {
-      (allow_variable_use_before_declaration
-           ? parent_scope.variables_used_in_descendant_scope
-           : parent_scope.variables_used)
-          .emplace_back(used_var);
+    }
+    return false;
+  };
+
+  bool has_eval_in_current_scope = has_eval(current_scope.variables_used);
+  if (!has_eval_in_current_scope) {
+    for (const used_variable &used_var : current_scope.variables_used) {
+      QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
+      const declared_variable *var =
+          parent_scope.declared_variables.find(used_var.name);
+      if (var) {
+        // This variable was declared in the parent scope. Don't propagate.
+        if (used_var.kind == used_variable_kind::assignment) {
+          this->report_error_if_assignment_is_illegal(
+              var, used_var.name, /*is_assigned_before_declaration=*/false);
+        }
+      } else if (consume_arguments &&
+                 used_var.name.normalized_name() == u8"arguments") {
+        // Treat this variable as declared in the current scope.
+      } else if (is_current_scope_function_name(used_var)) {
+        // Treat this variable as declared in the current scope.
+      } else {
+        (allow_variable_use_before_declaration
+             ? parent_scope.variables_used_in_descendant_scope
+             : parent_scope.variables_used)
+            .emplace_back(used_var);
+      }
     }
   }
   current_scope.variables_used.clear();
 
-  for (const used_variable &used_var :
-       current_scope.variables_used_in_descendant_scope) {
-    const declared_variable *var =
-        parent_scope.declared_variables.find(used_var.name);
-    if (var) {
-      // This variable was declared in the parent scope. Don't propagate.
-      if (used_var.kind == used_variable_kind::assignment) {
-        this->report_error_if_assignment_is_illegal(
-            var, used_var.name, /*is_assigned_before_declaration=*/false);
+  bool has_eval_in_descendant_scope =
+      has_eval_in_current_scope ||
+      has_eval(current_scope.variables_used_in_descendant_scope);
+  if (!has_eval_in_descendant_scope) {
+    for (const used_variable &used_var :
+         current_scope.variables_used_in_descendant_scope) {
+      const declared_variable *var =
+          parent_scope.declared_variables.find(used_var.name);
+      if (var) {
+        // This variable was declared in the parent scope. Don't propagate.
+        if (used_var.kind == used_variable_kind::assignment) {
+          this->report_error_if_assignment_is_illegal(
+              var, used_var.name, /*is_assigned_before_declaration=*/false);
+        }
+      } else if (is_current_scope_function_name(used_var)) {
+        // Treat this variable as declared in the current scope.
+      } else {
+        parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
       }
-    } else if (is_current_scope_function_name(used_var)) {
-      // Treat this variable as declared in the current scope.
-    } else {
-      parent_scope.variables_used_in_descendant_scope.emplace_back(used_var);
     }
   }
   current_scope.variables_used_in_descendant_scope.clear();

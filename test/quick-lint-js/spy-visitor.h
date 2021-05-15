@@ -27,6 +27,10 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_enter_block_scope");
   }
 
+  void visit_enter_with_scope() {
+    this->visits.emplace_back("visit_enter_with_scope");
+  }
+
   void visit_enter_class_scope() {
     this->visits.emplace_back("visit_enter_class_scope");
   }
@@ -64,6 +68,10 @@ struct spy_visitor : public error_collector {
 
   void visit_exit_block_scope() {
     this->visits.emplace_back("visit_exit_block_scope");
+  }
+
+  void visit_exit_with_scope() {
+    this->visits.emplace_back("visit_exit_with_scope");
   }
 
   void visit_exit_class_scope() {

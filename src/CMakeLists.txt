@@ -29,6 +29,7 @@ quick_lint_js_add_library(
   assert.cpp
   buffering-error-reporter.cpp
   byte-buffer.cpp
+  c-api.cpp
   char8.cpp
   cli-location.cpp
   crash.cpp
@@ -61,6 +62,7 @@ quick_lint_js_add_library(
   quick-lint-js/buffering-error-reporter.h
   quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.h
+  quick-lint-js/c-api.h
   quick-lint-js/char8.h
   quick-lint-js/cli-location.h
   quick-lint-js/constant-divider.h
@@ -113,7 +115,6 @@ quick_lint_js_add_library(
   quick-lint-js/vim-location.h
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/vscode-error-reporter.h
-  quick-lint-js/vscode.h
   quick-lint-js/warning.h
   quick-lint-js/wasm-demo-error-reporter.h
   quick-lint-js/wasm-demo-location.h
@@ -126,7 +127,6 @@ quick_lint_js_add_library(
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   vscode-error-reporter.cpp
-  vscode.cpp
   wasm-demo-error-reporter.cpp
   wasm-demo-location.cpp
 )

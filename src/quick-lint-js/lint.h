@@ -27,12 +27,14 @@ class linter {
   explicit linter(error_reporter *error_reporter);
 
   void visit_enter_block_scope();
+  void visit_enter_with_scope();
   void visit_enter_class_scope();
   void visit_enter_for_scope();
   void visit_enter_function_scope();
   void visit_enter_function_scope_body();
   void visit_enter_named_function_scope(identifier);
   void visit_exit_block_scope();
+  void visit_exit_with_scope();
   void visit_exit_class_scope();
   void visit_exit_for_scope();
   void visit_exit_function_scope();
@@ -208,11 +210,12 @@ class linter {
   void visit_variable_use(identifier name, used_variable_kind);
 
   void propagate_variable_uses_to_parent_scope(
-      bool allow_variable_use_before_declaration, bool consume_arguments);
+      bool allow_variable_use_before_declaration, bool consume_arguments,
+      bool propagate_eval_use);
   template <class Scope>
   void propagate_variable_uses_to_parent_scope(
       Scope &parent_scope, bool allow_variable_use_before_declaration,
-      bool consume_arguments);
+      bool consume_arguments, bool propagate_eval_use);
 
   void propagate_variable_declarations_to_parent_scope();
 

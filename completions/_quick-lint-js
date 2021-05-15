@@ -1,0 +1,53 @@
+#compdef _quick-lint-js quick-lint-js
+
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+# This script is used to provide command line completion for
+# quick-lint-js when using zsh shell
+
+typeset -A opt_args
+
+function _quick-lint-js() {
+        local curcontext="$curcontext" state line
+        local -i ret=1
+        local -a args
+
+        args+=(
+        '(- *)'--help'[Print help message]'
+        '(- *)'--version'[Print version information]'
+        '(--lsp-server)*:file:_files'
+        '(--stdin --exit-fail-on --output-format *)'--lsp-server'[Run quick-lint-js in LSP server mode]'
+        '(--lsp-server)--stdin[Read standard input as a JavaScript file]'
+        '(--lsp-server)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: "all")]'
+        '(--lsp-server)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json]:format:->format'
+        '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
+
+        _arguments -C -S "${args[@]}" && ret=0
+
+        case "$state" in
+                format)
+                        formats=( 'vim-qflist-json' 'gnu-like' )
+                        _describe 'format' formats && ret=0
+                        ;;
+        esac
+        return ret
+}
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

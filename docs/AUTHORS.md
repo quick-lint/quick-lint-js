@@ -38,4 +38,7 @@ authored portions of quick-lint-js:
 * Matheus Sousa; msamuel@aluno.puc-rio.br; signed CLA-v1.md
 * Max Coplan; mchcopl@gmail.com; signed CLA-v1.md
 * Peter Khalil; https://github.com/m5tfi; signed CLA-v1.md
+* Shivam Mehta; sm.cse17@gmail.com; signed CLA-v1.md
 * catac; https://github.com/catac1; signed CLA-v1.md
+* emadflash; signed CLA-v1.md
+* wagner riffel; w@104d.net; signed CLA-v1.md

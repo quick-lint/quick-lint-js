@@ -25,21 +25,8 @@ def main():
             "docs/cli.adoc",
         ]
     )
-    subprocess.check_output(
-        [
-            "asciidoctor",
-            "-b",
-            "html5",
-            "-D",
-            "website/",
-            "-o",
-            "cli/index.html",
-            "docs/cli.adoc",
-        ]
-    )
 
     process_man()
-    process_html()
 
 
 def process_man():
@@ -75,85 +62,6 @@ def process_man():
 .\\" along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 """
     contents = top + contents + bottom
-
-    file_path.write_text(contents)
-
-
-def process_html():
-    file_path = pathlib.Path("website/cli/index.html")
-    contents = file_path.read_text()
-
-    top = """<!-- Copyright (C) 2020  Matthew Glazar -->
-<!-- See end of file for extended copyright information. -->
-<!-- This file was generated using generate-cli-docs. -->
-"""
-    bottom = """
-
-<!--
-quick-lint-js finds bugs in JavaScript programs.
-Copyright (C) 2020  Matthew Glazar
-
-This file is part of quick-lint-js.
-
-quick-lint-js is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-quick-lint-js is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
--->
-"""
-    head = """<head>
-  <title>quick-lint-js: CLI documentation</title>
-  <meta charset="utf-8" />
-  <link href="../main.css" rel="stylesheet" />
-</head>"""
-    header = """<header>
-  <h1><a href="..">quick-lint-js</a></h1>
-  <nav>
-    <ul>
-      <li class="side-bar-only"><a href="..">Home</a></li>
-      <li><a href="../install/">Install</a></li>
-      <li><a href="../demo/">Try online</a></li>
-      <li><a href="../errors/">Error docs</a></li>
-      <li class="current-page">CLI docs</li>
-      <li><a href="../benchmarks/">Benchmarks</a></li>
-      <li>
-        <a href="https://github.com/quick-lint/quick-lint-js"
-          >Code on GitHub</a
-        >
-      </li>
-    </ul>
-  </nav>
-</header>
-<p>This page documents the quick-lint-js command-line interface (CLI).</p>"""
-    footer = """<footer>
-  <nav>
-    <ul>
-      <li><a href="..">quick-lint-js home page</a></li>
-      <li><a href="../hiring/">we're hiring! get paid to code</a></li>
-      <li><a href="../benchmarks/">benchmarks vs other linters</a></li>
-      <li><a href="../demo/">try quick-lint-js in your browser</a></li>
-      <li>
-        <a href="https://github.com/quick-lint/quick-lint-js">source code on GitHub</a>
-      </li>
-      <li><a href="../license/">copyright and license information</a></li>
-    </ul>
-  </nav>
-</footer>"""
-
-    l = len("<!DOCTYPE html>")
-    contents = contents[: l + 1] + top + contents[l + 1 :] + bottom
-    contents = re.sub(r"(?s)<head>(.*?)</head>", head, contents)
-    contents = re.sub(r"(?s)<h1>(.*?)</h1>", header, contents)
-    contents = re.sub(r'(?s)<div id="footer">(.*?)</div>\n</div>', footer, contents)
-    contents = contents.replace('<body class="article">', '<body class="article side-bar-nav">')
 
     file_path.write_text(contents)
 

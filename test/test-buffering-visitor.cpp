@@ -34,12 +34,14 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   buffering_visitor v(new_delete_resource());
   v.visit_end_of_module();
   v.visit_enter_block_scope();
+  v.visit_enter_with_scope();
   v.visit_enter_class_scope();
   v.visit_enter_for_scope();
   v.visit_enter_named_function_scope(identifier_of(function_name));
   v.visit_enter_function_scope();
   v.visit_enter_function_scope_body();
   v.visit_exit_block_scope();
+  v.visit_exit_with_scope();
   v.visit_exit_class_scope();
   v.visit_exit_for_scope();
   v.visit_exit_function_scope();
@@ -57,12 +59,14 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   EXPECT_THAT(spy.visits,
               ElementsAre("visit_end_of_module",               //
                           "visit_enter_block_scope",           //
+                          "visit_enter_with_scope",            //
                           "visit_enter_class_scope",           //
                           "visit_enter_for_scope",             //
                           "visit_enter_named_function_scope",  //
                           "visit_enter_function_scope",        //
                           "visit_enter_function_scope_body",   //
                           "visit_exit_block_scope",            //
+                          "visit_exit_with_scope",             //
                           "visit_exit_class_scope",            //
                           "visit_exit_for_scope",              //
                           "visit_exit_function_scope",         //

@@ -1,0 +1,10 @@
+{
+  "name": "quick-lint-js-wasm",
+  "version": "0.0.0",
+  "scripts": {
+    "fmt": "prettier --write '*.js' '*.json'"
+  },
+  "devDependencies": {
+    "prettier": "2.1.2"
+  }
+}
