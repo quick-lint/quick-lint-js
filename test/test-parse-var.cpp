@@ -498,6 +498,21 @@ TEST(test_parse, parse_invalid_let) {
                             compound_assignment_operator),  //
             declaring_token, offsets_matcher(&code, 0, u8"let"))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x new Array;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // Array
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
 }
 
 TEST(test_parse, parse_invalid_var) {

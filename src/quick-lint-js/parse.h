@@ -3006,6 +3006,19 @@ class parser {
           break;
         }
 
+        case token_type::kw_new: {
+          const char8 *here = this->lexer_.end_of_previous_token();
+          this->error_reporter_->report(error_missing_equal_after_variable{
+              .expected_equal = source_code_span(here, here),
+          });
+          expression *ast = this->parse_expression_remainder(
+              variable,
+              precedence{.commas = false, .in_operator = allow_in_operator});
+          this->lexer_.insert_semicolon();
+          this->visit_binding_element(ast, v, declaration_kind);
+          break;
+        }
+
         // let x += 42;  // Invalid.
         case token_type::ampersand_equal:
         case token_type::circumflex_equal:
