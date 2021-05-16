@@ -20,6 +20,7 @@ In addition to the copyright holders listed above, the following contributors
 authored portions of quick-lint-js:
 
 * A-thanasios; https://github.com/A-thanasios; signed CLA-v1.md
+* AidenThing; signed CLA-v1.md
 * Alessandro De Bellis; aledeb95@gmail.com; signed CLA-v1.md
 * Angel Avila; angel.j.avila@gmail.com; signed CLA-v1.md
 * Biel A. P. (0xbiel); bielp07@gmail.com; signed CLA-v1.md
@@ -29,6 +30,7 @@ authored portions of quick-lint-js:
 * Francis Laniel; signed CLA-v1.md
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
 * Himanshu; himansingh24@gmail.com; signed CLA-v1.md
+* Jan Poonthong; janpoonthong628@gmail.com; signed CLA-v1.md
 * Jesus Gil; jesusgil.dev@gmail.com; signed CLA-v1.md
 * Jesús Eduardo; jeduardo.fuentes@alumnos.udg.mx; signed CLA-v1.md
 * Jimmy Qiu; bottlewater072@gmail.com; signed CLA-v1.md
