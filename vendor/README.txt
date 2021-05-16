@@ -52,6 +52,7 @@ applications, and Google Mock, its companion mocking framework.
 The following patches have been manually applied:
 
 * googletest-result-of.patch
+* googletest-werror.patch
 
 Copyright: Copyright 2008, Google Inc.
 Download URL: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
