@@ -47,23 +47,17 @@
         text-decoration: none;
       }
 
-      @media (prefers-color-scheme: dark) {
-        .unicode-bom:before {
-            content: "BOM";
-            border: 1px solid red;
-            background-color: #884444;
-            border-radius: 5px;
-            padding: 1px 3px;
-          }
+      .unicode-bom:before {
+        content: "BOM";
+        background-color: #edbf66;
+        border: 1px solid red;
+        border-radius: 5px;
+        padding: 1px 3px;
       }
 
-      @media (prefers-color-scheme: light) {
+      @media (prefers-color-scheme: dark) {
         .unicode-bom:before {
-          content: "BOM";
-          border: 1px solid red;
-          background-color: #edbf66;
-          border-radius: 5px;
-          padding: 1px 3px;
+          background-color: #884444;
         }
       }
     </style>
