@@ -135,6 +135,17 @@ void vim_qflist_json_error_formatter::write_after_message(
     this->output_ << '"';
   }
   this->output_ << '}';
+
+  // If we don't flush, output is buffered. A lot of messages (e.g. over 4 KiB)
+  // will fill the buffer and possibly force a flush in the middle of a message.
+  // Then, a crash in the future (e.g. an assertion failure) will leave an
+  // incomplete message written to the client. The client will have a hard time
+  // extracting partial information from the incomplete JSON.
+  //
+  // If we flush now, it's less likely that a message ends up on the client. The
+  // client can easily recover by adding a '}' at the end of the input to make
+  // the incomplete JSON valid.
+  this->output_.flush();
 }
 }
 
