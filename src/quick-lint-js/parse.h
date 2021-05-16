@@ -741,9 +741,18 @@ class parser {
     }
     case expression_kind::_typeof: {
       expression *child = ast->child_0();
-      if (child->kind() == expression_kind::variable) {
+      switch (child->kind()) {
+      case expression_kind::conditional: {
+        if (child->child_0()->kind() == expression_kind::variable) {
+          v.visit_variable_typeof_use(child->child_0()->variable_identifier());
+        }
+        break;
+      }
+      case expression_kind::variable: {
         v.visit_variable_typeof_use(child->variable_identifier());
-      } else {
+        break;
+      }
+      default:
         this->visit_expression(child, v, context);
       }
       break;
