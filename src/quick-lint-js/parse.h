@@ -741,18 +741,9 @@ class parser {
     }
     case expression_kind::_typeof: {
       expression *child = ast->child_0();
-      switch (child->kind()) {
-      case expression_kind::conditional: {
-        if (child->child_0()->kind() == expression_kind::variable) {
-          v.visit_variable_typeof_use(child->child_0()->variable_identifier());
-        }
-        break;
-      }
-      case expression_kind::variable: {
+      if (child->kind() == expression_kind::variable) {
         v.visit_variable_typeof_use(child->variable_identifier());
-        break;
-      }
-      default:
+      } else {
         this->visit_expression(child, v, context);
       }
       break;
@@ -3267,6 +3258,7 @@ class parser {
     // If true, parse unexpected trailing identifiers as part of the expression
     // (and emit an error).
     bool trailing_identifiers = false;
+    bool is_typeof = false;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
