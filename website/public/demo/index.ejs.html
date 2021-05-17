@@ -130,56 +130,7 @@ console.log(`Welcome, ${ocupation}!`);
 </textarea
       >
 
-      <script type="module">
-        import { markEditorText } from "./editor.mjs";
-        import { loadQuickLintJS } from "./quick-lint-js.mjs";
-
-        let codeInputElement = document.getElementById("code-input");
-        let shadowCodeInputElement =
-          document.getElementById("shadow-code-input");
-
-        codeInputElement.addEventListener("scroll", (event) => {
-          synchronizeScrolling();
-        });
-        synchronizeContent();
-
-        new ResizeObserver(synchronizeSize).observe(codeInputElement);
-
-        loadQuickLintJS()
-          .then((quickLintJS) => {
-            function lintAndUpdate() {
-              synchronizeContent();
-
-              // TODO(strager): On crash, show the error to the user.
-              let input = codeInputElement.value;
-              let marks = quickLintJS.parseAndLint(input);
-              markEditorText(shadowCodeInputElement, window, marks);
-            }
-            codeInputElement.addEventListener("input", (event) => {
-              lintAndUpdate();
-            });
-            lintAndUpdate();
-          })
-          .catch((error) => {
-            // TODO(strager): Show this error to the user.
-            console.error(error);
-          });
-
-        function synchronizeContent() {
-          let input = codeInputElement.value;
-          shadowCodeInputElement.textContent = input + "\n\n\n";
-        }
-
-        function synchronizeScrolling() {
-          shadowCodeInputElement.scrollLeft = codeInputElement.scrollLeft;
-          shadowCodeInputElement.scrollTop = codeInputElement.scrollTop;
-        }
-
-        function synchronizeSize() {
-          shadowCodeInputElement.style.width = codeInputElement.style.width;
-          shadowCodeInputElement.style.height = codeInputElement.style.height;
-        }
-      </script>
+      <script type="module" src="demo.mjs"></script>
     </main>
 
     <footer>
