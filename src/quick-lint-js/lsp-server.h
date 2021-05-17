@@ -8,9 +8,10 @@
 #include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/lsp-document.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
@@ -63,11 +64,11 @@ class linting_lsp_server_handler {
   void handle_text_document_did_open_notification(
       ::simdjson::dom::element& request, byte_buffer& notification_json);
 
-  static void apply_document_changes(lsp_document& document,
+  static void apply_document_changes(document<lsp_locator>& doc,
                                      ::simdjson::dom::array& changes);
 
   Linter linter_;
-  std::unordered_map<string8, lsp_document> documents_;
+  std::unordered_map<string8, document<lsp_locator>> documents_;
   bool shutdown_requested_ = false;
 };
 

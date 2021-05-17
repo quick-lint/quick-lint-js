@@ -6,24 +6,27 @@
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/lsp-document.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-lsp_document::lsp_document()
+template <class Locator>
+document<Locator>::document()
     : locator_(&this->content_buffers_[this->active_content_buffer_]) {}
 
-void lsp_document::set_text(string8_view new_text) {
+template <class Locator>
+void document<Locator>::set_text(string8_view new_text) {
   padded_string& content = this->content_buffers_[this->active_content_buffer_];
   content.resize(narrow_cast<int>(new_text.size()));
   std::memcpy(content.data(), new_text.data(), new_text.size());
-  this->locator_ = lsp_locator(&content);
+  this->locator_ = Locator(&content);
 }
 
-void lsp_document::replace_text(lsp_range range,
-                                string8_view replacement_text) {
+template <class Locator>
+void document<Locator>::replace_text(typename Locator::range_type range,
+                                     string8_view replacement_text) {
   padded_string& old_content =
       this->content_buffers_[this->active_content_buffer_];
   padded_string& new_content =
@@ -45,11 +48,17 @@ void lsp_document::replace_text(lsp_range range,
   this->active_content_buffer_ = 1 - this->active_content_buffer_;
 }
 
-padded_string_view lsp_document::string() noexcept {
+template <class Locator>
+padded_string_view document<Locator>::string() noexcept {
   return &this->content_buffers_[this->active_content_buffer_];
 }
 
-const lsp_locator& lsp_document::locator() noexcept { return this->locator_; }
+template <class Locator>
+const Locator& document<Locator>::locator() noexcept {
+  return this->locator_;
+}
+
+template class document<lsp_locator>;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

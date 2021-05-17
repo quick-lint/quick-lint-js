@@ -3,111 +3,125 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/lsp-document.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/warning.h>
+
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 
 namespace quick_lint_js {
 namespace {
-TEST(test_lsp_document, set_text) {
-  lsp_document document;
-  document.set_text(u8"content goes here"_sv);
-  EXPECT_EQ(document.string(), u8"content goes here"_sv);
+template <typename Locator>
+class test_document : public testing::Test {};
+
+using document_locator_types = ::testing::Types<lsp_locator>;
+TYPED_TEST_SUITE(test_document, document_locator_types,
+                 ::testing::internal::DefaultNameGenerator);
+
+TYPED_TEST(test_document, set_text) {
+  using Locator = TypeParam;
+  document<Locator> doc;
+  doc.set_text(u8"content goes here"_sv);
+  EXPECT_EQ(doc.string(), u8"content goes here"_sv);
 }
 
-TEST(test_lsp_document, set_text_multiple_times) {
-  lsp_document document;
-  document.set_text(u8"content goes here"_sv);
-  document.set_text(u8"newer content goes here"_sv);
-  EXPECT_EQ(document.string(), u8"newer content goes here"_sv);
-  document.set_text(u8"finally"_sv);
-  EXPECT_EQ(document.string(), u8"finally"_sv);
+TYPED_TEST(test_document, set_text_multiple_times) {
+  using Locator = TypeParam;
+  document<Locator> doc;
+  doc.set_text(u8"content goes here"_sv);
+  doc.set_text(u8"newer content goes here"_sv);
+  EXPECT_EQ(doc.string(), u8"newer content goes here"_sv);
+  doc.set_text(u8"finally"_sv);
+  EXPECT_EQ(doc.string(), u8"finally"_sv);
 }
 
-TEST(test_lsp_document,
+TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_same_length) {
-  lsp_document document;
-  document.set_text(u8"content goes here"_sv);
-  document.replace_text(
+  document<lsp_locator> doc;
+  doc.set_text(u8"content goes here"_sv);
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 8},
           .end = {.line = 0, .character = 12},
       },
       u8"were"_sv);
-  EXPECT_EQ(document.string(), u8"content were here"_sv);
+  EXPECT_EQ(doc.string(), u8"content were here"_sv);
 }
 
-TEST(test_lsp_document,
+TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_smaller_length) {
-  lsp_document document;
-  document.set_text(u8"content goes here"_sv);
-  document.replace_text(
+  document<lsp_locator> doc;
+  doc.set_text(u8"content goes here"_sv);
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 8},
           .end = {.line = 0, .character = 12},
       },
       u8"was"_sv);
-  EXPECT_EQ(document.string(), u8"content was here"_sv);
+  EXPECT_EQ(doc.string(), u8"content was here"_sv);
 }
 
-TEST(test_lsp_document,
+TEST(test_document_lsp_locator,
      set_text_range_single_line_in_middle_of_document_larger_length) {
-  lsp_document document;
-  document.set_text(u8"content goes here"_sv);
-  document.replace_text(
+  document<lsp_locator> doc;
+  doc.set_text(u8"content goes here"_sv);
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 8},
           .end = {.line = 0, .character = 12},
       },
       u8"might go somewhere"_sv);
-  EXPECT_EQ(document.string(), u8"content might go somewhere here"_sv);
+  EXPECT_EQ(doc.string(), u8"content might go somewhere here"_sv);
 }
 
-TEST(test_lsp_document, set_text_range_delete_line_excluding_line_terminator) {
-  lsp_document document;
-  document.set_text(u8"hello\nworld\n"_sv);
-  document.replace_text(
+TEST(test_document_lsp_locator,
+     set_text_range_delete_line_excluding_line_terminator) {
+  document<lsp_locator> doc;
+  doc.set_text(u8"hello\nworld\n"_sv);
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 0},
           .end = {.line = 0, .character = 1000},
       },
       u8""_sv);
-  EXPECT_EQ(document.string(), u8"\nworld\n"_sv);
+  EXPECT_EQ(doc.string(), u8"\nworld\n"_sv);
 }
 
-TEST(test_lsp_document, set_text_range_delete_line_including_line_terminator) {
-  lsp_document document;
-  document.set_text(u8"hello\nworld\n"_sv);
-  document.replace_text(
+TEST(test_document_lsp_locator,
+     set_text_range_delete_line_including_line_terminator) {
+  document<lsp_locator> doc;
+  doc.set_text(u8"hello\nworld\n"_sv);
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 0},
           .end = {.line = 1, .character = 0},
       },
       u8""_sv);
-  EXPECT_EQ(document.string(), u8"world\n"_sv);
+  EXPECT_EQ(doc.string(), u8"world\n"_sv);
 }
 
-TEST(test_lsp_document, replace_text_multiple_times) {
-  lsp_document document;
-  document.set_text(u8"content\ngoes\nhere"_sv);
-  document.replace_text(
+TEST(test_document_lsp_locator, replace_text_multiple_times) {
+  document<lsp_locator> doc;
+  doc.set_text(u8"content\ngoes\nhere"_sv);
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 7},
           .end = {.line = 1, .character = 3},
       },
       u8"I wa"_sv);
-  document.replace_text(
+  doc.replace_text(
       lsp_range{
           .start = {.line = 1, .character = 0},
           .end = {.line = 1, .character = 0},
       },
       u8"somew"_sv);
-  document.replace_text(
+  doc.replace_text(
       lsp_range{
           .start = {.line = 0, .character = 0},
           .end = {.line = 0, .character = 7},
       },
       u8""_sv);
-  EXPECT_EQ(document.string(), u8"I was\nsomewhere"_sv);
+  EXPECT_EQ(doc.string(), u8"I was\nsomewhere"_sv);
 }
 }
 }

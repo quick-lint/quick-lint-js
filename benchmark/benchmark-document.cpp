@@ -4,10 +4,11 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/lex.h>
-#include <quick-lint-js/lsp-document.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <random>
@@ -18,7 +19,8 @@ namespace {
 string8_view sentence = u8"The quick brown fox jumps over the lazy dog.";
 
 // Simulate opening a document and typing a sentence.
-void benchmark_create_and_insert_single_characters(::benchmark::State &state) {
+void benchmark_lsp_create_and_insert_single_characters(
+    ::benchmark::State &state) {
   int line_count = 400;
 
   std::mt19937_64 rng;
@@ -33,23 +35,23 @@ void benchmark_create_and_insert_single_characters(::benchmark::State &state) {
       line_lengths[narrow_cast<std::size_t>(insertion_line)] / 2;
 
   for (auto _ : state) {
-    lsp_document document;
-    document.set_text(base_code_view);
+    document<lsp_locator> doc;
+    doc.set_text(base_code_view);
 
     for (int i = 0; i < narrow_cast<int>(sentence.size()); ++i) {
       int insertion_character = initial_insertion_character + i;
-      document.replace_text(
+      doc.replace_text(
           lsp_range{
               .start = {.line = insertion_line,
                         .character = insertion_character},
               .end = {.line = insertion_line, .character = insertion_character},
           },
           sentence.substr(narrow_cast<std::size_t>(i), 1));
-      ::benchmark::DoNotOptimize(document.string());
+      ::benchmark::DoNotOptimize(doc.string());
     }
   }
 }
-BENCHMARK(benchmark_create_and_insert_single_characters);
+BENCHMARK(benchmark_lsp_create_and_insert_single_characters);
 }  // namespace
 }  // namespace quick_lint_js
 

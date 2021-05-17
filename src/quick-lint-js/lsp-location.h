@@ -32,6 +32,8 @@ class lsp_locator {
   using offset_type = int;
 
  public:
+  using range_type = lsp_range;
+
   explicit lsp_locator(padded_string_view input) noexcept;
 
   lsp_range range(source_code_span) const;

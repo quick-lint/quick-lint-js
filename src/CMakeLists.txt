@@ -33,6 +33,7 @@ quick_lint_js_add_library(
   char8.cpp
   cli-location.cpp
   crash.cpp
+  document.cpp
   error-collector.cpp
   error-formatter.cpp
   error-list.cpp
@@ -48,7 +49,6 @@ quick_lint_js_add_library(
   lint.cpp
   locale.cpp
   location.cpp
-  lsp-document.cpp
   lsp-error-reporter.cpp
   lsp-location.cpp
   lsp-message-parser.cpp
@@ -68,6 +68,7 @@ quick_lint_js_add_library(
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/document.h
   quick-lint-js/error-collector.h
   quick-lint-js/error-formatter.h
   quick-lint-js/error-list.h
@@ -87,7 +88,6 @@ quick_lint_js_add_library(
   quick-lint-js/lint.h
   quick-lint-js/locale.h
   quick-lint-js/location.h
-  quick-lint-js/lsp-document.h
   quick-lint-js/lsp-endpoint.h
   quick-lint-js/lsp-error-reporter.h
   quick-lint-js/lsp-location.h

@@ -32,6 +32,7 @@ quick_lint_js_add_executable(
   test-cli-location.cpp
   test-constant-divider.cpp
   test-crash.cpp
+  test-document.cpp
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
@@ -44,7 +45,6 @@ quick_lint_js_add_executable(
   test-lint-parse.cpp
   test-lint.cpp
   test-locale.cpp
-  test-lsp-document.cpp
   test-lsp-endpoint.cpp
   test-lsp-error-reporter.cpp
   test-lsp-location.cpp

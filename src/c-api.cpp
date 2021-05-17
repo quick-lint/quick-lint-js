@@ -4,9 +4,9 @@
 #include <cstddef>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
-#include <quick-lint-js/lsp-document.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
@@ -41,7 +41,7 @@ struct qljs_parser {
   }
 
  private:
-  quick_lint_js::lsp_document document_;
+  quick_lint_js::document<quick_lint_js::lsp_locator> document_;
   quick_lint_js::vscode_error_reporter error_reporter_;
 };
 

@@ -17,8 +17,10 @@ QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-error-reporter.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse.h>
@@ -131,16 +133,16 @@ void linting_lsp_server_handler<Linter>::
   if (!url_is_lintable) {
     return;
   }
-  lsp_document& document = document_it->second;
+  document<lsp_locator>& doc = document_it->second;
 
   ::simdjson::dom::array changes;
   if (request["params"]["contentChanges"].get(changes) !=
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  this->apply_document_changes(document, changes);
+  this->apply_document_changes(doc, changes);
   this->linter_.lint_and_get_diagnostics_notification(
-      document.string(), text_document, notification_json);
+      doc.string(), text_document, notification_json);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -169,17 +171,17 @@ void linting_lsp_server_handler<Linter>::
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  lsp_document& document =
+  document<lsp_locator>& doc =
       this->documents_[string8(make_string_view(text_document["uri"]))];
 
-  document.set_text(make_string_view(text_document["text"]));
+  doc.set_text(make_string_view(text_document["text"]));
   this->linter_.lint_and_get_diagnostics_notification(
-      document.string(), text_document, notification_json);
+      doc.string(), text_document, notification_json);
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::apply_document_changes(
-    lsp_document& document, ::simdjson::dom::array& changes) {
+    document<lsp_locator>& doc, ::simdjson::dom::array& changes) {
   for (::simdjson::dom::element change : changes) {
     string8_view change_text = make_string_view(change["text"]);
     ::simdjson::dom::object raw_range;
@@ -198,9 +200,9 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
                   .character = get_int(raw_range["end"]["character"]),
               },
       };
-      document.replace_text(range, change_text);
+      doc.replace_text(range, change_text);
     } else {
-      document.set_text(change_text);
+      doc.set_text(change_text);
     }
   }
 }

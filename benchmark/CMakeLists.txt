@@ -22,6 +22,10 @@ quick_lint_js_add_benchmark_executable(
   benchmark-cli-location.cpp
 )
 quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-document
+  benchmark-document.cpp
+)
+quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lex
   benchmark-lex.cpp
 )
@@ -32,10 +36,6 @@ quick_lint_js_add_benchmark_executable(
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lsp
   benchmark-lsp.cpp
-)
-quick_lint_js_add_benchmark_executable(
-  quick-lint-js-benchmark-lsp-document
-  benchmark-lsp-document.cpp
 )
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-lsp-location
