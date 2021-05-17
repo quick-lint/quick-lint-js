@@ -96,6 +96,12 @@
         }
       }
 
+      /* HACK(strager): Work around bug in EdgeHTML 13.10586 causing the Windows
+         column of the operating systems column group to be super wide. */
+      img.os-logo[src$="/windows.svg"] {
+        width: 1.2em;
+      }
+
       /* Make the entire cell clickable. (How does this even work???) */
       .install-comparison table {
         height: 0;
