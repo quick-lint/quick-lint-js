@@ -8,16 +8,36 @@ import { Router, isHiddenPath } from "./router.mjs";
 
 export async function makeBuildInstructionsAsync({
   wwwRootPath,
+  esbuildBundles = {},
   htmlRedirects = {},
 }) {
   let router = new Router({
     wwwRootPath: wwwRootPath,
+    esbuildBundles: esbuildBundles,
     htmlRedirects: htmlRedirects,
   });
   let instructions = [];
+  await makeBuildInstructionsForESBuildBundlesAsync(router, instructions);
   await makeBuildInstructionsForHTMLRedirectsAsync(router, instructions);
   await makeBuildInstructionsImplAsync(router, instructions, "");
   return instructions;
+}
+
+async function makeBuildInstructionsForESBuildBundlesAsync(
+  router,
+  instructions
+) {
+  for (let [uri, esbuildConfig] of Object.entries(router.esbuildBundles)) {
+    assert.deepStrictEqual(await router.classifyFileRouteAsync(uri), {
+      type: "esbuild",
+      esbuildConfig: esbuildConfig,
+    });
+    instructions.push({
+      type: "esbuild",
+      bundlePath: relativeURIToRelativePath(uri),
+      esbuildConfig: esbuildConfig,
+    });
+  }
 }
 
 async function makeBuildInstructionsForHTMLRedirectsAsync(
@@ -32,7 +52,7 @@ async function makeBuildInstructionsForHTMLRedirectsAsync(
     // TODO(strager): What if redirectFrom is something like "/foobar/"?
     instructions.push({
       type: "html-redirect",
-      htmlPath: redirectFrom.replace(/^\//, ""),
+      htmlPath: relativeURIToRelativePath(redirectFrom),
       redirectTargetURL: redirectTo,
     });
   }
@@ -118,6 +138,10 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
       });
     }
   }
+}
+
+function relativeURIToRelativePath(uri) {
+  return uri.replace(/^\//, "");
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

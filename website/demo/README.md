@@ -4,17 +4,16 @@ To build the demo, install the [emscripten SDK][emscripten-sdk] and
 [Ninja][], then run the following commands:
 
     $ cd wasm
-    $ yarn
     $ emcmake cmake -S .. -B build-emscripten -G Ninja -DCMAKE_BUILD_TYPE=Release
-    $ emmake ninja -C build-emscripten quick-lint-js-vscode quick-lint-js-vscode-licenses quick-lint-js-wasm-mjs
+    $ emmake ninja -C build-emscripten quick-lint-js-vscode quick-lint-js-vscode-licenses
+    $ emmake cmake --install build-emscripten --component vscode --prefix .
     $ emmake cmake --install build-emscripten --component vscode --prefix ../website/public/demo
-    $ emmake cmake --install build-emscripten --component wasm --prefix ../website/public/demo
 
 To run the demo on your own machine, execute the build instructions above, then
 start the [local development web server](../README.md#Developing):
 
     $ cd website
-    $ yarn
+    $ yarn install --force
     $ yarn start
     Server running: http://127.0.0.1:9001/
 

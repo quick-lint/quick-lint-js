@@ -8,6 +8,12 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 export let websiteConfig = {
+  esbuildBundles: {
+    "/demo/demo.bundled.mjs": {
+      entryPoints: ["/demo/demo.mjs"],
+      external: ["fs", "path"],
+    },
+  },
   htmlRedirects: {
     "/cli.html": "cli/",
     "/hiring.html": "hiring/",

@@ -5,12 +5,18 @@ import ejs from "ejs";
 import express from "express";
 import fs from "fs";
 import mime from "mime";
+import os from "os";
 import path from "path";
 import { Router, makeHTMLRedirect } from "./router.mjs";
 
-export function makeServer({ htmlRedirects, wwwRootPath }) {
+export function makeServer({
+  esbuildBundles = {},
+  htmlRedirects = {},
+  wwwRootPath,
+}) {
   let router = new Router({
     wwwRootPath: wwwRootPath,
+    esbuildBundles: esbuildBundles,
     htmlRedirects: htmlRedirects,
   });
 
@@ -73,7 +79,7 @@ export function makeServer({ htmlRedirects, wwwRootPath }) {
         response.end();
         return;
 
-      case "static":
+      case "static": {
         let filePath = path.join(router.wwwRootPath, request.path);
         let content = await fs.promises.readFile(filePath);
         response.writeHeader(200, {
@@ -81,12 +87,40 @@ export function makeServer({ htmlRedirects, wwwRootPath }) {
         });
         response.end(content);
         return;
+      }
 
       case "redirect":
         let redirectTo = classification.redirectTargetURL;
         response.writeHeader(200, { "content-type": "text/html" });
         response.end(makeHTMLRedirect(request.path, redirectTo));
         return;
+
+      case "esbuild": {
+        let temporaryDirectory = await fs.promises.mkdtemp(
+          os.tmpdir() + path.sep
+        );
+        try {
+          let bundlePath = path.join(temporaryDirectory, "bundle.js");
+          try {
+            await router.runESBuildAsync(
+              classification.esbuildConfig,
+              bundlePath
+            );
+          } catch (error) {
+            response.writeHeader(500, { "content-type": "text/plain" });
+            response.end(error.stack);
+            return;
+          }
+          let content = await fs.promises.readFile(bundlePath);
+          response.writeHeader(200, {
+            "content-type": "application/javascript",
+          });
+          response.end(content);
+        } finally {
+          fs.promises.rmdir(temporaryDirectory, { recursive: true });
+        }
+        break;
+      }
 
       default:
         throw new Error(

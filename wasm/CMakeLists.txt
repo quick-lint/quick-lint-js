@@ -42,23 +42,6 @@ if (EMSCRIPTEN)
       RENAME copyright.txt
     )
   endif ()
-
-  add_custom_command(
-    OUTPUT quick-lint-js.mjs
-    COMMAND
-      "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.bin/esbuild"
-      "--outfile=${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.mjs"
-      --format=esm
-      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js.js"
-      DEPENDS quick-lint-js.js
-  )
-  add_custom_target(quick-lint-js-wasm-mjs DEPENDS quick-lint-js.mjs)
-  install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js.mjs"
-    COMPONENT wasm
-    DESTINATION "${VSCODE_DIST_DIR}"
-    EXCLUDE_FROM_ALL
-  )
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.

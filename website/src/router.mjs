@@ -2,14 +2,20 @@
 // See end of file for extended copyright information.
 
 import ejs from "ejs";
+import esbuild from "esbuild-wasm";
 import fs from "fs";
 import mime from "mime";
 import path from "path";
 
 export class Router {
-  constructor({ htmlRedirects, wwwRootPath }) {
+  constructor({ esbuildBundles, htmlRedirects, wwwRootPath }) {
+    this._esbuildBundles = esbuildBundles;
     this._htmlRedirects = htmlRedirects;
     this._wwwRootPath = wwwRootPath;
+  }
+
+  get esbuildBundles() {
+    return this._esbuildBundles;
   }
 
   get htmlRedirects() {
@@ -75,6 +81,9 @@ export class Router {
   // .type === "static": 200 OK
   // * .contentType: String content-type
   //
+  // .type === "esbuild": 200 OK
+  // * .esbuildConfig: Object to give to esbuild.build
+  //
   // .type === "redirect": 200 OK
   // * .redirectTargetURL: String relative URL
   async classifyFileRouteAsync(urlPath) {
@@ -84,6 +93,13 @@ export class Router {
         redirectTargetURL: this._htmlRedirects[urlPath],
       };
     }
+    if (Object.prototype.hasOwnProperty.call(this._esbuildBundles, urlPath)) {
+      return {
+        type: "esbuild",
+        esbuildConfig: this._esbuildBundles[urlPath],
+      };
+    }
+
     if (isHiddenPath(urlPath)) {
       return { type: "missing", why: "ignored" };
     }
@@ -133,6 +149,17 @@ export class Router {
     } finally {
       process.chdir(oldCWD);
     }
+  }
+
+  async runESBuildAsync(esbuildConfig, outputPath) {
+    await esbuild.build({
+      ...esbuildConfig,
+      bundle: true,
+      entryPoints: esbuildConfig.entryPoints.map((uri) =>
+        path.join(this._wwwRootPath, uri)
+      ),
+      outfile: outputPath,
+    });
   }
 }
 

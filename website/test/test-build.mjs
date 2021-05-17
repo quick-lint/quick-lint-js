@@ -269,6 +269,28 @@ describe("build", () => {
       },
     ]);
   });
+
+  describe("esbuildBundles", () => {
+    it("creates a file", async () => {
+      let buildInstructions = await makeBuildInstructionsAsync({
+        wwwRootPath,
+        esbuildBundles: {
+          "/app.bundled.js": {
+            entryPoints: ["/app.js"],
+          },
+        },
+      });
+      expect(buildInstructions).toEqual([
+        {
+          type: "esbuild",
+          bundlePath: "app.bundled.js",
+          esbuildConfig: {
+            entryPoints: ["/app.js"],
+          },
+        },
+      ]);
+    });
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.

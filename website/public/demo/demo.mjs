@@ -1,10 +1,8 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-import quickLintJS from "./dist/quick-lint-js.mjs";
+import { createProcessFactoryAsync } from "quick-lint-js-wasm/quick-lint-js.js";
 import { markEditorText } from "./editor.mjs";
-
-let { createProcessFactoryAsync } = quickLintJS;
 
 let codeInputElement = document.getElementById("code-input");
 let shadowCodeInputElement = document.getElementById("shadow-code-input");

@@ -48,6 +48,17 @@ async function mainAsync() {
         fs.promises.writeFile(outPath, out);
         break;
 
+      case "esbuild":
+        let bundlePath = path.join(targetDirectory, instruction.bundlePath);
+        console.log(
+          `esbuild: ${instruction.esbuildConfig.entryPoints
+            .map((uri) => path.relative("", path.join(router.wwwRootPath, uri)))
+            .join(", ")} -> ${path.relative("", bundlePath)}`
+        );
+        await fs.promises.mkdir(path.dirname(bundlePath), { recursive: true });
+        await router.runESBuildAsync(instruction.esbuildConfig, bundlePath);
+        break;
+
       case "html-redirect":
         let htmlPath = path.join(targetDirectory, instruction.htmlPath);
         await fs.promises.mkdir(path.dirname(htmlPath), { recursive: true });
