@@ -727,11 +727,25 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
     }
 
     expression* child = this->parse_expression(prec);
-    if (child->kind() == expression_kind::_invalid) {
+
+    switch (child->kind()) {
+    case expression_kind::arrow_function_with_statements:
+    case expression_kind::arrow_function_with_expression:
+      if (child->attributes() != function_attributes::async) {
+        this->error_reporter_->report(error_await_creating_arrow_function{
+            .await_operator = operator_span,
+        });
+      }
+      break;
+    case expression_kind::_invalid:
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
+      break;
+    default:
+      break;
     }
+
     return this->make_expression<expression::await>(child, operator_span);
   }
 }

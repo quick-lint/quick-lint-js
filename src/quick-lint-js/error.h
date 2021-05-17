@@ -67,6 +67,13 @@
              await_operator))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_await_creating_arrow_function, "E???",                             \
+      { source_code_span await_operator; },                                    \
+      .error(QLJS_TRANSLATABLE("'await' does not create an async arrow "       \
+                               "function; use 'async' instead [E???]"),        \
+             await_operator))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E005",                    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),       \
