@@ -1,8 +1,10 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+import quickLintJS from "./dist/quick-lint-js.mjs";
 import { markEditorText } from "./editor.mjs";
-import { loadQuickLintJS } from "./quick-lint-js.mjs";
+
+let { createProcessFactoryAsync } = quickLintJS;
 
 let codeInputElement = document.getElementById("code-input");
 let shadowCodeInputElement = document.getElementById("shadow-code-input");
@@ -14,14 +16,18 @@ synchronizeContent();
 
 new ResizeObserver(synchronizeSize).observe(codeInputElement);
 
-loadQuickLintJS()
-  .then((quickLintJS) => {
+createProcessFactoryAsync()
+  .then(async (processFactory) => {
+    let process = await processFactory.createProcessAsync();
+    let parser = await process.createParserForWebDemoAsync();
+
     function lintAndUpdate() {
       synchronizeContent();
 
       // TODO(strager): On crash, show the error to the user.
       let input = codeInputElement.value;
-      let marks = quickLintJS.parseAndLint(input);
+      parser.setText(input);
+      let marks = parser.lint();
       markEditorText(shadowCodeInputElement, window, marks);
     }
     codeInputElement.addEventListener("input", (event) => {

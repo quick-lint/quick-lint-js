@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+esbuild-wasm@^0.11.23:
+  version "0.11.23"
+  resolved "https://registry.yarnpkg.com/esbuild-wasm/-/esbuild-wasm-0.11.23.tgz#cb6a5321bbca722272f14fc2ee613af6fe9775db"
+  integrity sha512-onYqjaNTySWAhktjhVfDVGqqF/hq6QDOuRFLxLMDk3Ruo8q0Ar0W4D1nG0kzJn7YxuMKMKttyZsw9+uxfqPZcw==
+
 prettier@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.1.2.tgz#3050700dae2e4c8b67c4c3f666cdb8af405e1ce5"

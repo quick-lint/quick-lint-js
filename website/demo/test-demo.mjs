@@ -4,7 +4,6 @@
 import assert from "assert";
 import jsdom from "jsdom";
 import { markEditorText, sanitizeMarks } from "../public/demo/editor.mjs";
-import { loadQuickLintJS } from "../public/demo/quick-lint-js.mjs";
 
 let dom = new jsdom.JSDOM("");
 
@@ -140,18 +139,6 @@ describe("sanitizeMarks", () => {
   it("empty marks are preserved", () => {
     let marks = [{ begin: 6, end: 6 }];
     assert.deepStrictEqual(sanitizeMarks(marks), [{ begin: 6, end: 6 }]);
-  });
-});
-
-describe("parseAndLint", () => {
-  it("parse and lint returns errors", async () => {
-    let input = "undeclared_variable;\nanother_undeclared_variable;\n";
-    let qljs = await loadQuickLintJS();
-    let marks = qljs.parseAndLint(input);
-    assert.deepStrictEqual(marks, [
-      { begin: 0, end: "undeclared_variable".length },
-      { begin: 21, end: 21 + "another_undeclared_variable".length },
-    ]);
   });
 });
 

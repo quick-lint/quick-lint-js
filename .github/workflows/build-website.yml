@@ -22,13 +22,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: C++ configure
-        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -fno-rtti -fno-exceptions -flto'
+        run: |
+          (cd wasm && yarn)
+          emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -fno-rtti -fno-exceptions -flto'
       - name: C++ build
-        run: emmake cmake --build build --target quick-lint-js-web-demo quick-lint-js-web-demo-licenses quick-lint-js-vscode quick-lint-js-vscode-licenses
-      - name: C++ install (web demo)
-        run: emmake cmake --install build --component web-demo --prefix website/public/demo
-      - name: C++ install (quick-lint-js-wasm)
-        run: emmake cmake --install build --component vscode --prefix wasm
+        run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses quick-lint-js-wasm-mjs
+      - name: C++ install
+        run: |
+          emmake cmake --install build --component vscode --prefix wasm
+          emmake cmake --install build --component wasm --prefix website/public/demo
+          emmake cmake --install build --component web-demo --prefix website/public/demo
 
       - name: JS configure
         run: cd website && yarn

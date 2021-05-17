@@ -7,16 +7,24 @@
 // For build instructions, see plugin/vscode/BUILDING.md.
 let VSCODE_WASM_MODULE_PATH = "./dist/quick-lint-js-vscode.wasm";
 
-let assert = require("assert");
-let fs = require("fs");
-let path = require("path");
-
 async function createProcessFactoryAsync() {
-  let wasmCode = await fs.promises.readFile(
-    path.join(__dirname, VSCODE_WASM_MODULE_PATH)
-  );
-  let wasmModule = await WebAssembly.compile(wasmCode);
-  return new ProcessFactory(wasmModule);
+  if (typeof window === "undefined") {
+    // Node.js.
+    let fs = require("fs");
+    let path = require("path");
+
+    let wasmCode = await fs.promises.readFile(
+      path.join(__dirname, VSCODE_WASM_MODULE_PATH)
+    );
+    let wasmModule = await WebAssembly.compile(wasmCode);
+    return new ProcessFactory(wasmModule);
+  } else {
+    // Browser.
+    let wasmModule = await WebAssembly.compileStreaming(
+      fetch(VSCODE_WASM_MODULE_PATH)
+    );
+    return new ProcessFactory(wasmModule);
+  }
 }
 exports.createProcessFactoryAsync = createProcessFactoryAsync;
 
@@ -279,9 +287,8 @@ class ParserForWebDemo {
           new Uint8Array(this._process._heap, messagePtr)
         ),
         severity: rawDiagnosticsU32[i * ERROR._u32_size + ERROR.severity],
-        beginOffset:
-          rawDiagnosticsU32[i * ERROR._u32_size + ERROR.begin_offset],
-        endOffset: rawDiagnosticsU32[i * ERROR._u32_size + ERROR.end_offset],
+        begin: rawDiagnosticsU32[i * ERROR._u32_size + ERROR.begin_offset],
+        end: rawDiagnosticsU32[i * ERROR._u32_size + ERROR.end_offset],
       });
     }
     return diagnostics;
@@ -314,7 +321,11 @@ function encodeUTF8String(string, process) {
       string,
       new Uint8Array(process._heap, textUTF8Pointer, maxSize)
     );
-    assert.strictEqual(encodeResult.read, string.length);
+    if (encodeResult.read !== string.length) {
+      throw new Error(
+        `Assertion failure: expected encodeResult.read (${encodeResult.read}) to equal string.length (${string.length})`
+      );
+    }
     let textUTF8Size = encodeResult.written;
     return {
       pointer: textUTF8Pointer,
