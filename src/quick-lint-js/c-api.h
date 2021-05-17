@@ -10,22 +10,12 @@
 extern "C" {
 #endif
 
-typedef struct qljs_parser qljs_parser;
-
 typedef enum qljs_severity {
   qljs_severity_error = 1,
   qljs_severity_warning = 2,
 } qljs_severity;
 
-qljs_parser* qljs_create_parser(void);
-
-void qljs_destroy_parser(qljs_parser*);
-
-void qljs_replace_text(qljs_parser*, int start_line, int start_character,
-                       int end_line, int end_character,
-                       const void* replacement_text_utf_8,
-                       size_t replacement_text_byte_count);
-
+typedef struct qljs_vscode_parser qljs_vscode_parser;
 struct qljs_vscode_diagnostic {
   const char* message;
   const char* code;
@@ -36,7 +26,14 @@ struct qljs_vscode_diagnostic {
   int end_character;
 };
 
-const qljs_vscode_diagnostic* qljs_lint_vscode(qljs_parser*);
+qljs_vscode_parser* qljs_vscode_create_parser(void);
+void qljs_vscode_destroy_parser(qljs_vscode_parser*);
+void qljs_vscode_replace_text(qljs_vscode_parser*, int start_line,
+                              int start_character, int end_line,
+                              int end_character,
+                              const void* replacement_text_utf_8,
+                              size_t replacement_text_byte_count);
+const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser*);
 
 #if defined(__cplusplus)
 }

@@ -12,7 +12,7 @@ if (EMSCRIPTEN)
     quick-lint-js-vscode
     PRIVATE
     quick-lint-js-lib
-    "-sEXPORTED_FUNCTIONS=[\"_qljs_create_parser\",\"_qljs_destroy_parser\",\"_qljs_replace_text\",\"_qljs_lint_vscode\",\"_malloc\",\"_free\"]"
+    "-sEXPORTED_FUNCTIONS=[\"_qljs_vscode_create_parser\",\"_qljs_vscode_destroy_parser\",\"_qljs_vscode_replace_text\",\"_qljs_vscode_lint\",\"_malloc\",\"_free\"]"
     -sASSERTIONS=0
     -sSTANDALONE_WASM=1
     --no-entry

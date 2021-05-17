@@ -266,9 +266,9 @@ let tests = {
     let rng = new ExhaustiveRNG();
     injectFaults(
       (functionName) => {
-        // TODO(strager): Figure out why qljs_create_parser failures
+        // TODO(strager): Figure out why qljs_vscode_create_parser failures
         // cause this test to fail.
-        if (functionName !== "qljs_create_parser") {
+        if (functionName !== "qljs_vscode_create_parser") {
           let shouldCrash = rng.nextCoinFlip();
           coinFlips.push(shouldCrash);
           if (shouldCrash) {

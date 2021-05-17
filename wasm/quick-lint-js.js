@@ -115,20 +115,20 @@ class Process {
     this._malloc = wrap(wasmInstance.exports.malloc, "malloc");
     this._free = wrap(wasmInstance.exports.free, "free");
     this._createParser = wrap(
-      wasmInstance.exports.qljs_create_parser,
-      "qljs_create_parser"
+      wasmInstance.exports.qljs_vscode_create_parser,
+      "qljs_vscode_create_parser"
     );
     this._destroyParser = wrap(
-      wasmInstance.exports.qljs_destroy_parser,
-      "qljs_destroy_parser"
+      wasmInstance.exports.qljs_vscode_destroy_parser,
+      "qljs_vscode_destroy_parser"
     );
     this._replaceText = wrap(
-      wasmInstance.exports.qljs_replace_text,
-      "qljs_replace_text"
+      wasmInstance.exports.qljs_vscode_replace_text,
+      "qljs_vscode_replace_text"
     );
     this._lintVSCode = wrap(
-      wasmInstance.exports.qljs_lint_vscode,
-      "qljs_lint_vscode"
+      wasmInstance.exports.qljs_vscode_lint,
+      "qljs_vscode_lint"
     );
   }
 
