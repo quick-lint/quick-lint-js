@@ -33,7 +33,7 @@ jobs:
       - name: JS configure
         run: cd website && yarn
       - name: JS test
-        run: cd website && yarn test demo/test-demo.mjs
+        run: cd website && yarn test
 
       - name: build site
         run: cd website && yarn build
