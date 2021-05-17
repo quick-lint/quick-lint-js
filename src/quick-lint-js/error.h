@@ -70,7 +70,7 @@
       error_await_creating_arrow_function, "E???",                             \
       { source_code_span await_operator; },                                    \
       .error(QLJS_TRANSLATABLE("'await' does not create an async arrow "       \
-                               "function; use 'async' instead [E???]"),        \
+                               "function; use 'async' instead"),               \
              await_operator))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
