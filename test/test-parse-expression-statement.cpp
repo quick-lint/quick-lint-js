@@ -557,6 +557,22 @@ TEST(test_parse, parse_typeof_with_non_variable) {
   }
 }
 
+TEST(test_parse, parse_typeof_with_conditional_operator) {
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof x ? 10 : 20"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof x.y ? 10 : 20"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
+
 TEST(test_parse, parse_array_subscript) {
   {
     spy_visitor v = parse_and_visit_expression(u8"array[index]"_sv);

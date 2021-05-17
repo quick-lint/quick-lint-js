@@ -404,6 +404,13 @@ TEST_F(test_parse_expression, parse_typeof_unary_operator) {
   }
 }
 
+TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
+  {
+    expression* ast = this->parse_expression(u8"typeof o ? 10 : 20"_sv);
+    EXPECT_EQ(summarize(ast), "cond(typeof(var o), literal, literal)");
+  }
+}
+
 TEST_F(test_parse_expression, delete_unary_operator) {
   {
     test_parser p(u8"delete variable");
