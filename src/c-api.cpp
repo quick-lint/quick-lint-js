@@ -15,6 +15,17 @@
 struct qljs_vscode_parser {
  public:
   const qljs_vscode_diagnostic* lint() {
+    using namespace quick_lint_js;
+
+    this->error_reporter_.reset();
+    this->error_reporter_.set_input(this->document_.string(),
+                                    &this->document_.locator());
+    parser p(this->document_.string(), &this->error_reporter_);
+    linter l(&this->error_reporter_);
+    // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead
+    // of parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
+    p.parse_and_visit_module(l);
+
     return this->error_reporter_.get_diagnostics();
   }
 
@@ -29,15 +40,6 @@ struct qljs_vscode_parser {
             .end = {.line = end_line, .character = end_character},
         },
         replacement);
-
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
-    parser p(this->document_.string(), &this->error_reporter_);
-    linter l(&this->error_reporter_);
-    // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead
-    // of parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
-    p.parse_and_visit_module(l);
   }
 
  private:
