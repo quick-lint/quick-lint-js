@@ -25,7 +25,6 @@ struct qljs_vscode_diagnostic {
   int end_line;
   int end_character;
 };
-
 qljs_vscode_parser* qljs_vscode_create_parser(void);
 void qljs_vscode_destroy_parser(qljs_vscode_parser*);
 void qljs_vscode_replace_text(qljs_vscode_parser*, int start_line,
@@ -34,6 +33,21 @@ void qljs_vscode_replace_text(qljs_vscode_parser*, int start_line,
                               const void* replacement_text_utf_8,
                               size_t replacement_text_byte_count);
 const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser*);
+
+typedef struct qljs_web_demo_parser qljs_web_demo_parser;
+struct qljs_web_demo_diagnostic {
+  const char* message;
+  const char* code;
+  qljs_severity severity;
+  // Offsets count UTF-16 code units.
+  int begin_offset;
+  int end_offset;
+};
+qljs_web_demo_parser* qljs_web_demo_create_parser(void);
+void qljs_web_demo_destroy_parser(qljs_web_demo_parser*);
+void qljs_web_demo_set_text(qljs_web_demo_parser*, const void* text_utf_8,
+                            size_t text_byte_count);
+const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser*);
 
 #if defined(__cplusplus)
 }

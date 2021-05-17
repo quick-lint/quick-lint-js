@@ -73,7 +73,7 @@ class DocumentLinter {
       let factory = await processFactoryPromise;
       // TODO(strager): Reuse processes across documents.
       let process = await factory.createProcessAsync();
-      let parser = await process.createParserAsync();
+      let parser = await process.createParserForVSCodeAsync();
 
       if (this._state === DocumentLinterState.DISPOSED) {
         parser.dispose();
@@ -251,7 +251,7 @@ class DocumentLinter {
         // TODO(strager): Reuse processes across documents.
         let factory = await processFactoryPromise;
         let process = await factory.createProcessAsync();
-        let parser = await process.createParserAsync();
+        let parser = await process.createParserForVSCodeAsync();
 
         // BEGIN CRITICAL SECTION (no awaiting below)
         assert.strictEqual(this._state, DocumentLinterState.RECOVERING);

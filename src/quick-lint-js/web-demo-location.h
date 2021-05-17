@@ -20,6 +20,8 @@ struct web_demo_source_range {
 
 class web_demo_locator {
  public:
+  using range_type = web_demo_source_range;
+
   explicit web_demo_locator(padded_string_view input) noexcept;
 
   web_demo_source_range range(source_code_span) const;

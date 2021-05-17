@@ -7,14 +7,21 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_c_api, empty_document_has_no_diagnostics) {
+TEST(test_c_api_vscode, empty_document_has_no_diagnostics) {
   qljs_vscode_parser* p = qljs_vscode_create_parser();
   const qljs_vscode_diagnostic* diagnostics = qljs_vscode_lint(p);
   EXPECT_EQ(diagnostics[0].message, nullptr);
   qljs_vscode_destroy_parser(p);
 }
 
-TEST(test_c_api, lint_error_after_text_insertion) {
+TEST(test_c_api_web_demo, empty_document_has_no_diagnostics) {
+  qljs_web_demo_parser* p = qljs_web_demo_create_parser();
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  EXPECT_EQ(diagnostics[0].message, nullptr);
+  qljs_web_demo_destroy_parser(p);
+}
+
+TEST(test_c_api_vscode, lint_error_after_text_insertion) {
   qljs_vscode_parser* p = qljs_vscode_create_parser();
 
   const char8* document_text = u8"let x;let x;";
@@ -36,7 +43,25 @@ TEST(test_c_api, lint_error_after_text_insertion) {
   qljs_vscode_destroy_parser(p);
 }
 
-TEST(test_c_api, lint_new_error_after_second_text_insertion) {
+TEST(test_c_api_web_demo, lint_error_after_text_insertion) {
+  qljs_web_demo_parser* p = qljs_web_demo_create_parser();
+
+  const char8* document_text = u8"let x;let x;";
+  qljs_web_demo_set_text(p, document_text, strlen(document_text));
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  EXPECT_NE(diagnostics[0].message, nullptr);
+  EXPECT_EQ(diagnostics[1].message, nullptr);
+  EXPECT_EQ(diagnostics[1].code, nullptr);
+
+  EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
+  EXPECT_STREQ(diagnostics[0].code, "E034");
+  EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
+  EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
+
+  qljs_web_demo_destroy_parser(p);
+}
+
+TEST(test_c_api_vscode, lint_new_error_after_second_text_insertion) {
   qljs_vscode_parser* p = qljs_vscode_create_parser();
 
   const char8* document_text = u8"let x;";
@@ -65,7 +90,30 @@ TEST(test_c_api, lint_new_error_after_second_text_insertion) {
   qljs_vscode_destroy_parser(p);
 }
 
-TEST(test_c_api, diagnostic_severity) {
+TEST(test_c_api_web_demo, lint_new_error_after_second_text_insertion) {
+  qljs_web_demo_parser* p = qljs_web_demo_create_parser();
+
+  const char8* document_text = u8"let x;";
+  qljs_web_demo_set_text(p, document_text, strlen(document_text));
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  EXPECT_EQ(diagnostics[0].message, nullptr);
+
+  const char8* document_text_2 = u8"let x;let x;";
+  qljs_web_demo_set_text(p, document_text_2, strlen(document_text_2));
+  diagnostics = qljs_web_demo_lint(p);
+  EXPECT_NE(diagnostics[0].message, nullptr);
+  EXPECT_EQ(diagnostics[1].message, nullptr);
+  EXPECT_EQ(diagnostics[1].code, nullptr);
+
+  EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
+  EXPECT_STREQ(diagnostics[0].code, "E034");
+  EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
+  EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
+
+  qljs_web_demo_destroy_parser(p);
+}
+
+TEST(test_c_api_vscode, diagnostic_severity) {
   qljs_vscode_parser* p = qljs_vscode_create_parser();
 
   const char8* document_text = u8"let x;let x;\nundeclaredVariable;";

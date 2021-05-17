@@ -15,26 +15,43 @@ async function main() {
 
   let factory = await createProcessFactoryAsync();
   let qljsProcess = await factory.createProcessAsync();
-  let parser = await qljsProcess.createParserAsync();
+
+  let parserForVSCode = await qljsProcess.createParserForVSCodeAsync();
   try {
-    parser.replaceText(
+    parserForVSCode.replaceText(
       {
         start: { line: 0, character: 0 },
         end: { line: 0, character: 0 },
       },
       fileContent
     );
-    let diagnostics = parser.lint();
+    let diagnostics = parserForVSCode.lint();
 
     for (let diag of diagnostics) {
       console.log(
-        `${diag.startLine}:${diag.startCharacter}-${diag.endLine}:${
+        `vscode: ${diag.startLine}:${diag.startCharacter}-${diag.endLine}:${
           diag.endCharacter
         }: ${severityString(diag.severity)}: ${diag.message}`
       );
     }
   } finally {
-    parser.dispose();
+    parserForVSCode.dispose();
+  }
+
+  let parserForWebDemo = await qljsProcess.createParserForWebDemoAsync();
+  try {
+    parserForWebDemo.setText(fileContent);
+    let diagnostics = parserForWebDemo.lint();
+
+    for (let diag of diagnostics) {
+      console.log(
+        `web demo: ${diag.beginOffset}-${diag.endOffset}: ${severityString(
+          diag.severity
+        )}: ${diag.message}`
+      );
+    }
+  } finally {
+    parserForWebDemo.dispose();
   }
 }
 

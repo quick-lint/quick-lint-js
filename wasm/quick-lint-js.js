@@ -93,8 +93,8 @@ class ProcessFactory {
 
 // A WebAssembly instance.
 //
-// If a Process crashes, every Parser associated with its creating Process is
-// tainted and should not be used anymore.
+// If a Process crashes, every ParserForVSCode or ParserForWebDemo associated
+// with its creating Process is tainted and should not be used anymore.
 class Process {
   constructor(wasmInstance) {
     this._wasmInstance = wasmInstance;
@@ -115,27 +115,35 @@ class Process {
 
     this._malloc = wrap("malloc");
     this._free = wrap("free");
-    this._createParser = wrap("qljs_vscode_create_parser");
-    this._destroyParser = wrap("qljs_vscode_destroy_parser");
-    this._replaceText = wrap("qljs_vscode_replace_text");
-    this._lintVSCode = wrap("qljs_vscode_lint");
+    this._vscodeCreateParser = wrap("qljs_vscode_create_parser");
+    this._vscodeDestroyParser = wrap("qljs_vscode_destroy_parser");
+    this._vscodeLint = wrap("qljs_vscode_lint");
+    this._vscodeReplaceText = wrap("qljs_vscode_replace_text");
+    this._webDemoCreateParser = wrap("qljs_web_demo_create_parser");
+    this._webDemoDestroyParser = wrap("qljs_web_demo_destroy_parser");
+    this._webDemoLint = wrap("qljs_web_demo_lint");
+    this._webDemoSetText = wrap("qljs_web_demo_set_text");
   }
 
-  async createParserAsync() {
-    return new Parser(this);
+  async createParserForVSCodeAsync() {
+    return new ParserForVSCode(this);
+  }
+
+  async createParserForWebDemoAsync() {
+    return new ParserForWebDemo(this);
   }
 }
 
-class Parser {
+class ParserForVSCode {
   constructor(process) {
     this._process = process;
-    this._parser = this._process._createParser();
+    this._parser = this._process._vscodeCreateParser();
   }
 
   replaceText(range, replacementText) {
     let utf8ReplacementText = encodeUTF8String(replacementText, this._process);
     try {
-      this._process._replaceText(
+      this._process._vscodeReplaceText(
         this._parser,
         range.start.line,
         range.start.character,
@@ -150,7 +158,7 @@ class Parser {
   }
 
   lint() {
-    let diagnosticsPointer = this._process._lintVSCode(this._parser);
+    let diagnosticsPointer = this._process._vscodeLint(this._parser);
 
     let rawDiagnosticsU32 = new Uint32Array(
       this._process._heap,
@@ -206,7 +214,81 @@ class Parser {
   }
 
   dispose() {
-    this._process._destroyParser(this._parser);
+    this._process._vscodeDestroyParser(this._parser);
+    this._parser = null;
+  }
+}
+
+class ParserForWebDemo {
+  constructor(process) {
+    this._process = process;
+    this._parser = this._process._webDemoCreateParser();
+  }
+
+  setText(text) {
+    let utf8Text = encodeUTF8String(text, this._process);
+    try {
+      this._process._webDemoSetText(
+        this._parser,
+        utf8Text.pointer,
+        utf8Text.byteSize
+      );
+    } finally {
+      utf8Text.dispose();
+    }
+  }
+
+  lint() {
+    let diagnosticsPointer = this._process._webDemoLint(this._parser);
+
+    let rawDiagnosticsU32 = new Uint32Array(
+      this._process._heap,
+      diagnosticsPointer
+    );
+    let rawDiagnosticsPtr = new Uint32Array(
+      this._process._heap,
+      diagnosticsPointer
+    );
+    // struct qljs_web_demo_diagnostic {
+    //   const char* message;
+    //   const char* code;
+    //   qljs_vscode_severity severity;
+    //   int begin_offset;
+    //   int end_offset;
+    // };
+    let ERROR = {
+      message: 0,
+      code: 1,
+      severity: 2,
+      begin_offset: 3,
+      end_offset: 4,
+
+      _ptr_size: 5,
+      _u32_size: 5,
+    };
+    let diagnostics = [];
+    for (let i = 0; ; ++i) {
+      let messagePtr = rawDiagnosticsPtr[i * ERROR._ptr_size + ERROR.message];
+      if (messagePtr === 0) {
+        break;
+      }
+      let codePtr = rawDiagnosticsPtr[i * ERROR._ptr_size + ERROR.code];
+      diagnostics.push({
+        code: decodeUTF8CString(new Uint8Array(this._process._heap, codePtr)),
+        message: decodeUTF8CString(
+          new Uint8Array(this._process._heap, messagePtr)
+        ),
+        severity: rawDiagnosticsU32[i * ERROR._u32_size + ERROR.severity],
+        beginOffset:
+          rawDiagnosticsU32[i * ERROR._u32_size + ERROR.begin_offset],
+        endOffset: rawDiagnosticsU32[i * ERROR._u32_size + ERROR.end_offset],
+      });
+    }
+    return diagnostics;
+  }
+
+  dispose() {
+    this._process._webDemoDestroyParser(this._parser);
     this._parser = null;
   }
 }

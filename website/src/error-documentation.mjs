@@ -157,7 +157,7 @@ export class ErrorDocumentation {
     let factory = await createProcessFactoryAsync();
     let process = await factory.createProcessAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
-      let parser = await process.createParserAsync();
+      let parser = await process.createParserForVSCodeAsync();
       parser.replaceText(
         { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
         this.codeBlocks[i]

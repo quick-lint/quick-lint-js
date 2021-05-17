@@ -10,6 +10,10 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/warning.h>
+#include <quick-lint-js/web-demo-location.h>
+
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 
 namespace quick_lint_js {
 template <class Locator>
@@ -27,25 +31,31 @@ void document<Locator>::set_text(string8_view new_text) {
 template <class Locator>
 void document<Locator>::replace_text(typename Locator::range_type range,
                                      string8_view replacement_text) {
-  padded_string& old_content =
-      this->content_buffers_[this->active_content_buffer_];
-  padded_string& new_content =
-      this->content_buffers_[1 - this->active_content_buffer_];
+  if constexpr (std::is_same_v<Locator, web_demo_locator>) {
+    static_cast<void>(range);
+    static_cast<void>(replacement_text);
+    QLJS_UNIMPLEMENTED();
+  } else {
+    padded_string& old_content =
+        this->content_buffers_[this->active_content_buffer_];
+    padded_string& new_content =
+        this->content_buffers_[1 - this->active_content_buffer_];
 
-  const char8* start = this->locator_.from_position(range.start);
-  const char8* end = this->locator_.from_position(range.end);
+    const char8* start = this->locator_.from_position(range.start);
+    const char8* end = this->locator_.from_position(range.end);
 
-  new_content.resize(narrow_cast<int>(
-      (start - old_content.begin()) +
-      narrow_cast<int>(replacement_text.size()) + (old_content.end() - end)));
-  char8* out = new_content.data();
-  out = std::copy(old_content.cbegin(), start, out);
-  out = std::copy(replacement_text.begin(), replacement_text.end(), out);
-  out = std::copy(end, old_content.cend(), out);
-  QLJS_ASSERT(out == new_content.end());
+    new_content.resize(narrow_cast<int>(
+        (start - old_content.begin()) +
+        narrow_cast<int>(replacement_text.size()) + (old_content.end() - end)));
+    char8* out = new_content.data();
+    out = std::copy(old_content.cbegin(), start, out);
+    out = std::copy(replacement_text.begin(), replacement_text.end(), out);
+    out = std::copy(end, old_content.cend(), out);
+    QLJS_ASSERT(out == new_content.end());
 
-  this->locator_.replace_text(range, replacement_text, &new_content);
-  this->active_content_buffer_ = 1 - this->active_content_buffer_;
+    this->locator_.replace_text(range, replacement_text, &new_content);
+    this->active_content_buffer_ = 1 - this->active_content_buffer_;
+  }
 }
 
 template <class Locator>
@@ -59,6 +69,7 @@ const Locator& document<Locator>::locator() noexcept {
 }
 
 template class document<lsp_locator>;
+template class document<web_demo_locator>;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

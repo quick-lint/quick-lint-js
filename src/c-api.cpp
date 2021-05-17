@@ -11,12 +11,14 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/vscode-error-reporter.h>
+#include <quick-lint-js/web-demo-error-reporter-2.h>
 
-struct qljs_vscode_parser {
+namespace quick_lint_js {
+namespace {
+template <class Locator, class ErrorReporter>
+class qljs_parser_base {
  public:
-  const qljs_vscode_diagnostic* lint() {
-    using namespace quick_lint_js;
-
+  const auto* lint() {
     this->error_reporter_.reset();
     this->error_reporter_.set_input(this->document_.string(),
                                     &this->document_.locator());
@@ -29,6 +31,16 @@ struct qljs_vscode_parser {
     return this->error_reporter_.get_diagnostics();
   }
 
+  quick_lint_js::document<Locator> document_;
+  ErrorReporter error_reporter_;
+};
+}
+}
+
+struct qljs_vscode_parser final
+    : public quick_lint_js::qljs_parser_base<
+          quick_lint_js::lsp_locator, quick_lint_js::vscode_error_reporter> {
+ public:
   void replace_text(int start_line, int start_character, int end_line,
                     int end_character,
                     quick_lint_js::string8_view replacement) {
@@ -41,10 +53,6 @@ struct qljs_vscode_parser {
         },
         replacement);
   }
-
- private:
-  quick_lint_js::document<quick_lint_js::lsp_locator> document_;
-  quick_lint_js::vscode_error_reporter error_reporter_;
 };
 
 qljs_vscode_parser* qljs_vscode_create_parser(void) {
@@ -67,6 +75,34 @@ void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
 }
 
 const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
+  return p->lint();
+}
+
+struct qljs_web_demo_parser final
+    : public quick_lint_js::qljs_parser_base<
+          quick_lint_js::web_demo_locator,
+          quick_lint_js::web_demo_error_reporter_2> {
+ public:
+  void set_text(quick_lint_js::string8_view replacement) {
+    this->document_.set_text(replacement);
+  }
+};
+
+qljs_web_demo_parser* qljs_web_demo_create_parser(void) {
+  qljs_web_demo_parser* p = new qljs_web_demo_parser();
+  return p;
+}
+
+void qljs_web_demo_destroy_parser(qljs_web_demo_parser* p) { delete p; }
+
+void qljs_web_demo_set_text(qljs_web_demo_parser* p, const void* text_utf_8,
+                            size_t text_byte_count) {
+  p->set_text(quick_lint_js::string8_view(
+      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
+      text_byte_count));
+}
+
+const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
   return p->lint();
 }
 
