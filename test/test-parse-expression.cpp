@@ -874,6 +874,9 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
     test_parser p(u8"await () => {}"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::await);
+    EXPECT_EQ(ast->child_0()->kind(),
+              expression_kind::arrow_function_with_statements);
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_await_creating_arrow_function, await_operator,
