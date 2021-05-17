@@ -683,11 +683,37 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         [[fallthrough]];
       case token_type::complete_template:
       case token_type::incomplete_template:
-      case token_type::left_paren:
       case token_type::left_square:
       case token_type::minus:
       case token_type::plus:
         return !this->in_top_level_;
+
+      case token_type::left_paren: {
+        source_code_span operator_span = await_token.span();
+        buffering_error_reporter temp_error_reporter;
+        error_reporter* old_error_reporter =
+            std::exchange(this->error_reporter_, &temp_error_reporter);
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+
+        // Try to parse as an arrow function
+        expression* ast = this->parse_expression(prec);
+
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        this->error_reporter_ = old_error_reporter;
+
+        switch (ast->kind()) {
+        case expression_kind::arrow_function_with_statements:
+        case expression_kind::arrow_function_with_expression:
+          this->error_reporter_->report(error_await_creating_arrow_function{
+              .await_operator = operator_span,
+          });
+          break;
+        default:
+          break;
+        }
+
+        return !this->in_top_level_;
+      }
 
       case token_type::bang:
       case token_type::dot_dot_dot:

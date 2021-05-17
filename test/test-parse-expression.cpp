@@ -882,6 +882,21 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
                     error_await_creating_arrow_function, await_operator,
                     offsets_matcher(p.code(), 0, u8"await"))));
   }
+
+  {
+    test_parser p(u8"await () => {}"_sv);
+    auto guard = p.parser().enter_function(function_attributes::normal);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_await_creating_arrow_function,
+                             await_operator,
+                             offsets_matcher(p.code(), 0, u8"await")),
+            ERROR_TYPE_FIELD(
+                error_missing_operator_between_expression_and_arrow_function,
+                where, offsets_matcher(p.code(), 0, u8"await ("))));
+  }
 }
 
 TEST_F(test_parse_expression,
