@@ -1,15 +1,15 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_WASM_DEMO_H
-#define QUICK_LINT_JS_WASM_DEMO_H
+#ifndef QUICK_LINT_JS_WEB_DEMO_H
+#define QUICK_LINT_JS_WEB_DEMO_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/wasm-demo-error-reporter.h>
+#include <quick-lint-js/web-demo-error-reporter.h>
 
 namespace quick_lint_js {
-extern "C" const wasm_demo_error_reporter::error *
-quick_lint_js_parse_and_lint_for_wasm_demo(const char8 *input);
+extern "C" const web_demo_error_reporter::error *
+quick_lint_js_parse_and_lint_for_web_demo(const char8 *input);
 }
 
 #endif

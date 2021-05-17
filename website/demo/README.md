@@ -5,8 +5,8 @@ To build the demo, install the [emscripten SDK][emscripten-sdk] and
 
     $ cd website
     $ emcmake cmake -S .. -B build-emscripten -G Ninja -DCMAKE_BUILD_TYPE=Release
-    $ emmake ninja -C build-emscripten quick-lint-js-wasm-demo quick-lint-js-wasm-demo-licenses
-    $ emmake cmake --install build-emscripten --component wasm-demo --prefix public/demo
+    $ emmake ninja -C build-emscripten quick-lint-js-web-demo quick-lint-js-web-demo-licenses
+    $ emmake cmake --install build-emscripten --component web-demo --prefix public/demo
 
 To run the demo on your own machine, execute the build instructions above, then
 start the [local development web server](../README.md#Developing):

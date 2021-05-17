@@ -1,34 +1,36 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#include <memory>
+#ifndef QUICK_LINT_JS_WEB_DEMO_LOCATION_H
+#define QUICK_LINT_JS_WEB_DEMO_LOCATION_H
+
+#include <cstdint>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/lint.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/parse.h>
-#include <quick-lint-js/wasm-demo-error-reporter.h>
-#include <quick-lint-js/wasm-demo.h>
 
 namespace quick_lint_js {
-const wasm_demo_error_reporter::error *
-quick_lint_js_parse_and_lint_for_wasm_demo(const char8 *raw_input) {
-  // TODO(strager): Allow null characters.
-  padded_string input(string8_view{raw_input});
-  std::unique_ptr<wasm_demo_error_reporter> error_reporter =
-      std::make_unique<wasm_demo_error_reporter>(&input);
-  parser p(&input, error_reporter.get());
-  linter l(error_reporter.get());
+class source_code_span;
 
-  // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
-  // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
-  p.parse_and_visit_module(l);
+using web_demo_source_offset = std::uint32_t;
 
-  const wasm_demo_error_reporter::error *errors = error_reporter->get_errors();
-  // TODO(strager): Avoid memory leak somehow.
-  error_reporter.release();
-  return errors;
+struct web_demo_source_range {
+  web_demo_source_offset begin;
+  web_demo_source_offset end;
+};
+
+class web_demo_locator {
+ public:
+  explicit web_demo_locator(padded_string_view input) noexcept;
+
+  web_demo_source_range range(source_code_span) const;
+  web_demo_source_offset position(const char8*) const noexcept;
+
+ private:
+  padded_string_view input_;
+};
 }
-}
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

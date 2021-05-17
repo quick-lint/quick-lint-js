@@ -7,47 +7,47 @@ include(QuickLintJSTarget)
 
 if (EMSCRIPTEN)
   quick_lint_js_add_executable(
-    quick-lint-js-wasm-demo
-    quick-lint-js/wasm-demo.h
-    wasm-demo.cpp
+    quick-lint-js-web-demo
+    quick-lint-js/web-demo.h
+    web-demo.cpp
   )
-  target_include_directories(quick-lint-js-wasm-demo PRIVATE .)
+  target_include_directories(quick-lint-js-web-demo PRIVATE .)
   target_link_libraries(
-    quick-lint-js-wasm-demo
+    quick-lint-js-web-demo
     PRIVATE
     quick-lint-js-lib
-    "-sEXPORTED_FUNCTIONS='[\"_quick_lint_js_parse_and_lint_for_wasm_demo\"]'"
+    "-sEXPORTED_FUNCTIONS='[\"_quick_lint_js_parse_and_lint_for_web_demo\"]'"
     "-sEXPORTED_RUNTIME_METHODS='[\"ccall\", \"cwrap\"]'"
     "-sMODULARIZE"
-    "-sEXPORT_NAME=QUICK_LINT_JS_WASM_DEMO"
+    "-sEXPORT_NAME=QUICK_LINT_JS_WEB_DEMO"
     # TODO(strager): Use -sEXPORT_ES6 when it works with Node.js.
   )
 
-  set(WASM_DEMO_DIST_DIR dist)
+  set(web_demo_DIST_DIR dist)
   install(
-    TARGETS quick-lint-js-wasm-demo
+    TARGETS quick-lint-js-web-demo
     RUNTIME
-    COMPONENT wasm-demo
+    COMPONENT web-demo
     EXCLUDE_FROM_ALL
-    DESTINATION "${WASM_DEMO_DIST_DIR}"
+    DESTINATION "${web_demo_DIST_DIR}"
   )
   install(
-    PROGRAMS $<TARGET_FILE_DIR:quick-lint-js-wasm-demo>/$<TARGET_FILE_PREFIX:quick-lint-js-wasm-demo>$<TARGET_FILE_BASE_NAME:quick-lint-js-wasm-demo>.wasm
-    DESTINATION "${WASM_DEMO_DIST_DIR}"
-    COMPONENT wasm-demo
+    PROGRAMS $<TARGET_FILE_DIR:quick-lint-js-web-demo>/$<TARGET_FILE_PREFIX:quick-lint-js-web-demo>$<TARGET_FILE_BASE_NAME:quick-lint-js-web-demo>.wasm
+    DESTINATION "${web_demo_DIST_DIR}"
+    COMPONENT web-demo
   )
 
   quick_lint_js_collect_copyright(
-    quick-lint-js-wasm-demo-licenses
-    TARGET quick-lint-js-wasm-demo
-    OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-wasm-demo-licenses.txt"
+    quick-lint-js-web-demo-licenses
+    TARGET quick-lint-js-web-demo
+    OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-web-demo-licenses.txt"
   )
-  if (TARGET quick-lint-js-wasm-demo-licenses)
+  if (TARGET quick-lint-js-web-demo-licenses)
     install(
-      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-wasm-demo-licenses.txt"
-      DESTINATION "${WASM_DEMO_DIST_DIR}"
+      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-web-demo-licenses.txt"
+      DESTINATION "${web_demo_DIST_DIR}"
       RENAME copyright.txt
-      COMPONENT wasm-demo
+      COMPONENT web-demo
     )
   endif ()
 endif ()

@@ -6,19 +6,19 @@
 
 // TODO(strager): Make this configurable.
 // For build instructions, see demo/README.md.
-let WASM_DEMO_JS_MODULE_PATH = "./dist/quick-lint-js-wasm-demo.js";
+let WEB_DEMO_JS_MODULE_PATH = "./dist/quick-lint-js-web-demo.js";
 
 export async function loadQuickLintJS() {
   let loadQuickLintJSModule;
   if (typeof window === "undefined") {
-    loadQuickLintJSModule = (await import(WASM_DEMO_JS_MODULE_PATH)).default;
+    loadQuickLintJSModule = (await import(WEB_DEMO_JS_MODULE_PATH)).default;
   } else {
     let moduleURL = new URL(
-      WASM_DEMO_JS_MODULE_PATH,
+      WEB_DEMO_JS_MODULE_PATH,
       window.location
     ).toString();
     await loadScript(moduleURL);
-    loadQuickLintJSModule = window.QUICK_LINT_JS_WASM_DEMO;
+    loadQuickLintJSModule = window.QUICK_LINT_JS_WEB_DEMO;
   }
   let quickLintJSModule = await loadQuickLintJSModule();
   return new QuickLintJS(quickLintJSModule);
@@ -42,7 +42,7 @@ class QuickLintJS {
   constructor(module) {
     this._module = module;
     this._parseAndLint = module.cwrap(
-      "quick_lint_js_parse_and_lint_for_wasm_demo",
+      "quick_lint_js_parse_and_lint_for_web_demo",
       "number",
       ["string"]
     );
@@ -54,7 +54,7 @@ class QuickLintJS {
 
     let rawErrorsU32 = new Uint32Array(heap, errorsPointer);
     let rawErrorsPtr = new Uint32Array(heap, errorsPointer);
-    // See quick_lint_js::wasm_demo_error_reporter::error.
+    // See quick_lint_js::web_demo_error_reporter::error.
     let ERROR = {
       message: 0,
       begin_offset: 1,

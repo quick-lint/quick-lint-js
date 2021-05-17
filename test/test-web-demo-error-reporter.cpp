@@ -4,19 +4,19 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/wasm-demo-error-reporter.h>
+#include <quick-lint-js/web-demo-error-reporter.h>
 
 namespace quick_lint_js {
 namespace {
-TEST(test_wasm_demo_error_reporter, big_int_literal_contains_decimal_point) {
+TEST(test_web_demo_error_reporter, big_int_literal_contains_decimal_point) {
   padded_string input(u8"12.34n"_sv);
   source_code_span number_span(&input[1 - 1], &input[6 + 1 - 1]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n");
 
-  wasm_demo_error_reporter reporter(&input);
+  web_demo_error_reporter reporter(&input);
   reporter.report(error_big_int_literal_contains_decimal_point{number_span});
 
-  const wasm_demo_error_reporter::error *errors = reporter.get_errors();
+  const web_demo_error_reporter::error *errors = reporter.get_errors();
   EXPECT_EQ(errors[0].begin_offset, 0);
   EXPECT_EQ(errors[0].end_offset, 6);
   EXPECT_EQ(errors[0].message,
@@ -24,26 +24,26 @@ TEST(test_wasm_demo_error_reporter, big_int_literal_contains_decimal_point) {
   EXPECT_EQ(errors[1].message, nullptr);
 }
 
-TEST(test_wasm_demo_error_reporter, error_after_non_ascii_characters) {
+TEST(test_web_demo_error_reporter, error_after_non_ascii_characters) {
   padded_string input(u8"\u2603 12.34n"_sv);
   source_code_span number_span(&input[4], &input[4 + 6]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n");
 
-  wasm_demo_error_reporter reporter(&input);
+  web_demo_error_reporter reporter(&input);
   reporter.report(error_big_int_literal_contains_decimal_point{number_span});
 
-  const wasm_demo_error_reporter::error *errors = reporter.get_errors();
+  const web_demo_error_reporter::error *errors = reporter.get_errors();
   EXPECT_EQ(errors[0].begin_offset, 2);
   EXPECT_EQ(errors[0].end_offset, 2 + 6);
 }
 
-TEST(test_wasm_demo_error_reporter, multiple_errors) {
+TEST(test_web_demo_error_reporter, multiple_errors) {
   padded_string input(u8"abc"_sv);
   source_code_span a_span(&input[0], &input[1]);
   source_code_span b_span(&input[1], &input[2]);
   source_code_span c_span(&input[2], &input[3]);
 
-  wasm_demo_error_reporter reporter(&input);
+  web_demo_error_reporter reporter(&input);
   reporter.report(
       error_assignment_to_const_global_variable{identifier(a_span)});
   reporter.report(
@@ -51,7 +51,7 @@ TEST(test_wasm_demo_error_reporter, multiple_errors) {
   reporter.report(
       error_assignment_to_const_global_variable{identifier(c_span)});
 
-  const wasm_demo_error_reporter::error *errors = reporter.get_errors();
+  const web_demo_error_reporter::error *errors = reporter.get_errors();
 
   EXPECT_EQ(errors[0].begin_offset, 0);
   EXPECT_EQ(errors[0].end_offset, 1);

@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_WASM_DEMO_ERROR_REPORTER_H
-#define QUICK_LINT_JS_WASM_DEMO_ERROR_REPORTER_H
+#ifndef QUICK_LINT_JS_WEB_DEMO_ERROR_REPORTER_H
+#define QUICK_LINT_JS_WEB_DEMO_ERROR_REPORTER_H
 
 #include <cstdint>
 #include <quick-lint-js/char8.h>
@@ -11,13 +11,13 @@
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
-#include <quick-lint-js/wasm-demo-location.h>
+#include <quick-lint-js/web-demo-location.h>
 #include <vector>
 
 namespace quick_lint_js {
-class wasm_demo_error_formatter;
+class web_demo_error_formatter;
 
-class wasm_demo_error_reporter final : public error_reporter {
+class web_demo_error_reporter final : public error_reporter {
  public:
   struct error {
     const char8 *message = nullptr;
@@ -25,7 +25,7 @@ class wasm_demo_error_reporter final : public error_reporter {
     std::uint32_t end_offset;
   };
 
-  explicit wasm_demo_error_reporter(padded_string_view input);
+  explicit web_demo_error_reporter(padded_string_view input);
 
   const error *get_errors() noexcept;
 
@@ -35,29 +35,29 @@ class wasm_demo_error_reporter final : public error_reporter {
 #undef QLJS_ERROR_TYPE
 
  private:
-  wasm_demo_error_formatter format();
+  web_demo_error_formatter format();
 
   char8 *allocate_c_string(string8_view);
 
   std::vector<error> errors_;
-  wasm_demo_locator locator_;
+  web_demo_locator locator_;
   const char8 *input_;
   monotonic_allocator string_allocator_;
 
-  friend wasm_demo_error_formatter;
+  friend web_demo_error_formatter;
 };
 
-class wasm_demo_error_formatter
-    : public error_formatter<wasm_demo_error_formatter> {
+class web_demo_error_formatter
+    : public error_formatter<web_demo_error_formatter> {
  public:
-  explicit wasm_demo_error_formatter(wasm_demo_error_reporter *reporter);
+  explicit web_demo_error_formatter(web_demo_error_reporter *reporter);
 
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
   void write_after_message(severity, const source_code_span &origin);
 
  private:
-  wasm_demo_error_reporter *reporter_;
+  web_demo_error_reporter *reporter_;
   string8 current_message_;
 };
 }

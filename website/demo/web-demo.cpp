@@ -1,36 +1,34 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_WASM_DEMO_LOCATION_H
-#define QUICK_LINT_JS_WASM_DEMO_LOCATION_H
-
-#include <cstdint>
+#include <memory>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/lint.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/parse.h>
+#include <quick-lint-js/web-demo-error-reporter.h>
+#include <quick-lint-js/web-demo.h>
 
 namespace quick_lint_js {
-class source_code_span;
+const web_demo_error_reporter::error *quick_lint_js_parse_and_lint_for_web_demo(
+    const char8 *raw_input) {
+  // TODO(strager): Allow null characters.
+  padded_string input(string8_view{raw_input});
+  std::unique_ptr<web_demo_error_reporter> error_reporter =
+      std::make_unique<web_demo_error_reporter>(&input);
+  parser p(&input, error_reporter.get());
+  linter l(error_reporter.get());
 
-using wasm_demo_source_offset = std::uint32_t;
+  // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
+  // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
+  p.parse_and_visit_module(l);
 
-struct wasm_demo_source_range {
-  wasm_demo_source_offset begin;
-  wasm_demo_source_offset end;
-};
-
-class wasm_demo_locator {
- public:
-  explicit wasm_demo_locator(padded_string_view input) noexcept;
-
-  wasm_demo_source_range range(source_code_span) const;
-  wasm_demo_source_offset position(const char8*) const noexcept;
-
- private:
-  padded_string_view input_;
-};
+  const web_demo_error_reporter::error *errors = error_reporter->get_errors();
+  // TODO(strager): Avoid memory leak somehow.
+  error_reporter.release();
+  return errors;
 }
-
-#endif
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

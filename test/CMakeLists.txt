@@ -75,8 +75,8 @@ quick_lint_js_add_executable(
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
   test-vscode-error-reporter.cpp
-  test-wasm-demo-error-reporter.cpp
-  test-wasm-demo-location.cpp
+  test-web-demo-error-reporter.cpp
+  test-web-demo-location.cpp
   test-write-integer.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
