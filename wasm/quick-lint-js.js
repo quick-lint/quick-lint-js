@@ -99,7 +99,8 @@ class Process {
   constructor(wasmInstance) {
     this._wasmInstance = wasmInstance;
 
-    function wrap(func, name) {
+    function wrap(name) {
+      let func = wasmInstance.exports[name];
       return (...args) => {
         exports.maybeInjectFault(name);
         try {
@@ -112,24 +113,12 @@ class Process {
 
     this._heap = wasmInstance.exports.memory.buffer;
 
-    this._malloc = wrap(wasmInstance.exports.malloc, "malloc");
-    this._free = wrap(wasmInstance.exports.free, "free");
-    this._createParser = wrap(
-      wasmInstance.exports.qljs_vscode_create_parser,
-      "qljs_vscode_create_parser"
-    );
-    this._destroyParser = wrap(
-      wasmInstance.exports.qljs_vscode_destroy_parser,
-      "qljs_vscode_destroy_parser"
-    );
-    this._replaceText = wrap(
-      wasmInstance.exports.qljs_vscode_replace_text,
-      "qljs_vscode_replace_text"
-    );
-    this._lintVSCode = wrap(
-      wasmInstance.exports.qljs_vscode_lint,
-      "qljs_vscode_lint"
-    );
+    this._malloc = wrap("malloc");
+    this._free = wrap("free");
+    this._createParser = wrap("qljs_vscode_create_parser");
+    this._destroyParser = wrap("qljs_vscode_destroy_parser");
+    this._replaceText = wrap("qljs_vscode_replace_text");
+    this._lintVSCode = wrap("qljs_vscode_lint");
   }
 
   async createParserAsync() {
