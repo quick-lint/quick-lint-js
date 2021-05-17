@@ -39,14 +39,15 @@
       /* Show #shadow-code-input visually behind #code-input. */
       #code-input {
         background: transparent;
+        position: relative;
+        z-index: 2;
       }
-
       #shadow-code-input,
       #shadow-code-input mark {
         color: transparent;
       }
       #shadow-code-input {
-        z-index: -1;
+        z-index: 1;
         position: absolute;
       }
 
