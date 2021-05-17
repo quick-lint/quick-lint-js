@@ -41,7 +41,7 @@ header nav li > a {
 
 header {
   display: grid;
-  grid-template:
+  grid-template-areas:
     "title nav"
     "tag-line nav";
 }
