@@ -82,7 +82,8 @@ main > h2:first-child {
   body {
     color: white;
   }
-  .os-logo[src="macos.svg"] {
+  .os-logo[src="macos.svg"],
+  .os-logo[src$="/macos.svg"] {
     filter: invert(100%);
   }
 }
