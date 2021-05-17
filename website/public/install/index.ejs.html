@@ -78,6 +78,24 @@
         grid-area: windows;
       }
 
+      @media only screen and (min-width: 34em) and (max-width: 40em) {
+        .os-column-table ul {
+          margin-left: 0;
+          padding-left: 1em;
+        }
+      }
+
+      /* Stack items on top of each other if the screen isn't wide enough to
+         arrange them horizontally. */
+      @media only screen and (max-width: 34em) {
+        .os-column-table {
+          grid-template-areas: "linux" "macos" "windows";
+        }
+        .os-column-table > * {
+          border-left: 0;
+        }
+      }
+
       /* Make the entire cell clickable. (How does this even work???) */
       .install-comparison table {
         height: 0;
