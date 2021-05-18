@@ -349,6 +349,20 @@ body.javascript .javascript-only {
   }
 }
 
+/* Make the table readable on small screens by omitting information. */
+@media only screen and (max-width: 29em) {
+  .benchmark-table .unimportant {
+    display: none;
+  }
+
+  .benchmark-table .linter-name .unabbreviated {
+    display: none;
+  }
+  .benchmark-table .linter-name abbr {
+    display: inline !important;
+  }
+}
+
 /*
  * quick-lint-js finds bugs in JavaScript programs.
  * Copyright (C) 2020  Matthew Glazar

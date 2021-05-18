@@ -83,12 +83,16 @@ export function makeBenchmarkHTML(seriess) {
           <th colspan="4">response time (milliseconds)</th>
         </tr>
         <tr>
-          <th class="numbers"><abbr title="minimum">min</abbr></th>
+          <th class="numbers unimportant"><abbr title="minimum">min</abbr></th>
           <th class="numbers"><abbr title="average">avg</abbr></th>
-          <th class="numbers"><abbr title="maximum">max</abbr></th>
+          <th class="numbers unimportant"><abbr title="maximum">max</abbr></th>
           <th class="numbers">
             <abbr title="slowdown compared to">÷</abbr>
-            <span style="--hue: 0;" class="linter-name">quick-lint-js</span>
+
+            <span style="--hue: 0;" class="linter-name"
+              ><abbr title="quick-lint-js" style="display: none;">qljs</abbr
+              ><span class="unabbreviated">quick-lint-js</span></span
+            >
           </th>
         </tr>
       </thead>
@@ -100,9 +104,9 @@ export function makeBenchmarkHTML(seriess) {
               data-series="${ejs.escapeXML(series.name)}"
             >
               <th>${ejs.escapeXML(series.name)}</th>
-              <td>${series.minMS.toFixed(2)}</td>
+              <td class="unimportant">${series.minMS.toFixed(2)}</td>
               <td>${series.avgMS.toFixed(2)}</td>
-              <td>${series.maxMS.toFixed(2)}</td>
+              <td class="unimportant">${series.maxMS.toFixed(2)}</td>
               <td>${(series.avgMS / qljsSeries.avgMS).toFixed(1)}×</td>
             </tr>
           `
