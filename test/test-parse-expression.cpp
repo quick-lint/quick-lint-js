@@ -887,6 +887,7 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
     test_parser p(u8"await () => {}"_sv);
     auto guard = p.parser().enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::binary_operator);
     EXPECT_THAT(
         p.errors(),
         ElementsAre(
