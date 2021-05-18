@@ -13,6 +13,8 @@ import { websiteConfig } from "./src/config.mjs";
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
+let DEFAULT_PORT = 9001;
+
 async function mainAsync() {
   let { host, port } = parseArguments(process.argv.slice(2));
 
@@ -27,7 +29,7 @@ async function mainAsync() {
 
 function parseArguments(args) {
   let host = "localhost";
-  let port = 0;
+  let port = DEFAULT_PORT;
   switch (args.length) {
     case 0:
       break;
