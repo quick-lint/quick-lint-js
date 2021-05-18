@@ -195,7 +195,7 @@ quick_lint_js_collect_copyright(
 if (TARGET quick-lint-js-licenses)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
-    DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+    DESTINATION "${QUICK_LINT_JS_INSTALL_LICENSES_DIR}"
     RENAME copyright
   )
 endif ()

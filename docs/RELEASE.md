@@ -4,6 +4,9 @@ Follow the following steps to release a new version of quick-lint-js:
 
 1. Update version number and release date. Change these files containing version
    numbers:
+   * dist/arch/PKGBUILD-dev
+   * dist/arch/PKGBUILD-git
+   * dist/arch/PKGBUILD-release
    * dist/debian/README.md
    * dist/debian/build.sh
    * dist/debian/debian/changelog

@@ -7,7 +7,16 @@ if (POLICY CMP0091)
 endif ()
 project(quick-lint-js)
 
+include(GNUInstallDirs)
+
 option(QUICK_LINT_JS_ENABLE_BENCHMARKS "Build microbenchmark programs" OFF)
+set(
+  QUICK_LINT_JS_INSTALL_LICENSES_DIR
+  "${CMAKE_INSTALL_DOCDIR}"
+  CACHE
+  STRING
+  "Install licenses into this directory relative to CMAKE_INSTALL_PREFIX"
+)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
