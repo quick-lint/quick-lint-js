@@ -578,6 +578,42 @@ TEST(test_parse, else_without_if) {
   }
 }
 
+TEST(test_parse, else_if) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"if (a) { b; } else if (c) { d; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // a
+                                      "visit_enter_block_scope",   // <if>
+                                      "visit_variable_use",        // b
+                                      "visit_exit_block_scope",    // </if>
+                                      "visit_variable_use",        // c
+                                      "visit_enter_block_scope",   // <else>
+                                      "visit_variable_use",        // d
+                                      "visit_exit_block_scope"));  // </else>
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (a) { b; } else (c) { d; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // a
+                                      "visit_enter_block_scope",   // <if>
+                                      "visit_variable_use",        // b
+                                      "visit_exit_block_scope",    // </if>
+                                      "visit_variable_use",        // c
+                                      "visit_enter_block_scope",   // <block>
+                                      "visit_variable_use",        // d
+                                      "visit_exit_block_scope"));  // </block>
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_else_with_conditional_missing_if, else_token,
+            offsets_matcher(&code, strlen(u8"if (a) { b; } "), u8"else"))));
+  }
+}
+
 TEST(test_parse, block_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"{ }"_sv);

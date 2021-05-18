@@ -215,6 +215,13 @@
              else_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_else_with_conditional_missing_if, "E???",                          \
+      { source_code_span else_token; },                                        \
+      .warning(QLJS_TRANSLATABLE("'else' with condition followed by block; "   \
+                                 "maybe 'else if' was intended"),              \
+               else_token))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_escaped_character_disallowed_in_identifiers, "E012",               \
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATABLE(                                                \
