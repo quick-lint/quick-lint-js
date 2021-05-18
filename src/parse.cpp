@@ -722,17 +722,17 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         std::exchange(this->error_reporter_, &temp_error_reporter);
     lexer_transaction transaction = this->lexer_.begin_transaction();
 
-    // Try to parse as an arrow function
+    // Try to parse leading ( as arrow function.
     expression* ast = this->parse_expression(prec);
 
     this->lexer_.roll_back_transaction(std::move(transaction));
     this->error_reporter_ = old_error_reporter;
 
-    bool is_arrow =
+    bool is_arrow_kind =
         (ast->kind() == expression_kind::arrow_function_with_statements) ||
         (ast->kind() == expression_kind::arrow_function_with_expression);
 
-    if (is_arrow) {
+    if (is_arrow_kind) {
       this->error_reporter_->report(error_await_creating_arrow_function{
           .await_operator = operator_span,
       });
