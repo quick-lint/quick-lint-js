@@ -129,13 +129,12 @@
 
       <pre id="shadow-code-input"></pre>
       <textarea id="code-input" spellcheck="false">
-const occupation = language + " coder";
-const language = "JavaScript";
-occupation = "Senior " + occupation;
+        const occupation = language + " coder";
+        const language = "JavaScript";
+        occupation = "Senior " + occupation;
 
-console.log(`Welcome, ${ocupation}!`);
-</textarea
-      >
+        console.log(`Welcome, ${ocupation}!`);
+      </textarea>
 
       <script type="module">
         import { markEditorText } from "./editor.mjs";
@@ -207,7 +206,36 @@ console.log(`Welcome, ${ocupation}!`);
         </ul>
       </nav>
     </footer>
+    <script>
+      function showErrorMessageBox(event) {
+        const markedElement = event.target;
+        // Some error message which is stored as property
+        // inside the mark task
+        const randomErrorMessage = "undeclared variable";
+        let div = document.createElement("div");
+        div.setAttribute("id", "error-message-box");
+        div.innerText = randomErrorMessage;
+        let body = document.querySelector("body");
+        body.appendChild(div);
+        console.log('entered here')
+      }
+
+      function removeErrorMessageBox() {
+        const errorMessagesBoxs = document.querySelectorAll("#error-message-box");
+        errorMessagesBoxs.forEach((box) => box.remove());
+        console.log('entered here')
+      }
+
+      window.addEventListener("load", function(){
+        const marks = document.querySelectorAll("#shadow-code-input mark");
+        marks.forEach((mark) => {
+          mark.addEventListener("mouseenter", showErrorMessageBox);
+          mark.addEventListener("mouseout", removeErrorMessageBox);
+        });
+      });
+    </script>
   </body>
+
 </html>
 
 <!--

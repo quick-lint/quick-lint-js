@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  <pre id="shadow-code-input">        
+    const occupation = <mark>language</mark> + " coder";
+    const language = "JavaScript";
+    <mark>occupation</mark> = "Senior " + occupation;
+    console.log(`Welcome, ${<mark>ocupation</mark>}!`);
+  </pre>
+
+  <script>
+    function showErrorMessageBox(event) {
+      const markedElement = event.target;
+      // Some error message which is stored as property
+      // inside the mark task
+      const randomErrorMessage = "undeclared variable";
+      let div = document.createElement("div");
+      div.setAttribute("id", "error-message-box");
+      div.innerText = randomErrorMessage;
+      let body = document.querySelector("body");
+      body.appendChild(div);
+    }
+
+    function removeErrorMessageBox() {
+      const errorMessagesBoxs = document.querySelectorAll("#error-message-box");
+      errorMessagesBoxs.forEach((box) => box.remove());
+    }
+
+    window.addEventListener("load", function(){
+      const marks = document.querySelectorAll("#shadow-code-input mark");
+      marks.forEach((mark) => {
+        mark.addEventListener("mouseenter", showErrorMessageBox);
+        mark.addEventListener("mouseout", removeErrorMessageBox);
+      });
+    });
+  </script>
+</body>
+</html>
