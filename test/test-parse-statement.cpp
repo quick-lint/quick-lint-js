@@ -591,7 +591,9 @@ TEST(test_parse, else_if) {
                                       "visit_variable_use",        // d
                                       "visit_exit_block_scope"));  // </else>
   }
+}
 
+TEST(test_parse, else_with_implicit_if) {
   {
     spy_visitor v;
     padded_string code(u8"if (a) { b; } else (c) { d; }"_sv);
@@ -611,6 +613,31 @@ TEST(test_parse, else_if) {
         ElementsAre(ERROR_TYPE_FIELD(
             error_else_with_conditional_missing_if, else_token,
             offsets_matcher(&code, strlen(u8"if (a) { b; } "), u8"else"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (a) { b; } else () => {} { c; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"if (a) { b; } else (() => console.log(c))() { d; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (a) { b; } else (o.m()) { c; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
