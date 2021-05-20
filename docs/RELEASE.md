@@ -4,6 +4,7 @@ Follow the following steps to release a new version of quick-lint-js:
 
 1. Update version number and release date. Change these files containing version
    numbers:
+   * Formula/quick-lint-js.rb
    * dist/arch/PKGBUILD-dev
    * dist/arch/PKGBUILD-git
    * dist/arch/PKGBUILD-release
