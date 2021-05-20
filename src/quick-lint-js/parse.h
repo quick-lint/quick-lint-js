@@ -3259,6 +3259,7 @@ class parser {
     // If true, parse unexpected trailing identifiers as part of the expression
     // (and emit an error).
     bool trailing_identifiers = false;
+    bool is_typeof = false;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>

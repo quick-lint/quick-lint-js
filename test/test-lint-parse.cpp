@@ -83,6 +83,19 @@ TEST(test_lint,
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
+
+TEST(test_lint, typeof_with_conditional_operator) {
+  {
+    padded_string input(u8"typeof x ? 10 : 20;"_sv);
+    error_collector v;
+    linter l(&v);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

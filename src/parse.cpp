@@ -220,7 +220,8 @@ expression* parser::parse_primary_expression(precedence prec) {
     expression* child = this->parse_expression(
         precedence{.binary_operators = true,
                    .math_or_logical_or_assignment = false,
-                   .commas = false});
+                   .commas = false,
+                   .is_typeof = (type == token_type::kw_typeof)});
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -985,6 +986,9 @@ next:
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
+    if (prec.is_typeof) {
+      break;
+    }
     source_code_span question_span = this->peek().span();
     this->skip();
 
