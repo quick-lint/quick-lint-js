@@ -79,7 +79,12 @@ This option requires [Neovim][] 0.5 or newer and [Packer][]
 Add the following line to your `init.lua` file between
 `require('packer').startup(function()` and `end)`:
 
-    use('strager/quick-lint-js', rtp = 'plugin/vim/quick-lint-js.vim')
+    use('strager/quick-lint-js', rtp = 'plugin/vim/quick-lint-js.vim', requires = {'neovim/nvim-lspconfig'})
+
+Then, add the following lines to your `init.lua` file:
+
+    require('lspconfig/quick_lint_js')
+    require('lspconfig').quick_lint_js.setup {}
 
 Then, restart Neovim, then run `:PackerInstall` in Neovim.
 
