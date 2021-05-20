@@ -395,6 +395,41 @@
 
             <tr>
               <th>
+                <a href="#arch-linux"
+                  ><img
+                    class="install-logo"
+                    src="../arch-linux.svg"
+                    alt=""
+                    aria-labeled-by="install-method-arch-linux"
+                  />&nbsp;<span id="install-method-arch-linux"
+                    >Arch Linux</span
+                  ></a
+                >
+              </th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="../linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os"></td>
+              <td class="os"></td>
+
+              <td class="good">
+                <a href="#arch-linux"><span aria-label="installed">✅</span></a>
+              </td>
+              <td class="good">
+                <a href="#arch-linux"><span aria-label="installed">✅</span></a>
+              </td>
+              <td><span aria-label="not installed"></span></td>
+              <td><span aria-label="not installed"></span></td>
+            </tr>
+
+            <tr>
+              <th>
                 <a href="#vscode-marketplace">
                   <img
                     class="install-logo"
@@ -674,6 +709,15 @@
                   src="../nix.svg"
                   alt=""
                 />&nbsp;Nix</a
+              >
+            </li>
+            <li>
+              <a href="#arch-linux"
+                ><img
+                  class="install-logo"
+                  src="../arch-linux.svg"
+                  alt=""
+                />&nbsp;Arch Linux</a
               >
             </li>
             <li><a href="#manual">Manual (pre-built)</a></li>
@@ -1031,6 +1075,58 @@ quick-lint-js version 0.2.0</code></pre>
         <blockquote>
           <pre><code><kbd>quick-lint-js --version</kbd>
 quick-lint-js version 0.2.0</code></pre>
+        </blockquote>
+      </article>
+
+      <article id="arch-linux">
+        <h2>
+          <img class="install-logo" src="../arch-linux.svg" alt="" />&nbsp;Arch
+          Linux
+        </h2>
+        <p>
+          Supported operating systems:
+          <img
+            class="os-logo"
+            src="../linux.svg"
+            alt="GNU/Linux"
+            title="GNU/Linux"
+          />
+        </p>
+
+        <p>quick-lint-js has two packages in the AUR:</p>
+        <ul>
+          <li>
+            <a href="https://aur.archlinux.org/packages/quick-lint-js/"
+              >quick-lint-js</a
+            >: latest stable release
+          </li>
+          <li>
+            <a href="https://aur.archlinux.org/packages/quick-lint-js-git/"
+              >quick-lint-js-git</a
+            >: unstable version from VCS
+          </li>
+        </ul>
+
+        <p>
+          If you are using an
+          <a href="https://wiki.archlinux.org/title/AUR_helpers">AUR helper</a>,
+          install quick-lint-js on Arch Linux using your helper. For example, to
+          install with <a href="https://github.com/Jguer/yay">yay</a>, open a
+          terminal and run the following commands:
+        </p>
+        <blockquote>
+          <pre><code><kbd>yay -Sy quick-lint-js</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          If you want to install without an AUR helper, download and install the
+          package from AUR manually by running the following commands:
+        </p>
+        <blockquote>
+          <pre><code><kbd>pacman -Sy base-devel git</kbd>
+<kbd>git clone https://aur.archlinux.org/quick-lint-js.git aur-quick-lint-js</kbd>
+<kbd>cd aur-quick-lint-js</kbd>
+<kbd>makepkg -si</kbd></code></pre>
         </blockquote>
       </article>
 
