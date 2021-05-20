@@ -248,7 +248,7 @@ expression* parser::parse_primary_expression(precedence prec) {
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* child = this->parse_expression(
-        precedence{.binary_operators = false, .commas = false});
+        precedence{.binary_operators = true, .commas = false});
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
