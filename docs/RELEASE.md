@@ -54,3 +54,12 @@ Follow the following steps to release a new version of quick-lint-js:
    GitHub.
 
 9. Push the commit to the `master` branch on GitHub.
+
+10. Update Arch Linux user repositories (AUR):
+    1. Clone ssh://aur@aur.archlinux.org/quick-lint-js with Git.
+    2. Update README to point to the tag's commit.
+    3. Copy `dist/arch/PKGBUILD-release` into the checkout as `PKGBUILD`.
+    4. On Arch Linux, run `makepkg --printsrcinfo PKGBUILD >.SRCINFO`.
+    5. Commit all files with message "Update quick-lint-js to version
+       VERSION_NUMBER".
+    6. Push to the `master` branch on AUR.
