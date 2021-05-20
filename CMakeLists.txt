@@ -17,6 +17,13 @@ set(
   STRING
   "Install licenses into this directory relative to CMAKE_INSTALL_PREFIX"
 )
+set(
+  QUICK_LINT_JS_INSTALL_VIM_DIR
+  "${CMAKE_INSTALL_DATAROOTDIR}/vim/vimfiles"
+  CACHE
+  STRING
+  "Install Vim files into this directory relative to CMAKE_INSTALL_PREFIX"
+)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

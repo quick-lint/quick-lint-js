@@ -6,15 +6,11 @@ include(GNUInstallDirs)
 
 install(
   FILES quick-lint-js.vim/autoload/quick_lint_js_ale.vim
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/addons/autoload"
+  DESTINATION "${QUICK_LINT_JS_INSTALL_VIM_DIR}/autoload"
 )
 install(
   FILES quick-lint-js.vim/ale_linters/javascript/quick_lint_js.vim
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/addons/ale_linters/javascript"
-)
-install(
-  FILES quick-lint-js.yaml
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/registry"
+  DESTINATION "${QUICK_LINT_JS_INSTALL_VIM_DIR}/ale_linters/javascript"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.
