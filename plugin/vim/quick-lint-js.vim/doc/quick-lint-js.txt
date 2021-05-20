@@ -14,6 +14,7 @@ newer version might or might not work.
 2. Installing the plugin	|quick-lint-js-vim-install|
 3. Configuring			|quick-lint-js-configure|
    3.1. ALE			|quick-lint-js-configure-ale|
+   3.2. nvim-lspconfig		|quick-lint-js-configure-nvim-lspconfig|
 
 ==============================================================================
 1. Installing quick-lint-js		*quick-lint-js-app-install*
@@ -49,6 +50,8 @@ this plugin to work:
 
 * ALE - Asynchronous Lint Engine: |quick-lint-js-configure-ale|
   https://github.com/dense-analysis/ale
+* nvim-lspconfig: |quick-lint-js-configure-nvim-lspconfig|
+  https://github.com/neovim/nvim-lspconfig
 
 ==============================================================================
 3.1. Configuring for ALE			*quick-lint-js-configure-ale*
@@ -103,5 +106,57 @@ For security reasons, we recommend leaving this variable at its default value
 (`v:true`). If this variable is set to `v:false`, then a malicious project
 could run arbitrary code on your computer through `node_modules` if you open a
 JavaScript file.
+
+==============================================================================
+3.2. Configuring for nvim-lspconfig	*quick-lint-js-configure-nvim-lspconfig*
+
+The quick-lint-js Vim plugin comes with a plugin for nvim-lspconfig.
+https://github.com/neovim/nvim-lspconfig
+
+To enable the plugin, add the following line to your |init.lua| or |init.vim|
+file: >
+
+    -- If you use init.lua:
+    require('lspconfig/quick_lint_js').setup {}
+
+    " If you use init.vim:
+    lua require('lspconfig/quick_lint_js').setup {}
+
+You may instead prefer to access the config object through the `lspconfig`
+module directly: >
+
+    require('lspconfig/quick_lint_js')
+    local nvim_lsp = require('lspconfig')
+    nvim_lsp.quick_lint_js.setup {}
+
+quick-lint-js is fast. To feel the speed, you might want to lint while in
+insert mode. Add the following code to your |init.lua| to make JavaScript
+linting as fast as possible: >
+
+    vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
+      vim.lsp.diagnostic.on_publish_diagnostics, {
+        update_in_insert = true,
+      }
+    )
+
+The `setup` function can take the following configuration options:
+
+cmd		*quick-lint-js-configure-nvim-lspconfig-cmd*
+  Default: `{"quick-lint-js", "--lsp-server"},`
+
+Set this option to a table of strings containing the operating system command
+for quick-lint-js. You must include the `"--lsp-server"` option.
+
+filetypes	*quick-lint-js-configure-nvim-lspconfig-filetypes*
+  Default: `{"javascript"}`
+
+Set this option to a table of strings to enable quick-lint-js for different
+|filetype|s.
+
+root_dir	*quick-lint-js-configure-nvim-lspconfig-root_dir*
+  Default: `"/"`
+
+Set this option to a directory string. Files opened in that directory (or any
+ancestor) will share the same instance of quick-lint-js.
 
  vim:tw=78:ts=8:noet:ft=help:norl:
