@@ -9,7 +9,7 @@ let __dirname = path.dirname(__filename);
 
 export let websiteConfig = {
   esbuildBundles: {
-    "/demo/demo.bundled.mjs": {
+    "/demo/demo.bundled.js": {
       entryPoints: ["/demo/demo.mjs"],
       external: ["fs", "path"],
     },
