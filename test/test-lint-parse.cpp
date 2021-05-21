@@ -107,9 +107,9 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_assignment_to_const_variable,
-            assignment, offsets_matcher(&input,16, 16+1),
-            declaration, offsets_matcher(&input,6, 6+1))));
+                              error_assignment_to_const_variable, assignment,
+                              offsets_matcher(&input, 16, 16 + 1), declaration,
+                              offsets_matcher(&input, 6, 6 + 1))));
   }
 
   {
@@ -145,11 +145,10 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_assignment_to_const_variable,
-            assignment, offsets_matcher(&input,31, 31+1),
-            declaration, offsets_matcher(&input,6, 6+1))));
+                              error_assignment_to_const_variable, assignment,
+                              offsets_matcher(&input, 31, 31 + 1), declaration,
+                              offsets_matcher(&input, 6, 6 + 1))));
   }
-
 }
 }
 
