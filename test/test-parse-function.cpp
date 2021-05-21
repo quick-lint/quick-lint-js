@@ -898,6 +898,49 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
                                               u8"async function"))));
   }
 }
+
+TEST(test_parse, invalid_function_parameter) {
+  {
+    padded_string code(u8"function f(g(), p) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // p
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"f", variable_kind::_function},
+                    spy_visitor::visited_variable_declaration{
+                        u8"p", variable_kind::_parameter}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_parameter, parameter,
+                    offsets_matcher(&code, strlen(u8"function f("), u8"g()"))));
+  }
+
+  {
+    padded_string code(u8"(g(), p) => {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // p
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"p", variable_kind::_parameter}));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_invalid_parameter, parameter,
+                              offsets_matcher(&code, strlen(u8"("), u8"g()"))));
+  }
+}
 }
 }
 

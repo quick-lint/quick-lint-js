@@ -472,6 +472,10 @@
              where))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_invalid_parameter, "E151", { source_code_span parameter; },        \
+      .error(QLJS_TRANSLATABLE("invalid function parameter"), parameter))      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_rhs_for_dot_operator, "E074", { source_code_span dot; },   \
       .error(QLJS_TRANSLATABLE(                                                \
                  "'.' operator needs a key name; use + to concatenate "        \

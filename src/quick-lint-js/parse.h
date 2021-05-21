@@ -3244,6 +3244,12 @@ class parser {
       });
       break;
 
+    case expression_kind::call:
+      this->error_reporter_->report(error_invalid_parameter{
+          .parameter = ast->span(),
+      });
+      break;
+
     default:
       QLJS_UNIMPLEMENTED();
       break;
