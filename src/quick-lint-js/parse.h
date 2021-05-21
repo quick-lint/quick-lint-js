@@ -3260,6 +3260,7 @@ class parser {
     // (and emit an error).
     bool trailing_identifiers = false;
     bool is_typeof = false;
+    bool is_pre_inc_dec = false;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
