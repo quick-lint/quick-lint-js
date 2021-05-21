@@ -25,10 +25,12 @@ createProcessFactoryAsync()
       synchronizeContent();
 
       // TODO(strager): On crash, show the error to the user.
-      let input = codeInputElement.value;
+      let input = codeInputElement.innerText;
+
       parser.setText(input);
       let marks = parser.lint();
-      markEditorText(shadowCodeInputElement, window, marks);
+      markEditorText(codeInputElement, window, marks);
+      assignBoxErrorMessage(codeInputElement, marks);
     }
     codeInputElement.addEventListener("input", (event) => {
       lintAndUpdate();
@@ -53,6 +55,55 @@ function synchronizeScrolling() {
 function synchronizeSize() {
   shadowCodeInputElement.style.width = codeInputElement.style.width;
   shadowCodeInputElement.style.height = codeInputElement.style.height;
+}
+
+function showErrorMessageBox(event, errorMessages) {
+  const markedElement = event.target;
+  const { code, message, severity } = errorMessages.filter(
+    (arr) => markedElement === arr.mark
+  )[0];
+  const div = createErrorBox(markedElement, message, code, severity);
+  let body = document.querySelector("body");
+  body.appendChild(div);
+}
+
+function createErrorBox(markedElement, errorMessage, code, severity) {
+  // TODO: Change background color based of the severity
+  let div = document.createElement("div");
+  const { bottom, left, height } = markedElement.getBoundingClientRect();
+  div.setAttribute("id", "error-message-box");
+  div.innerText = `${code} - ${errorMessage}`;
+  div.setAttribute(
+    "style",
+    `position: absolute; 
+    top: ${Math.trunc(bottom)}px; 
+    left: ${Math.trunc(left)}px`
+  );
+  div.classList.add("error-box");
+  return div;
+}
+
+function removeErrorMessageBox() {
+  const errorMessagesBoxs = document.querySelectorAll("#error-message-box");
+  errorMessagesBoxs.forEach((box) => box.remove());
+}
+
+function assignBoxErrorMessage(codeInputElement, marks) {
+  elements = codeInputElement.querySelectorAll("mark");
+
+  const errorMessages = marks.map(({ code, message, severity }, index) => ({
+    code,
+    message,
+    severity,
+    mark: elements[index],
+  }));
+
+  elements.forEach((mark) => {
+    mark.addEventListener("mouseenter", (event) =>
+      showErrorMessageBox(event, errorMessages)
+    );
+    mark.addEventListener("mouseout", removeErrorMessageBox);
+  });
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
