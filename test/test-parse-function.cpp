@@ -940,6 +940,28 @@ TEST(test_parse, invalid_function_parameter) {
                               error_invalid_parameter, parameter,
                               offsets_matcher(&code, strlen(u8"("), u8"g()"))));
   }
+
+  {
+    // TODO(strager): Is error_unexpected_arrow_after_literal appropriate here?
+    // Maybe we should recover in a different way.
+    padded_string code(u8"g(42) => {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // g
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<
+                error_missing_operator_between_expression_and_arrow_function>(
+                ::testing::_),
+            ERROR_TYPE_FIELD(error_invalid_parameter, parameter,
+                             offsets_matcher(&code, strlen(u8"g("), u8"42"))));
+  }
 }
 }
 }
