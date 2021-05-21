@@ -79,7 +79,7 @@ parser::loop_guard parser::enter_loop() {
 
 expression* parser::parse_expression(precedence prec) {
   expression* ast = this->parse_primary_expression(prec);
-  if (!prec.binary_operators && !prec.is_pre_inc_dec) {
+  if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
   }
   return this->parse_expression_remainder(ast, prec);
@@ -248,7 +248,7 @@ expression* parser::parse_primary_expression(precedence prec) {
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* child = this->parse_expression(precedence{
-        .binary_operators = false, .commas = false, .is_pre_inc_dec = true});
+        .binary_operators = false, .math_or_logical_or_assignment=false, .commas = false});
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -789,9 +789,6 @@ next:
   case token_type::plus:
   case token_type::slash: {
     if (!prec.math_or_logical_or_assignment) {
-      break;
-    }
-    if (prec.is_pre_inc_dec) {
       break;
     }
     source_code_span operator_span = this->peek().span();
