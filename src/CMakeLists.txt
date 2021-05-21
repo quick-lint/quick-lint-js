@@ -117,7 +117,6 @@ quick_lint_js_add_library(
   quick-lint-js/vscode-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-error-reporter-2.h
-  quick-lint-js/web-demo-error-reporter.h
   quick-lint-js/web-demo-location.h
   text-error-reporter.cpp
   translation-data.cpp
@@ -129,7 +128,6 @@ quick_lint_js_add_library(
   vim-qflist-json-error-reporter.cpp
   vscode-error-reporter.cpp
   web-demo-error-reporter-2.cpp
-  web-demo-error-reporter.cpp
   web-demo-location.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
