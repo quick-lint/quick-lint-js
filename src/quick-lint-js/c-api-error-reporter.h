@@ -1,32 +1,38 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_ERROR_REPORTER_H
-#define QUICK_LINT_JS_VSCODE_ERROR_REPORTER_H
+#ifndef QUICK_LINT_JS_C_API_ERROR_REPORTER_H
+#define QUICK_LINT_JS_C_API_ERROR_REPORTER_H
 
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
+#include <quick-lint-js/warning.h>
 #include <vector>
 
 struct qljs_vscode_diagnostic;
+struct qljs_web_demo_diagnostic;
 
 namespace quick_lint_js {
-class vscode_error_formatter;
+class lsp_locator;
+class web_demo_locator;
 
-class vscode_error_reporter final : public error_reporter {
+template <class Diagnostic, class Locator>
+class c_api_error_formatter;
+
+template <class Diagnostic, class Locator>
+class c_api_error_reporter final : public error_reporter {
  public:
-  explicit vscode_error_reporter();
+  explicit c_api_error_reporter();
 
-  void set_input(padded_string_view input, const lsp_locator *);
+  void set_input(padded_string_view input, const Locator *);
   void reset();
 
-  const qljs_vscode_diagnostic *get_diagnostics();
+  const Diagnostic *get_diagnostics();
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
   void report(name) override;
@@ -34,32 +40,51 @@ class vscode_error_reporter final : public error_reporter {
 #undef QLJS_ERROR_TYPE
 
  private:
-  vscode_error_formatter format(const char *code);
+  c_api_error_formatter<Diagnostic, Locator> format(const char *code);
 
   char8 *allocate_c_string(string8_view);
 
-  std::vector<qljs_vscode_diagnostic> diagnostics_;
-  const lsp_locator *locator_;
+  std::vector<Diagnostic> diagnostics_;
+  const Locator *locator_;
   const char8 *input_;
   monotonic_allocator string_allocator_;
 
-  friend vscode_error_formatter;
+  friend c_api_error_formatter<Diagnostic, Locator>;
 };
 
-class vscode_error_formatter : public error_formatter<vscode_error_formatter> {
+template <class Diagnostic, class Locator>
+class c_api_error_formatter
+    : public error_formatter<c_api_error_formatter<Diagnostic, Locator>> {
+ private:
+  using severity = error_formatter_base::severity;
+
  public:
-  explicit vscode_error_formatter(vscode_error_reporter *reporter,
-                                  const char *code);
+  explicit c_api_error_formatter(
+      c_api_error_reporter<Diagnostic, Locator> *reporter, const char *code);
 
   void write_before_message(severity, const source_code_span &origin);
   void write_message_part(severity, string8_view);
   void write_after_message(severity, const source_code_span &origin);
 
  private:
-  vscode_error_reporter *reporter_;
+  c_api_error_reporter<Diagnostic, Locator> *reporter_;
   const char *code_;
   string8 current_message_;
 };
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wweak-template-vtables")
+
+extern template class c_api_error_formatter<qljs_vscode_diagnostic,
+                                            lsp_locator>;
+extern template class c_api_error_reporter<qljs_vscode_diagnostic, lsp_locator>;
+
+extern template class c_api_error_formatter<qljs_web_demo_diagnostic,
+                                            web_demo_locator>;
+extern template class c_api_error_reporter<qljs_web_demo_diagnostic,
+                                           web_demo_locator>;
+
+QLJS_WARNING_POP
 }
 
 #endif

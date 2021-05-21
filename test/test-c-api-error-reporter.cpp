@@ -3,13 +3,17 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
+#include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/vscode-error-reporter.h>
 
 namespace quick_lint_js {
 namespace {
+using vscode_error_reporter =
+    c_api_error_reporter<qljs_vscode_diagnostic, lsp_locator>;
+
 TEST(test_vscode_error_reporter, big_int_literal_contains_decimal_point) {
   padded_string input(u8"12.34n"_sv);
   source_code_span number_span(&input[0], &input[6]);

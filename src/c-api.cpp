@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <cstddef>
+#include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/document.h>
@@ -10,8 +11,7 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/vscode-error-reporter.h>
-#include <quick-lint-js/web-demo-error-reporter-2.h>
+#include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
 namespace {
@@ -39,7 +39,9 @@ class qljs_parser_base {
 
 struct qljs_vscode_parser final
     : public quick_lint_js::qljs_parser_base<
-          quick_lint_js::lsp_locator, quick_lint_js::vscode_error_reporter> {
+          quick_lint_js::lsp_locator,
+          quick_lint_js::c_api_error_reporter<qljs_vscode_diagnostic,
+                                              quick_lint_js::lsp_locator>> {
  public:
   void replace_text(int start_line, int start_character, int end_line,
                     int end_character,
@@ -81,7 +83,8 @@ const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
 struct qljs_web_demo_parser final
     : public quick_lint_js::qljs_parser_base<
           quick_lint_js::web_demo_locator,
-          quick_lint_js::web_demo_error_reporter_2> {
+          quick_lint_js::c_api_error_reporter<
+              qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);

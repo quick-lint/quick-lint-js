@@ -28,6 +28,7 @@ quick_lint_js_add_executable(
   test-buffering-error-reporter.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
+  test-c-api-error-reporter.cpp
   test-c-api.cpp
   test-cli-location.cpp
   test-constant-divider.cpp
@@ -74,7 +75,6 @@ quick_lint_js_add_executable(
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
-  test-vscode-error-reporter.cpp
   test-web-demo-location.cpp
   test-write-integer.cpp
 )
