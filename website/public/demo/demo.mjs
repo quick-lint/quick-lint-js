@@ -12,7 +12,9 @@ codeInputElement.addEventListener("scroll", (event) => {
 });
 synchronizeContent();
 
-new ResizeObserver(synchronizeSize).observe(codeInputElement);
+if (typeof window.ResizeObserver !== "undefined") {
+  new window.ResizeObserver(synchronizeSize).observe(codeInputElement);
+}
 
 createProcessFactoryAsync()
   .then(async (processFactory) => {
