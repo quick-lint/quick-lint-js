@@ -14,16 +14,13 @@ Hack on the website locally by running a local web server:
 Open after starting the local web server, open http://127.0.0.1:9001/ in your
 browser.
 
-If you want to work on the demo, you need to [build
-quick-lint-js-wasm](../../../wasm/README.md).
+If you want to work on the demo or on the error documentation, you need to
+[build quick-lint-js-wasm](../../../wasm/README.md).
 
 After building quick-lint-js-wasm, you might need to re-install it with Yarn:
 
     $ cd website
     $ yarn install --force
-
-If you want to work on the error documentation, see [errors
-documentation](public/errors/README.md).
 
 ## Packaging for deployment
 
