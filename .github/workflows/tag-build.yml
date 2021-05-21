@@ -9,6 +9,8 @@ jobs:
     name: tag
     runs-on: ubuntu-latest
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    env:
+      QLJS_VERSION: "0.2.0"
     steps:
       - name: create tag file
         run: |
@@ -20,6 +22,20 @@ jobs:
           local-file-globs: README
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/
+          user: ${{ secrets.artifacts_user }}
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: create source archive
+        run: git archive --format tar.gz --prefix "quick-lint-js-${QLJS_VERSION}/" --output "quick-lint-js-${QLJS_VERSION}.tar.gz" HEAD
+      - name: upload source archive
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: quick-lint-js-${{ env.QLJS_VERSION }}.tar.gz
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/source/
           user: ${{ secrets.artifacts_user }}
 
 # quick-lint-js finds bugs in JavaScript programs.

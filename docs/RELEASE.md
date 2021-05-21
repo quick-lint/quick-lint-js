@@ -4,6 +4,7 @@ Follow the following steps to release a new version of quick-lint-js:
 
 1. Update version number and release date. Change these files containing version
    numbers:
+   * .github/workflows/tag-build.yml
    * Formula/quick-lint-js.rb
    * dist/arch/PKGBUILD-dev
    * dist/arch/PKGBUILD-git
