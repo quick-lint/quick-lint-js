@@ -41,6 +41,7 @@
         background: transparent;
         position: relative;
         z-index: 2;
+        outline: none;
       }
       #shadow-code-input,
       #shadow-code-input mark {
@@ -48,6 +49,35 @@
       }
       #shadow-code-input {
         z-index: 1;
+        position: absolute;
+      }
+
+      .error-box {
+        background-color: #252526;
+        color: yellow;
+        border: 1px solid #fff;
+        box-sizing: content-box;
+        padding: 5px;
+        font-size: 0.8rem;
+        max-height: 20px;
+        z-index: 999999;
+      }
+
+      /* Make errors stand out. */
+      mark {
+        text-decoration: underline;
+        background-color: #ffdddd;
+        text-decoration-color: red;
+        text-decoration-line: underline;
+        text-decoration-skip-ink: none;
+        text-decoration-style: wavy;
+      }
+      mark:empty::before {
+        color: red;
+        content: url("carat.svg") / "^";
+        content: url("carat.svg");
+        margin-left: -2px; /* (width of SVG) / 2 */
+        margin-top: 4px; /* height of SVG */
         position: absolute;
       }
 
@@ -100,14 +130,13 @@
       </p>
 
       <pre id="shadow-code-input"></pre>
-      <textarea id="code-input" spellcheck="false">
+<div contenteditable="true" id="code-input" spellcheck="false">
 const occupation = language + " coder";
 const language = "JavaScript";
 occupation = "Senior " + occupation;
 
 console.log(`Welcome, ${ocupation}!`);
-</textarea
-      >
+</div>
 
       <script src="demo.bundled.js"></script>
     </main>
