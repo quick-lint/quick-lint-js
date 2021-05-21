@@ -1580,6 +1580,11 @@ expression* parser::parse_object_literal() {
               this->error_reporter_);
           goto single_token_key_and_value_identifier;
 
+        // { #privateName }  // Invalid.
+        case token_type::private_identifier:
+          // We already reported an error. Ignore.
+          break;
+
         default:
           QLJS_UNIMPLEMENTED();
           break;

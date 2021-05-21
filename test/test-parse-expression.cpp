@@ -2327,6 +2327,17 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                     offsets_matcher(p.code(), strlen(u8"{"), u8"#key"))));
   }
 
+  {
+    test_parser p(u8"{#key, [other]: value}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var other, var value)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_private_properties_are_not_allowed_in_object_literals,
+                    private_identifier,
+                    offsets_matcher(p.code(), strlen(u8"{"), u8"#key"))));
+  }
+
   for (string8 prefix :
        {u8"", u8"async ", u8"get ", u8"set ", u8"*", u8"async *"}) {
     padded_string code(u8"{ " + prefix + u8"#method() { } }");
