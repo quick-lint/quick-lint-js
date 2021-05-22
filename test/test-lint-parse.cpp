@@ -96,6 +96,60 @@ TEST(test_lint, typeof_with_conditional_operator) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_lint, prefix_plusplus_on_const_variable) {
+  {
+    padded_string input(u8"const x = 42; ++x;"_sv);
+    error_collector v;
+    linter l(&v);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                              error_assignment_to_const_variable, assignment,
+                              offsets_matcher(&input, 16, 16 + 1), declaration,
+                              offsets_matcher(&input, 6, 6 + 1))));
+  }
+
+  {
+    padded_string input(u8"const x = {y : 10};\n ++x.y;"_sv);
+    error_collector v;
+    linter l(&v);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, prefix_plusplus_plus_operand) {
+  {
+    padded_string input(u8"const x = [42]; ++x[0];"_sv);
+    error_collector v;
+    linter l(&v);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string input(u8"const x = 42;\n const y =10;\n ++x + y;"_sv);
+    error_collector v;
+    linter l(&v);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                              error_assignment_to_const_variable, assignment,
+                              offsets_matcher(&input, 31, 31 + 1), declaration,
+                              offsets_matcher(&input, 6, 6 + 1))));
+  }
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
