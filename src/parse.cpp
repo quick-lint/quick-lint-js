@@ -1177,19 +1177,27 @@ void parser::parse_arrow_function_expression_remainder(
 
   // f(x, y) => {}
   case expression_kind::call:
-    left_paren_begin =
-        expression_cast<expression::call>(lhs)->left_paren_span().begin();
-    for (int i = 1; i < lhs->child_count(); ++i) {
-      parameters.emplace_back(lhs->child(i));
+    if (this->peek().type == token_type::left_curly) {
+      left_paren_begin =
+          expression_cast<expression::call>(lhs)->left_paren_span().begin();
+      for (int i = 1; i < lhs->child_count(); ++i) {
+        parameters.emplace_back(lhs->child(i));
+      }
+      // We will report
+      // error_missing_operator_between_expression_and_arrow_function
+      // elsewhere.
+      break;
     }
-    break;
+    [[fallthrough]];
 
+  // f() => z
   // 42 => {}
   case expression_kind::dot:
   case expression_kind::literal: {
     source_code_span lhs_span = lhs->span();
     left_paren_begin = lhs_span.begin();
     switch (lhs->kind()) {
+    case expression_kind::call:
     case expression_kind::dot:
       this->error_reporter_->report(error_unexpected_arrow_after_expression{
           .arrow = arrow_span,

@@ -2858,12 +2858,12 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"a() => b"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(var a, arrowexpr(var b))");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_operator_between_expression_and_arrow_function, where,
-            offsets_matcher(p.code(), 0, u8"a("))));
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unexpected_arrow_after_expression, arrow,
+                    offsets_matcher(p.code(), strlen(u8"a() "), u8"=>"),  //
+                    expression, offsets_matcher(p.code(), 0, u8"a()"))));
+    EXPECT_EQ(summarize(ast), "binary(call(var a), var b)");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 0 + strlen(u8"a() => b"));
   }
@@ -2871,12 +2871,12 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"a(b) => c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(var a, arrowexpr(var b, var c))");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_operator_between_expression_and_arrow_function, where,
-            offsets_matcher(p.code(), 0, u8"a("))));
+    EXPECT_EQ(summarize(ast), "binary(call(var a, var b), var c)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unexpected_arrow_after_expression, arrow,
+                    offsets_matcher(p.code(), strlen(u8"a(b) "), u8"=>"),  //
+                    expression, offsets_matcher(p.code(), 0, u8"a(b)"))));
   }
 
   {
