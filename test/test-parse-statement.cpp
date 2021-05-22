@@ -583,22 +583,75 @@ TEST(test_parse, else_if) {
     spy_visitor v =
         parse_and_visit_statement(u8"if (a) { b; } else if (c) { d; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // a
-                                      "visit_enter_block_scope",   // <if>
+                                      "visit_enter_block_scope",   // (if)
                                       "visit_variable_use",        // b
-                                      "visit_exit_block_scope",    // </if>
+                                      "visit_exit_block_scope",    // (if)
                                       "visit_variable_use",        // c
-                                      "visit_enter_block_scope",   // <else>
+                                      "visit_enter_block_scope",   // (else if)
                                       "visit_variable_use",        // d
-                                      "visit_exit_block_scope"));  // </else>
+                                      "visit_exit_block_scope"));  // (else if)
   }
 }
 
 TEST(test_parse, else_with_implicit_if) {
   {
     spy_visitor v;
+    padded_string code(u8"if (a) { b; } else (c) { d; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // a
+                                      "visit_enter_block_scope",   // (if)
+                                      "visit_variable_use",        // b
+                                      "visit_exit_block_scope",    // (if)
+                                      "visit_variable_use",        // c
+                                      "visit_enter_block_scope",   // (block)
+                                      "visit_variable_use",        // d
+                                      "visit_exit_block_scope"));  // (block)
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(
+                error_missing_semicolon_after_statement, where,
+                offsets_matcher(&code, strlen(u8"if (a) { b; } else (c)"),
+                                u8"")),
+            ERROR_TYPE_FIELD(
+                error_else_with_conditional_missing_if, else_token,
+                offsets_matcher(&code, strlen(u8"if (a) { b; } "), u8"else"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (a) { b; } else (f()) { d; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // a
+                                      "visit_enter_block_scope",   // (if)
+                                      "visit_variable_use",        // b
+                                      "visit_exit_block_scope",    // (if)
+                                      "visit_variable_use",        // f
+                                      "visit_enter_block_scope",   // (block)
+                                      "visit_variable_use",        // d
+                                      "visit_exit_block_scope"));  // (block)
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_semicolon_after_statement, where,
+                    offsets_matcher(&code, strlen(u8"if (a) { b; } else (f())"),
+                                    u8""))));
+  }
+
+  {
+    spy_visitor v;
     padded_string code(u8"if (a) { b; } else (c)\n{ d; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // a
+                                      "visit_enter_block_scope",   // (if)
+                                      "visit_variable_use",        // b
+                                      "visit_exit_block_scope",    // (if)
+                                      "visit_variable_use",        // c
+                                      "visit_enter_block_scope",   // (block)
+                                      "visit_variable_use",        // d
+                                      "visit_exit_block_scope"));  // (block)
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -608,35 +661,25 @@ TEST(test_parse, else_with_implicit_if) {
 
   {
     spy_visitor v;
-    padded_string code(u8"if (a) { b; } else (42)\n{ d; }"_sv);
+    padded_string code(u8"if (a) { b; } else () => {} { c; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // a
+                                      "visit_enter_block_scope",     // (if)
+                                      "visit_variable_use",          // b
+                                      "visit_exit_block_scope",      // (if)
+                                      "visit_enter_function_scope",  // (arrow)
+                                      "visit_enter_function_scope_body",  // {}
+                                      "visit_exit_function_scope",  // (arrow)
+                                      "visit_enter_block_scope",    // (block)
+                                      "visit_variable_use",         // d
+                                      "visit_exit_block_scope"));   // (block)
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
-            error_else_with_conditional_missing_if, else_token,
-            offsets_matcher(&code, strlen(u8"if (a) { b; } "), u8"else"))));
-  }
-
-  {
-    spy_visitor v;
-    padded_string code(u8"if (a) { b; } else (function () { c; })\n{ d; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_else_with_conditional_missing_if, else_token,
-            offsets_matcher(&code, strlen(u8"if (a) { b; } "), u8"else"))));
-  }
-
-  {
-    spy_visitor v;
-    padded_string code(
-        u8"if (a) { b; } else (function () { c; })()\n{ d; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
+            error_missing_semicolon_after_statement, where,
+            offsets_matcher(&code, strlen(u8"if (a) { b; } else () => {}"),
+                            u8""))));
   }
 
   {
@@ -658,14 +701,6 @@ TEST(test_parse, else_with_implicit_if) {
   {
     spy_visitor v;
     padded_string code(u8"if (a) { b; } else (o.m())\n{ c; }"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    spy_visitor v;
-    padded_string code(u8"if (a) { b; } else (b = a)\n{ c; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
