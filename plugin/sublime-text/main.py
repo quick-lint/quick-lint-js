@@ -15,16 +15,24 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def __init__(self, view):
         self.view = view
         self.parser = c_api.Parser()
+        self.parser.init()
 
     def on_load(self):
-        allregion = sublime.Region(0, self.view.size())
-        allcontent = self.view.substr(allregion)
-        slices = self.parser.lint(allcontent)
-        regions = [sublime.Region(s.start, s.stop) for s in slices]
+        viewsize = self.view.size()
+        allregion = sublime.Region(0, viewsize)
+        allcontent = self.view.substr(allregion).encode("utf-8")
+        diagnostics = self.parser.set_text_and_lint(allcontent, viewsize)
+        regions = [
+            sublime.Region(d.begin_offset, d.end_offset)
+            for d in c_api.iterdiags(diagnostics)
+        ]
         self.add_squiggly_underlines(regions)
 
     def on_modified(self):
         self.on_load()
+
+    def on_close(self):
+        self.parser.dealloc()
 
     def add_squiggly_underlines(self, regions):
         flags = (
