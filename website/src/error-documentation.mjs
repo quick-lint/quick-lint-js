@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 import MarkdownIt from "markdown-it";
+import assert from "assert";
 import fs from "fs";
 import path from "path";
 import url from "url";
@@ -72,10 +73,32 @@ export class ErrorDocumentation {
     this.filePath = filePath;
     this.titleErrorCode = titleErrorCode;
     this.titleErrorDescription = titleErrorDescription;
+    this.diagnostics = null;
   }
 
   get filePathErrorCode() {
     return path.basename(this.filePath, ".md");
+  }
+
+  async findDiagnosticsAsync() {
+    if (this.diagnostics !== null) {
+      // Already found.
+      return;
+    }
+
+    this.diagnostics = [];
+    let factory = await createProcessFactoryAsync();
+    let process = await factory.createProcessAsync();
+    for (let i = 0; i < this.codeBlocks.length; ++i) {
+      let parser = await process.createParserForVSCodeAsync();
+      parser.replaceText(
+        { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+        this.codeBlocks[i]
+      );
+      let diagnostics = parser.lint();
+      this.diagnostics.push(diagnostics);
+    }
+    assert.strictEqual(this.diagnostics.length, this.codeBlocks.length);
   }
 
   static async parseFileAsync(filePath) {
@@ -154,15 +177,9 @@ export class ErrorDocumentation {
     if (this.codeBlocks.length === 0) {
       foundProblems.push(`${this.filePath}: error: missing code blocks`);
     }
-    let factory = await createProcessFactoryAsync();
-    let process = await factory.createProcessAsync();
+    await this.findDiagnosticsAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
-      let parser = await process.createParserForVSCodeAsync();
-      parser.replaceText(
-        { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-        this.codeBlocks[i]
-      );
-      let diagnostics = parser.lint();
+      let diagnostics = this.diagnostics[i];
 
       let expectDiagnostic = i === 0;
       if (expectDiagnostic) {
