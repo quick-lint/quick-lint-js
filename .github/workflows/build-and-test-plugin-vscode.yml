@@ -61,7 +61,7 @@ jobs:
           name: plugin-vscode-${{ github.sha }}
           path: plugin/vscode/*.vsix
       - name: upload build to long-term storage
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}

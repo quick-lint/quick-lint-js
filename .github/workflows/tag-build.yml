@@ -16,6 +16,7 @@ jobs:
         run: |
           printf 'Git-Commit: %s\nWebsite-URL: %s' ${{ github.sha }} 'https://quick-lint-js.com/' >README
       - name: upload tag file
+        if: ${{ github.repository_owner == 'quick-lint' }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
@@ -30,6 +31,7 @@ jobs:
       - name: create source archive
         run: git archive --format tar.gz --prefix "quick-lint-js-${QLJS_VERSION}/" --output "quick-lint-js-${QLJS_VERSION}.tar.gz" HEAD
       - name: upload source archive
+        if: ${{ github.repository_owner == 'quick-lint' }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}

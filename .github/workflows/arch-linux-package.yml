@@ -49,7 +49,7 @@ jobs:
           name: quick-lint-js-arch-${{ github.sha }}
           path: dist/arch/quick-lint-js-*.pkg.tar.zst
       - name: upload build to long-term storage
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
