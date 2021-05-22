@@ -13,6 +13,15 @@ install(
   DESTINATION "${QUICK_LINT_JS_INSTALL_VIM_DIR}/ale_linters/javascript"
 )
 
+install(
+  FILES quick-lint-js.vim/autoload/quick_lint_js_ale.vim
+  DESTINATION "${QUICK_LINT_JS_INSTALL_NEOVIM_DIR}/autoload"
+)
+install(
+  FILES quick-lint-js.vim/ale_linters/javascript/quick_lint_js.vim
+  DESTINATION "${QUICK_LINT_JS_INSTALL_NEOVIM_DIR}/ale_linters/javascript"
+)
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
