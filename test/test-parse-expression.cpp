@@ -3161,6 +3161,273 @@ TEST_F(test_parse_expression,
   }
 }
 
+TEST(test_parse, test_expression_for_potential_side_effects) {
+  {
+    test_parser p(u8"class {};"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"typeof 42;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"typeof f();"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"await foo;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"import foo;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"++x;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"x++;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"...foo"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"yield foo;"_sv);
+    auto guard = p.parser().enter_function(function_attributes::generator);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"yield* foo();"_sv);
+    auto guard = p.parser().enter_function(function_attributes::generator);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"yield;"_sv);
+    auto guard = p.parser().enter_function(function_attributes::generator);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"function () { bar; };"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"(function () { bar; })();"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"function foo () { bar; };"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"(function foo () { bar; })();"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"() => { bar; };"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"(() => { bar; })();"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"() => bar;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"(() => bar)();"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"new foo;"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    // TODO(keyehzh): Need more specific tests as some binary operators might
+    // have side-effects (such as '+', '==', ...) and some don't
+    // (such as '===' and '!==')
+    test_parser p(u8"x + y"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"['foo', 'bar']"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"['foo', g()]"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"`foo`"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"`foo ${bar}`"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"`foo ${g()}`"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"foo`bar`"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"foo = bar"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"x += y"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"f() ? bar : 42"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"foo ? f() : g()"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"foo ? bar : g()"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"foo ? f() : bar"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"foo = bar ? x : y"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"{foo: 42}"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_FALSE(side_effects);
+  }
+
+  {
+    test_parser p(u8"{key: f()}"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+
+  {
+    test_parser p(u8"{[f()]: true}"_sv);
+    expression* ast = p.parse_expression();
+    bool side_effects = p.parser().has_potential_side_effects(ast);
+    EXPECT_TRUE(side_effects);
+  }
+}
+
 std::string summarize(const expression& expression) {
   auto children = [&] {
     std::string result;

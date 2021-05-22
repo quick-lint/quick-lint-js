@@ -658,6 +658,8 @@ class parser {
     return this->parse_expression(precedence{});
   }
 
+  bool has_potential_side_effects(expression *ast);
+
  private:
   enum class variable_context {
     lhs,
@@ -2460,71 +2462,6 @@ class parser {
     v.visit_exit_with_scope();
   }
 
-  bool is_side_effect_free(expression *ast) {
-    switch (ast->kind()) {
-    case expression_kind::_class:
-    case expression_kind::_invalid:
-    case expression_kind::_typeof:
-    case expression_kind::await:
-    case expression_kind::import:
-    case expression_kind::literal:
-    case expression_kind::new_target:
-    case expression_kind::private_variable:
-    case expression_kind::rw_unary_prefix:
-    case expression_kind::rw_unary_suffix:
-    case expression_kind::spread:
-    case expression_kind::super:
-    case expression_kind::unary_operator:
-    case expression_kind::variable:
-    case expression_kind::yield_many:
-    case expression_kind::yield_none:
-    case expression_kind::yield_one:
-      return true;
-
-    case expression_kind::dot:
-    case expression_kind::index:
-    case expression_kind::function:
-    case expression_kind::named_function:
-      return false;
-
-    case expression_kind::_new:
-    case expression_kind::_template:
-    case expression_kind::array:
-    case expression_kind::binary_operator:
-    case expression_kind::call:
-    case expression_kind::tagged_template_literal:
-    case expression_kind::trailing_comma:
-    case expression_kind::arrow_function_with_expression:
-    case expression_kind::arrow_function_with_statements:
-      for (int i = 0; i < ast->child_count(); i++) {
-        if (!this->is_side_effect_free(ast->child(i))) return false;
-      }
-      return true;
-
-    case expression_kind::assignment:
-    case expression_kind::compound_assignment:
-    case expression_kind::conditional_assignment:
-      return this->is_side_effect_free(ast->child_0()) &&
-             this->is_side_effect_free(ast->child_1());
-
-    case expression_kind::conditional:
-      return this->is_side_effect_free(ast->child_0()) &&
-             this->is_side_effect_free(ast->child_1()) &&
-             this->is_side_effect_free(ast->child_2());
-
-    case expression_kind::object: {
-      for (int i = 0; i < ast->object_entry_count(); i++) {
-        auto entry = ast->object_entry(i);
-        if (entry.property.has_value()) {
-          if (!this->is_side_effect_free(*entry.property)) return false;
-        }
-      }
-      return true;
-    }
-    }
-    return false;
-  }
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_if(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_if);
@@ -2598,7 +2535,6 @@ class parser {
         default:
           break;
 
-        // Any other kind?
         case expression_kind::arrow_function_with_expression:
         case expression_kind::arrow_function_with_statements:
           is_invalidating_if = true;
@@ -2606,7 +2542,7 @@ class parser {
         }
 
         if (this->peek().type == token_type::left_curly) {
-          if (!is_invalidating_if && this->is_side_effect_free(ast)) {
+          if (!is_invalidating_if && !this->has_potential_side_effects(ast)) {
             this->error_reporter_->report(
                 error_else_with_conditional_missing_if{
                     .else_token = else_span,

@@ -2065,6 +2065,73 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
   }
 }
 
+bool parser::has_potential_side_effects(expression* ast) {
+  switch (ast->kind()) {
+  case expression_kind::_class:
+  case expression_kind::_new:
+  case expression_kind::assignment:
+  case expression_kind::await:
+  case expression_kind::binary_operator:  // TODO(keyehzh): '===' and '!==' are
+                                          // side-effect-free
+  case expression_kind::call:
+  case expression_kind::compound_assignment:
+  case expression_kind::conditional_assignment:
+  case expression_kind::dot:
+  case expression_kind::import:
+  case expression_kind::index:
+  case expression_kind::rw_unary_prefix:
+  case expression_kind::rw_unary_suffix:
+  case expression_kind::spread:
+  case expression_kind::tagged_template_literal:
+  case expression_kind::unary_operator:
+  case expression_kind::yield_many:
+  case expression_kind::yield_none:
+  case expression_kind::yield_one:
+    return true;
+
+  case expression_kind::_invalid:
+  case expression_kind::function:
+  case expression_kind::literal:
+  case expression_kind::named_function:
+  case expression_kind::new_target:
+  case expression_kind::private_variable:
+  case expression_kind::super:
+  case expression_kind::variable:
+    return false;
+
+  case expression_kind::_typeof:
+    return this->has_potential_side_effects(ast->child(0));
+
+  case expression_kind::_template:
+  case expression_kind::array:
+  case expression_kind::arrow_function_with_expression:
+  case expression_kind::arrow_function_with_statements:
+  case expression_kind::trailing_comma:
+    for (int i = 0; i < ast->child_count(); i++) {
+      if (this->has_potential_side_effects(ast->child(i))) return true;
+    }
+    return false;
+
+  case expression_kind::conditional:
+    return this->has_potential_side_effects(ast->child_0()) ||
+           this->has_potential_side_effects(ast->child_1()) ||
+           this->has_potential_side_effects(ast->child_2());
+
+  case expression_kind::object: {
+    for (int i = 0; i < ast->object_entry_count(); i++) {
+      auto entry = ast->object_entry(i);
+      if (entry.property.has_value()) {
+        if (this->has_potential_side_effects(*entry.property) ||
+            this->has_potential_side_effects(entry.value))
+          return true;
+      }
+    }
+    return false;
+  }
+  }
+  return false;
+}
+
 void parser::consume_semicolon() {
   switch (this->peek().type) {
   case token_type::semicolon:
