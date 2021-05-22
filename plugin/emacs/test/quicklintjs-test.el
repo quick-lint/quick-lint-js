@@ -26,10 +26,11 @@
     (package-refresh-contents))
 
   (quicklintjs-install-deps (if (>= emacs-major-version 26)
-                                '(flycheck eglot)
+                                '(flycheck eglot lsp-mode)
                               '(flycheck)))
   (def-flycheck-tests)
   (def-eglot-tests)
+  (def-lsp-tests)
   (ert-run-tests-batch-and-exit))
 
 (defun def-eglot-tests ()
@@ -37,6 +38,12 @@
     (require 'eglot-quicklintjs)
     (ert-deftest quicklintjs-is-in-eglot-servers ()
       (should (member '(js-mode "quick-lint-js" "--lsp")  eglot-server-programs)))))
+
+(defun def-lsp-tests ()
+  (when (>= emacs-major-version 26)
+    (require 'lsp-quicklintjs)
+    (ert-deftest quicklintjs-is-in-lsp-clients ()
+      (should  (gethash 'quick-lint-js lsp-clients)))))
 
 (defun def-flycheck-tests ()
   (require 'flycheck)
