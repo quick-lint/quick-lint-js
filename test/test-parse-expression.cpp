@@ -1435,6 +1435,22 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_plus_operand) {
     EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser p(u8"++x.y"_sv);
+
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(dot(var x, y))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"++x[y]"_sv);
+
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(index(var x, var y))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
 }
 
 TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
