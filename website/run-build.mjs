@@ -71,6 +71,11 @@ async function mainAsync() {
         );
         break;
 
+      case "warning":
+        console.error(`error: ${instruction.message}`);
+        process.exit(1);
+        break;
+
       default:
         throw new Error(
           `Unexpected type from makeBuildInstructionsAsync: ${instruction.type}`
