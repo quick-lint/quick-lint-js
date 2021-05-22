@@ -518,9 +518,7 @@ expression* parser::parse_async_expression_only(token async_token) {
   // async () => {}  // Arrow function.
   // async()         // Function call.
   case token_type::left_paren: {
-    if (this->peek().has_leading_newline) {
-      goto variable_reference;
-    }
+    bool newline_after_async = this->peek().has_leading_newline;
 
     vector<expression*> parameters(
         "parse_expression async arrow function parameters",
@@ -553,6 +551,13 @@ expression* parser::parse_async_expression_only(token async_token) {
     this->skip();
 
     if (this->peek().type == token_type::equal_greater) {
+      if (newline_after_async) {
+        this->error_reporter_->report(
+            error_newline_not_allowed_between_async_and_parameter_list{
+                .async = async_token.span(),
+                .arrow = this->peek().span(),
+            });
+      }
       // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
       return parse_arrow_function_arrow_and_body(std::move(parameters));
     } else {

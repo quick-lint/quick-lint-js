@@ -821,6 +821,17 @@
                 do_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_newline_not_allowed_between_async_and_parameter_list, "E163",      \
+      {                                                                        \
+        source_code_span async;                                                \
+        source_code_span arrow;                                                \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("newline is not allowed between 'async' and "   \
+                               "arrow function parameter list"),               \
+             async)                                                            \
+          .note(QLJS_TRANSLATABLE("arrow is here"), arrow))                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores, "E028",           \
       { source_code_span underscores; },                                       \
       .error(QLJS_TRANSLATABLE(                                                \
