@@ -4,9 +4,11 @@
 import MarkdownIt from "markdown-it";
 import assert from "assert";
 import fs from "fs";
+import jsdom from "jsdom";
 import path from "path";
 import url from "url";
 import { createProcessFactoryAsync } from "quick-lint-js-wasm/quick-lint-js.js";
+import { markEditorText } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
@@ -42,17 +44,39 @@ markdownParser.renderer.rules = {
     let token = tokens[tokenIndex];
     let content = token.content;
 
-    let out = `<figure><pre><code>`;
-
-    // Wrap BOM in a <span>.
-    if (content[0] === "\u{feff}") {
-      out += "<span class='unicode-bom'>\u{feff}</span>";
-      content = content.substr(1);
+    if (typeof env.dom === "undefined") {
+      env.dom = new jsdom.JSDOM("");
+    }
+    if (typeof env.codeBlockIndex === "undefined") {
+      env.codeBlockIndex = 0;
     }
 
-    return `${out}${markdownParser.utils.escapeHtml(
-      content
-    )}</code></pre></figure>`;
+    let codeElement = env.dom.window.document.createElement("code");
+    codeElement.appendChild(env.dom.window.document.createTextNode(content));
+
+    if (env.doc.diagnostics !== null) {
+      markEditorText(
+        codeElement,
+        env.dom.window,
+        env.doc.diagnostics[env.codeBlockIndex]
+      );
+    }
+
+    let codeHTML = codeElement.innerHTML;
+    // Wrap BOM in a <span>.
+    if (
+      ["\u{feff}", "<mark>\u{feff}</mark>"].some((bom) =>
+        codeHTML.startsWith(bom)
+      )
+    ) {
+      codeHTML = codeHTML.replace(
+        /\ufeff/,
+        "<span class='unicode-bom'>\u{feff}</span>"
+      );
+    }
+
+    env.codeBlockIndex += 1;
+    return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
   },
 
   fence(tokens, tokenIndex, options, env, self) {
@@ -90,11 +114,8 @@ export class ErrorDocumentation {
     let factory = await createProcessFactoryAsync();
     let process = await factory.createProcessAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
-      let parser = await process.createParserForVSCodeAsync();
-      parser.replaceText(
-        { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-        this.codeBlocks[i]
-      );
+      let parser = await process.createParserForWebDemoAsync();
+      parser.setText(this.codeBlocks[i]);
       let diagnostics = parser.lint();
       this.diagnostics.push(diagnostics);
     }

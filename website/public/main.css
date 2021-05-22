@@ -120,6 +120,30 @@ main > h2:first-child {
   }
 }
 
+/* Make errors stand out. */
+pre mark {
+  color: unset;
+  text-decoration: underline;
+  background-color: #ffdddd;
+  text-decoration-color: red;
+  text-decoration-line: underline;
+  text-decoration-skip-ink: none;
+  text-decoration-style: wavy;
+}
+pre mark:empty::before {
+  color: red;
+  content: url("carat.svg") / "^";
+  content: url("carat.svg");
+  margin-left: -2px; /* (width of SVG) / 2 */
+  margin-top: 4px; /* height of SVG */
+  position: absolute;
+}
+@media (prefers-color-scheme: dark) {
+  pre mark {
+    background-color: #7a1965;
+  }
+}
+
 /* Side-bar navigation, if the viewport is wide enough. */
 /* HACK(strager): max-width in this query should equal body's max-width (plus
    padding-left and padding-right), but we need to add a little bit in case of a
