@@ -120,6 +120,12 @@ void linting_lsp_server_handler<Linter>::handle_notification(
     std::exit(this->shutdown_requested_ ? 0 : 1);
   } else if (starts_with(method, "$/"sv)) {
     // Do nothing.
+  } else if (method == "workspace/didChangeConfiguration") {
+    // Do nothing.
+  } else if (method == "textDocument/didSave") {
+    // Do nothing.
+  } else if (method == "textDocument/willSave") {
+    // Do nothing.
   } else {
     QLJS_UNIMPLEMENTED();
   }
@@ -266,7 +272,7 @@ void linting_lsp_server_handler<Linter>::
   doc.doc.set_text(make_string_view(text_document["text"]));
   doc.version_json = get_raw_json(version);
 
-  if (language_id == "javascript") {
+  if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
     this->linter_.lint_and_get_diagnostics_notification(
         *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),

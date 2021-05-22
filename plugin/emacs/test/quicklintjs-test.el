@@ -9,6 +9,12 @@
                           (expand-file-name default-directory)
                           ".melpa-cache/"))
 
+(defun quicklintjs-install-deps (deps)
+  (mapcar (lambda (pkg) (unless (package-installed-p pkg)
+                          (if (> emacs-major-version 24)
+                              (package-install pkg t)
+                            (package-install pkg)))) deps))
+
 (defun quicklintjs-test-main ()
   (setq package-user-dir cache-dir-name
         package-check-signature nil)
@@ -19,23 +25,27 @@
   (unless package-archive-contents
     (package-refresh-contents))
 
-  (unless (package-installed-p 'flycheck)
-    ;; the DONT-SELECT argument is only available and make sense
-    ;; in emacs 25 and above.
-    (if (> emacs-major-version 24)
-        (package-install 'flycheck t)
-      (package-install 'flycheck)))
+  (quicklintjs-install-deps (if (>= emacs-major-version 26)
+                                '(flycheck eglot)
+                              '(flycheck)))
+  (def-flycheck-tests)
+  (def-eglot-tests)
+  (ert-run-tests-batch-and-exit))
 
+(defun def-eglot-tests ()
+  (when (>= emacs-major-version 26)
+    (require 'eglot-quicklintjs)
+    (ert-deftest quicklintjs-is-in-eglot-servers ()
+      (should (member '(js-mode "quick-lint-js" "--lsp")  eglot-server-programs)))))
+
+(defun def-flycheck-tests ()
   (require 'flycheck)
   (require 'flycheck-ert)
   (require 'flycheck-quicklintjs)
-  (def-flycheck-tests)
-  (ert-run-tests-batch-and-exit))
 
-(ert-deftest quicklintjs-is-in-checkers ()
-  (should (member 'javascript-quicklintjs flycheck-checkers)))
+  (ert-deftest quicklintjs-is-in-flycheck-checkers ()
+    (should (member 'javascript-quicklintjs flycheck-checkers)))
 
-(defun def-flycheck-tests ()
   (flycheck-ert-def-checker-test
    javascript-quicklintjs javascript error
    (let ((flycheck-checker 'javascript-quicklintjs)
