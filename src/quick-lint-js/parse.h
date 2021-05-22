@@ -658,7 +658,7 @@ class parser {
     return this->parse_expression(precedence{});
   }
 
-  bool has_potential_side_effects(expression *ast);
+  static bool has_potential_side_effects(expression *ast);
 
  private:
   enum class variable_context {

@@ -2100,7 +2100,7 @@ bool parser::has_potential_side_effects(expression* ast) {
     return false;
 
   case expression_kind::_typeof:
-    return this->has_potential_side_effects(ast->child(0));
+    return has_potential_side_effects(ast->child(0));
 
   case expression_kind::_template:
   case expression_kind::array:
@@ -2108,21 +2108,21 @@ bool parser::has_potential_side_effects(expression* ast) {
   case expression_kind::arrow_function_with_statements:
   case expression_kind::trailing_comma:
     for (int i = 0; i < ast->child_count(); i++) {
-      if (this->has_potential_side_effects(ast->child(i))) return true;
+      if (has_potential_side_effects(ast->child(i))) return true;
     }
     return false;
 
   case expression_kind::conditional:
-    return this->has_potential_side_effects(ast->child_0()) ||
-           this->has_potential_side_effects(ast->child_1()) ||
-           this->has_potential_side_effects(ast->child_2());
+    return has_potential_side_effects(ast->child_0()) ||
+           has_potential_side_effects(ast->child_1()) ||
+           has_potential_side_effects(ast->child_2());
 
   case expression_kind::object: {
     for (int i = 0; i < ast->object_entry_count(); i++) {
       auto entry = ast->object_entry(i);
       if (entry.property.has_value()) {
-        if (this->has_potential_side_effects(*entry.property) ||
-            this->has_potential_side_effects(entry.value))
+        if (has_potential_side_effects(*entry.property) ||
+            has_potential_side_effects(entry.value))
           return true;
       }
     }
