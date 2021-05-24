@@ -2529,22 +2529,10 @@ class parser {
         expression *ast = this->parse_expression(precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
 
-        bool is_invalidating_if = false;
-
-        switch (ast->kind()) {
-        default:
-          break;
-
-        case expression_kind::arrow_function_with_expression:
-        case expression_kind::arrow_function_with_statements:
-          is_invalidating_if = true;
-          break;
-        }
-
         if (this->peek().type == token_type::left_curly) {
           this->consume_semicolon();
 
-          if (!is_invalidating_if && !this->has_potential_side_effects(ast)) {
+          if (!ast->is_arrow_kind() && !this->has_potential_side_effects(ast)) {
             this->error_reporter_->report(
                 error_else_with_conditional_missing_if{
                     .else_token = else_span,

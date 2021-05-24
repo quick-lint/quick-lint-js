@@ -196,6 +196,11 @@ class expression {
 
   int child_count() const noexcept;
 
+  bool is_arrow_kind() const noexcept {
+    return this->kind_ == expression_kind::arrow_function_with_statements ||
+           this->kind_ == expression_kind::arrow_function_with_expression;
+  }
+
   expression *child_0() const noexcept { return this->child(0); }
   expression *child_1() const noexcept { return this->child(1); }
   expression *child_2() const noexcept { return this->child(2); }
