@@ -3163,7 +3163,8 @@ TEST_F(test_parse_expression,
 
 TEST_F(test_parse_expression, test_expression_for_potential_side_effects) {
   {
-    expression* ast = this->parse_expression(u8"class {};"_sv);
+    expression* ast =
+        this->parse_expression(u8"class { static foo = bar(); };"_sv);
     EXPECT_TRUE(parser::has_potential_side_effects(ast));
   }
 
@@ -3198,7 +3199,7 @@ TEST_F(test_parse_expression, test_expression_for_potential_side_effects) {
   }
 
   {
-    expression* ast = this->parse_expression(u8"...foo"_sv);
+    expression* ast = this->parse_expression(u8"[...foo]"_sv);
     EXPECT_TRUE(parser::has_potential_side_effects(ast));
   }
 

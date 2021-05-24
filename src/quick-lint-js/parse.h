@@ -2541,9 +2541,9 @@ class parser {
           break;
         }
 
-        this->consume_semicolon();
-
         if (this->peek().type == token_type::left_curly) {
+          this->consume_semicolon();
+
           if (!is_invalidating_if && !this->has_potential_side_effects(ast)) {
             this->error_reporter_->report(
                 error_else_with_conditional_missing_if{

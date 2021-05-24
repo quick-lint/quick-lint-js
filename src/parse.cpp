@@ -2121,15 +2121,14 @@ bool parser::has_potential_side_effects(expression* ast) {
     for (int i = 0; i < ast->object_entry_count(); i++) {
       auto entry = ast->object_entry(i);
       if (entry.property.has_value()) {
-        if (has_potential_side_effects(*entry.property) ||
-            has_potential_side_effects(entry.value))
-          return true;
+        return has_potential_side_effects(*entry.property) ||
+               has_potential_side_effects(entry.value);
       }
     }
     return false;
   }
   }
-  return false;
+  QLJS_UNREACHABLE();
 }
 
 void parser::consume_semicolon() {
