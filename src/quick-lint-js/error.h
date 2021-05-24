@@ -1158,8 +1158,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_equal_after_variable, "E151",                              \
       { source_code_span expected_equal; },                                    \
-      .error(QLJS_TRANSLATABLE("missing '=' after variable"),                  \
-             expected_equal))                                                  \
+      .error(QLJS_TRANSLATABLE("missing '=' after variable"), expected_equal)) \
                                                                                \
   /* END */
 
