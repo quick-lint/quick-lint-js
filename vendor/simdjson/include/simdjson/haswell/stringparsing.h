@@ -1,7 +1,7 @@
 #ifndef SIMDJSON_HASWELL_STRINGPARSING_H
 #define SIMDJSON_HASWELL_STRINGPARSING_H
 
-#include "simdjson.h"
+#include "simdjson/base.h"
 #include "simdjson/haswell/simd.h"
 #include "simdjson/haswell/bitmanipulation.h"
 
@@ -34,8 +34,8 @@ simdjson_really_inline backslash_and_quote backslash_and_quote::copy_and_find(co
   // store to dest unconditionally - we can overwrite the bits we don't like later
   v.store(dst);
   return {
-      (uint32_t)(v == '\\').to_bitmask(),     // bs_bits
-      (uint32_t)(v == '"').to_bitmask(), // quote_bits
+      static_cast<uint32_t>((v == '\\').to_bitmask()),     // bs_bits
+      static_cast<uint32_t>((v == '"').to_bitmask()), // quote_bits
   };
 }
 

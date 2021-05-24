@@ -80,7 +80,7 @@ private:
   simdjson_really_inline json_structural_indexer(uint32_t *structural_indexes);
   template<size_t STEP_SIZE>
   simdjson_really_inline void step(const uint8_t *block, buf_block_reader<STEP_SIZE> &reader) noexcept;
-  simdjson_really_inline void next(const simd::simd8x64<uint8_t>& in, json_block block, size_t idx);
+  simdjson_really_inline void next(const simd::simd8x64<uint8_t>& in, const json_block& block, size_t idx);
   simdjson_really_inline error_code finish(dom_parser_implementation &parser, size_t idx, size_t len, bool partial);
 
   json_scanner scanner{};
@@ -170,7 +170,7 @@ simdjson_really_inline void json_structural_indexer::step<64>(const uint8_t *blo
   reader.advance();
 }
 
-simdjson_really_inline void json_structural_indexer::next(const simd::simd8x64<uint8_t>& in, json_block block, size_t idx) {
+simdjson_really_inline void json_structural_indexer::next(const simd::simd8x64<uint8_t>& in, const json_block& block, size_t idx) {
   uint64_t unescaped = in.lteq(0x1F);
   checker.check_next_input(in);
   indexer.write(uint32_t(idx-64), prev_structurals); // Output *last* iteration's structurals to the parser
@@ -182,8 +182,14 @@ simdjson_really_inline error_code json_structural_indexer::finish(dom_parser_imp
   // Write out the final iteration's structurals
   indexer.write(uint32_t(idx-64), prev_structurals);
 
-  error_code error = scanner.finish(partial);
-  if (simdjson_unlikely(error != SUCCESS)) { return error; }
+  error_code error = scanner.finish();
+  // We deliberately break down the next expression so that it is
+  // human readable.
+  const bool should_we_exit =  partial ?
+    ((error != SUCCESS) && (error != UNCLOSED_STRING)) // when partial we tolerate UNCLOSED_STRING
+    : (error != SUCCESS); // if partial is false, we must have SUCCESS
+  const bool have_unclosed_string = (error == UNCLOSED_STRING);
+  if (simdjson_unlikely(should_we_exit)) { return error; }
 
   if (unescaped_chars_error) {
     return UNESCAPED_CHARS;
@@ -216,6 +222,13 @@ simdjson_really_inline error_code json_structural_indexer::finish(dom_parser_imp
     return UNEXPECTED_ERROR;
   }
   if (partial) {
+    // If we have an unclosed string, then the last structural
+    // will be the quote and we want to make sure to omit it.
+    if(have_unclosed_string) {
+      parser.n_structural_indexes--;
+      // a valid JSON file cannot have zero structural indexes - we should have found something
+      if (simdjson_unlikely(parser.n_structural_indexes == 0u)) { return CAPACITY; }
+    }
     auto new_structural_indexes = find_next_document_index(parser);
     if (new_structural_indexes == 0 && parser.n_structural_indexes > 0) {
       return CAPACITY; // If the buffer is partial but the document is incomplete, it's too big to parse.

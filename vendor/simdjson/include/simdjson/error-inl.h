@@ -24,12 +24,14 @@ inline const char *error_message(error_code error) noexcept {
 }
 
 // deprecated function
+#ifndef SIMDJSON_DISABLE_DEPRECATED_API
 inline const std::string error_message(int error) noexcept {
   if (error < 0 || error >= error_code::NUM_ERROR_CODES) {
     return internal::error_codes[UNEXPECTED_ERROR].message;
   }
   return internal::error_codes[error].message;
 }
+#endif // SIMDJSON_DISABLE_DEPRECATED_API
 
 inline std::ostream& operator<<(std::ostream& out, error_code error) noexcept {
   return out << error_message(error);
@@ -43,9 +45,6 @@ namespace internal {
 
 template<typename T>
 simdjson_really_inline void simdjson_result_base<T>::tie(T &value, error_code &error) && noexcept {
-  // on the clang compiler that comes with current macOS (Apple clang version 11.0.0),
-  // tie(width, error) = size["w"].get<uint64_t>();
-  // fails with "error: no viable overloaded '='""
   error = this->second;
   if (!error) {
     value = std::forward<simdjson_result_base<T>>(*this).first;
@@ -89,6 +88,16 @@ simdjson_really_inline simdjson_result_base<T>::operator T&&() && noexcept(false
 }
 
 #endif // SIMDJSON_EXCEPTIONS
+
+template<typename T>
+simdjson_really_inline const T& simdjson_result_base<T>::value_unsafe() const& noexcept {
+  return this->first;
+}
+
+template<typename T>
+simdjson_really_inline T&& simdjson_result_base<T>::value_unsafe() && noexcept {
+  return std::forward<T>(this->first);
+}
 
 template<typename T>
 simdjson_really_inline simdjson_result_base<T>::simdjson_result_base(T &&value, error_code error) noexcept
@@ -147,6 +156,16 @@ simdjson_really_inline simdjson_result<T>::operator T&&() && noexcept(false) {
 }
 
 #endif // SIMDJSON_EXCEPTIONS
+
+template<typename T>
+simdjson_really_inline const T& simdjson_result<T>::value_unsafe() const& noexcept {
+  return internal::simdjson_result_base<T>::value_unsafe();
+}
+
+template<typename T>
+simdjson_really_inline T&& simdjson_result<T>::value_unsafe() && noexcept {
+  return std::forward<internal::simdjson_result_base<T>>(*this).value_unsafe();
+}
 
 template<typename T>
 simdjson_really_inline simdjson_result<T>::simdjson_result(T &&value, error_code error) noexcept

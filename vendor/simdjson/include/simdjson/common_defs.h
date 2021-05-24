@@ -100,6 +100,7 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
   #endif
 
   #define SIMDJSON_DISABLE_DEPRECATED_WARNING SIMDJSON_DISABLE_VS_WARNING(4996)
+  #define SIMDJSON_DISABLE_STRICT_OVERFLOW_WARNING
   #define SIMDJSON_POP_DISABLE_WARNINGS __pragma(warning( pop ))
 
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO
@@ -139,6 +140,7 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
   #define SIMDJSON_DISABLE_UNDESIRED_WARNINGS
   #endif
   #define SIMDJSON_DISABLE_DEPRECATED_WARNING SIMDJSON_DISABLE_GCC_WARNING(-Wdeprecated-declarations)
+  #define SIMDJSON_DISABLE_STRICT_OVERFLOW_WARNING SIMDJSON_DISABLE_GCC_WARNING(-Wstrict-overflow)
   #define SIMDJSON_POP_DISABLE_WARNINGS _Pragma("GCC diagnostic pop")
 
 
@@ -147,15 +149,43 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
 
 #if defined(SIMDJSON_VISUAL_STUDIO)
     /**
+     * Windows users need to do some extra work when building
+     * or using a dynamic library (DLL). When building, we need
+     * to set SIMDJSON_DLLIMPORTEXPORT to __declspec(dllexport).
+     * When *using* the DLL, the user needs to set
+     * SIMDJSON_DLLIMPORTEXPORT __declspec(dllimport).
+     *
+     * Static libraries not need require such work.
+     *
      * It does not matter here whether you are using
      * the regular visual studio or clang under visual
-     * studio.
+     * studio, you still need to handle these issues.
+     *
+     * Non-Windows sytems do not have this complexity.
      */
-    #if SIMDJSON_USING_LIBRARY
+    #if SIMDJSON_BUILDING_WINDOWS_DYNAMIC_LIBRARY
+    // We set SIMDJSON_BUILDING_WINDOWS_DYNAMIC_LIBRARY when we build a DLL under Windows.
+    // It should never happen that both SIMDJSON_BUILDING_WINDOWS_DYNAMIC_LIBRARY and
+    // SIMDJSON_USING_WINDOWS_DYNAMIC_LIBRARY are set.
+    #define SIMDJSON_DLLIMPORTEXPORT __declspec(dllexport)
+    #elif SIMDJSON_USING_WINDOWS_DYNAMIC_LIBRARY
+    // Windows user who call a dynamic library should set SIMDJSON_USING_WINDOWS_DYNAMIC_LIBRARY to 1.
     #define SIMDJSON_DLLIMPORTEXPORT __declspec(dllimport)
     #else
-    #define SIMDJSON_DLLIMPORTEXPORT __declspec(dllexport)
+    // We assume by default static linkage
+    #define SIMDJSON_DLLIMPORTEXPORT
     #endif
+
+/**
+ * Workaround for the vcpkg package manager. Only vcpkg should
+ * ever touch the next line. The SIMDJSON_USING_LIBRARY macro is otherwise unused.
+ */
+#if SIMDJSON_USING_LIBRARY
+#define SIMDJSON_DLLIMPORTEXPORT __declspec(dllimport)
+#endif
+/**
+ * End of workaround for the vcpkg package manager.
+ */
 #else
     #define SIMDJSON_DLLIMPORTEXPORT
 #endif
@@ -163,6 +193,7 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
 // C++17 requires string_view.
 #if SIMDJSON_CPLUSPLUS17
 #define SIMDJSON_HAS_STRING_VIEW
+#include <string_view> // by the standard, this has to be safe.
 #endif
 
 // This macro (__cpp_lib_string_view) has to be defined
@@ -213,6 +244,30 @@ namespace std {
 
 /// If EXPR is an error, returns it.
 #define SIMDJSON_TRY(EXPR) { auto _err = (EXPR); if (_err) { return _err; } }
+
+#ifndef SIMDJSON_DEVELOPMENT_CHECKS
+#ifndef NDEBUG
+#define SIMDJSON_DEVELOPMENT_CHECKS
+#endif
+#endif
+
+
+
+#if SIMDJSON_CPLUSPLUS17
+// if we have C++, then fallthrough is a default attribute
+# define simdjson_fallthrough [[fallthrough]]
+// check if we have __attribute__ support
+#elif defined(__has_attribute)
+// check if we have the __fallthrough__ attribute
+#if __has_attribute(__fallthrough__)
+// we are good to go:
+# define simdjson_fallthrough                    __attribute__((__fallthrough__))
+#endif
+#endif
+// on some systems, we simply do not have support for fallthrough, so use a default:
+#ifndef simdjson_fallthrough
+# define simdjson_fallthrough do {} while (0)  /* fallthrough */
+#endif
 
 
 #endif // SIMDJSON_COMMON_DEFS_H

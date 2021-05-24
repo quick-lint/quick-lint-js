@@ -18,7 +18,7 @@ namespace ondemand {
 //   Next state. In this state, depth > iter->depth, at_start == false, and error == SUCCESS.
 //
 // ## Error States
-// 
+//
 // In error states, we will yield exactly one more value before stopping. iter->depth == depth
 // and at_start is always false. We decrement after yielding the error, moving to the Finished
 // state.
@@ -40,51 +40,36 @@ namespace ondemand {
 //   error == SUCCESS.
 //
 
-simdjson_really_inline array::array(json_iterator_ref &&_iter) noexcept
-  : iter{std::forward<json_iterator_ref>(_iter)}
+simdjson_really_inline array::array(const value_iterator &_iter) noexcept
+  : iter{_iter}
 {
 }
 
-simdjson_really_inline array::~array() noexcept {
-  if (iter.is_alive()) {
-    logger::log_event(*iter, "unfinished", "array");
-    simdjson_unused auto _err = iter->skip_container();
-    iter.release();
-  }
+simdjson_really_inline simdjson_result<array> array::start(value_iterator &iter) noexcept {
+  // We don't need to know if the array is empty to start iteration, but we do want to know if there
+  // is an error--thus `simdjson_unused`.
+  simdjson_unused bool has_value;
+  SIMDJSON_TRY( iter.start_array().get(has_value) );
+  return array(iter);
+}
+simdjson_really_inline simdjson_result<array> array::start_root(value_iterator &iter) noexcept {
+  simdjson_unused bool has_value;
+  SIMDJSON_TRY( iter.start_root_array().get(has_value) );
+  return array(iter);
+}
+simdjson_really_inline array array::started(value_iterator &iter) noexcept {
+  simdjson_unused bool has_value = iter.started_array();
+  return array(iter);
 }
 
-simdjson_really_inline simdjson_result<array> array::start(json_iterator_ref &&iter) noexcept {
-  bool has_value;
-  SIMDJSON_TRY( iter->start_array().get(has_value) );
-  if (!has_value) { iter.release(); }
-  return array(std::forward<json_iterator_ref>(iter));
+simdjson_really_inline simdjson_result<array_iterator> array::begin() noexcept {
+#ifdef SIMDJSON_DEVELOPMENT_CHECKS
+  if (!iter.is_at_iterator_start()) { return OUT_OF_ORDER_ITERATION; }
+#endif
+  return array_iterator(iter);
 }
-simdjson_really_inline array array::started(json_iterator_ref &&iter) noexcept {
-  if (!iter->started_array()) { iter.release(); }
-  return array(std::forward<json_iterator_ref>(iter));
-}
-
-//
-// For array_iterator
-//
-simdjson_really_inline json_iterator &array::get_iterator() noexcept {
-  return *iter;
-}
-simdjson_really_inline json_iterator_ref array::borrow_iterator() noexcept {
-  return iter.borrow();
-}
-simdjson_really_inline bool array::is_iterator_alive() const noexcept {
-  return iter.is_alive();
-}
-simdjson_really_inline void array::iteration_finished() noexcept {
-  iter.release();
-}
-
-simdjson_really_inline array_iterator<array> array::begin() & noexcept {
-  return *this;
-}
-simdjson_really_inline array_iterator<array> array::end() & noexcept {
-  return {};
+simdjson_really_inline simdjson_result<array_iterator> array::end() noexcept {
+  return array_iterator(iter);
 }
 
 } // namespace ondemand
@@ -108,11 +93,11 @@ simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>
 {
 }
 
-simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array_iterator<SIMDJSON_IMPLEMENTATION::ondemand::array>> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::begin() & noexcept {
+simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array_iterator> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::begin() noexcept {
   if (error()) { return error(); }
   return first.begin();
 }
-simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array_iterator<SIMDJSON_IMPLEMENTATION::ondemand::array>> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::end() & noexcept {
+simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array_iterator> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::end() noexcept {
   if (error()) { return error(); }
   return first.end();
 }

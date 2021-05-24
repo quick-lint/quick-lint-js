@@ -1,4 +1,4 @@
-#include "simdjson.h"
+#include "simdjson/base.h"
 #include "simdjson/internal/isadetection.h"
 
 namespace simdjson {
@@ -33,7 +33,6 @@ public:
 
   simdjson_warn_unused error_code parse(const uint8_t *buf, size_t len, dom::document &doc) noexcept final;
   simdjson_warn_unused error_code stage1(const uint8_t *buf, size_t len, bool partial) noexcept final;
-  simdjson_warn_unused error_code check_for_unclosed_array() noexcept;
   simdjson_warn_unused error_code stage2(dom::document &doc) noexcept final;
   simdjson_warn_unused error_code stage2_next(dom::document &doc) noexcept final;
   inline simdjson_warn_unused error_code set_capacity(size_t capacity) noexcept final;
@@ -55,6 +54,7 @@ inline dom_parser_implementation &dom_parser_implementation::operator=(dom_parse
 
 // Leaving these here so they can be inlined if so desired
 inline simdjson_warn_unused error_code dom_parser_implementation::set_capacity(size_t capacity) noexcept {
+  if(capacity > SIMDJSON_MAXSIZE_BYTES) { return CAPACITY; }
   // Stage 1 index output
   size_t max_structures = SIMDJSON_ROUNDUP_N(capacity, 64) + 2 + 7;
   structural_indexes.reset( new (std::nothrow) uint32_t[max_structures] );

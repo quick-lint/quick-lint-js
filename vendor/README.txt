@@ -106,14 +106,18 @@ consumption:
 * simdjson/singleheader/
 * simdjson/tests/
 
+The following patches have been manually applied:
+
+* simdjson-cmake-version.patch
+
 Copyright: Copyright 2018-2019 The simdjson authors; various
-Download URL: https://github.com/simdjson/simdjson/archive/v0.6.0.tar.gz
-Download date: November 3, 2020
-Git commit: 6a86ef5a7dd3381535a7f8047c0c067ce06dfcea
+Download URL: https://github.com/simdjson/simdjson/archive/v0.9.4.tar.gz
+Download date: May 24, 2020
+Git commit: 076f41ae4b7c3a3eeed8a043dfb1143abe87ddf0
 License file: simdjson/LICENSE; simdjson/src/to_chars.cpp; simdjson/windows/toni_ronnko_dirent.h; simdjson/windows/getopt.h; simdjson/include/simdjson/internal/isadetection.h
 License type: Apache-2.0; MIT; MIT; MIT(Old Style with legal disclaimer 2)/BSD-2-Clause; BSD-3-Clause
 Location: simdjson
 Project URL: https://github.com/simdjson/simdjson
-Release URL: https://github.com/simdjson/simdjson/releases/tag/v0.6.0
-Release date: October 23, 2020
-Version: 0.6.0
+Release URL: https://github.com/simdjson/simdjson/releases/tag/v0.9.4
+Release date: May 20, 2021
+Version: 0.9.4

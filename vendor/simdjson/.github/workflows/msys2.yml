@@ -1,9 +1,18 @@
 name: MSYS2-CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   windows-mingw:
+    if: >-
+      ! contains(toJSON(github.event.commits.*.message), '[skip ci]') &&
+      ! contains(toJSON(github.event.commits.*.message), '[skip github]')
     name: ${{ matrix.msystem }}
     runs-on: windows-latest
     defaults:
@@ -30,6 +39,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: dependencies/.cache
+          key: ${{ hashFiles('dependencies/CMakeLists.txt') }}
       - uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -41,4 +54,4 @@ jobs:
           cd build
           cmake -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DSIMDJSON_BUILD_STATIC=ON -DSIMDJSON_DO_NOT_USE_THREADS_NO_MATTER_WHAT=ON ..
           cmake --build . --verbose
-          ctest -j4 --output-on-failure -E checkperf
+          ctest -j4 --output-on-failure -LE explicitonly

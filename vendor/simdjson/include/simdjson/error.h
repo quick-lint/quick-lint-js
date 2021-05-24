@@ -35,7 +35,8 @@ enum error_code {
   INVALID_URI_FRAGMENT,     ///< Invalid URI fragment
   UNEXPECTED_ERROR,         ///< indicative of a bug in simdjson
   PARSER_IN_USE,            ///< parser is already in use.
-  /** @private Number of error codes */
+  OUT_OF_ORDER_ITERATION,   ///< tried to iterate an array or object out of order
+  INSUFFICIENT_PADDING,     ///< The JSON doesn't have enough padding for simdjson to safely parse it.
   NUM_ERROR_CODES
 };
 
@@ -97,7 +98,7 @@ namespace internal {
  * Then any method returning simdjson_result<T> will be chainable with your methods.
  */
 template<typename T>
-struct simdjson_result_base : public std::pair<T, error_code> {
+struct simdjson_result_base : protected std::pair<T, error_code> {
 
   /**
    * Create a new empty result with error = UNINITIALIZED.
@@ -135,6 +136,13 @@ struct simdjson_result_base : public std::pair<T, error_code> {
   simdjson_really_inline error_code get(T &value) && noexcept;
 
   /**
+   * Move the value to the provided variable.
+   *
+   * @param value The variable to assign the value to. May not be set if there is an error.
+   */
+  simdjson_really_inline const T &value(error_code &error) const & noexcept;
+
+  /**
    * The error.
    */
   simdjson_really_inline error_code error() const noexcept;
@@ -168,8 +176,20 @@ struct simdjson_result_base : public std::pair<T, error_code> {
    * @throw simdjson_error if there was an error.
    */
   simdjson_really_inline operator T&&() && noexcept(false);
-
 #endif // SIMDJSON_EXCEPTIONS
+
+  /**
+   * Get the result value. This function is safe if and only
+   * the error() method returns a value that evoluates to false.
+   */
+  simdjson_really_inline const T& value_unsafe() const& noexcept;
+
+  /**
+   * Take the result value (move it). This function is safe if and only
+   * the error() method returns a value that evoluates to false.
+   */
+  simdjson_really_inline T&& value_unsafe() && noexcept;
+
 }; // struct simdjson_result_base
 
 } // namespace internal
@@ -247,10 +267,30 @@ struct simdjson_result : public internal::simdjson_result_base<T> {
    * @throw simdjson_error if there was an error.
    */
   simdjson_really_inline operator T&&() && noexcept(false);
-
 #endif // SIMDJSON_EXCEPTIONS
+
+  /**
+   * Get the result value. This function is safe if and only
+   * the error() method returns a value that evoluates to false.
+   */
+  simdjson_really_inline const T& value_unsafe() const& noexcept;
+
+  /**
+   * Take the result value (move it). This function is safe if and only
+   * the error() method returns a value that evoluates to false.
+   */
+  simdjson_really_inline T&& value_unsafe() && noexcept;
+
 }; // struct simdjson_result
 
+#if SIMDJSON_EXCEPTIONS
+
+template<typename T>
+inline std::ostream& operator<<(std::ostream& out, simdjson_result<T> value) noexcept { return out << value.value(); }
+
+#endif // SIMDJSON_EXCEPTIONS
+
+#ifndef SIMDJSON_DISABLE_DEPRECATED_API
 /**
  * @deprecated This is an alias and will be removed, use error_code instead
  */
@@ -261,7 +301,7 @@ using ErrorValues [[deprecated("This is an alias and will be removed, use error_
  */
 [[deprecated("Error codes should be stored and returned as `error_code`, use `error_message()` instead.")]]
 inline const std::string error_message(int error) noexcept;
-
+#endif // SIMDJSON_DISABLE_DEPRECATED_API
 } // namespace simdjson
 
 #endif // SIMDJSON_ERROR_H

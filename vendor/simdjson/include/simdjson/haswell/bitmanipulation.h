@@ -14,7 +14,7 @@ simdjson_really_inline int trailing_zeroes(uint64_t input_num) {
   return (int)_tzcnt_u64(input_num);
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO
   ////////
-  // You might expect the next line to be equivalent to 
+  // You might expect the next line to be equivalent to
   // return (int)_tzcnt_u64(input_num);
   // but the generated code differs and might be less efficient?
   ////////
@@ -50,7 +50,7 @@ simdjson_really_inline bool add_overflow(uint64_t value1, uint64_t value2,
                        reinterpret_cast<unsigned __int64 *>(result));
 #else
   return __builtin_uaddll_overflow(value1, value2,
-                                   (unsigned long long *)result);
+                                   reinterpret_cast<unsigned long long *>(result));
 #endif
 }
 

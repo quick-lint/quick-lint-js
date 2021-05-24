@@ -86,6 +86,17 @@ public:
    */
   inline size_t size() const noexcept;
   /**
+   * Get the total number of slots used by this array on the tape.
+   *
+   * Note that this is not the same thing as `size()`, which reports the
+   * number of actual elements within an array (not counting its children).
+   *
+   * Since an element can use 1 or 2 slots on the tape, you can only use this
+   * to figure out the total size of an array (including its children,
+   * recursively) if you know its structure ahead of time.
+   **/
+  inline size_t number_of_slots() const noexcept;
+  /**
    * Get the value associated with the given JSON pointer.  We use the RFC 6901
    * https://tools.ietf.org/html/rfc6901 standard, interpreting the current node
    * as the root of its own JSON document.
@@ -106,7 +117,7 @@ public:
   /**
    * Get the value at the given index. This function has linear-time complexity and
    * is equivalent to the following:
-   * 
+   *
    *    size_t i=0;
    *    for (auto element : *this) {
    *      if (i == index) { return element; }
@@ -115,7 +126,7 @@ public:
    *    return INDEX_OUT_OF_BOUNDS;
    *
    * Avoid calling the at() function repeatedly.
-   * 
+   *
    * @return The value at the given index, or:
    *         - INDEX_OUT_OF_BOUNDS if the array index is larger than an array length
    */
