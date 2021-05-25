@@ -92,16 +92,24 @@
 //     as reporting an error if a 'const'-declared variable is assigned to.
 
 namespace quick_lint_js {
+variable_kind global_declared_variable::kind() const noexcept {
+  if (this->is_writable) {
+    return variable_kind::_let;
+  } else {
+    return variable_kind::_const;
+  }
+}
+
 void global_declared_variable_set::add_predefined_global_variable(
-    const char8 *name, variable_kind kind) {
+    const char8 *name, bool is_writable) {
   this->variables_.emplace_back(global_declared_variable{
-      .name = name, .kind = kind, .is_shadowable = true});
+      .name = name, .is_writable = is_writable, .is_shadowable = true});
 }
 
 void global_declared_variable_set::add_predefined_module_variable(
-    const char8 *name, variable_kind kind) {
+    const char8 *name, bool is_writable) {
   this->variables_.emplace_back(global_declared_variable{
-      .name = name, .kind = kind, .is_shadowable = false});
+      .name = name, .is_writable = is_writable, .is_shadowable = false});
 }
 
 const global_declared_variable *global_declared_variable_set::find(
@@ -203,7 +211,7 @@ global_declared_variable_set linter::make_global_variables() {
   };
   for (const char8 *global_variable : writable_global_variables) {
     vars.add_predefined_global_variable(global_variable,
-                                        variable_kind::_function);
+                                        /*is_writable=*/true);
   }
 
   const char8 *non_writable_global_variables[] = {
@@ -213,7 +221,7 @@ global_declared_variable_set linter::make_global_variables() {
       u8"undefined",
   };
   for (const char8 *global_variable : non_writable_global_variables) {
-    vars.add_predefined_global_variable(global_variable, variable_kind::_const);
+    vars.add_predefined_global_variable(global_variable, /*is_writable=*/false);
   }
 
   const char8 *writable_module_variables[] = {
@@ -221,7 +229,7 @@ global_declared_variable_set linter::make_global_variables() {
       u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
   };
   for (const char8 *module_variable : writable_module_variables) {
-    vars.add_predefined_module_variable(module_variable, variable_kind::_let);
+    vars.add_predefined_module_variable(module_variable, /*is_writable=*/true);
   }
 
   return vars;
@@ -636,7 +644,7 @@ void linter::report_error_if_assignment_is_illegal(
     const global_declared_variable *var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(
-      /*kind=*/var->kind,
+      /*kind=*/var->kind(),
       /*is_global_variable=*/true,
       /*declaration=*/nullptr,
       /*assignment=*/assignment,
@@ -715,7 +723,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
     if (!already_declared_variable->is_shadowable) {
       this->report_error_if_variable_declaration_conflicts(
           /*already_declared=*/nullptr,
-          /*already_declared_kind=*/already_declared_variable->kind,
+          /*already_declared_kind=*/already_declared_variable->kind(),
           /*already_declared_declaration_scope=*/
           declared_variable_scope::declared_in_current_scope,
           /*already_declared_is_global_variable=*/true,

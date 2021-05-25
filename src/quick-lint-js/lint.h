@@ -15,16 +15,18 @@
 namespace quick_lint_js {
 struct global_declared_variable {
   string8_view name;
-  variable_kind kind;
+  bool is_writable;
   // If false, the variable was already lexically declared in the module thus
   // cannot be declared by the user with 'let'.
   bool is_shadowable;
+
+  variable_kind kind() const noexcept;
 };
 
 class global_declared_variable_set {
  public:
-  void add_predefined_global_variable(const char8 *name, variable_kind);
-  void add_predefined_module_variable(const char8 *name, variable_kind);
+  void add_predefined_global_variable(const char8 *name, bool is_writable);
+  void add_predefined_module_variable(const char8 *name, bool is_writable);
 
   const global_declared_variable *find(identifier name) const noexcept;
 
