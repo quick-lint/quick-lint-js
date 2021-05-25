@@ -10,6 +10,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/optional.h>
+#include <quick-lint-js/warning.h>
 #include <vector>
 
 // The linter class implements single-pass variable lookup. A single-pass
@@ -532,8 +533,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   if (!has_eval_in_current_scope) {
     for (const used_variable &used_var : current_scope.variables_used) {
       QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
-      const declared_variable *var =
-          parent_scope.declared_variables.find(used_var.name);
+      const auto *var = parent_scope.declared_variables.find(used_var.name);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -561,8 +561,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   if (!has_eval_in_descendant_scope) {
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      const declared_variable *var =
-          parent_scope.declared_variables.find(used_var.name);
+      const auto *var = parent_scope.declared_variables.find(used_var.name);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -598,22 +597,50 @@ void linter::propagate_variable_declarations_to_parent_scope() {
 }
 
 void linter::report_error_if_assignment_is_illegal(
-    const linter::declared_variable *var, const identifier &assignment,
+    const declared_variable *var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
-  switch (var->kind()) {
+  this->report_error_if_assignment_is_illegal(
+      /*kind=*/var->kind(),
+      /*is_global_variable=*/var->is_global_variable(),
+      /*declaration=*/var->is_global_variable() ? nullptr : &var->declaration(),
+      /*assignment=*/assignment,
+      /*is_assigned_before_declaration=*/is_assigned_before_declaration);
+}
+
+void linter::report_error_if_assignment_is_illegal(
+    const global_declared_variable *var, const identifier &assignment,
+    bool is_assigned_before_declaration) const {
+  this->report_error_if_assignment_is_illegal(
+      /*kind=*/var->kind,
+      /*is_global_variable=*/true,
+      /*declaration=*/nullptr,
+      /*assignment=*/assignment,
+      /*is_assigned_before_declaration=*/is_assigned_before_declaration);
+}
+
+void linter::report_error_if_assignment_is_illegal(
+    variable_kind kind, bool is_global_variable, const identifier *declaration,
+    const identifier &assignment, bool is_assigned_before_declaration) const {
+  if (is_global_variable) {
+    QLJS_ASSERT(!declaration);
+  } else {
+    QLJS_ASSERT(declaration);
+  }
+
+  switch (kind) {
   case variable_kind::_const:
   case variable_kind::_import:
-    if (var->is_global_variable()) {
+    if (is_global_variable) {
       this->error_reporter_->report(
           error_assignment_to_const_global_variable{assignment});
     } else {
       if (is_assigned_before_declaration) {
         this->error_reporter_->report(
             error_assignment_to_const_variable_before_its_declaration{
-                var->declaration(), assignment, var->kind()});
+                *declaration, assignment, kind});
       } else {
-        this->error_reporter_->report(error_assignment_to_const_variable{
-            var->declaration(), assignment, var->kind()});
+        this->error_reporter_->report(
+            error_assignment_to_const_variable{*declaration, assignment, kind});
       }
     }
     break;
@@ -624,9 +651,14 @@ void linter::report_error_if_assignment_is_illegal(
   case variable_kind::_parameter:
   case variable_kind::_var:
     if (is_assigned_before_declaration) {
+      QLJS_WARNING_PUSH
+      QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
+
       this->error_reporter_->report(
           error_assignment_before_variable_declaration{
-              .assignment = assignment, .declaration = var->declaration()});
+              .assignment = assignment, .declaration = *declaration});
+
+      QLJS_WARNING_POP
     }
     break;
   }
@@ -731,14 +763,15 @@ linter::declared_variable_set::end() const noexcept {
 
 void linter::global_declared_variable_set::add_predefined_variable_declaration(
     const char8 *name, variable_kind kind) {
-  this->variables_.emplace_back(declared_variable::make_global(name, kind));
+  this->variables_.emplace_back(
+      global_declared_variable{.name = name, .kind = kind});
 }
 
-const linter::declared_variable *linter::global_declared_variable_set::find(
-    identifier name) const noexcept {
+const linter::global_declared_variable *
+linter::global_declared_variable_set::find(identifier name) const noexcept {
   string8_view name_view = name.normalized_name();
-  for (const declared_variable &var : this->variables_) {
-    if (var.name() == name_view) {
+  for (const global_declared_variable &var : this->variables_) {
+    if (var.name == name_view) {
       return &var;
     }
   }

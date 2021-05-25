@@ -64,7 +64,7 @@ class linter {
       return declared_variable(global_variable_name, kind);
     }
 
-    identifier declaration() const noexcept {
+    const identifier &declaration() const noexcept {
       QLJS_ASSERT(!this->is_global_variable());
       return this->declaration_;
     }
@@ -115,6 +115,12 @@ class linter {
     };
   };
 
+  // declared_variable, but for global_declared_variable_set.
+  struct global_declared_variable {
+    string8_view name;
+    variable_kind kind;
+  };
+
   enum class used_variable_kind {
     _export,
     _typeof,
@@ -153,10 +159,10 @@ class linter {
    public:
     void add_predefined_variable_declaration(const char8 *name, variable_kind);
 
-    const declared_variable *find(identifier name) const noexcept;
+    const global_declared_variable *find(identifier name) const noexcept;
 
    private:
-    std::vector<declared_variable> variables_;
+    std::vector<global_declared_variable> variables_;
   };
 
   // A scope tracks variable declarations and references in a lexical JavaScript
@@ -234,6 +240,14 @@ class linter {
   void report_error_if_assignment_is_illegal(
       const declared_variable *var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
+  void report_error_if_assignment_is_illegal(
+      const global_declared_variable *var, const identifier &assignment,
+      bool is_assigned_before_declaration) const;
+  void report_error_if_assignment_is_illegal(
+      variable_kind kind, bool is_global_variable,
+      const identifier *declaration, const identifier &assignment,
+      bool is_assigned_before_declaration) const;
+
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;
