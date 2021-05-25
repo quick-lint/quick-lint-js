@@ -535,8 +535,8 @@ TEST(test_parse, parse_invalid_let) {
         parser p(&code, &v);
         p.parse_and_visit_module(v);
         EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
-                                          "visit_variable_use",          // Array
-                                          "visit_variable_use",          // x
+                                          "visit_variable_use",  // Array
+                                          "visit_variable_use",  // x
                                           "visit_variable_declaration",  // y
                                           "visit_end_of_module"));
 
