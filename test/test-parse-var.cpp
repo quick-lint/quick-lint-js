@@ -71,6 +71,17 @@ TEST(test_parse, parse_simple_let) {
     EXPECT_EQ(v.variable_declarations[1].name, u8"second");
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x\nnew Array()"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
+    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse, parse_simple_var) {

@@ -3007,10 +3007,12 @@ class parser {
         }
 
         case token_type::kw_new: {
-          const char8 *here = this->lexer_.end_of_previous_token();
-          this->error_reporter_->report(error_missing_equal_after_variable{
-              .expected_equal = source_code_span(here, here),
-          });
+          if (!this->peek().has_leading_newline) {
+              const char8 *here = this->lexer_.end_of_previous_token();
+              this->error_reporter_->report(error_missing_equal_after_variable{
+                  .expected_equal = source_code_span(here, here),
+              });
+          }
           expression *ast = this->parse_expression_remainder(
               variable,
               precedence{.commas = false, .in_operator = allow_in_operator});
