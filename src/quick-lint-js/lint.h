@@ -13,6 +13,25 @@
 #include <vector>
 
 namespace quick_lint_js {
+struct global_declared_variable {
+  string8_view name;
+  variable_kind kind;
+  // If false, the variable was already lexically declared in the module thus
+  // cannot be declared by the user with 'let'.
+  bool is_shadowable;
+};
+
+class global_declared_variable_set {
+ public:
+  void add_predefined_global_variable(const char8 *name, variable_kind);
+  void add_predefined_module_variable(const char8 *name, variable_kind);
+
+  const global_declared_variable *find(identifier name) const noexcept;
+
+ private:
+  std::vector<global_declared_variable> variables_;
+};
+
 // A linter is a parse_visitor which finds non-syntax bugs.
 //
 // linter-s detect the following bugs (and possibly more):
@@ -58,15 +77,6 @@ class linter {
     declared_variable_scope declaration_scope;
   };
 
-  // declared_variable, but for global_declared_variable_set.
-  struct global_declared_variable {
-    string8_view name;
-    variable_kind kind;
-    // If false, the variable was already lexically declared in the module thus
-    // cannot be declared by the user with 'let'.
-    bool is_shadowable;
-  };
-
   enum class used_variable_kind {
     _export,
     _typeof,
@@ -97,18 +107,6 @@ class linter {
 
    private:
     std::vector<declared_variable> variables_;
-  };
-
-  // declared_variable_set, but for global_scope.
-  class global_declared_variable_set {
-   public:
-    void add_predefined_global_variable(const char8 *name, variable_kind);
-    void add_predefined_module_variable(const char8 *name, variable_kind);
-
-    const global_declared_variable *find(identifier name) const noexcept;
-
-   private:
-    std::vector<global_declared_variable> variables_;
   };
 
   // A scope tracks variable declarations and references in a lexical JavaScript
@@ -209,8 +207,8 @@ class linter {
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
 
-  static linter::global_declared_variable_set make_global_variables();
-  const static linter::global_declared_variable_set *get_global_variables();
+  static global_declared_variable_set make_global_variables();
+  const static global_declared_variable_set *get_global_variables();
 
   scopes scopes_;
 
