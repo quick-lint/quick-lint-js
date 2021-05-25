@@ -91,8 +91,8 @@
 //     as reporting an error if a 'const'-declared variable is assigned to.
 
 namespace quick_lint_js {
-linter::declared_variable_set linter::make_global_variables() {
-  declared_variable_set vars;
+linter::global_declared_variable_set linter::make_global_variables() {
+  global_declared_variable_set vars;
 
   const char8 *writable_global_variables[] = {
       // ECMA-262 18.1 Value Properties of the Global Object
@@ -196,8 +196,8 @@ linter::declared_variable_set linter::make_global_variables() {
   return vars;
 }
 
-const linter::declared_variable_set *linter::get_global_variables() {
-  static declared_variable_set vars = make_global_variables();
+const linter::global_declared_variable_set *linter::get_global_variables() {
+  static global_declared_variable_set vars = make_global_variables();
   return &vars;
 }
 
@@ -727,6 +727,22 @@ linter::declared_variable_set::begin() const noexcept {
 std::vector<linter::declared_variable>::const_iterator
 linter::declared_variable_set::end() const noexcept {
   return this->variables_.cend();
+}
+
+void linter::global_declared_variable_set::add_predefined_variable_declaration(
+    const char8 *name, variable_kind kind) {
+  this->variables_.emplace_back(declared_variable::make_global(name, kind));
+}
+
+const linter::declared_variable *linter::global_declared_variable_set::find(
+    identifier name) const noexcept {
+  string8_view name_view = name.normalized_name();
+  for (const declared_variable &var : this->variables_) {
+    if (var.name() == name_view) {
+      return &var;
+    }
+  }
+  return nullptr;
 }
 
 void linter::scope::clear() {
