@@ -661,6 +661,11 @@
              switch_keyword))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_equal_after_variable, "E202",                              \
+      { source_code_span expected_equal; },                                    \
+      .error(QLJS_TRANSLATABLE("missing '=' after variable"), expected_equal)) \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_expression_between_parentheses, "E078",                    \
       {                                                                        \
         source_code_span left_paren;                                           \
@@ -1154,11 +1159,6 @@
       { source_code_span continue_statement; },                                \
       .error(QLJS_TRANSLATABLE("continue can only be used inside of a loop"),  \
              continue_statement))                                              \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
-      error_missing_equal_after_variable, "E151",                              \
-      { source_code_span expected_equal; },                                    \
-      .error(QLJS_TRANSLATABLE("missing '=' after variable"), expected_equal)) \
                                                                                \
   /* END */
 
