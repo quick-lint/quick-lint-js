@@ -444,8 +444,12 @@ void linter::visit_end_of_module() {
                         }) != typeof_variables.end();
   };
   auto is_variable_declared = [&](const used_variable &var) -> bool {
-    return global_scope.declared_variables.find(var.name) ||
-           is_variable_declared_by_typeof(var);
+    // If a variable appears in declared_variables, then
+    // propagate_variable_uses_to_parent_scope should have already removed it
+    // from variables_used and variables_used_in_descendant_scope.
+    QLJS_ASSERT(!global_scope.declared_variables.find(var.name));
+
+    return is_variable_declared_by_typeof(var);
   };
 
   for (const used_variable &used_var : global_scope.variables_used) {
