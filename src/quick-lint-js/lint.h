@@ -119,6 +119,9 @@ class linter {
   struct global_declared_variable {
     string8_view name;
     variable_kind kind;
+    // If false, the variable was already lexically declared in the module thus
+    // cannot be declared by the user with 'let'.
+    bool is_shadowable;
   };
 
   enum class used_variable_kind {
@@ -141,7 +144,6 @@ class linter {
     const declared_variable *add_variable_declaration(identifier name,
                                                       variable_kind,
                                                       declared_variable_scope);
-    void add_predefined_variable_declaration(const char8 *name, variable_kind);
 
     const declared_variable *find(identifier name) const noexcept;
 
@@ -157,7 +159,8 @@ class linter {
   // declared_variable_set, but for global_scope.
   class global_declared_variable_set {
    public:
-    void add_predefined_variable_declaration(const char8 *name, variable_kind);
+    void add_predefined_global_variable(const char8 *name, variable_kind);
+    void add_predefined_module_variable(const char8 *name, variable_kind);
 
     const global_declared_variable *find(identifier name) const noexcept;
 
@@ -251,6 +254,14 @@ class linter {
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;
+  void report_error_if_variable_declaration_conflicts_in_scope(
+      const global_scope &scope, const declared_variable &var) const;
+  void report_error_if_variable_declaration_conflicts(
+      const identifier *already_declared, variable_kind already_declared_kind,
+      declared_variable_scope already_declared_declaration_scope,
+      bool already_declared_is_global_variable, identifier newly_declared_name,
+      variable_kind newly_declared_kind,
+      declared_variable_scope newly_declared_declaration_scope) const;
 
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }

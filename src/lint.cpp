@@ -179,8 +179,8 @@ linter::global_declared_variable_set linter::make_global_variables() {
       u8"unescape",
   };
   for (const char8 *global_variable : writable_global_variables) {
-    vars.add_predefined_variable_declaration(global_variable,
-                                             variable_kind::_function);
+    vars.add_predefined_global_variable(global_variable,
+                                        variable_kind::_function);
   }
 
   const char8 *non_writable_global_variables[] = {
@@ -190,8 +190,15 @@ linter::global_declared_variable_set linter::make_global_variables() {
       u8"undefined",
   };
   for (const char8 *global_variable : non_writable_global_variables) {
-    vars.add_predefined_variable_declaration(global_variable,
-                                             variable_kind::_const);
+    vars.add_predefined_global_variable(global_variable, variable_kind::_const);
+  }
+
+  const char8 *writable_module_variables[] = {
+      // Node.js
+      u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
+  };
+  for (const char8 *module_variable : writable_module_variables) {
+    vars.add_predefined_module_variable(module_variable, variable_kind::_let);
   }
 
   return vars;
@@ -204,19 +211,7 @@ const linter::global_declared_variable_set *linter::get_global_variables() {
 
 linter::linter(error_reporter *error_reporter)
     : global_scope_(this->get_global_variables()),
-      error_reporter_(error_reporter) {
-  scope &module_scope = this->scopes_.module_scope();
-
-  const char8 *writable_module_variables[] = {
-      // Node.js
-      u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
-  };
-
-  for (const char8 *module_variable : writable_module_variables) {
-    module_scope.declared_variables.add_predefined_variable_declaration(
-        module_variable, variable_kind::_function);
-  }
-}
+      error_reporter_(error_reporter) {}
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 
@@ -418,6 +413,12 @@ void linter::visit_end_of_module() {
   QLJS_ASSERT(this->scopes_.size() == 1);
 
   linter::global_scope &global_scope = this->global_scope_;
+
+  for (const declared_variable &var :
+       this->scopes_.module_scope().declared_variables) {
+    this->report_error_if_variable_declaration_conflicts_in_scope(global_scope,
+                                                                  var);
+  }
 
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/global_scope,
@@ -670,54 +671,91 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
   const declared_variable *already_declared_variable =
       scope.declared_variables.find(name);
   if (already_declared_variable) {
-    using vk = variable_kind;
-    vk other_kind = already_declared_variable->kind();
+    this->report_error_if_variable_declaration_conflicts(
+        /*already_declared=*/&already_declared_variable->declaration(),
+        /*already_declared_kind=*/already_declared_variable->kind(),
+        /*already_declared_declaration_scope=*/
+        already_declared_variable->declaration_scope(),
+        /*already_declared_is_global_variable=*/false,
+        /*newly_declared_name=*/name,
+        /*newly_declared_kind=*/kind,
+        /*newly_declared_declaration_scope=*/declaration_scope);
+  }
+}
 
-    switch (other_kind) {
-    case vk::_catch:
-      QLJS_ASSERT(kind != vk::_import);
-      QLJS_ASSERT(kind != vk::_parameter);
-      break;
-    case vk::_class:
-    case vk::_const:
-    case vk::_function:
-    case vk::_let:
-    case vk::_var:
-      QLJS_ASSERT(kind != vk::_catch);
-      QLJS_ASSERT(kind != vk::_parameter);
-      break;
-    case vk::_parameter:
-      QLJS_ASSERT(kind != vk::_catch);
-      QLJS_ASSERT(kind != vk::_import);
-      break;
-    case vk::_import:
-      break;
+void linter::report_error_if_variable_declaration_conflicts_in_scope(
+    const global_scope &scope, const declared_variable &var) const {
+  const global_declared_variable *already_declared_variable =
+      scope.declared_variables.find(var.declaration());
+  if (already_declared_variable) {
+    if (!already_declared_variable->is_shadowable) {
+      this->report_error_if_variable_declaration_conflicts(
+          /*already_declared=*/nullptr,
+          /*already_declared_kind=*/already_declared_variable->kind,
+          /*already_declared_declaration_scope=*/
+          declared_variable_scope::declared_in_current_scope,
+          /*already_declared_is_global_variable=*/true,
+          /*newly_declared_name=*/var.declaration(),
+          /*newly_declared_kind=*/var.kind(),
+          /*newly_declared_declaration_scope=*/var.declaration_scope());
     }
+  }
+}
 
-    bool redeclaration_ok =
-        (other_kind == vk::_function && kind == vk::_parameter) ||
-        (other_kind == vk::_function && kind == vk::_function) ||
-        (other_kind == vk::_parameter && kind == vk::_function) ||
-        (other_kind == vk::_var && kind == vk::_function) ||
-        (other_kind == vk::_parameter && kind == vk::_parameter) ||
-        (other_kind == vk::_catch && kind == vk::_var) ||
-        (other_kind == vk::_function && kind == vk::_var) ||
-        (other_kind == vk::_parameter && kind == vk::_var) ||
-        (other_kind == vk::_var && kind == vk::_var) ||
-        (other_kind == vk::_function &&
-         already_declared_variable->declaration_scope() ==
-             declared_variable_scope::declared_in_descendant_scope) ||
-        (kind == vk::_function &&
-         declaration_scope ==
-             declared_variable_scope::declared_in_descendant_scope);
-    if (!redeclaration_ok) {
-      if (already_declared_variable->is_global_variable()) {
-        this->error_reporter_->report(
-            error_redeclaration_of_global_variable{name});
-      } else {
-        this->error_reporter_->report(error_redeclaration_of_variable{
-            name, already_declared_variable->declaration()});
-      }
+void linter::report_error_if_variable_declaration_conflicts(
+    const identifier *already_declared, variable_kind already_declared_kind,
+    declared_variable_scope already_declared_declaration_scope,
+    bool already_declared_is_global_variable, identifier newly_declared_name,
+    variable_kind newly_declared_kind,
+    declared_variable_scope newly_declared_declaration_scope) const {
+  using vk = variable_kind;
+  vk kind = newly_declared_kind;
+  vk other_kind = already_declared_kind;
+
+  switch (other_kind) {
+  case vk::_catch:
+    QLJS_ASSERT(kind != vk::_import);
+    QLJS_ASSERT(kind != vk::_parameter);
+    break;
+  case vk::_class:
+  case vk::_const:
+  case vk::_function:
+  case vk::_let:
+  case vk::_var:
+    QLJS_ASSERT(kind != vk::_catch);
+    QLJS_ASSERT(kind != vk::_parameter);
+    break;
+  case vk::_parameter:
+    QLJS_ASSERT(kind != vk::_catch);
+    QLJS_ASSERT(kind != vk::_import);
+    break;
+  case vk::_import:
+    break;
+  }
+
+  bool redeclaration_ok =
+      (other_kind == vk::_function && kind == vk::_parameter) ||
+      (other_kind == vk::_function && kind == vk::_function) ||
+      (other_kind == vk::_parameter && kind == vk::_function) ||
+      (other_kind == vk::_var && kind == vk::_function) ||
+      (other_kind == vk::_parameter && kind == vk::_parameter) ||
+      (other_kind == vk::_catch && kind == vk::_var) ||
+      (other_kind == vk::_function && kind == vk::_var) ||
+      (other_kind == vk::_parameter && kind == vk::_var) ||
+      (other_kind == vk::_var && kind == vk::_var) ||
+      (other_kind == vk::_function &&
+       already_declared_declaration_scope ==
+           declared_variable_scope::declared_in_descendant_scope) ||
+      (kind == vk::_function &&
+       newly_declared_declaration_scope ==
+           declared_variable_scope::declared_in_descendant_scope);
+  if (!redeclaration_ok) {
+    if (already_declared_is_global_variable) {
+      this->error_reporter_->report(
+          error_redeclaration_of_global_variable{newly_declared_name});
+    } else {
+      this->error_reporter_->report(error_redeclaration_of_variable{
+          newly_declared_name, *already_declared});
     }
   }
 }
@@ -729,11 +767,6 @@ linter::declared_variable_set::add_variable_declaration(
   this->variables_.emplace_back(
       declared_variable::make_local(name, kind, declared_scope));
   return &this->variables_.back();
-}
-
-void linter::declared_variable_set::add_predefined_variable_declaration(
-    const char8 *name, variable_kind kind) {
-  this->variables_.emplace_back(declared_variable::make_global(name, kind));
 }
 
 const linter::declared_variable *linter::declared_variable_set::find(
@@ -761,10 +794,16 @@ linter::declared_variable_set::end() const noexcept {
   return this->variables_.cend();
 }
 
-void linter::global_declared_variable_set::add_predefined_variable_declaration(
+void linter::global_declared_variable_set::add_predefined_global_variable(
     const char8 *name, variable_kind kind) {
-  this->variables_.emplace_back(
-      global_declared_variable{.name = name, .kind = kind});
+  this->variables_.emplace_back(global_declared_variable{
+      .name = name, .kind = kind, .is_shadowable = true});
+}
+
+void linter::global_declared_variable_set::add_predefined_module_variable(
+    const char8 *name, variable_kind kind) {
+  this->variables_.emplace_back(global_declared_variable{
+      .name = name, .kind = kind, .is_shadowable = false});
 }
 
 const linter::global_declared_variable *
