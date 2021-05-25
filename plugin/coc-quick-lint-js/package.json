@@ -1,0 +1,48 @@
+{
+  "name": "coc-quick-lint-js",
+  "version": "0.2.0",
+  "description": "coc.nvim extension for quick-lint-js",
+  "author": "Heyward Fann <fannheyward@gmail.com>",
+  "license": "SEE LICENSE IN LICENSE",
+  "main": "./extension.js",
+  "keywords": [
+    "coc.nvim"
+  ],
+  "engines": {
+    "coc": "^0.0.80"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quick-lint/quick-lint-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quick-lint/quick-lint-js/issues"
+  },
+  "scripts": {
+    "fmt": "prettier --write '*.js' '*.json'"
+  },
+  "devDependencies": {
+    "coc.nvim": "^0.0.81-next.3",
+    "prettier": "^2.3.0"
+  },
+  "dependencies": {
+    "quick-lint-js-wasm": "../../wasm"
+  },
+  "activationEvents": [
+    "onLanguage:javascript"
+  ],
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "coc-quick-lint-js configuration",
+      "properties": {
+        "quick-lint-js.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable coc-quick-lint-js extension"
+        }
+      }
+    },
+    "commands": []
+  }
+}
