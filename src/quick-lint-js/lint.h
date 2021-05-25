@@ -53,66 +53,9 @@ class linter {
   };
 
   struct declared_variable {
-    static declared_variable make_local(
-        identifier name, variable_kind kind,
-        declared_variable_scope declaration_scope) noexcept {
-      return declared_variable(name, kind, declaration_scope);
-    }
-
-    static declared_variable make_global(string8_view global_variable_name,
-                                         variable_kind kind) noexcept {
-      return declared_variable(global_variable_name, kind);
-    }
-
-    const identifier &declaration() const noexcept {
-      QLJS_ASSERT(!this->is_global_variable());
-      return this->declaration_;
-    }
-
-    string8_view name() const noexcept {
-      if (this->is_global_variable()) {
-        return this->global_variable_name_;
-      } else {
-        return this->declaration_.normalized_name();
-      }
-    }
-
-    variable_kind kind() const noexcept { return this->kind_; }
-
-    declared_variable_scope declaration_scope() const noexcept {
-      return this->declaration_scope_;
-    }
-
-    bool is_global_variable() const noexcept {
-      return this->is_global_variable_;
-    }
-
-   private:
-    explicit declared_variable(string8_view global_variable_name,
-                               variable_kind kind) noexcept
-        : kind_(kind),
-          declaration_scope_(
-              declared_variable_scope::declared_in_current_scope),
-          is_global_variable_(true),
-          global_variable_name_(global_variable_name) {}
-
-    explicit declared_variable(
-        identifier name, variable_kind kind,
-        declared_variable_scope declaration_scope) noexcept
-        : kind_(kind),
-          declaration_scope_(declaration_scope),
-          is_global_variable_(false),
-          declaration_(name) {}
-
-    variable_kind kind_;
-    declared_variable_scope declaration_scope_;
-    bool is_global_variable_;
-    union {
-      // If is_global_variable_ is false:
-      identifier declaration_;
-      // If is_global_variable_ is true:
-      string8_view global_variable_name_;
-    };
+    identifier declaration;
+    variable_kind kind;
+    declared_variable_scope declaration_scope;
   };
 
   // declared_variable, but for global_declared_variable_set.
