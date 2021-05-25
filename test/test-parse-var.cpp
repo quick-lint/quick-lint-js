@@ -73,14 +73,16 @@ TEST(test_parse, parse_simple_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x\nnew Array()"_sv);
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
-    EXPECT_THAT(v.errors, IsEmpty());
+    for (string8 kw : {u8"typeof", u8"class", u8"new"}) {
+      spy_visitor v;
+      padded_string code(u8"let x\n" + kw + u8" Array()");
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      ASSERT_EQ(v.variable_declarations.size(), 1);
+      EXPECT_EQ(v.variable_declarations[0].name, u8"x");
+      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
   }
 }
 
@@ -511,18 +513,39 @@ TEST(test_parse, parse_invalid_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x new Array;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
-                                      "visit_variable_use",          // Array
-                                      "visit_end_of_module"));
+    for (string8 kw : {u8"typeof", u8"class", u8"new"}) {
+      spy_visitor v;
+      padded_string code(u8"let x " + kw + u8" Array;");
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                        "visit_variable_use",          // Array
+                                        "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_equal_after_variable, expected_equal,
-                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_missing_equal_after_variable, expected_equal,
+                      offsets_matcher(&code, strlen(u8"let x"), u8""))));
+    }
+
+    {
+      for (string8 kw : {u8"typeof", u8"class", u8"new"}) {
+        spy_visitor v;
+        padded_string code(u8"let x " + kw + u8" Array(), y = x.length;");
+        parser p(&code, &v);
+        p.parse_and_visit_module(v);
+        EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                          "visit_variable_use",          // Array
+                                          "visit_variable_use",          // x
+                                          "visit_variable_declaration",  // y
+                                          "visit_end_of_module"));
+
+        EXPECT_THAT(v.errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_missing_equal_after_variable, expected_equal,
+                        offsets_matcher(&code, strlen(u8"let x"), u8""))));
+      }
+    }
   }
 }
 

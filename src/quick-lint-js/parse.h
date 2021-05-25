@@ -3006,21 +3006,6 @@ class parser {
           break;
         }
 
-        case token_type::kw_new: {
-          if (!this->peek().has_leading_newline) {
-              const char8 *here = this->lexer_.end_of_previous_token();
-              this->error_reporter_->report(error_missing_equal_after_variable{
-                  .expected_equal = source_code_span(here, here),
-              });
-          }
-          expression *ast = this->parse_expression_remainder(
-              variable,
-              precedence{.commas = false, .in_operator = allow_in_operator});
-          this->lexer_.insert_semicolon();
-          this->visit_binding_element(ast, v, declaration_kind);
-          break;
-        }
-
         // let x += 42;  // Invalid.
         case token_type::ampersand_equal:
         case token_type::circumflex_equal:
@@ -3040,6 +3025,23 @@ class parser {
                   .updating_operator = this->peek().span(),
               });
           goto initialize_variable;
+
+        case token_type::kw_typeof:
+        case token_type::kw_class:
+        case token_type::kw_new: {
+          bool has_leading_newline = this->peek().has_leading_newline;
+          if (!has_leading_newline) {
+            const char8 *here = this->lexer_.end_of_previous_token();
+            this->error_reporter_->report(error_missing_equal_after_variable{
+                .expected_equal = source_code_span(here, here),
+            });
+          }
+          this->visit_binding_element(variable, v, declaration_kind);
+          this->skip();
+          this->parse_and_visit_expression(
+              v, precedence{.commas = false, .in_operator = allow_in_operator});
+          break;
+        }
 
         // let x;
         // let x, y;
