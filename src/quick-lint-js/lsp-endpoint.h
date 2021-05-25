@@ -32,7 +32,7 @@ concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
 
 template <class Handler>
 concept lsp_endpoint_handler = requires(Handler h,
-                                        ::simdjson::dom::element request,
+                                        ::simdjson::ondemand::object request,
                                         byte_buffer reply) {
   {h.handle_request(request, reply)};
   {h.handle_notification(request, reply)};
@@ -72,15 +72,16 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
 
  private:
   void message_parsed(string8_view message) {
-    ::simdjson::dom::element request;
+    // TODO(strager): Avoid copying the message.
+    ::simdjson::padded_string padded_message(
+        reinterpret_cast<const char*>(message.data()), message.size());
+    ::simdjson::ondemand::document request_document;
     ::simdjson::error_code parse_error;
-    this->json_parser_
-        .parse(reinterpret_cast<const char*>(message.data()), message.size())
-        .tie(request, parse_error);
+    this->json_parser_.iterate(padded_message)
+        .tie(request_document, parse_error);
     if (parse_error != ::simdjson::error_code::SUCCESS) {
       byte_buffer error_json;
-      error_json.append_copy(
-          u8R"({"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}})");
+      this->append_message_parse_error(error_json);
       this->remote_.send_message(std::move(error_json));
       return;
     }
@@ -88,13 +89,19 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     byte_buffer response_json;
     byte_buffer notification_json;
 
-    ::simdjson::dom::array batched_requests;
-    bool is_batch_request =
-        request.get(batched_requests) == ::simdjson::error_code::SUCCESS;
+    ::simdjson::ondemand::array batched_requests;
+    bool is_batch_request = request_document.get(batched_requests) ==
+                            ::simdjson::error_code::SUCCESS;
     if (is_batch_request) {
       response_json.append_copy(u8"[");
       std::size_t empty_response_json_size = response_json.size();
-      for (::simdjson::dom::element sub_request : batched_requests) {
+      for (::simdjson::simdjson_result<::simdjson::ondemand::value>
+               sub_request_or_error : batched_requests) {
+        ::simdjson::ondemand::object sub_request;
+        if (sub_request_or_error.get(sub_request) !=
+            ::simdjson::error_code::SUCCESS) {
+          QLJS_UNIMPLEMENTED();
+        }
         this->handle_message(
             sub_request, response_json, notification_json,
             /*add_comma_before_response=*/response_json.size() !=
@@ -102,6 +109,10 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       }
       response_json.append_copy(u8"]");
     } else {
+      ::simdjson::ondemand::object request;
+      if (request_document.get(request) != ::simdjson::error_code::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
       this->handle_message(request, response_json, notification_json,
                            /*add_comma_before_response=*/false);
     }
@@ -119,23 +130,40 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
   }
 
-  void handle_message(::simdjson::dom::element& request,
+  void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json,
                       byte_buffer& notification_json,
                       bool add_comma_before_response) {
-    if (request["id"].error() == ::simdjson::error_code::SUCCESS) {
+    switch (request["id"].error()) {
+    case ::simdjson::error_code::SUCCESS:
       if (add_comma_before_response) {
         response_json.append_copy(u8",");
       }
       this->handler_.handle_request(request, response_json);
-    } else {
+      break;
+
+    case ::simdjson::error_code::NO_SUCH_FIELD:
       this->handler_.handle_notification(request, notification_json);
+      break;
+
+    case ::simdjson::error_code::TAPE_ERROR:
+      this->append_message_parse_error(response_json);
+      break;
+
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
     }
+  }
+
+  static void append_message_parse_error(byte_buffer& out) {
+    out.append_copy(
+        u8R"({"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}})");
   }
 
   Remote remote_;
   Handler handler_;
-  ::simdjson::dom::parser json_parser_;
+  ::simdjson::ondemand::parser json_parser_;
 
   friend message_parser;
 };

@@ -19,9 +19,9 @@ bool parse_json(string8_view json, ::Json::Value *result,
                 ::Json::String *errors);
 #endif
 
-::Json::Value simdjson_to_jsoncpp(const ::simdjson::dom::element &);
+::Json::Value simdjson_to_jsoncpp(::simdjson::ondemand::value &);
 ::Json::Value simdjson_to_jsoncpp(
-    ::simdjson::simdjson_result<::simdjson::dom::element> &&);
+    ::simdjson::simdjson_result<::simdjson::ondemand::value> &&);
 }
 
 #endif

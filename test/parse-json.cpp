@@ -53,47 +53,26 @@ bool parse_json(string8_view json, ::Json::Value *result,
 }
 #endif
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-::Json::Value simdjson_to_jsoncpp(const ::simdjson::dom::element &value) {
-  switch (value.type()) {
-  case ::simdjson::dom::element_type::INT64: {
-    std::int64_t data;
-    ::simdjson::error_code error = value.get(data);
-    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
-    return ::Json::Value(data);
-  }
+::Json::Value simdjson_to_jsoncpp(::simdjson::ondemand::value &value) {
+  std::string_view json = value.raw_json_token();
 
-  case ::simdjson::dom::element_type::UINT64: {
-    std::uint64_t data;
-    ::simdjson::error_code error = value.get(data);
-    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
-    return ::Json::Value(data);
-  }
+  ::Json::CharReaderBuilder readerBuilder;
+  readerBuilder.strictMode(&readerBuilder.settings_);
+  readerBuilder.settings_["strictRoot"] = false;
+  std::unique_ptr<::Json::CharReader> reader(readerBuilder.newCharReader());
 
-  case ::simdjson::dom::element_type::STRING: {
-    std::string_view data;
-    ::simdjson::error_code error = value.get(data);
-    QLJS_ASSERT(error == ::simdjson::error_code::SUCCESS);
-    return ::Json::Value(data.data(), data.data() + data.size());
-  }
-
-  case ::simdjson::dom::element_type::ARRAY:
-  case ::simdjson::dom::element_type::BOOL:
-  case ::simdjson::dom::element_type::DOUBLE:
-  case ::simdjson::dom::element_type::NULL_VALUE:
-  case ::simdjson::dom::element_type::OBJECT:
-    QLJS_UNIMPLEMENTED();
-    break;
-  }
-
-  QLJS_UNREACHABLE();
+  const char *json_chars = json.data();
+  ::Json::Value result;
+  [[maybe_unused]] ::Json::String errors;
+  bool ok =
+      reader->parse(json_chars, &json_chars[json.size()], &result, &errors);
+  QLJS_ASSERT(ok);
+  return result;
 }
-QLJS_WARNING_POP
 
 ::Json::Value simdjson_to_jsoncpp(
-    ::simdjson::simdjson_result<::simdjson::dom::element> &&value) {
-  ::simdjson::dom::element unwrapped_value;
+    ::simdjson::simdjson_result<::simdjson::ondemand::value> &&value) {
+  ::simdjson::ondemand::value unwrapped_value;
   ::simdjson::error_code error = value.get(unwrapped_value);
   if (error != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();

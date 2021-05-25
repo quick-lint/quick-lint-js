@@ -30,9 +30,10 @@ class byte_buffer;
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Linter>
 concept lsp_linter = requires(Linter l, padded_string_view code,
-                              ::simdjson::dom::element text_document,
+                              ::simdjson::ondemand::value uri,
+                              ::simdjson::ondemand::value version,
                               byte_buffer notification_json) {
-  {l.lint_and_get_diagnostics_notification(code, text_document,
+  {l.lint_and_get_diagnostics_notification(code, uri, version,
                                            notification_json)};
 };
 #endif
@@ -46,26 +47,26 @@ class linting_lsp_server_handler {
   explicit linting_lsp_server_handler(LinterArgs&&... linter_args)
       : linter_(std::forward<LinterArgs>(linter_args)...) {}
 
-  void handle_request(::simdjson::dom::element& request,
+  void handle_request(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
-  void handle_notification(::simdjson::dom::element& request,
+  void handle_notification(::simdjson::ondemand::object& request,
                            byte_buffer& notification_json);
 
  private:
-  void handle_initialize_request(::simdjson::dom::element& request,
+  void handle_initialize_request(::simdjson::ondemand::object& request,
                                  byte_buffer& response_json);
-  void handle_shutdown_request(::simdjson::dom::element& request,
+  void handle_shutdown_request(::simdjson::ondemand::object& request,
                                byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      ::simdjson::dom::element& request, byte_buffer& notification_json);
+      ::simdjson::ondemand::object& request, byte_buffer& notification_json);
   void handle_text_document_did_close_notification(
-      ::simdjson::dom::element& request);
+      ::simdjson::ondemand::object& request);
   void handle_text_document_did_open_notification(
-      ::simdjson::dom::element& request, byte_buffer& notification_json);
+      ::simdjson::ondemand::object& request, byte_buffer& notification_json);
 
   static void apply_document_changes(document<lsp_locator>& doc,
-                                     ::simdjson::dom::array& changes);
+                                     ::simdjson::ondemand::array& changes);
 
   Linter linter_;
   std::unordered_map<string8, document<lsp_locator>> documents_;
@@ -75,8 +76,8 @@ class linting_lsp_server_handler {
 class lsp_javascript_linter {
  public:
   void lint_and_get_diagnostics_notification(
-      padded_string_view code, ::simdjson::dom::element& text_document,
-      byte_buffer& notification_json);
+      padded_string_view code, ::simdjson::ondemand::value& uri,
+      ::simdjson::ondemand::value& version, byte_buffer& notification_json);
 
  private:
   void lint_and_get_diagnostics(padded_string_view code,
@@ -85,16 +86,16 @@ class lsp_javascript_linter {
 
 class mock_lsp_linter {
  public:
-  using lint_and_get_diagnostics_notification_type =
-      void(padded_string_view code, ::simdjson::dom::element& text_document,
-           byte_buffer& notification_json);
+  using lint_and_get_diagnostics_notification_type = void(
+      padded_string_view code, ::simdjson::ondemand::value& uri,
+      ::simdjson::ondemand::value& version, byte_buffer& notification_json);
 
   /*implicit*/ mock_lsp_linter(
       std::function<lint_and_get_diagnostics_notification_type> callback);
 
   void lint_and_get_diagnostics_notification(
-      padded_string_view code, ::simdjson::dom::element& text_document,
-      byte_buffer& notification_json);
+      padded_string_view code, ::simdjson::ondemand::value& uri,
+      ::simdjson::ondemand::value& version, byte_buffer& notification_json);
 
  private:
   std::function<lint_and_get_diagnostics_notification_type> callback_;

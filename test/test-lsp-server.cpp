@@ -20,6 +20,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -43,26 +44,27 @@ endpoint make_endpoint(LinterCallback&& linter_callback) {
 }
 
 endpoint make_endpoint() {
-  return make_endpoint(
-      [](padded_string_view, ::simdjson::dom::element&, byte_buffer&) {});
+  return make_endpoint([](padded_string_view, ::simdjson::ondemand::value&,
+                          ::simdjson::ondemand::value&, byte_buffer&) {});
 }
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  std::function<void(padded_string_view code,
-                     ::simdjson::dom::element& text_document,
+  std::function<void(padded_string_view code, ::simdjson::ondemand::value& url,
+                     ::simdjson::ondemand::value& version,
                      byte_buffer& notification_json)>
       lint_callback;
   std::vector<string8> lint_calls;
 
-  endpoint server = make_endpoint(
-      [this](padded_string_view code, ::simdjson::dom::element& text_document,
-             byte_buffer& notification_json) {
-        this->lint_calls.emplace_back(code.string_view());
-        if (this->lint_callback) {
-          this->lint_callback(code, text_document, notification_json);
-        }
-      });
+  endpoint server = make_endpoint([this](padded_string_view code,
+                                         ::simdjson::ondemand::value& url,
+                                         ::simdjson::ondemand::value& version,
+                                         byte_buffer& notification_json) {
+    this->lint_calls.emplace_back(code.string_view());
+    if (this->lint_callback) {
+      this->lint_callback(code, url, version, notification_json);
+    }
+  });
   spy_lsp_endpoint_remote& client = server.remote();
 };
 
@@ -214,11 +216,12 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
   this->lint_callback = [&](padded_string_view code,
-                            ::simdjson::dom::element& text_document,
+                            ::simdjson::ondemand::value& uri,
+                            ::simdjson::ondemand::value& version,
                             byte_buffer& notification_json) {
     EXPECT_EQ(code, u8"let x = x;");
-    EXPECT_EQ(simdjson_to_jsoncpp(text_document["uri"]), "file:///test.js");
-    EXPECT_EQ(simdjson_to_jsoncpp(text_document["version"]), 10);
+    EXPECT_EQ(simdjson_to_jsoncpp(uri), "file:///test.js");
+    EXPECT_EQ(simdjson_to_jsoncpp(version), 10);
 
     notification_json.append_copy(
         u8R"--(
@@ -595,23 +598,28 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
-  ::simdjson::dom::parser json_parser;
+  ::simdjson::ondemand::parser json_parser;
   ::simdjson::error_code parse_error;
 
-  ::simdjson::dom::element text_document;
-  json_parser
-      .parse(std::string(R"--({
+  ::simdjson::padded_string json(R"--({
         "uri": "file:///test.js",
         "version": 10
-      })--"))
-      .tie(text_document, parse_error);
+      })--"sv);
+  ::simdjson::ondemand::document text_document;
+  json_parser.iterate(json).tie(text_document, parse_error);
   ASSERT_EQ(parse_error, ::simdjson::error_code::SUCCESS);
+
+  ::simdjson::ondemand::value uri;
+  ASSERT_EQ(text_document["uri"].get(uri), ::simdjson::error_code::SUCCESS);
+  ::simdjson::ondemand::value version;
+  ASSERT_EQ(text_document["version"].get(version),
+            ::simdjson::error_code::SUCCESS);
 
   padded_string code(u8"let x = x;"_sv);
   byte_buffer notification_json_buffer;
 
   lsp_javascript_linter linter;
-  linter.lint_and_get_diagnostics_notification(&code, text_document,
+  linter.lint_and_get_diagnostics_notification(&code, uri, version,
                                                notification_json_buffer);
 
   std::string notification_json;
