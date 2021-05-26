@@ -9,6 +9,13 @@
 #include <string_view>
 #include <vector>
 
+#define EXPECT_DEFAULT_CONFIG(config)                                  \
+  do {                                                                 \
+    EXPECT_TRUE((config).globals().find(u8"Array"sv));                 \
+    EXPECT_TRUE((config).globals().find(u8"console"sv));               \
+    EXPECT_FALSE((config).globals().find(u8"variableDoesNotExist"sv)); \
+  } while (false)
+
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
@@ -208,6 +215,132 @@ TEST(test_configuration, add_ecmascript_and_node_js_groups) {
     EXPECT_TRUE(c.globals().find(u8"Array"sv));
     EXPECT_TRUE(c.globals().find(u8"console"sv));
   }
+}
+
+TEST(test_configuration_json, empty_json_creates_default_config) {
+  configuration c;
+
+  padded_string json(u8"{}"sv);
+  c.load_from_json(&json);
+
+  EXPECT_DEFAULT_CONFIG(c);
+}
+
+TEST(test_configuration_json, true_global_groups_leaves_defaults) {
+  configuration c;
+
+  padded_string json(u8R"({"global-groups": true})"sv);
+  c.load_from_json(&json);
+
+  EXPECT_DEFAULT_CONFIG(c);
+}
+
+TEST(test_configuration_json, false_global_groups_disables_all_groups) {
+  configuration c;
+
+  padded_string json(u8R"({"global-groups": false})"sv);
+  c.load_from_json(&json);
+
+  EXPECT_FALSE(c.globals().find(u8"Array"sv));
+  EXPECT_FALSE(c.globals().find(u8"console"sv));
+}
+
+TEST(test_configuration_json, empty_global_groups_disables_all_groups) {
+  configuration c;
+
+  padded_string json(u8R"({"global-groups": []})"sv);
+  c.load_from_json(&json);
+
+  EXPECT_FALSE(c.globals().find(u8"Array"sv));
+  EXPECT_FALSE(c.globals().find(u8"console"sv));
+}
+
+TEST(test_configuration_json, global_groups_with_node_js_enables_only_node_js) {
+  configuration c;
+
+  padded_string json(u8R"({"global-groups": ["node.js"]})"sv);
+  c.load_from_json(&json);
+
+  EXPECT_TRUE(c.globals().find(u8"console"sv));
+  EXPECT_FALSE(c.globals().find(u8"Array"sv));
+}
+
+TEST(test_configuration_json, empty_globals_leaves_defaults) {
+  configuration c;
+
+  padded_string json(u8R"({"globals": {}})"sv);
+  c.load_from_json(&json);
+
+  EXPECT_DEFAULT_CONFIG(c);
+}
+
+TEST(test_configuration_json, true_global_is_usable) {
+  configuration c;
+
+  padded_string json(u8R"({"globals": {"myTestGlobalVariable": true}})"sv);
+  c.load_from_json(&json);
+
+  const global_declared_variable* found_var =
+      c.globals().find(u8"myTestGlobalVariable"_sv);
+  ASSERT_TRUE(found_var);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+}
+
+TEST(test_configuration_json, empty_object_global_is_usable) {
+  configuration c;
+
+  padded_string json(u8R"({"globals": {"myTestGlobalVariable": {}}})"sv);
+  c.load_from_json(&json);
+
+  const global_declared_variable* found_var =
+      c.globals().find(u8"myTestGlobalVariable"_sv);
+  ASSERT_TRUE(found_var);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+}
+
+TEST(test_configuration_json, unwritable_global_is_not_writable) {
+  configuration c;
+
+  padded_string json(
+      u8R"({"globals": {"myTestGlobalVariable": {"writable": false}}})"sv);
+  c.load_from_json(&json);
+
+  const global_declared_variable* found_var =
+      c.globals().find(u8"myTestGlobalVariable"_sv);
+  ASSERT_TRUE(found_var);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_FALSE(found_var->is_writable);
+}
+
+TEST(test_configuration_json, unshadowable_global_is_not_shadowable) {
+  configuration c;
+
+  padded_string json(
+      u8R"({"globals": {"myTestGlobalVariable": {"shadowable": false}}})"sv);
+  c.load_from_json(&json);
+
+  const global_declared_variable* found_var =
+      c.globals().find(u8"myTestGlobalVariable"_sv);
+  ASSERT_TRUE(found_var);
+  EXPECT_FALSE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+}
+
+TEST(test_configuration_json, false_global_overrides_global_group) {
+  configuration c;
+
+  padded_string json(
+      u8R"({"globals": {"console": false}, "global-groups": ["ecmascript", "node.js"]})"sv);
+  c.load_from_json(&json);
+
+  EXPECT_TRUE(c.globals().find(u8"Array"_sv))
+      << "ecmascript group should take effect";
+  EXPECT_TRUE(c.globals().find(u8"require"_sv))
+      << "node.js group should take effect";
+  EXPECT_FALSE(c.globals().find(u8"console"_sv))
+      << "'console' from node.js group should overwritten";
 }
 }
 }

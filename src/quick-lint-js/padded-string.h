@@ -18,7 +18,7 @@ class padded_string {
  public:
   using size_type = int;
 
-  static constexpr size_type padding_size = 16;
+  static constexpr size_type padding_size = 32;
 
   explicit padded_string();
   explicit padded_string(string8 &&);
@@ -100,6 +100,9 @@ class padded_string_view {
   const char8 *data() const noexcept { return this->data_; }
 
   size_type size() const noexcept { return this->length_; }
+  size_type padded_size() const noexcept {
+    return this->size() + padded_string::padding_size;
+  }
 
   const char8 *null_terminator() const noexcept {
     return this->data_ + this->length_;

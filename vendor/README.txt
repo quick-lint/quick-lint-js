@@ -109,6 +109,7 @@ consumption:
 The following patches have been manually applied:
 
 * simdjson-cmake-version.patch
+* simdjson-reenter-child-ub.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various
 Download URL: https://github.com/simdjson/simdjson/archive/v0.9.4.tar.gz

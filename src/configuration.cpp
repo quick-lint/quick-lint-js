@@ -5,11 +5,23 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/lint.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
+#include <simdjson.h>
 #include <vector>
+
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
+namespace {
+::simdjson::error_code get_bool_or_default(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&&, bool* out,
+    bool default_value);
+}
+
 const global_declared_variable_set& configuration::globals() noexcept {
   if (this->add_global_group_ecmascript_) {
     const char8* writable_global_variables[] = {
@@ -150,10 +162,184 @@ void configuration::remove_global_variable(string8_view name) {
   this->globals_to_remove_.emplace_back(name);
 }
 
+void configuration::load_from_json(padded_string_view json) {
+  ::simdjson::ondemand::parser json_parser;
+  ::simdjson::ondemand::document document;
+  ::simdjson::error_code parse_error =
+      json_parser
+          .iterate(reinterpret_cast<const char*>(json.data()),
+                   narrow_cast<std::size_t>(json.size()),
+                   narrow_cast<std::size_t>(json.padded_size()))
+          .get(document);
+  if (parse_error != ::simdjson::error_code::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+
+  ::simdjson::ondemand::value global_groups_value;
+  switch (document["global-groups"].get(global_groups_value)) {
+  case ::simdjson::error_code::SUCCESS:
+    this->load_global_groups_from_json(global_groups_value);
+    break;
+
+  case ::simdjson::error_code::NO_SUCH_FIELD:
+    break;
+
+  default:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+
+  ::simdjson::ondemand::object globals_value;
+  switch (document["globals"].get(globals_value)) {
+  case ::simdjson::error_code::SUCCESS:
+    this->load_globals_from_json(globals_value);
+    break;
+
+  case ::simdjson::error_code::NO_SUCH_FIELD:
+    break;
+
+  default:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+}
+
+void configuration::load_global_groups_from_json(
+    ::simdjson::ondemand::value& global_groups_value) {
+  ::simdjson::fallback::ondemand::json_type global_groups_value_type;
+  if (global_groups_value.type().get(global_groups_value_type) !=
+      ::simdjson::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  switch (global_groups_value_type) {
+  case ::simdjson::fallback::ondemand::json_type::boolean: {
+    bool global_groups_bool_value;
+    if (global_groups_value.get_bool().get(global_groups_bool_value) !=
+        ::simdjson::SUCCESS) {
+      QLJS_UNIMPLEMENTED();
+    }
+    if (global_groups_bool_value) {
+      // Do nothing.
+    } else {
+      reset_global_groups();
+    }
+    break;
+  }
+
+  case ::simdjson::fallback::ondemand::json_type::array: {
+    ::simdjson::fallback::ondemand::array global_groups_array_value;
+    if (global_groups_value.get(global_groups_array_value) !=
+        ::simdjson::SUCCESS) {
+      QLJS_UNIMPLEMENTED();
+    }
+
+    this->reset_global_groups();
+    for (::simdjson::simdjson_result<::simdjson::fallback::ondemand::value>
+             global_group_value : global_groups_array_value) {
+      std::string_view global_group_string_value;
+      if (global_group_value.get(global_group_string_value) !=
+          ::simdjson::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
+      this->add_global_group(to_string8_view(global_group_string_value));
+    }
+    break;
+  }
+
+  default:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+}
+
+void configuration::load_globals_from_json(
+    ::simdjson::ondemand::object& globals_value) {
+  for (simdjson::simdjson_result<::simdjson::fallback::ondemand::field>
+           global_field : globals_value) {
+    std::string_view key;
+    if (global_field.unescaped_key().get(key) != ::simdjson::SUCCESS) {
+      QLJS_UNIMPLEMENTED();
+    }
+    string8_view global_name = this->save_string(key);
+
+    ::simdjson::fallback::ondemand::value descriptor;
+    if (global_field.value().get(descriptor) != ::simdjson::SUCCESS) {
+      QLJS_UNIMPLEMENTED();
+    }
+    ::simdjson::fallback::ondemand::json_type descriptor_type;
+    if (descriptor.type().get(descriptor_type) != ::simdjson::SUCCESS) {
+      QLJS_UNIMPLEMENTED();
+    }
+    switch (descriptor_type) {
+    case ::simdjson::fallback::ondemand::json_type::boolean: {
+      bool descriptor_bool;
+      if (descriptor.get(descriptor_bool) != ::simdjson::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
+      if (descriptor_bool) {
+        add_global_variable(global_name);
+      } else {
+        remove_global_variable(global_name);
+      }
+      break;
+    }
+
+    case ::simdjson::fallback::ondemand::json_type::object: {
+      ::simdjson::fallback::ondemand::object descriptor_object;
+      if (descriptor.get(descriptor_object) != ::simdjson::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
+
+      global_declared_variable* var = add_global_variable(global_name);
+      if (get_bool_or_default(descriptor_object["shadowable"],
+                              &var->is_shadowable,
+                              true) != ::simdjson::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
+      if (get_bool_or_default(descriptor_object["writable"], &var->is_writable,
+                              true) != ::simdjson::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
+
+      break;
+    }
+
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
+    }
+  }
+}
+
+string8_view configuration::save_string(std::string_view s) {
+  string8_view s8 = to_string8_view(s);
+  char8* out_begin =
+      string_allocator_.allocate_uninitialized_array<char8>(s8.size());
+  std::uninitialized_copy(s8.begin(), s8.end(), out_begin);
+  return string8_view(out_begin, s8.size());
+}
+
 bool configuration::should_remove_global_variable(string8_view name) {
   return std::find(this->globals_to_remove_.begin(),
                    this->globals_to_remove_.end(),
                    name) != this->globals_to_remove_.end();
+}
+
+namespace {
+::simdjson::error_code get_bool_or_default(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
+    bool default_value) {
+  ::simdjson::error_code error = value.get(*out);
+  switch (error) {
+  case ::simdjson::SUCCESS:
+  default:
+    return error;
+
+  case ::simdjson::NO_SUCH_FIELD:
+    *out = default_value;
+    return ::simdjson::SUCCESS;
+  }
+}
 }
 }
 

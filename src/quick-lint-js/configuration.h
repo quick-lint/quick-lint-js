@@ -6,6 +6,9 @@
 
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lint.h>
+#include <quick-lint-js/monotonic-allocator.h>
+#include <quick-lint-js/padded-string.h>
+#include <simdjson.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -19,13 +22,20 @@ class configuration {
   global_declared_variable* add_global_variable(string8_view name);
   void remove_global_variable(string8_view name);
 
+  void load_from_json(padded_string_view);
+
  private:
+  void load_global_groups_from_json(simdjson::ondemand::value&);
+  void load_globals_from_json(simdjson::ondemand::object&);
+
   bool should_remove_global_variable(string8_view name);
 
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;
+  monotonic_allocator string_allocator_;
+  string8_view save_string(std::string_view s);
 };
 }
 
