@@ -70,6 +70,10 @@ Incompatible with *--lsp-server*.
 +
 Incompatible with *--output-format*.
 
+*--dump-config*::
+  Print quick-lint-js' configuration and exit.
+  *This option is not yet implemented.*
+
 *-h*::
 *--help*::
   Print a help message and exit.
@@ -191,6 +195,7 @@ ifdef::backend-manpage[]
 == See also
 
 *eslint*(1)
+*quick-lint-js.config*(1)
 
 endif::backend-manpage[]
 

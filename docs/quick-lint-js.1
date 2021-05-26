@@ -1,6 +1,6 @@
 .\" Copyright (C) 2020  Matthew Glazar
 .\" See end of file for extended copyright information.
-.\" This file was generated using generate-cli-docs.
+.\" This file was generated using generate-man-pages.
 .
 .\" Manual page for the 'man' utility.
 .
@@ -8,7 +8,7 @@
 '\" t
 .\"     Title: quick-lint-js
 .\"    Author: [see the "AUTHOR(S)" section]
-.\" Generator: Asciidoctor 2.0.12
+.\" Generator: Asciidoctor 2.0.10
 .\"    Manual: \ \&
 .\"    Source: quick-lint-js version 0.2.0
 .\"  Language: English
@@ -102,6 +102,12 @@ Use this mode to integrate with code editors supporting LSP.
 An editor can send LSP requests and notifications to \fBquick\-lint\-js\fP via standard input, and receive LSP responses and notifications from standard output.
 .sp
 Incompatible with \fB\-\-output\-format\fP.
+.RE
+.sp
+\fB\-\-dump\-config\fP
+.RS 4
+Print quick\-lint\-js\(aq configuration and exit.
+\fBThis option is not yet implemented.\fP
 .RE
 .sp
 \fB\-h\fP, \fB\-\-help\fP
@@ -206,14 +212,12 @@ To lint a file called \fIlib/index.js\fP, writing error messages to the terminal
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP lib/index.js
 lib/index.js:1:20: error: variable used before declaration: language [E058]
 lib/index.js:2:7: note: variable declared here [E058]
 lib/index.js:3:1: error: assignment to const variable [E003]
 lib/index.js:1:7: note: const variable declared here [E003]
 lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
-.fam
 .fi
 .if n .RE
 .br
@@ -226,13 +230,11 @@ To lint three files, writing machine\-readable messages to \fI/tmp/vim\-qflist.j
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP \-\-output\-format=vim\-qflist\-json \(rs
     \-\-vim\-bufnr=3 lib/pizza\-dough.js \(rs
     \-\-vim\-bufnr=4 lib/pizza\-sauce.js \(rs
     \-\-vim\-bufnr=6 lib/pineapple.js \(rs
     >/tmp/vim\-qflist.json
-.fam
 .fi
 .if n .RE
 .br
@@ -247,12 +249,10 @@ To lint a file called \fIbad.js\fP, but don\(cqt fail on use\-of\-undeclared\-va
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E057 bad.js
 bad.js:5:25: warning: use of undeclared variable: $ [E057]
 $ echo $?
 0
-.fam
 .fi
 .if n .RE
 .br
@@ -261,6 +261,7 @@ $ echo $?
 .SH "SEE ALSO"
 .sp
 \fBeslint\fP(1)
+\fBquick\-lint\-js.config\fP(1)
 
 .\" quick-lint-js finds bugs in JavaScript programs.
 .\" Copyright (C) 2020  Matthew Glazar

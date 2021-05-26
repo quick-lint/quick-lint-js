@@ -25,17 +25,29 @@ def main():
             "docs/cli.adoc",
         ]
     )
+    subprocess.check_output(
+        [
+            "asciidoctor",
+            "-b",
+            "manpage",
+            "-D",
+            "docs/",
+            "-o",
+            "quick-lint-js.config.5",
+            "docs/config.adoc",
+        ]
+    )
 
-    process_man()
+    process_man(pathlib.Path("docs/quick-lint-js.1"))
+    process_man(pathlib.Path("docs/quick-lint-js.config.5"))
 
 
-def process_man():
-    file_path = pathlib.Path("docs/quick-lint-js.1")
+def process_man(file_path):
     contents = file_path.read_text()
 
     top = """.\\" Copyright (C) 2020  Matthew Glazar
 .\\" See end of file for extended copyright information.
-.\\" This file was generated using generate-cli-docs.
+.\\" This file was generated using generate-man-pages.
 .
 .\\" Manual page for the 'man' utility.
 .

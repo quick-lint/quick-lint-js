@@ -1,0 +1,279 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+= quick-lint-js.config(5)
+:version: 0.2.0
+:mansource: quick-lint-js version {version}
+:toc:
+:reproducible:
+:stylesheet: ../main.css
+:linkcss:
+
+ifdef::backend-manpage[]
+
+== Name
+
+quick-lint-js.config - configuration file for *quick-lint-js*(1)
+
+== Synopsis
+
+`quick-lint-js.config` +
+`.quick-lint-js.config` +
+``package.json``'s **quick-lint-js.config** property
+
+endif::backend-manpage[]
+
+== Description
+
+The *quick-lint-js*(1) program, and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.config` file.
+
+*These configuration options are not yet implemented.*
+
+== Files
+
+quick-lint-js uses the following algorithm to find its configuration:
+
+1. Remember the directory containing the input JavaScript file as the _current directory_.
+   If the input JavaScript file has no path, remember the current working directory as the _current directory_.
+2. Look for a configuration file in the _current directory_:
+   a. Check if the file `quick-lint-js.config` exists.
+      If so, use it as the configuration file and stop.
+   b. Check if the file `.quick-lint-js.config` exists.
+      If so, use it as the configuration file and stop.
+   c. Check if the file `package.json` exists.
+      If so, use it as the configuration file and stop.
+   d. Go to step 3.
+3. If the _current directory_ is a filesystem root, assume no configuration file and stop.
+4. Remember the parent of the _current directory_ as the _current directory_.
+   The parent of a directory is determined by suffixing a `..` component to the directory's path.
+   (This method of determining the parent affects how symbolic links in paths are handled.)
+5. Go to step 2.
+
+In short, quick-lint-js looks for `quick-lint-js.config`, `.quick-lint-js.config`, or `package.json` in ancestor directories.
+If multiple files are found, `quick-lint-js.config` is used if present, otherwise `.quick-lint-js.config` is used if present.
+
+If no configuration file is found, quick-lint-js behaves as if a `quick-lint-js.config` file was found with contents `{}`.
+
+== Format
+
+`quick-lint-js.config` and `.quick-lint-js.config` files contain UTF-8-encoded JSON (per RFC 8259).
+The top-level object contains quick-lint-js configuration properties.
+A `quick-lint-js.config` or `.quick-lint-js.config` file with no configuration looks like this:
+
+[source,json]
+----
+{}
+----
+
+`quick-lint-js.config` and `.quick-lint-js.config` do not support a dedicated comment syntax.
+To write a comment, you can create an object key starting a space character.
+quick-lint-js will ignore an object property if its key starts with a space.
+For example:
+
+[source,json]
+----
+{
+  " ": "this file configures quick-lint-js",
+  "globals": {
+    " exported by Prototype.js": null,
+    "$": true,
+    "Ajax": true,
+    "Class": true,
+    "Element": true,
+
+    " exported by Google Charts": null,
+    "chart": true
+  }
+}
+----
+
+`package.json` files contain UTF-8-encoded JSON.
+The *quick-lint-js.config* property of the top-level object contains quick-lint-js configuration properties.
+If the *quick-lint-js.config* property is missing, it is assumed to be an empty object ({}).
+A `package.json` file might look like this:
+
+[source,json]
+----
+{
+  "name": "my-npm-package",
+  "version": "0.1.0",
+  "quick-lint-js.config": {
+    "globals": {
+      "YUI": {"writable": false}
+    }
+  }
+}
+----
+
+== Options
+
+The quick-lint-js configuration object can contain one or more of the following keys:
+
+*globals*:: Optional.
+Global variables which programs can use.
+*This configuration property is not yet implemented.*
++
+*globals* is an object
+Its format is described in the GLOBALS section below.
+
+*global-groups*:: Optional.
+Pre-defined categories of global variables which programs can use.
+*This configuration property is not yet implemented.*
++
+--
+*global-groups* is either an array or a boolean.
+
+If *global-groups* is *true* or not present, then it's as if the value was an array of all possible group names, except for *literally-anything*.
+
+If *global-groups* is *false* or an empty array, then no global variables are defined aside from those listed in the *globals* configuration property.
+
+If *global-groups* is a non-empty array, then global variables are defined per the given group names.
+Each group name is a string.
+For the list of group names, see the GLOBAL GROUPS section.
+--
+
+== Globals
+
+The *globals* configuration property tells quick-lint-js what global variables to assume exist.
+
+If the global variables you want are from a popular platform or library, you might want to use *global-groups* instead.
+
+Each property in the *globals* configuration property represents a single global variable.
+The property's key is the JavaScript variable name.
+The property's value can be either *true*, *false*, or an object:
+
+- If the value is *true*, then the variable is defined as if the property's value was *{}*.
+- If the value is *false*, then the variable is not defined, even if a group listed in *global-groups* would otherwise define the variable.
+- If the value is an object, then the variable is defined with attributes according to the object:
++
+--
+- *shadowable*: Optional.
+  If *true* or not present, the variable can redefined in the program's outer-most scope.
+  If *false*, the variable cannot be redefined in the program's outer-most scope.
+- *writable*: Optional.
+  If *true* or not present, the variable can be assigned to.
+  If *false*, the variable cannot be assigned to.
+--
+
+JSON Unicode escapes (*"\u0068ello"*) are allowed in the variable name.
+JavaScript Unicode escapes (*"\\u{68}llo"*) are not allowed in the variable name.
+
+== Global Groups
+
+The following groups are supported for the *global-groups* configuration property:
+
+*literally-anything*:: all possible global variables.
+All global variables are defined as shadowable and writable.
+This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the *globals* configuration property).
+This group is not enabled by default.
+*browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
+This group is enabled by default.
+*ecmascript*:: globals defined by the latest ECMAScript (JavaScript) standard, including *Object* and *NaN*.
+This group is enabled by default.
+*jasmine*:: globals defined by the Jasmine test framework, including *describe*, *it*, and *expect*.
+This group is enabled by default.
+*jest*:: globals defined by the Jest test framework, including *describe*, *test*, and *expect*.
+This group is enabled by default.
+*jquery*:: globals defined by the jQuery library, including *$*.
+This group is enabled by default.
+*node.js*:: globals defined by Node.js for CommonJS modules, including *require*, *console*, and *__dirname*.
+This group is enabled by default.
+*node.js-es*:: globals defined by Node.js for ES modules, including *console* and *process*.
+This group is enabled by default.
+
+== Examples
+
+Imagine we have a browser-only application.
+Its tests are written using the Jest testing framework.
+It uses the Google Maps libraries, which are exposed using the *google* global variable.
+Such an application might have the following `quick-lint-js.config` file:
+
+[source,json]
+----
+{
+  "global-groups": ["browser", "ecmascript", "jest"],
+  "globals": {
+    "google": {"writable": false}
+  }
+}
+----
+
+Alternatively, the application might prefer to have fewer files in the project.
+In this case, the application configures quick-lint-js in its `package.json` file:
+
+[source,json]
+----
+{
+  "name": "acme",
+  "version": "1.2.1",
+  "devDependencies": {
+    "jest": "3.0.1"
+  },
+  "quick-lint-js.config": {
+    "global-groups": ["browser", "ecmascript", "jest"],
+    "globals": {
+      "google": {"writable": false}
+    }
+  }
+}
+----
+
+'''
+
+If you want to suppress E002, E033, E057, or E059, configure *globals* or *global-groups*.
+For example, if you're seeing a spurious warning E057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in `quick-lint-js.config`:
+
+[source,json]
+----
+{
+  "globals": {
+    "MyLibrary": true
+  }
+}
+----
+
+If you are not seeing E002, E033, E057, or E059 (false negative), but you want to see E057 "use of undeclared variable: $", use one of the following configuration in `quick-lint-js.config`:
+
+[source,json]
+----
+{
+  "globals": {
+    "$": false
+  }
+}
+----
+
+Alternatively, suppress the *jquery* globals group (which defines *$* as a global variable) by enabling only the environments you use in your project with this `quick-lint-js.config`:
+
+[source,json]
+----
+{
+  "global-groups": ["ecmascript", "node.js"]
+}
+----
+
+ifdef::backend-manpage[]
+
+== See also
+
+*quick-lint-js*(1)
+
+endif::backend-manpage[]
+
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This file is part of quick-lint-js.
+//
+// quick-lint-js is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// quick-lint-js is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
