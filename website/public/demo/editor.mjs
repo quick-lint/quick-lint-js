@@ -88,6 +88,7 @@ class EditorMarker {
       this._currentMarkIndex < this._marks.length
         ? this._marks[this._currentMarkIndex]
         : null;
+
     if (currentMark !== null) {
       if (currentNodeContainsOffset(currentMark.begin)) {
         let splitIndex = currentMark.begin - self._currentOffset;
@@ -99,6 +100,10 @@ class EditorMarker {
         this._markEndNode = splitNodeAtMarkEnd(splitIndex);
 
         let mark = this._window.document.createElement("mark");
+        mark.setAttribute("data-message", currentMark.message);
+        mark.setAttribute("data-code", currentMark.code);
+        mark.setAttribute("data-severity", currentMark.severity);
+
         if (this._markBeginNode === this._markEndNode.nextSibling) {
           // Special case: insert an empty <mark>.
           if (currentMark.begin !== currentMark.end) {

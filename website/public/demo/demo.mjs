@@ -25,12 +25,13 @@ createProcessFactoryAsync()
       synchronizeContent();
 
       // TODO(strager): On crash, show the error to the user.
-      let input = codeInputElement.innerText;
+      let input = codeInputElement.value;
 
       parser.setText(input);
       let marks = parser.lint();
-      markEditorText(codeInputElement, window, marks);
-      assignBoxErrorMessage(codeInputElement, marks);
+      markEditorText(shadowCodeInputElement, window, marks);
+      // console.log(shadowCodeInputElement, marks);
+      assignBoxErrorMessage(shadowCodeInputElement, marks);
     }
     codeInputElement.addEventListener("input", (event) => {
       lintAndUpdate();
@@ -57,12 +58,8 @@ function synchronizeSize() {
   shadowCodeInputElement.style.height = codeInputElement.style.height;
 }
 
-function showErrorMessageBox(event, errorMessages) {
-  const markedElement = event.target;
-  const { code, message, severity } = errorMessages.filter(
-    (arr) => markedElement === arr.mark
-  )[0];
-  const div = createErrorBox(markedElement, message, code, severity);
+function showErrorMessageBox(mark, errorMessage) {
+  const div = createErrorBox(mark, errorMessage, "code", "severity");
   let body = document.querySelector("body");
   body.appendChild(div);
 }
@@ -88,9 +85,8 @@ function removeErrorMessageBox() {
   errorMessagesBoxs.forEach((box) => box.remove());
 }
 
-function assignBoxErrorMessage(codeInputElement, marks) {
-  elements = codeInputElement.querySelectorAll("mark");
-
+function assignBoxErrorMessage(shadowCodeInputElement, marks) {
+  const elements = shadowCodeInputElement.querySelectorAll("mark");
   const errorMessages = marks.map(({ code, message, severity }, index) => ({
     code,
     message,
@@ -99,10 +95,10 @@ function assignBoxErrorMessage(codeInputElement, marks) {
   }));
 
   elements.forEach((mark) => {
-    mark.addEventListener("mouseenter", (event) =>
+    mark.addEventListener("onmousemove", (event) =>
       showErrorMessageBox(event, errorMessages)
     );
-    mark.addEventListener("mouseout", removeErrorMessageBox);
+    mark.addEventListener("onmouseout", removeErrorMessageBox);
   });
 }
 
