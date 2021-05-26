@@ -27,10 +27,12 @@ class global_declared_variable_set {
  public:
   void add_predefined_global_variable(const char8 *name, bool is_writable);
   void add_predefined_module_variable(const char8 *name, bool is_writable);
+  global_declared_variable *add_variable(string8_view name);
+
+  void add_default_variables();
 
   const global_declared_variable *find(identifier name) const noexcept;
-
-  static global_declared_variable_set make_default();
+  const global_declared_variable *find(string8_view name) const noexcept;
 
  private:
   std::vector<global_declared_variable> variables_;

@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/buffering-visitor.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/lint.h>
@@ -32,14 +33,13 @@ void benchmark_lint(benchmark::State &state) {
   read_file_result source(quick_lint_js::read_file(source_path));
   source.exit_if_not_ok();
 
-  global_declared_variable_set globals =
-      global_declared_variable_set::make_default();
+  configuration config;
   parser p(&source.content, &null_error_reporter::instance);
   buffering_visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
   for (auto _ : state) {
-    linter l(&null_error_reporter::instance, &globals);
+    linter l(&null_error_reporter::instance, &config.globals());
     visitor.copy_into(l);
   }
 }
@@ -58,11 +58,10 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   read_file_result source(quick_lint_js::read_file(source_path));
   source.exit_if_not_ok();
 
-  global_declared_variable_set globals =
-      global_declared_variable_set::make_default();
+  configuration config;
   for (auto _ : state) {
     parser p(&source.content, &null_error_reporter::instance);
-    linter l(&null_error_reporter::instance, &globals);
+    linter l(&null_error_reporter::instance, &config.globals());
     p.parse_and_visit_module(l);
   }
 }

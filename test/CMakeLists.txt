@@ -31,6 +31,7 @@ quick_lint_js_add_executable(
   test-c-api-error-reporter.cpp
   test-c-api.cpp
   test-cli-location.cpp
+  test-configuration.cpp
   test-constant-divider.cpp
   test-crash.cpp
   test-document.cpp

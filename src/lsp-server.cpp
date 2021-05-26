@@ -9,6 +9,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-error-reporter.h>
@@ -242,10 +243,9 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
     padded_string_view code, byte_buffer& diagnostics_json) {
   lsp_error_reporter error_reporter(diagnostics_json, code);
 
-  global_declared_variable_set globals =
-      global_declared_variable_set::make_default();
+  configuration config;
   parser p(code, &error_reporter);
-  linter l(&error_reporter, &globals);
+  linter l(&error_reporter, &config.globals());
 #if QLJS_HAVE_SETJMP
   bool ok = p.parse_and_visit_module_catching_unimplemented(l);
   if (!ok) {

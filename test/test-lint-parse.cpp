@@ -5,6 +5,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/language.h>
@@ -18,8 +19,7 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-global_declared_variable_set default_globals =
-    global_declared_variable_set::make_default();
+global_declared_variable_set default_globals = configuration().globals();
 
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;"_sv);

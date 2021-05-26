@@ -5,6 +5,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/language.h>
@@ -24,8 +25,7 @@ identifier identifier_of(const char8 *name) {
   return identifier(span_of(name));
 }
 
-global_declared_variable_set default_globals =
-    global_declared_variable_set::make_default();
+global_declared_variable_set default_globals = configuration().globals();
 
 constexpr const char8 *writable_global_variables[] = {
     // ECMA-262 18.1 Value Properties of the Global Object

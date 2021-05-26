@@ -112,127 +112,25 @@ void global_declared_variable_set::add_predefined_module_variable(
       .name = name, .is_writable = is_writable, .is_shadowable = false});
 }
 
+global_declared_variable *global_declared_variable_set::add_variable(
+    string8_view name) {
+  return &this->variables_.emplace_back(global_declared_variable{
+      .name = name, .is_writable = true, .is_shadowable = true});
+}
+
 const global_declared_variable *global_declared_variable_set::find(
     identifier name) const noexcept {
-  string8_view name_view = name.normalized_name();
+  return this->find(name.normalized_name());
+}
+
+const global_declared_variable *global_declared_variable_set::find(
+    string8_view name) const noexcept {
   for (const global_declared_variable &var : this->variables_) {
-    if (var.name == name_view) {
+    if (var.name == name) {
       return &var;
     }
   }
   return nullptr;
-}
-
-global_declared_variable_set global_declared_variable_set::make_default() {
-  global_declared_variable_set vars;
-
-  const char8 *writable_global_variables[] = {
-      // ECMA-262 18.1 Value Properties of the Global Object
-      u8"globalThis",
-
-      // ECMA-262 18.2 Function Properties of the Global Object
-      u8"decodeURI",
-      u8"decodeURIComponent",
-      u8"encodeURI",
-      u8"encodeURIComponent",
-      u8"eval",
-      u8"isFinite",
-      u8"isNaN",
-      u8"parseFloat",
-      u8"parseInt",
-
-      // ECMA-262 18.3 Constructor Properties of the Global Object
-      u8"Array",
-      u8"ArrayBuffer",
-      u8"BigInt",
-      u8"BigInt64Array",
-      u8"BigUint64Array",
-      u8"Boolean",
-      u8"DataView",
-      u8"Date",
-      u8"Error",
-      u8"EvalError",
-      u8"Float32Array",
-      u8"Float64Array",
-      u8"Function",
-      u8"Int16Array",
-      u8"Int32Array",
-      u8"Int8Array",
-      u8"Map",
-      u8"Number",
-      u8"Object",
-      u8"Promise",
-      u8"Proxy",
-      u8"RangeError",
-      u8"ReferenceError",
-      u8"RegExp",
-      u8"Set",
-      u8"SharedArrayBuffer",
-      u8"String",
-      u8"Symbol",
-      u8"SyntaxError",
-      u8"TypeError",
-      u8"URIError",
-      u8"Uint16Array",
-      u8"Uint32Array",
-      u8"Uint8Array",
-      u8"Uint8ClampedArray",
-      u8"WeakMap",
-      u8"WeakSet",
-
-      // ECMA-262 18.4 Other Properties of the Global Object
-      u8"Atomics",
-      u8"JSON",
-      u8"Math",
-      u8"Reflect",
-
-      // Node.js
-      u8"Buffer",
-      u8"GLOBAL",
-      u8"Intl",
-      u8"TextDecoder",
-      u8"TextEncoder",
-      u8"URL",
-      u8"URLSearchParams",
-      u8"WebAssembly",
-      u8"clearImmediate",
-      u8"clearInterval",
-      u8"clearTimeout",
-      u8"console",
-      u8"escape",
-      u8"global",
-      u8"process",
-      u8"queueMicrotask",
-      u8"root",
-      u8"setImmediate",
-      u8"setInterval",
-      u8"setTimeout",
-      u8"unescape",
-  };
-  for (const char8 *global_variable : writable_global_variables) {
-    vars.add_predefined_global_variable(global_variable,
-                                        /*is_writable=*/true);
-  }
-
-  const char8 *non_writable_global_variables[] = {
-      // ECMA-262 18.1 Value Properties of the Global Object
-      u8"Infinity",
-      u8"NaN",
-      u8"undefined",
-  };
-  for (const char8 *global_variable : non_writable_global_variables) {
-    vars.add_predefined_global_variable(global_variable, /*is_writable=*/false);
-  }
-
-  const char8 *writable_module_variables[] = {
-      // Node.js
-      u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
-  };
-  for (const char8 *module_variable : writable_module_variables) {
-    vars.add_predefined_module_variable(module_variable, /*is_writable=*/true);
-  }
-
-  return vars;
 }
 
 linter::linter(error_reporter *error_reporter,

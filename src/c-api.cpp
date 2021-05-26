@@ -5,6 +5,7 @@
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
@@ -23,7 +24,7 @@ class qljs_parser_base {
     this->error_reporter_.set_input(this->document_.string(),
                                     &this->document_.locator());
     parser p(this->document_.string(), &this->error_reporter_);
-    linter l(&this->error_reporter_, &this->globals_);
+    linter l(&this->error_reporter_, &this->config_.globals());
     // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead
     // of parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
     p.parse_and_visit_module(l);
@@ -33,8 +34,7 @@ class qljs_parser_base {
 
   quick_lint_js::document<Locator> document_;
   ErrorReporter error_reporter_;
-  global_declared_variable_set globals_ =
-      global_declared_variable_set::make_default();
+  configuration config_;
 };
 }
 }
