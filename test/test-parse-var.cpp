@@ -71,19 +71,6 @@ TEST(test_parse, parse_simple_let) {
     EXPECT_EQ(v.variable_declarations[1].name, u8"second");
     EXPECT_THAT(v.errors, IsEmpty());
   }
-
-  {
-    for (string8 kw : {u8"typeof", u8"class", u8"new"}) {
-      spy_visitor v;
-      padded_string code(u8"let x\n" + kw + u8" Array()");
-      parser p(&code, &v);
-      EXPECT_TRUE(p.parse_and_visit_statement(v));
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-  }
 }
 
 TEST(test_parse, parse_simple_var) {
@@ -241,6 +228,65 @@ TEST(test_parse,
   ASSERT_EQ(v.variable_uses.size(), 1);
   EXPECT_EQ(v.variable_uses[0].name, u8"x");
   EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_parse, parse_valid_let) {
+  {
+    spy_visitor v;
+    padded_string code(u8"let x\nclass C{}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // x
+                            "visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     //
+                            "visit_exit_class_scope",      //
+                            "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x\nnew Array()"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // x
+                            "visit_variable_use",          // Array
+                            "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x\ntypeof Array"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_typeof_use",   // Array
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x\nclass C{}\nx = new C();"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // x
+                            "visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     //
+                            "visit_exit_class_scope",      //
+                            "visit_variable_use",          // C
+                            "visit_variable_assignment",   // x
+                            "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse, parse_invalid_let) {
@@ -511,41 +557,251 @@ TEST(test_parse, parse_invalid_let) {
                             compound_assignment_operator),  //
             declaring_token, offsets_matcher(&code, 0, u8"let"))));
   }
+}
+
+TEST(test_parse, parse_let_with_missing_equal) {
+  {
+    spy_visitor v;
+    padded_string code(u8"async function f() {return 1;}\nlet x await f()"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_use",               // f
+                                      "visit_variable_declaration",       // x
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_equal_after_variable, expected_equal,
+            offsets_matcher(&code,
+                            strlen(u8"async function f() {return 1;}\nlet x"),
+                            u8""))));
+  }
 
   {
-    for (string8 kw : {u8"typeof", u8"class", u8"new"}) {
-      spy_visitor v;
-      padded_string code(u8"let x " + kw + u8" Array;");
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
-                                        "visit_variable_use",          // Array
-                                        "visit_end_of_module"));
+    spy_visitor v;
+    padded_string code(u8"let x class C{}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",     //
+                            "visit_variable_declaration",  // C
+                            "visit_exit_class_scope",      //
+                            "visit_variable_declaration",  // x
+                            "visit_end_of_module"));
 
-      EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_FIELD(
-                      error_missing_equal_after_variable, expected_equal,
-                      offsets_matcher(&code, strlen(u8"let x"), u8""))));
-    }
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
 
-    {
-      for (string8 kw : {u8"typeof", u8"class", u8"new"}) {
-        spy_visitor v;
-        padded_string code(u8"let x " + kw + u8" Array(), y = x.length;");
-        parser p(&code, &v);
-        p.parse_and_visit_module(v);
-        EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
-                                          "visit_variable_use",  // Array
-                                          "visit_variable_use",  // x
-                                          "visit_variable_declaration",  // y
-                                          "visit_end_of_module"));
+  {
+    spy_visitor v;
+    padded_string code(u8"let x function f() {}"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+                                      "visit_enter_function_scope_body",   //
+                                      "visit_exit_function_scope",         //
+                                      "visit_variable_declaration",        // x
+                                      "visit_end_of_module"));
 
-        EXPECT_THAT(v.errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_missing_equal_after_variable, expected_equal,
-                        offsets_matcher(&code, strlen(u8"let x"), u8""))));
-      }
-    }
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x null"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x new Array()"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // Array
+                                      "visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x this"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x typeof Array"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use",   // Array
+                                      "visit_variable_declaration",  // x
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"async function f() {return 1;}\nlet x await f(), y = x"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_use",               // f
+                                      "visit_variable_declaration",       // x
+                                      "visit_variable_use",               // x
+                                      "visit_variable_declaration",       // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_equal_after_variable, expected_equal,
+            offsets_matcher(&code,
+                            strlen(u8"async function f() {return 1;}\nlet x"),
+                            u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x class C{}, y = x"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     //
+                                      "visit_variable_declaration",  // C
+                                      "visit_exit_class_scope",      //
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x function f() {}, y = x"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+                                      "visit_enter_function_scope_body",   //
+                                      "visit_exit_function_scope",         //
+                                      "visit_variable_declaration",        // x
+                                      "visit_variable_use",                // x
+                                      "visit_variable_declaration",        // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x null, y = x"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x new Array(), y = x;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // Array
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x this, y = x"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x typeof Array, y = x;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use",   // Array
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // x
+                                      "visit_variable_declaration",  // y
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_equal_after_variable, expected_equal,
+                    offsets_matcher(&code, strlen(u8"let x"), u8""))));
   }
 }
 
