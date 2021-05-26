@@ -3026,9 +3026,9 @@ class parser {
               });
           goto initialize_variable;
 
-        case token_type::kw_typeof:
         case token_type::kw_class:
-        case token_type::kw_new: {
+        case token_type::kw_new:
+        case token_type::kw_typeof: {
           bool has_leading_newline = this->peek().has_leading_newline;
           if (!has_leading_newline) {
             const char8 *here = this->lexer_.end_of_previous_token();
