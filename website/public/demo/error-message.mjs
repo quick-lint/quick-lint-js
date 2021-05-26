@@ -1,5 +1,10 @@
-function showErrorMessageBox(mark, errorMessage) {
-  const div = createErrorBox(mark, errorMessage, "code", "severity");
+function showErrorMessageBox(mark) {
+  const div = createErrorBox(
+    mark,
+    mark.attributes["data-message"].value,
+    mark.attributes["data-code"].value,
+    mark.attributes["data-severity"].value
+  );
   let body = document.querySelector("body");
   body.appendChild(div);
 }
@@ -25,40 +30,24 @@ function removeErrorMessageBox() {
   errorMessagesBoxs.forEach((box) => box.remove());
 }
 
-function assignBoxErrorMessage(shadowCodeInputElement, marks) {
-  const elements = shadowCodeInputElement.querySelectorAll("mark");
-  const errorMessages = marks.map(({ code, message, severity }, index) => ({
-    code,
-    message,
-    severity,
-    mark: elements[index],
-  }));
-
-  elements.forEach((mark) => {
-    mark.addEventListener("onmousemove", (event) =>
-      showErrorMessageBox(event, errorMessages)
-    );
-    mark.addEventListener("onmouseout", removeErrorMessageBox);
-  });
-}
-
 function showErrorMessage(event) {
-  const mousePositionX = event.clientX;
-  const mousePositionY = event.clientY;
   const shadowInput = document.querySelector("#shadow-code-input");
   Array.from(shadowInput.querySelectorAll("mark")).every((mark) => {
-    const { bottom, left, top, height, width } = mark.getBoundingClientRect();
-    const topDownIn = bottom >= mousePositionY && mousePositionY >= top;
-    const leftRightIn =
-      mousePositionX >= left && mousePositionX <= left + width;
-    if (topDownIn && leftRightIn) {
-      const errorMessage = mark.getAttribute("data-message");
-      showErrorMessageBox(mark, errorMessage);
+    const markRect = mark.getBoundingClientRect();
+    if (cursorOverMark(event.clientX, event.clientY, markRect)) {
+      showErrorMessageBox(mark);
       return false;
     }
     removeErrorMessageBox();
     return true;
   });
+}
+
+function cursorOverMark(cursorPosX, cursorPosY, markRect) {
+  const topDownIn = markRect.bottom >= cursorPosY && cursorPosY >= markRect.top;
+  const leftRightIn =
+    cursorPosX >= markRect.left && cursorPosX <= markRect.left + markRect.width;
+  return topDownIn && leftRightIn;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
