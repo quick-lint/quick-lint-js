@@ -23,7 +23,7 @@ class qljs_parser_base {
     this->error_reporter_.set_input(this->document_.string(),
                                     &this->document_.locator());
     parser p(this->document_.string(), &this->error_reporter_);
-    linter l(&this->error_reporter_);
+    linter l(&this->error_reporter_, &this->globals_);
     // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead
     // of parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
     p.parse_and_visit_module(l);
@@ -33,6 +33,8 @@ class qljs_parser_base {
 
   quick_lint_js::document<Locator> document_;
   ErrorReporter error_reporter_;
+  global_declared_variable_set globals_ =
+      global_declared_variable_set::make_default();
 };
 }
 }

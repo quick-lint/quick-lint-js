@@ -30,6 +30,8 @@ class global_declared_variable_set {
 
   const global_declared_variable *find(identifier name) const noexcept;
 
+  static global_declared_variable_set make_default();
+
  private:
   std::vector<global_declared_variable> variables_;
 };
@@ -45,7 +47,8 @@ class global_declared_variable_set {
 // The linter class implements variable lookup internally.
 class linter {
  public:
-  explicit linter(error_reporter *error_reporter);
+  explicit linter(error_reporter *error_reporter,
+                  const global_declared_variable_set *global_variables);
 
   void visit_enter_block_scope();
   void visit_enter_with_scope();
@@ -208,9 +211,6 @@ class linter {
 
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
-
-  static global_declared_variable_set make_global_variables();
-  const static global_declared_variable_set *get_global_variables();
 
   scopes scopes_;
 

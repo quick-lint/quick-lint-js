@@ -123,7 +123,7 @@ const global_declared_variable *global_declared_variable_set::find(
   return nullptr;
 }
 
-global_declared_variable_set linter::make_global_variables() {
+global_declared_variable_set global_declared_variable_set::make_default() {
   global_declared_variable_set vars;
 
   const char8 *writable_global_variables[] = {
@@ -235,14 +235,9 @@ global_declared_variable_set linter::make_global_variables() {
   return vars;
 }
 
-const global_declared_variable_set *linter::get_global_variables() {
-  static global_declared_variable_set vars = make_global_variables();
-  return &vars;
-}
-
-linter::linter(error_reporter *error_reporter)
-    : global_scope_(this->get_global_variables()),
-      error_reporter_(error_reporter) {}
+linter::linter(error_reporter *error_reporter,
+               const global_declared_variable_set *global_variables)
+    : global_scope_(global_variables), error_reporter_(error_reporter) {}
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 

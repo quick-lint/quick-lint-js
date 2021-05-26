@@ -17,10 +17,14 @@ using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
+namespace {
+global_declared_variable_set default_globals =
+    global_declared_variable_set::make_default();
+
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;"_sv);
   error_collector v;
-  linter l(&v);
+  linter l(&v, &default_globals);
   parser p(&input, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
@@ -37,7 +41,7 @@ TEST(
   padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;"_sv);
   error_collector v;
 
-  linter l(&v);
+  linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
 
@@ -49,7 +53,7 @@ TEST(test_lint,
   padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)"_sv);
   error_collector v;
 
-  linter l(&v);
+  linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
 
@@ -64,7 +68,7 @@ TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
   padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })"_sv);
   error_collector v;
 
-  linter l(&v);
+  linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
 
@@ -76,7 +80,7 @@ TEST(test_lint,
   padded_string input(u8"const f;\nif (true)\n  function f() {}"_sv);
 
   error_collector v;
-  linter l(&v);
+  linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
@@ -88,7 +92,7 @@ TEST(test_lint, typeof_with_conditional_operator) {
   {
     padded_string input(u8"typeof x ? 10 : 20;"_sv);
     error_collector v;
-    linter l(&v);
+    linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -101,7 +105,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
   {
     padded_string input(u8"const x = 42; ++x;"_sv);
     error_collector v;
-    linter l(&v);
+    linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -115,7 +119,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
   {
     padded_string input(u8"const x = {y : 10};\n ++x.y;"_sv);
     error_collector v;
-    linter l(&v);
+    linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -128,7 +132,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
   {
     padded_string input(u8"const x = [42]; ++x[0];"_sv);
     error_collector v;
-    linter l(&v);
+    linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -139,7 +143,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
   {
     padded_string input(u8"const x = 42;\n const y =10;\n ++x + y;"_sv);
     error_collector v;
-    linter l(&v);
+    linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
@@ -149,6 +153,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
                               offsets_matcher(&input, 31, 31 + 1), declaration,
                               offsets_matcher(&input, 6, 6 + 1))));
   }
+}
 }
 }
 

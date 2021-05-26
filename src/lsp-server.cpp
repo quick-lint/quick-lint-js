@@ -242,8 +242,10 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
     padded_string_view code, byte_buffer& diagnostics_json) {
   lsp_error_reporter error_reporter(diagnostics_json, code);
 
+  global_declared_variable_set globals =
+      global_declared_variable_set::make_default();
   parser p(code, &error_reporter);
-  linter l(&error_reporter);
+  linter l(&error_reporter, &globals);
 #if QLJS_HAVE_SETJMP
   bool ok = p.parse_and_visit_module_catching_unimplemented(l);
   if (!ok) {
