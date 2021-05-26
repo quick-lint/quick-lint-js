@@ -12,7 +12,7 @@ function createErrorBox(markedElement, errorMessage, code, severity) {
   div.innerText = `${code} - ${errorMessage}`;
   div.setAttribute(
     "style",
-    `position: absolute; 
+    `position: fixed; 
     top: ${Math.trunc(bottom)}px; 
     left: ${Math.trunc(left)}px`
   );
