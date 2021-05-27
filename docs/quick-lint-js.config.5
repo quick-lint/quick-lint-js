@@ -160,6 +160,11 @@ In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP, \f(CR.quick\
 If multiple files are found, \f(CRquick\-lint\-js.config\fP is used if present, otherwise \f(CR.quick\-lint\-js.config\fP is used if present.
 .sp
 If no configuration file is found, quick\-lint\-js behaves as if a \f(CRquick\-lint\-js.config\fP file was found with contents \f(CR{}\fP.
+.sp
+In addition to the above search algorithm, the
+\fB\-\-config\-file\fP command\-line option
+can be given to
+\fBquick\-lint\-js\fP(1).
 .SH "FORMAT"
 .sp
 \f(CRquick\-lint\-js.config\fP and \f(CR.quick\-lint\-js.config\fP files contain UTF\-8\-encoded JSON (per RFC 8259).

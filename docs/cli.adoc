@@ -50,6 +50,7 @@ Incompatible with *--lsp-server*.
   *--vim-file-bufnr* applies only to files which are given later in the command line.
   Therefore, if multiple files are given, *--vim-file-bufnr* can be specified multiple times.
 
+[#config-file]
 *--config-file*=_file_::
   Read configuration options from _file_ and apply them to input files which are given later in the command line.
   See *quick-lint-js.config*(5) for the format of configuration files.

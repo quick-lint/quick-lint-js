@@ -54,6 +54,21 @@ If multiple files are found, `quick-lint-js.config` is used if present, otherwis
 
 If no configuration file is found, quick-lint-js behaves as if a `quick-lint-js.config` file was found with contents `{}`.
 
+In addition to the above search algorithm, the
+ifdef::backend-html5[]
+link:../cli/#config-file[*--config-file* command-line option]
+endif::[]
+ifndef::backend-html5[]
+*--config-file* command-line option
+endif::[]
+can be given to
+ifdef::backend-manpage[]
+*quick-lint-js*(1).
+endif::[]
+ifndef::backend-manpage[]
+quick-lint-js' CLI.
+endif::[]
+
 == Format
 
 `quick-lint-js.config` and `.quick-lint-js.config` files contain UTF-8-encoded JSON (per RFC 8259).
