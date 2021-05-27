@@ -61,7 +61,7 @@ ifdef::backend-html5[]
 endif::[]
 +
 If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
-See the EXAMPLES section for an example.
+See the <<Example>> section for an example.
 +
 If *--config-file* is not given, an empty configuration file is assumed.
 +
@@ -70,7 +70,7 @@ Incompatible with *--lsp-server*.
 *--exit-fail-on*=_errors_::
   Cause *quick-lint-js* to exit with a non-zero exit code if any of the discovered errors is listed in _errors_.
 +
-See the "ERROR LISTS" section for a description of the format for _errors_.
+See the <<Error lists>> section for a description of the format for _errors_.
 +
 Incompatible with *--lsp-server*.
 
@@ -103,6 +103,7 @@ The output format is not intended to be machine-parsable and may change in the f
 +
 The output format is not intended to be machine-parsable and may change in the future.
 
+[#error-lists]
 == Error lists
 
 Some options, such as *--exit-fail-on*, accept an error list.
@@ -168,6 +169,7 @@ The specific status code may change in the future.
   Change the language used for error and warning messages.
   For example, set *LC_ALL=en* to see messages written in United States English.
 
+[#examples]
 == Example
 
 To lint a file called _lib/index.js_, writing error messages to the terminal:

@@ -139,7 +139,7 @@ Global variables which programs can use.
 *This configuration property is not yet implemented.*
 +
 *globals* is an object
-Its format is described in the GLOBALS section below.
+Its format is described in the <<Globals>> section below.
 
 *global-groups*:: Optional.
 Pre-defined categories of global variables which programs can use.
@@ -154,9 +154,10 @@ If *global-groups* is *false* or an empty array, then no global variables are de
 
 If *global-groups* is a non-empty array, then global variables are defined per the given group names.
 Each group name is a string.
-For the list of group names, see the GLOBAL GROUPS section.
+For the list of group names, see the <<Global groups>> section.
 --
 
+[#globals]
 == Globals
 
 The *globals* configuration property tells quick-lint-js what global variables to assume exist.
@@ -183,6 +184,7 @@ The property's value can be either *true*, *false*, or an object:
 JSON Unicode escapes (*"\u0068ello"*) are allowed in the variable name.
 JavaScript Unicode escapes (*"\\u{68}llo"*) are not allowed in the variable name.
 
+[#global-groups]
 == Global Groups
 
 The following groups are supported for the *global-groups* configuration property:
