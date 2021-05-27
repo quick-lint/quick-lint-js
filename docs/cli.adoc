@@ -27,7 +27,7 @@ This command has two modes:
 *quick-lint-js* [<options>] _file_ [_file_...]::
   Batch mode (default).
   Check the given files, and report errors to the terminal (standard error).
-  --output-format can be used to customize how errors look.
+  *--output-format* can be used to customize how errors look.
 
 *quick-lint-js* --lsp-server::
   LSP server mode.
