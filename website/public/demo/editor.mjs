@@ -88,7 +88,6 @@ class EditorMarker {
       this._currentMarkIndex < this._marks.length
         ? this._marks[this._currentMarkIndex]
         : null;
-
     if (currentMark !== null) {
       if (currentNodeContainsOffset(currentMark.begin)) {
         let splitIndex = currentMark.begin - self._currentOffset;

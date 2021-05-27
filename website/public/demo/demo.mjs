@@ -27,7 +27,6 @@ createProcessFactoryAsync()
 
       // TODO(strager): On crash, show the error to the user.
       let input = codeInputElement.value;
-
       parser.setText(input);
       let marks = parser.lint();
       markEditorText(shadowCodeInputElement, window, marks);
