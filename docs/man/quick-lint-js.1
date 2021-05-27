@@ -93,8 +93,9 @@ Incompatible with \fB\-\-lsp\-server\fP.
 \fB\-\-vim\-file\-bufnr\fP=\fInumber\fP
 .RS 4
 Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=vim\-qflist\-json\fP option.
-\fB\-\-vim\-file\-bufnr\fP applies only to files which are given later in the command line.
-Therefore, if multiple files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
+.sp
+\fB\-\-vim\-file\-bufnr\fP applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
 .RE
 .sp
 \fB\-\-config\-file\fP=\fIfile\fP

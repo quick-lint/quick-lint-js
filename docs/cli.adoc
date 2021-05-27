@@ -48,8 +48,9 @@ Incompatible with *--lsp-server*.
 
 *--vim-file-bufnr*=_number_::
   Set the _bufnr_ property for errors printed with the *--output-format=vim-qflist-json* option.
-  *--vim-file-bufnr* applies only to files which are given later in the command line.
-  Therefore, if multiple files are given, *--vim-file-bufnr* can be specified multiple times.
++
+*--vim-file-bufnr* applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, *--vim-file-bufnr* can be specified multiple times.
 
 [#config-file]
 *--config-file*=_file_::
