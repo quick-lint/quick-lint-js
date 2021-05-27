@@ -39,11 +39,12 @@ This command has two modes:
 *--output-format*=_format_::
   Customize how errors are printed. _format_ is one of the following:
 +
-pass:[-] *gnu-like* (default): a human-readable format similar to GCC.
-+
-pass:[-] *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
-+
+--
+- *gnu-like* (default): a human-readable format similar to GCC.
+- *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
+
 Incompatible with *--lsp-server*.
+--
 
 *--vim-file-bufnr*=_number_::
   Set the _bufnr_ property for errors printed with the *--output-format=vim-qflist-json* option.

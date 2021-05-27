@@ -65,9 +65,27 @@ Use this mode to integrate with code editors supporting LSP.
 .RS 4
 Customize how errors are printed. \fIformat\fP is one of the following:
 .sp
-\- \fBgnu\-like\fP (default): a human\-readable format similar to GCC.
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBgnu\-like\fP (default): a human\-readable format similar to GCC.
+.RE
 .sp
-\- \fBvim\-qflist\-json\fP: machine\-readable JSON which can be given to Vim\(cqs \fIsetqflist\fP function.
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBvim\-qflist\-json\fP: machine\-readable JSON which can be given to Vim\(cqs \fIsetqflist\fP function.
+.RE
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
