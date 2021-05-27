@@ -13,10 +13,6 @@ export let websiteConfig = {
       entryPoints: ["/demo/demo.mjs"],
       external: ["fs", "path"],
     },
-    "/demo/error-message.bundled.js": {
-      entryPoints: ["/demo/error-message.mjs"],
-      external: ["fs", "path"],
-    },
   },
   htmlRedirects: {
     "/cli.html": "cli/",
