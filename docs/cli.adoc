@@ -53,7 +53,12 @@ Incompatible with *--lsp-server*.
 [#config-file]
 *--config-file*=_file_::
   Read configuration options from _file_ and apply them to input files which are given later in the command line.
+ifdef::backend-manpage[]
   See *quick-lint-js.config*(5) for the format of configuration files.
+endif::[]
+ifdef::backend-html5[]
+  See the link:../config/[config docs] for the format of configuration files.
+endif::[]
 +
 If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
 See the EXAMPLES section for an example.

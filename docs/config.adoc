@@ -25,7 +25,17 @@ endif::backend-manpage[]
 
 == Description
 
-The *quick-lint-js*(1) program, and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.config` file.
+The
+ifdef::backend-manpage[]
+*quick-lint-js*(1) program,
+endif::[]
+ifdef::backend-html5[]
+link:../cli/[quick-lint-js CLI]
+endif::[]
+ifndef::backend-html5,backend-manpage[]
+quick-lint-js CLI
+endif::[]
+and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.config` file.
 
 *These configuration options are not yet implemented.*
 
