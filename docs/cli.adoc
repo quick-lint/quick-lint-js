@@ -50,6 +50,17 @@ Incompatible with *--lsp-server*.
   *--vim-file-bufnr* applies only to files which are given later in the command line.
   Therefore, if multiple files are given, *--vim-file-bufnr* can be specified multiple times.
 
+*--config-file*=_file_::
+  Read configuration options from _file_ and apply them to input files which are given later in the command line.
+  See *quick-lint-js.config*(5) for the format of configuration files.
++
+If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
+See the EXAMPLES section for an example.
++
+If *--config-file* is not given, an empty configuration file is assumed.
++
+Incompatible with *--lsp-server*.
+
 *--exit-fail-on*=_errors_::
   Cause *quick-lint-js* to exit with a non-zero exit code if any of the discovered errors is listed in _errors_.
 +
@@ -187,6 +198,16 @@ $ *quick-lint-js* --exit-fail-on=-E057 bad.js
 bad.js:5:25: warning: use of undeclared variable: $ [E057]
 $ echo $?
 0
+----
+____
+
+To lint source files with a strict configuration file and lint test files with a lax configuration file:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* \
+    --config-file strict-quick-lint-js.config src/index.js src/helpers.js \
+    --config-file lax-quick-lint-js.config test/test-app.js
 ----
 ____
 

@@ -70,6 +70,28 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 0)
             self.assertIn("[E017]", result.stderr)  # Error should be printed
 
+    def test_single_config_file(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file = pathlib.Path(test_directory) / "config.json"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--config-file",
+                    str(config_file),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

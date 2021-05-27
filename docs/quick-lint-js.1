@@ -79,6 +79,19 @@ Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=v
 Therefore, if multiple files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
 .RE
 .sp
+\fB\-\-config\-file\fP=\fIfile\fP
+.RS 4
+Read configuration options from \fIfile\fP and apply them to input files which are given later in the command line.
+See \fBquick\-lint\-js.config\fP(5) for the format of configuration files.
+.sp
+If \fB\-\-config\-file\fP is given twice, then the \fIfile\fP for the first \fB\-\-config\-file\fP option applies only to the input files between the two \fB\-\-config\-file\fP options, and the \fIfile\fP for the second \fB\-\-config\-file\fP option apples only to the input files after the second \fB\-\-config\-file\fP option.
+See the EXAMPLES section for an example.
+.sp
+If \fB\-\-config\-file\fP is not given, an empty configuration file is assumed.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.RE
+.sp
 \fB\-\-exit\-fail\-on\fP=\fIerrors\fP
 .RS 4
 Cause \fBquick\-lint\-js\fP to exit with a non\-zero exit code if any of the discovered errors is listed in \fIerrors\fP.
@@ -253,6 +266,21 @@ $ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E057 bad.js
 bad.js:5:25: warning: use of undeclared variable: $ [E057]
 $ echo $?
 0
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+To lint source files with a strict configuration file and lint test files with a lax configuration file:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+$ \fBquick\-lint\-js\fP \(rs
+    \-\-config\-file strict\-quick\-lint\-js.config src/index.js src/helpers.js \(rs
+    \-\-config\-file lax\-quick\-lint\-js.config test/test\-app.js
 .fi
 .if n .RE
 .br

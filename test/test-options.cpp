@@ -176,6 +176,70 @@ TEST(test_options, vim_file_bufnr) {
   }
 }
 
+TEST(test_options, config_file) {
+  {
+    options o = parse_options({"one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].config_file, nullptr);
+    EXPECT_EQ(o.files_to_lint[1].config_file, nullptr);
+    EXPECT_FALSE(o.has_config_file);
+  }
+
+  {
+    options o = parse_options({"--config-file", "config.json", "file.js"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].path, "file.js"sv);
+    EXPECT_EQ(o.files_to_lint[0].config_file, "config.json"sv);
+    EXPECT_TRUE(o.has_config_file);
+  }
+
+  {
+    options o =
+        parse_options({"--config-file", "config.json", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].config_file, "config.json"sv);
+    EXPECT_EQ(o.files_to_lint[1].config_file, "config.json"sv);
+  }
+
+  {
+    options o =
+        parse_options({"one.js", "--config-file=config.json", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].config_file, nullptr);
+    EXPECT_EQ(o.files_to_lint[1].config_file, "config.json"sv);
+  }
+
+  {
+    options o = parse_options({"--config-file=one.config", "one.js",
+                               "--config-file=two.config", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].config_file, "one.config"sv);
+    EXPECT_EQ(o.files_to_lint[1].config_file, "two.config"sv);
+  }
+
+  {
+    options o = parse_options({"--config-file=config.json", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].config_file, "config.json"sv);
+  }
+
+  {
+    options o =
+        parse_options({"one.js", "--config-file=config.json", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[1].config_file, "config.json"sv);
+  }
+
+  {
+    options o =
+        parse_options({"--config-file=config.json", "--", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].config_file, "config.json"sv);
+    EXPECT_EQ(o.files_to_lint[1].config_file, "config.json"sv);
+  }
+}
+
 TEST(test_options, lsp_server) {
   {
     options o = parse_options({"--lsp-server"});
@@ -406,8 +470,21 @@ TEST(test_options, dump_errors) {
   }
 
   {
+    options o;
+    o.lsp_server = true;
+    o.has_config_file = true;
+
+    std::ostringstream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    EXPECT_EQ(dumped_errors.str(),
+              "warning: --config-file ignored in --lsp-server mode\n");
+  }
+
+  {
     const file_to_lint file = {
         .path = "file.js",
+        .config_file = nullptr,
         .is_stdin = false,
         .vim_bufnr = std::optional<int>(),
     };
