@@ -19,10 +19,10 @@ def main():
             "-b",
             "manpage",
             "-D",
-            "docs/",
+            "man/",
             "-o",
             "quick-lint-js.1",
-            "docs/cli.adoc",
+            "cli.adoc",
         ]
     )
     subprocess.check_output(
@@ -31,15 +31,15 @@ def main():
             "-b",
             "manpage",
             "-D",
-            "docs/",
+            "man/",
             "-o",
             "quick-lint-js.config.5",
-            "docs/config.adoc",
+            "config.adoc",
         ]
     )
 
-    process_man(pathlib.Path("docs/quick-lint-js.1"))
-    process_man(pathlib.Path("docs/quick-lint-js.config.5"))
+    process_man(pathlib.Path("man/quick-lint-js.1"))
+    process_man(pathlib.Path("man/quick-lint-js.config.5"))
 
 
 def process_man(file_path):

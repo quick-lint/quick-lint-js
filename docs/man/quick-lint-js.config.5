@@ -8,7 +8,7 @@
 '\" t
 .\"     Title: quick-lint-js.config
 .\"    Author: [see the "AUTHOR(S)" section]
-.\" Generator: Asciidoctor 2.0.10
+.\" Generator: Asciidoctor 2.0.12
 .\"    Manual: \ \&
 .\"    Source: quick-lint-js version 0.2.0
 .\"  Language: English
@@ -175,7 +175,9 @@ A \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP file with no
 .sp
 .if n .RS 4
 .nf
+.fam C
 {}
+.fam
 .fi
 .if n .RE
 .sp
@@ -186,6 +188,7 @@ For example:
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   " ": "this file configures quick\-lint\-js",
   "globals": {
@@ -199,6 +202,7 @@ For example:
     "chart": true
   }
 }
+.fam
 .fi
 .if n .RE
 .sp
@@ -209,6 +213,7 @@ A \f(CRpackage.json\fP file might look like this:
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   "name": "my\-npm\-package",
   "version": "0.1.0",
@@ -218,6 +223,7 @@ A \f(CRpackage.json\fP file might look like this:
     }
   }
 }
+.fam
 .fi
 .if n .RE
 .SH "OPTIONS"
@@ -320,7 +326,7 @@ If \fBfalse\fP, the variable cannot be assigned to.
 .RE
 .sp
 JSON Unicode escapes (\fB"\(rsu0068ello"\fP) are allowed in the variable name.
-JavaScript Unicode escapes (\fB"\(rs\u{68}llo"\fP) are not allowed in the variable name.
+JavaScript Unicode escapes (\fB"\(rs\(rsu{68}llo"\fP) are not allowed in the variable name.
 .SH "GLOBAL GROUPS"
 .sp
 The following groups are supported for the \fBglobal\-groups\fP configuration property:
@@ -383,12 +389,14 @@ Such an application might have the following \f(CRquick\-lint\-js.config\fP file
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   "global\-groups": ["browser", "ecmascript", "jest"],
   "globals": {
     "google": {"writable": false}
   }
 }
+.fam
 .fi
 .if n .RE
 .sp
@@ -397,6 +405,7 @@ In this case, the application configures quick\-lint\-js in its \f(CRpackage.jso
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   "name": "acme",
   "version": "1.2.1",
@@ -410,6 +419,7 @@ In this case, the application configures quick\-lint\-js in its \f(CRpackage.jso
     }
   }
 }
+.fam
 .fi
 .if n .RE
 .sp
@@ -421,11 +431,13 @@ For example, if you\(cqre seeing a spurious warning E057 "use of undeclared vari
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   "globals": {
     "MyLibrary": true
   }
 }
+.fam
 .fi
 .if n .RE
 .sp
@@ -433,11 +445,13 @@ If you are not seeing E002, E033, E057, or E059 (false negative), but you want t
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   "globals": {
     "$": false
   }
 }
+.fam
 .fi
 .if n .RE
 .sp
@@ -445,9 +459,11 @@ Alternatively, suppress the \fBjquery\fP globals group (which defines \fB$\fP as
 .sp
 .if n .RS 4
 .nf
+.fam C
 {
   "global\-groups": ["ecmascript", "node.js"]
 }
+.fam
 .fi
 .if n .RE
 .SH "SEE ALSO"
