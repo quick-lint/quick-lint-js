@@ -33,6 +33,7 @@ quick_lint_js_add_library(
   c-api.cpp
   char8.cpp
   cli-location.cpp
+  configuration-loader.cpp
   configuration.cpp
   crash.cpp
   document.cpp
@@ -68,6 +69,7 @@ quick_lint_js_add_library(
   quick-lint-js/c-api.h
   quick-lint-js/char8.h
   quick-lint-js/cli-location.h
+  quick-lint-js/configuration-loader.h
   quick-lint-js/configuration.h
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h

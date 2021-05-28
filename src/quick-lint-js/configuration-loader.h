@@ -1,46 +1,24 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_OPTIONS_H
-#define QUICK_LINT_JS_OPTIONS_H
+#ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
+#define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
-#include <iosfwd>
-#include <optional>
-#include <quick-lint-js/error-list.h>
-#include <vector>
+#include <quick-lint-js/configuration.h>
+#include <string_view>
+#include <unordered_map>
 
 namespace quick_lint_js {
-enum class output_format {
-  default_format,
-  gnu_like,
-  vim_qflist_json,
+struct file_to_lint;
+
+class configuration_loader {
+ public:
+  configuration* load_for_file(const file_to_lint&);
+
+ private:
+  configuration default_config_;
+  std::unordered_map<std::string_view, configuration> loaded_config_files_;
 };
-
-struct file_to_lint {
-  const char *path;
-  const char *config_file = nullptr;
-  bool is_stdin = false;
-  std::optional<int> vim_bufnr;
-};
-
-struct options {
-  bool help = false;
-  bool version = false;
-  bool print_parser_visits = false;
-  bool lsp_server = false;
-  quick_lint_js::output_format output_format =
-      quick_lint_js::output_format::default_format;
-  std::vector<file_to_lint> files_to_lint;
-  compiled_error_list exit_fail_on;
-
-  std::vector<const char *> error_unrecognized_options;
-  bool has_multiple_stdin = false;
-  bool has_config_file = false;
-
-  bool dump_errors(std::ostream &) const;
-};
-
-options parse_options(int argc, char **argv);
 }
 
 #endif

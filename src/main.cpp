@@ -8,6 +8,7 @@
 #include <iostream>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
@@ -105,9 +106,6 @@ class any_error_reporter {
 
 [[noreturn]] void handle_options(quick_lint_js::options o);
 
-std::unordered_map<std::string_view, configuration> parse_configuration_files(
-    const quick_lint_js::options &o);
-
 void process_file(padded_string_view input, configuration &, error_reporter *,
                   bool print_parser_visits);
 
@@ -160,13 +158,11 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  std::unordered_map<std::string_view, configuration> config_files =
-      parse_configuration_files(o);
-  configuration default_config;
-
+  configuration_loader config_loader;
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
+    configuration *config = config_loader.load_for_file(file);
     quick_lint_js::read_file_result source;
     if (file.is_stdin) {
       source = quick_lint_js::read_stdin();
@@ -175,10 +171,8 @@ void handle_options(quick_lint_js::options o) {
     }
     source.exit_if_not_ok();
     reporter.set_source(&source.content, file);
-    quick_lint_js::process_file(
-        &source.content,
-        file.config_file ? config_files[file.config_file] : default_config,
-        reporter.get(), o.print_parser_visits);
+    quick_lint_js::process_file(&source.content, *config, reporter.get(),
+                                o.print_parser_visits);
   }
   reporter.finish();
 
@@ -187,22 +181,6 @@ void handle_options(quick_lint_js::options o) {
   }
 
   std::exit(EXIT_SUCCESS);
-}
-
-std::unordered_map<std::string_view, configuration> parse_configuration_files(
-    const quick_lint_js::options &o) {
-  std::unordered_map<std::string_view, configuration> configs;
-  for (const file_to_lint &file : o.files_to_lint) {
-    if (!file.config_file) {
-      continue;
-    }
-    if (configs.count(file.config_file) == 0) {
-      read_file_result config_json = read_file(file.config_file);
-      config_json.exit_if_not_ok();
-      configs[file.config_file].load_from_json(&config_json.content);
-    }
-  }
-  return configs;
 }
 
 class debug_visitor {
