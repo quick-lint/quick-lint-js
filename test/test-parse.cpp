@@ -539,6 +539,50 @@ TEST(test_escape_first_character_in_keyword,
   EXPECT_EQ(escape_first_character_in_keyword(u8"b1n z"_sv), u8"\\u{62}1n z");
   EXPECT_EQ(escape_first_character_in_keyword(u8"ZYXW"_sv), u8"\\u{5a}YXW");
 }
+
+#if QLJS_HAVE_SETJMP
+TEST(test_overflow, parser_depth_limit_exceeded) {
+  {
+    string8 opening_parens(1001, '(');
+    padded_string code(opening_parens);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_depth_limit_exceeded, token,
+                    offsets_matcher(&code, opening_parens.size() - 1, u8"("))));
+  }
+
+  {
+    string8 left_curly(1001, '{');
+    padded_string code(left_curly);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_depth_limit_exceeded, token,
+                    offsets_matcher(&code, left_curly.size() - 1, u8"{"))));
+  }
+
+  {
+    string8 left_curly(1001, '[');
+    padded_string code(left_curly);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_depth_limit_exceeded, token,
+                    offsets_matcher(&code, left_curly.size() - 1, u8"["))));
+  }
+}
+#endif
 }
 }
 

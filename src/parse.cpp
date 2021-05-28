@@ -40,6 +40,9 @@
 #define QLJS_PARSER_UNIMPLEMENTED() \
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
+#define QLJS_PARSER_DEPTH_LIMIT_EXCEEDED() \
+  (this->crash_on_depth_limit_exceeded(__FILE__, __LINE__, __func__))
+
 namespace quick_lint_js {
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
@@ -78,11 +81,18 @@ parser::loop_guard parser::enter_loop() {
 }
 
 expression* parser::parse_expression(precedence prec) {
+  this->depth_++;
+  if (this->depth_ > this->limit_) {
+      QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
+  }
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
+    this->depth_--;
     return ast;
   }
-  return this->parse_expression_remainder(ast, prec);
+  ast = this->parse_expression_remainder(ast, prec);
+  this->depth_--;
+  return ast;
 }
 
 // TODO(strager): Why do we need precedence here? Could we get rid of prec?
@@ -2125,6 +2135,31 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 #endif
 
   std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
+               qljs_file_name, qljs_line, qljs_function_name,
+               to_string(this->peek().type));
+  cli_locator locator(this->lexer_.original_input());
+  cli_source_position token_position = locator.position(this->peek().begin);
+  std::fprintf(stderr, " on line %d column %d", token_position.line_number,
+               token_position.column_number);
+  std::fprintf(stderr, "\n");
+
+  QLJS_CRASH_DISALLOWING_CORE_DUMP();
+}
+
+void parser::crash_on_depth_limit_exceeded(const char* qljs_file_name,
+                                          int qljs_line,
+                                          const char* qljs_function_name) {
+#if QLJS_HAVE_SETJMP
+  if (this->have_parser_depth_limit_exceeded_jmp_buf) {
+    this->error_reporter_->report(error_depth_limit_exceeded{
+        .token = this->peek().span(),
+    });
+    std::longjmp(this->parser_depth_limit_exceeded_jmp_buf_, 1);
+    QLJS_UNREACHABLE();
+  }
+#endif
+
+  std::fprintf(stderr, "%s:%d: fatal: parser depth limit exceeded in %s: %s",
                qljs_file_name, qljs_line, qljs_function_name,
                to_string(this->peek().type));
   cli_locator locator(this->lexer_.original_input());

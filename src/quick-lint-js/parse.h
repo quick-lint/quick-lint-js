@@ -89,6 +89,11 @@
     }                                                               \
   } while (false)
 
+#define QLJS_PARSER_DEPTH_LIMIT_EXCEEDED()                             \
+  do {                                                                 \
+    this->crash_on_depth_limit_exceeded(__FILE__, __LINE__, __func__); \
+  } while (false)
+
 namespace quick_lint_js {
 // A parser reads JavaScript source code and calls the member functions of a
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
@@ -135,6 +140,24 @@ class parser {
       ok = false;
     }
     this->have_unimplemented_token_jmp_buf_ = false;
+    return ok;
+  }
+  // Returns true if parsing succeeded without QLJS_PARSER_DEPTH_LIMIT_EXCEEDED being
+  // called.
+  //
+  // Returns false if QLJS_PARSER_DEPTH_LIMIT_EXCEEDED was called.
+  template <QLJS_PARSE_VISITOR Visitor>
+  bool parse_and_visit_module_catching_parser_depth_limit_exceeded(Visitor &v) {
+    this->have_parser_depth_limit_exceeded_jmp_buf = true;
+    bool ok;
+    if (setjmp(this->parser_depth_limit_exceeded_jmp_buf_) == 0) {
+      this->parse_and_visit_module(v);
+      ok = true;
+    } else {
+      // QLJS_PARSER_DEPTH_LIMIT_EXCEEDED was called.
+      ok = false;
+    }
+    this->have_parser_depth_limit_exceeded_jmp_buf = false;
     return ok;
   }
 #endif
@@ -592,6 +615,10 @@ class parser {
 
     // { statement; statement; }
     case token_type::left_curly:
+      this->depth_++;
+      if (this->depth_ > this->limit_) {
+          QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
+      }
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
@@ -633,6 +660,7 @@ class parser {
 
     case token_type::end_of_file:
     case token_type::right_curly:
+      this->depth_--;
       return false;
 
     default:
@@ -640,6 +668,7 @@ class parser {
       break;
     }
 
+    this->depth_--;
     return true;
   }
 
@@ -3348,6 +3377,10 @@ class parser {
       const char *qljs_file_name, int qljs_line,
       const char *qljs_function_name);
 
+  [[noreturn]] void crash_on_depth_limit_exceeded(
+      const char *qljs_file_name, int qljs_line,
+      const char *qljs_function_name);
+
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args) {
     return this->expressions_.make_expression<Expression>(
@@ -3412,7 +3445,12 @@ class parser {
 #if QLJS_HAVE_SETJMP
   bool have_unimplemented_token_jmp_buf_ = false;
   std::jmp_buf unimplemented_token_jmp_buf_;
+  bool have_parser_depth_limit_exceeded_jmp_buf = false;
+  std::jmp_buf parser_depth_limit_exceeded_jmp_buf_;
 #endif
+
+  int depth_ = 0;
+  const int limit_ = 1000;
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
@@ -3424,6 +3462,7 @@ class parser {
 }
 
 #undef QLJS_PARSER_UNIMPLEMENTED
+#undef QLJS_PARSER_DEPTH_LIMIT_EXCEEDED
 
 #endif
 
