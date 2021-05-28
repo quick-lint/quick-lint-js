@@ -92,6 +92,27 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.stdout, "")
             self.assertEqual(result.returncode, 0)
 
+    def test_missing_explicit_config_file(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file = pathlib.Path(test_directory) / "config.json"
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--config-file",
+                    str(config_file),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertIn("config.json", result.stderr)
+            self.assertIn("error:", result.stderr)
+            self.assertEqual(result.returncode, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

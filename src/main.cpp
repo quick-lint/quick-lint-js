@@ -163,6 +163,10 @@ void handle_options(quick_lint_js::options o) {
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
     configuration *config = config_loader.load_for_file(file);
+    if (!config) {
+      std::fprintf(stderr, "error: %s\n", config_loader.error().c_str());
+      std::exit(1);
+    }
     quick_lint_js::read_file_result source;
     if (file.is_stdin) {
       source = quick_lint_js::read_stdin();

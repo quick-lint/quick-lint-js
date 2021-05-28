@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
@@ -22,6 +23,8 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
     EXPECT_FALSE((config).globals().find(u8"variableDoesNotExist"sv)); \
   } while (false)
 
+using ::testing::AnyOf;
+using ::testing::HasSubstr;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
@@ -113,6 +116,22 @@ TEST_F(test_configuration_loader,
   EXPECT_FALSE(config_one->globals().find(u8"testGlobalVariableTwo"sv));
   EXPECT_FALSE(config_two->globals().find(u8"testGlobalVariableOne"sv));
   EXPECT_TRUE(config_two->globals().find(u8"testGlobalVariableTwo"sv));
+}
+
+TEST_F(test_configuration_loader, missing_config_file_fails) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string config_file = temp_dir + "/config.json";
+
+  configuration_loader loader;
+  configuration* config = loader.load_for_file(file_to_lint{
+      .path = "hello.js",
+      .config_file = config_file.c_str(),
+  });
+
+  EXPECT_FALSE(config);
+  EXPECT_THAT(loader.error(), HasSubstr(config_file));
+  EXPECT_THAT(loader.error(),
+              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
 }
 }
 }

@@ -19,11 +19,16 @@ configuration* configuration_loader::load_for_file(const file_to_lint& file) {
   }
 
   read_file_result config_json = read_file(file.config_file);
-  config_json.exit_if_not_ok();
+  if (!config_json.ok()) {
+    this->last_error_ = std::move(config_json.error);
+    return nullptr;
+  }
   configuration* config = &this->loaded_config_files_[file.config_file];
   config->load_from_json(&config_json.content);
   return config;
 }
+
+std::string configuration_loader::error() const { return this->last_error_; }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

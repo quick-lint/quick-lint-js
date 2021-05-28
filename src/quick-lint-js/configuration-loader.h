@@ -15,9 +15,12 @@ class configuration_loader {
  public:
   configuration* load_for_file(const file_to_lint&);
 
+  std::string error() const;
+
  private:
   configuration default_config_;
   std::unordered_map<std::string_view, configuration> loaded_config_files_;
+  std::string last_error_;
 };
 }
 
