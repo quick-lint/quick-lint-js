@@ -142,8 +142,8 @@ class parser {
     this->have_unimplemented_token_jmp_buf_ = false;
     return ok;
   }
-  // Returns true if parsing succeeded without QLJS_PARSER_DEPTH_LIMIT_EXCEEDED being
-  // called.
+  // Returns true if parsing succeeded without QLJS_PARSER_DEPTH_LIMIT_EXCEEDED
+  // being called.
   //
   // Returns false if QLJS_PARSER_DEPTH_LIMIT_EXCEEDED was called.
   template <QLJS_PARSE_VISITOR Visitor>
@@ -617,7 +617,7 @@ class parser {
     case token_type::left_curly:
       this->depth_++;
       if (this->depth_ > this->limit_) {
-          QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
+        QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
       }
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);

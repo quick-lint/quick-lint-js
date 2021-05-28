@@ -83,7 +83,7 @@ parser::loop_guard parser::enter_loop() {
 expression* parser::parse_expression(precedence prec) {
   this->depth_++;
   if (this->depth_ > this->limit_) {
-      QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
+    QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
   }
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
@@ -2147,8 +2147,8 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 }
 
 void parser::crash_on_depth_limit_exceeded(const char* qljs_file_name,
-                                          int qljs_line,
-                                          const char* qljs_function_name) {
+                                           int qljs_line,
+                                           const char* qljs_function_name) {
 #if QLJS_HAVE_SETJMP
   if (this->have_parser_depth_limit_exceeded_jmp_buf) {
     this->error_reporter_->report(error_depth_limit_exceeded{
