@@ -200,6 +200,29 @@ TEST_F(test_file, read_pipe_empty_writes) {
 
   writer_thread.join();
 }
+
+TEST_F(test_file, canonical_path_to_regular_file) {
+  std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
+  write_file(temp_file_path, u8"hello\nworld!\n");
+
+  canonical_path_result canonical = canonicalize_path(temp_file_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error;
+
+  read_file_result file_content = read_file(canonical.c_str());
+  ASSERT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8"hello\nworld!\n"));
+}
+
+TEST_F(test_file, canonical_path_to_non_existing_file) {
+  std::string temp_file_path =
+      this->make_temporary_directory() + "/does-not-exist.js";
+
+  canonical_path_result canonical = canonicalize_path(temp_file_path);
+  EXPECT_FALSE(canonical.ok());
+  EXPECT_THAT(canonical.error, HasSubstr("does-not-exist.js"));
+  EXPECT_THAT(canonical.error,
+              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
+}
 }
 }
 

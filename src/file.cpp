@@ -16,10 +16,15 @@
 #include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
+#include <stdlib.h>
 #include <string>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+
+#if QLJS_HAVE_STD_FILESYSTEM
+#include <filesystem>
 #endif
 
 #if QLJS_HAVE_SYS_STAT_H
@@ -270,6 +275,50 @@ void write_file(const char *path, string8_view content) {
   }
 
   std::fclose(file);
+}
+
+const char *canonical_path_result::c_str() const noexcept {
+  QLJS_ASSERT(this->ok());
+  return this->path.c_str();
+}
+
+canonical_path_result canonical_path_result::failure(std::string &&error) {
+  canonical_path_result result;
+  result.error = std::move(error);
+  QLJS_ASSERT(!result.ok());
+  return result;
+}
+
+canonical_path_result canonicalize_path(const char *path) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::error_code error;
+  std::filesystem::path canonical = std::filesystem::canonical(path, error);
+  if (error) {
+    return canonical_path_result::failure(
+        std::string("failed to canonicalize path ") + path + ": " +
+        error.message());
+  }
+  canonical_path_result result;
+  result.path = canonical.string();
+  return result;
+#elif QLJS_HAVE_REALPATH
+  char *allocated_canonical = ::realpath(path, nullptr);
+  if (!allocated_canonical) {
+    return canonical_path_result::failure(
+        std::string("failed to canonicalize path ") + path + ": " +
+        std::strerror(errno));
+  }
+  canonical_path_result result;
+  result.path = allocated_canonical;
+  std::free(allocated_canonical);
+  return result;
+#else
+#error "Unsupported platform"
+#endif
+}
+
+canonical_path_result canonicalize_path(const std::string &path) {
+  return canonicalize_path(path.c_str());
 }
 }
 

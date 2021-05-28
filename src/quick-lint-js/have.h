@@ -136,6 +136,16 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_REALPATH)
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
+     _POSIX_VERSION >= 200112L)
+#define QLJS_HAVE_REALPATH 1
+#else
+#define QLJS_HAVE_REALPATH 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_SETRLIMIT)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
     (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \

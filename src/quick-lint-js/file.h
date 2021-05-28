@@ -29,6 +29,20 @@ read_file_result read_stdin(void);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
+
+struct canonical_path_result {
+  std::string path;
+  std::string error;
+
+  bool ok() const noexcept { return this->error.empty(); }
+
+  const char *c_str() const noexcept;
+
+  static canonical_path_result failure(std::string &&error);
+};
+
+canonical_path_result canonicalize_path(const char *path);
+canonical_path_result canonicalize_path(const std::string &path);
 }
 
 #endif
