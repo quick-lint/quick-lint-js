@@ -19,25 +19,17 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
-#include <random>
 #include <stdlib.h>
 #include <string>
 #include <thread>
 #include <type_traits>
 #include <vector>
 
-#if QLJS_HAVE_FTS_H
-#include <fts.h>
-#endif
-
 #if QLJS_HAVE_MKFIFO
 #include <sys/stat.h>
 #include <sys/types.h>
-#endif
-
-#if QLJS_HAVE_STD_FILESYSTEM
-#include <filesystem>
 #endif
 
 using ::testing::AnyOf;
@@ -46,9 +38,6 @@ using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-std::string make_temporary_directory();
-void delete_directory_recursive(const std::string &path);
-
 class test_file : public ::testing::Test {
  public:
   std::string make_temporary_directory() {
@@ -208,106 +197,6 @@ TEST_F(test_file, read_pipe_empty_writes) {
 
   writer_thread.join();
 }
-
-#if QLJS_HAVE_MKDTEMP
-std::string make_temporary_directory() {
-  std::string temp_directory_name = "/tmp/quick-lint-js.XXXXXX";
-  if (!::mkdtemp(temp_directory_name.data())) {
-    std::cerr << "failed to create temporary directory\n";
-    std::abort();
-  }
-  return temp_directory_name;
-}
-#elif QLJS_HAVE_STD_FILESYSTEM
-std::string make_temporary_directory() {
-  std::string_view characters = "abcdefghijklmnopqrstuvwxyz";
-  std::uniform_int_distribution<std::size_t> character_index_distribution(
-      0, characters.size() - 1);
-
-  std::filesystem::path system_temp_dir_path =
-      std::filesystem::temp_directory_path();
-  std::random_device system_rng;
-  std::mt19937 rng(/*seed=*/system_rng());
-
-  for (int attempt = 0; attempt < 100; ++attempt) {
-    std::string file_name = "quick-lint-js.";
-    for (int i = 0; i < 10; ++i) {
-      file_name += characters[character_index_distribution(rng)];
-    }
-
-    std::filesystem::path temp_directory_path =
-        system_temp_dir_path / file_name;
-    std::error_code error;
-    if (!std::filesystem::create_directory(temp_directory_path, error)) {
-      continue;
-    }
-    return temp_directory_path.string();
-  }
-  std::cerr << "failed to create temporary directory\n";
-  std::abort();
-}
-#else
-#error "Unsupported platform"
-#endif
-
-#if QLJS_HAVE_FTS_H
-void delete_directory_recursive(const std::string &path) {
-  char *paths[] = {const_cast<char *>(path.c_str()), nullptr};
-  ::FTS *fts = ::fts_open(paths, FTS_PHYSICAL | FTS_XDEV, nullptr);
-  if (!fts) {
-    std::fprintf(stderr, "fatal: fts_open failed to open %s: %s\n",
-                 path.c_str(), std::strerror(errno));
-    std::abort();
-  }
-  while (::FTSENT *entry = ::fts_read(fts)) {
-    switch (entry->fts_info) {
-    case FTS_D:
-      // Do nothing. We handle FTS_DP (post-order) instead.
-      break;
-
-    case FTS_DP: {
-      int rc = ::rmdir(entry->fts_accpath);
-      if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_F:
-    case FTS_SL:
-    case FTS_SLNONE:
-    case FTS_DEFAULT: {
-      int rc = ::unlink(entry->fts_accpath);
-      if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_DNR:
-    case FTS_ERR:
-    case FTS_NS:
-      std::fprintf(stderr, "fatal: fts_read failed to read %s: %s\n",
-                   entry->fts_accpath, std::strerror(entry->fts_errno));
-      std::abort();
-      break;
-
-    case FTS_DC:
-    case FTS_DOT:
-    case FTS_NSOK:
-      QLJS_UNREACHABLE();
-      break;
-    }
-  }
-  ::fts_close(fts);
-}
-#elif QLJS_HAVE_STD_FILESYSTEM
-void delete_directory_recursive(const std::string &path) {
-  std::filesystem::remove_all(std::filesystem::path(path));
-}
-#endif
 }
 }
 

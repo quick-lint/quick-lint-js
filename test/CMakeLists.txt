@@ -21,7 +21,9 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
+  quick-lint-js/temporary-directory.h
   spy-visitor.cpp
+  temporary-directory.cpp
   test-array.cpp
   test-assert.cpp
   test-bit.cpp
