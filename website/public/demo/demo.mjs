@@ -95,8 +95,7 @@ function showErrorMessage(event) {
 
   const shadowInput = document.querySelector("#shadow-code-input");
   const marks = shadowInput.querySelectorAll("mark");
-  for (let i = 0; i < marks.length; i++) {
-    const mark = marks[i];
+  for (let mark of marks) {
     const markRect = mark.getBoundingClientRect();
     if (cursorOverMark(event.clientX, event.clientY, markRect)) {
       showErrorMessageBox(mark, event.clientX);
