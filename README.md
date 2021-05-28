@@ -24,8 +24,13 @@ development.
 
 ## Contact
 
+**Bugs and feature requests**: [file an issue on GitHub](https://github.com/quick-lint/quick-lint-js/issues)
+
 **IRC**: ask questions in [#quick-lint-js][quick-lint-js-irc-web] on
 [Libera.Chat][]
+
+**Security bug reports (private disclosure)**: email
+[strager.nds@gmail.com](mailto:strager.nds@gmail.com)
 
 ## Values
 
