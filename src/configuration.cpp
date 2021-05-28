@@ -136,6 +136,10 @@ const global_declared_variable_set& configuration::globals() noexcept {
   return this->globals_;
 }
 
+const std::string& configuration::config_file_path() const noexcept {
+  return this->config_file_path_;
+}
+
 void configuration::reset_global_groups() {
   this->add_global_group_node_js_ = false;
   this->add_global_group_ecmascript_ = false;
@@ -202,6 +206,10 @@ void configuration::load_from_json(padded_string_view json) {
     QLJS_UNIMPLEMENTED();
     break;
   }
+}
+
+void configuration::set_config_file_path(std::string&& path) {
+  this->config_file_path_ = std::move(path);
 }
 
 void configuration::load_global_groups_from_json(

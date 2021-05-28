@@ -61,8 +61,11 @@ quick\-lint\-js uses the following algorithm to find its configuration:
 .  sp -1
 .  IP " 1." 4.2
 .\}
-Remember the directory containing the input JavaScript file as the \fIcurrent directory\fP.
-If the input JavaScript file has no path, remember the current working directory as the \fIcurrent directory\fP.
+Compute the absolute canonical path of the input JavaScript file by joining the JavaScript file\(cqs given path with the current working directory, following all symbolic links, and resolving all \f(CR.\fP and \f(CR..\fP components.
+Remove the last component of the absolute canonical path.
+Remember this path as the \fIcurrent directory\fP.
+.sp
+If the input JavaScript file has no path (e.g. if its contents are given using standard input), remember the current working directory as the \fIcurrent directory\fP.
 .RE
 .sp
 .RS 4
@@ -142,9 +145,7 @@ If the \fIcurrent directory\fP is a filesystem root, assume no configuration fil
 .  sp -1
 .  IP " 4." 4.2
 .\}
-Remember the parent of the \fIcurrent directory\fP as the \fIcurrent directory\fP.
-The parent of a directory is determined by suffixing a \f(CR..\fP component to the directory\(cqs path.
-(This method of determining the parent affects how symbolic links in paths are handled.)
+Remove the last component of the \fIcurrent directory\fP.
 .RE
 .sp
 .RS 4

@@ -41,6 +41,7 @@ quick_lint_js_add_executable(
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
+  test-file-path.cpp
   test-file.cpp
   test-gmo.cpp
   test-integer-decimal.cpp

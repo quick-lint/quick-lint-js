@@ -1,32 +1,20 @@
 // Copyright (C) 2020  Matthew Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
-#define QUICK_LINT_JS_CONFIGURATION_LOADER_H
+#ifndef QUICK_LINT_JS_FILE_PATH_H
+#define QUICK_LINT_JS_FILE_PATH_H
 
-#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/have.h>
 #include <string>
-#include <unordered_map>
+
+#if defined(_WIN32)
+#define QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "\\"
+#else
+#define QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "/"
+#endif
 
 namespace quick_lint_js {
-struct file_to_lint;
-
-class configuration_loader {
- public:
-  configuration* load_for_file(const file_to_lint&);
-
-  std::string error() const;
-
- private:
-  configuration* load_config_file(const char* config_path);
-  configuration* find_and_load_config_file(const char* input_path);
-
-  configuration* get_loaded_config(const char* path) noexcept;
-
-  configuration default_config_;
-  std::unordered_map<std::string, configuration> loaded_config_files_;
-  std::string last_error_;
-};
+std::string parent_path(std::string&&);
 }
 
 #endif

@@ -20,6 +20,7 @@ import typing
 import unittest
 
 archive_to_vendor_project = {
+    "Pathcch.lib": None,
     "boost_container.lib": "boost",
     "libboost_container.a": "boost",
     "libquick-lint-js-lib.a": None,

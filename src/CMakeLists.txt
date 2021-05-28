@@ -41,6 +41,7 @@ quick_lint_js_add_library(
   error-formatter.cpp
   error-list.cpp
   file-handle.cpp
+  file-path.cpp
   file.cpp
   gmo.cpp
   integer.cpp
@@ -83,6 +84,7 @@ quick_lint_js_add_library(
   quick-lint-js/expression.h
   quick-lint-js/feature.h
   quick-lint-js/file-handle.h
+  quick-lint-js/file-path.h
   quick-lint-js/file.h
   quick-lint-js/force-inline.h
   quick-lint-js/gmo.h
@@ -134,6 +136,9 @@ quick_lint_js_add_library(
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (WIN32)
+  target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
+endif ()
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-lib

@@ -33,6 +33,18 @@
 #define QLJS_HAVE_FCNTL_H 0
 #endif
 
+#if defined(QLJS_HAVE_LIBGEN_H) && QLJS_HAVE_LIBGEN_H
+#elif defined(__has_include)
+#if __has_include(<libgen.h>)
+#define QLJS_HAVE_LIBGEN_H 1
+#endif
+#elif defined(__unix__)
+#define QLJS_HAVE_LIBGEN_H 1
+#endif
+#if !defined(QLJS_HAVE_LIBGEN_H)
+#define QLJS_HAVE_LIBGEN_H 0
+#endif
+
 #if defined(QLJS_HAVE_PTHREAD_H) && QLJS_HAVE_PTHREAD_H
 #elif defined(__has_include)
 #if __has_include(<pthread.h>)
@@ -107,6 +119,14 @@
 #define QLJS_HAVE_DIRENT_H 1
 #else
 #define QLJS_HAVE_DIRENT_H 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_DIRNAME)
+#if QLJS_HAVE_LIBGEN_H
+#define QLJS_HAVE_DIRNAME 1
+#else
+#define QLJS_HAVE_DIRNAME 0
 #endif
 #endif
 

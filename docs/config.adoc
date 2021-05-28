@@ -43,8 +43,11 @@ and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.
 
 quick-lint-js uses the following algorithm to find its configuration:
 
-1. Remember the directory containing the input JavaScript file as the _current directory_.
-   If the input JavaScript file has no path, remember the current working directory as the _current directory_.
+1. Compute the absolute canonical path of the input JavaScript file by joining the JavaScript file's given path with the current working directory, following all symbolic links, and resolving all `.` and `..` components.
+   Remove the last component of the absolute canonical path.
+   Remember this path as the _current directory_.
++
+If the input JavaScript file has no path (e.g. if its contents are given using standard input), remember the current working directory as the _current directory_.
 2. Look for a configuration file in the _current directory_:
    a. Check if the file `quick-lint-js.config` exists.
       If so, use it as the configuration file and stop.
@@ -54,9 +57,7 @@ quick-lint-js uses the following algorithm to find its configuration:
       If so, use it as the configuration file and stop.
    d. Go to step 3.
 3. If the _current directory_ is a filesystem root, assume no configuration file and stop.
-4. Remember the parent of the _current directory_ as the _current directory_.
-   The parent of a directory is determined by suffixing a `..` component to the directory's path.
-   (This method of determining the parent affects how symbolic links in paths are handled.)
+4. Remove the last component of the _current directory_.
 5. Go to step 2.
 
 In short, quick-lint-js looks for `quick-lint-js.config`, `.quick-lint-js.config`, or `package.json` in ancestor directories.
