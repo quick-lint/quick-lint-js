@@ -53,8 +53,8 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
-void read_file_buffered(platform_file_ref file, int buffer_size,
-                        read_file_result *out) {
+void read_file_buffered(platform_file_ref file, const char *path,
+                        int buffer_size, read_file_result *out) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
@@ -72,7 +72,8 @@ void read_file_buffered(platform_file_ref file, int buffer_size,
     file_read_result read_result =
         file.read(&out->content.data()[size_before], buffer_size);
     if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
-      out->error = "failed to read from file: " + *read_result.error_message;
+      out->error = std::string("failed to read from ") + path + ": " +
+                   *read_result.error_message;
       return;
     }
     std::optional<int> new_size =
@@ -87,7 +88,8 @@ void read_file_buffered(platform_file_ref file, int buffer_size,
 }
 
 read_file_result read_file_with_expected_size(platform_file_ref file,
-                                              int file_size, int buffer_size) {
+                                              const char *path, int file_size,
+                                              int buffer_size) {
   read_file_result result;
 
   std::optional<int> size_to_read = checked_add(file_size, 1);
@@ -100,7 +102,8 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
   file_read_result read_result =
       file.read(result.content.data(), *size_to_read);
   if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
-    result.error = "failed to read from file: " + *read_result.error_message;
+    result.error = std::string("failed to read from ") + path + ": " +
+                   *read_result.error_message;
     return result;
   }
   if (read_result.bytes_read == file_size) {
@@ -110,8 +113,8 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
         file.read(result.content.data() + file_size, 1);
     if (!extra_read_result.at_end_of_file &&
         extra_read_result.error_message.has_value()) {
-      result.error =
-          "failed to read from file: " + *extra_read_result.error_message;
+      result.error = std::string("failed to read from ") + path + ": " +
+                     *extra_read_result.error_message;
       return result;
     }
     result.content.resize(read_result.bytes_read +
@@ -121,13 +124,13 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
       return result;
     } else {
       // We didn't read the entire file the first time. Keep reading.
-      read_file_buffered(file, buffer_size, &result);
+      read_file_buffered(file, path, buffer_size, &result);
       return result;
     }
   } else {
     result.content.resize(read_result.bytes_read);
     // We did not read the entire file. There is more data to read.
-    read_file_buffered(file, buffer_size, &result);
+    read_file_buffered(file, path, buffer_size, &result);
     return result;
   }
 }
@@ -149,7 +152,8 @@ read_file_result read_file(const char *path, windows_handle_file_ref file) {
         std::string("file too large to read into memory: ") + path);
   }
   return read_file_with_expected_size(
-      /*file=*/file, /*file_size=*/narrow_cast<int>(file_size.QuadPart),
+      /*file=*/file, /*path=*/path,
+      /*file_size=*/narrow_cast<int>(file_size.QuadPart),
       /*buffer_size=*/buffer_size);
 }
 #endif
@@ -182,7 +186,7 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
         std::string("file too large to read into memory: ") + path);
   }
   return read_file_with_expected_size(
-      /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
+      /*file=*/file, /*path=*/path, /*file_size=*/narrow_cast<int>(file_size),
       /*buffer_size=*/reasonable_buffer_size(s));
 }
 #endif
