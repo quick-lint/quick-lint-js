@@ -622,6 +622,9 @@ class parser {
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
+      if (this->depth_ > 0) {
+        this->depth_--;
+      }
       break;
 
     // case 3:  // Invalid.
@@ -660,7 +663,9 @@ class parser {
 
     case token_type::end_of_file:
     case token_type::right_curly:
-      this->depth_--;
+      if (this->depth_ > 0) {
+        this->depth_--;
+      }
       return false;
 
     default:
@@ -668,7 +673,6 @@ class parser {
       break;
     }
 
-    this->depth_--;
     return true;
   }
 

@@ -81,18 +81,11 @@ parser::loop_guard parser::enter_loop() {
 }
 
 expression* parser::parse_expression(precedence prec) {
-  this->depth_++;
-  if (this->depth_ > this->limit_) {
-    QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
-  }
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
-    this->depth_--;
     return ast;
   }
-  ast = this->parse_expression_remainder(ast, prec);
-  this->depth_--;
-  return ast;
+  return this->parse_expression_remainder(ast, prec);
 }
 
 // TODO(strager): Why do we need precedence here? Could we get rid of prec?
@@ -274,10 +267,17 @@ expression* parser::parse_primary_expression(precedence prec) {
   // (x) => {}    // Arrow function.
   // (x + y * z)  // Parenthesized expression.
   case token_type::left_paren: {
+    this->depth_++;
+    if (this->depth_ > this->limit_) {
+      QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
+    }
     source_code_span left_paren_span = this->peek().span();
     this->skip();
 
     if (this->peek().type == token_type::right_paren) {
+      if (this->depth_ > 0) {
+        this->depth_--;
+      }
       source_code_span right_paren_span = this->peek().span();
       this->skip();
       if (this->peek().type == token_type::equal_greater) {
@@ -322,6 +322,10 @@ expression* parser::parse_primary_expression(precedence prec) {
 
   // [x, 3, f()]  // Array literal.
   case token_type::left_square: {
+    this->depth_++;
+    if (this->depth_ > this->limit_) {
+      QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
+    }
     const char8* left_square_begin = this->peek().begin;
     const char8* right_square_end;
     this->skip();
@@ -358,6 +362,9 @@ expression* parser::parse_primary_expression(precedence prec) {
         break;
       }
       children.emplace_back(child);
+    }
+    if (this->depth_ > 0) {
+      this->depth_--;
     }
     expression* ast = this->make_expression<expression::array>(
         this->expressions_.make_array(std::move(children)),

@@ -541,6 +541,35 @@ TEST(test_escape_first_character_in_keyword,
 }
 
 #if QLJS_HAVE_SETJMP
+TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
+  {
+    string8 opening_parens(1000, '(');
+    padded_string code(opening_parens);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    EXPECT_TRUE(ok);
+  }
+
+  {
+    string8 left_curly(1000, '{');
+    padded_string code(left_curly);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    EXPECT_TRUE(ok);
+  }
+
+  {
+    string8 left_square_bracket(1000, '[');
+    padded_string code(left_square_bracket);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    EXPECT_TRUE(ok);
+  }
+}
+
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
     string8 opening_parens(1001, '(');
@@ -570,16 +599,17 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    string8 left_curly(1001, '[');
-    padded_string code(left_curly);
+    string8 left_square_bracket(1001, '[');
+    padded_string code(left_square_bracket);
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_depth_limit_exceeded, token,
-                    offsets_matcher(&code, left_curly.size() - 1, u8"["))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_depth_limit_exceeded, token,
+            offsets_matcher(&code, left_square_bracket.size() - 1, u8"["))));
   }
 }
 #endif
