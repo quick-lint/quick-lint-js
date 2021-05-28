@@ -3453,8 +3453,8 @@ class parser {
   std::jmp_buf parser_depth_limit_exceeded_jmp_buf_;
 #endif
 
-  int depth_ = 0;
-  const int limit_ = 1000;
+  std::uint16_t depth_ = 0;
+  const std::uint16_t limit_ = 800;
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
