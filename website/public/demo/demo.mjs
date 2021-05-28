@@ -77,25 +77,17 @@ function createErrorBox(
   // TODO: Change background color based of the severity
   let div = document.createElement("div");
   const { bottom } = markedElement.getBoundingClientRect();
-  div.setAttribute("class", "error-message-box");
+  div.setAttribute("id", "error-box");
   div.innerText = `${code} - ${errorMessage}`;
   div.style.position = "fixed";
   div.style.overflow = "auto";
   div.style.top = `${Math.trunc(bottom)}px`;
   div.style.left = `${posCursorX}px`;
-  div.classList.add("error-box");
   return div;
 }
 
 function removeErrorMessageBox() {
-  const errorMessagesBoxs = document.querySelectorAll(".error-message-box");
-  for (let i = 0; i < errorMessagesBoxs.length; i++) {
-    errorMessagesBoxs[i].remove();
-  }
-}
-
-function errorMessageBoxAlreadyExist() {
-  return document.querySelectorAll(".error-message-box").length > 0;
+  document.querySelector("#error-box")?.remove();
 }
 
 function showErrorMessage(event) {
@@ -106,10 +98,7 @@ function showErrorMessage(event) {
   for (let i = 0; i < marks.length; i++) {
     const mark = marks[i];
     const markRect = mark.getBoundingClientRect();
-    if (
-      cursorOverMark(event.clientX, event.clientY, markRect) &&
-      !errorMessageBoxAlreadyExist()
-    ) {
+    if (cursorOverMark(event.clientX, event.clientY, markRect)) {
       showErrorMessageBox(mark, event.clientX);
       break;
     }
@@ -124,12 +113,11 @@ function cursorOverMark(cursorPosX, cursorPosY, markRect) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document
-    .querySelector("#code-input")
-    .addEventListener("mousemove", showErrorMessage);
-  document
-    .querySelector("#code-input")
-    .addEventListener("mouseout", removeErrorMessageBox);
+  const codeInput = document.querySelector("#code-input");
+  codeInput.addEventListener("mousemove", showErrorMessage);
+  codeInput.addEventListener("input", removeErrorMessageBox);
+  codeInput.addEventListener("click", removeErrorMessageBox);
+  codeInput.addEventListener("mouseout", removeErrorMessageBox);
 });
 
 // quick-lint-js finds bugs in JavaScript programs.
