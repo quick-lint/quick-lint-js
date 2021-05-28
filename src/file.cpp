@@ -205,8 +205,11 @@ read_file_result read_file(const char *path) {
       /*hTemplateFile=*/nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
     DWORD error = ::GetLastError();
-    return read_file_result::failure(std::string("failed to open ") + path +
-                                     ": " + windows_error_message(error));
+    read_file_result result =
+        read_file_result::failure(std::string("failed to open ") + path + ": " +
+                                  windows_error_message(error));
+    result.is_not_found_error = error == ERROR_FILE_NOT_FOUND;
+    return result;
   }
   windows_handle_file file(handle);
   return read_file(path, file.ref());
@@ -223,8 +226,10 @@ read_file_result read_file(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
     int error = errno;
-    return read_file_result::failure(std::string("failed to open ") + path +
-                                     ": " + std::strerror(error));
+    read_file_result result = read_file_result::failure(
+        std::string("failed to open ") + path + ": " + std::strerror(error));
+    result.is_not_found_error = error == ENOENT;
+    return result;
   }
   posix_fd_file file(fd);
   return read_file(path, file.ref());

@@ -71,6 +71,7 @@ TEST_F(test_file, read_non_existing_file) {
 
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
+  EXPECT_TRUE(file_content.is_not_found_error);
   EXPECT_THAT(file_content.error, HasSubstr("does-not-exist.js"));
   EXPECT_THAT(file_content.error,
               AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
@@ -81,6 +82,7 @@ TEST_F(test_file, read_directory) {
 
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
+  EXPECT_FALSE(file_content.is_not_found_error);
   EXPECT_THAT(
       file_content.error,
       testing::AnyOf(

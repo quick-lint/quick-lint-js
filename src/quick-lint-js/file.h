@@ -13,6 +13,7 @@ namespace quick_lint_js {
 struct read_file_result {
   padded_string content;
   std::string error;
+  bool is_not_found_error = false;
 
   bool ok() const noexcept { return this->error.empty(); }
   void exit_if_not_ok() const;
