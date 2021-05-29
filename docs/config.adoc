@@ -154,7 +154,7 @@ If *global-groups* is *false* or an empty array, then no global variables are de
 
 If *global-groups* is a non-empty array, then global variables are defined per the given group names.
 Each group name is a string.
-For the list of group names, see the <<Global groups>> section.
+For the list of group names, see the <<Global Groups>> section.
 --
 
 [#globals]
