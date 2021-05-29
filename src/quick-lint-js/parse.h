@@ -3454,7 +3454,7 @@ class parser {
 #endif
 
   std::uint16_t depth_ = 0;
-  const std::uint16_t limit_ = 375;
+  const std::uint16_t limit_ = 300;
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
