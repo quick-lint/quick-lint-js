@@ -543,7 +543,7 @@ TEST(test_escape_first_character_in_keyword,
 #if QLJS_HAVE_SETJMP
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    string8 opening_parens(250, '(');
+    string8 opening_parens(375, '(');
     padded_string code(opening_parens);
     spy_visitor v;
     parser p(&code, &v);
@@ -552,7 +552,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    string8 left_curly(250, '{');
+    string8 left_curly(375, '{');
     padded_string code(left_curly);
     spy_visitor v;
     parser p(&code, &v);
@@ -561,7 +561,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    string8 left_square_bracket(250, '[');
+    string8 left_square_bracket(375, '[');
     padded_string code(left_square_bracket);
     spy_visitor v;
     parser p(&code, &v);
@@ -572,7 +572,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
 
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
-    string8 opening_parens(251, '(');
+    string8 opening_parens(376, '(');
     padded_string code(opening_parens);
     spy_visitor v;
     parser p(&code, &v);
@@ -586,7 +586,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    string8 left_curly(251, '{');
+    string8 left_curly(376, '{');
     padded_string code(left_curly);
     spy_visitor v;
     parser p(&code, &v);
@@ -599,7 +599,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    string8 left_square_bracket(251, '[');
+    string8 left_square_bracket(376, '[');
     padded_string code(left_square_bracket);
     spy_visitor v;
     parser p(&code, &v);
