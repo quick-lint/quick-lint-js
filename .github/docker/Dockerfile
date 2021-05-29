@@ -62,6 +62,7 @@ RUN \
       ninja-build \
       nodejs \
       python3.7 \
+      python3.7-venv \
       sudo \
       tar \
       unzip \
