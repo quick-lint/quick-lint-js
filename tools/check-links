@@ -99,7 +99,7 @@ class Crawler:
         return hrefs
 
     def in_allowed_file_soup(self, url_response) -> bool:
-        return url_response.headers['Content-type'] in self.allowed_file_ext_for_soup
+        return url_response.headers["Content-type"] in self.allowed_file_ext_for_soup
 
     def report_error(self, error, packet) -> None:
         self.broken_links.append(packet.url)
@@ -122,7 +122,7 @@ class Crawler:
             self.report_error("fragment missing", packet)
         urls_from_page = self.get_urls_from_page(
             self.visted_urls_soup[packet.defraged_url]
-            )
+        )
         return urls_from_page
 
     def check_mail_link(self, packet) -> None:
