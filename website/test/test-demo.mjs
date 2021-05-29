@@ -17,13 +17,19 @@ describe("markEditorText", () => {
   it("mark first word on line", () => {
     let editor = preElementWithHTML("hello world");
     markEditorText(editor, dom.window, [{ begin: 0, end: 5 }]);
-    assert.strictEqual(editor.innerHTML, "<mark>hello</mark> world");
+    assert.strictEqual(
+      editor.innerHTML,
+      '<mark data-message="undefined" data-code="undefined" data-severity="undefined">hello</mark> world'
+    );
   });
 
   it("mark last word on line", () => {
     let editor = preElementWithHTML("hello world");
     markEditorText(editor, dom.window, [{ begin: 6, end: 11 }]);
-    assert.strictEqual(editor.innerHTML, "hello <mark>world</mark>");
+    assert.strictEqual(
+      editor.innerHTML,
+      'hello <mark data-message="undefined" data-code="undefined" data-severity="undefined">world</mark>'
+    );
   });
 
   it("mark across two text nodes", () => {
@@ -33,13 +39,19 @@ describe("markEditorText", () => {
     editor.appendChild(dom.window.document.createTextNode("world"));
 
     markEditorText(editor, dom.window, [{ begin: 3, end: 8 }]);
-    assert.strictEqual(editor.innerHTML, "hel<mark>lowor</mark>ld");
+    assert.strictEqual(
+      editor.innerHTML,
+      'hel<mark data-message="undefined" data-code="undefined" data-severity="undefined">lowor</mark>ld'
+    );
   });
 
   it("marking deletes existing non-overlapping marks", () => {
     let editor = preElementWithHTML("<mark>hello</mark> world");
     markEditorText(editor, dom.window, [{ begin: 6, end: 11 }]);
-    assert.strictEqual(editor.innerHTML, "hello <mark>world</mark>");
+    assert.strictEqual(
+      editor.innerHTML,
+      'hello <mark data-message="undefined" data-code="undefined" data-severity="undefined">world</mark>'
+    );
   });
 
   it("marking with no marks deletes existing marks", () => {
@@ -56,50 +68,71 @@ describe("markEditorText", () => {
     ]);
     assert.strictEqual(
       editor.innerHTML,
-      "<mark>hello</mark> <mark>world</mark>"
+      `<mark data-message="undefined" data-code="undefined" data-severity="undefined">hello</mark> <mark data-message="undefined" data-code="undefined" data-severity="undefined">world</mark>`
     );
   });
 
   it("marking removes empty <mark>", () => {
     let editor = preElementWithHTML("<mark></mark> world");
     markEditorText(editor, dom.window, [{ begin: 1, end: 6 }]);
-    assert.strictEqual(editor.innerHTML, " <mark>world</mark>");
+    assert.strictEqual(
+      editor.innerHTML,
+      ' <mark data-message="undefined" data-code="undefined" data-severity="undefined">world</mark>'
+    );
   });
 
   it("marking preserves <br> immediately after mark", () => {
     let editor = preElementWithHTML("hello<br>world");
     markEditorText(editor, dom.window, [{ begin: 0, end: 5 }]);
-    assert.strictEqual(editor.innerHTML, "<mark>hello</mark><br>world");
+    assert.strictEqual(
+      editor.innerHTML,
+      '<mark data-message="undefined" data-code="undefined" data-severity="undefined">hello</mark><br>world'
+    );
   });
 
   it("marking preserves <br> before inserted mark", () => {
     let editor = preElementWithHTML("one<br>twothree");
     markEditorText(editor, dom.window, [{ begin: 7, end: 7 + "three".length }]);
-    assert.strictEqual(editor.innerHTML, "one<br>two<mark>three</mark>");
+    assert.strictEqual(
+      editor.innerHTML,
+      'one<br>two<mark data-message="undefined" data-code="undefined" data-severity="undefined">three</mark>'
+    );
   });
 
   it("marking preserves <br> after inserted mark", () => {
     let editor = preElementWithHTML("onetwo<br>three");
     markEditorText(editor, dom.window, [{ begin: 0, end: 3 }]);
-    assert.strictEqual(editor.innerHTML, "<mark>one</mark>two<br>three");
+    assert.strictEqual(
+      editor.innerHTML,
+      '<mark data-message="undefined" data-code="undefined" data-severity="undefined">one</mark>two<br>three'
+    );
   });
 
   it("mark exactly over existing <mark>", () => {
     let editor = preElementWithHTML("<mark>hello</mark> world");
     markEditorText(editor, dom.window, [{ begin: 0, end: 5 }]);
-    assert.strictEqual(editor.innerHTML, "<mark>hello</mark> world");
+    assert.strictEqual(
+      editor.innerHTML,
+      '<mark data-message="undefined" data-code="undefined" data-severity="undefined">hello</mark> world'
+    );
   });
 
   it("mark starts at end of existing <mark>", () => {
     let editor = preElementWithHTML("<mark>hello</mark>world");
     markEditorText(editor, dom.window, [{ begin: 5, end: 10 }]);
-    assert.strictEqual(editor.innerHTML, "hello<mark>world</mark>");
+    assert.strictEqual(
+      editor.innerHTML,
+      'hello<mark data-message="undefined" data-code="undefined" data-severity="undefined">world</mark>'
+    );
   });
 
   it("add empty mark", () => {
     let editor = preElementWithHTML("helloworld");
     markEditorText(editor, dom.window, [{ begin: 5, end: 5 }]);
-    assert.strictEqual(editor.innerHTML, "hello<mark></mark>world");
+    assert.strictEqual(
+      editor.innerHTML,
+      'hello<mark data-message="undefined" data-code="undefined" data-severity="undefined"></mark>world'
+    );
   });
 
   it("add empty mark immediately after non-empty mark", () => {
@@ -110,7 +143,7 @@ describe("markEditorText", () => {
     ]);
     assert.strictEqual(
       editor.innerHTML,
-      "<mark>hello</mark><mark></mark>world"
+      `<mark data-message="undefined" data-code="undefined" data-severity="undefined">hello</mark><mark data-message="undefined" data-code="undefined" data-severity="undefined"></mark>world`
     );
   });
 
@@ -120,7 +153,10 @@ describe("markEditorText", () => {
       { begin: 0, end: 5 },
       { begin: 0, end: 5 },
     ]);
-    assert.strictEqual(editor.innerHTML, "<mark>hello</mark>world");
+    assert.strictEqual(
+      editor.innerHTML,
+      `<mark data-message="undefined" data-code="undefined" data-severity="undefined">hello</mark>world`
+    );
   });
 });
 
