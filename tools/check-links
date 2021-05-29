@@ -66,9 +66,10 @@ def check_response(url) -> None:
 
 class Crawler:
     def __init__(
-        self, site, allowed_file_ext_for_soup=allowed_file_ext_for_soup
+        self, site, check_external, allowed_file_ext_for_soup=allowed_file_ext_for_soup
     ) -> None:
         self.site = site
+        self.check_external = check_external
         self.allowed_file_ext_for_soup = allowed_file_ext_for_soup
         self.site_namespace = urlparse(self.site).netloc
         self.visted_urls = list()
@@ -106,7 +107,8 @@ class Crawler:
 
     def start_crawl(self) -> None:
         self.crawl_and_report(self.site, self.urls)
-        self.check_external_links(self.external_links_to_check)
+        if self.check_external:
+            self.check_external_links(self.external_links_to_check)
 
     def get_urls_to_crawl(self, packet) -> list:
         urls_from_page = list()
@@ -182,12 +184,13 @@ class Crawler:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--all", action="store_true", help="check external links too")
     parser.add_argument("url", type=str)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
-    crawler = Crawler(args.url)
+    crawler = Crawler(args.url, check_external=args.all)
     crawler.start_crawl()
 
     if len(crawler.broken_links) > 0:
