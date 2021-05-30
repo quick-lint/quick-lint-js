@@ -5,9 +5,14 @@ _quick-lint-js () {
         local cur opts
         _init_completion -n = || return
 
-        opts='--help --version --lsp-server --stdin --exit-fail-on= --output-format= --vim-file-bufnr='
+        opts='--help --version --lsp-server --config-file= --stdin --exit-fail-on= --output-format= --vim-file-bufnr='
 
         case $cur in
+                --config-file=*)
+                        _split_longopt
+                        _filedir
+                        return
+                        ;;
                 --output-format=*)
                         COMPREPLY=($(compgen -W 'gnu-like vim-qflint-json' -- "${cur#*=}"))
                         return

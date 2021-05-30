@@ -404,6 +404,8 @@ void print_help_message() {
 
   std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
             << "OPTIONS\n";
+  print_option("--config-file=[FILE]",
+               "Read configuration from a JSON file for later input files");
   print_option("--exit-fail-on=[CODES]",
                "Fail with a non-zero exit code if any of these");
   print_option("", "errors are found (default: \"all\")");
