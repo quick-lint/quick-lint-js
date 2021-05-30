@@ -28,6 +28,14 @@ function! quick_lint_js_ale#parse_command_output(buffer, lines) abort
   return l:data.qflist
 endfunction
 
+function! quick_lint_js_ale#get_lsp_command(_buffer_number) abort
+  return '%e --lsp-server'
+endfunction
+
+function! quick_lint_js_ale#get_lsp_project_root(_buffer_number) abort
+  return '/'
+endfunction
+
 " quick-lint-js finds bugs in JavaScript programs.
 " Copyright (C) 2020  Matthew Glazar
 "
