@@ -1,0 +1,7 @@
+b:ale_javascript_quick_lint_js_executable	quick-lint-js.txt	/*b:ale_javascript_quick_lint_js_executable*
+g:ale_javascript_quick_lint_js_executable	quick-lint-js.txt	/*g:ale_javascript_quick_lint_js_executable*
+quick-lint-js-app-install	quick-lint-js.txt	/*quick-lint-js-app-install*
+quick-lint-js-configure	quick-lint-js.txt	/*quick-lint-js-configure*
+quick-lint-js-configure-ale	quick-lint-js.txt	/*quick-lint-js-configure-ale*
+quick-lint-js-vim-install	quick-lint-js.txt	/*quick-lint-js-vim-install*
+quick-lint-js.txt	quick-lint-js.txt	/*quick-lint-js.txt*

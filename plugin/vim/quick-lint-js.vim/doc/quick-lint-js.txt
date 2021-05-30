@@ -1,0 +1,90 @@
+*quick-lint-js.txt*	For Vim and Neovim
+
+
+		QUICK-LINT-JS PLUGIN REFERENCE MANUAL
+
+
+This file contains instructions for installing and using the quick-lint-js
+plugin.
+
+This plugin version is designed for quick-lint-js version 0.2.0. Older or
+newer version might or might not work.
+
+1. Installing quick-lint-js	|quick-lint-js-app-install|
+2. Installing the plugin	|quick-lint-js-vim-install|
+3. Configuring			|quick-lint-js-configure|
+   3.1. ALE			|quick-lint-js-configure-ale|
+
+==============================================================================
+1. Installing quick-lint-js		*quick-lint-js-app-install*
+
+In order to use the quick-lint-js Vim plugin, you must first install the
+quick-lint-js CLI. See this page for instructions on installing the
+quick-lint-js CLI for your system:
+
+	https://quick-lint-js.com/install/
+
+==============================================================================
+2. Installing the plugin		*quick-lint-js-vim-install*
+
+If you're reading this document, you've probably already installed the
+quick-lint-js Vim plugin. If you're not sure, open Vim and run this command: >
+
+	:help quick-lint-js
+
+If you see this documentation, you have already installed the Vim plugin. Go
+to the next section, |quick-lint-js-configure|.
+
+If you see error code E149 ("Sorry, no help for quick-lint-js"), then you
+need to install the Vim plugin: https://quick-lint-js.com/install/#manual-vim
+
+==============================================================================
+3. Configuring 				*quick-lint-js-configure*
+
+After installing the quick-lint-js CLI and the quick-lint-js Vim plugin, you
+may need to configure the plugin.
+
+One of the following Vim plugins must be installed and configured in order for
+this plugin to work:
+
+* ALE - Asynchronous Lint Engine: |quick-lint-js-configure-ale|
+  https://github.com/dense-analysis/ale
+
+==============================================================================
+4. Configuring for ALE			*quick-lint-js-configure-ale*
+
+The quick-lint-js Vim plugin comes with a plugin for ALE (Asynchronous Lint
+Engine). https://github.com/dense-analysis/ale
+
+Supported ALE versions: v2.1.1 or newer, and v3.0.0 or newer
+
+quick-lint-js is fast. To feel the speed, you should configure
+|g:ale_lint_delay|. Add the following code to your |vimrc| to make JavaScript
+linting as fast as possible: >
+
+    let g:ale_lint_delay = 0
+
+The quick-lint-js Vim plugin registers an ALE linter called `quick-lint-js`.
+If you enable |g:ale_linters_explicit|, add the following code to
+`~/.vim/ftplugin/javascript.vim` (UNIX) or
+`~/vimfiles/ftplugin/javascript.vim` (Windows) to enable quick-lint-js: >
+
+    let b:ale_linters = ['quick-lint-js']
+
+g:ale_javascript_quick_lint_js_executable
+				*g:ale_javascript_quick_lint_js_executable*
+				*b:ale_javascript_quick_lint_js_executable*
+  Type: |String|
+  Default: `'quick-lint-js'`
+
+Set this variable to the path of the quick-lint-js CLI.
+
+If you want to use quick-lint-js installed in a project through NPM, try
+adding this to your vimrc file: >
+
+    " Security risk! Someone might drop a malicious binary into a project.
+    " Beware!
+    let g:ale_javascript_quick_lint_js_executable
+        \ = 'node_modules/.bin/quick-lint-js'
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
