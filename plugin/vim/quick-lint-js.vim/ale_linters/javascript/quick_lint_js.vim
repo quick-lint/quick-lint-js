@@ -5,7 +5,7 @@
 " https://github.com/dense-analysis/ale
 
 call ale#Set('javascript_quick_lint_js_executable', 'quick-lint-js')
-call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', 0))
+call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', v:true))
 
 " TODO(strager): Make quick-lint-js-lsp the default when the bugs have been
 " ironed out:
