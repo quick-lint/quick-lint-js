@@ -426,10 +426,10 @@ void print_help_message() {
 #endif
   if (mention_man_page) {
     std::cout << "\nFor more information, run 'man quick-lint-js' or visit\n"
-                 "https://quick-lint-js.com/cli.html\n";
+                 "https://quick-lint-js.com/cli/\n";
   } else {
     std::cout
-        << "\nFor more information, visit https://quick-lint-js.com/cli.html\n";
+        << "\nFor more information, visit https://quick-lint-js.com/cli/\n";
   }
 }
 

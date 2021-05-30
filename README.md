@@ -16,7 +16,7 @@ quick-lint-js finds many bugs, including:
 
 ## Installing
 
-See [installation instructions](https://quick-lint-js.com/install.html) for how
+See [installation instructions](https://quick-lint-js.com/install/) for how
 to install quick-lint-js' CLI, LSP server, and editor plugins.
 
 See [build instructions](docs/BUILDING.md) for how to build quick-lint-js for
