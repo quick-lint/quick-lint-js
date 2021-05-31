@@ -2,12 +2,17 @@
 // See end of file for extended copyright information.
 
 #include <cerrno>
+#include <condition_variable>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <mutex>
+#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-matcher.h>
@@ -18,12 +23,25 @@
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #if QLJS_HAVE_STD_FILESYSTEM
 #include <filesystem>
+#endif
+
+#if QLJS_HAVE_POLL
+#include <poll.h>
+#endif
+
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+#include <Windows.h>
 #endif
 
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
@@ -44,6 +62,96 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 void move_file(const std::string& from, const std::string& to);
+
+class change_detecting_configuration_loader {
+ public:
+#if QLJS_HAVE_KQUEUE
+  enum event_udata : std::uintptr_t {
+    event_udata_invalid = 0,
+    event_udata_fs_changed,
+  };
+#endif
+
+#if defined(_WIN32)
+  enum completion_key : ULONG_PTR {
+    completion_key_invalid = 0,
+    completion_key_stop,
+    completion_key_fs_changed,
+  };
+#endif
+
+  explicit change_detecting_configuration_loader()
+      :
+#if QLJS_HAVE_INOTIFY
+        fs_(),
+#elif QLJS_HAVE_KQUEUE
+        kqueue_fd_(::kqueue()),
+        fs_(this->kqueue_fd_.ref(),
+            reinterpret_cast<void*>(event_udata_fs_changed)),
+#elif defined(_WIN32)
+        io_completion_port_(create_io_completion_port()),
+        fs_(this->io_completion_port_.ref(), completion_key_fs_changed),
+        io_thread_([this]() { this->run_io_thread(); }),
+#else
+#error "Unsupported platform"
+#endif
+        loader_(&this->fs_) {
+  }
+
+  ~change_detecting_configuration_loader() {
+#if defined(_WIN32)
+    this->stop_io_thread();
+    this->io_thread_.join();
+#endif
+  }
+
+  template <class... Args>
+  auto watch_and_load_for_file(Args&&... args) {
+#if defined(_WIN32)
+    std::lock_guard<std::mutex> lock(this->mutex_);
+#endif
+    return this->loader_.watch_and_load_for_file(std::forward<Args>(args)...);
+  }
+
+  std::vector<configuration_change> detect_changes_and_refresh();
+
+ private:
+  bool detect_changes();
+
+#if defined(_WIN32)
+  // On Windows, we pump events on a separate thread. This is because
+  // std::rename blocks the thread waiting for the oplock to break, but we need
+  // to call change_detecting_filesystem_win32::handle_event in order to break
+  // the oplock and unblock std::rename.
+  void run_io_thread();
+  void stop_io_thread();
+#endif
+
+#if QLJS_HAVE_INOTIFY
+  change_detecting_filesystem_inotify fs_;
+#elif QLJS_HAVE_KQUEUE
+  posix_fd_file kqueue_fd_;
+  change_detecting_filesystem_kqueue fs_;
+#elif defined(_WIN32)
+  windows_handle_file io_completion_port_;
+  std::mutex mutex_;
+  std::condition_variable io_thread_timed_out_;
+  std::condition_variable fs_changed_;
+
+  // Used by the test thread only:
+  unsigned long long old_fs_changed_count_ = 0;
+
+  // Protected by mutex_:
+  change_detecting_filesystem_win32 fs_;
+  unsigned long long io_thread_timed_out_count_ = 0;
+  unsigned long long fs_changed_count_ = 0;
+
+  std::thread io_thread_;
+#endif
+
+  // Protected by mutex_ if present:
+  configuration_loader loader_;
+};
 
 class test_configuration_loader : public ::testing::Test {
  public:
@@ -598,10 +706,11 @@ TEST_F(test_configuration_loader, config_found_initially_is_unchanged) {
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     EXPECT_THAT(changes, IsEmpty());
   }
 }
@@ -614,12 +723,13 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({"globals": {"before": true}})");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   write_file(config_file, u8R"({"globals": {"after": true}})");
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -633,7 +743,7 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({"globals": {"before": true}})");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   {
@@ -647,7 +757,8 @@ TEST_F(test_configuration_loader,
     ASSERT_EQ(std::fclose(file), 0) << std::strerror(errno);
   }
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -661,13 +772,14 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({"globals": {"a": true}})");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   write_file(config_file, u8R"({"globals": {"b": true}})");
   write_file(config_file, u8R"({"globals": {"a": true}})");
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -683,12 +795,13 @@ TEST_F(test_configuration_loader,
   std::string new_config_file = project_dir + "/temp/new-config";
   write_file(new_config_file, u8R"({"globals": {"after": true}})");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(new_config_file, config_file);
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -706,12 +819,13 @@ TEST_F(test_configuration_loader,
   std::string new_config_file = project_dir + "/temp/new-config";
   write_file(new_config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(new_config_file, config_file);
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -723,14 +837,15 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string temp_config_file = project_dir + "/temp.config";
   move_file(config_file, temp_config_file);
   move_file(temp_config_file, config_file);
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -743,13 +858,14 @@ TEST_F(test_configuration_loader, creating_config_in_same_dir_is_detected) {
     std::string js_file = project_dir + "/hello.js";
     write_file(js_file, u8"");
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
     EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -765,13 +881,14 @@ TEST_F(test_configuration_loader,
     std::string project_dir = this->make_temporary_directory();
     std::string js_file = project_dir + "/hello.js";
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
     EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -788,13 +905,14 @@ TEST_F(test_configuration_loader, creating_config_in_parent_dir_is_detected) {
     std::string js_file = project_dir + "/dir/hello.js";
     write_file(js_file, u8"");
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
     EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -809,13 +927,14 @@ TEST_F(test_configuration_loader,
   std::string secondary_config_file = project_dir + "/.quick-lint-js.config";
   write_file(secondary_config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string primary_config_file = project_dir + "/quick-lint-js.config";
   write_file(primary_config_file, u8"{}");
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(), primary_config_file);
@@ -838,14 +957,15 @@ TEST_F(test_configuration_loader,
           project_dir + "/" + outer_config_file_name;
       write_file(outer_config_file, u8"{}");
 
-      configuration_loader loader(basic_configuration_filesystem::instance());
+      change_detecting_configuration_loader loader;
       loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       std::string inner_config_file =
           project_dir + "/dir/" + inner_config_file_name;
       write_file(inner_config_file, u8"{}");
 
-      std::vector<configuration_change> changes = loader.refresh();
+      std::vector<configuration_change> changes =
+          loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
       EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -865,13 +985,14 @@ TEST_F(test_configuration_loader, deleting_config_in_same_dir_is_detected) {
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     EXPECT_EQ(std::remove(config_file.c_str()), 0)
         << "failed to delete " << config_file << ": " << std::strerror(errno);
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
     EXPECT_EQ(changes[0].config->config_file_path(), std::nullopt);
@@ -888,14 +1009,15 @@ TEST_F(test_configuration_loader,
   std::string secondary_config_file = project_dir + "/.quick-lint-js.config";
   write_file(secondary_config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   EXPECT_EQ(std::remove(primary_config_file.c_str()), 0)
       << "failed to delete " << primary_config_file << ": "
       << std::strerror(errno);
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -922,14 +1044,15 @@ TEST_F(test_configuration_loader,
           project_dir + "/dir/" + inner_config_file_name;
       write_file(inner_config_file, u8"{}");
 
-      configuration_loader loader(basic_configuration_filesystem::instance());
+      change_detecting_configuration_loader loader;
       loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       EXPECT_EQ(std::remove(inner_config_file.c_str()), 0)
           << "failed to delete " << inner_config_file << ": "
           << std::strerror(errno);
 
-      std::vector<configuration_change> changes = loader.refresh();
+      std::vector<configuration_change> changes =
+          loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
       EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -949,12 +1072,13 @@ TEST_F(test_configuration_loader, moving_config_away_in_same_dir_is_detected) {
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     move_file(config_file, (project_dir + "/moved.config"));
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
     EXPECT_EQ(changes[0].config->config_file_path(), std::nullopt);
@@ -971,12 +1095,13 @@ TEST_F(test_configuration_loader,
   std::string secondary_config_file = project_dir + "/.quick-lint-js.config";
   write_file(secondary_config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(primary_config_file, (project_dir + "/moved.config"));
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -1003,12 +1128,13 @@ TEST_F(test_configuration_loader,
           project_dir + "/dir/" + inner_config_file_name;
       write_file(inner_config_file, u8"{}");
 
-      configuration_loader loader(basic_configuration_filesystem::instance());
+      change_detecting_configuration_loader loader;
       loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       move_file(inner_config_file, (project_dir + "/dir/moved.config"));
 
-      std::vector<configuration_change> changes = loader.refresh();
+      std::vector<configuration_change> changes =
+          loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
       EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -1029,12 +1155,13 @@ TEST_F(test_configuration_loader, moving_config_into_same_dir_is_detected) {
     write_file(temp_config_file, u8"{}");
     std::string renamed_config_file = project_dir + "/" + config_file_name;
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     move_file(temp_config_file, renamed_config_file);
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
     EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -1055,12 +1182,13 @@ TEST_F(test_configuration_loader, moving_config_into_parent_dir_is_detected) {
     write_file(temp_config_file, u8"{}");
     std::string renamed_config_file = project_dir + "/" + config_file_name;
 
-    configuration_loader loader(basic_configuration_filesystem::instance());
+    change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     move_file(temp_config_file, renamed_config_file);
 
-    std::vector<configuration_change> changes = loader.refresh();
+    std::vector<configuration_change> changes =
+        loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
     EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -1089,12 +1217,13 @@ TEST_F(test_configuration_loader,
       std::string inner_config_file =
           project_dir + "/dir/" + inner_config_file_name;
 
-      configuration_loader loader(basic_configuration_filesystem::instance());
+      change_detecting_configuration_loader loader;
       loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       move_file(temp_config_file, inner_config_file);
 
-      std::vector<configuration_change> changes = loader.refresh();
+      std::vector<configuration_change> changes =
+          loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
       EXPECT_SAME_FILE(changes[0].config->config_file_path(),
@@ -1114,12 +1243,13 @@ TEST_F(test_configuration_loader,
   write_file(temp_config_file, u8"{}");
   std::string primary_config_file = project_dir + "/quick-lint-js.config";
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(temp_config_file, primary_config_file);
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(changes[0].config->config_file_path(), primary_config_file);
@@ -1134,12 +1264,13 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/olddir/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
@@ -1147,6 +1278,15 @@ TEST_F(test_configuration_loader,
       << "config should be removed";
 }
 
+// FIXME(strager): On Linux (inotify) and macOS (kqueue), this test fails when
+// using change_detecting_configuration_loader because we don't watch all the
+// way up to the root. We can fix this test by adding directory watches during
+// path canonicalization.
+#if defined(_WIN32)
+#define BUGGY 0
+#else
+#define BUGGY 1
+#endif
 TEST_F(test_configuration_loader,
        moving_ancestor_directory_containing_file_and_config_unlinks_config) {
   std::string project_dir = this->make_temporary_directory();
@@ -1157,12 +1297,21 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/olddir/subdir/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
+#if BUGGY
   configuration_loader loader(basic_configuration_filesystem::instance());
+#else
+  change_detecting_configuration_loader loader;
+#endif
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
+#if BUGGY
   std::vector<configuration_change> changes = loader.refresh();
+#else
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+#endif
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
@@ -1179,12 +1328,13 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1195,12 +1345,13 @@ TEST_F(test_configuration_loader, moving_file_keeps_config) {
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/oldfile.js"), (project_dir + "/newfile.js"));
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1209,18 +1360,19 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/dir/test.js";
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   create_directory(project_dir + "/dir");
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty())
       << "creating dir should not change associated config file";
 
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  changes = loader.refresh();
+  changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_))
       << "adding config should change associated config file";
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
@@ -1233,14 +1385,15 @@ TEST_F(
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/dir/test.js";
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   create_directory(project_dir + "/dir");
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
   EXPECT_SAME_FILE(changes[0].config->config_file_path(), config_file);
@@ -1258,7 +1411,7 @@ TEST_F(test_configuration_loader,
     ASSERT_TRUE(inserted) << "duplicate js_file: " << js_file;
   }
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   for (const std::string& js_file : js_files) {
     loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   }
@@ -1266,7 +1419,8 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
   std::unordered_set<std::string> unconfigured_js_files = js_files;
   for (const configuration_change& change : changes) {
     SCOPED_TRACE(*change.watched_path);
@@ -1298,7 +1452,7 @@ TEST_F(test_configuration_loader,
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
   write_file(inner_config_file, u8R"({"globals": {"inner": true}})");
 
-  configuration_loader loader(basic_configuration_filesystem::instance());
+  change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(inner_js_file, /*token=*/&inner_js_file);
   loader.watch_and_load_for_file(outer_js_file, /*token=*/&outer_js_file);
 
@@ -1307,7 +1461,8 @@ TEST_F(test_configuration_loader,
       << std::strerror(errno);
   write_file(outer_config_file, u8R"({"globals": {"after": true}})");
 
-  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
 
   std::vector<std::string> watched_paths;
   std::vector<void*> watched_tokens;
@@ -1375,6 +1530,135 @@ TEST(test_configuration_loader_fake, find_config_in_parent_directory) {
     EXPECT_EQ(config->config_file_path(), fs.rooted(config_file_name));
   }
 }
+
+std::vector<configuration_change>
+change_detecting_configuration_loader::detect_changes_and_refresh() {
+  bool fs_changed = this->detect_changes();
+  std::vector<configuration_change> config_changes = this->loader_.refresh();
+  if (fs_changed) {
+    // NOTE(strager): We cannot assert that at least one change happened,
+    // because filesystem notifications might be spurious.
+  } else {
+    EXPECT_THAT(config_changes, IsEmpty())
+        << "no filesystem notifications happened, but changes were detected";
+  }
+  return config_changes;
+}
+
+bool change_detecting_configuration_loader::detect_changes() {
+#if QLJS_HAVE_INOTIFY
+  std::vector<::pollfd> pollfds{::pollfd{
+      .fd = this->fs_.get_inotify_fd().get(),
+      .events = POLLIN,
+      .revents = 0,
+  }};
+  int poll_rc = ::poll(pollfds.data(), pollfds.size(), 0);
+  if (poll_rc == -1) {
+    ADD_FAILURE() << "poll failed: " << std::strerror(errno);
+    return {};
+  }
+  this->fs_.handle_poll_event(pollfds[0]);
+  return poll_rc != 0;
+#elif QLJS_HAVE_KQUEUE
+  std::array<struct ::kevent, 20> events;
+  struct timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
+  int kqueue_rc = ::kevent(
+      /*fd=*/this->kqueue_fd_.get(),
+      /*changelist=*/nullptr,
+      /*nchanges=*/0,
+      /*eventlist=*/events.data(),
+      /*nevents=*/narrow_cast<int>(events.size()),
+      /*timeout=*/&timeout);
+  if (kqueue_rc == -1) {
+    ADD_FAILURE() << "kqueue failed: " << std::strerror(errno);
+    return {};
+  }
+  for (int i = 0; i < kqueue_rc; ++i) {
+    struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
+    EXPECT_FALSE(event.flags & EV_ERROR)
+        << std::strerror(narrow_cast<int>(event.data));
+    EXPECT_EQ(event.udata, reinterpret_cast<void*>(event_udata_fs_changed));
+  }
+  return kqueue_rc != 0;
+#elif defined(_WIN32)
+  std::unique_lock<std::mutex> lock(this->mutex_);
+  auto old_io_thread_timed_out_count = this->io_thread_timed_out_count_;
+  this->io_thread_timed_out_.wait(lock, [&]() {
+    return this->io_thread_timed_out_count_ != old_io_thread_timed_out_count;
+  });
+
+  bool fs_changed = this->old_fs_changed_count_ != this->fs_changed_count_;
+  this->old_fs_changed_count_ = this->fs_changed_count_;
+  return fs_changed;
+#else
+#error "Unsupported platform"
+#endif
+}
+
+#if defined(_WIN32)
+void change_detecting_configuration_loader::run_io_thread() {
+  for (;;) {
+    DWORD number_of_bytes_transferred;
+    ULONG_PTR completion_key = completion_key_invalid;
+    OVERLAPPED* overlapped;
+
+    std::lock_guard<std::mutex> lock(this->mutex_);
+    BOOL ok = ::GetQueuedCompletionStatus(
+        /*CompletionPort=*/this->io_completion_port_.get(),
+        /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
+        /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
+        /*dwMilliseconds=*/0);
+    DWORD error = ::GetLastError();
+
+    if (!overlapped) {
+      switch (error) {
+      case WAIT_TIMEOUT:
+        this->io_thread_timed_out_count_ += 1;
+        this->io_thread_timed_out_.notify_all();
+        continue;
+
+      default:
+        QLJS_UNIMPLEMENTED();
+        break;
+      }
+    }
+
+    switch (completion_key) {
+    case completion_key_invalid:
+      QLJS_UNREACHABLE();
+      break;
+
+    case completion_key_stop:
+      return;
+
+    case completion_key_fs_changed: {
+      bool fs_changed = this->fs_.handle_event(
+          overlapped, number_of_bytes_transferred, error);
+      if (fs_changed) {
+        this->fs_changed_count_ += 1;
+        this->fs_changed_.notify_all();
+      }
+      break;
+    }
+
+    default:
+      QLJS_UNREACHABLE();
+      break;
+    }
+  }
+}
+
+void change_detecting_configuration_loader::stop_io_thread() {
+  BOOL ok = ::PostQueuedCompletionStatus(
+      /*CompletionPort=*/this->io_completion_port_.get(),
+      /*dwNumberOfBytesTransferred=*/0,
+      /*dwCompletionKey=*/completion_key_stop,
+      /*lpOverlapped=*/reinterpret_cast<OVERLAPPED*>(1));
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+}
+#endif
 
 void move_file(const std::string& from, const std::string& to) {
   if (std::rename(from.c_str(), to.c_str()) != 0) {

@@ -142,6 +142,7 @@ class posix_fd_file : private posix_fd_file_ref {
   posix_fd_file &operator=(const posix_fd_file &) = delete;
 
   posix_fd_file(posix_fd_file &&) noexcept;
+  posix_fd_file &operator=(posix_fd_file &&) noexcept;
 
   ~posix_fd_file();
 

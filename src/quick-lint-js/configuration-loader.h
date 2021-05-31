@@ -49,6 +49,8 @@ class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
+  configuration_filesystem* fs() noexcept { return this->fs_; }
+
   configuration_or_error watch_and_load_for_file(const std::string& file_path,
                                                  const void* token);
   configuration_or_error load_for_file(const std::string& file_path);

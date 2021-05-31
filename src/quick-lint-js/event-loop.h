@@ -45,11 +45,18 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
   {cd.get_readable_pipe()};
   {d.append(data)};
 
-  {d.on_filesystem_change()};
-
 #if QLJS_HAVE_POLL
   {d.get_pipe_write_fd()};
   {d.on_pipe_write_event(poll_event)};
+#endif
+
+#if QLJS_HAVE_INOTIFY
+  {d.get_inotify_fd()};
+  {d.on_fs_changed_event(poll_event)};
+#endif
+
+#if QLJS_HAVE_KQUEUE
+  {d.on_fs_changed_kevents()};
 #endif
 };
 #endif
@@ -139,12 +146,16 @@ class kqueue_event_loop : public event_loop_base<Derived> {
   enum event_udata : std::uintptr_t {
     event_udata_readable_pipe,
     event_udata_pipe_write,
+    event_udata_fs_changed,
   };
 
-  void run() {
-    posix_fd_file kqueue_fd(::kqueue());
-    QLJS_ASSERT(kqueue_fd.valid());
+  explicit kqueue_event_loop() : kqueue_fd_(::kqueue()) {
+    QLJS_ASSERT(this->kqueue_fd_.valid());
+  }
 
+  posix_fd_file_ref kqueue_fd() noexcept { return this->kqueue_fd_.ref(); }
+
+  void run() {
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
@@ -165,7 +176,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
       QLJS_ASSERT(change_count > 0);
       QLJS_ASSERT(change_count <= changes.size());
       ::timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
-      int rc = ::kevent(kqueue_fd.get(),
+      int rc = ::kevent(this->kqueue_fd_.get(),
                         /*changelist=*/changes.data(),
                         /*nchanges=*/narrow_cast<int>(change_count),
                         /*eventlist=*/nullptr, /*nevents=*/0,
@@ -177,25 +188,18 @@ class kqueue_event_loop : public event_loop_base<Derived> {
     }
 
     for (;;) {
-      std::array<struct ::kevent, 2> events;
-      ::timespec timeout = {.tv_sec = 1, .tv_nsec = 0};
-      int rc = ::kevent(kqueue_fd.get(),
+      std::array<struct ::kevent, 10> events;
+      int rc = ::kevent(this->kqueue_fd_.get(),
                         /*changelist=*/nullptr, /*nchanges=*/0,
                         /*eventlist=*/events.data(),
                         /*nevents=*/narrow_cast<int>(events.size()),
-                        /*timeout=*/&timeout);
+                        /*timeout=*/nullptr);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
       }
-      // TODO(strager): Watch the filesystem with EVFILT_VNODE instead of
-      // polling the file system every second.
-      QLJS_ASSERT(rc >= 0);
+      QLJS_ASSERT(rc > 0);
 
-      if (rc == 0) {
-        // Timed out.
-        this->derived().on_filesystem_change();
-      }
-
+      bool fs_changed = false;
       for (int i = 0; i < rc; ++i) {
         struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
         switch (reinterpret_cast<std::uintptr_t>(event.udata)) {
@@ -213,13 +217,21 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           this->derived().on_pipe_write_event(event);
           break;
 
+        case event_udata_fs_changed:
+          fs_changed = true;
+          break;
+
         default:
           QLJS_UNREACHABLE();
           break;
         }
       }
+      this->derived().on_fs_changed_kevents();
     }
   }
+
+ private:
+  posix_fd_file kqueue_fd_;
 };
 #endif
 
@@ -241,7 +253,7 @@ class poll_event_loop : public event_loop_base<Derived> {
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
       QLJS_ASSERT(pipe.is_pipe_non_blocking());
 
-      std::array<::pollfd, 2> pollfds;
+      std::array<::pollfd, 3> pollfds;
       std::size_t pollfd_count = 0;
 
       std::size_t read_pipe_index = pollfd_count++;
@@ -259,21 +271,27 @@ class poll_event_loop : public event_loop_base<Derived> {
         };
       }
 
+#if QLJS_HAVE_INOTIFY
+      std::optional<std::size_t> inotify_index;
+      if (std::optional<posix_fd_file_ref> fd =
+              this->derived().get_inotify_fd()) {
+        inotify_index = pollfd_count++;
+        pollfds[*inotify_index] = ::pollfd{
+            .fd = fd->get(),
+            .events = POLLIN,
+            .revents = 0,
+        };
+      }
+#endif
+
       QLJS_ASSERT(pollfd_count > 0);
       QLJS_ASSERT(pollfd_count <= pollfds.size());
       int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfd_count),
-                      /*timeout=*/1000);
+                      /*timeout=*/-1);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
       }
-      // TODO(strager): Watch the filesystem with inotify instead of polling the
-      // file system every second.
-      QLJS_ASSERT(rc >= 0);
-
-      if (rc == 0) {
-        // Timed out.
-        this->derived().on_filesystem_change();
-      }
+      QLJS_ASSERT(rc > 0);
 
       const ::pollfd& read_pipe_event = pollfds[read_pipe_index];
       if (read_pipe_event.revents & POLLIN) {
@@ -289,6 +307,15 @@ class poll_event_loop : public event_loop_base<Derived> {
           this->derived().on_pipe_write_event(write_pipe_event);
         }
       }
+
+#if QLJS_HAVE_INOTIFY
+      if (inotify_index.has_value()) {
+        const ::pollfd& inotify_event = pollfds[*inotify_index];
+        if (inotify_event.revents != 0) {
+          this->derived().on_fs_changed_event(inotify_event);
+        }
+      }
+#endif
     }
   }
 };
@@ -303,10 +330,15 @@ class windows_event_loop : public event_loop_base<Derived> {
   enum completion_key : ULONG_PTR {
     completion_key_invalid = 0,
     completion_key_stop,
+    completion_key_fs_changed,
   };
 
   explicit windows_event_loop()
       : io_completion_port_(create_io_completion_port()) {}
+
+  windows_handle_file_ref io_completion_port() noexcept {
+    return this->io_completion_port_.ref();
+  }
 
   void run() {
     static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
@@ -321,15 +353,13 @@ class windows_event_loop : public event_loop_base<Derived> {
           /*CompletionPort=*/this->io_completion_port_.get(),
           /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
           /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
-          /*dwMilliseconds=*/1000);
+          /*dwMilliseconds=*/INFINITE);
+      DWORD error = ok ? 0 : ::GetLastError();
       if (!overlapped) {
-        DWORD error = ::GetLastError();
         switch (error) {
-        case WAIT_TIMEOUT: {
-          std::lock_guard<std::mutex> lock(this->user_code_mutex_);
-          this->derived().on_filesystem_change();
-          continue;
-        }
+        case WAIT_TIMEOUT:
+          QLJS_UNREACHABLE();
+          break;
 
         default:
           QLJS_UNIMPLEMENTED();
@@ -346,6 +376,11 @@ class windows_event_loop : public event_loop_base<Derived> {
         QLJS_ASSERT(ok);
         this->read_pipe_thread_.join();
         return;
+
+      case completion_key_fs_changed:
+        this->derived().on_fs_changed_event(overlapped,
+                                            number_of_bytes_transferred, error);
+        break;
 
       default:
         QLJS_UNREACHABLE();

@@ -36,8 +36,6 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
     return this->read_data_;
   }
 
-  void on_filesystem_change() {}
-
   template <class Func>
   void wait_until_data(Func&& predicate) {
     std::unique_lock lock(this->mutex_);
@@ -61,6 +59,24 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
     this->pipe_write_fd_ = fd;
     this->pipe_write_event_callback_ = on_event;
   }
+#endif
+
+#if QLJS_HAVE_KQUEUE
+  void on_fs_changed_kevents() {}
+#endif
+
+#if QLJS_HAVE_INOTIFY
+  std::optional<posix_fd_file_ref> get_inotify_fd() const {
+    return std::nullopt;
+  }
+
+  void on_fs_changed_event(const ::pollfd&) {}
+#endif
+
+#if defined(_WIN32)
+  void on_fs_changed_event(::OVERLAPPED*,
+                           [[maybe_unused]] ::DWORD number_of_bytes_transferred,
+                           [[maybe_unused]] ::DWORD error) {}
 #endif
 
  private:

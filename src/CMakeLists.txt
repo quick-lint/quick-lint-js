@@ -37,6 +37,9 @@ quick_lint_js_add_library(
   byte-buffer.cpp
   c-api-error-reporter.cpp
   c-api.cpp
+  change-detecting-filesystem-inotify.cpp
+  change-detecting-filesystem-kqueue.cpp
+  change-detecting-filesystem-win32.cpp
   char8.cpp
   cli-location.cpp
   configuration-loader.cpp
@@ -76,6 +79,7 @@ quick_lint_js_add_library(
   quick-lint-js/byte-buffer.h
   quick-lint-js/c-api-error-reporter.h
   quick-lint-js/c-api.h
+  quick-lint-js/change-detecting-filesystem.h
   quick-lint-js/char8.h
   quick-lint-js/cli-location.h
   quick-lint-js/configuration-loader.h

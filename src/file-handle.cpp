@@ -256,6 +256,16 @@ posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {}
 posix_fd_file::posix_fd_file(posix_fd_file &&other) noexcept
     : posix_fd_file_ref(std::exchange(other.fd_, this->invalid_fd)) {}
 
+posix_fd_file &posix_fd_file::operator=(posix_fd_file &&other) noexcept {
+  if (this != &other) {
+    std::swap(this->fd_, other.fd_);
+    if (other.valid()) {
+      other.close();
+    }
+  }
+  return *this;
+}
+
 posix_fd_file::~posix_fd_file() {
   if (this->valid()) {
     this->close();

@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
@@ -399,17 +400,26 @@ void run_lsp_server() {
   class lsp_event_loop : public event_loop<lsp_event_loop> {
    public:
     explicit lsp_event_loop(platform_file_ref input_pipe,
-                            platform_file_ref output_pipe,
-                            configuration_filesystem *fs)
-        : input_pipe_(input_pipe),
-          endpoint_(std::forward_as_tuple(fs),
-                    std::forward_as_tuple(output_pipe)) {}
+                            platform_file_ref output_pipe)
+        :
+#if QLJS_HAVE_KQUEUE
+          fs_(this->kqueue_fd(),
+              reinterpret_cast<void *>(event_udata_fs_changed)),
+#elif QLJS_HAVE_INOTIFY
+          fs_(),
+#elif defined(_WIN32)
+          fs_(this->io_completion_port(), completion_key_fs_changed),
+#else
+#error "Unsupported platform"
+#endif
+          input_pipe_(input_pipe),
+          endpoint_(std::forward_as_tuple(&this->fs_),
+                    std::forward_as_tuple(output_pipe)) {
+    }
 
     platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
 
     void append(string8_view data) { this->endpoint_.append(data); }
-
-    void on_filesystem_change() { this->endpoint_.filesystem_changed(); }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
     std::optional<posix_fd_file_ref> get_pipe_write_fd() {
@@ -427,7 +437,44 @@ void run_lsp_server() {
     }
 #endif
 
+#if QLJS_HAVE_KQUEUE
+    void on_fs_changed_kevents() { this->endpoint_.filesystem_changed(); }
+#endif
+
+#if QLJS_HAVE_INOTIFY
+    std::optional<posix_fd_file_ref> get_inotify_fd() {
+      return this->fs_.get_inotify_fd();
+    }
+
+    void on_fs_changed_event(const ::pollfd &event) {
+      this->fs_.handle_poll_event(event);
+      this->endpoint_.filesystem_changed();
+    }
+#endif
+
+#if defined(_WIN32)
+    void on_fs_changed_event(::OVERLAPPED *overlapped,
+                             ::DWORD number_of_bytes_transferred,
+                             ::DWORD error) {
+      bool fs_changed = this->fs_.handle_event(
+          overlapped, number_of_bytes_transferred, error);
+      if (fs_changed) {
+        this->endpoint_.filesystem_changed();
+      }
+    }
+#endif
+
    private:
+#if QLJS_HAVE_KQUEUE
+    change_detecting_filesystem_kqueue fs_;
+#elif QLJS_HAVE_INOTIFY
+    change_detecting_filesystem_inotify fs_;
+#elif defined(_WIN32)
+    change_detecting_filesystem_win32 fs_;
+#else
+#error "Unsupported platform"
+#endif
+
     platform_file_ref input_pipe_;
     lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                  lsp_pipe_writer>
@@ -440,7 +487,7 @@ void run_lsp_server() {
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD
   output_pipe.set_pipe_non_blocking();
 #endif
-  lsp_event_loop server(input_pipe, output_pipe, &fs);
+  lsp_event_loop server(input_pipe, output_pipe);
   server.run();
 }
 
