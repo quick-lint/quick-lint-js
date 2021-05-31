@@ -10,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace quick_lint_js {
 struct file_to_lint;
@@ -20,6 +21,11 @@ class configuration_filesystem {
 
   virtual canonical_path_result canonicalize_path(const std::string&) = 0;
   virtual read_file_result read_file(const canonical_path&) = 0;
+};
+
+struct configuration_change {
+  const std::string* watched_path;  // Never nullptr.
+  configuration* config;            // Never nullptr.
 };
 
 struct configuration_or_error {
@@ -39,14 +45,16 @@ class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
+  configuration_or_error watch_and_load_for_file(const std::string& file_path);
   configuration_or_error load_for_file(const std::string& file_path);
   configuration_or_error load_for_file(const file_to_lint&);
 
-  void refresh();
+  std::vector<configuration_change> refresh();
 
  private:
   struct loaded_config_file {
     configuration config;
+    padded_string file_content;
   };
 
   struct found_config_file {
@@ -66,6 +74,8 @@ class configuration_loader {
   found_config_file find_config_file_in_directory_and_ancestors(
       canonical_path&&);
 
+  canonical_path_result get_parent_directory(const char* input_path);
+
   loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration_filesystem* fs_;
@@ -78,6 +88,8 @@ class configuration_loader {
   // Key: config file path
   // Value: cached parsed configuration
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
+
+  std::vector<std::string> watched_paths_;
 };
 
 class basic_configuration_filesystem : public configuration_filesystem {

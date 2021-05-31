@@ -18,7 +18,7 @@ class configuration {
  public:
   const global_declared_variable_set& globals() noexcept;
 
-  std::optional<canonical_path> config_file_path() const;
+  const std::optional<canonical_path>& config_file_path() const;
 
   void reset_global_groups();
   bool add_global_group(string8_view group_name);
@@ -27,7 +27,10 @@ class configuration {
   void remove_global_variable(string8_view name);
 
   void load_from_json(padded_string_view);
+  void set_config_file_path(const canonical_path&);
   void set_config_file_path(canonical_path&&);
+
+  void reset();
 
  private:
   void load_global_groups_from_json(simdjson::ondemand::value&);

@@ -136,7 +136,7 @@ const global_declared_variable_set& configuration::globals() noexcept {
   return this->globals_;
 }
 
-std::optional<canonical_path> configuration::config_file_path() const {
+const std::optional<canonical_path>& configuration::config_file_path() const {
   return this->config_file_path_;
 }
 
@@ -210,6 +210,19 @@ void configuration::load_from_json(padded_string_view json) {
 
 void configuration::set_config_file_path(canonical_path&& path) {
   this->config_file_path_ = std::move(path);
+}
+
+void configuration::set_config_file_path(const canonical_path& path) {
+  this->config_file_path_ = path;
+}
+
+void configuration::reset() {
+  // TODO(strager): Make this more efficient by avoiding reallocations.
+  this->globals_ = global_declared_variable_set();
+  this->globals_to_remove_.clear();
+  this->add_global_group_node_js_ = true;
+  this->add_global_group_ecmascript_ = true;
+  this->string_allocator_.memory_resource()->release();
 }
 
 void configuration::load_global_groups_from_json(

@@ -65,6 +65,8 @@ class padded_string {
 
   friend std::ostream &operator<<(std::ostream &, const padded_string &);
 
+  friend bool operator==(const padded_string &, const padded_string &) noexcept;
+  friend bool operator!=(const padded_string &, const padded_string &) noexcept;
   friend bool operator==(string8_view, const padded_string &) noexcept;
   friend bool operator!=(string8_view, const padded_string &) noexcept;
   friend bool operator==(const padded_string &, string8_view) noexcept;

@@ -41,6 +41,12 @@ configuration* configuration_or_error::operator->() {
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
+configuration_or_error configuration_loader::watch_and_load_for_file(
+    const std::string& file_path) {
+  this->watched_paths_.emplace_back(file_path);
+  return this->find_and_load_config_file_for_input(file_path.c_str());
+}
+
 configuration_or_error configuration_loader::load_for_file(
     const std::string& file_path) {
   return this->find_and_load_config_file_for_input(file_path.c_str());
@@ -82,9 +88,10 @@ configuration_or_error configuration_loader::load_config_file(
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
   loaded_config_file* config_file = &config_it->second;
+  config_file->file_content = std::move(config_json.content);
   config_file->config.set_config_file_path(
       std::move(canonical_config_path).canonical());
-  config_file->config.load_from_json(&config_json.content);
+  config_file->config.load_from_json(&config_file->file_content);
   return configuration_or_error(&config_file->config);
 }
 
@@ -103,23 +110,13 @@ configuration_loader::find_and_load_config_file_for_input(
     return configuration_or_error(&config_file_it->second.config);
   }
 
-  canonical_path_result canonical_input_path =
-      this->fs_->canonicalize_path(input_path);
-  if (!canonical_input_path.ok()) {
-    return configuration_or_error(std::move(canonical_input_path).error());
-  }
-
-  bool should_drop_file_name = true;
-  if (canonical_input_path.have_missing_components()) {
-    canonical_input_path.drop_missing_components();
-    should_drop_file_name = false;
-  }
-  canonical_path parent_directory = std::move(canonical_input_path).canonical();
-  if (should_drop_file_name) {
-    parent_directory.parent();
+  canonical_path_result parent_directory =
+      this->get_parent_directory(input_path);
+  if (!parent_directory.ok()) {
+    return configuration_or_error(std::move(parent_directory).error());
   }
   return this->find_and_load_config_file_in_directory_and_ancestors(
-      std::move(parent_directory), /*input_path=*/input_path);
+      std::move(parent_directory).canonical(), /*input_path=*/input_path);
 }
 
 configuration_or_error
@@ -163,8 +160,9 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
   loaded_config_file* config_file = &config_it->second;
+  config_file->file_content = std::move(found.file_content);
   config_file->config.set_config_file_path(std::move(config_path));
-  config_file->config.load_from_json(&found.file_content);
+  config_file->config.load_from_json(&config_file->file_content);
   return configuration_or_error(&config_file->config);
 }
 
@@ -233,6 +231,28 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
 
 QLJS_WARNING_POP
 
+canonical_path_result configuration_loader::get_parent_directory(
+    const char* input_path) {
+  canonical_path_result canonical_input_path =
+      this->fs_->canonicalize_path(input_path);
+  if (!canonical_input_path.ok()) {
+    return canonical_input_path;
+  }
+
+  bool should_drop_file_name = true;
+  if (canonical_input_path.have_missing_components()) {
+    canonical_input_path.drop_missing_components();
+    should_drop_file_name = false;
+  }
+  canonical_path parent_directory = std::move(canonical_input_path).canonical();
+  if (should_drop_file_name) {
+    parent_directory.parent();
+  }
+  std::string parent_directory_string = std::move(parent_directory).path();
+  return canonical_path_result(std::move(parent_directory_string),
+                               parent_directory_string.size());
+}
+
 configuration_loader::loaded_config_file*
 configuration_loader::get_loaded_config(const canonical_path& path) noexcept {
   auto existing_config_it = this->loaded_config_files_.find(path);
@@ -241,9 +261,99 @@ configuration_loader::get_loaded_config(const canonical_path& path) noexcept {
              : &existing_config_it->second;
 }
 
-void configuration_loader::refresh() {
-  this->input_path_config_files_.clear();
-  this->loaded_config_files_.clear();
+std::vector<configuration_change> configuration_loader::refresh() {
+  std::vector<configuration_change> changes;
+
+  std::unordered_map<canonical_path, loaded_config_file> loaded_config_files =
+      std::move(this->loaded_config_files_);
+
+  for (const std::string& input_path : this->watched_paths_) {
+    canonical_path_result parent_directory =
+        this->get_parent_directory(input_path.c_str());
+    if (!parent_directory.ok()) {
+      // TODO(strager): Should we report a change?
+      continue;
+    }
+    found_config_file latest =
+        this->find_config_file_in_directory_and_ancestors(
+            std::move(parent_directory).canonical());
+
+    auto old_config_path_it = this->input_path_config_files_.find(input_path);
+    std::optional<canonical_path> old_config_path =
+        old_config_path_it == this->input_path_config_files_.end()
+            ? std::nullopt
+            : std::optional<canonical_path>(old_config_path_it->second);
+
+    if (latest.path != old_config_path) {
+      configuration* config;
+      if (latest.path.has_value()) {
+        auto loaded_config_it = loaded_config_files.find(*latest.path);
+        if (loaded_config_it == loaded_config_files.end()) {
+          loaded_config_file& loaded_config = loaded_config_files[*latest.path];
+          loaded_config.file_content = std::move(latest.file_content);
+          loaded_config.config.reset();
+          loaded_config.config.set_config_file_path(*latest.path);
+          loaded_config.config.load_from_json(&loaded_config.file_content);
+          config = &loaded_config.config;
+        } else {
+          config = &loaded_config_it->second.config;
+        }
+      } else {
+        config = &this->default_config_;
+      }
+      changes.emplace_back(configuration_change{
+          .watched_path = &input_path,
+          .config = config,
+      });
+      if (latest.path.has_value()) {
+        this->input_path_config_files_.insert_or_assign(input_path,
+                                                        *latest.path);
+      } else {
+        this->input_path_config_files_.erase(input_path);
+      }
+    }
+  }
+
+  this->loaded_config_files_ = std::move(loaded_config_files);
+
+  for (auto& [config_path, loaded_config] : this->loaded_config_files_) {
+    // TODO(strager): Avoid reading config files again.
+    // (find_config_file_in_directory_and_ancestors in the loop above already
+    // read the config file.)
+    read_file_result config_json = this->fs_->read_file(config_path);
+    if (!config_json.ok()) {
+      continue;
+    }
+
+    bool did_change = loaded_config.file_content != config_json.content;
+    if (did_change) {
+      loaded_config.file_content = std::move(config_json.content);
+      loaded_config.config.reset();
+      loaded_config.config.set_config_file_path(config_path);
+      loaded_config.config.load_from_json(&loaded_config.file_content);
+
+      for (const auto& entry : this->input_path_config_files_) {
+        const std::string& input_path = entry.first;
+        const canonical_path& input_config_path = entry.second;
+        if (input_config_path == config_path) {
+          auto existing_change_it =
+              std::find_if(changes.begin(), changes.end(),
+                           [&](const configuration_change& change) {
+                             return *change.watched_path == input_path;
+                           });
+          bool already_changed = existing_change_it != changes.end();
+          if (!already_changed) {
+            changes.emplace_back(configuration_change{
+                .watched_path = &input_path,
+                .config = &loaded_config.config,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return changes;
 }
 
 basic_configuration_filesystem*
