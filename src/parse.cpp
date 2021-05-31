@@ -40,9 +40,6 @@
 #define QLJS_PARSER_UNIMPLEMENTED() \
   (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
 
-#define QLJS_PARSER_DEPTH_LIMIT_EXCEEDED() \
-  (this->crash_on_depth_limit_exceeded(__FILE__, __LINE__, __func__))
-
 namespace quick_lint_js {
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
@@ -76,11 +73,20 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
                         was_in_switch_statement);
 }
 
+parser::depth_guard parser::enter_depth() {
+  return depth_guard(this, this->depth_);
+}
+
 parser::loop_guard parser::enter_loop() {
   return loop_guard(this, std::exchange(this->in_loop_statement_, true));
 }
 
 expression* parser::parse_expression(precedence prec) {
+  depth_guard guard = this->enter_depth();
+  this->depth_++;
+  if (this->depth_ > this->stack_limit) {
+    QLJS_PARSER_UNIMPLEMENTED();
+  }
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
@@ -267,17 +273,10 @@ expression* parser::parse_primary_expression(precedence prec) {
   // (x) => {}    // Arrow function.
   // (x + y * z)  // Parenthesized expression.
   case token_type::left_paren: {
-    this->depth_++;
-    if (this->depth_ > this->limit_) {
-      QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
-    }
     source_code_span left_paren_span = this->peek().span();
     this->skip();
 
     if (this->peek().type == token_type::right_paren) {
-      if (this->depth_ > 0) {
-        this->depth_--;
-      }
       source_code_span right_paren_span = this->peek().span();
       this->skip();
       if (this->peek().type == token_type::equal_greater) {
@@ -322,10 +321,6 @@ expression* parser::parse_primary_expression(precedence prec) {
 
   // [x, 3, f()]  // Array literal.
   case token_type::left_square: {
-    this->depth_++;
-    if (this->depth_ > this->limit_) {
-      QLJS_PARSER_DEPTH_LIMIT_EXCEEDED();
-    }
     const char8* left_square_begin = this->peek().begin;
     const char8* right_square_end;
     this->skip();
@@ -362,9 +357,6 @@ expression* parser::parse_primary_expression(precedence prec) {
         break;
       }
       children.emplace_back(child);
-    }
-    if (this->depth_ > 0) {
-      this->depth_--;
     }
     expression* ast = this->make_expression<expression::array>(
         this->expressions_.make_array(std::move(children)),
@@ -1361,6 +1353,11 @@ expression* parser::parse_arrow_function_body_impl(
 expression* parser::parse_function_expression(function_attributes attributes,
                                               const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
+  depth_guard guard = this->enter_depth();
+  this->depth_++;
+  if (this->depth_ > this->stack_limit) {
+    QLJS_PARSER_UNIMPLEMENTED();
+  }
   this->skip();
   attributes = this->parse_generator_star(attributes);
 
@@ -2132,41 +2129,16 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
 #if QLJS_HAVE_SETJMP
-  if (this->have_unimplemented_token_jmp_buf_) {
+  if (this->have_fatal_parse_error_jmp_buf_) {
     this->error_reporter_->report(error_unexpected_token{
         .token = this->peek().span(),
     });
-    std::longjmp(this->unimplemented_token_jmp_buf_, 1);
+    std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
     QLJS_UNREACHABLE();
   }
 #endif
 
   std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
-               qljs_file_name, qljs_line, qljs_function_name,
-               to_string(this->peek().type));
-  cli_locator locator(this->lexer_.original_input());
-  cli_source_position token_position = locator.position(this->peek().begin);
-  std::fprintf(stderr, " on line %d column %d", token_position.line_number,
-               token_position.column_number);
-  std::fprintf(stderr, "\n");
-
-  QLJS_CRASH_DISALLOWING_CORE_DUMP();
-}
-
-void parser::crash_on_depth_limit_exceeded(const char* qljs_file_name,
-                                           int qljs_line,
-                                           const char* qljs_function_name) {
-#if QLJS_HAVE_SETJMP
-  if (this->have_parser_depth_limit_exceeded_jmp_buf) {
-    this->error_reporter_->report(error_depth_limit_exceeded{
-        .token = this->peek().span(),
-    });
-    std::longjmp(this->parser_depth_limit_exceeded_jmp_buf_, 1);
-    QLJS_UNREACHABLE();
-  }
-#endif
-
-  std::fprintf(stderr, "%s:%d: fatal: parser depth limit exceeded in %s: %s",
                qljs_file_name, qljs_line, qljs_function_name,
                to_string(this->peek().type));
   cli_locator locator(this->lexer_.original_input());

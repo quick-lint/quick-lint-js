@@ -210,10 +210,6 @@
           comma))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_depth_limit_exceeded, "E203", { source_code_span token; },         \
-      .error(QLJS_TRANSLATABLE("depth limit exceeded"), token))                \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E065", { source_code_span else_token; },          \
       .error(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),            \
              else_token))                                                      \

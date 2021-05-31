@@ -247,7 +247,7 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   parser p(code, &error_reporter);
   linter l(&error_reporter, &config.globals());
 #if QLJS_HAVE_SETJMP
-  bool ok = p.parse_and_visit_module_catching_unimplemented(l);
+  bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
   if (!ok) {
     // TODO(strager): Send a window/logMessage to the client reporting that the
     // parser crashed.

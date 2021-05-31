@@ -515,7 +515,7 @@ TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
   {
     spy_visitor v;
     parser p(&unimplemented_token_code, &v);
-    bool ok = p.parse_and_visit_module_catching_unimplemented(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.errors,
@@ -540,75 +540,75 @@ TEST(test_escape_first_character_in_keyword,
   EXPECT_EQ(escape_first_character_in_keyword(u8"ZYXW"_sv), u8"\\u{5a}YXW");
 }
 
-#if QLJS_HAVE_SETJMP
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    string8 opening_parens(300, '(');
+    string8 opening_parens(parser::stack_limit - 1, '(');
     padded_string code(opening_parens);
     spy_visitor v;
     parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
   }
 
   {
-    string8 left_curly(300, '{');
+    string8 left_curly(parser::stack_limit, '{');
     padded_string code(left_curly);
     spy_visitor v;
     parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
   }
 
   {
-    string8 left_square_bracket(300, '[');
+    string8 left_square_bracket(parser::stack_limit - 1, '[');
     padded_string code(left_square_bracket);
     spy_visitor v;
     parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
   }
 }
 
+#if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
-    string8 opening_parens(301, '(');
+    string8 opening_parens(parser::stack_limit + 1, '(');
     padded_string code(opening_parens);
     spy_visitor v;
     parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_depth_limit_exceeded, token,
+                    error_unexpected_token, token,
                     offsets_matcher(&code, opening_parens.size() - 1, u8"("))));
   }
 
   {
-    string8 left_curly(301, '{');
+    string8 left_curly(parser::stack_limit + 1, '{');
     padded_string code(left_curly);
     spy_visitor v;
     parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_depth_limit_exceeded, token,
+                    error_unexpected_token, token,
                     offsets_matcher(&code, left_curly.size() - 1, u8"{"))));
   }
 
   {
-    string8 left_square_bracket(301, '[');
+    string8 left_square_bracket(parser::stack_limit + 1, '[');
     padded_string code(left_square_bracket);
     spy_visitor v;
     parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_parser_depth_limit_exceeded(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
-            error_depth_limit_exceeded, token,
+            error_unexpected_token, token,
             offsets_matcher(&code, left_square_bracket.size() - 1, u8"["))));
   }
 }
