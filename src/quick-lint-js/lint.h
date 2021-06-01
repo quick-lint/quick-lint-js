@@ -13,6 +13,31 @@
 #include <vector>
 
 namespace quick_lint_js {
+struct global_declared_variable {
+  string8_view name;
+  bool is_writable;
+  // If false, the variable was already lexically declared in the module thus
+  // cannot be declared by the user with 'let'.
+  bool is_shadowable;
+
+  variable_kind kind() const noexcept;
+};
+
+class global_declared_variable_set {
+ public:
+  void add_predefined_global_variable(const char8 *name, bool is_writable);
+  void add_predefined_module_variable(const char8 *name, bool is_writable);
+  global_declared_variable *add_variable(string8_view name);
+
+  void add_default_variables();
+
+  const global_declared_variable *find(identifier name) const noexcept;
+  const global_declared_variable *find(string8_view name) const noexcept;
+
+ private:
+  std::vector<global_declared_variable> variables_;
+};
+
 // A linter is a parse_visitor which finds non-syntax bugs.
 //
 // linter-s detect the following bugs (and possibly more):
@@ -24,7 +49,8 @@ namespace quick_lint_js {
 // The linter class implements variable lookup internally.
 class linter {
  public:
-  explicit linter(error_reporter *error_reporter);
+  explicit linter(error_reporter *error_reporter,
+                  const global_declared_variable_set *global_variables);
 
   void visit_enter_block_scope();
   void visit_enter_with_scope();
@@ -58,15 +84,6 @@ class linter {
     declared_variable_scope declaration_scope;
   };
 
-  // declared_variable, but for global_declared_variable_set.
-  struct global_declared_variable {
-    string8_view name;
-    variable_kind kind;
-    // If false, the variable was already lexically declared in the module thus
-    // cannot be declared by the user with 'let'.
-    bool is_shadowable;
-  };
-
   enum class used_variable_kind {
     _export,
     _typeof,
@@ -97,18 +114,6 @@ class linter {
 
    private:
     std::vector<declared_variable> variables_;
-  };
-
-  // declared_variable_set, but for global_scope.
-  class global_declared_variable_set {
-   public:
-    void add_predefined_global_variable(const char8 *name, variable_kind);
-    void add_predefined_module_variable(const char8 *name, variable_kind);
-
-    const global_declared_variable *find(identifier name) const noexcept;
-
-   private:
-    std::vector<global_declared_variable> variables_;
   };
 
   // A scope tracks variable declarations and references in a lexical JavaScript
@@ -208,9 +213,6 @@ class linter {
 
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
-
-  static linter::global_declared_variable_set make_global_variables();
-  const static linter::global_declared_variable_set *get_global_variables();
 
   scopes scopes_;
 

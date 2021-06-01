@@ -7,6 +7,9 @@
   //<%
   let path = await import("path");
   function makeRelativeURI(uri) {
+    if (/^\w+:/.test(uri)) {
+      return uri;
+    }
     return path.posix.relative(currentURI, uri) + "/";
   }
 
@@ -15,7 +18,10 @@
     ["/demo/", "Try online"],
     ["/errors/", "Error docs"],
     ["/cli/", "CLI docs"],
+    ["/config/", "Config docs"],
     ["/benchmarks/", "Benchmarks"],
+    ["https://github.com/quick-lint/quick-lint-js", "Code on GitHub"],
+    ["/contact/", "Contact"],
   ];
   //%>
 </script>
@@ -32,9 +38,6 @@
     <% } else { %>
     <li><a href="<%= makeRelativeURI(pageURL) %>"><%= pageTitle %></a></li>
     <% } %> <% } %>
-    <li>
-      <a href="https://github.com/quick-lint/quick-lint-js">Code on GitHub</a>
-    </li>
   </ul>
 </nav>
 

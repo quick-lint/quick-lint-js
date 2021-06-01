@@ -3026,6 +3026,28 @@ class parser {
               });
           goto initialize_variable;
 
+        case token_type::kw_await:
+        case token_type::kw_class:
+        case token_type::kw_function:
+        case token_type::kw_new:
+        case token_type::kw_null:
+        case token_type::kw_this:
+        case token_type::kw_typeof: {
+          if (this->peek().has_leading_newline) {
+            this->visit_binding_element(variable, v, declaration_kind);
+            this->lexer_.insert_semicolon();
+            return;
+          }
+          const char8 *here = this->lexer_.end_of_previous_token();
+          this->error_reporter_->report(error_missing_equal_after_variable{
+              .expected_equal = source_code_span(here, here),
+          });
+          this->parse_and_visit_expression(
+              v, precedence{.commas = false, .in_operator = allow_in_operator});
+          this->visit_binding_element(variable, v, declaration_kind);
+          break;
+        }
+
         // let x;
         // let x, y;
         default:

@@ -33,12 +33,15 @@ quick_lint_js_add_library(
   c-api.cpp
   char8.cpp
   cli-location.cpp
+  configuration-loader.cpp
+  configuration.cpp
   crash.cpp
   document.cpp
   error-collector.cpp
   error-formatter.cpp
   error-list.cpp
   file-handle.cpp
+  file-path.cpp
   file.cpp
   gmo.cpp
   integer.cpp
@@ -67,6 +70,8 @@ quick_lint_js_add_library(
   quick-lint-js/c-api.h
   quick-lint-js/char8.h
   quick-lint-js/cli-location.h
+  quick-lint-js/configuration-loader.h
+  quick-lint-js/configuration.h
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
@@ -79,6 +84,7 @@ quick_lint_js_add_library(
   quick-lint-js/expression.h
   quick-lint-js/feature.h
   quick-lint-js/file-handle.h
+  quick-lint-js/file-path.h
   quick-lint-js/file.h
   quick-lint-js/force-inline.h
   quick-lint-js/gmo.h
@@ -130,6 +136,9 @@ quick_lint_js_add_library(
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (WIN32)
+  target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
+endif ()
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-lib

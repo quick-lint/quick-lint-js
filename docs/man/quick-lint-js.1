@@ -1,6 +1,6 @@
 .\" Copyright (C) 2020  Matthew Glazar
 .\" See end of file for extended copyright information.
-.\" This file was generated using generate-cli-docs.
+.\" This file was generated using generate-man-pages.
 .
 .\" Manual page for the 'man' utility.
 .
@@ -50,7 +50,7 @@ This command has two modes:
 .RS 4
 Batch mode (default).
 Check the given files, and report errors to the terminal (standard error).
-\-\-output\-format can be used to customize how errors look.
+\fB\-\-output\-format\fP can be used to customize how errors look.
 .RE
 .sp
 \fBquick\-lint\-js\fP \-\-lsp\-server
@@ -65,9 +65,27 @@ Use this mode to integrate with code editors supporting LSP.
 .RS 4
 Customize how errors are printed. \fIformat\fP is one of the following:
 .sp
-\- \fBgnu\-like\fP (default): a human\-readable format similar to GCC.
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBgnu\-like\fP (default): a human\-readable format similar to GCC.
+.RE
 .sp
-\- \fBvim\-qflist\-json\fP: machine\-readable JSON which can be given to Vim\(cqs \fIsetqflist\fP function.
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBvim\-qflist\-json\fP: machine\-readable JSON which can be given to Vim\(cqs \fIsetqflist\fP function.
+.RE
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -75,15 +93,29 @@ Incompatible with \fB\-\-lsp\-server\fP.
 \fB\-\-vim\-file\-bufnr\fP=\fInumber\fP
 .RS 4
 Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=vim\-qflist\-json\fP option.
-\fB\-\-vim\-file\-bufnr\fP applies only to files which are given later in the command line.
-Therefore, if multiple files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
+.sp
+\fB\-\-vim\-file\-bufnr\fP applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
+.RE
+.sp
+\fB\-\-config\-file\fP=\fIfile\fP
+.RS 4
+Read configuration options from \fIfile\fP and apply them to input files which are given later in the command line.
+See \fBquick\-lint\-js.config\fP(5) for the format of configuration files.
+.sp
+If \fB\-\-config\-file\fP is given twice, then the \fIfile\fP for the first \fB\-\-config\-file\fP option applies only to the input files between the two \fB\-\-config\-file\fP options, and the \fIfile\fP for the second \fB\-\-config\-file\fP option apples only to the input files after the second \fB\-\-config\-file\fP option.
+See the Example section for an example.
+.sp
+If \fB\-\-config\-file\fP is not given, an empty configuration file is assumed.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
 .RE
 .sp
 \fB\-\-exit\-fail\-on\fP=\fIerrors\fP
 .RS 4
 Cause \fBquick\-lint\-js\fP to exit with a non\-zero exit code if any of the discovered errors is listed in \fIerrors\fP.
 .sp
-See the "ERROR LISTS" section for a description of the format for \fIerrors\fP.
+See the [error\-lists] section for a description of the format for \fIerrors\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -102,6 +134,12 @@ Use this mode to integrate with code editors supporting LSP.
 An editor can send LSP requests and notifications to \fBquick\-lint\-js\fP via standard input, and receive LSP responses and notifications from standard output.
 .sp
 Incompatible with \fB\-\-output\-format\fP.
+.RE
+.sp
+\fB\-\-dump\-config\fP
+.RS 4
+Print quick\-lint\-js\(aq configuration and exit.
+\fBThis option is not yet implemented.\fP
 .RE
 .sp
 \fB\-h\fP, \fB\-\-help\fP
@@ -258,9 +296,27 @@ $ echo $?
 .br
 .RE
 .ll
+.sp
+To lint source files with a strict configuration file and lint test files with a lax configuration file:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+$ \fBquick\-lint\-js\fP \(rs
+    \-\-config\-file strict\-quick\-lint\-js.config src/index.js src/helpers.js \(rs
+    \-\-config\-file lax\-quick\-lint\-js.config test/test\-app.js
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
 .SH "SEE ALSO"
 .sp
 \fBeslint\fP(1)
+\fBquick\-lint\-js.config\fP(1)
 
 .\" quick-lint-js finds bugs in JavaScript programs.
 .\" Copyright (C) 2020  Matthew Glazar

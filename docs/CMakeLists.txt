@@ -5,8 +5,12 @@ cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 
 install(
-  FILES quick-lint-js.1
+  FILES man/quick-lint-js.1
   DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+)
+install(
+  FILES man/quick-lint-js.config.5
+  DESTINATION "${CMAKE_INSTALL_MANDIR}/man5"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.
