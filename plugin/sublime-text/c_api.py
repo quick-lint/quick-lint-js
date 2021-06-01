@@ -2,6 +2,7 @@
 # See end of file for extended copyright information.
 
 import os
+import zipfile
 from ctypes import *
 
 
@@ -41,14 +42,46 @@ def get_script_path_directory():
     return os.path.dirname(os.path.realpath(__file__))
 
 
+def string_remove_suffix(string, suffix):
+    return string[: -len(suffix)]
+
+
+def load_library():
+    # If the plugin is inside a package you will need to unzip the
+    # shared library from inside the package before continuing.
+    # From:
+    # |-- quick-lint-js-v020-linux_x86_64.sublime-package
+    #
+    # To:
+    # |-- quick-lint-js-v020-linux_x86_64.sublime-package
+    # |-- quick-lint-js-v020-linux_x86_64
+    #     |-- libquick-lint-js-lib.so
+    script_path_directory = get_script_path_directory()
+    if script_path_directory.endswith(".sublime-package"):
+        with zipfile.ZipFile(script_path_directory, mode="r") as package_file:
+            lib_path_directory = string_remove_suffix(
+                script_path_directory, ".sublime-package"
+            )
+            package_file.extract(
+                "libquick-lint-js-lib.so",
+                path=lib_path_directory,
+            )
+    else:
+        lib_path_directory = script_path_directory
+
+    # Load the shared library.
+    lib_path = lib_path_directory + "/libquick-lint-js-lib.so"
+    lib = CDLL(lib_path)
+    return lib
+
+
 def set_argtypes_and_restype(func, argtypes=[], restype=None):
     func.argtypes = argtypes
     func.restype = restype
 
 
 def create_library():
-    lib_path = get_script_path_directory() + "/libquick-lint-js-lib.so"
-    lib = CDLL(lib_path)
+    lib = load_library()
     set_argtypes_and_restype(
         lib.qljs_web_demo_create_parser, restype=ParserStructurePointer
     )
