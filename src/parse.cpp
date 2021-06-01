@@ -83,10 +83,6 @@ parser::loop_guard parser::enter_loop() {
 
 expression* parser::parse_expression(precedence prec) {
   depth_guard guard = this->enter_depth();
-  this->depth_++;
-  if (this->depth_ > this->stack_limit) {
-    QLJS_PARSER_UNIMPLEMENTED();
-  }
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
@@ -1354,10 +1350,6 @@ expression* parser::parse_function_expression(function_attributes attributes,
                                               const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   depth_guard guard = this->enter_depth();
-  this->depth_++;
-  if (this->depth_ > this->stack_limit) {
-    QLJS_PARSER_UNIMPLEMENTED();
-  }
   this->skip();
   attributes = this->parse_generator_star(attributes);
 

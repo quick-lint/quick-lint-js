@@ -598,10 +598,6 @@ class parser {
     // { statement; statement; }
     case token_type::left_curly: {
       depth_guard guard = this->enter_depth();
-      this->depth_++;
-      if (this->depth_ > this->stack_limit) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
@@ -1218,10 +1214,6 @@ class parser {
       Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes) {
     depth_guard d_guard = this->enter_depth();
-    this->depth_++;
-    if (this->depth_ > this->stack_limit) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
     function_guard guard = this->enter_function(attributes);
 
     if (this->peek().type == token_type::star) {
@@ -3420,7 +3412,12 @@ class parser {
   class depth_guard {
    public:
     explicit depth_guard(parser *p, int old_depth_value) noexcept
-        : parser_(p), old_depth_value_(old_depth_value) {}
+        : parser_(p), old_depth_value_(old_depth_value) {
+      p->depth_++;
+      if (p->depth_ > p->stack_limit) {
+        p->crash_on_unimplemented_token(__FILE__, __LINE__, __func__);
+      }
+    }
 
     depth_guard(const depth_guard &) = delete;
     depth_guard &operator=(const depth_guard &) = delete;
