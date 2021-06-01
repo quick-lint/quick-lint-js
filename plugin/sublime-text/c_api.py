@@ -37,7 +37,7 @@ class ParserStructure(Structure):
 ParserStructurePointer = POINTER(ParserStructure)
 
 
-def get_script_path():
+def get_script_path_directory():
     return os.path.dirname(os.path.realpath(__file__))
 
 
@@ -47,7 +47,7 @@ def set_argtypes_and_restype(func, argtypes=[], restype=None):
 
 
 def create_library():
-    lib_path = get_script_path() + "/libquick-lint-js-lib.so"
+    lib_path = get_script_path_directory() + "/libquick-lint-js-lib.so"
     lib = CDLL(lib_path)
     set_argtypes_and_restype(
         lib.qljs_web_demo_create_parser, restype=ParserStructurePointer
