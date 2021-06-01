@@ -199,6 +199,7 @@ Nygard][ADR-bible].
 * [ADR006: Location tracking](ADR006-Location-tracking.md)
 * [ADR008: Exceptions](ADR008-Exceptions.md)
 * [ADR009: Website](ADR009-Website.md)
+* [ADR010: LSP server](ADR010-LSP-server.md)
 
 ### Rejected ADRs
 

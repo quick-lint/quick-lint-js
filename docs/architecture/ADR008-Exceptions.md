@@ -30,3 +30,8 @@ disabling C++ exceptions.
 
 `setjmp`/`longjmp` is foreign to many C++ programmers and is harder to use than
 C++ exceptions.
+
+simdjson's On Demand API exposes parse errors in every API call. This means that
+error handling code needs to be written all over. simdjson's exception-based On
+Demand API would simplify error handling significantly. We haven't determined
+yet whether `setjmp`/`longjmp` can be used.
