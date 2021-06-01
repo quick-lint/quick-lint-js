@@ -21,6 +21,10 @@
 #include <filesystem>
 #endif
 
+#if QLJS_HAVE_MKDTEMP
+#include <sys/stat.h>
+#endif
+
 namespace quick_lint_js {
 #if QLJS_HAVE_MKDTEMP
 std::string make_temporary_directory() {
@@ -62,6 +66,18 @@ std::string make_temporary_directory() {
 #else
 #error "Unsupported platform"
 #endif
+
+void create_directory(const std::string &path) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::filesystem::create_directory(path);
+#else
+  if (::mkdir(path.c_str(), 0755) != 0) {
+    std::fprintf(stderr, "error: failed to create directory %s: %s\n",
+                 path.c_str(), std::strerror(errno));
+    std::terminate();
+  }
+#endif
+}
 
 #if QLJS_HAVE_FTS_H
 void delete_directory_recursive(const std::string &path) {
@@ -117,7 +133,7 @@ void delete_directory_recursive(const std::string &path) {
   ::fts_close(fts);
 }
 #elif QLJS_HAVE_STD_FILESYSTEM
-void delete_directory_recursive(const std::string &path) {
+void delete_directory_recursive(const std::string& path) {
   std::filesystem::remove_all(std::filesystem::path(path));
 }
 #endif

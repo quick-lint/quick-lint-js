@@ -21,10 +21,6 @@
 #include <filesystem>
 #endif
 
-#if QLJS_HAVE_MKDTEMP
-#include <sys/stat.h>
-#endif
-
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 #define EXPECT_DEFAULT_CONFIG(config)                                  \
@@ -50,18 +46,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-void create_directory(const std::string& path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::create_directory(path);
-#else
-  if (::mkdir(path.c_str(), 0755) != 0) {
-    std::fprintf(stderr, "error: failed to create directory %s: %s\n",
-                 path.c_str(), std::strerror(errno));
-    std::terminate();
-  }
-#endif
-}
-
 std::string get_current_working_directory() {
 #if QLJS_HAVE_STD_FILESYSTEM
   return std::filesystem::current_path().string();
