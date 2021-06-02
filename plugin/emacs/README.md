@@ -12,7 +12,7 @@ work.
 Flycheck plugin must be installed and configured in order for this plugin to
 work:
 
-* [Flycheck] - On the fly syntax checking for GNU Emacs 31 or newer
+* [Flycheck] - On the fly syntax checking, version 31 or newer
 
 ## Installation
 
