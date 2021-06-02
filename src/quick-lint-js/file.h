@@ -30,15 +30,25 @@ read_file_result read_stdin(void);
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
 
-struct canonical_path_result {
-  std::string path;
-  std::string error;
+class canonical_path_result {
+ public:
+  explicit canonical_path_result(const char *path);
 
-  bool ok() const noexcept { return this->error.empty(); }
-
+  std::string_view path() const &noexcept;
+  std::string &&path() && noexcept;
   const char *c_str() const noexcept;
 
+  std::string &&error() && noexcept;
+
+  bool ok() const noexcept { return this->error_.empty(); }
+
   static canonical_path_result failure(std::string &&error);
+
+ private:
+  explicit canonical_path_result();
+
+  std::string path_;
+  std::string error_;
 };
 
 canonical_path_result canonicalize_path(const char *path);

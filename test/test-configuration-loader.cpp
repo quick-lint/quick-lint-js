@@ -33,10 +33,12 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 #define EXPECT_SAME_FILE(path_a, path_b)                                   \
   do {                                                                     \
     canonical_path_result path_a_canonical_ = canonicalize_path((path_a)); \
-    ASSERT_TRUE(path_a_canonical_.ok()) << path_a_canonical_.error;        \
+    ASSERT_TRUE(path_a_canonical_.ok())                                    \
+        << std::move(path_a_canonical_).error();                           \
     canonical_path_result path_b_canonical_ = canonicalize_path((path_b)); \
-    ASSERT_TRUE(path_b_canonical_.ok()) << path_b_canonical_.error;        \
-    EXPECT_EQ(path_a_canonical_.path, path_b_canonical_.path)              \
+    ASSERT_TRUE(path_b_canonical_.ok())                                    \
+        << std::move(path_b_canonical_).error();                           \
+    EXPECT_EQ(path_a_canonical_.path(), path_b_canonical_.path())          \
         << (path_a) << " should be the same file as " << (path_b);         \
   } while (false)
 
@@ -208,7 +210,8 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
     });
 
     EXPECT_FALSE(config);
-    EXPECT_THAT(loader.error(), HasSubstr(canonicalize_path(config_file).path));
+    EXPECT_THAT(loader.error(),
+                HasSubstr(canonicalize_path(config_file).c_str()));
     EXPECT_THAT(
         loader.error(),
         AnyOf(HasSubstr("Is a directory"),

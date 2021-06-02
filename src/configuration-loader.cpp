@@ -10,6 +10,7 @@
 #include <quick-lint-js/warning.h>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 
 using namespace std::literals::string_view_literals;
 
@@ -25,7 +26,7 @@ configuration* configuration_loader::load_for_file(const file_to_lint& file) {
 configuration* configuration_loader::load_config_file(const char* config_path) {
   canonical_path_result canonical_config_path = canonicalize_path(config_path);
   if (!canonical_config_path.ok()) {
-    this->last_error_ = std::move(canonical_config_path.error);
+    this->last_error_ = std::move(canonical_config_path).error();
     return nullptr;
   }
 
@@ -38,8 +39,12 @@ configuration* configuration_loader::load_config_file(const char* config_path) {
     this->last_error_ = std::move(config_json.error);
     return nullptr;
   }
-  configuration* config =
-      &this->loaded_config_files_[canonical_config_path.path];
+  auto [config_it, inserted] = this->loaded_config_files_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(canonical_config_path.path()),
+      std::forward_as_tuple());
+  QLJS_ASSERT(inserted);
+  configuration* config = &config_it->second;
   config->set_config_file_path(canonical_config_path.c_str());
   config->load_from_json(&config_json.content);
   return config;
@@ -53,13 +58,13 @@ configuration* configuration_loader::find_and_load_config_file(
   canonical_path_result canonical_input_path =
       canonicalize_path(input_path ? input_path : ".");
   if (!canonical_input_path.ok()) {
-    this->last_error_ = std::move(canonical_input_path.error);
+    this->last_error_ = std::move(canonical_input_path).error();
     return nullptr;
   }
 
   std::string parent_directory =
-      input_path ? parent_path(std::move(canonical_input_path.path))
-                 : std::move(canonical_input_path.path);
+      input_path ? parent_path(std::move(canonical_input_path).path())
+                 : std::move(canonical_input_path).path();
 
   // TODO(strager): Directory -> config to reduce lookups in cases like the
   // following:
