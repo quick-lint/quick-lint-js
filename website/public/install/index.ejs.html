@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
-<html>
+<html lang="en">
   <head>
     <%- await include("../common-head.ejs.html") %>
     <title>quick-lint-js: installing</title>
@@ -137,7 +137,12 @@
       }
 
       .long-shell-command-line {
+<<<<<<< HEAD
         /* 6 = "$ ".length + 4 spaces of indentation */
+=======
+        /* 4 = "$ ".length + 4 spaces of indentation */
+        display: inline-block;
+>>>>>>> fixed validation errors for /install page
         padding-left: 6ch;
         text-indent: -6ch;
         white-space: normal;
@@ -157,7 +162,10 @@
 
     <main>
       <h2>Install quick-lint-js</h2>
-      <p>Latest version: 0.2.0 (beta) (released <time>April 5, 2021</time>)</p>
+      <p>
+        Latest version: 0.2.0 (beta) (released
+        <time datetime="2021-04-05">April 5, 2021</time>)
+      </p>
 
       <figure class="comparison install-comparison">
         <table>
@@ -187,7 +195,7 @@
                   class="install-logo"
                   src="../gnome-terminal.svg"
                   alt=""
-                  aria-labeled-by="install-artifact-cli"
+                  aria-labelledby="install-artifact-cli"
                 /><br /><span id="install-artifact-cli">CLI</span>
               </th>
               <th>LSP server</th>
@@ -196,7 +204,7 @@
                   class="install-logo"
                   src="../vscode.png"
                   alt=""
-                  aria-labeled-by="install-artifact-vscode"
+                  aria-labelledby="install-artifact-vscode"
                 /><br /><span id="install-artifact-vscode"
                   >VS&nbsp;Code<br />extension</span
                 >
@@ -206,7 +214,7 @@
                   class="install-logo"
                   src="../vim.gif"
                   alt=""
-                  aria-labeled-by="install-artifact-vim"
+                  aria-labelledby="install-artifact-vim"
                 /><br /><span id="install-artifact-vim">Vim<br />plugin</span>
               </th>
             </tr>
@@ -219,7 +227,7 @@
                     class="install-logo"
                     src="../npm.svg"
                     alt=""
-                    aria-labeled-by="install-method-npm"
+                    aria-labelledby="install-method-npm"
                   />&nbsp;<span id="install-method-npm">npm</span></a
                 >
               </th>
@@ -286,7 +294,7 @@
                     class="install-logo"
                     src="../homebrew.svg"
                     alt=""
-                    aria-labeled-by="install-method-homebrew"
+                    aria-labelledby="install-method-homebrew"
                   />&nbsp;<span id="install-method-homebrew">Homebrew</span></a
                 >
               </th>
@@ -321,13 +329,13 @@
                     class="install-logo"
                     src="../debian.svg"
                     alt=""
-                    aria-labeled-by="install-method-debian"
+                    aria-labelledby="install-method-debian"
                   />&nbsp;<span id="install-method-debian">Debian</span
                   ><br /><img
                     class="install-logo"
                     src="../ubuntu.svg"
                     alt=""
-                    aria-labeled-by="install-method-ubuntu"
+                    aria-labelledby="install-method-ubuntu"
                   />&nbsp;<span id="install-method-ubuntu">Ubuntu</span></a
                 >
               </th>
@@ -362,7 +370,7 @@
                     class="install-logo"
                     src="../nix.svg"
                     alt=""
-                    aria-labeled-by="install-method-nix"
+                    aria-labelledby="install-method-nix"
                   />&nbsp;<span id="install-method-nix">Nix</span></a
                 >
               </th>
@@ -402,7 +410,7 @@
                     class="install-logo"
                     src="../arch-linux.svg"
                     alt=""
-                    aria-labeled-by="install-method-arch-linux"
+                    aria-labelledby="install-method-arch-linux"
                   />&nbsp;<span id="install-method-arch-linux"
                     >Arch Linux</span
                   ></a
@@ -439,7 +447,7 @@
                     class="install-logo"
                     src="../vscode.png"
                     alt=""
-                    aria-labeled-by="install-method-vscode"
+                    aria-labelledby="install-method-vscode"
                   />&nbsp;<span id="install-method-vscode"
                     >VS&nbsp;Code<br />marketplace</span
                   ></a
@@ -488,7 +496,7 @@
                     class="install-logo"
                     src="../open-vsx.svg"
                     alt=""
-                    aria-labeled-by="install-method-open-vsx"
+                    aria-labelledby="install-method-open-vsx"
                   />&nbsp;<span id="install-method-open-vsx"
                     >Open&nbsp;VSX</span
                   ></a
@@ -990,7 +998,7 @@
           quick-lint-js' tap to your Homebrew installation:
         </p>
         <blockquote>
-          <pre><code><div class="long-shell-command-line"><kbd>brew tap quick-lint/quick-lint-js https://github.com/quick-lint/quick-lint-js.git</kbd></div></code></pre>
+          <pre><code><span class="long-shell-command-line"><kbd>brew tap quick-lint/quick-lint-js https://github.com/quick-lint/quick-lint-js.git</kbd></span></code></pre>
         </blockquote>
 
         <p>
@@ -1034,7 +1042,7 @@
         <p>Open a terminal, and run the following commands:</p>
         <blockquote>
           <pre><code><kbd>curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -</kbd>
-<div class="long-shell-command-line"><kbd>printf '\n# https://quick-lint-js.com/install/#debian\ndeb https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></div>
+<span class="long-shell-command-line"><kbd>printf '\n# https://quick-lint-js.com/install/#debian\ndeb https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></span>
 <kbd>sudo apt-get update</kbd>
 
 # <img class="install-logo" src="../gnome-terminal.svg" alt="" /> CLI and LSP server
@@ -1540,7 +1548,6 @@ quick-lint-js version 0.2.0</code></pre>
           This option requires
           <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
         </p>
-        <p />
         <h5>
           <img class="os-logo" src="../linux.svg" alt="" />&nbsp;GNU/Linux and
           <img class="os-logo" src="../macos.svg" alt="" />&nbsp;macOS
