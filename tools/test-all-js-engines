@@ -23,7 +23,7 @@ main() {
 
 install_tools() {
   if ! [ -f "${node_bin}/eshost" -a -f "${node_bin}/jsvu" ]; then
-    printf '%s\n' '{"dependencies": {"eshost-cli": "*", "jsvu": "*"}}' >"${HOME}/package.json"
+    printf '%s\n' '{"dependencies": {"eshost-cli": "7.6.0", "jsvu": "*"}}' >"${HOME}/package.json"
     (cd "${HOME}" && npm install --no-audit --no-optional --no-package-lock)
   fi
 }
