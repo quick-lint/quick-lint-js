@@ -5,12 +5,15 @@
 
 let assert = require("assert");
 let vscode = require("vscode");
+let process = require("process");
+
 let {
   DiagnosticSeverity,
   ProcessCrashed,
   createProcessFactoryAsync,
 } = require("quick-lint-js-wasm/quick-lint-js.js");
 
+let PerformanceWriter = require("./performance-writer");
 // TODO(strager): Allow developers to reload the .wasm file.
 let processFactoryPromise = createProcessFactoryAsync();
 
@@ -48,10 +51,11 @@ class DocumentLinterDisposed extends Error {}
 exports.DocumentLinterDisposed = DocumentLinterDisposed;
 
 class DocumentLinter {
-  constructor(document, diagnosticCollection) {
+  constructor(document, diagnosticCollection, performanceWriter) {
     this._document = document;
     this._diagnosticCollection = diagnosticCollection;
     this._state = DocumentLinterState.NO_PARSER;
+    this._performanceWriter = performanceWriter;
 
     // Used only in states: CREATING_PARSER
     this._parserPromise = null;
@@ -182,8 +186,12 @@ class DocumentLinter {
           }
           this._pendingChanges.length = 0;
           // END CRITICAL SECTION (no awaiting above)
-
+          let startTime = process.hrtime.bigint();
           let diags = this._parser.lint();
+          this._performanceWriter.initiateLogging(
+            process.hrtime.bigint() - startTime,
+            this._document.fileName
+          );
           this._updateDocumentDiagnostics(diags);
         } catch (e) {
           // END CRITICAL SECTION (no awaiting above)
@@ -226,8 +234,7 @@ class DocumentLinter {
       this._pendingChanges.length = 0;
       this._state = DocumentLinterState.PARSER_LOADED;
       // END CRITICAL SECTION (no awaiting above)
-
-      let diags = this._parser.lint();
+      let diags = this._parser.lint(this._performanceWriter);
       this._updateDocumentDiagnostics(diags);
     } catch (e) {
       if (e instanceof ProcessCrashed) {
@@ -322,9 +329,9 @@ class DocumentLinter {
 }
 
 class DocumentLinterCollection {
-  constructor(diagnosticCollection) {
+  constructor(diagnosticCollection, performanceWriter) {
     this._diagnosticCollection = diagnosticCollection;
-
+    this._performanceWriter = performanceWriter;
     // Mapping from URI string to DocumentLinter.
     this._linters = new Map();
   }
@@ -333,7 +340,11 @@ class DocumentLinterCollection {
     let documentURIString = document.uri.toString();
     let linter = this._linters.get(documentURIString);
     if (typeof linter === "undefined") {
-      linter = new DocumentLinter(document, this._diagnosticCollection);
+      linter = new DocumentLinter(
+        document,
+        this._diagnosticCollection,
+        this._performanceWriter
+      );
       this._linters.set(documentURIString, linter);
     }
     return linter;
@@ -358,6 +369,7 @@ class DocumentLinterCollection {
   dispose() {
     logAsyncErrors(async () => {
       await this.disposeAsync();
+      this._performanceWriter.writeToFile();
     });
   }
 }
@@ -365,11 +377,11 @@ exports.DocumentLinterCollection = DocumentLinterCollection;
 
 let toDispose = [];
 
-async function activateAsync() {
+async function activateAsync(ExtensionContext) {
   let diagnostics = vscode.languages.createDiagnosticCollection();
   toDispose.push(diagnostics);
-
-  let linters = new DocumentLinterCollection(diagnostics);
+  let performanceWriter = new PerformanceWriter(ExtensionContext);
+  let linters = new DocumentLinterCollection(diagnostics, performanceWriter);
   toDispose.push(linters);
 
   toDispose.push(

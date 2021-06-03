@@ -1,0 +1,114 @@
+// Copyright (C) 2020  Matthew Glazar
+// See end of file for extended copyright information.
+
+const fs = require("fs");
+const path = require("path");
+const process = require("process");
+
+class PerformanceWriter {
+  constructor(extensionContext) {
+    this._extensionContext = extensionContext;
+    this._dataAttributes = {
+      columns: ["timestamp", "file-ref", "event-id", "file-name-or-duration"],
+    };
+    this._tmpLogLines = [];
+    this._fileIndex = 0;
+    this._writeToFileTimer = null;
+    this._timerActivated = false;
+    if (!fs.existsSync(this._extensionContext.logUri.fsPath)) {
+      fs.mkdirSync(this._extensionContext.logUri.fsPath);
+      console.log(this._extensionContext.logUri.fsPath);
+      this.writeHeaderLine();
+    }
+    this._performanceTxtPath = path.join(
+      this._extensionContext.logUri.fsPath,
+      "qljsPerformanceTrace.txt"
+    );
+    this._writableStream = fs.createWriteStream(this._performanceTxtPath, {
+      encoding: "utf8",
+      flags: "a",
+    });
+    this._currentSessionMap = {};
+  }
+
+  fileNameOptimizer(fileName) {
+    if (
+      Object.prototype.hasOwnProperty.call(this._currentSessionMap, fileName)
+    ) {
+      this._fileIndex = this._currentSessionMap[fileName];
+    } else {
+      this._fileIndex++;
+      this._currentSessionMap[fileName] = this._fileIndex;
+      this.writeNewFileLine(fileName);
+    }
+  }
+
+  initiateLogging(timeTaken, fileName) {
+    this.fileNameOptimizer(fileName);
+    this.writeExistingFileLine(timeTaken);
+    this.setWriteToFileTimer();
+  }
+
+  writeHeaderLine() {
+    this._tmpLogLines.push(...this._dataAttributes.columns);
+  }
+
+  writeNewFileLine(fileName) {
+    this._tmpLogLines.push(Date.now(), this._fileIndex, "n", fileName);
+  }
+
+  writeExistingFileLine(timeTaken) {
+    this._tmpLogLines.push(Date.now(), this._fileIndex, "p", timeTaken);
+  }
+
+  setWriteToFileTimer() {
+    if (!this._timerActivated) {
+      this._timerActivated = true;
+      this._writeToFileTimer = setInterval(() => {
+        this._armTimer();
+      }, 2000);
+    }
+  }
+
+  _armTimer() {
+    if (this._tmpLogLines.length === 0) {
+      this._timerActivated = false;
+      clearInterval(this._writeToFileTimer);
+    } else {
+      this.writeToFile();
+    }
+  }
+
+  writeToFile() {
+    while (this._tmpLogLines.length > 0) {
+      let tracingLine = this._tmpLogLines.splice(0, 4);
+      if (typeof tracingLine[0] === "string") {
+        tracingLine = tracingLine.join(",");
+      } else {
+        tracingLine = "\n" + tracingLine.join(",");
+      }
+
+      this._writableStream.write(tracingLine);
+    }
+  }
+}
+
+module.exports = PerformanceWriter;
+
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew Glazar
+//
+// This file is part of quick-lint-js.
+//
+// quick-lint-js is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// quick-lint-js is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
