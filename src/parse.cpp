@@ -73,16 +73,12 @@ parser::function_guard parser::enter_function(function_attributes attributes) {
                         was_in_switch_statement);
 }
 
-parser::depth_guard parser::enter_depth() {
-  return depth_guard(this, this->depth_);
-}
-
 parser::loop_guard parser::enter_loop() {
   return loop_guard(this, std::exchange(this->in_loop_statement_, true));
 }
 
 expression* parser::parse_expression(precedence prec) {
-  depth_guard guard = this->enter_depth();
+  depth_guard guard(this);
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
@@ -628,6 +624,7 @@ expression* parser::parse_async_expression_only(token async_token) {
 }
 
 expression* parser::parse_await_expression(token await_token, precedence prec) {
+  depth_guard guard(this);
   bool is_identifier = [&]() -> bool {
     if (this->in_async_function_) {
       return false;
@@ -1349,7 +1346,6 @@ expression* parser::parse_arrow_function_body_impl(
 expression* parser::parse_function_expression(function_attributes attributes,
                                               const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
-  depth_guard guard = this->enter_depth();
   this->skip();
   attributes = this->parse_generator_star(attributes);
 
@@ -2138,6 +2134,22 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   std::fprintf(stderr, " on line %d column %d", token_position.line_number,
                token_position.column_number);
   std::fprintf(stderr, "\n");
+
+  QLJS_CRASH_DISALLOWING_CORE_DUMP();
+}
+
+void parser::crash_on_depth_limit_exceeded() {
+#if QLJS_HAVE_SETJMP
+  if (this->have_fatal_parse_error_jmp_buf_) {
+    this->error_reporter_->report(error_depth_limit_exceeded{
+        .token = this->peek().span(),
+    });
+    std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
+    QLJS_UNREACHABLE();
+  }
+#endif
+
+  std::fprintf(stderr, "Error: parser depth limit exceeded\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }

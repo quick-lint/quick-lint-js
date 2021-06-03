@@ -120,9 +120,6 @@ class parser {
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
 
-  // For testing and internal use only.
-  [[nodiscard]] depth_guard enter_depth();
-
 #if QLJS_HAVE_SETJMP
   // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
   // called.
@@ -597,7 +594,7 @@ class parser {
 
     // { statement; statement; }
     case token_type::left_curly: {
-      depth_guard guard = this->enter_depth();
+      depth_guard guard(this);
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
@@ -1213,7 +1210,7 @@ class parser {
   void parse_and_visit_function_parameters_and_body_no_scope(
       Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes) {
-    depth_guard d_guard = this->enter_depth();
+    depth_guard d_guard(this);
     function_guard guard = this->enter_function(attributes);
 
     if (this->peek().type == token_type::star) {
@@ -1783,6 +1780,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_try);
+    depth_guard guard(this);
     source_code_span try_token_span = this->peek().span();
     this->skip();
 
@@ -2471,11 +2469,6 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_if(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_if);
-    depth_guard guard = this->enter_depth();
-    this->depth_++;
-    if (this->depth_ > this->stack_limit) {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
     source_code_span if_token_span = this->peek().span();
     this->skip();
 
@@ -3361,9 +3354,7 @@ class parser {
       const char *qljs_file_name, int qljs_line,
       const char *qljs_function_name);
 
-  [[noreturn]] void crash_on_depth_limit_exceeded(
-      const char *qljs_file_name, int qljs_line,
-      const char *qljs_function_name);
+  [[noreturn]] void crash_on_depth_limit_exceeded();
 
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args) {
@@ -3411,22 +3402,25 @@ class parser {
 
   class depth_guard {
    public:
-    explicit depth_guard(parser *p, int old_depth_value) noexcept
-        : parser_(p), old_depth_value_(old_depth_value) {
+    explicit depth_guard(parser *p) noexcept
+        : parser_(p), old_depth_(p->depth_) {
       p->depth_++;
       if (p->depth_ > p->stack_limit) {
-        p->crash_on_unimplemented_token(__FILE__, __LINE__, __func__);
+        p->crash_on_depth_limit_exceeded();
       }
     }
 
     depth_guard(const depth_guard &) = delete;
     depth_guard &operator=(const depth_guard &) = delete;
 
-    ~depth_guard() noexcept { this->parser_->depth_ = this->old_depth_value_; }
+    ~depth_guard() noexcept {
+      assert(this->parser_->depth_ == this->old_depth_ + 1);
+      this->parser_->depth_ = this->old_depth_;
+    }
 
    private:
     parser *parser_;
-    int old_depth_value_;
+    int old_depth_;
   };
 
   quick_lint_js::lexer lexer_;
@@ -3464,7 +3458,6 @@ class parser {
 }
 
 #undef QLJS_PARSER_UNIMPLEMENTED
-#undef QLJS_PARSER_DEPTH_LIMIT_EXCEEDED
 
 #endif
 

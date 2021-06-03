@@ -542,12 +542,14 @@ TEST(test_escape_first_character_in_keyword,
 
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    string8 opening_parens(parser::stack_limit - 1, '(');
-    padded_string code(opening_parens);
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
-    EXPECT_TRUE(ok);
+    for (char8 opening_paren : {'(', '['}) {
+      string8 opening_parens(parser::stack_limit - 1, opening_paren);
+      padded_string code(opening_parens);
+      spy_visitor v;
+      parser p(&code, &v);
+      bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+      EXPECT_TRUE(ok);
+    }
   }
 
   {
@@ -560,8 +562,30 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    string8 left_square_bracket(parser::stack_limit - 1, '[');
-    padded_string code(left_square_bracket);
+    for (string8 decl :
+         {u8"function f(){", u8"() => {", u8"if(){", u8"await", u8"do{",
+          u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
+      string8 function_decls;
+      function_decls.reserve(decl.size() * (parser::stack_limit));
+      for (int i = 0; i < parser::stack_limit; i++) {
+        function_decls.append(decl);
+      }
+      padded_string code(function_decls);
+      spy_visitor v;
+      parser p(&code, &v);
+      bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+      EXPECT_TRUE(ok);
+    }
+  }
+
+  {
+    string8 object_decl(u8"{x:");
+    string8 paren_object_decl(u8"(");
+    paren_object_decl.reserve(object_decl.size() * (parser::stack_limit - 2));
+    for (int i = 0; i < parser::stack_limit - 2; i++) {
+      paren_object_decl.append(object_decl);
+    }
+    padded_string code(paren_object_decl);
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
@@ -572,44 +596,51 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
 #if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
-    string8 opening_parens(parser::stack_limit + 1, '(');
-    padded_string code(opening_parens);
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
-    EXPECT_FALSE(ok);
-    EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_token, token,
-                    offsets_matcher(&code, opening_parens.size() - 1, u8"("))));
+    for (char8 opening_paren : {'(', '{', '['}) {
+      string8 opening_parens(parser::stack_limit + 1, '(');
+      padded_string code(opening_parens);
+      spy_visitor v;
+      parser p(&code, &v);
+      bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+      EXPECT_FALSE(ok);
+      ElementsAre(
+          ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
+    }
   }
 
   {
-    string8 left_curly(parser::stack_limit + 1, '{');
-    padded_string code(left_curly);
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
-    EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_token, token,
-                    offsets_matcher(&code, left_curly.size() - 1, u8"{"))));
+    for (string8 decl :
+         {u8"function f(){", u8"() => {", u8"if(){", u8"await ", u8"do{",
+          u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
+      string8 decls;
+      decls.reserve(decl.size() * (parser::stack_limit + 1));
+      for (int i = 0; i < parser::stack_limit + 1; i++) {
+        decls.append(decl);
+      }
+      padded_string code(decls);
+      spy_visitor v;
+      parser p(&code, &v);
+      bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+      EXPECT_FALSE(ok);
+      ElementsAre(
+          ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
+    }
   }
 
   {
-    string8 left_square_bracket(parser::stack_limit + 1, '[');
-    padded_string code(left_square_bracket);
+    string8 object_decl(u8"{x:");
+    string8 paren_object_decl(u8"(");
+    paren_object_decl.reserve(object_decl.size() * (parser::stack_limit + 1));
+    for (int i = 0; i < parser::stack_limit + 1; i++) {
+      paren_object_decl.append(object_decl);
+    }
+    padded_string code(paren_object_decl);
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unexpected_token, token,
-            offsets_matcher(&code, left_square_bracket.size() - 1, u8"["))));
+    ElementsAre(
+        ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
   }
 }
 #endif
