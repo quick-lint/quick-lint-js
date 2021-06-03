@@ -56,7 +56,7 @@ This option requires [Vim-Plug][].
 Add the following line to your `vimrc` file between `call plug#begin(...)` and
 `call plug#end()`:
 
-    Plug 'strager/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}
+    Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}
 
 Then, restart Vim, then run `:PlugInstall` in Vim.
 
@@ -67,7 +67,7 @@ This option requires [Vundle][].
 Add the following line to your `vimrc` file between `call vundle#begin(...)` and
 `call vundle#end()`:
 
-    Plugin 'strager/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}
+    Plugin 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}
 
 Then, restart Vim, then run `:PluginInstall` in Vim.
 
