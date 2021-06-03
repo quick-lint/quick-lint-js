@@ -38,7 +38,7 @@
     "fmt": "prettier --write '*.js' '*.json' '.vscode/*.json'"
   },
   "dependencies": {
-    "vscode-languageclient": "^6.1.3"
+    "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
     "prettier": "^2.3.0"

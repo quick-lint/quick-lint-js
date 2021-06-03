@@ -38,8 +38,8 @@
   "devDependencies": {
     "colors": "1.4.0",
     "prettier": "^2.3.0",
-    "tape": "5.0.1",
-    "vscode-test": "1.4.1"
+    "tape": "5.2.2",
+    "vscode-test": "1.5.2"
   },
   "dependencies": {
     "quick-lint-js-wasm": "../../wasm"
