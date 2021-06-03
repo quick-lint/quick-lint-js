@@ -119,10 +119,6 @@ class Parser:
     def lint(self):
         return lib.qljs_web_demo_lint(self._c_parser)
 
-    def set_text_and_lint(self, text, count):
-        self.set_text(text, count)
-        return self.lint()
-
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

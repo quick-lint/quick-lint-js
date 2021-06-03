@@ -24,26 +24,60 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         viewsize = self.view.size()
         allregion = sublime.Region(0, viewsize)
         allcontent = self.view.substr(allregion).encode("utf-8")
-        diagnostics = self.parser.set_text_and_lint(allcontent, viewsize)
-        regions = [
-            sublime.Region(d.begin_offset, d.end_offset)
-            for d in c_api.iterdiags(diagnostics)
-        ]
-        self.add_squiggly_underlines(regions)
+        self.parser.set_text(allcontent, viewsize)
+        self.set_diagnostics(self.parser.lint())
+        self._add_squiggly_underlines(self.get_diagnostics())
 
     def on_modified(self):
         self.on_load()
 
+    def on_hover(self, point, hover_zone):
+        if hover_zone == sublime.HOVER_TEXT:
+            diagnostics = self.safe_get_diagnostics()
+            self._add_popup(diagnostics, point)
+
     def on_close(self):
         self.parser.dealloc()
 
-    def add_squiggly_underlines(self, regions):
+    def get_diagnostics(self):
+        return self.diagnostics
+
+    def safe_get_diagnostics(self):
+        diagnostics = getattr(self, "diagnostics", None)
+        if diagnostics is None:
+            self.on_load()
+            diagnostics = self.diagnostics
+        return diagnostics
+
+    def set_diagnostics(self, diagnostics):
+        self.diagnostics = []
+        for d in c_api.iterdiags(diagnostics):
+            self.diagnostics.append(d)
+
+    def _add_squiggly_underlines(self, diagnostics):
+        regions = [sublime.Region(d.begin_offset, d.end_offset) for d in diagnostics]
         flags = (
             sublime.DRAW_SQUIGGLY_UNDERLINE
             | sublime.DRAW_NO_FILL
             | sublime.DRAW_NO_OUTLINE
         )
         self.view.add_regions("0", regions, "invalid.illegal", "", flags)
+
+    def _get_popup_diagnostic(self, diagnostics, point):
+        for d in diagnostics:
+            if d.begin_offset <= point and point <= d.end_offset:
+                return d
+
+    def _add_popup(self, diagnostics, point):
+        diag = self._get_popup_diagnostic(diagnostics, point)
+        content = "%s [%s]" % (
+            diag.message.decode("utf-8"),
+            diag.code.decode("utf-8"),
+        )
+        flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
+        location = diag.begin_offset
+        max_width, max_height = self.view.viewport_extent()
+        self.view.show_popup(content, flags, location, max_width, max_height)
 
 
 # quick-lint-js finds bugs in JavaScript programs.
