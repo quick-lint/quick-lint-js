@@ -14,6 +14,7 @@ quick_lint_js_add_executable(
   quick-lint-js/array.h
   quick-lint-js/characters.h
   quick-lint-js/error-matcher.h
+  quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
   quick-lint-js/parse-support.h

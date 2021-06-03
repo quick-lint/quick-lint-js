@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/temporary-directory.h>
@@ -28,18 +29,6 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
     EXPECT_TRUE((config).globals().find(u8"Array"sv));                 \
     EXPECT_TRUE((config).globals().find(u8"console"sv));               \
     EXPECT_FALSE((config).globals().find(u8"variableDoesNotExist"sv)); \
-  } while (false)
-
-#define EXPECT_SAME_FILE(path_a, path_b)                                   \
-  do {                                                                     \
-    canonical_path_result path_a_canonical_ = canonicalize_path((path_a)); \
-    ASSERT_TRUE(path_a_canonical_.ok())                                    \
-        << std::move(path_a_canonical_).error();                           \
-    canonical_path_result path_b_canonical_ = canonicalize_path((path_b)); \
-    ASSERT_TRUE(path_b_canonical_.ok())                                    \
-        << std::move(path_b_canonical_).error();                           \
-    EXPECT_EQ(path_a_canonical_.path(), path_b_canonical_.path())          \
-        << (path_a) << " should be the same file as " << (path_b);         \
   } while (false)
 
 using ::testing::AnyOf;
