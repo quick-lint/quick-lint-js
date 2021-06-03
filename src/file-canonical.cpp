@@ -64,6 +64,18 @@ canonical_path_result canonicalize_path(const char *path) {
   }
   return canonical_path_result(canonical.string().c_str());
 #elif QLJS_HAVE_REALPATH
+#if defined(__APPLE__)
+  {
+    // macOS' realpath doesn't catch some errors. Catch them with another API.
+    struct stat s;
+    int rc = ::stat(path, &s);
+    if (rc == -1) {
+      return canonical_path_result::failure(
+          std::string("failed to canonicalize path ") + path + ": " +
+          std::strerror(errno));
+    }
+  }
+#endif
   char *allocated_canonical = ::realpath(path, nullptr);
   if (!allocated_canonical) {
     return canonical_path_result::failure(

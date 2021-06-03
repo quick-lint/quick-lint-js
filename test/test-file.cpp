@@ -34,6 +34,12 @@
 #include <sys/types.h>
 #endif
 
+#if defined(_WIN32)
+#define QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS 1
+#else
+#define QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS 0
+#endif
+
 using ::testing::AnyOf;
 using ::testing::HasSubstr;
 using ::testing::Not;
@@ -255,6 +261,21 @@ TEST_F(test_file, canonical_path_to_directory_removes_trailing_slash) {
   EXPECT_FALSE(ends_with(canonical.path(), "\\"));
 }
 
+TEST_F(test_file, canonical_path_to_file_with_trailing_slash_fails) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/file.txt", u8"");
+
+  std::string input_path = temp_dir + "/file.txt/";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("file.txt"));
+  EXPECT_THAT(error, AnyOf(HasSubstr("Not a directory"),
+                           // TODO(strager): Improve error message.
+                           HasSubstr("The filename, directory name, or volume "
+                                     "label syntax is incorrect")));
+}
+
 TEST_F(test_file, canonical_path_to_non_existing_file_fails) {
   std::string temp_file_path =
       this->make_temporary_directory() + "/does-not-exist.js";
@@ -292,6 +313,113 @@ TEST_F(test_file, canonical_path_removes_dot_components) {
   EXPECT_THAT(std::string(canonical.path()), Not(HasSubstr("\\.\\")));
   EXPECT_SAME_FILE(canonical.path(), input_path);
 }
+
+TEST_F(test_file, canonical_path_removes_trailing_dot_component) {
+  std::string temp_dir = this->make_temporary_directory();
+
+  std::string input_path = temp_dir + "/.";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << std::move(canonical).error();
+
+  EXPECT_FALSE(ends_with(canonical.path(), "/.")) << canonical.path();
+  EXPECT_FALSE(ends_with(canonical.path(), "\\.")) << canonical.path();
+  EXPECT_SAME_FILE(canonical.path(), temp_dir);
+}
+
+TEST_F(test_file, canonical_path_fails_with_dot_component_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/just-a-file", u8"");
+
+  std::string input_path = temp_dir + "/just-a-file/./something";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("just-a-file"));
+  EXPECT_THAT(error,
+              AnyOf(HasSubstr("Not a directory"),
+                    HasSubstr("The system cannot find the path specified")));
+}
+
+// TODO(strager): This test is wrong if
+// QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS.
+TEST_F(test_file,
+       canonical_path_fails_with_dot_dot_component_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/just-a-file", u8"");
+  write_file(temp_dir + "/other.txt", u8"");
+
+  std::string input_path = temp_dir + "/just-a-file/../other.text";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("just-a-file"));
+  EXPECT_THAT(error,
+              AnyOf(HasSubstr("Not a directory"),
+                    HasSubstr("No such file or directory"),
+                    HasSubstr("The system cannot find the file specified")));
+}
+
+#if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
+TEST_F(test_file,
+       canonical_path_with_component_and_dot_dot_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/just-a-file", u8"");
+
+  std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << std::move(canonical).error();
+
+  EXPECT_FALSE(ends_with(canonical.path(), "/..")) << canonical.path();
+  EXPECT_FALSE(ends_with(canonical.path(), "\\..")) << canonical.path();
+  EXPECT_THAT(std::string(canonical.path()), Not(HasSubstr("fake-subdir")));
+  EXPECT_SAME_FILE(canonical.path(), temp_dir + "/just-a-file");
+}
+#else
+TEST_F(test_file,
+       canonical_path_fails_with_component_and_dot_dot_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/just-a-file", u8"");
+
+  std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("just-a-file"));
+  EXPECT_THAT(error,
+              AnyOf(HasSubstr("Not a directory"),
+                    HasSubstr("The system cannot find the path specified")));
+}
+#endif
+
+#if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
+TEST_F(test_file, canonical_path_with_dot_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/just-a-file", u8"");
+
+  std::string input_path = temp_dir + "/just-a-file/.";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << std::move(canonical).error();
+
+  EXPECT_FALSE(ends_with(canonical.path(), "/.")) << canonical.path();
+  EXPECT_FALSE(ends_with(canonical.path(), "\\.")) << canonical.path();
+  EXPECT_SAME_FILE(canonical.path(), temp_dir + "/just-a-file");
+}
+#else
+TEST_F(test_file,
+       canonical_path_fails_with_trailing_dot_component_for_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file(temp_dir + "/just-a-file", u8"");
+
+  std::string input_path = temp_dir + "/just-a-file/.";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("just-a-file"));
+  EXPECT_THAT(error,
+              AnyOf(HasSubstr("Not a directory"),
+                    HasSubstr("The system cannot find the path specified")));
+}
+#endif
 
 TEST_F(test_file, canonical_path_removes_redundant_slashes) {
   std::string temp_dir = this->make_temporary_directory();
