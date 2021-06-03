@@ -562,15 +562,15 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    for (string8 decl :
+    for (string8 exp :
          {u8"function f(){", u8"() => {", u8"if(){", u8"await", u8"do{",
           u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
-      string8 function_decls;
-      function_decls.reserve(decl.size() * (parser::stack_limit));
+      string8 exps;
+      exps.reserve(exp.size() * (parser::stack_limit));
       for (int i = 0; i < parser::stack_limit; i++) {
-        function_decls.append(decl);
+        exps.append(exp);
       }
-      padded_string code(function_decls);
+      padded_string code(exps);
       spy_visitor v;
       parser p(&code, &v);
       bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
@@ -580,12 +580,12 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
 
   {
     string8 object_decl(u8"{x:");
-    string8 paren_object_decl(u8"(");
-    paren_object_decl.reserve(object_decl.size() * (parser::stack_limit - 2));
+    string8 paren_object_decls(u8"(");
+    paren_object_decls.reserve(object_decl.size() * (parser::stack_limit - 2));
     for (int i = 0; i < parser::stack_limit - 2; i++) {
-      paren_object_decl.append(object_decl);
+      paren_object_decls.append(object_decl);
     }
-    padded_string code(paren_object_decl);
+    padded_string code(paren_object_decls);
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
@@ -597,7 +597,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
     for (char8 opening_paren : {'(', '{', '['}) {
-      string8 opening_parens(parser::stack_limit + 1, '(');
+      string8 opening_parens(parser::stack_limit + 1, opening_paren);
       padded_string code(opening_parens);
       spy_visitor v;
       parser p(&code, &v);
@@ -609,15 +609,15 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    for (string8 decl :
+    for (string8 exp :
          {u8"function f(){", u8"() => {", u8"if(){", u8"await ", u8"do{",
           u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
-      string8 decls;
-      decls.reserve(decl.size() * (parser::stack_limit + 1));
+      string8 exps;
+      exps.reserve(exp.size() * (parser::stack_limit + 1));
       for (int i = 0; i < parser::stack_limit + 1; i++) {
-        decls.append(decl);
+        exps.append(exp);
       }
-      padded_string code(decls);
+      padded_string code(exps);
       spy_visitor v;
       parser p(&code, &v);
       bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
