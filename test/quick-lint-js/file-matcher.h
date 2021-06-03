@@ -7,19 +7,27 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/file.h>
 
-#define EXPECT_SAME_FILE(path_a, path_b)                           \
-  do {                                                             \
-    ::quick_lint_js::canonical_path_result path_a_canonical_ =     \
-        ::quick_lint_js::canonicalize_path((path_a));              \
-    ASSERT_TRUE(path_a_canonical_.ok())                            \
-        << std::move(path_a_canonical_).error();                   \
-    ::quick_lint_js::canonical_path_result path_b_canonical_ =     \
-        ::quick_lint_js::canonicalize_path((path_b));              \
-    ASSERT_TRUE(path_b_canonical_.ok())                            \
-        << std::move(path_b_canonical_).error();                   \
-    EXPECT_EQ(path_a_canonical_.path(), path_b_canonical_.path())  \
-        << (path_a) << " should be the same file as " << (path_b); \
-  } while (false)
+#define EXPECT_SAME_FILE(path_a, path_b) \
+  EXPECT_PRED_FORMAT2(::quick_lint_js::assert_same_file, path_a, path_b)
+
+namespace quick_lint_js {
+template <class String>
+::testing::AssertionResult assert_same_file(const char *lhs_expr,
+                                            const char *rhs_expr,
+                                            String lhs_path, String rhs_path) {
+  canonical_path_result lhs_canonical = canonicalize_path(lhs_path);
+  EXPECT_TRUE(lhs_canonical.ok()) << std::move(lhs_canonical).error();
+  canonical_path_result rhs_canonical = canonicalize_path(rhs_path);
+  EXPECT_TRUE(rhs_canonical.ok()) << std::move(rhs_canonical).error();
+  if (lhs_canonical.path() == rhs_canonical.path()) {
+    return ::testing::AssertionSuccess();
+  } else {
+    return ::testing::AssertionFailure()
+           << lhs_expr << " (" << lhs_path << ") is not the same file as "
+           << rhs_expr << " (" << rhs_path << ')';
+  }
+}
+}
 
 #endif
 
