@@ -32,6 +32,7 @@ void write_file(const char *path, string8_view content);
 
 class canonical_path_result {
  public:
+  explicit canonical_path_result(std::string &&path);
   explicit canonical_path_result(const char *path);
 
   std::string_view path() const &noexcept;
