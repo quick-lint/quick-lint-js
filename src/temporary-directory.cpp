@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
@@ -23,6 +24,10 @@
 
 #if QLJS_HAVE_MKDTEMP
 #include <sys/stat.h>
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 namespace quick_lint_js {
@@ -133,10 +138,37 @@ void delete_directory_recursive(const std::string &path) {
   ::fts_close(fts);
 }
 #elif QLJS_HAVE_STD_FILESYSTEM
-void delete_directory_recursive(const std::string& path) {
+void delete_directory_recursive(const std::string &path) {
   std::filesystem::remove_all(std::filesystem::path(path));
 }
 #endif
+
+std::string get_current_working_directory() {
+#if QLJS_HAVE_STD_FILESYSTEM
+  return std::filesystem::current_path().string();
+#else
+  std::string cwd;
+  cwd.resize(PATH_MAX);
+  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
+    std::fprintf(stderr, "error: failed to get current directory: %s\n",
+                 std::strerror(errno));
+    std::terminate();
+  }
+  return cwd;
+#endif
+}
+
+void set_current_working_directory(const char *path) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::filesystem::current_path(path);
+#else
+  if (::chdir(path) != 0) {
+    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
+                 path, std::strerror(errno));
+    std::terminate();
+  }
+#endif
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

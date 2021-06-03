@@ -15,6 +15,12 @@ void create_directory(const std::string& path);
 
 // Crashes on failure.
 void delete_directory_recursive(const std::string& path);
+
+// Crashes on failure.
+std::string get_current_working_directory();
+
+// Crashes on failure.
+void set_current_working_directory(const char* path);
 }
 
 #endif

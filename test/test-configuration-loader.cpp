@@ -37,33 +37,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-std::string get_current_working_directory() {
-#if QLJS_HAVE_STD_FILESYSTEM
-  return std::filesystem::current_path().string();
-#else
-  std::string cwd;
-  cwd.resize(PATH_MAX);
-  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
-    std::fprintf(stderr, "error: failed to get current directory: %s\n",
-                 std::strerror(errno));
-    std::terminate();
-  }
-  return cwd;
-#endif
-}
-
-void set_current_working_directory(const char* path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::current_path(path);
-#else
-  if (::chdir(path) != 0) {
-    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
-                 path, std::strerror(errno));
-    std::terminate();
-  }
-#endif
-}
-
 class test_configuration_loader : public ::testing::Test {
  public:
   std::string make_temporary_directory() {

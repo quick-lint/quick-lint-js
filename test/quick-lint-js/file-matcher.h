@@ -61,6 +61,14 @@ inline ::testing::AssertionResult assert_same_file(
   return assert_same_file(lhs_expr, rhs_expr, lhs_path.c_str(),
                           rhs_path.c_str());
 }
+
+inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
+                                                   const char* rhs_expr,
+                                                   std::string_view lhs_path,
+                                                   std::string_view rhs_path) {
+  return assert_same_file(lhs_expr, rhs_expr, std::string(lhs_path).c_str(),
+                          std::string(rhs_path).c_str());
+}
 }
 
 #endif
