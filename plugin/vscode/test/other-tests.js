@@ -353,101 +353,100 @@ let tests = {
     }
   },
 
-  "concurrent edits are applied in order of calls, with exhaustive fault injection": async ({
-    addCleanup,
-  }) => {
-    let coinFlips;
-    let rng = new ExhaustiveRNG();
-    function maybeInjectFaultWithExhaustiveRNG() {
-      let shouldCrash = rng.nextCoinFlip();
-      coinFlips.push(shouldCrash);
-      if (shouldCrash) {
-        throw new qljs.ProcessCrashed("(injected fault)");
+  "concurrent edits are applied in order of calls, with exhaustive fault injection":
+    async ({ addCleanup }) => {
+      let coinFlips;
+      let rng = new ExhaustiveRNG();
+      function maybeInjectFaultWithExhaustiveRNG() {
+        let shouldCrash = rng.nextCoinFlip();
+        coinFlips.push(shouldCrash);
+        if (shouldCrash) {
+          throw new qljs.ProcessCrashed("(injected fault)");
+        }
       }
-    }
 
-    let oldMaybeInjectFault = qljs.maybeInjectFault;
-    addCleanup(() => {
-      qljs.maybeInjectFault = oldMaybeInjectFault;
-    });
+      let oldMaybeInjectFault = qljs.maybeInjectFault;
+      addCleanup(() => {
+        qljs.maybeInjectFault = oldMaybeInjectFault;
+      });
 
-    while (!rng.isDone()) {
-      coinFlips = [];
-      let diagnosticCollection = new FakeDiagnosticCollection();
-      let linters = new extension.DocumentLinterCollection(
-        diagnosticCollection
-      );
-
-      try {
-        let document = new MockDocument("hello.js", "const x;");
-        let linter = linters.getLinter(document);
-        let shouldOpenEditorBeforeChanges = rng.nextCoinFlip();
-        if (shouldOpenEditorBeforeChanges) {
-          await linter.editorChangedVisibilityAsync();
-        }
-
-        qljs.maybeInjectFault = maybeInjectFaultWithExhaustiveRNG;
-        let promises = [];
-        for (let charactersToType of ["const ", "x;"]) {
-          let changes = [
-            {
-              range: new vscode.Range(
-                new vscode.Position(0, document._text.length),
-                new vscode.Position(0, document._text.length)
-              ),
-              rangeOffset: 0,
-              rangeLength: 0,
-              text: charactersToType,
-            },
-          ];
-          document._text += charactersToType;
-          promises.push(linter.textChangedAsync(changes));
-        }
-
-        let textChangedResults = await Promise.allSettled(promises);
-        let firstChangeFailed = textChangedResults[0].status !== "fulfilled";
-        let lastChangeFailed = textChangedResults[1].status !== "fulfilled";
-
-        let diags = normalizeDiagnostics(
-          diagnosticCollection.get(document.uri)
+      while (!rng.isDone()) {
+        coinFlips = [];
+        let diagnosticCollection = new FakeDiagnosticCollection();
+        let linters = new extension.DocumentLinterCollection(
+          diagnosticCollection
         );
-        if (firstChangeFailed && lastChangeFailed) {
-          // No changes were applied. The linted document was "const x;".
-          assert.deepStrictEqual(
-            diags.map((diag) => diag.message),
-            []
-          );
-        } else if (!firstChangeFailed && lastChangeFailed) {
-          // Partial changes were applied. The linted document was either
-          // "const x;const " (if the first change finished before the second
-          // change started) or "const x; const x;" (if the second change failed
-          // before the first change started).
-          let messages = diags.map((diag) => diag.message);
-          assert.strictEqual(messages.length, 1, messages);
-          assert.ok(
-            messages[0] === "let with no bindings" ||
-              messages[0] === "const with no bindings" ||
-              messages[0] === "var with no bindings" ||
-              messages[0] === "redeclaration of variable: x",
-            messages
-          );
-        } else {
-          // Because the last call to textChangedAsync succeeded, all changes
-          // were applied. The linted document was "const x;const x;".
-          assert.deepStrictEqual(
-            diags.map((diag) => diag.message),
-            ["redeclaration of variable: x"]
-          );
-        }
-      } finally {
-        await linters.disposeAsync();
-      }
 
-      console.log(`coinFlips: ${coinFlips}`);
-      rng.lap();
-      qljs.maybeInjectFault = oldMaybeInjectFault;
-    }
-  },
+        try {
+          let document = new MockDocument("hello.js", "const x;");
+          let linter = linters.getLinter(document);
+          let shouldOpenEditorBeforeChanges = rng.nextCoinFlip();
+          if (shouldOpenEditorBeforeChanges) {
+            await linter.editorChangedVisibilityAsync();
+          }
+
+          qljs.maybeInjectFault = maybeInjectFaultWithExhaustiveRNG;
+          let promises = [];
+          for (let charactersToType of ["const ", "x;"]) {
+            let changes = [
+              {
+                range: new vscode.Range(
+                  new vscode.Position(0, document._text.length),
+                  new vscode.Position(0, document._text.length)
+                ),
+                rangeOffset: 0,
+                rangeLength: 0,
+                text: charactersToType,
+              },
+            ];
+            document._text += charactersToType;
+            promises.push(linter.textChangedAsync(changes));
+          }
+
+          let textChangedResults = await Promise.allSettled(promises);
+          let firstChangeFailed = textChangedResults[0].status !== "fulfilled";
+          let lastChangeFailed = textChangedResults[1].status !== "fulfilled";
+
+          let diags = normalizeDiagnostics(
+            diagnosticCollection.get(document.uri)
+          );
+          if (firstChangeFailed && lastChangeFailed) {
+            // No changes were applied. The linted document was "const x;".
+            assert.deepStrictEqual(
+              diags.map((diag) => diag.message),
+              []
+            );
+          } else if (!firstChangeFailed && lastChangeFailed) {
+            // Partial changes were applied. The linted document was either
+            // "const x;const " (if the first change finished before the second
+            // change started) or "const x; const x;" (if the second change failed
+            // before the first change started).
+            let messages = diags.map((diag) => diag.message);
+            assert.strictEqual(messages.length, 1, messages);
+            assert.ok(
+              messages[0] === "let with no bindings" ||
+                messages[0] === "const with no bindings" ||
+                messages[0] === "var with no bindings" ||
+                messages[0] === "redeclaration of variable: x",
+              messages
+            );
+          } else {
+            // Because the last call to textChangedAsync succeeded, all changes
+            // were applied. The linted document was "const x;const x;".
+            assert.deepStrictEqual(
+              diags.map((diag) => diag.message),
+              ["redeclaration of variable: x"]
+            );
+          }
+        } finally {
+          await linters.disposeAsync();
+        }
+
+        console.log(`coinFlips: ${coinFlips}`);
+        rng.lap();
+        qljs.maybeInjectFault = oldMaybeInjectFault;
+      }
+    },
 
   "ExhaustiveRNG: exhaust with no calls": () => {
     let rng = new ExhaustiveRNG();
@@ -480,39 +479,41 @@ let tests = {
     );
   },
 
-  "ExhaustiveRNG: coin flip and maybe another coin flip (if true) per lap": () => {
-    let rng = new ExhaustiveRNG();
+  "ExhaustiveRNG: coin flip and maybe another coin flip (if true) per lap":
+    () => {
+      let rng = new ExhaustiveRNG();
 
-    assert.strictEqual(rng.nextCoinFlip(), false);
-    rng.lap();
+      assert.strictEqual(rng.nextCoinFlip(), false);
+      rng.lap();
 
-    assert.strictEqual(rng.nextCoinFlip(), true);
-    assert.strictEqual(rng.nextCoinFlip(), false);
-    rng.lap();
+      assert.strictEqual(rng.nextCoinFlip(), true);
+      assert.strictEqual(rng.nextCoinFlip(), false);
+      rng.lap();
 
-    assert.strictEqual(rng.nextCoinFlip(), true);
-    assert.strictEqual(rng.nextCoinFlip(), true);
-    rng.lap();
+      assert.strictEqual(rng.nextCoinFlip(), true);
+      assert.strictEqual(rng.nextCoinFlip(), true);
+      rng.lap();
 
-    assert.ok(rng.isDone());
-  },
+      assert.ok(rng.isDone());
+    },
 
-  "ExhaustiveRNG: coin flip and maybe another coin flip (if false) per lap": () => {
-    let rng = new ExhaustiveRNG();
+  "ExhaustiveRNG: coin flip and maybe another coin flip (if false) per lap":
+    () => {
+      let rng = new ExhaustiveRNG();
 
-    assert.strictEqual(rng.nextCoinFlip(), false);
-    assert.strictEqual(rng.nextCoinFlip(), false);
-    rng.lap();
+      assert.strictEqual(rng.nextCoinFlip(), false);
+      assert.strictEqual(rng.nextCoinFlip(), false);
+      rng.lap();
 
-    assert.strictEqual(rng.nextCoinFlip(), false);
-    assert.strictEqual(rng.nextCoinFlip(), true);
-    rng.lap();
+      assert.strictEqual(rng.nextCoinFlip(), false);
+      assert.strictEqual(rng.nextCoinFlip(), true);
+      rng.lap();
 
-    assert.strictEqual(rng.nextCoinFlip(), true);
-    rng.lap();
+      assert.strictEqual(rng.nextCoinFlip(), true);
+      rng.lap();
 
-    assert.ok(rng.isDone());
-  },
+      assert.ok(rng.isDone());
+    },
 
   "ExhaustiveRNG: exhaust with three nextCoinFlip calls per lap": () => {
     let expectedOutcomesPerLap = [

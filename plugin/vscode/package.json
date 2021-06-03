@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "colors": "1.4.0",
-    "prettier": "2.1.2",
+    "prettier": "^2.3.0",
     "tape": "5.0.1",
     "vscode-test": "1.4.1"
   },

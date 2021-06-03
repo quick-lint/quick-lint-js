@@ -23,6 +23,6 @@
     "axios": "^0.21.1",
     "colors": "^1.4.0",
     "jasmine": "^3.7.0",
-    "prettier": "2.3.0"
+    "prettier": "^2.3.0"
   }
 }
