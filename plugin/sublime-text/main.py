@@ -52,13 +52,22 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
             self.diagnostics.append(d)
 
     def _add_squiggly_underlines(self, diagnostics):
-        regions = [sublime.Region(d.begin_offset, d.end_offset) for d in diagnostics]
+        error_regions = []
+        warning_regions = []
+        for d in diagnostics:
+            region = sublime.Region(d.begin_offset, d.end_offset)
+            if d.severity == c_api.SeverityEnumeration.ERROR:
+                error_regions.append(region)
+            elif d.severity == c_api.SeverityEnumeration.WARNING:
+                warning_regions.append(region)
+
         flags = (
             sublime.DRAW_SQUIGGLY_UNDERLINE
             | sublime.DRAW_NO_FILL
             | sublime.DRAW_NO_OUTLINE
         )
-        self.view.add_regions("0", regions, "invalid.illegal", "", flags)
+        self.view.add_regions("1", error_regions, "invalid.illegal", "", flags)
+        self.view.add_regions("2", warning_regions, "invalid.deprecated", "", flags)
 
     def _add_popup(self, diagnostics, point):
         for d in diagnostics:
