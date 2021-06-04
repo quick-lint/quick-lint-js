@@ -69,9 +69,15 @@ export function makeBenchmarkHTML(seriess) {
       )}
 
       <div class="x-axis-label">response time (lower is better)</div>
+      <!-- 
+        title attribute must be broken into new line
+        because the html spec treats &#013; as a parse error, which
+        gives us validation errors.
+      -->
       <label
         class="log-scale javascript-only"
-        title="checked: logarithmic X axis (emphasizing ratios).&#013;unchecked: linear X axis (emphasizing time)."
+        title="checked: logarithmic X axis (emphasizing ratios).
+        unchecked: linear X axis (emphasizing time)."
         ><input type="checkbox" class="log-scale-select" /> log scale</label
       >
     </div>
