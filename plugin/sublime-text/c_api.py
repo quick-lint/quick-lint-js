@@ -104,12 +104,12 @@ lib = create_library()
 
 
 class Parser:
-    def init(self):
+    def __init__(self):
         self._c_parser = lib.qljs_web_demo_create_parser()
         if self._c_parser is None:
             raise MemoryError()
 
-    def dealloc(self):
+    def __del__(self):
         if self._c_parser is not None:
             lib.qljs_web_demo_destroy_parser(self._c_parser)
 

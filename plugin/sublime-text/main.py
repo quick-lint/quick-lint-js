@@ -18,7 +18,6 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def __init__(self, view):
         self.view = view
         self.parser = c_api.Parser()
-        self.parser.init()
         self.on_modified()
 
     def on_load(self):
@@ -36,9 +35,6 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         if hover_zone == sublime.HOVER_TEXT:
             diagnostics = self.safe_get_diagnostics()
             self._add_popup(diagnostics, point)
-
-    def on_close(self):
-        self.parser.dealloc()
 
     def get_diagnostics(self):
         return self.diagnostics
