@@ -542,7 +542,7 @@ TEST(test_escape_first_character_in_keyword,
 
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    for (char8 opening_paren : {'(', '['}) {
+    for (const char8 opening_paren : {'(', '['}) {
       string8 opening_parens(parser::stack_limit - 1, opening_paren);
       padded_string code(opening_parens);
       spy_visitor v;
@@ -562,7 +562,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    for (string8 exp :
+    for (const string8 &exp :
          {u8"function f(){", u8"() => {", u8"if(){", u8"await", u8"do{",
           u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
       string8 exps;
@@ -596,7 +596,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
 #if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
-    for (char8 opening_paren : {'(', '{', '['}) {
+    for (const char8 opening_paren : {'(', '{', '['}) {
       string8 opening_parens(parser::stack_limit + 1, opening_paren);
       padded_string code(opening_parens);
       spy_visitor v;
@@ -609,7 +609,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    for (string8 exp :
+    for (const string8 &exp :
          {u8"function f(){", u8"() => {", u8"if(){", u8"await ", u8"do{",
           u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
       string8 exps;
