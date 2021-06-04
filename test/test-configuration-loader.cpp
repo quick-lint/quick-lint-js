@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/options.h>

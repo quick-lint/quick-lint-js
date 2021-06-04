@@ -1,34 +1,36 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FILE_H
-#define QUICK_LINT_JS_FILE_H
+#ifndef QUICK_LINT_JS_FILE_CANONICAL_H
+#define QUICK_LINT_JS_FILE_CANONICAL_H
 
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/padded-string.h>
 #include <string>
 
 namespace quick_lint_js {
-struct read_file_result {
-  padded_string content;
-  std::string error;
-  bool is_not_found_error = false;
+class canonical_path_result {
+ public:
+  explicit canonical_path_result(std::string &&path);
+  explicit canonical_path_result(const char *path);
 
-  bool ok() const noexcept { return this->error.empty(); }
-  void exit_if_not_ok() const;
+  std::string_view path() const &noexcept;
+  std::string &&path() && noexcept;
+  const char *c_str() const noexcept;
 
-  static read_file_result failure(const std::string &error);
+  std::string &&error() && noexcept;
+
+  bool ok() const noexcept { return this->error_.empty(); }
+
+  static canonical_path_result failure(std::string &&error);
+
+ private:
+  explicit canonical_path_result();
+
+  std::string path_;
+  std::string error_;
 };
 
-read_file_result read_file(const char *path);
-
-read_file_result read_file(const char *path, platform_file_ref);
-
-read_file_result read_stdin(void);
-
-void write_file(const std::string &path, string8_view content);
-void write_file(const char *path, string8_view content);
+canonical_path_result canonicalize_path(const char *path);
+canonical_path_result canonicalize_path(const std::string &path);
 }
 
 #endif

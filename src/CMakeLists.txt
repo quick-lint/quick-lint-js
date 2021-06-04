@@ -84,6 +84,7 @@ quick_lint_js_add_library(
   quick-lint-js/error.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
+  quick-lint-js/file-canonical.h
   quick-lint-js/file-handle.h
   quick-lint-js/file-path.h
   quick-lint-js/file.h
