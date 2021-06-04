@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/error.h>
 #include <string>
@@ -8,18 +9,18 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(test_error, error_codes_are_unique) {
-  struct error_name_and_code {
-    const char* name;
-    const char* code;
-  };
-  static constexpr error_name_and_code all_errors[] = {
+struct error_name_and_code {
+  const char* name;
+  const char* code;
+};
+static constexpr error_name_and_code all_errors[] = {
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
   {.name = #error_name, .code = error_code},
-      QLJS_X_ERROR_TYPES
+    QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-  };
+};
 
+TEST(test_error, error_codes_are_unique) {
   std::unordered_map<std::string, const char*> code_to_error_name;
   for (const error_name_and_code& error : all_errors) {
     auto existing_it = code_to_error_name.find(error.code);
@@ -30,6 +31,19 @@ TEST(test_error, error_codes_are_unique) {
                     << " used for multiple errors: " << error.name << ", "
                     << existing_it->second;
     }
+  }
+}
+
+TEST(test_error, error_codes_are_well_formed) {
+  for (const error_name_and_code& error : all_errors) {
+#if defined(_WIN32)
+    constexpr const char* error_pattern = R"(^E\d\d\d$)";
+#else
+    constexpr const char* error_pattern = R"(^E[0-9][0-9][0-9]$)";
+#endif
+    // Wrapping the code in std::string improves gtest diagnostics.
+    EXPECT_THAT(std::string(error.code), ::testing::MatchesRegex(error_pattern))
+        << "error " << error.name << " should have a code like E123";
   }
 }
 }
