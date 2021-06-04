@@ -72,10 +72,16 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def _add_popup(self, diagnostics, point):
         for d in diagnostics:
             if d.begin_offset <= point and point <= d.end_offset:
-                content = "%s [%s]" % (
-                    d.message.decode("utf-8"),
-                    d.code.decode("utf-8"),
-                )
+                minihtml = """
+                <span>%(message)s
+                    <span style=\"color: %(color)s;\">quick-lint-js(%(code)s)</span>
+                </span>
+                """
+                content = minihtml % {
+                    "message": d.message.decode("utf-8"),
+                    "code": d.code.decode("utf-8"),
+                    "color": self.view.style_for_scope("comment.line")["foreground"],
+                }
                 flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
                 location = d.begin_offset
                 max_width, max_height = self.view.viewport_extent()
