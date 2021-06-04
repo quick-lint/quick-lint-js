@@ -1,9 +1,9 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
+import ctypes
 import os
 import zipfile
-from ctypes import *
 
 
 class SeverityEnumeration:
@@ -11,24 +11,24 @@ class SeverityEnumeration:
     WARNING = 2
 
 
-class DiagnosticStructure(Structure):
+class DiagnosticStructure(ctypes.Structure):
     _fields_ = [
-        ("message", c_char_p),
-        ("code", c_char_p),
-        ("severity", c_int),
-        ("begin_offset", c_int),
-        ("end_offset", c_int),
+        ("message", ctypes.c_char_p),
+        ("code", ctypes.c_char_p),
+        ("severity", ctypes.c_int),
+        ("begin_offset", ctypes.c_int),
+        ("end_offset", ctypes.c_int),
     ]
 
 
-DiagnosticStructurePointer = POINTER(DiagnosticStructure)
+DiagnosticStructurePointer = ctypes.POINTER(DiagnosticStructure)
 
 
-class ParserStructure(Structure):
+class ParserStructure(ctypes.Structure):
     _fields_ = []
 
 
-ParserStructurePointer = POINTER(ParserStructure)
+ParserStructurePointer = ctypes.POINTER(ParserStructure)
 
 
 def get_script_path_directory():
@@ -42,6 +42,7 @@ def string_remove_suffix(string, suffix):
 def load_library():
     # If the plugin is inside a package you will need to unzip the
     # shared library from inside the package before continuing.
+    #
     # From:
     # |-- quick-lint-js-v020-linux_x86_64.sublime-package
     #
@@ -49,6 +50,7 @@ def load_library():
     # |-- quick-lint-js-v020-linux_x86_64.sublime-package
     # |-- quick-lint-js-v020-linux_x86_64
     #     |-- libquick-lint-js-lib.so
+    #
     script_path_directory = get_script_path_directory()
     if script_path_directory.endswith(".sublime-package"):
         with zipfile.ZipFile(script_path_directory, mode="r") as package_file:
@@ -64,7 +66,7 @@ def load_library():
 
     # Load the shared library.
     lib_path = lib_path_directory + "/libquick-lint-js-lib.so"
-    lib = CDLL(lib_path)
+    lib = ctypes.CDLL(lib_path)
     return lib
 
 
@@ -83,7 +85,7 @@ def create_library():
     )
     set_argtypes_and_restype(
         lib.qljs_web_demo_set_text,
-        argtypes=[ParserStructurePointer, c_void_p, c_size_t],
+        argtypes=[ParserStructurePointer, ctypes.c_void_p, ctypes.c_size_t],
     )
     set_argtypes_and_restype(
         lib.qljs_web_demo_lint,
@@ -93,7 +95,7 @@ def create_library():
     return lib
 
 
-lib = create_library()
+LIB = create_library()
 
 
 class Diagnostic:
@@ -107,20 +109,20 @@ class Diagnostic:
 
 class Parser:
     def __init__(self):
-        self._c_parser = lib.qljs_web_demo_create_parser()
+        self._c_parser = LIB.qljs_web_demo_create_parser()
         if self._c_parser is None:
             raise MemoryError()
 
     def __del__(self):
         if self._c_parser is not None:
-            lib.qljs_web_demo_destroy_parser(self._c_parser)
+            LIB.qljs_web_demo_destroy_parser(self._c_parser)
 
     def set_text(self, text, count):
         text_encoded = text.encode()
-        lib.qljs_web_demo_set_text(self._c_parser, text_encoded, count)
+        LIB.qljs_web_demo_set_text(self._c_parser, text_encoded, count)
 
     def lint(self):
-        _c_diags = lib.qljs_web_demo_lint(self._c_parser)
+        _c_diags = LIB.qljs_web_demo_lint(self._c_parser)
         diags = []
         for _c_diag in _c_diags:
             if _c_diag.message is None:

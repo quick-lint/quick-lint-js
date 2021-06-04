@@ -30,20 +30,20 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         allcontent = self.view.substr(allregion)
         self.parser.set_text(allcontent, viewsize)
         self.diagnostics = self.parser.lint()
-        self._add_squiggly_underlines(self.diagnostics)
+        self._add_squiggly_underlines()
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
-            self._add_popup(self.diagnostics, point)
+            self._add_popup(point)
 
-    def _add_squiggly_underlines(self, diagnostics):
+    def _add_squiggly_underlines(self):
         error_regions = []
         warning_regions = []
-        for d in diagnostics:
-            region = sublime.Region(d.begin_offset, d.end_offset)
-            if d.severity == c_api.SeverityEnumeration.ERROR:
+        for diag in self.diagnostics:
+            region = sublime.Region(diag.begin_offset, diag.end_offset)
+            if diag.severity == c_api.SeverityEnumeration.ERROR:
                 error_regions.append(region)
-            elif d.severity == c_api.SeverityEnumeration.WARNING:
+            elif diag.severity == c_api.SeverityEnumeration.WARNING:
                 warning_regions.append(region)
 
         flags = (
@@ -54,21 +54,21 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         self.view.add_regions("1", error_regions, "invalid.illegal", "", flags)
         self.view.add_regions("2", warning_regions, "invalid.deprecated", "", flags)
 
-    def _add_popup(self, diagnostics, point):
-        for d in diagnostics:
-            if d.begin_offset <= point and point <= d.end_offset:
+    def _add_popup(self, point):
+        for diag in self.diagnostics:
+            if diag.begin_offset <= point <= diag.end_offset:
                 minihtml = """
                 <span>%(message)s
                     <span style=\"color: %(color)s;\">quick-lint-js(%(code)s)</span>
                 </span>
                 """
                 content = minihtml % {
-                    "message": d.message,
-                    "code": d.code,
+                    "message": diag.message,
+                    "code": diag.code,
                     "color": self.view.style_for_scope("comment.line")["foreground"],
                 }
                 flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
-                location = d.begin_offset
+                location = diag.begin_offset
                 max_width, max_height = self.view.viewport_extent()
                 self.view.show_popup(content, flags, location, max_width, max_height)
 
