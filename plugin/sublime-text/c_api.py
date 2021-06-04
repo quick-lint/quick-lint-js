@@ -21,13 +21,6 @@ class DiagnosticStructure(Structure):
     ]
 
 
-def iterdiags(diags):
-    count = 0
-    while diags[count].message is not None:
-        yield diags[count]
-        count += 1
-
-
 DiagnosticStructurePointer = POINTER(DiagnosticStructure)
 
 
@@ -103,6 +96,15 @@ def create_library():
 lib = create_library()
 
 
+class Diagnostic:
+    def __init__(self, _c_diag):
+        self.message = _c_diag.message.decode()
+        self.code = _c_diag.code.decode()
+        self.severity = _c_diag.severity
+        self.begin_offset = _c_diag.begin_offset
+        self.end_offset = _c_diag.end_offset
+
+
 class Parser:
     def __init__(self):
         self._c_parser = lib.qljs_web_demo_create_parser()
@@ -114,10 +116,17 @@ class Parser:
             lib.qljs_web_demo_destroy_parser(self._c_parser)
 
     def set_text(self, text, count):
-        lib.qljs_web_demo_set_text(self._c_parser, text, count)
+        text_encoded = text.encode()
+        lib.qljs_web_demo_set_text(self._c_parser, text_encoded, count)
 
     def lint(self):
-        return lib.qljs_web_demo_lint(self._c_parser)
+        _c_diags = lib.qljs_web_demo_lint(self._c_parser)
+        diags = []
+        for _c_diag in _c_diags:
+            if _c_diag.message is None:
+                break
+            diags.append(Diagnostic(_c_diag))
+        return diags
 
 
 # quick-lint-js finds bugs in JavaScript programs.

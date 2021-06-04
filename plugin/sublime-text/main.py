@@ -18,6 +18,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def __init__(self, view):
         self.view = view
         self.parser = c_api.Parser()
+        self.diagnostics = []
         self.on_modified()
 
     def on_load(self):
@@ -26,30 +27,14 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def on_modified(self):
         viewsize = self.view.size()
         allregion = sublime.Region(0, viewsize)
-        allcontent = self.view.substr(allregion).encode("utf-8")
+        allcontent = self.view.substr(allregion)
         self.parser.set_text(allcontent, viewsize)
-        self.set_diagnostics(self.parser.lint())
-        self._add_squiggly_underlines(self.get_diagnostics())
+        self.diagnostics = self.parser.lint()
+        self._add_squiggly_underlines(self.diagnostics)
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
-            diagnostics = self.safe_get_diagnostics()
-            self._add_popup(diagnostics, point)
-
-    def get_diagnostics(self):
-        return self.diagnostics
-
-    def safe_get_diagnostics(self):
-        diagnostics = getattr(self, "diagnostics", None)
-        if diagnostics is None:
-            self.on_modified()
-            diagnostics = self.diagnostics
-        return diagnostics
-
-    def set_diagnostics(self, diagnostics):
-        self.diagnostics = []
-        for d in c_api.iterdiags(diagnostics):
-            self.diagnostics.append(d)
+            self._add_popup(self.diagnostics, point)
 
     def _add_squiggly_underlines(self, diagnostics):
         error_regions = []
@@ -78,8 +63,8 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
                 </span>
                 """
                 content = minihtml % {
-                    "message": d.message.decode("utf-8"),
-                    "code": d.code.decode("utf-8"),
+                    "message": d.message,
+                    "code": d.code,
                     "color": self.view.style_for_scope("comment.line")["foreground"],
                 }
                 flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
