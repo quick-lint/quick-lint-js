@@ -188,7 +188,7 @@ class DocumentLinter {
           // END CRITICAL SECTION (no awaiting above)
           let startTime = process.hrtime.bigint();
           let diags = this._parser.lint();
-          this._performanceWriter.initiateLogging(
+          this._performanceWriter.logLintDuration(
             process.hrtime.bigint() - startTime,
             this._document.fileName
           );
@@ -234,7 +234,7 @@ class DocumentLinter {
       this._pendingChanges.length = 0;
       this._state = DocumentLinterState.PARSER_LOADED;
       // END CRITICAL SECTION (no awaiting above)
-      let diags = this._parser.lint(this._performanceWriter);
+      let diags = this._parser.lint();
       this._updateDocumentDiagnostics(diags);
     } catch (e) {
       if (e instanceof ProcessCrashed) {

@@ -8,16 +8,13 @@ const process = require("process");
 class PerformanceWriter {
   constructor(extensionContext) {
     this._extensionContext = extensionContext;
-    this._dataAttributes = {
-      columns: ["timestamp", "file-ref", "event-id", "file-name-or-duration"],
-    };
     this._tmpLogLines = [];
+    this._currentIndex = null;
     this._fileIndex = 0;
     this._writeToFileTimer = null;
     this._timerActivated = false;
     if (!fs.existsSync(this._extensionContext.logUri.fsPath)) {
       fs.mkdirSync(this._extensionContext.logUri.fsPath);
-      console.log(this._extensionContext.logUri.fsPath);
       this.writeHeaderLine();
     }
     this._performanceTxtPath = path.join(
@@ -35,47 +32,44 @@ class PerformanceWriter {
     if (
       Object.prototype.hasOwnProperty.call(this._currentSessionMap, fileName)
     ) {
-      this._fileIndex = this._currentSessionMap[fileName];
+      this._currentIndex = this._currentSessionMap[fileName];
     } else {
       this._fileIndex++;
       this._currentSessionMap[fileName] = this._fileIndex;
+      this._currentIndex = this._fileIndex;
       this.writeNewFileLine(fileName);
     }
   }
 
-  initiateLogging(timeTaken, fileName) {
+  logLintDuration(timeTaken, fileName) {
     this.fileNameOptimizer(fileName);
     this.writeExistingFileLine(timeTaken);
     this.setWriteToFileTimer();
   }
 
   writeHeaderLine() {
-    this._tmpLogLines.push(...this._dataAttributes.columns);
+    this._tmpLogLines.push(
+      "timestamp",
+      "file-ref",
+      "event-id",
+      "file-name-or-duration"
+    );
   }
 
   writeNewFileLine(fileName) {
-    this._tmpLogLines.push(Date.now(), this._fileIndex, "n", fileName);
+    this._tmpLogLines.push(Date.now(), this._currentIndex, "n", fileName);
   }
 
   writeExistingFileLine(timeTaken) {
-    this._tmpLogLines.push(Date.now(), this._fileIndex, "p", timeTaken);
+    this._tmpLogLines.push(Date.now(), this._currentIndex, "p", timeTaken);
   }
 
   setWriteToFileTimer() {
     if (!this._timerActivated) {
-      this._timerActivated = true;
-      this._writeToFileTimer = setInterval(() => {
-        this._armTimer();
-      }, 2000);
-    }
-  }
-
-  _armTimer() {
-    if (this._tmpLogLines.length === 0) {
-      this._timerActivated = false;
-      clearInterval(this._writeToFileTimer);
-    } else {
-      this.writeToFile();
+      setTimeout(() => {
+        this._timerActivated = true;
+        this.writeToFile();
+      }, 1000);
     }
   }
 
@@ -90,6 +84,7 @@ class PerformanceWriter {
 
       this._writableStream.write(tracingLine);
     }
+    this._timerActivated = false;
   }
 }
 
