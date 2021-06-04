@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
@@ -54,7 +54,7 @@ BENCHMARK_CAPTURE(benchmark_advance_lsp_characters_in_utf_8, large_japanese,
 }  // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

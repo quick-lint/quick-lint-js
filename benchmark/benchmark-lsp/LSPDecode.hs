@@ -1,6 +1,6 @@
 -- Code in this file is derivative of lsp-test.
 --
--- Copyright 2021 Matthew Glazar
+-- Copyright 2021 Matthew "strager" Glazar
 -- Copyright Luke Lau 2018-2020.
 -- All rights reserved.
 -- See end of file for extended copyright information.
@@ -89,7 +89,7 @@ decodeFromServerMsg reqMap bytes = unP $ Aeson.parse p obj
     unP (Aeson.Success (LSP.FromServerMess m msg)) = (reqMap, LSP.FromServerMess m msg)
     unP (Aeson.Success (LSP.FromServerRsp (Product.Pair m (Lens.Const newMap)) msg)) = (newMap, LSP.FromServerRsp m msg)
     unP (Aeson.Error e) = error e
--- Copyright 2021 Matthew Glazar
+-- Copyright 2021 Matthew "strager" Glazar
 -- Copyright Luke Lau 2018-2020.
 -- All rights reserved.
 --
