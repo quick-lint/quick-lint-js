@@ -3414,7 +3414,7 @@ class parser {
     depth_guard &operator=(const depth_guard &) = delete;
 
     ~depth_guard() noexcept {
-      assert(this->parser_->depth_ == this->old_depth_ + 1);
+      QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
       this->parser_->depth_ = this->old_depth_;
     }
 
