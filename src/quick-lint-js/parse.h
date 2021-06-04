@@ -3451,7 +3451,7 @@ class parser {
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
 
  public:
-  static constexpr const int stack_limit = 50;
+  static constexpr const int stack_limit = 150;
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
 };
