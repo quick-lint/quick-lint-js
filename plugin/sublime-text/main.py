@@ -19,17 +19,18 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         self.view = view
         self.parser = c_api.Parser()
         self.parser.init()
+        self.on_modified()
 
     def on_load(self):
+        self.on_modified()
+
+    def on_modified(self):
         viewsize = self.view.size()
         allregion = sublime.Region(0, viewsize)
         allcontent = self.view.substr(allregion).encode("utf-8")
         self.parser.set_text(allcontent, viewsize)
         self.set_diagnostics(self.parser.lint())
         self._add_squiggly_underlines(self.get_diagnostics())
-
-    def on_modified(self):
-        self.on_load()
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
@@ -45,7 +46,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def safe_get_diagnostics(self):
         diagnostics = getattr(self, "diagnostics", None)
         if diagnostics is None:
-            self.on_load()
+            self.on_modified()
             diagnostics = self.diagnostics
         return diagnostics
 
