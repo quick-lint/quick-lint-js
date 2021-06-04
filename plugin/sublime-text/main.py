@@ -64,21 +64,17 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         )
         self.view.add_regions("0", regions, "invalid.illegal", "", flags)
 
-    def _get_popup_diagnostic(self, diagnostics, point):
+    def _add_popup(self, diagnostics, point):
         for d in diagnostics:
             if d.begin_offset <= point and point <= d.end_offset:
-                return d
-
-    def _add_popup(self, diagnostics, point):
-        diag = self._get_popup_diagnostic(diagnostics, point)
-        content = "%s [%s]" % (
-            diag.message.decode("utf-8"),
-            diag.code.decode("utf-8"),
-        )
-        flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
-        location = diag.begin_offset
-        max_width, max_height = self.view.viewport_extent()
-        self.view.show_popup(content, flags, location, max_width, max_height)
+                content = "%s [%s]" % (
+                    d.message.decode("utf-8"),
+                    d.code.decode("utf-8"),
+                )
+                flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
+                location = d.begin_offset
+                max_width, max_height = self.view.viewport_extent()
+                self.view.show_popup(content, flags, location, max_width, max_height)
 
 
 # quick-lint-js finds bugs in JavaScript programs.
