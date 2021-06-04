@@ -276,66 +276,6 @@ void write_file(const char *path, string8_view content) {
 
   std::fclose(file);
 }
-
-canonical_path_result::canonical_path_result() {}
-
-canonical_path_result::canonical_path_result(const char *path) : path_(path) {}
-
-std::string_view canonical_path_result::path() const &noexcept {
-  QLJS_ASSERT(this->ok());
-  return this->path_;
-}
-
-std::string &&canonical_path_result::path() && noexcept {
-  QLJS_ASSERT(this->ok());
-  return std::move(this->path_);
-}
-
-const char *canonical_path_result::c_str() const noexcept {
-  QLJS_ASSERT(this->ok());
-  return this->path_.c_str();
-}
-
-std::string &&canonical_path_result::error() && noexcept {
-  QLJS_ASSERT(!this->ok());
-  return std::move(this->error_);
-}
-
-canonical_path_result canonical_path_result::failure(std::string &&error) {
-  canonical_path_result result;
-  result.error_ = std::move(error);
-  QLJS_ASSERT(!result.ok());
-  return result;
-}
-
-canonical_path_result canonicalize_path(const char *path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::error_code error;
-  std::filesystem::path canonical = std::filesystem::canonical(path, error);
-  if (error) {
-    return canonical_path_result::failure(
-        std::string("failed to canonicalize path ") + path + ": " +
-        error.message());
-  }
-  return canonical_path_result(canonical.string().c_str());
-#elif QLJS_HAVE_REALPATH
-  char *allocated_canonical = ::realpath(path, nullptr);
-  if (!allocated_canonical) {
-    return canonical_path_result::failure(
-        std::string("failed to canonicalize path ") + path + ": " +
-        std::strerror(errno));
-  }
-  canonical_path_result result(allocated_canonical);
-  std::free(allocated_canonical);
-  return result;
-#else
-#error "Unsupported platform"
-#endif
-}
-
-canonical_path_result canonicalize_path(const std::string &path) {
-  return canonicalize_path(path.c_str());
-}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -40,6 +40,7 @@ quick_lint_js_add_library(
   error-collector.cpp
   error-formatter.cpp
   error-list.cpp
+  file-canonical.cpp
   file-handle.cpp
   file-path.cpp
   file.cpp
