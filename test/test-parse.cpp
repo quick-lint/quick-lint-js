@@ -542,7 +542,7 @@ TEST(test_escape_first_character_in_keyword,
 
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    for (const char8 opening_paren : {'(', '['}) {
+    for (const char8 opening_paren : {u8'(', u8'['}) {
       string8 opening_parens(parser::stack_limit - 1, opening_paren);
       padded_string code(opening_parens);
       spy_visitor v;
@@ -596,7 +596,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
 #if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {
   {
-    for (const char8 opening_paren : {'(', '{', '['}) {
+    for (const char8 opening_paren : {u8'(', u8'{', u8'['}) {
       string8 opening_parens(parser::stack_limit + 1, opening_paren);
       padded_string code(opening_parens);
       spy_visitor v;
