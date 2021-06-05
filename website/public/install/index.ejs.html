@@ -86,7 +86,7 @@
       }
 
       /* Stack items on top of each other if the screen isn't wide enough to
-         arrange them horizontally. */
+               arrange them horizontally. */
       @media only screen and (max-width: 34em) {
         .os-column-table {
           grid-template-areas: "linux" "macos" "windows";
@@ -97,7 +97,7 @@
       }
 
       /* HACK(strager): Work around bug in EdgeHTML 13.10586 causing the Windows
-         column of the operating systems column group to be super wide. */
+               column of the operating systems column group to be super wide. */
       img.os-logo[src$="/windows.svg"] {
         width: 1.2em;
       }
@@ -127,7 +127,7 @@
       }
 
       /* Add lots of spacing between different install procedures so people
-         don't start reading the wrong instructions. */
+               don't start reading the wrong instructions. */
       article {
         margin-top: 2rem;
         margin-bottom: 4rem;
@@ -137,12 +137,8 @@
       }
 
       .long-shell-command-line {
-<<<<<<< HEAD
         /* 6 = "$ ".length + 4 spaces of indentation */
-=======
-        /* 4 = "$ ".length + 4 spaces of indentation */
         display: inline-block;
->>>>>>> fixed validation errors for /install page
         padding-left: 6ch;
         text-indent: -6ch;
         white-space: normal;
