@@ -3404,10 +3404,10 @@ class parser {
    public:
     explicit depth_guard(parser *p) noexcept
         : parser_(p), old_depth_(p->depth_) {
-      p->depth_++;
-      if (p->depth_ > p->stack_limit) {
+      if (p->depth_ + 1 > p->stack_limit) {
         p->crash_on_depth_limit_exceeded();
       }
+      p->depth_++;
     }
 
     depth_guard(const depth_guard &) = delete;
