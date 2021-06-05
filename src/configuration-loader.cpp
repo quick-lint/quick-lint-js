@@ -46,7 +46,7 @@ configuration* configuration_loader::load_config_file(const char* config_path) {
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
   configuration* config = &config_it->second;
-  config->set_config_file_path(canonical_config_path.c_str());
+  config->set_config_file_path(std::move(canonical_config_path).canonical());
   config->load_from_json(&config_json.content);
   return config;
 }
@@ -93,7 +93,7 @@ configuration* configuration_loader::find_and_load_config_file(
             std::forward_as_tuple());
         QLJS_ASSERT(inserted);
         configuration* config = &config_it->second;
-        config->set_config_file_path(std::move(config_path).path());
+        config->set_config_file_path(std::move(config_path));
         config->load_from_json(&config_json.content);
         return config;
       }

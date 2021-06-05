@@ -7,6 +7,8 @@
 #include <cerrno>
 #include <cstring>
 #include <gtest/gtest.h>
+#include <optional>
+#include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 
@@ -68,6 +70,15 @@ inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
                                                    std::string_view rhs_path) {
   return assert_same_file(lhs_expr, rhs_expr, std::string(lhs_path).c_str(),
                           std::string(rhs_path).c_str());
+}
+
+inline ::testing::AssertionResult assert_same_file(
+    const char* lhs_expr, const char* rhs_expr,
+    const std::optional<canonical_path>& lhs_path,
+    const std::string& rhs_path) {
+  return assert_same_file(lhs_expr, rhs_expr,
+                          lhs_path.has_value() ? lhs_path->c_str() : "",
+                          rhs_path);
 }
 }
 

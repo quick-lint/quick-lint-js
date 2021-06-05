@@ -136,7 +136,7 @@ const global_declared_variable_set& configuration::globals() noexcept {
   return this->globals_;
 }
 
-const std::string& configuration::config_file_path() const noexcept {
+std::optional<canonical_path> configuration::config_file_path() const {
   return this->config_file_path_;
 }
 
@@ -208,7 +208,7 @@ void configuration::load_from_json(padded_string_view json) {
   }
 }
 
-void configuration::set_config_file_path(std::string&& path) {
+void configuration::set_config_file_path(canonical_path&& path) {
   this->config_file_path_ = std::move(path);
 }
 

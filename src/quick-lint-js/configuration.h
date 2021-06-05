@@ -4,7 +4,9 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_H
 #define QUICK_LINT_JS_CONFIGURATION_H
 
+#include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
@@ -16,8 +18,7 @@ class configuration {
  public:
   const global_declared_variable_set& globals() noexcept;
 
-  // If a config file path was not set, this function returns an empty string.
-  const std::string& config_file_path() const noexcept;
+  std::optional<canonical_path> config_file_path() const;
 
   void reset_global_groups();
   bool add_global_group(string8_view group_name);
@@ -26,7 +27,7 @@ class configuration {
   void remove_global_variable(string8_view name);
 
   void load_from_json(padded_string_view);
-  void set_config_file_path(std::string&&);
+  void set_config_file_path(canonical_path&&);
 
  private:
   void load_global_groups_from_json(simdjson::ondemand::value&);
@@ -36,7 +37,7 @@ class configuration {
 
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
-  std::string config_file_path_;
+  std::optional<canonical_path> config_file_path_;
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;
