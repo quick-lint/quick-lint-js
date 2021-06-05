@@ -68,7 +68,7 @@ configuration* configuration_loader::find_and_load_config_file(
     parent_directory.parent();
   }
 
-  // TODO(strager): Directory -> config to reduce lookups in cases like the
+  // TODO(strager): Cache directory->config to reduce lookups in cases like the
   // following:
   //
   // input paths: ./a/b/c/d/1.js, ./a/b/c/d/2.js, ./a/b/c/d/3.js
