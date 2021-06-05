@@ -37,10 +37,12 @@ inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
 #elif QLJS_HAVE_SYS_STAT_H
   {
     struct stat lhs_stat = {};
-    EXPECT_EQ(::lstat(lhs_path, &lhs_stat), 0) << std::strerror(errno);
+    EXPECT_EQ(::lstat(lhs_path, &lhs_stat), 0)
+        << lhs_path << ": " << std::strerror(errno);
 
     struct stat rhs_stat = {};
-    EXPECT_EQ(::lstat(rhs_path, &rhs_stat), 0) << std::strerror(errno);
+    EXPECT_EQ(::lstat(rhs_path, &rhs_stat), 0)
+        << rhs_path << ": " << std::strerror(errno);
 
     same = lhs_stat.st_dev == rhs_stat.st_dev &&
            lhs_stat.st_ino == rhs_stat.st_ino;

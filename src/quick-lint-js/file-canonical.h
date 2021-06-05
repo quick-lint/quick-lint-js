@@ -11,16 +11,24 @@
 #include <string_view>
 
 namespace quick_lint_js {
+class canonical_path_result;
+
 // A filesystem path.
 //
 // * The path is absolute (i.e. not relative to the current working directory or
 //   current drive). (The path is relative to the current chroot/jail/namespace,
 //   though.)
-// * The path has no '.' or '..' components.
+// * The path has no '.' components.
+// * The path has no '..' components, unless the exception mentioned below
+//   applies.
 // * The path has no redundant component separators (\ or /, depending on the
 //   operating system).
 // * No subpath refers to a symlink, assuming no changes to the filesystem since
 //   creation of the canonical_path.
+//
+// Exception to the above rules: A canonical_path can contain one or more '..'
+// components before canonical_path_result::drop_missing_components has been
+// called.
 class canonical_path {
  public:
   // Does not check the validity of the path.
@@ -57,12 +65,14 @@ class canonical_path {
 
  private:
   std::string path_;
+
+  friend canonical_path_result;
 };
 
 class canonical_path_result {
  public:
-  explicit canonical_path_result(std::string &&path);
-  explicit canonical_path_result(const char *path);
+  explicit canonical_path_result(std::string &&path,
+                                 std::size_t existing_path_length);
 
   std::string_view path() const &noexcept;
   std::string &&path() && noexcept;
@@ -75,6 +85,9 @@ class canonical_path_result {
 
   bool ok() const noexcept { return this->error_.empty(); }
 
+  bool have_missing_components() const noexcept;
+  void drop_missing_components();
+
   static canonical_path_result failure(std::string &&error);
 
  private:
@@ -82,6 +95,7 @@ class canonical_path_result {
 
   std::optional<canonical_path> path_;
   std::string error_;
+  std::size_t existing_path_length_;
 };
 
 canonical_path_result canonicalize_path(const char *path);

@@ -171,10 +171,9 @@ bool canonical_path::parent() {
 
 canonical_path_result::canonical_path_result() {}
 
-canonical_path_result::canonical_path_result(std::string &&path)
-    : path_(std::move(path)) {}
-
-canonical_path_result::canonical_path_result(const char *path) : path_(path) {}
+canonical_path_result::canonical_path_result(std::string &&path,
+                                             std::size_t existing_path_length)
+    : path_(std::move(path)), existing_path_length_(existing_path_length) {}
 
 std::string_view canonical_path_result::path() const &noexcept {
   QLJS_ASSERT(this->ok());
@@ -206,6 +205,16 @@ std::string &&canonical_path_result::error() && noexcept {
   return std::move(this->error_);
 }
 
+bool canonical_path_result::have_missing_components() const noexcept {
+  QLJS_ASSERT(this->ok());
+  return this->existing_path_length_ != this->path_->path_.size();
+}
+
+void canonical_path_result::drop_missing_components() {
+  QLJS_ASSERT(this->ok());
+  this->path_->path_.resize(this->existing_path_length_);
+}
+
 canonical_path_result canonical_path_result::failure(std::string &&error) {
   canonical_path_result result;
   result.error_ = std::move(error);
@@ -224,9 +233,13 @@ class path_canonicalizer {
     }
 #if QLJS_PATHS_WIN32
     // HACK(strager): Convert UTF-16 to UTF-8.
-    return canonical_path_result(std::filesystem::path(canonical_).string());
+    // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
+    // interpreted as UTF-8 code units! Fix by storing a std::wstring in
+    // canonical_path.
+    return canonical_path_result(std::filesystem::path(canonical_).string(),
+                                 existing_path_length_);
 #else
-    return canonical_path_result(std::move(canonical_));
+    return canonical_path_result(std::move(canonical_), existing_path_length_);
 #endif
   }
 
@@ -251,6 +264,10 @@ class path_canonicalizer {
 #endif
       canonical_ += preferred_component_separator;
     }
+
+    if (existing_path_length_ == 0) {
+      existing_path_length_ = canonical_.size();
+    }
   }
 
  private:
@@ -258,6 +275,7 @@ class path_canonicalizer {
     error,
 
     directory,
+    does_not_exist,
     other,
     symlink,
   };
@@ -358,18 +376,40 @@ class path_canonicalizer {
     if (component == dot) {
       skip_to_next_component();
     } else if (component == dot_dot) {
-      parent();
+      if (existing_path_length_ == 0) {
+        parent();
+      } else {
+        QLJS_ASSERT(!canonical_.empty());
+        canonical_ += preferred_component_separator;
+        canonical_ += component;
+      }
       skip_to_next_component();
     } else {
+      std::size_t canonical_length_without_component = canonical_.size();
+
       canonical_ += preferred_component_separator;
       canonical_ += component;
       need_root_slash_ = false;
+
+      if (existing_path_length_ != 0) {
+        // A parent path did not exist, so this path certainly does not exist.
+        // Don't bother checking.
+        skip_to_next_component();
+        return;
+      }
 
       file_type type = get_file_type(canonical_);
       switch (type) {
       case file_type::error:
         QLJS_ASSERT(!error_.empty());
         return;
+
+      case file_type::does_not_exist:
+        if (existing_path_length_ == 0) {
+          existing_path_length_ = canonical_length_without_component;
+        }
+        skip_to_next_component();
+        break;
 
       case file_type::directory:
         skip_to_next_component();
@@ -448,10 +488,14 @@ class path_canonicalizer {
 #if defined(_WIN32)
     DWORD attributes = ::GetFileAttributesW(file_path.c_str());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
+      DWORD error = ::GetLastError();
+      if (error == ERROR_FILE_NOT_FOUND) {
+        return file_type::does_not_exist;
+      }
       error_ = std::string("failed to canonicalize path ") +
                string_for_error_message(original_path_) + ": " +
                string_for_error_message(canonical_) + ": " +
-               windows_error_message(::GetLastError());
+               windows_error_message(error);
       return file_type::error;
     }
     if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) {
@@ -465,6 +509,9 @@ class path_canonicalizer {
     struct stat s;
     int lstat_rc = ::lstat(file_path.c_str(), &s);
     if (lstat_rc == -1) {
+      if (errno == ENOENT) {
+        return file_type::does_not_exist;
+      }
       error_ = std::string("failed to canonicalize path ") +
                string_for_error_message(original_path_) + ": " +
                string_for_error_message(canonical_) + ": " +
@@ -539,6 +586,13 @@ class path_canonicalizer {
 
   path_string canonical_;
   bool need_root_slash_;
+
+  // During canonicalization, if existing_path_length_ is 0, then we have not
+  // found a non-existing path.
+  //
+  // During canonicalization, if existing_path_length_ is not 0, then we have
+  // found a non-existing path. '..' should be preserved.
+  std::size_t existing_path_length_ = 0;
 
   path_string readlink_buffers_[2];
   int used_readlink_buffer_ = 0;  // Index into readlink_buffers_.

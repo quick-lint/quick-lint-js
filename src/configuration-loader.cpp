@@ -63,8 +63,13 @@ configuration* configuration_loader::find_and_load_config_file(
     return nullptr;
   }
 
+  bool should_drop_file_name = input_path != nullptr;
+  if (canonical_input_path.have_missing_components()) {
+    canonical_input_path.drop_missing_components();
+    should_drop_file_name = false;
+  }
   canonical_path parent_directory = std::move(canonical_input_path).canonical();
-  if (input_path) {
+  if (should_drop_file_name) {
     parent_directory.parent();
   }
 
