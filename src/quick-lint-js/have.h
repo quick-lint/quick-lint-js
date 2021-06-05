@@ -313,6 +313,12 @@
 #define QLJS_HAVE_SETJMP 0
 #endif
 
+#if !defined(QLJS_HAVE_STD_TRANSPARENT_KEYS)
+// TODO(strager): Set this to 1 if is_transparent is supported by
+// std::unordered_map::find (C++20).
+#define QLJS_HAVE_STD_TRANSPARENT_KEYS 0
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

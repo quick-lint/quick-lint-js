@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/file-canonical.h>
 #include <string>
 #include <unordered_map>
 
@@ -21,10 +22,11 @@ class configuration_loader {
   configuration* load_config_file(const char* config_path);
   configuration* find_and_load_config_file(const char* input_path);
 
-  configuration* get_loaded_config(const char* path) noexcept;
+  configuration* get_loaded_config(const std::string& path) noexcept;
+  configuration* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration default_config_;
-  std::unordered_map<std::string, configuration> loaded_config_files_;
+  std::unordered_map<canonical_path, configuration> loaded_config_files_;
   std::string last_error_;
 };
 }

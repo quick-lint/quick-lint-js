@@ -32,7 +32,7 @@ configuration* configuration_loader::load_config_file(const char* config_path) {
   }
 
   if (configuration* config =
-          this->get_loaded_config(canonical_config_path.c_str())) {
+          this->get_loaded_config(canonical_config_path.canonical())) {
     return config;
   }
   read_file_result config_json = read_file(canonical_config_path.c_str());
@@ -42,7 +42,7 @@ configuration* configuration_loader::load_config_file(const char* config_path) {
   }
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
       std::piecewise_construct,
-      std::forward_as_tuple(canonical_config_path.path()),
+      std::forward_as_tuple(canonical_config_path.canonical()),
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
   configuration* config = &config_it->second;
@@ -83,14 +83,18 @@ configuration* configuration_loader::find_and_load_config_file(
       QLJS_ASSERT(config_path == parent_directory);
       config_path.append(suffix);
 
-      if (configuration* config =
-              this->get_loaded_config(config_path.c_str())) {
+      if (configuration* config = this->get_loaded_config(config_path)) {
         return config;
       }
 
       read_file_result config_json = read_file(config_path.c_str());
       if (config_json.ok()) {
-        configuration* config = &this->loaded_config_files_[config_path];
+        auto [config_it, inserted] = this->loaded_config_files_.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(canonical_path(std::string(config_path))),
+            std::forward_as_tuple());
+        QLJS_ASSERT(inserted);
+        configuration* config = &config_it->second;
         config->set_config_file_path(std::move(config_path));
         config->load_from_json(&config_json.content);
         return config;
@@ -119,7 +123,20 @@ configuration* configuration_loader::find_and_load_config_file(
 QLJS_WARNING_POP
 
 configuration* configuration_loader::get_loaded_config(
-    const char* path) noexcept {
+    const std::string& path) noexcept {
+#if QLJS_HAVE_STD_TRANSPARENT_KEYS
+  auto existing_config_it = this->loaded_config_files_.find(path);
+#else
+  auto existing_config_it =
+      this->loaded_config_files_.find(canonical_path(std::string(path)));
+#endif
+  return existing_config_it == this->loaded_config_files_.end()
+             ? nullptr
+             : &existing_config_it->second;
+}
+
+configuration* configuration_loader::get_loaded_config(
+    const canonical_path& path) noexcept {
   auto existing_config_it = this->loaded_config_files_.find(path);
   return existing_config_it == this->loaded_config_files_.end()
              ? nullptr

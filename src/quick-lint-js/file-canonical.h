@@ -4,9 +4,45 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
+#include <cstddef>
+#include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
 
 namespace quick_lint_js {
+// A filesystem path.
+//
+// * The path is absolute (i.e. not relative to the current working directory or
+//   current drive). (The path is relative to the current chroot/jail/namespace,
+//   though.)
+// * The path has no '.' or '..' components.
+// * The path has no redundant component separators (\ or /, depending on the
+//   operating system).
+// * No subpath refers to a symlink, assuming no changes to the filesystem since
+//   creation of the canonical_path.
+class canonical_path {
+ public:
+  // Does not check the validity of the path.
+  explicit canonical_path(std::string &&path);
+
+  std::string_view path() const &noexcept;
+  std::string &&path() && noexcept;
+  const char *c_str() const noexcept;
+
+  friend bool operator==(const canonical_path &,
+                         const canonical_path &) noexcept;
+  friend bool operator!=(const canonical_path &,
+                         const canonical_path &) noexcept;
+  friend bool operator==(std::string_view, const canonical_path &) noexcept;
+  friend bool operator!=(std::string_view, const canonical_path &) noexcept;
+  friend bool operator==(const canonical_path &, std::string_view) noexcept;
+  friend bool operator!=(const canonical_path &, std::string_view) noexcept;
+
+ private:
+  std::string path_;
+};
+
 class canonical_path_result {
  public:
   explicit canonical_path_result(std::string &&path);
@@ -15,6 +51,9 @@ class canonical_path_result {
   std::string_view path() const &noexcept;
   std::string &&path() && noexcept;
   const char *c_str() const noexcept;
+
+  const canonical_path &canonical() const &noexcept;
+  canonical_path &&canonical() && noexcept;
 
   std::string &&error() && noexcept;
 
@@ -25,12 +64,28 @@ class canonical_path_result {
  private:
   explicit canonical_path_result();
 
-  std::string path_;
+  std::optional<canonical_path> path_;
   std::string error_;
 };
 
 canonical_path_result canonicalize_path(const char *path);
 canonical_path_result canonicalize_path(const std::string &path);
+}
+
+namespace std {
+template <>
+struct hash<quick_lint_js::canonical_path> {
+  using is_transparent = void;
+
+  std::size_t operator()(const quick_lint_js::canonical_path &path) const
+      noexcept {
+    return std::hash<std::string_view>()(path.path());
+  }
+
+  std::size_t operator()(std::string_view path) const noexcept {
+    return std::hash<std::string_view>()(path);
+  }
+};
 }
 
 #endif

@@ -58,6 +58,42 @@ std::string string_for_error_message(std::wstring_view);
 #endif
 }
 
+canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {}
+
+std::string_view canonical_path::path() const &noexcept { return this->path_; }
+
+std::string &&canonical_path::path() && noexcept {
+  return std::move(this->path_);
+}
+
+const char *canonical_path::c_str() const noexcept {
+  return this->path_.c_str();
+}
+
+bool operator==(const canonical_path &lhs, const canonical_path &rhs) noexcept {
+  return lhs.path() == rhs.path();
+}
+
+bool operator!=(const canonical_path &lhs, const canonical_path &rhs) noexcept {
+  return !(lhs == rhs);
+}
+
+bool operator==(std::string_view lhs, const canonical_path &rhs) noexcept {
+  return lhs == rhs.path();
+}
+
+bool operator!=(std::string_view lhs, const canonical_path &rhs) noexcept {
+  return !(lhs == rhs);
+}
+
+bool operator==(const canonical_path &lhs, std::string_view rhs) noexcept {
+  return lhs.path() == rhs;
+}
+
+bool operator!=(const canonical_path &lhs, std::string_view rhs) noexcept {
+  return !(lhs == rhs);
+}
+
 canonical_path_result::canonical_path_result() {}
 
 canonical_path_result::canonical_path_result(std::string &&path)
@@ -67,17 +103,27 @@ canonical_path_result::canonical_path_result(const char *path) : path_(path) {}
 
 std::string_view canonical_path_result::path() const &noexcept {
   QLJS_ASSERT(this->ok());
-  return this->path_;
+  return this->path_->path();
 }
 
 std::string &&canonical_path_result::path() && noexcept {
   QLJS_ASSERT(this->ok());
-  return std::move(this->path_);
+  return std::move(*this->path_).path();
 }
 
 const char *canonical_path_result::c_str() const noexcept {
   QLJS_ASSERT(this->ok());
-  return this->path_.c_str();
+  return this->path_->c_str();
+}
+
+const canonical_path &canonical_path_result::canonical() const &noexcept {
+  QLJS_ASSERT(this->ok());
+  return *this->path_;
+}
+
+canonical_path &&canonical_path_result::canonical() && noexcept {
+  QLJS_ASSERT(this->ok());
+  return std::move(*this->path_);
 }
 
 std::string &&canonical_path_result::error() && noexcept {
