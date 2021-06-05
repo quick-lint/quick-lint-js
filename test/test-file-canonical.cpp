@@ -701,6 +701,107 @@ TEST_F(test_file_canonical, canonical_path_win32_root) {
   }
 }
 #endif
+
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+TEST_F(test_file_canonical, parent_of_root_is_root_posix) {
+  for (const char* root : {"/", "//"}) {
+    canonical_path p(root);
+    EXPECT_FALSE(p.parent());
+    EXPECT_EQ(p.path(), root);
+  }
+}
+
+TEST_F(test_file_canonical, parent_of_non_root_removes_component_posix) {
+  struct test_case {
+    const std::string_view before;
+    const std::string_view after;
+  };
+
+  for (const test_case& tc : {
+           test_case{"/hello", "/"},
+           test_case{"/dir/subdir", "/dir"},
+           test_case{"/a/b/c/d", "/a/b/c"},
+           test_case{"//implementation-defined", "//"},
+           test_case{"//implementation/defined", "//implementation"},
+       }) {
+    canonical_path p(std::string(tc.before));
+    EXPECT_TRUE(p.parent());
+    EXPECT_EQ(p.path(), tc.after) << "before = " << tc.before;
+  }
+}
+
+TEST_F(test_file_canonical, append_component_posix) {
+  struct test_case {
+    const std::string_view before;
+    const std::string_view component;
+    const std::string_view after;
+  };
+
+  for (const test_case& tc : {
+           test_case{"/", "hello", "/hello"},
+           test_case{"/dir", "subdir", "/dir/subdir"},
+           test_case{"//", "hello", "//hello"},
+           test_case{"//dir", "subdir", "//dir/subdir"},
+       }) {
+    canonical_path p(std::string(tc.before));
+    p.append_component(tc.component);
+    EXPECT_EQ(p.path(), tc.after)
+        << "before = " << tc.before << "\ncomponent = " << tc.component;
+  }
+}
+#endif
+
+#if defined(_WIN32)
+TEST_F(test_file_canonical, parent_of_root_is_root_win32) {
+  for (const char* root : {R"(C:\)", R"(\\?\X:\)", R"(\\server\share)"}) {
+    canonical_path p(root);
+    EXPECT_FALSE(p.parent());
+    EXPECT_EQ(p.path(), root);
+  }
+}
+
+TEST_F(test_file_canonical, parent_of_non_root_removes_component_win32) {
+  struct test_case {
+    const std::string_view before;
+    const std::string_view after;
+  };
+
+  for (const test_case& tc : {
+           test_case{R"(C:\hello)", R"(C:\)"},
+           test_case{R"(C:\dir\subdir)", R"(C:\dir)"},
+           test_case{R"(C:\a\b\c\d)", R"(C:\a\b\c)"},
+           test_case{R"(\\?\X:\hello)", R"(\\?\X:\)"},
+           test_case{R"(\\?\X:\dir\subdir)", R"(\\?\X:\dir)"},
+           test_case{R"(\\?\X:\a\b\c\d)", R"(\\?\X:\a\b\c)"},
+           test_case{R"(\\server\share\file)", R"(\\server\share)"},
+       }) {
+    canonical_path p(std::string(tc.before));
+    EXPECT_TRUE(p.parent());
+    EXPECT_EQ(p.path(), tc.after) << "before = " << tc.before;
+  }
+}
+
+TEST_F(test_file_canonical, append_component_win32) {
+  struct test_case {
+    const std::string_view before;
+    const std::string_view component;
+    const std::string_view after;
+  };
+
+  for (const test_case& tc : {
+           test_case{R"(C:\)", R"(hello)", R"(C:\hello)"},
+           test_case{R"(C:\dir)", R"(subdir)", R"(C:\dir\subdir)"},
+           test_case{R"(\\?\X:\)", R"(hello)", R"(\\?\X:\hello)"},
+           test_case{R"(\\?\X:\dir)", R"(subdir)", R"(\\?\X:\dir\subdir)"},
+           test_case{R"(\\server\share)", R"(dir)", R"(\\server\share\dir)"},
+       }) {
+    canonical_path p(std::string(tc.before));
+    p.append_component(tc.component);
+    EXPECT_EQ(p.path(), tc.after)
+        << "before = " << tc.before << "\ncomponent = " << tc.component;
+  }
+}
+#endif
 }
 }
 

@@ -44,6 +44,35 @@
 
 namespace quick_lint_js {
 namespace {
+#if QLJS_PATHS_WIN32
+using path_char = wchar_t;
+#elif QLJS_PATHS_POSIX
+using path_char = char;
+#else
+#error "Unsupported platform"
+#endif
+using path_string = std::basic_string<path_char>;
+using path_string_view = std::basic_string_view<path_char>;
+
+#if QLJS_PATHS_WIN32
+constexpr path_char preferred_component_separator = L'\\';
+constexpr path_char component_separators[] = L"/\\";
+constexpr path_string_view dot = L".";
+constexpr path_string_view dot_dot = L"..";
+#elif QLJS_PATHS_POSIX
+constexpr path_char preferred_component_separator = '/';
+constexpr path_char component_separators[] = "/";
+constexpr path_string_view dot = ".";
+constexpr path_string_view dot_dot = "..";
+#else
+#error "Unsupported platform"
+#endif
+
+// TODO(strager): Avoid hard-coding std::string. Use std::wstring always on
+// Windows.
+constexpr char preferred_component_separator_char =
+    static_cast<char>(preferred_component_separator);
+
 #if QLJS_HAVE_UNISTD_H
 int read_symbolic_link(const char *symlink_path, std::string *out);
 #endif
@@ -58,7 +87,9 @@ std::string string_for_error_message(std::wstring_view);
 #endif
 }
 
-canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {}
+canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
+  QLJS_ASSERT(!this->path_.empty());
+}
 
 std::string_view canonical_path::path() const &noexcept { return this->path_; }
 
@@ -92,6 +123,50 @@ bool operator==(const canonical_path &lhs, std::string_view rhs) noexcept {
 
 bool operator!=(const canonical_path &lhs, std::string_view rhs) noexcept {
   return !(lhs == rhs);
+}
+
+void canonical_path::append_component(std::string_view component) {
+  if (this->path_[this->path_.size() - 1] !=
+      preferred_component_separator_char) {
+    this->path_.push_back(preferred_component_separator_char);
+  }
+  this->path_.append(component);
+}
+
+bool canonical_path::parent() {
+#if QLJS_PATHS_POSIX
+  if (this->path_[this->path_.size() - 1] == '/') {
+    return false;
+  }
+  std::size_t slash_index = this->path_.find_last_of("/");
+  QLJS_ASSERT(slash_index != std::string::npos);
+  if (slash_index == 0 || slash_index == 1) {
+    // Preserve the slash for resulting root paths.
+    this->path_.resize(slash_index + 1);
+  } else {
+    this->path_.resize(slash_index);
+  }
+  return true;
+#elif QLJS_PATHS_WIN32
+  // TODO(strager): Avoid string conversions and copying.
+  std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
+  QLJS_ASSERT(wpath.has_value());
+  HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
+  switch (result) {
+  case S_OK:
+    wpath->resize(std::wcslen(wpath->data()));
+    this->path_ = std::filesystem::path(*wpath).string();
+    return true;
+  case S_FALSE:
+    // Path is a root path already.
+    return false;
+  default:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+#else
+#error "Unsupported platform"
+#endif
 }
 
 canonical_path_result::canonical_path_result() {}
@@ -141,30 +216,6 @@ canonical_path_result canonical_path_result::failure(std::string &&error) {
 namespace {
 class path_canonicalizer {
  public:
-#if QLJS_PATHS_WIN32
-  using path_char = wchar_t;
-#elif QLJS_PATHS_POSIX
-  using path_char = char;
-#else
-#error "Unsupported platform"
-#endif
-  using path_string = std::basic_string<path_char>;
-  using path_string_view = std::basic_string_view<path_char>;
-
-#if QLJS_PATHS_WIN32
-  static constexpr path_char preferred_component_separator = L'\\';
-  static constexpr path_char component_separators[] = L"/\\";
-  static constexpr path_string_view dot = L".";
-  static constexpr path_string_view dot_dot = L"..";
-#elif QLJS_PATHS_POSIX
-  static constexpr path_char preferred_component_separator = '/';
-  static constexpr path_char component_separators[] = "/";
-  static constexpr path_string_view dot = ".";
-  static constexpr path_string_view dot_dot = "..";
-#else
-#error "Unsupported platform"
-#endif
-
   explicit path_canonicalizer(path_string_view path) : original_path_(path) {}
 
   canonical_path_result result() {

@@ -63,9 +63,10 @@ configuration* configuration_loader::find_and_load_config_file(
     return nullptr;
   }
 
-  std::string parent_directory =
-      input_path ? parent_path(std::move(canonical_input_path).path())
-                 : std::move(canonical_input_path).path();
+  canonical_path parent_directory = std::move(canonical_input_path).canonical();
+  if (input_path) {
+    parent_directory.parent();
+  }
 
   // TODO(strager): Directory -> config to reduce lookups in cases like the
   // following:
@@ -74,14 +75,12 @@ configuration* configuration_loader::find_and_load_config_file(
   // config path: ./quick-lint-js.config
 
   for (;;) {
-    std::string config_path = parent_directory;
-    for (const std::string_view& suffix : {
-             QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "quick-lint-js.config"sv,
-             QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR ".quick-lint-js.config"sv,
+    for (const std::string_view& file_name : {
+             "quick-lint-js.config"sv,
+             ".quick-lint-js.config"sv,
          }) {
-      config_path.resize(parent_directory.size());
-      QLJS_ASSERT(config_path == parent_directory);
-      config_path.append(suffix);
+      canonical_path config_path = parent_directory;
+      config_path.append_component(file_name);
 
       if (configuration* config = this->get_loaded_config(config_path)) {
         return config;
@@ -90,12 +89,11 @@ configuration* configuration_loader::find_and_load_config_file(
       read_file_result config_json = read_file(config_path.c_str());
       if (config_json.ok()) {
         auto [config_it, inserted] = this->loaded_config_files_.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(canonical_path(std::string(config_path))),
+            std::piecewise_construct, std::forward_as_tuple(config_path),
             std::forward_as_tuple());
         QLJS_ASSERT(inserted);
         configuration* config = &config_it->second;
-        config->set_config_file_path(std::move(config_path));
+        config->set_config_file_path(std::move(config_path).path());
         config->load_from_json(&config_json.content);
         return config;
       }
@@ -108,32 +106,16 @@ configuration* configuration_loader::find_and_load_config_file(
     }
 
     // Loop, looking in parent directories.
-    std::string new_parent_directory =
-        parent_path(std::string(parent_directory));
-    if (new_parent_directory == parent_directory) {
+    if (!parent_directory.parent()) {
       // We searched the root directory which has no parent.
       break;
     }
-    parent_directory = std::move(new_parent_directory);
   }
 
   return &this->default_config_;
 }
 
 QLJS_WARNING_POP
-
-configuration* configuration_loader::get_loaded_config(
-    const std::string& path) noexcept {
-#if QLJS_HAVE_STD_TRANSPARENT_KEYS
-  auto existing_config_it = this->loaded_config_files_.find(path);
-#else
-  auto existing_config_it =
-      this->loaded_config_files_.find(canonical_path(std::string(path)));
-#endif
-  return existing_config_it == this->loaded_config_files_.end()
-             ? nullptr
-             : &existing_config_it->second;
-}
 
 configuration* configuration_loader::get_loaded_config(
     const canonical_path& path) noexcept {

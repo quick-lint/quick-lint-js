@@ -30,6 +30,22 @@ class canonical_path {
   std::string &&path() && noexcept;
   const char *c_str() const noexcept;
 
+  // Add a new component to the end of the path.
+  //
+  // This function does not consult the filesystem.
+  void append_component(std::string_view component);
+
+  // Remove the last component of the path.
+  //
+  // If the path is a root path, this function returns false does not modify
+  // *this.
+  //
+  // If the path is not a root path, this function returns true and modifies
+  // *this.
+  //
+  // This function does not consult the filesystem.
+  bool parent();
+
   friend bool operator==(const canonical_path &,
                          const canonical_path &) noexcept;
   friend bool operator!=(const canonical_path &,

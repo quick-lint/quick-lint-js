@@ -22,7 +22,6 @@ class configuration_loader {
   configuration* load_config_file(const char* config_path);
   configuration* find_and_load_config_file(const char* input_path);
 
-  configuration* get_loaded_config(const std::string& path) noexcept;
   configuration* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration default_config_;
