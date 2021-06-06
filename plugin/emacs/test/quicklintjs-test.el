@@ -13,7 +13,7 @@
   (setq package-user-dir cache-dir-name
         package-check-signature nil)
   (add-to-list 'package-archives
-               '("MELPA" . "https://stable.melpa.org/packages/"))
+               '("melpa" . "https://melpa.org/packages/") t)
   (package-initialize)
 
   (unless package-archive-contents
