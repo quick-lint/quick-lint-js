@@ -9,7 +9,7 @@ version:        0.1.0.0
 description:    Measure speed of Language Server Protocol (LSP) servers
 author:         Matthew "strager" Glazar
 maintainer:     strager.nds@gmail.com
-copyright:      Copyright (C) 2020  Matthew Glazar
+copyright:      Copyright (C) 2020  Matthew "strager" Glazar
 license:        BSD3
 license-file:   COPYING
 build-type:     Simple

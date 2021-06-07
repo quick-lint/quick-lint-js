@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 import assert from "assert";
@@ -71,7 +71,8 @@ export function makeBenchmarkHTML(seriess) {
       <div class="x-axis-label">response time (lower is better)</div>
       <label
         class="log-scale javascript-only"
-        title="checked: logarithmic X axis (emphasizing ratios).&#013;unchecked: linear X axis (emphasizing time)."
+        title="checked: logarithmic X axis (emphasizing ratios).
+unchecked: linear X axis (emphasizing time)."
         ><input type="checkbox" class="log-scale-select" /> log scale</label
       >
     </div>
@@ -179,7 +180,7 @@ function html(strings, ...expressions) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

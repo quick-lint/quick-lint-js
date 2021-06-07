@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cerrno>
@@ -8,6 +8,9 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/file-canonical.h>
+#include <quick-lint-js/file-matcher.h>
+#include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/temporary-directory.h>
@@ -21,10 +24,6 @@
 #include <filesystem>
 #endif
 
-#if QLJS_HAVE_MKDTEMP
-#include <sys/stat.h>
-#endif
-
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 #define EXPECT_DEFAULT_CONFIG(config)                                  \
@@ -34,61 +33,12 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
     EXPECT_FALSE((config).globals().find(u8"variableDoesNotExist"sv)); \
   } while (false)
 
-#define EXPECT_SAME_FILE(path_a, path_b)                                   \
-  do {                                                                     \
-    canonical_path_result path_a_canonical_ = canonicalize_path((path_a)); \
-    ASSERT_TRUE(path_a_canonical_.ok()) << path_a_canonical_.error;        \
-    canonical_path_result path_b_canonical_ = canonicalize_path((path_b)); \
-    ASSERT_TRUE(path_b_canonical_.ok()) << path_b_canonical_.error;        \
-    EXPECT_EQ(path_a_canonical_.path, path_b_canonical_.path)              \
-        << (path_a) << " should be the same file as " << (path_b);         \
-  } while (false)
-
 using ::testing::AnyOf;
 using ::testing::HasSubstr;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-void create_directory(const std::string& path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::create_directory(path);
-#else
-  if (::mkdir(path.c_str(), 0755) != 0) {
-    std::fprintf(stderr, "error: failed to create directory %s: %s\n",
-                 path.c_str(), std::strerror(errno));
-    std::terminate();
-  }
-#endif
-}
-
-std::string get_current_working_directory() {
-#if QLJS_HAVE_STD_FILESYSTEM
-  return std::filesystem::current_path().string();
-#else
-  std::string cwd;
-  cwd.resize(PATH_MAX);
-  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
-    std::fprintf(stderr, "error: failed to get current directory: %s\n",
-                 std::strerror(errno));
-    std::terminate();
-  }
-  return cwd;
-#endif
-}
-
-void set_current_working_directory(const char* path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::current_path(path);
-#else
-  if (::chdir(path) != 0) {
-    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
-                 path, std::strerror(errno));
-    std::terminate();
-  }
-#endif
-}
-
 class test_configuration_loader : public ::testing::Test {
  public:
   std::string make_temporary_directory() {
@@ -224,7 +174,8 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
     });
 
     EXPECT_FALSE(config);
-    EXPECT_THAT(loader.error(), HasSubstr(canonicalize_path(config_file).path));
+    EXPECT_THAT(loader.error(),
+                HasSubstr(canonicalize_path(config_file).c_str()));
     EXPECT_THAT(
         loader.error(),
         AnyOf(HasSubstr("Is a directory"),
@@ -464,7 +415,9 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
   });
 
   EXPECT_FALSE(config);
-  EXPECT_THAT(loader.error(), HasSubstr(config_file));
+  EXPECT_THAT(loader.error(),
+              HasSubstr(temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR +
+                        "config.json"));
   EXPECT_THAT(loader.error(),
               AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
 }
@@ -609,7 +562,8 @@ TEST_F(
   }
 }
 
-TEST_F(test_configuration_loader, finding_config_fails_if_file_is_missing) {
+TEST_F(test_configuration_loader,
+       finding_config_succeeds_even_if_file_is_missing) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({})"sv);
@@ -621,16 +575,31 @@ TEST_F(test_configuration_loader, finding_config_fails_if_file_is_missing) {
       .config_file = nullptr,
   });
 
-  EXPECT_FALSE(config);
-  EXPECT_THAT(loader.error(), HasSubstr(js_file));
-  EXPECT_THAT(loader.error(),
-              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
+  EXPECT_TRUE(config);
+  EXPECT_SAME_FILE(config->config_file_path(), config_file);
+}
+
+TEST_F(test_configuration_loader,
+       finding_config_succeeds_even_if_directory_is_missing) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string config_file = temp_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({})"sv);
+
+  std::string js_file = temp_dir + "/dir/hello.js";
+  configuration_loader loader;
+  configuration* config = loader.load_for_file(file_to_lint{
+      .path = js_file.c_str(),
+      .config_file = nullptr,
+  });
+
+  EXPECT_TRUE(config);
+  EXPECT_SAME_FILE(config->config_file_path(), config_file);
 }
 }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

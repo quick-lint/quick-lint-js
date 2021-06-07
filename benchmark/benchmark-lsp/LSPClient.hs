@@ -1,4 +1,4 @@
--- Copyright 2021 Matthew Glazar
+-- Copyright 2021 Matthew "strager" Glazar
 -- See end of file for extended copyright information.
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ExplicitForAll #-}
@@ -223,7 +223,7 @@ logEndOfTransmission logging logLock =
 
 lockMVar :: MVar.MVar a -> IO b -> IO b
 lockMVar mvar m = MVar.withMVar mvar (\_value -> m)
--- Copyright 2021 Matthew Glazar
+-- Copyright 2021 Matthew "strager" Glazar
 --
 -- This file is part of quick-lint-js.
 --

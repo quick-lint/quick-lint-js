@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -14,6 +14,7 @@ quick_lint_js_add_executable(
   quick-lint-js/array.h
   quick-lint-js/characters.h
   quick-lint-js/error-matcher.h
+  quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
   quick-lint-js/parse-support.h
@@ -21,9 +22,7 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
-  quick-lint-js/temporary-directory.h
   spy-visitor.cpp
-  temporary-directory.cpp
   test-array.cpp
   test-assert.cpp
   test-bit.cpp
@@ -41,6 +40,7 @@ quick_lint_js_add_executable(
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
+  test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
   test-gmo.cpp
@@ -181,7 +181,7 @@ if (PYTHONINTERP_FOUND)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

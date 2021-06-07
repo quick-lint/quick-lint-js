@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_FILE_H
@@ -29,26 +29,12 @@ read_file_result read_stdin(void);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
-
-struct canonical_path_result {
-  std::string path;
-  std::string error;
-
-  bool ok() const noexcept { return this->error.empty(); }
-
-  const char *c_str() const noexcept;
-
-  static canonical_path_result failure(std::string &&error);
-};
-
-canonical_path_result canonicalize_path(const char *path);
-canonical_path_result canonicalize_path(const std::string &path);
 }
 
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

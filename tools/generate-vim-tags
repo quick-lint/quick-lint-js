@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cd "$(dirname "${0}")/.."
@@ -11,7 +11,7 @@ vim \
   -c 'try | helptags plugin/vim/quick-lint-js.vim/doc | catch | echomsg v:exception | cquit | endtry | qall!'
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

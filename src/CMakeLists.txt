@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -40,6 +40,7 @@ quick_lint_js_add_library(
   error-collector.cpp
   error-formatter.cpp
   error-list.cpp
+  file-canonical.cpp
   file-handle.cpp
   file-path.cpp
   file.cpp
@@ -83,6 +84,7 @@ quick_lint_js_add_library(
   quick-lint-js/error.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
+  quick-lint-js/file-canonical.h
   quick-lint-js/file-handle.h
   quick-lint-js/file-path.h
   quick-lint-js/file.h
@@ -112,6 +114,7 @@ quick_lint_js_add_library(
   quick-lint-js/parse.h
   quick-lint-js/pipe-reader.h
   quick-lint-js/simd.h
+  quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
   quick-lint-js/translation.h
@@ -124,6 +127,7 @@ quick_lint_js_add_library(
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
+  temporary-directory.cpp
   text-error-reporter.cpp
   translation-data.cpp
   translation.cpp
@@ -206,7 +210,7 @@ if (TARGET quick-lint-js-licenses)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

@@ -40,5 +40,11 @@
     "url": "https://strager.net/"
   },
   "license": "GPL-3.0-or-later",
-  "repository": "https://github.com/quick-lint/quick-lint-js"
+  "repository": "https://github.com/quick-lint/quick-lint-js",
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://github.com/sponsors/strager"
+    }
+  ]
 }

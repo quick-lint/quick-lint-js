@@ -1,6 +1,6 @@
 quick-lint-js's benchmark-lsp measures performance of LSP servers.
 
-Copyright 2021 Matthew Glazar
+Copyright 2021 Matthew "strager" Glazar
 Copyright Luke Lau 2018-2020.
 All rights reserved.
 

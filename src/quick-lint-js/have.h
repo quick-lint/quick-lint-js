@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 // See ADR001-Feature-testing-with-have-h.md for usage of and rationale for this
@@ -313,10 +313,16 @@
 #define QLJS_HAVE_SETJMP 0
 #endif
 
+#if !defined(QLJS_HAVE_STD_TRANSPARENT_KEYS)
+// TODO(strager): Set this to 1 if is_transparent is supported by
+// std::unordered_map::find (C++20).
+#define QLJS_HAVE_STD_TRANSPARENT_KEYS 0
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

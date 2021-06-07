@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cassert>
@@ -19,6 +19,7 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
 #include <stdlib.h>
@@ -34,6 +35,7 @@
 
 using ::testing::AnyOf;
 using ::testing::HasSubstr;
+using ::testing::Not;
 using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
@@ -45,11 +47,26 @@ class test_file : public ::testing::Test {
     return temp_directory_path.value();
   }
 
+  void set_current_working_directory(const std::string& path) {
+    this->set_current_working_directory(path.c_str());
+  }
+
+  void set_current_working_directory(const char* path) {
+    if (!this->old_working_directory_.has_value()) {
+      this->old_working_directory_ = get_current_working_directory();
+    }
+    quick_lint_js::set_current_working_directory(path);
+  }
+
  private:
   std::optional<std::string> temp_directory_path;
+  std::optional<std::string> old_working_directory_;
 
  protected:
   void TearDown() override {
+    if (this->old_working_directory_.has_value()) {
+      set_current_working_directory(*this->old_working_directory_);
+    }
     if (this->temp_directory_path.has_value()) {
       delete_directory_recursive(*this->temp_directory_path);
     }
@@ -143,7 +160,7 @@ TEST_F(test_file, read_fifo_multiple_writes) {
 TEST_F(test_file, read_pipe_multiple_writes) {
   pipe_fds pipe = make_pipe();
 
-  auto write_message = [&](const char *message) -> void {
+  auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
     std::optional<int> bytes_written =
         pipe.writer.write(message, narrow_cast<int>(message_size));
@@ -174,7 +191,7 @@ TEST_F(test_file, read_pipe_multiple_writes) {
 TEST_F(test_file, read_pipe_empty_writes) {
   pipe_fds pipe = make_pipe();
 
-  auto write_message = [&](const char *message) -> void {
+  auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
     std::optional<int> bytes_written =
         pipe.writer.write(message, narrow_cast<int>(message_size));
@@ -200,34 +217,11 @@ TEST_F(test_file, read_pipe_empty_writes) {
 
   writer_thread.join();
 }
-
-TEST_F(test_file, canonical_path_to_regular_file) {
-  std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file(temp_file_path, u8"hello\nworld!\n");
-
-  canonical_path_result canonical = canonicalize_path(temp_file_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error;
-
-  read_file_result file_content = read_file(canonical.c_str());
-  ASSERT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"hello\nworld!\n"));
-}
-
-TEST_F(test_file, canonical_path_to_non_existing_file) {
-  std::string temp_file_path =
-      this->make_temporary_directory() + "/does-not-exist.js";
-
-  canonical_path_result canonical = canonicalize_path(temp_file_path);
-  EXPECT_FALSE(canonical.ok());
-  EXPECT_THAT(canonical.error, HasSubstr("does-not-exist.js"));
-  EXPECT_THAT(canonical.error,
-              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
-}
 }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

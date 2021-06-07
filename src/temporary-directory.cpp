@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cerrno>
@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
@@ -19,6 +20,14 @@
 
 #if QLJS_HAVE_STD_FILESYSTEM
 #include <filesystem>
+#endif
+
+#if QLJS_HAVE_MKDTEMP
+#include <sys/stat.h>
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 namespace quick_lint_js {
@@ -62,6 +71,18 @@ std::string make_temporary_directory() {
 #else
 #error "Unsupported platform"
 #endif
+
+void create_directory(const std::string &path) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::filesystem::create_directory(path);
+#else
+  if (::mkdir(path.c_str(), 0755) != 0) {
+    std::fprintf(stderr, "error: failed to create directory %s: %s\n",
+                 path.c_str(), std::strerror(errno));
+    std::terminate();
+  }
+#endif
+}
 
 #if QLJS_HAVE_FTS_H
 void delete_directory_recursive(const std::string &path) {
@@ -121,10 +142,37 @@ void delete_directory_recursive(const std::string &path) {
   std::filesystem::remove_all(std::filesystem::path(path));
 }
 #endif
+
+std::string get_current_working_directory() {
+#if QLJS_HAVE_STD_FILESYSTEM
+  return std::filesystem::current_path().string();
+#else
+  std::string cwd;
+  cwd.resize(PATH_MAX);
+  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
+    std::fprintf(stderr, "error: failed to get current directory: %s\n",
+                 std::strerror(errno));
+    std::terminate();
+  }
+  return cwd;
+#endif
+}
+
+void set_current_working_directory(const char *path) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::filesystem::current_path(path);
+#else
+  if (::chdir(path) != 0) {
+    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
+                 path, std::strerror(errno));
+    std::terminate();
+  }
+#endif
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //
