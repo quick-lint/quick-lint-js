@@ -368,7 +368,7 @@ exports.activate = async (context) => {
 
     coc.workspace.onDidSaveTextDocument(async (document) => {
       if (isLintable(document)) {
-        await linters.getLinter(document);
+        await linters.getLinter(document).run();
       }
     }),
 
