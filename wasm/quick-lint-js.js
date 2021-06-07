@@ -6,7 +6,6 @@
 // TODO(strager): Make this configurable.
 // For build instructions, see plugin/vscode/BUILDING.md.
 let VSCODE_WASM_MODULE_PATH = "./dist/quick-lint-js-vscode.wasm";
-const { TextDecoder, TextEncoder } = require("util");
 
 async function createProcessFactoryAsync() {
   if (typeof window === "undefined") {
