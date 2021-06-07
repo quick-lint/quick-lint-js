@@ -51,8 +51,8 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
             | sublime.DRAW_NO_FILL
             | sublime.DRAW_NO_OUTLINE
         )
-        self.view.add_regions("1", error_regions, "invalid.illegal", "", flags)
-        self.view.add_regions("2", warning_regions, "invalid.deprecated", "", flags)
+        self.view.add_regions("1", error_regions, "region.redish", "", flags)
+        self.view.add_regions("2", warning_regions, "region.orangish", "", flags)
 
     def _add_popup(self, point):
         for diag in self.diagnostics:
