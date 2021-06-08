@@ -210,6 +210,12 @@
           comma))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_else_has_empty_body, "E205", { source_code_span where; },          \
+      .warning(QLJS_TRANSLATABLE("else has empty body; consider removing the " \
+                                 "redundant 'else'"),                          \
+               where))                                                         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E065", { source_code_span else_token; },          \
       .error(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),            \
              else_token))                                                      \
@@ -1047,6 +1053,13 @@
       .error(                                                                  \
           QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons"),  \
           semicolon))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_semicolon_after_else, "E204",                           \
+      { source_code_span semicolon; },                                         \
+      .warning(QLJS_TRANSLATABLE("semicolon after else may be causing "        \
+                                 "unexpected behavior"),                       \
+             semicolon))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_binary_number, "E049",                                \

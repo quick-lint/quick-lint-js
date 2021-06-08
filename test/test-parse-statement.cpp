@@ -578,6 +578,44 @@ TEST(test_parse, else_without_if) {
   }
 }
 
+TEST(test_parse, else_unexpected_semicolon) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if (cond) { body; } else; { body; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // cond
+                                      "visit_enter_block_scope",   // (if)
+                                      "visit_variable_use",        // body
+                                      "visit_exit_block_scope"));  // (if)
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_semicolon_after_else, semicolon,
+                    offsets_matcher(&code, strlen(u8"if (cond) { body; } else"),
+                                    u8";"))));
+  }
+}
+
+TEST(test_parse, else_has_empty_body) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if (cond) { body; } else;\n{ }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",        // cond
+                                      "visit_enter_block_scope",   // (if)
+                                      "visit_variable_use",        // body
+                                      "visit_exit_block_scope"));  // (if)
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_else_has_empty_body, where,
+            offsets_matcher(&code, strlen(u8"if (cond) { body; } else {"),
+                            u8"}"))));
+  }
+}
+
 TEST(test_parse, block_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"{ }"_sv);
