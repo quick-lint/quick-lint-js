@@ -30,13 +30,13 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         allcontent = self.view.substr(allregion)
         self.parser.set_text(allcontent, viewsize)
         self.diagnostics = self.parser.lint()
-        self._add_squiggly_underlines()
+        self._add_outlines()
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
             self._add_popup(point)
 
-    def _add_squiggly_underlines(self):
+    def _add_outlines(self):
         error_regions = []
         warning_regions = []
         for diag in self.diagnostics:
@@ -46,11 +46,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
             elif diag.severity == c_api.SeverityEnumeration.WARNING:
                 warning_regions.append(region)
 
-        flags = (
-            sublime.DRAW_SQUIGGLY_UNDERLINE
-            | sublime.DRAW_NO_FILL
-            | sublime.DRAW_NO_OUTLINE
-        )
+        flags = sublime.DRAW_NO_FILL
         self.view.add_regions("1", error_regions, "region.redish", "", flags)
         self.view.add_regions("2", warning_regions, "region.orangish", "", flags)
 
