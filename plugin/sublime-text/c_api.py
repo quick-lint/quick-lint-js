@@ -99,6 +99,7 @@ def create_library():
 LIB = create_library()
 
 CHARACTERS_WITH_TWO_UTF_16_CODE_UNITS_REGEX_PATTERN = re.compile(
+    # Bytes: 4 First code point: U+10000 Last code point: U+10FFFF
     "[%s-%s]" % (chr(0x10000), chr(0x10FFFF))
 )
 
@@ -128,7 +129,8 @@ class Parser:
 
     def set_text(self, text, count_utf_16_code_units_in_offset=True):
         if not count_utf_16_code_units_in_offset:
-            text = replace_characters_with_two_utf_16_code_units(" ", text)
+            # ￿  Name: <Not a Character> Unicode: U+FFFF
+            text = replace_characters_with_two_utf_16_code_units("￿", text)
         text_encoded = text.encode()
         text_encoded_byte_count = len(text_encoded)
         LIB.qljs_web_demo_set_text(
