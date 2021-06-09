@@ -34,7 +34,9 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
-            self._add_popup(point)
+            for diag in self.diagnostics:
+                if diag.begin_offset <= point <= diag.end_offset:
+                    self._add_popup(diag)
 
     def _add_outlines(self):
         error_regions = []
@@ -50,23 +52,19 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         self.view.add_regions("1", error_regions, "region.redish", "", flags)
         self.view.add_regions("2", warning_regions, "region.orangish", "", flags)
 
-    def _add_popup(self, point):
-        for diag in self.diagnostics:
-            if diag.begin_offset <= point <= diag.end_offset:
-                minihtml = """
-                <span>%(message)s
-                    <span style=\"color: %(color)s;\">quick-lint-js(%(code)s)</span>
-                </span>
-                """
-                content = minihtml % {
-                    "message": diag.message,
-                    "code": diag.code,
-                    "color": self.view.style_for_scope("comment.line")["foreground"],
-                }
-                flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
-                location = diag.begin_offset
-                max_width, max_height = self.view.viewport_extent()
-                self.view.show_popup(content, flags, location, max_width, max_height)
+    def _add_popup(self, diagnostic):
+        minihtml = """
+        <span>%s
+            <span style=\"color: %s;\">quick-lint-js(%s)</span>
+        </span>
+        """
+        color = self.view.style_for_scope("comment.line")["foreground"]
+        content = minihtml % (diagnostic.message, color, diagnostic.code)
+
+        flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
+        location = diagnostic.begin_offset
+        max_width, max_height = self.view.viewport_extent()
+        self.view.show_popup(content, flags, location, max_width, max_height)
 
 
 # quick-lint-js finds bugs in JavaScript programs.

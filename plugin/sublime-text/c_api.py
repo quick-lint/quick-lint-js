@@ -100,7 +100,8 @@ LIB = create_library()
 
 CHARACTERS_WITH_TWO_UTF_16_CODE_UNITS_REGEX_PATTERN = re.compile(
     # Bytes: 4 First code point: U+10000 Last code point: U+10FFFF
-    "[%s-%s]" % (chr(0x10000), chr(0x10FFFF))
+    "[%s-%s]"
+    % (chr(0x10000), chr(0x10FFFF))
 )
 
 
