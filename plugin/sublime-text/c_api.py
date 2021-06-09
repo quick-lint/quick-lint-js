@@ -3,6 +3,7 @@
 
 import ctypes
 import os
+import re
 import zipfile
 
 
@@ -97,6 +98,14 @@ def create_library():
 
 LIB = create_library()
 
+CHARACTERS_WITH_TWO_UTF_16_CODE_UNITS_REGEX_PATTERN = re.compile(
+    "[%s-%s]" % (chr(0x10000), chr(0x10FFFF))
+)
+
+
+def replace_characters_with_two_utf_16_code_units(replacement, string):
+    return CHARACTERS_WITH_TWO_UTF_16_CODE_UNITS_REGEX_PATTERN.sub(replacement, string)
+
 
 class Diagnostic:
     def __init__(self, _c_diag):
@@ -117,9 +126,14 @@ class Parser:
         if self._c_parser is not None:
             LIB.qljs_web_demo_destroy_parser(self._c_parser)
 
-    def set_text(self, text, count):
+    def set_text(self, text, count_utf_16_code_units_in_offset=True):
+        if not count_utf_16_code_units_in_offset:
+            text = replace_characters_with_two_utf_16_code_units(" ", text)
         text_encoded = text.encode()
-        LIB.qljs_web_demo_set_text(self._c_parser, text_encoded, count)
+        text_encoded_byte_count = len(text_encoded)
+        LIB.qljs_web_demo_set_text(
+            self._c_parser, text_encoded, text_encoded_byte_count
+        )
 
     def lint(self):
         _c_diags = LIB.qljs_web_demo_lint(self._c_parser)

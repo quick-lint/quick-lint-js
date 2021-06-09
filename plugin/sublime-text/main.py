@@ -28,7 +28,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         viewsize = self.view.size()
         allregion = sublime.Region(0, viewsize)
         allcontent = self.view.substr(allregion)
-        self.parser.set_text(allcontent, viewsize)
+        self.parser.set_text(allcontent, False)
         self.diagnostics = self.parser.lint()
         self._add_outlines()
 
