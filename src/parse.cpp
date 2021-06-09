@@ -624,7 +624,6 @@ expression* parser::parse_async_expression_only(token async_token) {
 }
 
 expression* parser::parse_await_expression(token await_token, precedence prec) {
-  depth_guard guard(this);
   bool is_identifier = [&]() -> bool {
     if (this->in_async_function_) {
       return false;

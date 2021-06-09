@@ -177,6 +177,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
                                                bool allow_declarations = true) {
+    depth_guard guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
         this->error_reporter_->report(error_unmatched_parenthesis{
@@ -594,7 +595,6 @@ class parser {
 
     // { statement; statement; }
     case token_type::left_curly: {
-      depth_guard guard(this);
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
@@ -1210,7 +1210,6 @@ class parser {
   void parse_and_visit_function_parameters_and_body_no_scope(
       Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes) {
-    depth_guard d_guard(this);
     function_guard guard = this->enter_function(attributes);
 
     if (this->peek().type == token_type::star) {
@@ -1780,7 +1779,6 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v) {
     QLJS_ASSERT(this->peek().type == token_type::kw_try);
-    depth_guard guard(this);
     source_code_span try_token_span = this->peek().span();
     this->skip();
 
