@@ -542,7 +542,7 @@ TEST(test_escape_first_character_in_keyword,
 
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    for (const char8 opening_paren : {u8'(', u8'['}) {
+    for (const char8 opening_paren : {u8'(', u8'[', u8'{'}) {
       string8 opening_parens(parser::stack_limit - 1, opening_paren);
       padded_string code(opening_parens);
       spy_visitor v;
@@ -553,20 +553,11 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    string8 left_curly(parser::stack_limit, '{');
-    padded_string code(left_curly);
-    spy_visitor v;
-    parser p(&code, &v);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
-    EXPECT_TRUE(ok);
-  }
-
-  {
     for (const string8 &exp :
-         {u8"function f(){", u8"() => {", u8"if(){", u8"await", u8"do{",
-          u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
+         {u8"function f(){", u8"() => {", u8"if(true){", u8"await", u8"do{",
+          u8"for(true){", u8"try{", u8"while(true){", u8"with({}){"}) {
       string8 exps;
-      exps.reserve(exp.size() * (parser::stack_limit));
+      exps.reserve(exp.size() * parser::stack_limit);
       for (int i = 0; i < parser::stack_limit; i++) {
         exps.append(exp);
       }
@@ -581,7 +572,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
     string8 object_decl(u8"{x:");
     string8 paren_object_decls(u8"(");
-    paren_object_decls.reserve(object_decl.size() * (parser::stack_limit - 2));
+    paren_object_decls.reserve(paren_object_decls.size() + object_decl.size() * (parser::stack_limit - 2));
     for (int i = 0; i < parser::stack_limit - 2; i++) {
       paren_object_decls.append(object_decl);
     }
@@ -610,8 +601,8 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
 
   {
     for (const string8 &exp :
-         {u8"function f(){", u8"() => {", u8"if(){", u8"await ", u8"do{",
-          u8"for(){", u8"try{", u8"while(){", u8"with({}){"}) {
+         {u8"function f(){", u8"() => {", u8"if(true){", u8"await ", u8"do{",
+          u8"for(true){", u8"try{", u8"while(true){", u8"with({}){"}) {
       string8 exps;
       exps.reserve(exp.size() * (parser::stack_limit + 1));
       for (int i = 0; i < parser::stack_limit + 1; i++) {
@@ -630,7 +621,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   {
     string8 object_decl(u8"{x:");
     string8 paren_object_decl(u8"(");
-    paren_object_decl.reserve(object_decl.size() * (parser::stack_limit + 1));
+    paren_object_decl.reserve(paren_object_decl.size() + object_decl.size() * (parser::stack_limit + 1));
     for (int i = 0; i < parser::stack_limit + 1; i++) {
       paren_object_decl.append(object_decl);
     }
