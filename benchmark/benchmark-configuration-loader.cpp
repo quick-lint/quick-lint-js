@@ -24,7 +24,7 @@ void benchmark_no_config_file(::benchmark::State& state) {
   write_file(path, u8"");
 
   for (auto _ : state) {
-    configuration_loader loader;
+    configuration_loader loader(basic_configuration_filesystem::instance());
     configuration* config = loader.load_for_file(file_to_lint{
         .path = path.c_str(),
         .config_file = nullptr,

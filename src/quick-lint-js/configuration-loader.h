@@ -6,14 +6,26 @@
 
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
+#include <quick-lint-js/file.h>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace quick_lint_js {
 struct file_to_lint;
 
+class configuration_filesystem {
+ public:
+  virtual ~configuration_filesystem() = default;
+
+  virtual canonical_path_result canonicalize_path(const std::string&) = 0;
+  virtual read_file_result read_file(const canonical_path&) = 0;
+};
+
 class configuration_loader {
  public:
+  explicit configuration_loader(configuration_filesystem*);
+
   configuration* load_for_file(const file_to_lint&);
 
   std::string error() const;
@@ -24,9 +36,18 @@ class configuration_loader {
 
   configuration* get_loaded_config(const canonical_path& path) noexcept;
 
+  configuration_filesystem* fs_;
   configuration default_config_;
   std::unordered_map<canonical_path, configuration> loaded_config_files_;
   std::string last_error_;
+};
+
+class basic_configuration_filesystem : public configuration_filesystem {
+ public:
+  static basic_configuration_filesystem* instance() noexcept;
+
+  canonical_path_result canonicalize_path(const std::string&) override;
+  read_file_result read_file(const canonical_path&) override;
 };
 }
 

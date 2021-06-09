@@ -16,6 +16,9 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
+configuration_loader::configuration_loader(configuration_filesystem* fs)
+    : fs_(fs) {}
+
 configuration* configuration_loader::load_for_file(const file_to_lint& file) {
   if (file.config_file) {
     return this->load_config_file(file.config_file);
@@ -25,7 +28,8 @@ configuration* configuration_loader::load_for_file(const file_to_lint& file) {
 }
 
 configuration* configuration_loader::load_config_file(const char* config_path) {
-  canonical_path_result canonical_config_path = canonicalize_path(config_path);
+  canonical_path_result canonical_config_path =
+      this->fs_->canonicalize_path(config_path);
   if (!canonical_config_path.ok()) {
     this->last_error_ = std::move(canonical_config_path).error();
     return nullptr;
@@ -35,7 +39,8 @@ configuration* configuration_loader::load_config_file(const char* config_path) {
           this->get_loaded_config(canonical_config_path.canonical())) {
     return config;
   }
-  read_file_result config_json = read_file(canonical_config_path.c_str());
+  read_file_result config_json =
+      this->fs_->read_file(canonical_config_path.canonical());
   if (!config_json.ok()) {
     this->last_error_ = std::move(config_json.error);
     return nullptr;
@@ -57,7 +62,7 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 configuration* configuration_loader::find_and_load_config_file(
     const char* input_path) {
   canonical_path_result canonical_input_path =
-      canonicalize_path(input_path ? input_path : ".");
+      this->fs_->canonicalize_path(input_path ? input_path : ".");
   if (!canonical_input_path.ok()) {
     this->last_error_ = std::move(canonical_input_path).error();
     return nullptr;
@@ -91,7 +96,7 @@ configuration* configuration_loader::find_and_load_config_file(
         return config;
       }
 
-      read_file_result config_json = read_file(config_path.c_str());
+      read_file_result config_json = this->fs_->read_file(config_path);
       if (config_json.ok()) {
         auto [config_it, inserted] = this->loaded_config_files_.emplace(
             std::piecewise_construct, std::forward_as_tuple(config_path),
@@ -131,6 +136,22 @@ configuration* configuration_loader::get_loaded_config(
 }
 
 std::string configuration_loader::error() const { return this->last_error_; }
+
+basic_configuration_filesystem*
+basic_configuration_filesystem::instance() noexcept {
+  static basic_configuration_filesystem fs;
+  return &fs;
+}
+
+canonical_path_result basic_configuration_filesystem::canonicalize_path(
+    const std::string& path) {
+  return quick_lint_js::canonicalize_path(path);
+}
+
+read_file_result basic_configuration_filesystem::read_file(
+    const canonical_path& path) {
+  return quick_lint_js::read_file(path.c_str());
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
