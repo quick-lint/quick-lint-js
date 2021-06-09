@@ -17,7 +17,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def __init__(self, view):
         self.view = view
-        self.parser = c_api.Parser()
+        self.parser = c_api.Parser(False)
         self.diagnostics = []
         self.on_modified()
 
@@ -28,7 +28,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         viewsize = self.view.size()
         allregion = sublime.Region(0, viewsize)
         allcontent = self.view.substr(allregion)
-        self.parser.set_text(allcontent, False)
+        self.parser.set_text(allcontent)
         self.diagnostics = self.parser.lint()
         self._add_outlines()
 

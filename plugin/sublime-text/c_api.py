@@ -119,8 +119,9 @@ class Diagnostic:
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self, count_utf_16_code_units_in_offset=True):
         self._c_parser = LIB.qljs_web_demo_create_parser()
+        self.count_utf_16_code_units_in_offset = count_utf_16_code_units_in_offset
         if self._c_parser is None:
             raise MemoryError()
 
@@ -128,8 +129,8 @@ class Parser:
         if self._c_parser is not None:
             LIB.qljs_web_demo_destroy_parser(self._c_parser)
 
-    def set_text(self, text, count_utf_16_code_units_in_offset=True):
-        if not count_utf_16_code_units_in_offset:
+    def set_text(self, text):
+        if not self.count_utf_16_code_units_in_offset:
             # ￿  Name: <Not a Character> Unicode: U+FFFF
             text = replace_characters_with_two_utf_16_code_units("￿", text)
         text_encoded = text.encode()
