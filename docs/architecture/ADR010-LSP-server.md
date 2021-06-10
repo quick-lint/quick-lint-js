@@ -6,7 +6,7 @@
 
 The [Language Server Protocol (LSP)][LSP] makes code editor plugins easier to
 write by standardizing several aspects of editor<->language interaction. In an
-LSP world, there are three major components components:
+LSP world, there are three major components:
 
 * editor (language-agnostic)
 * editor plugin (LSP client) (editor-specific; language-specific)
