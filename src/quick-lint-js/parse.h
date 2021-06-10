@@ -177,7 +177,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
                                                bool allow_declarations = true) {
-    depth_guard guard(this);
+    depth_guard d_guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
         this->error_reporter_->report(error_unmatched_parenthesis{
