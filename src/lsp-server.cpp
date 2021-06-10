@@ -11,6 +11,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-error-reporter.h>
 #include <quick-lint-js/lsp-location.h>
@@ -41,6 +42,43 @@ string8_view make_string_view(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
 int get_int(::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
+}
+
+lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
+    configuration_filesystem* underlying_fs)
+    : underlying_fs_(underlying_fs) {}
+
+canonical_path_result lsp_overlay_configuration_filesystem::canonicalize_path(
+    const std::string& path) {
+  return this->underlying_fs_->canonicalize_path(path);
+}
+
+read_file_result lsp_overlay_configuration_filesystem::read_file(
+    const canonical_path& path) {
+#if QLJS_HAVE_STD_TRANSPARENT_KEYS
+  std::string_view key = path.path();
+#else
+  std::string key(path.path());
+#endif
+  auto doc_it = this->overlaid_documents_.find(key);
+  if (doc_it == this->overlaid_documents_.end()) {
+    return this->underlying_fs_->read_file(path);
+  }
+  read_file_result result;
+  result.content = padded_string(doc_it->second->string().string_view());
+  return result;
+}
+
+void lsp_overlay_configuration_filesystem::open_document(
+    const std::string& path, document<lsp_locator>* doc) {
+  auto [_it, inserted] = this->overlaid_documents_.emplace(path, doc);
+  QLJS_ASSERT(inserted);
+}
+
+void lsp_overlay_configuration_filesystem::close_document(
+    const std::string& path) {
+  bool erased = this->overlaid_documents_.erase(path);
+  QLJS_ASSERT(erased);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -128,6 +166,7 @@ void linting_lsp_server_handler<Linter>::
   if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
+  string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
@@ -135,28 +174,43 @@ void linting_lsp_server_handler<Linter>::
   }
 
   auto document_it = this->documents_.find(string8(make_string_view(uri)));
-  bool url_is_lintable = document_it != this->documents_.end();
+  bool url_is_lintable =
+      document_it != this->documents_.end() && document_it->second.should_lint;
   if (!url_is_lintable) {
     return;
   }
-  document<lsp_locator>& doc = document_it->second;
+  document& doc = document_it->second;
+
+  std::string document_path = parse_file_from_lsp_uri(uri_string);
+  if (document_path.empty()) {
+    // TODO(strager): Report a warning and use a default configuration.
+    QLJS_UNIMPLEMENTED();
+  }
 
   ::simdjson::ondemand::array changes;
   if (request["params"]["contentChanges"].get(changes) !=
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  this->apply_document_changes(doc, changes);
+  this->apply_document_changes(doc.doc, changes);
   this->linter_.lint_and_get_diagnostics_notification(
-      *this->get_config(uri), doc.string(), uri, version, notification_json);
+      *this->get_config(document_path), doc.doc.string(), uri, version,
+      notification_json);
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
         ::simdjson::ondemand::object& request) {
-  this->documents_.erase(
-      string8(make_string_view(request["params"]["textDocument"]["uri"])));
+  string8_view uri = make_string_view(request["params"]["textDocument"]["uri"]);
+  std::string path = parse_file_from_lsp_uri(uri);
+  if (path.empty()) {
+    // TODO(strager): Report a warning.
+    QLJS_UNIMPLEMENTED();
+  }
+
+  this->config_fs_.close_document(path);
+  this->documents_.erase(string8(uri));
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -173,34 +227,39 @@ void linting_lsp_server_handler<Linter>::
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  if (language_id != "javascript") {
-    return;
-  }
   ::simdjson::ondemand::value uri;
   if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
+  string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
 
-  document<lsp_locator>& doc = this->documents_[string8(make_string_view(uri))];
+  document& doc = this->documents_[string8(uri_string)];
 
-  doc.set_text(make_string_view(text_document["text"]));
-  this->linter_.lint_and_get_diagnostics_notification(
-      *this->get_config(uri), doc.string(), uri, version, notification_json);
+  std::string document_path = parse_file_from_lsp_uri(uri_string);
+  if (document_path.empty()) {
+    // TODO(strager): Report a warning and use a default configuration.
+    QLJS_UNIMPLEMENTED();
+  }
+  this->config_fs_.open_document(document_path, &doc.doc);
+
+  doc.doc.set_text(make_string_view(text_document["text"]));
+
+  if (language_id == "javascript") {
+    doc.should_lint = true;
+    this->linter_.lint_and_get_diagnostics_notification(
+        *this->get_config(document_path), doc.doc.string(), uri, version,
+        notification_json);
+  }
 }
 
 template <QLJS_LSP_LINTER Linter>
 configuration* linting_lsp_server_handler<Linter>::get_config(
-    ::simdjson::ondemand::value& document_uri) {
-  std::string path = parse_file_from_lsp_uri(make_string_view(document_uri));
-  if (path.empty()) {
-    // TODO(strager): Report a warning and return a default configuration.
-    QLJS_UNIMPLEMENTED();
-  }
+    const std::string& path) {
   return this->config_loader_.load_for_file(file_to_lint{
       .path = path.c_str(),
       .vim_bufnr = std::nullopt,
@@ -209,7 +268,8 @@ configuration* linting_lsp_server_handler<Linter>::get_config(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::apply_document_changes(
-    document<lsp_locator>& doc, ::simdjson::ondemand::array& changes) {
+    quick_lint_js::document<lsp_locator>& doc,
+    ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
     string8_view change_text = make_string_view(change["text"]);

@@ -10,6 +10,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/document.h>
+#include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-location.h>
@@ -42,6 +43,24 @@ concept lsp_linter = requires(Linter l, configuration config,
 };
 #endif
 
+// A configuration_filesystem which allows unsaved LSP documents (from the
+// client) to appear as real files.
+class lsp_overlay_configuration_filesystem : public configuration_filesystem {
+ public:
+  explicit lsp_overlay_configuration_filesystem(
+      configuration_filesystem* underlying_fs);
+
+  canonical_path_result canonicalize_path(const std::string&) override;
+  read_file_result read_file(const canonical_path&) override;
+
+  void open_document(const std::string&, document<lsp_locator>*);
+  void close_document(const std::string&);
+
+ private:
+  configuration_filesystem* underlying_fs_;
+  std::unordered_map<std::string, document<lsp_locator>*> overlaid_documents_;
+};
+
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
 template <QLJS_LSP_LINTER Linter>
@@ -50,7 +69,9 @@ class linting_lsp_server_handler {
   template <class... LinterArgs>
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
                                       LinterArgs&&... linter_args)
-      : config_loader_(fs), linter_(std::forward<LinterArgs>(linter_args)...) {}
+      : config_fs_(fs),
+        config_loader_(&this->config_fs_),
+        linter_(std::forward<LinterArgs>(linter_args)...) {}
 
   void handle_request(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
@@ -58,6 +79,11 @@ class linting_lsp_server_handler {
                            byte_buffer& notification_json);
 
  private:
+  struct document {
+    quick_lint_js::document<lsp_locator> doc;
+    bool should_lint = false;
+  };
+
   void handle_initialize_request(::simdjson::ondemand::object& request,
                                  byte_buffer& response_json);
   void handle_shutdown_request(::simdjson::ondemand::object& request,
@@ -70,14 +96,15 @@ class linting_lsp_server_handler {
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request, byte_buffer& notification_json);
 
-  configuration* get_config(::simdjson::ondemand::value& document_uri);
+  configuration* get_config(const std::string& path);
 
-  static void apply_document_changes(document<lsp_locator>& doc,
+  static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
 
+  lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;
   Linter linter_;
-  std::unordered_map<string8, document<lsp_locator>> documents_;
+  std::unordered_map<string8, document> documents_;
   bool shutdown_requested_ = false;
 };
 
