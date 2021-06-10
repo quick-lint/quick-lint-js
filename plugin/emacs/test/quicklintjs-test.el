@@ -31,7 +31,36 @@
   (def-flycheck-tests)
   (def-eglot-tests)
   (def-lsp-tests)
+  (def-flymake-tests)
   (ert-run-tests-batch-and-exit))
+
+(defun def-flymake-tests ()
+  (require 'flymake-quicklintjs)
+  (ert-deftest quicklintjs-flymake-parse-errors-and-warnings ()
+    (let ((errors-buf (generate-new-buffer "*errors-buf*"))
+          (js-buf (generate-new-buffer "*js-buf*")))
+      (with-current-buffer js-buf
+        (insert "foobar\n")
+        (insert "/*💩*/   foobar  \n")
+        (insert "foobar /*💩*/\n")
+        (insert "function\n"))
+      (with-current-buffer errors-buf
+        (insert "<stdin>:4:1: error: missing name in function statement [E061]\n")
+        (insert "<stdin>:1:1: warning: use of undeclared variable: foobar [E057]\n")
+        (insert "<stdin>:2:12: warning: use of undeclared variable: foobar [E057]\n")
+        (insert "<stdin>:3:1: warning: use of undeclared variable: foobar [E057]\n")
+        (goto-char (point-min))
+
+        (let ((diags (list
+                      (flymake-make-diagnostic js-buf 25 31 :warning
+                                               "use of undeclared variable: foobar")
+                      (flymake-make-diagnostic js-buf 16 22 :warning
+                                               "use of undeclared variable: foobar")
+                      (flymake-make-diagnostic js-buf 1 7 :warning
+                                               "use of undeclared variable: foobar")
+                      (flymake-make-diagnostic js-buf 38 46 :error
+                                               "missing name in function statement"))))
+          (should (equal (flymake-quicklintjs--make-diagnostics js-buf) diags)))))))
 
 (defun def-eglot-tests ()
   (when (>= emacs-major-version 26)
