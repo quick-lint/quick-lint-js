@@ -14,14 +14,17 @@
   }
 
   let navigationPages = [
-    ["/install/", "Install"],
-    ["/demo/", "Try online"],
-    ["/errors/", "Error docs"],
-    ["/cli/", "CLI docs"],
-    ["/config/", "Config docs"],
-    ["/benchmarks/", "Benchmarks"],
-    ["https://github.com/quick-lint/quick-lint-js", "Code on GitHub"],
-    ["/contact/", "Contact"],
+    { uri: "/install/", title: "Install" },
+    { uri: "/demo/", title: "Try online" },
+    { uri: "/errors/", title: "Error docs" },
+    { uri: "/cli/", title: "CLI docs" },
+    { uri: "/config/", title: "Config docs" },
+    { uri: "/benchmarks/", title: "Benchmarks" },
+    {
+      uri: "https://github.com/quick-lint/quick-lint-js",
+      title: "Code on GitHub",
+    },
+    { uri: "/contact/", title: "Contact" },
   ];
   //%>
 </script>
@@ -32,11 +35,11 @@
     <li class="side-bar-only">
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
-    <% } %> <% for (let [pageURL, pageTitle] of navigationPages) { %> <% if
-    (pageURL === currentURI) { %>
-    <li class="current-page"><%= pageTitle %></li>
+    <% } %> <% for (let page of navigationPages) { %> <% if (page.uri ===
+    currentURI) { %>
+    <li class="current-page"><%= page.title %></li>
     <% } else { %>
-    <li><a href="<%= makeRelativeURI(pageURL) %>"><%= pageTitle %></a></li>
+    <li><a href="<%= makeRelativeURI(page.uri) %>"><%= page.title %></a></li>
     <% } %> <% } %>
   </ul>
 </nav>
