@@ -16,8 +16,10 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/string-view.h>
+#include <quick-lint-js/uri.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
@@ -144,7 +146,7 @@ void linting_lsp_server_handler<Linter>::
   }
   this->apply_document_changes(doc, changes);
   this->linter_.lint_and_get_diagnostics_notification(
-      doc.string(), uri, version, notification_json);
+      *this->get_config(uri), doc.string(), uri, version, notification_json);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -186,7 +188,25 @@ void linting_lsp_server_handler<Linter>::
 
   doc.set_text(make_string_view(text_document["text"]));
   this->linter_.lint_and_get_diagnostics_notification(
-      doc.string(), uri, version, notification_json);
+      *this->get_config(uri), doc.string(), uri, version, notification_json);
+}
+
+template <QLJS_LSP_LINTER Linter>
+configuration* linting_lsp_server_handler<Linter>::get_config(
+    ::simdjson::ondemand::value& document_uri) {
+  std::string_view uri;
+  if (document_uri.get(uri) != ::simdjson::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  std::string path = parse_file_from_lsp_uri(uri);
+  if (path.empty()) {
+    // TODO(strager): Report a warning and return a default configuration.
+    QLJS_UNIMPLEMENTED();
+  }
+  return this->config_loader_.load_for_file(file_to_lint{
+      .path = path.c_str(),
+      .vim_bufnr = std::nullopt,
+  });
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -219,8 +239,9 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
-    padded_string_view code, ::simdjson::ondemand::value& uri,
-    ::simdjson::ondemand::value& version, byte_buffer& notification_json) {
+    configuration& config, padded_string_view code,
+    ::simdjson::ondemand::value& uri, ::simdjson::ondemand::value& version,
+    byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -234,16 +255,16 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
   append_raw_json(version, notification_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--");
-  this->lint_and_get_diagnostics(code, notification_json);
+  this->lint_and_get_diagnostics(config, code, notification_json);
 
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics(
-    padded_string_view code, byte_buffer& diagnostics_json) {
+    configuration& config, padded_string_view code,
+    byte_buffer& diagnostics_json) {
   lsp_error_reporter error_reporter(diagnostics_json, code);
 
-  configuration config;
   parser p(code, &error_reporter);
   linter l(&error_reporter, &config.globals());
 #if QLJS_HAVE_SETJMP
@@ -264,9 +285,10 @@ mock_lsp_linter::mock_lsp_linter(
     : callback_(std::move(callback)) {}
 
 void mock_lsp_linter::lint_and_get_diagnostics_notification(
-    padded_string_view code, ::simdjson::ondemand::value& uri,
-    ::simdjson::ondemand::value& version, byte_buffer& notification_json) {
-  this->callback_(code, uri, version, notification_json);
+    configuration& config, padded_string_view code,
+    ::simdjson::ondemand::value& uri, ::simdjson::ondemand::value& version,
+    byte_buffer& notification_json) {
+  this->callback_(config, code, uri, version, notification_json);
 }
 
 template class linting_lsp_server_handler<lsp_javascript_linter>;

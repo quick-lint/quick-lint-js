@@ -389,9 +389,10 @@ void run_lsp_server() {
   posix_fd_file_ref input_pipe(STDIN_FILENO);
   posix_fd_file_ref output_pipe(STDOUT_FILENO);
 #endif
+  basic_configuration_filesystem fs;
   pipe_reader<lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                            lsp_pipe_writer>>
-      server(input_pipe, std::forward_as_tuple(),
+      server(input_pipe, std::forward_as_tuple(&fs),
              std::forward_as_tuple(output_pipe));
   server.run();
 }

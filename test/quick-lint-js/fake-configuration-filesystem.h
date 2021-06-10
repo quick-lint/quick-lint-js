@@ -40,6 +40,14 @@ class fake_configuration_filesystem : public configuration_filesystem {
     return canonical_path(std::move(full_path));
   }
 
+  string8 file_uri_prefix_8() const {
+#if defined(_WIN32)
+    return u8"file:///X:/";
+#else
+    return u8"file:///";
+#endif
+  }
+
   canonical_path_result canonicalize_path(const std::string& path) override {
     // TODO(strager): Check if path components exist.
     return canonical_path_result(std::string(path), path.size());

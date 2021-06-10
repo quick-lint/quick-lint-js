@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
@@ -32,9 +33,12 @@ string8 make_message(string8_view content) {
 
 void benchmark_lsp_full_text_change_on_tiny_document(
     ::benchmark::State& state) {
+  // TODO(strager): This performs undesired filesystem accesses! Make a
+  // null_configuration_filesystem.
+  basic_configuration_filesystem fs;
   lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                null_lsp_writer>
-      lsp_server;
+      lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
   lsp_server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -157,9 +161,12 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
       })"),
   };
 
+  // TODO(strager): This performs undesired filesystem accesses! Make a
+  // null_configuration_filesystem.
+  basic_configuration_filesystem fs;
   lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                null_lsp_writer>
-      lsp_server;
+      lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
   lsp_server.append(make_message(to_string8(did_open_message_json.str())));
 
   for (auto _ : state) {

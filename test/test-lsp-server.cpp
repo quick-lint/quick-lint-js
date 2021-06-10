@@ -6,6 +6,8 @@
 #include <json/value.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/padded-string.h>
@@ -36,35 +38,39 @@ using endpoint = lsp_endpoint<linting_lsp_server_handler<mock_lsp_linter>,
                               spy_lsp_endpoint_remote>;
 
 template <class LinterCallback>
-endpoint make_endpoint(LinterCallback&& linter_callback) {
+endpoint make_endpoint(configuration_filesystem* fs,
+                       LinterCallback&& linter_callback) {
   return endpoint(
       /*handler_args=*/std::forward_as_tuple(
-          std::forward<LinterCallback>(linter_callback)),
+          fs, std::forward<LinterCallback>(linter_callback)),
       /*remote_args=*/std::forward_as_tuple());
 }
 
-endpoint make_endpoint() {
-  return make_endpoint([](padded_string_view, ::simdjson::ondemand::value&,
-                          ::simdjson::ondemand::value&, byte_buffer&) {});
+endpoint make_endpoint(configuration_filesystem* fs) {
+  return make_endpoint(
+      fs, [](configuration&, padded_string_view, ::simdjson::ondemand::value&,
+             ::simdjson::ondemand::value&, byte_buffer&) {});
 }
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  std::function<void(padded_string_view code, ::simdjson::ondemand::value& url,
-                     ::simdjson::ondemand::value& version,
-                     byte_buffer& notification_json)>
+  std::function<void(
+      configuration&, padded_string_view code, ::simdjson::ondemand::value& url,
+      ::simdjson::ondemand::value& version, byte_buffer& notification_json)>
       lint_callback;
   std::vector<string8> lint_calls;
 
-  endpoint server = make_endpoint([this](padded_string_view code,
-                                         ::simdjson::ondemand::value& url,
-                                         ::simdjson::ondemand::value& version,
-                                         byte_buffer& notification_json) {
-    this->lint_calls.emplace_back(code.string_view());
-    if (this->lint_callback) {
-      this->lint_callback(code, url, version, notification_json);
-    }
-  });
+  fake_configuration_filesystem fs;
+  endpoint server =
+      make_endpoint(&fs, [this](configuration& config, padded_string_view code,
+                                ::simdjson::ondemand::value& url,
+                                ::simdjson::ondemand::value& version,
+                                byte_buffer& notification_json) {
+        this->lint_calls.emplace_back(code.string_view());
+        if (this->lint_callback) {
+          this->lint_callback(config, code, url, version, notification_json);
+        }
+      });
   spy_lsp_endpoint_remote& client = server.remote();
 };
 
@@ -116,7 +122,8 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
            test_case{u8R"("id value goes \"here\"")",
                      ::Json::Value("id value goes \"here\"")},
        }) {
-    auto server = make_endpoint();
+    fake_configuration_filesystem fs;
+    auto server = make_endpoint(&fs);
     spy_lsp_endpoint_remote& client = server.remote();
 
     server.append(
@@ -215,7 +222,7 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 }
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
-  this->lint_callback = [&](padded_string_view code,
+  this->lint_callback = [&](configuration&, padded_string_view code,
                             ::simdjson::ondemand::value& uri,
                             ::simdjson::ondemand::value& version,
                             byte_buffer& notification_json) {
@@ -424,6 +431,63 @@ TEST_F(test_linting_lsp_server,
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"the slow purple fox"));
 }
 
+TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"testGlobalVariable": true}})");
+
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            ::simdjson::ondemand::value&,
+                            ::simdjson::ondemand::value&, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
+TEST_F(test_linting_lsp_server,
+       linting_uses_config_from_file_with_special_chars_in_document_uri) {
+  this->fs.create_file(this->fs.rooted("a%b~/quick-lint-js.config"),
+                       u8R"({"globals": {"testGlobalVariable": true}})");
+
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            ::simdjson::ondemand::value&,
+                            ::simdjson::ondemand::value&, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(a%25b%7E/%E2%98%83.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "snowman"
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"snowman"));
+}
+
 TEST_F(test_linting_lsp_server,
        changing_non_javascript_document_produces_no_lint) {
   this->server.append(
@@ -617,9 +681,10 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
 
   padded_string code(u8"let x = x;"_sv);
   byte_buffer notification_json_buffer;
+  configuration config;
 
   lsp_javascript_linter linter;
-  linter.lint_and_get_diagnostics_notification(&code, uri, version,
+  linter.lint_and_get_diagnostics_notification(config, &code, uri, version,
                                                notification_json_buffer);
 
   std::string notification_json;
@@ -650,9 +715,10 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   // (an identifier with an escape sequence), and makes sure desyncing doesn't
   // happen.
 
+  fake_configuration_filesystem fs;
   lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                spy_lsp_endpoint_remote>
-      server;
+      server(std::forward_as_tuple(&fs), std::forward_as_tuple());
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
