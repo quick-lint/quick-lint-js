@@ -3327,7 +3327,7 @@ class parser {
   template <class... Args>
   expression *parse_arrow_function_body_impl(function_attributes,
                                              const char8 *parameter_list_begin,
-                                             Args &&...args);
+                                             Args &&... args);
 
   expression *parse_function_expression(function_attributes,
                                         const char8 *span_begin);
@@ -3355,7 +3355,7 @@ class parser {
   [[noreturn]] void crash_on_depth_limit_exceeded();
 
   template <class Expression, class... Args>
-  expression *make_expression(Args &&...args) {
+  expression *make_expression(Args &&... args) {
     return this->expressions_.make_expression<Expression>(
         std::forward<Args>(args)...);
   }
