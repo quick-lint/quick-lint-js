@@ -17,6 +17,7 @@
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
@@ -542,45 +543,148 @@ TEST(test_escape_first_character_in_keyword,
 
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
-    for (const char8 opening_paren : {u8'(', u8'[', u8'{'}) {
-      string8 opening_parens(parser::stack_limit - 1, opening_paren);
-      padded_string code(opening_parens);
+    for (const std::pair<char8, char8> &paren :
+         {std::make_pair(u8'(', u8')'), std::make_pair(u8'[', u8']'),
+          std::make_pair(u8'{', u8'}')}) {
+      const int rep_count = parser::stack_limit - 2;
+      const string8 literal = u8"10";
+      string8 brackets(rep_count, paren.first);
+      brackets.reserve(rep_count * 2 + literal.size());
+      brackets.append(literal);
+      for (int i = 0; i < rep_count; i++) {
+        brackets.push_back(paren.second);
+      }
+      padded_string code(brackets);
       spy_visitor v;
       parser p(&code, &v);
       bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
       EXPECT_TRUE(ok);
+      EXPECT_THAT(v.errors, IsEmpty());
     }
   }
 
   {
     for (const string8 &exp :
-         {u8"function f(){", u8"() => {", u8"if(true){", u8"await", u8"do{",
-          u8"for(true){", u8"try{", u8"while(true){", u8"with({}){"}) {
+         {u8"if(true) ", u8"while(true) ", u8"for(;;)", u8"await"}) {
+      const int rep_count = parser::stack_limit - 2;
+      const string8 literal = u8"10";
       string8 exps;
-      exps.reserve(exp.size() * parser::stack_limit);
-      for (int i = 0; i < parser::stack_limit; i++) {
+      exps.reserve(exp.size() * rep_count + literal.size());
+      for (int i = 0; i < rep_count; i++) {
         exps.append(exp);
+      }
+      exps.append(literal);
+      padded_string code(exps);
+      spy_visitor v;
+      parser p(&code, &v);
+      bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+      EXPECT_TRUE(ok);
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+  }
+
+  {
+    for (const string8 &exp :
+         {u8"function f(){ ", u8"() => { ", u8"if(true){ ", u8"while(true){ ",
+          u8"for(;;){ ", u8"with({}){ "}) {
+      const char8 right_square_bracket = u8'}';
+      const int rep_count = parser::stack_limit / 2 - 1;
+      string8 exps;
+      exps.reserve((exp.size() + 1) * rep_count);
+      for (int i = 0; i < rep_count; i++) {
+        exps.append(exp);
+      }
+      for (int i = 0; i < rep_count; i++) {
+        exps.push_back(right_square_bracket);
       }
       padded_string code(exps);
       spy_visitor v;
       parser p(&code, &v);
       bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
       EXPECT_TRUE(ok);
+      EXPECT_THAT(v.errors, IsEmpty());
     }
   }
 
   {
-    string8 object_decl(u8"{x:");
+    const string8 do_exp = u8"do{ ";
+    const string8 while_exp = u8"} while(true);";
+    const int rep_count = parser::stack_limit / 2 - 1;
+    string8 do_exps;
+    do_exps.reserve((do_exp.size() + while_exp.size()) * rep_count);
+    for (int i = 0; i < rep_count; i++) {
+      do_exps.append(do_exp);
+    }
+    for (int i = 0; i < rep_count; i++) {
+      do_exps.append(while_exp);
+    }
+    padded_string code(do_exps);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_TRUE(ok);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const string8 try_exp = u8"try{ ";
+    const string8 catch_exp = u8"} catch(e) {}";
+    const int rep_count = parser::stack_limit / 2 - 1;
+    string8 do_exps;
+    do_exps.reserve((try_exp.size() + catch_exp.size()) * rep_count);
+    for (int i = 0; i < rep_count; i++) {
+      do_exps.append(try_exp);
+    }
+    for (int i = 0; i < rep_count; i++) {
+      do_exps.append(catch_exp);
+    }
+    padded_string code(do_exps);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_TRUE(ok);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const string8 right_square_brackets = u8"} }";
+    const string8 class_method_decl(u8"class C { m() { ");
+    const int rep_count = parser::stack_limit - 1;
+    string8 class_method_decls;
+    class_method_decls.reserve((class_method_decl.size() + 1) * rep_count);
+    for (int i = 0; i < rep_count; i++) {
+      class_method_decls.append(class_method_decl);
+    }
+    for (int i = 0; i < rep_count; i++) {
+      class_method_decls.append(right_square_brackets);
+    }
+    padded_string code(class_method_decls);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_TRUE(ok);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    const string8 object_decl(u8"{x:");
+    const int rep_count = parser::stack_limit - 3;
     string8 paren_object_decls(u8"(");
-    paren_object_decls.reserve(paren_object_decls.size() + object_decl.size() * (parser::stack_limit - 2));
-    for (int i = 0; i < parser::stack_limit - 2; i++) {
+    paren_object_decls.reserve(paren_object_decls.size() +
+                               (object_decl.size() + 1) * rep_count + 1);
+    for (int i = 0; i < rep_count; i++) {
       paren_object_decls.append(object_decl);
     }
+    for (int i = 0; i < rep_count; i++) {
+      paren_object_decls.push_back('}');
+    }
+    paren_object_decls.push_back(')');
     padded_string code(paren_object_decls);
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
@@ -601,8 +705,10 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
 
   {
     for (const string8 &exp :
-         {u8"function f(){", u8"() => {", u8"if(true){", u8"await ", u8"do{",
-          u8"for(true){", u8"try{", u8"while(true){", u8"with({}){"}) {
+         {u8"function f(){ ", u8"() => { ", u8"if(true){ ", u8"if(true) ",
+          u8"await ", u8"do{ ", u8"for(;;){ ", u8"for(;;) ", u8"try{ ",
+          u8"while(true){ ", u8"while(true) ", u8"with({}){ ",
+          u8"class C { m() { "}) {
       string8 exps;
       exps.reserve(exp.size() * (parser::stack_limit + 1));
       for (int i = 0; i < parser::stack_limit + 1; i++) {
@@ -621,7 +727,8 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   {
     string8 object_decl(u8"{x:");
     string8 paren_object_decl(u8"(");
-    paren_object_decl.reserve(paren_object_decl.size() + object_decl.size() * (parser::stack_limit + 1));
+    paren_object_decl.reserve(paren_object_decl.size() +
+                              object_decl.size() * (parser::stack_limit + 1));
     for (int i = 0; i < parser::stack_limit + 1; i++) {
       paren_object_decl.append(object_decl);
     }
