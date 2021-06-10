@@ -75,6 +75,7 @@ quick_lint_js_add_executable(
   test-string-view.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
+  test-uri.cpp
   test-utf-16.cpp
   test-utf-8.cpp
   test-vector.cpp
