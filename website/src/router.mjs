@@ -132,11 +132,30 @@ export class Router {
     ejsFilePath = path.resolve(ejsFilePath);
     let ejsHTML = await fs.promises.readFile(ejsFilePath, "utf-8");
 
+    function includer(_path, resolvedPath) {
+      // include() (defined by our prelude) will restore the current working directory for us.
+      process.chdir(path.dirname(resolvedPath));
+    }
+
+    let prelude = `
+      let __realInclude = include;
+      include = async function (...args) {
+        let oldCWD = process.cwd();
+        try {
+          // __realInclude will call includer which will call process.chdir.
+          return await __realInclude(...args);
+        } finally {
+          process.chdir(oldCWD);
+        }
+      }
+    `;
+    prelude = prelude.replace("\n", " "); // Preserve line numbers in user code.
+
     let oldCWD = process.cwd();
     process.chdir(path.dirname(ejsFilePath));
     try {
       return await ejs.render(
-        ejsHTML,
+        `<% ${prelude} %>${ejsHTML}`,
         {
           currentURI: currentURI,
         },
@@ -144,6 +163,7 @@ export class Router {
           async: true,
           compileDebug: true,
           filename: ejsFilePath,
+          includer: includer,
         }
       );
     } finally {

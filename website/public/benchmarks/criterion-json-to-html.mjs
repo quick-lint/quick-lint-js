@@ -4,6 +4,7 @@
 import assert from "assert";
 import ejs from "ejs";
 import fs from "fs";
+import { html } from "../../src/html-tag.mjs";
 
 export function makeBenchmarkHTML(seriess) {
   let maxMS = Math.max(...seriess.map((series) => series.maxMS));
@@ -162,21 +163,6 @@ class Series {
     };
     return hues[this.name];
   }
-}
-
-function html(strings, ...expressions) {
-  assert.strictEqual(strings.length, expressions.length + 1);
-  let out = [];
-  for (let i = 0; i < expressions.length; ++i) {
-    out.push(strings[i]);
-    if (Array.isArray(expressions[i])) {
-      out.push(...expressions[i]);
-    } else {
-      out.push(expressions[i]);
-    }
-  }
-  out.push(strings[expressions.length]);
-  return out.join("");
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

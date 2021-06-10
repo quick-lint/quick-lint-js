@@ -5,7 +5,11 @@
 
 <script>
   //<%
+  let ejs = await import("ejs");
   let path = await import("path");
+  let url = await import("url");
+  let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
+
   function makeRelativeURI(uri) {
     if (/^\w+:/.test(uri)) {
       return uri;
@@ -26,6 +30,17 @@
     },
     { uri: "/contact/", title: "Contact" },
   ];
+
+  function pageLinkHTML(page) {
+    let titleHTML = ejs.escapeXML(page.title);
+    if (page.uri === currentURI) {
+      return html`<li class="current-page">${titleHTML}</li>`;
+    } else {
+      return html`<li>
+        <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
+      </li>`;
+    }
+  }
   //%>
 </script>
 
@@ -35,12 +50,8 @@
     <li class="side-bar-only">
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
-    <% } %> <% for (let page of navigationPages) { %> <% if (page.uri ===
-    currentURI) { %>
-    <li class="current-page"><%= page.title %></li>
-    <% } else { %>
-    <li><a href="<%= makeRelativeURI(page.uri) %>"><%= page.title %></a></li>
-    <% } %> <% } %>
+    <% } %> <% for (let page of navigationPages) { %> <%- pageLinkHTML(page) %>
+    <% } %>
   </ul>
 </nav>
 
