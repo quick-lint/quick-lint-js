@@ -28,6 +28,7 @@ header nav > ul {
   padding: 0;
 }
 header nav li {
+  --nav-entry-padding: 0px;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -35,8 +36,72 @@ header nav li {
 header nav li.side-bar-only {
   display: none;
 }
-header nav li > a {
-  padding: 0;
+header nav li a:link,
+header nav li .current-page {
+  padding: var(--nav-entry-padding);
+}
+
+/* For sub-nav entries, show bullets (circles) connected with a vertical
+   line. This visually groups the sub-nav entries under its parent nav entry.
+
+   :before holds the vertical line. :after holds the bullet. */
+header nav li li {
+  --bullets-circle-width: 5px;
+  --bullets-current-color: #000;
+  --bullets-line-color: #999;
+  --bullets-line-width: 1px;
+  --bullets-link-color: #999;
+}
+header nav li li a:link,
+header nav li li .current-page {
+  position: relative;
+}
+header nav li li a:link:before,
+header nav li li .current-page:before {
+  /* Vertical line */
+  background-color: var(--bullets-line-color);
+  bottom: 0;
+  content: " ";
+  display: inline-block;
+  position: absolute;
+  right: calc(
+    var(--nav-entry-padding) + (var(--bullets-circle-width) / 2) -
+      (var(--bullets-line-width) / 2)
+  );
+  top: 0;
+  width: var(--bullets-line-width);
+}
+header nav li li a:link:after,
+header nav li li .current-page:after {
+  /* Bullet (circle) */
+  border-radius: 100%;
+  content: " ";
+  display: inline-block;
+  height: var(--bullets-circle-width);
+  margin-left: 0.25em;
+  width: var(--bullets-circle-width);
+  /* Center the bullet vertically within the nav entry. */
+  bottom: calc((1em - var(--bullets-circle-width)) / 2);
+  vertical-align: bottom;
+  /* Show the bullet in front of the vertical line. */
+  position: relative;
+  z-index: 1;
+}
+header nav li li a:link:after {
+  background-color: var(--bullets-link-color);
+}
+header nav li li .current-page:after {
+  background-color: var(--bullets-current-color);
+}
+header nav li li:nth-last-child(1) a:link:before,
+header nav li li:nth-last-child(1) .current-page:before {
+  /* Don't extend the vertical line past the bottom (last) bullet. */
+  bottom: 50%;
+}
+header nav li li:first-child a:link:before,
+header nav li li:first-child .current-page:before {
+  /* Extend the vertical line to the baseline of the parent nav entry. */
+  top: calc(var(--nav-entry-padding) * -1);
 }
 
 header {
@@ -214,21 +279,36 @@ pre mark:empty::before {
   }
   .side-bar-nav header nav ul li {
     padding: 0;
+    --nav-entry-padding: 0.5em;
   }
 
   .side-bar-nav header nav li a:link,
-  .side-bar-nav header nav li.current-page {
+  .side-bar-nav header nav li .current-page {
     display: block;
-    padding: 0.5em;
     text-decoration: none;
   }
 
-  .side-bar-nav header nav li.current-page {
+  .side-bar-nav header nav li .current-page li {
+    font-weight: initial;
+  }
+
+  .side-bar-nav header nav li .current-page {
     font-weight: bold;
   }
 
   .side-bar-nav header nav li.side-bar-only {
     display: unset;
+  }
+
+  .side-bar-nav header nav li li {
+    --bullets-circle-width: 7px;
+    --bullets-current-color: #93a1a1;
+    --bullets-line-color: #93a1a1;
+    --bullets-link-color: #eee8d5;
+  }
+  .side-bar-nav header nav li li a:link:after,
+  .side-bar-nav header nav li li .current-page:after {
+    margin-left: 0.5em;
   }
 }
 

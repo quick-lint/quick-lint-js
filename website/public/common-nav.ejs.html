@@ -20,9 +20,15 @@
   let navigationPages = [
     { uri: "/install/", title: "Install" },
     { uri: "/demo/", title: "Try online" },
-    { uri: "/errors/", title: "Error docs" },
-    { uri: "/cli/", title: "CLI docs" },
-    { uri: "/config/", title: "Config docs" },
+    {
+      uri: "/docs/",
+      title: "Docs",
+      subpages: [
+        { uri: "/errors/", title: "Errors" },
+        { uri: "/cli/", title: "CLI" },
+        { uri: "/config/", title: "Config" },
+      ],
+    },
     { uri: "/benchmarks/", title: "Benchmarks" },
     {
       uri: "https://github.com/quick-lint/quick-lint-js",
@@ -34,7 +40,7 @@
   function pageLinkHTML(page) {
     let titleHTML = ejs.escapeXML(page.title);
     if (page.uri === currentURI) {
-      return html`<li class="current-page">${titleHTML}</li>`;
+      return html`<li><span class="current-page">${titleHTML}</span></li>`;
     } else {
       return html`<li>
         <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
@@ -50,8 +56,18 @@
     <li class="side-bar-only">
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
-    <% } %> <% for (let page of navigationPages) { %> <%- pageLinkHTML(page) %>
-    <% } %>
+    <% } %> <% for (let page of navigationPages) { %> <% if (page.subpages) { %>
+    <li>
+      <%- pageLinkHTML(page).replace("<" + "/li>", "") %> <% if (page.uri ===
+      currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
+      %>
+      <ul>
+        <% for (let subpage of page.subpages) { %> <%- pageLinkHTML(subpage) %>
+        <% } %>
+      </ul>
+      <% } %>
+    </li>
+    <% } else { %> <%- pageLinkHTML(page) %> <% } %> <% } %>
   </ul>
 </nav>
 
