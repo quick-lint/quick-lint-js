@@ -594,12 +594,11 @@ class parser {
     }
 
     // { statement; statement; }
-    case token_type::left_curly: {
+    case token_type::left_curly:
       v.visit_enter_block_scope();
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
       break;
-    }
 
     // case 3:  // Invalid.
     case token_type::kw_case:
