@@ -43,6 +43,7 @@ inline string8_view out_string8(string8_view sv) noexcept { return sv; }
 string8 to_string8(const std::string &);
 std::string to_string(const string8_view &);
 
+std::string_view to_string_view(string8_view);
 string8_view to_string8_view(std::string_view);
 
 std::size_t strlen(const char8 *);

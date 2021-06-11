@@ -27,6 +27,8 @@
 #include <string>
 #include <utility>
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 namespace {
 void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out);
@@ -76,7 +78,7 @@ void linting_lsp_server_handler<Linter>::handle_notification(
     // Do nothing.
   } else if (method == "exit") {
     std::exit(this->shutdown_requested_ ? 0 : 1);
-  } else if (starts_with(method, "$/")) {
+  } else if (starts_with(method, "$/"sv)) {
     // Do nothing.
   } else {
     QLJS_UNIMPLEMENTED();
@@ -194,11 +196,7 @@ void linting_lsp_server_handler<Linter>::
 template <QLJS_LSP_LINTER Linter>
 configuration* linting_lsp_server_handler<Linter>::get_config(
     ::simdjson::ondemand::value& document_uri) {
-  std::string_view uri;
-  if (document_uri.get(uri) != ::simdjson::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  std::string path = parse_file_from_lsp_uri(uri);
+  std::string path = parse_file_from_lsp_uri(make_string_view(document_uri));
   if (path.empty()) {
     // TODO(strager): Report a warning and return a default configuration.
     QLJS_UNIMPLEMENTED();

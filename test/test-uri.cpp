@@ -14,82 +14,82 @@ namespace {
 TEST(test_uri, file_from_lsp_uri_posix) {
   auto parse = parse_file_from_lsp_uri_posix;
 
-  EXPECT_EQ(parse("file:///"sv), "/");
-  EXPECT_EQ(parse("file:///x"sv), "/x");
-  EXPECT_EQ(parse("file:///dir/subdir/"sv), "/dir/subdir/");
-  EXPECT_EQ(parse("file:///dir/subdir/file.js"sv), "/dir/subdir/file.js");
+  EXPECT_EQ(parse(u8"file:///"sv), "/");
+  EXPECT_EQ(parse(u8"file:///x"sv), "/x");
+  EXPECT_EQ(parse(u8"file:///dir/subdir/"sv), "/dir/subdir/");
+  EXPECT_EQ(parse(u8"file:///dir/subdir/file.js"sv), "/dir/subdir/file.js");
 
   // With percent-encoded characters:
-  EXPECT_EQ(parse("file:///ab%63"sv), "/abc");
-  EXPECT_EQ(parse("file:///%61%62%63"sv), "/abc");
-  EXPECT_EQ(parse("file:///sla%2Fsh"sv), "/sla/sh")
+  EXPECT_EQ(parse(u8"file:///ab%63"sv), "/abc");
+  EXPECT_EQ(parse(u8"file:///%61%62%63"sv), "/abc");
+  EXPECT_EQ(parse(u8"file:///sla%2Fsh"sv), "/sla/sh")
       << "%2F should confusingly decode to '/'";
 
   // With optional components:
-  EXPECT_EQ(parse("file:///f?query"sv), "/f");
-  EXPECT_EQ(parse("file:///f#fragment"sv), "/f");
-  EXPECT_EQ(parse("file:///f?query#fragment"sv), "/f");
+  EXPECT_EQ(parse(u8"file:///f?query"sv), "/f");
+  EXPECT_EQ(parse(u8"file:///f#fragment"sv), "/f");
+  EXPECT_EQ(parse(u8"file:///f?query#fragment"sv), "/f");
 
   // With authority:
-  EXPECT_EQ(parse("file://server"sv), "//server");
-  EXPECT_EQ(parse("file://server?query"sv), "//server");
-  EXPECT_EQ(parse("file://server#fragment"sv), "//server");
-  EXPECT_EQ(parse("file://server/x"sv), "//server/x");
+  EXPECT_EQ(parse(u8"file://server"sv), "//server");
+  EXPECT_EQ(parse(u8"file://server?query"sv), "//server");
+  EXPECT_EQ(parse(u8"file://server#fragment"sv), "//server");
+  EXPECT_EQ(parse(u8"file://server/x"sv), "//server/x");
 }
 
 TEST(test_uri, file_from_lsp_uri_win32) {
   auto parse = parse_file_from_lsp_uri_win32;
 
-  EXPECT_EQ(parse("file:///c:"sv), R"(c:)");
-  EXPECT_EQ(parse("file:///c:/"sv), R"(c:\)");
-  EXPECT_EQ(parse("file:///c:/dir/subdir/"sv), R"(c:\dir\subdir\)");
-  EXPECT_EQ(parse("file:///c:/dir/subdir/file.js"sv),
+  EXPECT_EQ(parse(u8"file:///c:"sv), R"(c:)");
+  EXPECT_EQ(parse(u8"file:///c:/"sv), R"(c:\)");
+  EXPECT_EQ(parse(u8"file:///c:/dir/subdir/"sv), R"(c:\dir\subdir\)");
+  EXPECT_EQ(parse(u8"file:///c:/dir/subdir/file.js"sv),
             R"(c:\dir\subdir\file.js)");
-  EXPECT_EQ(parse("file:///X:/"sv), R"(X:\)");
+  EXPECT_EQ(parse(u8"file:///X:/"sv), R"(X:\)");
 
   // POSIX-style paths:
-  EXPECT_EQ(parse("file:///c"sv), R"(\c)");
-  EXPECT_EQ(parse("file:///c:x"sv), R"(\c:x)");
-  EXPECT_EQ(parse("file:///c:x/"sv), R"(\c:x\)");
-  EXPECT_EQ(parse("file:///1:/"sv), R"(\1:\)");
+  EXPECT_EQ(parse(u8"file:///c"sv), R"(\c)");
+  EXPECT_EQ(parse(u8"file:///c:x"sv), R"(\c:x)");
+  EXPECT_EQ(parse(u8"file:///c:x/"sv), R"(\c:x\)");
+  EXPECT_EQ(parse(u8"file:///1:/"sv), R"(\1:\)");
 
   // With percent-encoded characters:
-  EXPECT_EQ(parse("file:///%63:/"sv), R"(c:\)");
-  EXPECT_EQ(parse("file:///c:/ab%63"sv), R"(c:\abc)");
-  EXPECT_EQ(parse("file:///c:/%61%62%63"sv), R"(c:\abc)");
-  EXPECT_THAT(parse("file:///c:/sla%2Fsh"sv),
+  EXPECT_EQ(parse(u8"file:///%63:/"sv), R"(c:\)");
+  EXPECT_EQ(parse(u8"file:///c:/ab%63"sv), R"(c:\abc)");
+  EXPECT_EQ(parse(u8"file:///c:/%61%62%63"sv), R"(c:\abc)");
+  EXPECT_THAT(parse(u8"file:///c:/sla%2Fsh"sv),
               ::testing::AnyOf(R"(c:\sla\sh)", R"(c:\sla/sh)"))
       << "%2F should confusingly decode to '/' or '\\'";
-  EXPECT_EQ(parse("file:///c:/sla%5Csh"sv), R"(c:\sla\sh)")
+  EXPECT_EQ(parse(u8"file:///c:/sla%5Csh"sv), R"(c:\sla\sh)")
       << "%5C should decode to '\\'";
-  EXPECT_EQ(parse("file:///c:%2Fname"sv), R"(c:\name)");
-  EXPECT_EQ(parse("file:///c:%5Cname"sv), R"(c:\name)");
+  EXPECT_EQ(parse(u8"file:///c:%2Fname"sv), R"(c:\name)");
+  EXPECT_EQ(parse(u8"file:///c:%5Cname"sv), R"(c:\name)");
 
   // With optional components:
-  EXPECT_EQ(parse("file:///c:?query"sv), R"(c:)");
-  EXPECT_EQ(parse("file:///c:#fragment"sv), R"(c:)");
-  EXPECT_EQ(parse("file:///c:?query#fragment"sv), R"(c:)");
+  EXPECT_EQ(parse(u8"file:///c:?query"sv), R"(c:)");
+  EXPECT_EQ(parse(u8"file:///c:#fragment"sv), R"(c:)");
+  EXPECT_EQ(parse(u8"file:///c:?query#fragment"sv), R"(c:)");
 
   // With authority:
-  EXPECT_EQ(parse("file://server"sv), R"(\\server)");
-  EXPECT_EQ(parse("file://server?query"sv), R"(\\server)");
-  EXPECT_EQ(parse("file://server#fragment"sv), R"(\\server)");
-  EXPECT_EQ(parse("file://server/x"sv), R"(\\server\x)");
+  EXPECT_EQ(parse(u8"file://server"sv), R"(\\server)");
+  EXPECT_EQ(parse(u8"file://server?query"sv), R"(\\server)");
+  EXPECT_EQ(parse(u8"file://server#fragment"sv), R"(\\server)");
+  EXPECT_EQ(parse(u8"file://server/x"sv), R"(\\server\x)");
 
   // Drive letter imposter in authority:
-  EXPECT_EQ(parse("file://c:/x"sv), R"(\\c:\x)");
+  EXPECT_EQ(parse(u8"file://c:/x"sv), R"(\\c:\x)");
 }
 
 TEST(test_uri, file_from_lsp_uri_invalid_file_uri) {
   for (auto parse :
        {parse_file_from_lsp_uri_posix, parse_file_from_lsp_uri_win32}) {
-    EXPECT_EQ(parse("http://example.com/path"sv), "");
-    EXPECT_EQ(parse("file:/x/y/z/w"sv), "");
-    EXPECT_EQ(parse("file://"sv), "");
-    EXPECT_EQ(parse("file:///%6"sv), "");
-    EXPECT_EQ(parse("file:///%6q"sv), "");
-    EXPECT_EQ(parse("file:///%q6"sv), "");
-    EXPECT_EQ(parse("file:///%"sv), "");
+    EXPECT_EQ(parse(u8"http://example.com/path"sv), "");
+    EXPECT_EQ(parse(u8"file:/x/y/z/w"sv), "");
+    EXPECT_EQ(parse(u8"file://"sv), "");
+    EXPECT_EQ(parse(u8"file:///%6"sv), "");
+    EXPECT_EQ(parse(u8"file:///%6q"sv), "");
+    EXPECT_EQ(parse(u8"file:///%q6"sv), "");
+    EXPECT_EQ(parse(u8"file:///%"sv), "");
   }
 }
 }

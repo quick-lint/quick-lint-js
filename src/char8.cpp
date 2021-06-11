@@ -40,6 +40,14 @@ std::string to_string(const string8_view &s) { return std::string(s); }
 #endif
 
 #if QLJS_HAVE_CHAR8_T
+std::string_view to_string_view(string8_view s) {
+  return std::string_view(reinterpret_cast<const char *>(s.data()), s.size());
+}
+#else
+std::string_view to_string_view(string8_view s) { return s; }
+#endif
+
+#if QLJS_HAVE_CHAR8_T
 string8_view to_string8_view(std::string_view s) {
   return string8_view(reinterpret_cast<const char8 *>(s.data()), s.size());
 }

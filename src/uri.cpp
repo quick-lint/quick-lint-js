@@ -10,9 +10,11 @@
 #include <string>
 #include <string_view>
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 // Returns an empty string on parse failure.
-std::string parse_file_from_lsp_uri(std::string_view uri) {
+std::string parse_file_from_lsp_uri(string8_view uri) {
 #if defined(_WIN32)
   return parse_file_from_lsp_uri_win32(uri);
 #else
@@ -20,52 +22,53 @@ std::string parse_file_from_lsp_uri(std::string_view uri) {
 #endif
 }
 
-std::string parse_file_from_lsp_uri_posix(std::string_view uri) {
-  if (!starts_with(uri, "file://")) {
+std::string parse_file_from_lsp_uri_posix(string8_view uri) {
+  if (!starts_with(uri, u8"file://"sv)) {
     return "";
   }
-  if (uri.size() < std::strlen("file://") + 1) {
+  if (uri.size() < strlen(u8"file://") + 1) {
     return "";
   }
-  bool have_authority = uri[7] != '/';
+  bool have_authority = uri[7] != u8'/';
   if (have_authority) {
-    uri = uri.substr(std::strlen("file:"));
+    uri = uri.substr(strlen(u8"file:"));
   } else {
-    uri = uri.substr(std::strlen("file://"));
+    uri = uri.substr(strlen(u8"file://"));
   }
-  std::size_t query_start = uri.find('?');
+  std::size_t query_start = uri.find(u8'?');
   if (query_start != uri.npos) {
     uri = uri.substr(0, query_start);
   }
-  std::size_t fragment_start = uri.find('#');
+  std::size_t fragment_start = uri.find(u8'#');
   if (fragment_start != uri.npos) {
     uri = uri.substr(0, fragment_start);
   }
 
   std::string result;
   std::size_t percent_index;
-  while ((percent_index = uri.find('%')) != uri.npos) {
-    result.append(uri.substr(0, percent_index));
+  while ((percent_index = uri.find(u8'%')) != uri.npos) {
+    result.append(to_string_view(uri.substr(0, percent_index)));
 
     uri = uri.substr(percent_index + 1);
     if (uri.size() < 2) {
       return "";
     }
+    std::string_view digits = to_string_view(uri.substr(0, 2));
     unsigned char c;
     from_chars_result parse_result =
-        from_chars_hex(uri.data(), uri.data() + 2, c);
-    if (parse_result.ptr != uri.data() + 2) {
+        from_chars_hex(digits.data(), digits.data() + 2, c);
+    if (parse_result.ptr != digits.data() + 2) {
       return "";
     }
     QLJS_ASSERT(parse_result.ec == std::errc());
     result.push_back(static_cast<char>(c));
     uri = uri.substr(2);
   }
-  result.append(uri);
+  result.append(to_string_view(uri));
   return result;
 }
 
-std::string parse_file_from_lsp_uri_win32(std::string_view uri) {
+std::string parse_file_from_lsp_uri_win32(string8_view uri) {
   std::string result = parse_file_from_lsp_uri_posix(uri);
   if (result.empty()) {
     return result;

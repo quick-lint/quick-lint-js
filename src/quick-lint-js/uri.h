@@ -4,13 +4,13 @@
 #ifndef QUICK_LINT_JS_URI_H
 #define QUICK_LINT_JS_URI_H
 
+#include <quick-lint-js/char8.h>
 #include <string>
-#include <string_view>
 
 namespace quick_lint_js {
-std::string parse_file_from_lsp_uri(std::string_view uri);
-std::string parse_file_from_lsp_uri_posix(std::string_view uri);
-std::string parse_file_from_lsp_uri_win32(std::string_view uri);
+std::string parse_file_from_lsp_uri(string8_view uri);
+std::string parse_file_from_lsp_uri_posix(string8_view uri);
+std::string parse_file_from_lsp_uri_win32(string8_view uri);
 }
 
 #endif
