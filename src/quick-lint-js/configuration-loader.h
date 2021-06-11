@@ -30,6 +30,8 @@ class configuration_loader {
 
   std::string error() const;
 
+  void refresh();
+
  private:
   configuration* load_config_file(const char* config_path);
   configuration* find_and_load_config_file(const char* input_path);

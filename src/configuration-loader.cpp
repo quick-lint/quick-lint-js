@@ -137,6 +137,8 @@ configuration* configuration_loader::get_loaded_config(
 
 std::string configuration_loader::error() const { return this->last_error_; }
 
+void configuration_loader::refresh() { this->loaded_config_files_.clear(); }
+
 basic_configuration_filesystem*
 basic_configuration_filesystem::instance() noexcept {
   static basic_configuration_filesystem fs;

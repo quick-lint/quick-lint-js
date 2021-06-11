@@ -174,9 +174,8 @@ void linting_lsp_server_handler<Linter>::
   }
 
   auto document_it = this->documents_.find(string8(make_string_view(uri)));
-  bool url_is_lintable =
-      document_it != this->documents_.end() && document_it->second.should_lint;
-  if (!url_is_lintable) {
+  bool url_is_tracked = document_it != this->documents_.end();
+  if (!url_is_tracked) {
     return;
   }
   document& doc = document_it->second;
@@ -193,9 +192,14 @@ void linting_lsp_server_handler<Linter>::
     QLJS_UNIMPLEMENTED();
   }
   this->apply_document_changes(doc.doc, changes);
-  this->linter_.lint_and_get_diagnostics_notification(
-      *this->get_config(document_path), doc.doc.string(), uri, version,
-      notification_json);
+
+  if (doc.should_lint) {
+    this->linter_.lint_and_get_diagnostics_notification(
+        *this->get_config(document_path), doc.doc.string(), uri, version,
+        notification_json);
+  } else {
+    this->config_loader_.refresh();
+  }
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -254,6 +258,9 @@ void linting_lsp_server_handler<Linter>::
     this->linter_.lint_and_get_diagnostics_notification(
         *this->get_config(document_path), doc.doc.string(), uri, version,
         notification_json);
+  } else {
+    doc.should_lint = false;
+    this->config_loader_.refresh();
   }
 }
 
