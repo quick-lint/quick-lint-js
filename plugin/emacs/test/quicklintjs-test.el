@@ -35,8 +35,9 @@
   (ert-run-tests-batch-and-exit))
 
 (defun def-flymake-tests ()
-  (require 'flymake-quicklintjs)
   (ert-deftest quicklintjs-flymake-parse-errors-and-warnings ()
+    (skip-unless (>= emacs-major-version 26))
+    (require 'flymake-quicklintjs)
     (let ((errors-buf (generate-new-buffer "*errors-buf*"))
           (js-buf (generate-new-buffer "*js-buf*")))
       (with-current-buffer js-buf
@@ -63,16 +64,16 @@
           (should (equal (flymake-quicklintjs--make-diagnostics js-buf) diags)))))))
 
 (defun def-eglot-tests ()
-  (when (>= emacs-major-version 26)
+  (ert-deftest quicklintjs-is-in-eglot-servers ()
+    (skip-unless (>= emacs-major-version 26))
     (require 'eglot-quicklintjs)
-    (ert-deftest quicklintjs-is-in-eglot-servers ()
-      (should (member '(js-mode "quick-lint-js" "--lsp")  eglot-server-programs)))))
+    (should (member '(js-mode "quick-lint-js" "--lsp-server")  eglot-server-programs))))
 
 (defun def-lsp-tests ()
-  (when (>= emacs-major-version 26)
+  (ert-deftest quicklintjs-is-in-lsp-clients ()
+    (skip-unless (>= emacs-major-version 26))
     (require 'lsp-quicklintjs)
-    (ert-deftest quicklintjs-is-in-lsp-clients ()
-      (should  (gethash 'quick-lint-js lsp-clients)))))
+    (should (gethash 'quick-lint-js lsp-clients))))
 
 (defun def-flycheck-tests ()
   (require 'flycheck)

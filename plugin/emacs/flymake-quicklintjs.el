@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'flymake)
+
 (defgroup flymake-quicklintjs nil
   "Flymake backend for quick-lint-js"
   :link '(url-link :tag "Website" "https://quick-lint-js.com"))
