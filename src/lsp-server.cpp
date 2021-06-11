@@ -193,12 +193,20 @@ void linting_lsp_server_handler<Linter>::
   }
   this->apply_document_changes(doc.doc, changes);
 
-  if (doc.should_lint) {
+  switch (doc.type) {
+  case document_type::lintable:
     this->linter_.lint_and_get_diagnostics_notification(
         *this->get_config(document_path), doc.doc.string(), uri, version,
         notification_json);
-  } else {
+    break;
+
+  case document_type::config:
     this->config_loader_.refresh();
+    break;
+
+  case document_type::unknown:
+    // Ignore.
+    break;
   }
 }
 
@@ -254,12 +262,12 @@ void linting_lsp_server_handler<Linter>::
   doc.doc.set_text(make_string_view(text_document["text"]));
 
   if (language_id == "javascript") {
-    doc.should_lint = true;
+    doc.type = document_type::lintable;
     this->linter_.lint_and_get_diagnostics_notification(
         *this->get_config(document_path), doc.doc.string(), uri, version,
         notification_json);
   } else {
-    doc.should_lint = false;
+    doc.type = document_type::config;
     this->config_loader_.refresh();
   }
 }

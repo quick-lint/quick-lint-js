@@ -79,9 +79,15 @@ class linting_lsp_server_handler {
                            byte_buffer& notification_json);
 
  private:
+  enum class document_type {
+    config,    // quick-lint-js.config
+    lintable,  // .js file
+    unknown,
+  };
+
   struct document {
     quick_lint_js::document<lsp_locator> doc;
-    bool should_lint = false;
+    document_type type = document_type::unknown;
   };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
