@@ -49,26 +49,26 @@ endpoint make_endpoint(configuration_filesystem* fs,
 endpoint make_endpoint(configuration_filesystem* fs) {
   return make_endpoint(
       fs, [](configuration&, padded_string_view, ::simdjson::ondemand::value&,
-             ::simdjson::ondemand::value&, byte_buffer&) {});
+             string8_view, byte_buffer&) {});
 }
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  std::function<void(
-      configuration&, padded_string_view code, ::simdjson::ondemand::value& url,
-      ::simdjson::ondemand::value& version, byte_buffer& notification_json)>
+  std::function<void(configuration&, padded_string_view code,
+                     ::simdjson::ondemand::value& url, string8_view version,
+                     byte_buffer& notification_json)>
       lint_callback;
   std::vector<string8> lint_calls;
 
   fake_configuration_filesystem fs;
-  endpoint server =
-      make_endpoint(&fs, [this](configuration& config, padded_string_view code,
-                                ::simdjson::ondemand::value& url,
-                                ::simdjson::ondemand::value& version,
-                                byte_buffer& notification_json) {
+  endpoint server = make_endpoint(
+      &fs, [this](configuration& config, padded_string_view code,
+                  ::simdjson::ondemand::value& url, string8_view version_json,
+                  byte_buffer& notification_json) {
         this->lint_calls.emplace_back(code.string_view());
         if (this->lint_callback) {
-          this->lint_callback(config, code, url, version, notification_json);
+          this->lint_callback(config, code, url, version_json,
+                              notification_json);
         }
       });
   spy_lsp_endpoint_remote& client = server.remote();
@@ -224,11 +224,11 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 TEST_F(test_linting_lsp_server, opening_document_lints) {
   this->lint_callback = [&](configuration&, padded_string_view code,
                             ::simdjson::ondemand::value& uri,
-                            ::simdjson::ondemand::value& version,
+                            string8_view version,
                             byte_buffer& notification_json) {
     EXPECT_EQ(code, u8"let x = x;");
     EXPECT_EQ(simdjson_to_jsoncpp(uri), "file:///test.js");
-    EXPECT_EQ(simdjson_to_jsoncpp(version), 10);
+    EXPECT_EQ(version, u8"10"sv);
 
     notification_json.append_copy(
         u8R"--(
@@ -436,8 +436,8 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
                        u8R"({"globals": {"testGlobalVariable": true}})");
 
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
   };
 
@@ -465,8 +465,8 @@ TEST_F(test_linting_lsp_server,
                        u8R"({"globals": {"testGlobalVariable": true}})");
 
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
   };
 
@@ -490,8 +490,8 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"modified"sv));
   };
 
@@ -532,8 +532,8 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
 TEST_F(test_linting_lsp_server,
        linting_uses_already_opened_shadowing_config_file) {
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"haveConfigWithoutDot"sv));
     EXPECT_FALSE(config.globals().find(u8"haveConfigWithDot"sv));
     ASSERT_TRUE(config.config_file_path().has_value());
@@ -580,8 +580,8 @@ TEST_F(test_linting_lsp_server,
   bool after_config_was_loaded = false;
 
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     if (config.globals().find(u8"after"sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"sv));
       after_config_was_loaded = true;
@@ -672,8 +672,8 @@ TEST_F(test_linting_lsp_server,
   bool after_config_was_loaded = false;
 
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     if (config.globals().find(u8"after"sv)) {
       EXPECT_FALSE(config.globals().find(u8"before"sv));
       after_config_was_loaded = true;
@@ -741,8 +741,8 @@ TEST_F(
     test_linting_lsp_server,
     linting_uses_config_from_filesystem_if_config_is_opened_then_closed_before_opening_js_file) {
   this->lint_callback = [&](configuration& config, padded_string_view,
-                            ::simdjson::ondemand::value&,
-                            ::simdjson::ondemand::value&, byte_buffer&) {
+                            ::simdjson::ondemand::value&, string8_view,
+                            byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"v1"sv));
     EXPECT_FALSE(config.globals().find(u8"v2"sv));
   };
@@ -979,16 +979,13 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
 
   ::simdjson::ondemand::value uri;
   ASSERT_EQ(text_document["uri"].get(uri), ::simdjson::error_code::SUCCESS);
-  ::simdjson::ondemand::value version;
-  ASSERT_EQ(text_document["version"].get(version),
-            ::simdjson::error_code::SUCCESS);
 
   padded_string code(u8"let x = x;"_sv);
   byte_buffer notification_json_buffer;
   configuration config;
 
   lsp_javascript_linter linter;
-  linter.lint_and_get_diagnostics_notification(config, &code, uri, version,
+  linter.lint_and_get_diagnostics_notification(config, &code, uri, u8"10"sv,
                                                notification_json_buffer);
 
   std::string notification_json;

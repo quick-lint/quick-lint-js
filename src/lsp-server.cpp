@@ -20,6 +20,7 @@
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/string-view.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/uri.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
@@ -36,6 +37,7 @@ void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out);
 void append_raw_json(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
     byte_buffer& out);
+string8_view get_raw_json(::simdjson::ondemand::value& value);
 
 string8_view make_string_view(::simdjson::ondemand::value& string);
 string8_view make_string_view(
@@ -196,8 +198,8 @@ void linting_lsp_server_handler<Linter>::
   switch (doc.type) {
   case document_type::lintable:
     this->linter_.lint_and_get_diagnostics_notification(
-        *this->get_config(document_path), doc.doc.string(), uri, version,
-        notification_json);
+        *this->get_config(document_path), doc.doc.string(), uri,
+        get_raw_json(version), notification_json);
     break;
 
   case document_type::config:
@@ -264,8 +266,8 @@ void linting_lsp_server_handler<Linter>::
   if (language_id == "javascript") {
     doc.type = document_type::lintable;
     this->linter_.lint_and_get_diagnostics_notification(
-        *this->get_config(document_path), doc.doc.string(), uri, version,
-        notification_json);
+        *this->get_config(document_path), doc.doc.string(), uri,
+        get_raw_json(version), notification_json);
   } else {
     doc.type = document_type::config;
     this->config_loader_.refresh();
@@ -313,7 +315,7 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
     configuration& config, padded_string_view code,
-    ::simdjson::ondemand::value& uri, ::simdjson::ondemand::value& version,
+    ::simdjson::ondemand::value& uri, string8_view version_json,
     byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
@@ -325,7 +327,7 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
   append_raw_json(uri, notification_json);
 
   notification_json.append_copy(u8R"--(,"version":)--");
-  append_raw_json(version, notification_json);
+  notification_json.append_copy(version_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--");
   this->lint_and_get_diagnostics(config, code, notification_json);
@@ -359,9 +361,9 @@ mock_lsp_linter::mock_lsp_linter(
 
 void mock_lsp_linter::lint_and_get_diagnostics_notification(
     configuration& config, padded_string_view code,
-    ::simdjson::ondemand::value& uri, ::simdjson::ondemand::value& version,
+    ::simdjson::ondemand::value& uri, string8_view version_json,
     byte_buffer& notification_json) {
-  this->callback_(config, code, uri, version, notification_json);
+  this->callback_(config, code, uri, version_json, notification_json);
 }
 
 template class linting_lsp_server_handler<lsp_javascript_linter>;
@@ -369,23 +371,7 @@ template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
 void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out) {
-  ::simdjson::ondemand::json_type type;
-  if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  switch (type) {
-  case ::simdjson::ondemand::json_type::boolean:
-  case ::simdjson::ondemand::json_type::null:
-  case ::simdjson::ondemand::json_type::number:
-  case ::simdjson::ondemand::json_type::string:
-    out.append_copy(to_string8_view(value.raw_json_token()));
-    break;
-
-  case ::simdjson::ondemand::json_type::array:
-  case ::simdjson::ondemand::json_type::object:
-    QLJS_UNIMPLEMENTED();
-    break;
-  }
+  out.append_copy(get_raw_json(value));
 }
 
 void append_raw_json(
@@ -396,6 +382,25 @@ void append_raw_json(
     QLJS_UNIMPLEMENTED();
   }
   append_raw_json(real_value, out);
+}
+
+string8_view get_raw_json(::simdjson::ondemand::value& value) {
+  ::simdjson::ondemand::json_type type;
+  if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  switch (type) {
+  case ::simdjson::ondemand::json_type::boolean:
+  case ::simdjson::ondemand::json_type::null:
+  case ::simdjson::ondemand::json_type::number:
+  case ::simdjson::ondemand::json_type::string:
+    return to_string8_view(value.raw_json_token());
+
+  case ::simdjson::ondemand::json_type::array:
+  case ::simdjson::ondemand::json_type::object:
+    QLJS_UNIMPLEMENTED();
+  }
+  QLJS_UNREACHABLE();
 }
 
 QLJS_WARNING_PUSH

@@ -36,9 +36,9 @@ template <class Linter>
 concept lsp_linter = requires(Linter l, configuration config,
                               padded_string_view code,
                               ::simdjson::ondemand::value uri,
-                              ::simdjson::ondemand::value version,
+                              string8_view version_json,
                               byte_buffer notification_json) {
-  {l.lint_and_get_diagnostics_notification(config, code, uri, version,
+  {l.lint_and_get_diagnostics_notification(config, code, uri, version_json,
                                            notification_json)};
 };
 #endif
@@ -116,9 +116,11 @@ class linting_lsp_server_handler {
 
 class lsp_javascript_linter {
  public:
-  void lint_and_get_diagnostics_notification(
-      configuration&, padded_string_view code, ::simdjson::ondemand::value& uri,
-      ::simdjson::ondemand::value& version, byte_buffer& notification_json);
+  void lint_and_get_diagnostics_notification(configuration&,
+                                             padded_string_view code,
+                                             ::simdjson::ondemand::value& uri,
+                                             string8_view version_json,
+                                             byte_buffer& notification_json);
 
  private:
   void lint_and_get_diagnostics(configuration&, padded_string_view code,
@@ -129,14 +131,16 @@ class mock_lsp_linter {
  public:
   using lint_and_get_diagnostics_notification_type = void(
       configuration&, padded_string_view code, ::simdjson::ondemand::value& uri,
-      ::simdjson::ondemand::value& version, byte_buffer& notification_json);
+      string8_view version_json, byte_buffer& notification_json);
 
   /*implicit*/ mock_lsp_linter(
       std::function<lint_and_get_diagnostics_notification_type> callback);
 
-  void lint_and_get_diagnostics_notification(
-      configuration&, padded_string_view code, ::simdjson::ondemand::value& uri,
-      ::simdjson::ondemand::value& version, byte_buffer& notification_json);
+  void lint_and_get_diagnostics_notification(configuration&,
+                                             padded_string_view code,
+                                             ::simdjson::ondemand::value& uri,
+                                             string8_view version_json,
+                                             byte_buffer& notification_json);
 
  private:
   std::function<lint_and_get_diagnostics_notification_type> callback_;
