@@ -34,11 +34,10 @@ class configuration_filesystem;
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Linter>
 concept lsp_linter = requires(Linter l, configuration config,
-                              padded_string_view code,
-                              ::simdjson::ondemand::value uri,
+                              padded_string_view code, string8_view uri_json,
                               string8_view version_json,
                               byte_buffer notification_json) {
-  {l.lint_and_get_diagnostics_notification(config, code, uri, version_json,
+  {l.lint_and_get_diagnostics_notification(config, code, uri_json, version_json,
                                            notification_json)};
 };
 #endif
@@ -118,7 +117,7 @@ class lsp_javascript_linter {
  public:
   void lint_and_get_diagnostics_notification(configuration&,
                                              padded_string_view code,
-                                             ::simdjson::ondemand::value& uri,
+                                             string8_view uri_json,
                                              string8_view version_json,
                                              byte_buffer& notification_json);
 
@@ -129,16 +128,16 @@ class lsp_javascript_linter {
 
 class mock_lsp_linter {
  public:
-  using lint_and_get_diagnostics_notification_type = void(
-      configuration&, padded_string_view code, ::simdjson::ondemand::value& uri,
-      string8_view version_json, byte_buffer& notification_json);
+  using lint_and_get_diagnostics_notification_type =
+      void(configuration&, padded_string_view code, string8_view uri_json,
+           string8_view version_json, byte_buffer& notification_json);
 
   /*implicit*/ mock_lsp_linter(
       std::function<lint_and_get_diagnostics_notification_type> callback);
 
   void lint_and_get_diagnostics_notification(configuration&,
                                              padded_string_view code,
-                                             ::simdjson::ondemand::value& uri,
+                                             string8_view uri_json,
                                              string8_view version_json,
                                              byte_buffer& notification_json);
 

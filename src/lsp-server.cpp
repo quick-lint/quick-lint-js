@@ -198,7 +198,7 @@ void linting_lsp_server_handler<Linter>::
   switch (doc.type) {
   case document_type::lintable:
     this->linter_.lint_and_get_diagnostics_notification(
-        *this->get_config(document_path), doc.doc.string(), uri,
+        *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),
         get_raw_json(version), notification_json);
     break;
 
@@ -266,7 +266,7 @@ void linting_lsp_server_handler<Linter>::
   if (language_id == "javascript") {
     doc.type = document_type::lintable;
     this->linter_.lint_and_get_diagnostics_notification(
-        *this->get_config(document_path), doc.doc.string(), uri,
+        *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),
         get_raw_json(version), notification_json);
   } else {
     doc.type = document_type::config;
@@ -314,9 +314,8 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
-    configuration& config, padded_string_view code,
-    ::simdjson::ondemand::value& uri, string8_view version_json,
-    byte_buffer& notification_json) {
+    configuration& config, padded_string_view code, string8_view uri_json,
+    string8_view version_json, byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -324,7 +323,7 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
       u8R"--("params":{)--"
         u8R"--("uri":)--");
   // clang-format on
-  append_raw_json(uri, notification_json);
+  notification_json.append_copy(uri_json);
 
   notification_json.append_copy(u8R"--(,"version":)--");
   notification_json.append_copy(version_json);
@@ -360,10 +359,9 @@ mock_lsp_linter::mock_lsp_linter(
     : callback_(std::move(callback)) {}
 
 void mock_lsp_linter::lint_and_get_diagnostics_notification(
-    configuration& config, padded_string_view code,
-    ::simdjson::ondemand::value& uri, string8_view version_json,
-    byte_buffer& notification_json) {
-  this->callback_(config, code, uri, version_json, notification_json);
+    configuration& config, padded_string_view code, string8_view uri_json,
+    string8_view version_json, byte_buffer& notification_json) {
+  this->callback_(config, code, uri_json, version_json, notification_json);
 }
 
 template class linting_lsp_server_handler<lsp_javascript_linter>;
