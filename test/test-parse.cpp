@@ -546,7 +546,7 @@ padded_string repeated_code(string8_view before, string8_view inner,
   string8 reps;
   reps.reserve((before.size() + after.size()) * depth + inner.size());
   auto append_str_to_reps = [&](string8_view str) {
-    for (int i = 0; i < depth; i++) {
+    for (size_t i = 0; i < depth; i++) {
       reps.append(str);
     }
   };
