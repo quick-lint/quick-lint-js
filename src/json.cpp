@@ -70,6 +70,23 @@ void write_json_escaped_string(byte_buffer &output, string8_view string) {
   }
   output.append_copy(string);
 }
+
+string8 to_json_escaped_string_with_quotes(string8_view string) {
+  string8 output = u8"\"";
+  for (;;) {
+    auto special_character_index = string.find_first_of(u8"\\\"");
+    if (special_character_index == string.npos) {
+      break;
+    }
+    output.append(string.substr(0, special_character_index));
+    output.push_back(u8'\\');
+    output.push_back(string[special_character_index]);
+    string = string.substr(special_character_index + 1);
+  }
+  output.append(string);
+  output.push_back(u8'"');
+  return output;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

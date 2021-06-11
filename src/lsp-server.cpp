@@ -194,16 +194,18 @@ void linting_lsp_server_handler<Linter>::
     QLJS_UNIMPLEMENTED();
   }
   this->apply_document_changes(doc.doc, changes);
+  doc.version_json = get_raw_json(version);
 
   switch (doc.type) {
   case document_type::lintable:
     this->linter_.lint_and_get_diagnostics_notification(
         *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),
-        get_raw_json(version), notification_json);
+        doc.version_json, notification_json);
     break;
 
   case document_type::config:
     this->config_loader_.refresh();
+    this->relint_open_documents(notification_json);
     break;
 
   case document_type::unknown:
@@ -262,16 +264,46 @@ void linting_lsp_server_handler<Linter>::
   this->config_fs_.open_document(document_path, &doc.doc);
 
   doc.doc.set_text(make_string_view(text_document["text"]));
+  doc.version_json = get_raw_json(version);
 
   if (language_id == "javascript") {
     doc.type = document_type::lintable;
     this->linter_.lint_and_get_diagnostics_notification(
         *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),
-        get_raw_json(version), notification_json);
+        doc.version_json, notification_json);
   } else {
     doc.type = document_type::config;
     this->config_loader_.refresh();
+    this->relint_open_documents(notification_json);
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::relint_open_documents(
+    byte_buffer& notification_json) {
+  bool need_comma = false;
+  notification_json.append_copy(u8'[');
+  for (auto& [document_uri, doc] : this->documents_) {
+    if (doc.type == document_type::lintable) {
+      if (need_comma) {
+        notification_json.append_copy(u8',');
+      }
+      std::string document_path = parse_file_from_lsp_uri(document_uri);
+      if (document_path.empty()) {
+        // TODO(strager): Report a warning and use a default configuration.
+        QLJS_UNIMPLEMENTED();
+      }
+      // TODO(strager): Don't copy document_uri if it contains only non-special
+      // characters.
+      // TODO(strager): Cache the result of to_json_escaped_string?
+      this->linter_.lint_and_get_diagnostics_notification(
+          *this->get_config(document_path), doc.doc.string(),
+          to_json_escaped_string_with_quotes(document_uri), doc.version_json,
+          notification_json);
+      need_comma = true;
+    }
+  }
+  notification_json.append_copy(u8']');
 }
 
 template <QLJS_LSP_LINTER Linter>

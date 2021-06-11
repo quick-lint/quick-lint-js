@@ -23,6 +23,8 @@ extern template void write_json_escaped_string<char8_t>(
 #endif
 
 void write_json_escaped_string(byte_buffer &, string8_view);
+
+string8 to_json_escaped_string_with_quotes(string8_view);
 }
 
 #endif

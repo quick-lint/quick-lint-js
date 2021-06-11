@@ -87,6 +87,7 @@ class linting_lsp_server_handler {
   struct document {
     quick_lint_js::document<lsp_locator> doc;
     document_type type = document_type::unknown;
+    string8 version_json;
   };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
@@ -100,6 +101,8 @@ class linting_lsp_server_handler {
       ::simdjson::ondemand::object& request);
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request, byte_buffer& notification_json);
+
+  void relint_open_documents(byte_buffer& notification_json);
 
   configuration* get_config(const std::string& path);
 
