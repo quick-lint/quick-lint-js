@@ -15,7 +15,7 @@ Then, run the following command:
 
 Finally, run the following command to create `quick-lint-js-0.2.0.vsix`:
 
-    $ npx vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
+    $ ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
 ## Testing
 

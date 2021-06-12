@@ -39,6 +39,7 @@
     "colors": "1.4.0",
     "prettier": "^2.3.0",
     "tape": "5.2.2",
+    "vsce": "^1.93.0",
     "vscode-test": "1.5.2"
   },
   "dependencies": {
