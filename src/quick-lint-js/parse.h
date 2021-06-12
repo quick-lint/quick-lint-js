@@ -2516,7 +2516,20 @@ class parser {
 
     if (this->peek().type == token_type::kw_else) {
       this->skip();
+
+      const token token_after_else = this->peek();
       parse_and_visit_body();
+
+      if (token_after_else.type == token_type::semicolon &&
+          this->peek().type == token_type::left_curly) {
+        if (this->peek().has_leading_newline) {
+          this->error_reporter_->report(
+              error_else_has_empty_body{.where = this->peek().span()});
+        } else {
+          this->error_reporter_->report(error_unexpected_semicolon_after_else{
+              .semicolon = token_after_else.span()});
+        }
+      }
     }
   }
 
