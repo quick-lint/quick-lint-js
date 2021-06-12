@@ -56,6 +56,11 @@
         padding-right: 1em;
       }
 
+      /* Make the table consume less horizontal space. */
+      .feature-comparison .editors tr:not(.header) th:first-child {
+        font-size: 75%;
+      }
+
       .install-options {
         display: flex;
         flex-wrap: wrap;
@@ -199,7 +204,7 @@
       <figure class="comparison feature-comparison">
         <table>
           <thead>
-            <tr>
+            <tr class="header">
               <th colspan="2">feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
@@ -390,7 +395,7 @@
           </tbody>
 
           <tbody class="editors">
-            <tr>
+            <tr class="header">
               <th colspan="2">feature</th>
               <th class="quick-lint-js">quick-lint-js</th>
               <th><a href="https://eslint.org/">ESLint</a></th>
