@@ -99,6 +99,8 @@ class parser {
 
   class function_guard;
 
+  class depth_guard;
+
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
       : lexer_(input, error_reporter), error_reporter_(error_reporter) {}
@@ -124,17 +126,17 @@ class parser {
   //
   // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
   template <QLJS_PARSE_VISITOR Visitor>
-  bool parse_and_visit_module_catching_unimplemented(Visitor &v) {
-    this->have_unimplemented_token_jmp_buf_ = true;
+  bool parse_and_visit_module_catching_fatal_parse_errors(Visitor &v) {
+    this->have_fatal_parse_error_jmp_buf_ = true;
     bool ok;
-    if (setjmp(this->unimplemented_token_jmp_buf_) == 0) {
+    if (setjmp(this->fatal_parse_error_jmp_buf_) == 0) {
       this->parse_and_visit_module(v);
       ok = true;
     } else {
       // QLJS_PARSER_UNIMPLEMENTED was called.
       ok = false;
     }
-    this->have_unimplemented_token_jmp_buf_ = false;
+    this->have_fatal_parse_error_jmp_buf_ = false;
     return ok;
   }
 #endif
@@ -175,6 +177,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
                                                bool allow_declarations = true) {
+    depth_guard d_guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
         this->error_reporter_->report(error_unmatched_parenthesis{
@@ -3348,6 +3351,8 @@ class parser {
       const char *qljs_file_name, int qljs_line,
       const char *qljs_function_name);
 
+  [[noreturn]] void crash_on_depth_limit_exceeded();
+
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args) {
     return this->expressions_.make_expression<Expression>(
@@ -3392,6 +3397,29 @@ class parser {
     bool old_value_;
   };
 
+  class depth_guard {
+   public:
+    explicit depth_guard(parser *p) noexcept
+        : parser_(p), old_depth_(p->depth_) {
+      if (p->depth_ + 1 > p->stack_limit) {
+        p->crash_on_depth_limit_exceeded();
+      }
+      p->depth_++;
+    }
+
+    depth_guard(const depth_guard &) = delete;
+    depth_guard &operator=(const depth_guard &) = delete;
+
+    ~depth_guard() noexcept {
+      QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
+      this->parser_->depth_ = this->old_depth_;
+    }
+
+   private:
+    parser *parser_;
+    int old_depth_;
+  };
+
   quick_lint_js::lexer lexer_;
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
@@ -3410,14 +3438,17 @@ class parser {
   bool in_switch_statement_ = false;
 
 #if QLJS_HAVE_SETJMP
-  bool have_unimplemented_token_jmp_buf_ = false;
-  std::jmp_buf unimplemented_token_jmp_buf_;
+  bool have_fatal_parse_error_jmp_buf_ = false;
+  std::jmp_buf fatal_parse_error_jmp_buf_;
 #endif
+
+  int depth_ = 0;
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
 
  public:
+  static constexpr const int stack_limit = 150;
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
 };
