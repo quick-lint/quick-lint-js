@@ -596,7 +596,9 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 
   {
-    padded_string code(u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3) + u8")");
+    padded_string code(
+        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3) +
+        u8")");
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
@@ -641,7 +643,9 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   }
 
   {
-    padded_string code(u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) + u8")");
+    padded_string code(
+        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) +
+        u8")");
     spy_visitor v;
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
