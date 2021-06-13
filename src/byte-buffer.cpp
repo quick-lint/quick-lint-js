@@ -249,6 +249,21 @@ int byte_buffer_iovec::iovec_count() const noexcept {
   return narrow_cast<int>(this->chunks_.end() - this->first_chunk_);
 }
 
+void byte_buffer_iovec::append(byte_buffer&& other) {
+  bool was_empty = this->chunks_.empty();
+  std::ptrdiff_t first_chunk_index = this->first_chunk_ - this->chunks_.begin();
+
+  other.update_current_chunk_size();
+  this->chunks_.insert(this->chunks_.end(), other.chunks_.begin(),
+                       other.chunks_.end());
+  other.chunks_.clear();
+
+  if (was_empty && !this->chunks_.empty()) {
+    this->first_chunk_allocation_ = this->chunks_.front();
+  }
+  this->first_chunk_ = this->chunks_.begin() + first_chunk_index;
+}
+
 void byte_buffer_iovec::remove_front(size_type size) {
   while (size != 0) {
     QLJS_ASSERT(this->first_chunk_ != this->chunks_.end());

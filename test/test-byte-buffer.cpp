@@ -231,6 +231,68 @@ TEST(test_byte_buffer, clear_then_append) {
   EXPECT_EQ(data, u8"world");
 }
 
+TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
+  // Create three chunks for bb_1.
+  byte_buffer bb_1;
+  string8 bb_1_expected;
+  bb_1.append_copy(u8"hello");
+  bb_1_expected.append(u8"hello");
+  bb_1.append_copy(string8(byte_buffer::default_chunk_size * 2, '-'));
+  bb_1_expected.append(string8(byte_buffer::default_chunk_size * 2, '-'));
+  bb_1.append_copy(u8"world");
+  bb_1_expected.append(u8"world");
+
+  // Create three chunks for bb_2.
+  byte_buffer bb_2;
+  string8 bb_2_expected;
+  bb_2.append_copy(u8"HELLO");
+  bb_2_expected.append(u8"HELLO");
+  bb_2.append_copy(string8(byte_buffer::default_chunk_size * 2, '_'));
+  bb_2_expected.append(string8(byte_buffer::default_chunk_size * 2, '_'));
+  bb_2.append_copy(u8"WORLD");
+  bb_2_expected.append(u8"WORLD");
+
+  byte_buffer_iovec iov = std::move(bb_1).to_iovec();
+  string8 iov_expected = bb_1_expected;
+  iov.append(std::move(bb_2));
+  iov_expected.append(bb_2_expected);
+
+  EXPECT_EQ(get_data(iov), iov_expected);
+}
+
+TEST(test_byte_buffer, append_empty_byte_buffer_to_byte_buffer_iovec) {
+  byte_buffer bb_1;
+  bb_1.append_copy(u8"hello");
+  byte_buffer_iovec iov = std::move(bb_1).to_iovec();
+
+  byte_buffer bb_2;
+  iov.append(std::move(bb_2));
+
+  EXPECT_EQ(get_data(iov), u8"hello");
+}
+
+TEST(test_byte_buffer,
+     append_byte_buffer_to_indirectly_empty_byte_buffer_iovec) {
+  byte_buffer bb_1;
+  byte_buffer_iovec iov = std::move(bb_1).to_iovec();
+
+  byte_buffer bb_2;
+  bb_2.append_copy(u8"hello");
+  iov.append(std::move(bb_2));
+
+  EXPECT_EQ(get_data(iov), u8"hello");
+}
+
+TEST(test_byte_buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
+  byte_buffer_iovec iov(std::vector<byte_buffer_chunk>{});
+
+  byte_buffer bb;
+  bb.append_copy(u8"hello");
+  iov.append(std::move(bb));
+
+  EXPECT_EQ(get_data(iov), u8"hello");
+}
+
 TEST(test_byte_buffer, iovec) {
   byte_buffer bb;
 

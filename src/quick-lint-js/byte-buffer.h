@@ -122,6 +122,10 @@ class byte_buffer_iovec {
   const byte_buffer_chunk* iovec() const noexcept;
   int iovec_count() const noexcept;
 
+  // After calling this->append(bb), do not call any other member function on
+  // the given byte_buffer (aside from the destructor).
+  void append(byte_buffer&&);
+
   // Remove count bytes from the beginning of this byte_buffer_iovec.
   void remove_front(size_type count);
 
