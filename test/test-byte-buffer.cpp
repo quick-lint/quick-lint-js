@@ -18,6 +18,7 @@ namespace quick_lint_js {
 namespace {
 string8 get_data(const byte_buffer_iovec&);
 byte_buffer_chunk make_chunk(string8_view);
+void assert_no_empty_iovec(const byte_buffer_iovec&);
 
 TEST(test_byte_buffer, empty_byte_buffer_is_empty) {
   byte_buffer bb;
@@ -315,6 +316,48 @@ TEST(test_byte_buffer, iovec) {
   EXPECT_EQ(get_data(iovec), expected_data);
 }
 
+TEST(test_byte_buffer, empty_byte_buffer_to_iovec_has_no_chunks) {
+  byte_buffer bb;
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  EXPECT_EQ(iovec.iovec_count(), 0);
+}
+
+TEST(test_byte_buffer,
+     byte_buffer_with_huge_append_to_iovec_has_no_empty_chunks) {
+  // byte_buffer used to have a bug. If the first reservation was larger than
+  // default_chunk_size, two chunks were created: an empty first chunk, and a
+  // large second chunk. The first (empty) chunk stuck around for the conversion
+  // to byte_buffer_iovec.
+  byte_buffer bb;
+  bb.append_copy(string8(byte_buffer::default_chunk_size * 3, 'x'));
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  assert_no_empty_iovec(iovec);
+}
+
+TEST(test_byte_buffer,
+     byte_buffer_with_undone_append_to_iovec_has_no_empty_chunks) {
+  // byte_buffer used to have a bug. If a reservation was cancelled, an empty
+  // chunk was created. The empty chunk stuck around for the conversion to
+  // byte_buffer_iovec.
+  byte_buffer bb;
+  bb.append(1, []([[maybe_unused]] void* data) -> std::size_t { return 0; });
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  assert_no_empty_iovec(iovec);
+}
+
+TEST(test_byte_buffer,
+     byte_buffer_with_large_undone_append_to_iovec_has_no_empty_chunks) {
+  // byte_buffer used to have a bug. If the first reservation was larger than
+  // default_chunk_size, two chunks were created: an empty first chunk, and a
+  // large second chunk. The first (empty) chunk stuck around for the conversion
+  // to byte_buffer_iovec, and the second (also empty) chunk also stuck around.
+  byte_buffer bb;
+  bb.append(byte_buffer::default_chunk_size * 3,
+            []([[maybe_unused]] void* data) -> std::size_t { return 0; });
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  assert_no_empty_iovec(iovec);
+}
+
 TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
   std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
@@ -419,6 +462,16 @@ byte_buffer_chunk make_chunk(string8_view data) {
   return byte_buffer_chunk{.data = reinterpret_cast<std::byte*>(chunk_data),
                            .size = data.size()};
 #endif
+}
+
+void assert_no_empty_iovec(const byte_buffer_iovec& iovec) {
+  for (int i = 0; i < iovec.iovec_count(); ++i) {
+#if QLJS_HAVE_WRITEV
+    EXPECT_NE(iovec.iovec()[i].iov_len, 0);
+#else
+    EXPECT_NE(iovec.iovec()[i].size, 0);
+#endif
+  }
 }
 }
 }

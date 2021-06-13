@@ -168,18 +168,29 @@ void byte_buffer::copy_to(void* raw_out) const {
 
 byte_buffer_iovec byte_buffer::to_iovec() && {
   this->update_current_chunk_size();
+  this->remove_current_chunk_if_empty();
   return byte_buffer_iovec(std::move(this->chunks_));
 }
 
 void byte_buffer::reserve(size_type extra_byte_count) {
   if (this->bytes_remaining_in_current_chunk() < extra_byte_count) {
     this->update_current_chunk_size();
+    this->remove_current_chunk_if_empty();
     this->add_new_chunk(std::max(default_chunk_size, extra_byte_count));
   }
 }
 
 void byte_buffer::update_current_chunk_size() noexcept {
+  QLJS_ASSERT(!this->chunks_.empty());
   chunk_size(this->chunks_.back()) = this->bytes_used_in_current_chunk();
+}
+
+void byte_buffer::remove_current_chunk_if_empty() {
+  QLJS_ASSERT(!this->chunks_.empty());
+  if (chunk_size(this->chunks_.back()) == 0) {
+    this->delete_chunk(std::move(this->chunks_.back()));
+    this->chunks_.pop_back();
+  }
 }
 
 byte_buffer::size_type byte_buffer::bytes_remaining_in_current_chunk() const
@@ -220,6 +231,10 @@ byte_buffer_iovec::byte_buffer_iovec(std::vector<byte_buffer_chunk>&& chunks)
     this->first_chunk_allocation_ = make_chunk(nullptr, 0);
   } else {
     this->first_chunk_allocation_ = this->chunks_.front();
+  }
+
+  for (const byte_buffer_chunk& c : this->chunks_) {
+    QLJS_ASSERT(chunk_size(c) > 0);
   }
 }
 

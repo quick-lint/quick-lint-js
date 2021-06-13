@@ -86,6 +86,7 @@ class byte_buffer {
  private:
   void reserve(size_type extra_byte_count);
   void update_current_chunk_size() noexcept;
+  void remove_current_chunk_if_empty();
 
   size_type bytes_remaining_in_current_chunk() const noexcept;
   size_type bytes_used_in_current_chunk() const noexcept;
