@@ -294,6 +294,21 @@ TEST(test_byte_buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
   EXPECT_EQ(get_data(iov), u8"hello");
 }
 
+TEST(test_byte_buffer, append_byte_buffer_to_exhausted_byte_buffer_iovec) {
+  std::vector<byte_buffer_chunk> chunks = {
+      make_chunk(u8"hello"),
+      make_chunk(u8"world"),
+  };
+  byte_buffer_iovec iov(std::move(chunks));
+  iov.remove_front(strlen(u8"helloworld"));
+
+  byte_buffer bb;
+  bb.append_copy(u8"hiya");
+  iov.append(std::move(bb));
+
+  EXPECT_EQ(get_data(iov), u8"hiya");
+}
+
 TEST(test_byte_buffer, iovec) {
   byte_buffer bb;
 

@@ -265,7 +265,11 @@ int byte_buffer_iovec::iovec_count() const noexcept {
 }
 
 void byte_buffer_iovec::append(byte_buffer&& other) {
-  bool was_empty = this->chunks_.empty();
+  if (other.empty()) {
+    return;
+  }
+
+  bool was_empty = this->first_chunk_ == this->chunks_.end();
   std::ptrdiff_t first_chunk_index = this->first_chunk_ - this->chunks_.begin();
 
   other.update_current_chunk_size();
@@ -273,8 +277,8 @@ void byte_buffer_iovec::append(byte_buffer&& other) {
                        other.chunks_.end());
   other.chunks_.clear();
 
-  if (was_empty && !this->chunks_.empty()) {
-    this->first_chunk_allocation_ = this->chunks_.front();
+  if (was_empty) {
+    this->first_chunk_allocation_ = this->chunks_[first_chunk_index];
   }
   this->first_chunk_ = this->chunks_.begin() + first_chunk_index;
 }
