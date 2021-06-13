@@ -19,6 +19,15 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_WRITEV
+using byte_buffer_chunk = ::iovec;
+#else
+struct byte_buffer_chunk {
+  std::byte* data;
+  std::size_t size;
+};
+#endif
+
 class byte_buffer_iovec;
 
 // A byte_buffer is a container of char8 which allows efficient appending.
@@ -70,22 +79,11 @@ class byte_buffer {
 
   void copy_to(void* raw_out) const;
 
-#if QLJS_HAVE_WRITEV
   // After calling this->to_iovec(), do not call any other member function on
   // this byte_buffer (aside from the destructor).
   byte_buffer_iovec to_iovec() &&;
-#endif
 
  private:
-#if QLJS_HAVE_WRITEV
-  using chunk = ::iovec;
-#else
-  struct chunk {
-    std::byte* data;
-    size_type size;
-  };
-#endif
-
   void reserve(size_type extra_byte_count);
   void update_current_chunk_size() noexcept;
 
@@ -94,49 +92,51 @@ class byte_buffer {
 
   void add_new_chunk(size_type chunk_size);
 
-  static chunk make_chunk();
-  static chunk make_chunk(size_type size);
-  static void delete_chunk(chunk&&);
+  static byte_buffer_chunk make_chunk();
+  static byte_buffer_chunk make_chunk(size_type size);
+  static void delete_chunk(byte_buffer_chunk&&);
 
-  static const std::byte* chunk_begin(const chunk&) noexcept;
-  static std::byte* chunk_begin(chunk&) noexcept;
-  static const std::byte* chunk_end(const chunk&) noexcept;
-  static std::byte* chunk_end(chunk&) noexcept;
-  static size_type chunk_size(const chunk&) noexcept;
-  static size_type& chunk_size(chunk&) noexcept;
+  static const std::byte* chunk_begin(const byte_buffer_chunk&) noexcept;
+  static std::byte* chunk_begin(byte_buffer_chunk&) noexcept;
+  static const std::byte* chunk_end(const byte_buffer_chunk&) noexcept;
+  static std::byte* chunk_end(byte_buffer_chunk&) noexcept;
+  static size_type chunk_size(const byte_buffer_chunk&) noexcept;
+  static size_type& chunk_size(byte_buffer_chunk&) noexcept;
 
-  std::vector<chunk> chunks_;
+  std::vector<byte_buffer_chunk> chunks_;
   std::byte* cursor_;
   std::byte* current_chunk_end_;
 
   friend class byte_buffer_iovec;
 };
 
-#if QLJS_HAVE_WRITEV
 // A byte_buffer_iovec is a container designed for the POSIX writev(2) syscall.
 //
-// byte_buffer_iovec provides access to a list of iovec structures, and allows
-// efficiently removing bytes from the beginning of the container.
+// byte_buffer_iovec provides access to a list of iovec structures.
+// (byte_buffer_chunk is an alias for iovec from <sys/uio.h> on supported
+// platforms).
+//
+// byte_buffer_iovec allows efficiently removing bytes from the beginning of the
+// container.
 class byte_buffer_iovec {
  public:
   using size_type = byte_buffer::size_type;
 
-  explicit byte_buffer_iovec(std::vector<::iovec>&&);
+  explicit byte_buffer_iovec(std::vector<byte_buffer_chunk>&&);
 
   ~byte_buffer_iovec();
 
-  const ::iovec* iovec() const noexcept;
+  const byte_buffer_chunk* iovec() const noexcept;
   int iovec_count() const noexcept;
 
   // Remove count bytes from the beginning of this byte_buffer_iovec.
   void remove_front(size_type count);
 
  private:
-  std::vector<::iovec> chunks_;
-  std::vector<::iovec>::iterator first_chunk_;
-  ::iovec first_chunk_allocation_;
+  std::vector<byte_buffer_chunk> chunks_;
+  std::vector<byte_buffer_chunk>::iterator first_chunk_;
+  byte_buffer_chunk first_chunk_allocation_;
 };
-#endif
 }
 
 #endif

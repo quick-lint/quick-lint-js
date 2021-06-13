@@ -16,10 +16,8 @@
 
 namespace quick_lint_js {
 namespace {
-#if QLJS_HAVE_WRITEV
 string8 get_data(const byte_buffer_iovec&);
-::iovec make_chunk(string8_view);
-#endif
+byte_buffer_chunk make_chunk(string8_view);
 
 TEST(test_byte_buffer, empty_byte_buffer_is_empty) {
   byte_buffer bb;
@@ -233,7 +231,6 @@ TEST(test_byte_buffer, clear_then_append) {
   EXPECT_EQ(data, u8"world");
 }
 
-#if QLJS_HAVE_WRITEV
 TEST(test_byte_buffer, iovec) {
   byte_buffer bb;
 
@@ -255,11 +252,9 @@ TEST(test_byte_buffer, iovec) {
   byte_buffer_iovec iovec = std::move(bb).to_iovec();
   EXPECT_EQ(get_data(iovec), expected_data);
 }
-#endif
 
-#if QLJS_HAVE_WRITEV
 TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -270,7 +265,7 @@ TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_front_entire_multiple_chunks) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8"beautiful"),
       make_chunk(u8"world"),
@@ -281,7 +276,7 @@ TEST(test_byte_buffer_iovec, remove_front_entire_multiple_chunks) {
 }
 
 TEST(test_byte_buffer_iovec, remove_front_all_chunks) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -292,7 +287,7 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks) {
 }
 
 TEST(test_byte_buffer_iovec, remove_part_of_first_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -303,7 +298,7 @@ TEST(test_byte_buffer_iovec, remove_part_of_first_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_parts_of_first_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -316,7 +311,7 @@ TEST(test_byte_buffer_iovec, remove_parts_of_first_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_first_chunk_and_part_of_second_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8"beautiful"),
       make_chunk(u8"world"),
@@ -327,7 +322,7 @@ TEST(test_byte_buffer_iovec, remove_first_chunk_and_part_of_second_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8"beautiful"),
       make_chunk(u8"world"),
@@ -339,24 +334,30 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
   }
   EXPECT_EQ(get_data(bb), u8"");
 }
-#endif
 
-#if QLJS_HAVE_WRITEV
 string8 get_data(const byte_buffer_iovec& bb) {
   string8 data;
   for (int i = 0; i < bb.iovec_count(); ++i) {
-    const ::iovec& chunk = bb.iovec()[i];
+    const byte_buffer_chunk& chunk = bb.iovec()[i];
+#if QLJS_HAVE_WRITEV
     data.append(reinterpret_cast<const char8*>(chunk.iov_base), chunk.iov_len);
+#else
+    data.append(reinterpret_cast<const char8*>(chunk.data), chunk.size);
+#endif
   }
   return data;
 }
 
-::iovec make_chunk(string8_view data) {
+byte_buffer_chunk make_chunk(string8_view data) {
   char8* chunk_data = new char8[data.size()];
   std::copy_n(data.data(), data.size(), chunk_data);
-  return ::iovec{.iov_base = chunk_data, .iov_len = data.size()};
-}
+#if QLJS_HAVE_WRITEV
+  return byte_buffer_chunk{.iov_base = chunk_data, .iov_len = data.size()};
+#else
+  return byte_buffer_chunk{.data = reinterpret_cast<std::byte*>(chunk_data),
+                           .size = data.size()};
 #endif
+}
 }
 }
 
