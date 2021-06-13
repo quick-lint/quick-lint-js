@@ -22,10 +22,7 @@ class lsp_pipe_writer {
   void send_message(byte_buffer&&);
 
  private:
-  void write(string8_view);
-#if QLJS_HAVE_WRITEV
   void write(byte_buffer_iovec&&);
-#endif
 
   platform_file_ref pipe_;
 };
