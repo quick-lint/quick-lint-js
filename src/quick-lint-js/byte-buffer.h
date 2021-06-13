@@ -21,6 +21,10 @@
 namespace quick_lint_js {
 class byte_buffer_iovec;
 
+// A byte_buffer is a container of char8 which allows efficient appending.
+//
+// A byte_buffer can be converted into a byte_buffer_iovec for use with the
+// POSIX writev(2) syscall.
 class byte_buffer {
  public:
   using size_type = std::size_t;
@@ -67,6 +71,8 @@ class byte_buffer {
   void copy_to(void* raw_out) const;
 
 #if QLJS_HAVE_WRITEV
+  // After calling this->to_iovec(), do not call any other member function on
+  // this byte_buffer (aside from the destructor).
   byte_buffer_iovec to_iovec() &&;
 #endif
 
@@ -107,6 +113,10 @@ class byte_buffer {
 };
 
 #if QLJS_HAVE_WRITEV
+// A byte_buffer_iovec is a container designed for the POSIX writev(2) syscall.
+//
+// byte_buffer_iovec provides access to a list of iovec structures, and allows
+// efficiently removing bytes from the beginning of the container.
 class byte_buffer_iovec {
  public:
   using size_type = byte_buffer::size_type;
