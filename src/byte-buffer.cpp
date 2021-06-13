@@ -226,7 +226,7 @@ void byte_buffer::delete_chunk(byte_buffer_chunk&& c) {
 }
 
 byte_buffer_iovec::byte_buffer_iovec(std::vector<byte_buffer_chunk>&& chunks)
-    : chunks_(std::move(chunks)), first_chunk_(this->chunks_.begin()) {
+    : chunks_(std::move(chunks)), first_chunk_index_(0) {
   if (this->chunks_.empty()) {
     this->first_chunk_allocation_ = make_chunk(nullptr, 0);
   } else {
@@ -238,30 +238,26 @@ byte_buffer_iovec::byte_buffer_iovec(std::vector<byte_buffer_chunk>&& chunks)
   }
 }
 
+byte_buffer_iovec::byte_buffer_iovec(byte_buffer_iovec&&) = default;
+
 byte_buffer_iovec::~byte_buffer_iovec() {
-  if (this->first_chunk_ != this->chunks_.end()) {
+  if (this->first_chunk_index_ != this->chunks_.size()) {
     // The first chunk might have been split. Deallocate the original
     // allocation, not the advanced pointer.
     byte_buffer::delete_chunk(std::move(this->first_chunk_allocation_));
-    for (auto it = std::next(this->first_chunk_); it != this->chunks_.end();
-         ++it) {
-      byte_buffer::delete_chunk(std::move(*it));
+    for (std::size_t i = this->first_chunk_index_ + 1; i < this->chunks_.size();
+         ++i) {
+      byte_buffer::delete_chunk(std::move(this->chunks_[i]));
     }
   }
 }
 
 const byte_buffer_chunk* byte_buffer_iovec::iovec() const noexcept {
-  if (this->first_chunk_ == this->chunks_.end()) {
-    // Returned pointer doesn't matter (because iovec_count() == 0), but we
-    // can't dereference this->first_chunk_.
-    return nullptr;
-  } else {
-    return &*this->first_chunk_;
-  }
+  return this->chunks_.data() + this->first_chunk_index_;
 }
 
 int byte_buffer_iovec::iovec_count() const noexcept {
-  return narrow_cast<int>(this->chunks_.end() - this->first_chunk_);
+  return narrow_cast<int>(this->chunks_.size() - this->first_chunk_index_);
 }
 
 void byte_buffer_iovec::append(byte_buffer&& other) {
@@ -269,8 +265,7 @@ void byte_buffer_iovec::append(byte_buffer&& other) {
     return;
   }
 
-  bool was_empty = this->first_chunk_ == this->chunks_.end();
-  std::ptrdiff_t first_chunk_index = this->first_chunk_ - this->chunks_.begin();
+  bool was_empty = this->first_chunk_index_ == this->chunks_.size();
 
   other.update_current_chunk_size();
   this->chunks_.insert(this->chunks_.end(), other.chunks_.begin(),
@@ -278,16 +273,16 @@ void byte_buffer_iovec::append(byte_buffer&& other) {
   other.chunks_.clear();
 
   if (was_empty) {
-    this->first_chunk_allocation_ = this->chunks_[first_chunk_index];
+    QLJS_ASSERT(this->first_chunk_index_ < this->chunks_.size());
+    this->first_chunk_allocation_ = this->chunks_[this->first_chunk_index_];
   }
-  this->first_chunk_ = this->chunks_.begin() + first_chunk_index;
 }
 
 void byte_buffer_iovec::remove_front(size_type size) {
   while (size != 0) {
-    QLJS_ASSERT(this->first_chunk_ != this->chunks_.end());
+    QLJS_ASSERT(this->first_chunk_index_ != this->chunks_.size());
 
-    byte_buffer_chunk& c = *this->first_chunk_;
+    byte_buffer_chunk& c = this->chunks_[this->first_chunk_index_];
     size_type c_size = chunk_size(c);
     if (size < c_size) {
       // Split this chunk.
@@ -300,9 +295,9 @@ void byte_buffer_iovec::remove_front(size_type size) {
       // original, unsplit chunk.
       byte_buffer::delete_chunk(std::move(this->first_chunk_allocation_));
       size -= c_size;
-      ++this->first_chunk_;
-      if (this->first_chunk_ != this->chunks_.end()) {
-        this->first_chunk_allocation_ = *this->first_chunk_;
+      ++this->first_chunk_index_;
+      if (this->first_chunk_index_ != this->chunks_.size()) {
+        this->first_chunk_allocation_ = this->chunks_[this->first_chunk_index_];
       }
     }
   }

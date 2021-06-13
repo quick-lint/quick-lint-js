@@ -455,6 +455,18 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
   EXPECT_EQ(get_data(bb), u8"");
 }
 
+TEST(test_byte_buffer_iovec, moving_makes_original_empty) {
+  std::vector<byte_buffer_chunk> chunks = {
+      make_chunk(u8"hello"),
+      make_chunk(u8"beautiful"),
+      make_chunk(u8"world"),
+  };
+  byte_buffer_iovec bb_1(std::move(chunks));
+
+  byte_buffer_iovec bb_2(std::move(bb_1));
+  EXPECT_EQ(bb_1.iovec_count(), 0);
+}
+
 string8 get_data(const byte_buffer_iovec& bb) {
   string8 data;
   for (int i = 0; i < bb.iovec_count(); ++i) {

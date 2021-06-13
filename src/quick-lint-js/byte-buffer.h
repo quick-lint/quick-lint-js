@@ -118,6 +118,9 @@ class byte_buffer_iovec {
 
   explicit byte_buffer_iovec(std::vector<byte_buffer_chunk>&&);
 
+  byte_buffer_iovec(byte_buffer_iovec&&);
+  byte_buffer_iovec& operator=(byte_buffer_iovec&&) = delete;
+
   ~byte_buffer_iovec();
 
   const byte_buffer_chunk* iovec() const noexcept;
@@ -132,7 +135,7 @@ class byte_buffer_iovec {
 
  private:
   std::vector<byte_buffer_chunk> chunks_;
-  std::vector<byte_buffer_chunk>::iterator first_chunk_;
+  std::size_t first_chunk_index_;
   byte_buffer_chunk first_chunk_allocation_;
 };
 }
