@@ -92,8 +92,8 @@ class byte_buffer {
 
   void add_new_chunk(size_type chunk_size);
 
-  static byte_buffer_chunk make_chunk();
-  static byte_buffer_chunk make_chunk(size_type size);
+  static byte_buffer_chunk allocate_chunk();
+  static byte_buffer_chunk allocate_chunk(size_type size);
   static void delete_chunk(byte_buffer_chunk&&);
 
   std::vector<byte_buffer_chunk> chunks_;

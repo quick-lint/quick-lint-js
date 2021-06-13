@@ -94,7 +94,7 @@ void byte_buffer::prepend_copy(string8_view data) {
 
   const std::byte* data_bytes = reinterpret_cast<const std::byte*>(data.data());
 
-  byte_buffer_chunk prefix_chunk = this->make_chunk(data.size());
+  byte_buffer_chunk prefix_chunk = this->allocate_chunk(data.size());
   const std::byte* end =
       std::copy_n(data_bytes, data.size(), chunk_begin(prefix_chunk));
   QLJS_ASSERT(end == chunk_end(prefix_chunk));
@@ -183,16 +183,16 @@ byte_buffer::size_type byte_buffer::bytes_used_in_current_chunk() const
 
 void byte_buffer::add_new_chunk(size_type chunk_size) {
   byte_buffer_chunk& c =
-      this->chunks_.emplace_back(this->make_chunk(chunk_size));
+      this->chunks_.emplace_back(this->allocate_chunk(chunk_size));
   this->cursor_ = chunk_begin(c);
   this->current_chunk_end_ = chunk_end(c);
 }
 
-byte_buffer_chunk byte_buffer::make_chunk() {
-  return make_chunk(default_chunk_size);
+byte_buffer_chunk byte_buffer::allocate_chunk() {
+  return allocate_chunk(default_chunk_size);
 }
 
-byte_buffer_chunk byte_buffer::make_chunk(size_type size) {
+byte_buffer_chunk byte_buffer::allocate_chunk(size_type size) {
   // See corresponding deallocation in delete_chunk.
 #if QLJS_HAVE_WRITEV
   return byte_buffer_chunk{.iov_base = new std::byte[size], .iov_len = size};
@@ -202,7 +202,7 @@ byte_buffer_chunk byte_buffer::make_chunk(size_type size) {
 }
 
 void byte_buffer::delete_chunk(byte_buffer_chunk&& c) {
-  // See corresponding allocation in make_chunk.
+  // See corresponding allocation in allocate_chunk.
   delete[] chunk_begin(c);
 }
 
