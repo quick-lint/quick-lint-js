@@ -58,6 +58,18 @@ const std::byte* chunk_end(const byte_buffer_chunk& c) noexcept {
 std::byte* chunk_end(byte_buffer_chunk& c) noexcept {
   return chunk_begin(c) + chunk_size(c);
 }
+
+byte_buffer_chunk make_chunk(const void* data, byte_buffer::size_type size) {
+#if QLJS_HAVE_WRITEV
+  return byte_buffer_chunk{.iov_base = const_cast<void*>(data),
+                           .iov_len = size};
+#else
+  return byte_buffer_chunk{
+      .data = const_cast<std::byte*>(reinterpret_cast<const std::byte*>(data)),
+      .size = size};
+#endif
+}
+
 }
 
 byte_buffer::byte_buffer() { this->add_new_chunk(this->default_chunk_size); }
@@ -194,11 +206,7 @@ byte_buffer_chunk byte_buffer::allocate_chunk() {
 
 byte_buffer_chunk byte_buffer::allocate_chunk(size_type size) {
   // See corresponding deallocation in delete_chunk.
-#if QLJS_HAVE_WRITEV
-  return byte_buffer_chunk{.iov_base = new std::byte[size], .iov_len = size};
-#else
-  return byte_buffer_chunk{.data = new std::byte[size], .size = size};
-#endif
+  return make_chunk(new std::byte[size], size);
 }
 
 void byte_buffer::delete_chunk(byte_buffer_chunk&& c) {
@@ -209,13 +217,7 @@ void byte_buffer::delete_chunk(byte_buffer_chunk&& c) {
 byte_buffer_iovec::byte_buffer_iovec(std::vector<byte_buffer_chunk>&& chunks)
     : chunks_(std::move(chunks)), first_chunk_(this->chunks_.begin()) {
   if (this->chunks_.empty()) {
-#if QLJS_HAVE_WRITEV
-    this->first_chunk_allocation_ =
-        byte_buffer_chunk{.iov_base = nullptr, .iov_len = 0};
-#else
-    this->first_chunk_allocation_ =
-        byte_buffer_chunk{.data = nullptr, .size = 0};
-#endif
+    this->first_chunk_allocation_ = make_chunk(nullptr, 0);
   } else {
     this->first_chunk_allocation_ = this->chunks_.front();
   }
@@ -255,13 +257,9 @@ void byte_buffer_iovec::remove_front(size_type size) {
     size_type c_size = chunk_size(c);
     if (size < c_size) {
       // Split this chunk.
-      std::byte* new_chunk_begin = chunk_begin(c) + size;
-#if QLJS_HAVE_WRITEV
-      c.iov_base = new_chunk_begin;
-#else
-      c.data = new_chunk_begin;
-#endif
-      chunk_size(c) = c_size - size;
+      c = make_chunk(
+          /*data=*/chunk_begin(c) + size,
+          /*size=*/c_size - size);
       size = 0;
     } else {
       // Delete this entire chunk. It may have been split, so delete the
