@@ -96,13 +96,6 @@ class byte_buffer {
   static byte_buffer_chunk make_chunk(size_type size);
   static void delete_chunk(byte_buffer_chunk&&);
 
-  static const std::byte* chunk_begin(const byte_buffer_chunk&) noexcept;
-  static std::byte* chunk_begin(byte_buffer_chunk&) noexcept;
-  static const std::byte* chunk_end(const byte_buffer_chunk&) noexcept;
-  static std::byte* chunk_end(byte_buffer_chunk&) noexcept;
-  static size_type chunk_size(const byte_buffer_chunk&) noexcept;
-  static size_type& chunk_size(byte_buffer_chunk&) noexcept;
-
   std::vector<byte_buffer_chunk> chunks_;
   std::byte* cursor_;
   std::byte* current_chunk_end_;

@@ -18,6 +18,48 @@
 #endif
 
 namespace quick_lint_js {
+namespace {
+const std::byte* chunk_begin(const byte_buffer_chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return reinterpret_cast<const std::byte*>(c.iov_base);
+#else
+  return c.data;
+#endif
+}
+
+std::byte* chunk_begin(byte_buffer_chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return reinterpret_cast<std::byte*>(c.iov_base);
+#else
+  return c.data;
+#endif
+}
+
+byte_buffer::size_type chunk_size(const byte_buffer_chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return c.iov_len;
+#else
+  return c.size;
+#endif
+}
+
+byte_buffer::size_type& chunk_size(byte_buffer_chunk& c) noexcept {
+#if QLJS_HAVE_WRITEV
+  return c.iov_len;
+#else
+  return c.size;
+#endif
+}
+
+const std::byte* chunk_end(const byte_buffer_chunk& c) noexcept {
+  return chunk_begin(c) + chunk_size(c);
+}
+
+std::byte* chunk_end(byte_buffer_chunk& c) noexcept {
+  return chunk_begin(c) + chunk_size(c);
+}
+}
+
 byte_buffer::byte_buffer() { this->add_new_chunk(this->default_chunk_size); }
 
 byte_buffer::byte_buffer(byte_buffer&&) = default;
@@ -54,8 +96,8 @@ void byte_buffer::prepend_copy(string8_view data) {
 
   byte_buffer_chunk prefix_chunk = this->make_chunk(data.size());
   const std::byte* end =
-      std::copy_n(data_bytes, data.size(), this->chunk_begin(prefix_chunk));
-  QLJS_ASSERT(end == this->chunk_end(prefix_chunk));
+      std::copy_n(data_bytes, data.size(), chunk_begin(prefix_chunk));
+  QLJS_ASSERT(end == chunk_end(prefix_chunk));
 
   this->chunks_.insert(this->chunks_.begin(), std::move(prefix_chunk));
 }
@@ -68,7 +110,7 @@ void byte_buffer::clear() {
   }
   this->chunks_.erase(begin, end);
   QLJS_ASSERT(this->chunks_.size() == 1);
-  this->cursor_ = this->chunk_begin(this->chunks_.back());
+  this->cursor_ = chunk_begin(this->chunks_.back());
 }
 
 byte_buffer::size_type byte_buffer::size() const noexcept {
@@ -76,7 +118,7 @@ byte_buffer::size_type byte_buffer::size() const noexcept {
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
     const byte_buffer_chunk& c = this->chunks_[chunk_index];
-    total_size += this->chunk_size(c);
+    total_size += chunk_size(c);
   }
   total_size += this->bytes_used_in_current_chunk();
   return total_size;
@@ -89,7 +131,7 @@ bool byte_buffer::empty() const noexcept {
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
     const byte_buffer_chunk& c = this->chunks_[chunk_index];
-    if (this->chunk_size(c) > 0) {
+    if (chunk_size(c) > 0) {
       return false;
     }
   }
@@ -101,14 +143,14 @@ void byte_buffer::copy_to(void* raw_out) const {
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();
        ++chunk_index) {
     const byte_buffer_chunk* c = &this->chunks_[chunk_index];
-    const std::byte* chunk_begin = this->chunk_begin(*c);
-    const std::byte* chunk_end;
+    const std::byte* c_begin = chunk_begin(*c);
+    const std::byte* c_end;
     if (chunk_index == this->chunks_.size() - 1) {
-      chunk_end = this->cursor_;
+      c_end = this->cursor_;
     } else {
-      chunk_end = this->chunk_end(*c);
+      c_end = chunk_end(*c);
     }
-    out = std::copy(chunk_begin, chunk_end, out);
+    out = std::copy(c_begin, c_end, out);
   }
 }
 
@@ -125,7 +167,7 @@ void byte_buffer::reserve(size_type extra_byte_count) {
 }
 
 void byte_buffer::update_current_chunk_size() noexcept {
-  this->chunk_size(this->chunks_.back()) = this->bytes_used_in_current_chunk();
+  chunk_size(this->chunks_.back()) = this->bytes_used_in_current_chunk();
 }
 
 byte_buffer::size_type byte_buffer::bytes_remaining_in_current_chunk() const
@@ -136,14 +178,14 @@ byte_buffer::size_type byte_buffer::bytes_remaining_in_current_chunk() const
 byte_buffer::size_type byte_buffer::bytes_used_in_current_chunk() const
     noexcept {
   return narrow_cast<size_type>(this->cursor_ -
-                                this->chunk_begin(this->chunks_.back()));
+                                chunk_begin(this->chunks_.back()));
 }
 
 void byte_buffer::add_new_chunk(size_type chunk_size) {
   byte_buffer_chunk& c =
       this->chunks_.emplace_back(this->make_chunk(chunk_size));
-  this->cursor_ = this->chunk_begin(c);
-  this->current_chunk_end_ = this->chunk_end(c);
+  this->cursor_ = chunk_begin(c);
+  this->current_chunk_end_ = chunk_end(c);
 }
 
 byte_buffer_chunk byte_buffer::make_chunk() {
@@ -162,47 +204,6 @@ byte_buffer_chunk byte_buffer::make_chunk(size_type size) {
 void byte_buffer::delete_chunk(byte_buffer_chunk&& c) {
   // See corresponding allocation in make_chunk.
   delete[] chunk_begin(c);
-}
-
-const std::byte* byte_buffer::chunk_begin(const byte_buffer_chunk& c) noexcept {
-#if QLJS_HAVE_WRITEV
-  return reinterpret_cast<const std::byte*>(c.iov_base);
-#else
-  return c.data;
-#endif
-}
-
-std::byte* byte_buffer::chunk_begin(byte_buffer_chunk& c) noexcept {
-#if QLJS_HAVE_WRITEV
-  return reinterpret_cast<std::byte*>(c.iov_base);
-#else
-  return c.data;
-#endif
-}
-
-const std::byte* byte_buffer::chunk_end(const byte_buffer_chunk& c) noexcept {
-  return chunk_begin(c) + chunk_size(c);
-}
-
-std::byte* byte_buffer::chunk_end(byte_buffer_chunk& c) noexcept {
-  return chunk_begin(c) + chunk_size(c);
-}
-
-byte_buffer::size_type byte_buffer::chunk_size(
-    const byte_buffer_chunk& c) noexcept {
-#if QLJS_HAVE_WRITEV
-  return c.iov_len;
-#else
-  return c.size;
-#endif
-}
-
-byte_buffer::size_type& byte_buffer::chunk_size(byte_buffer_chunk& c) noexcept {
-#if QLJS_HAVE_WRITEV
-  return c.iov_len;
-#else
-  return c.size;
-#endif
 }
 
 byte_buffer_iovec::byte_buffer_iovec(std::vector<byte_buffer_chunk>&& chunks)
@@ -251,22 +252,22 @@ void byte_buffer_iovec::remove_front(size_type size) {
     QLJS_ASSERT(this->first_chunk_ != this->chunks_.end());
 
     byte_buffer_chunk& c = *this->first_chunk_;
-    size_type chunk_size = byte_buffer::chunk_size(c);
-    if (size < chunk_size) {
+    size_type c_size = chunk_size(c);
+    if (size < c_size) {
       // Split this chunk.
-      std::byte* new_chunk_begin = byte_buffer::chunk_begin(c) + size;
+      std::byte* new_chunk_begin = chunk_begin(c) + size;
 #if QLJS_HAVE_WRITEV
       c.iov_base = new_chunk_begin;
 #else
       c.data = new_chunk_begin;
 #endif
-      byte_buffer::chunk_size(c) = chunk_size - size;
+      chunk_size(c) = c_size - size;
       size = 0;
     } else {
       // Delete this entire chunk. It may have been split, so delete the
       // original, unsplit chunk.
       byte_buffer::delete_chunk(std::move(this->first_chunk_allocation_));
-      size -= chunk_size;
+      size -= c_size;
       ++this->first_chunk_;
       if (this->first_chunk_ != this->chunks_.end()) {
         this->first_chunk_allocation_ = *this->first_chunk_;
