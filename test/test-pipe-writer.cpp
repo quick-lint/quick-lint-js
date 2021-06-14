@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <array>
 #include <condition_variable>
 #include <cstddef>
 #include <cstring>
@@ -75,9 +76,23 @@ class pipe_reader_thread {
  public:
   void start(platform_file_ref pipe) {
     this->receiving_thread_ =
-        std::async(std::launch::async, [this, pipe]() -> void {
-          pipe_reader<message_handler> reader(pipe, this);
-          reader.run();
+        std::async(std::launch::async, [this, pipe]() mutable -> void {
+          for (;;) {
+            std::array<char8, (1 << 16)> buffer;
+            file_read_result read_result =
+                pipe.read(buffer.data(), buffer.size());
+            if (read_result.at_end_of_file) {
+              return;
+            } else if (read_result.error_message.has_value()) {
+              QLJS_UNIMPLEMENTED();
+            } else {
+              std::unique_lock<std::mutex> lock(this->mutex_);
+              this->received_data.append(string8_view(
+                  buffer.data(),
+                  narrow_cast<std::size_t>(read_result.bytes_read)));
+              this->data_received_.notify_one();
+            }
+          }
         });
   }
 
@@ -93,20 +108,6 @@ class pipe_reader_thread {
   string8 received_data;
 
  private:
-  class message_handler {
-   public:
-    explicit message_handler(pipe_reader_thread* reader) : reader_(reader) {}
-
-    void append(string8_view data) {
-      std::unique_lock<std::mutex> lock(this->reader_->mutex_);
-      this->reader_->received_data.append(data);
-      this->reader_->data_received_.notify_one();
-    }
-
-   private:
-    pipe_reader_thread* reader_;
-  };
-
   std::mutex mutex_;
   std::condition_variable data_received_;
   std::future<void> receiving_thread_;
