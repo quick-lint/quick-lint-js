@@ -62,6 +62,7 @@ quick_lint_js_add_library(
   options.cpp
   padded-string.cpp
   parse.cpp
+  pipe-writer.cpp
   quick-lint-js/assert.h
   quick-lint-js/bit.h
   quick-lint-js/buffering-error-reporter.h
@@ -113,6 +114,7 @@ quick_lint_js_add_library(
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-reader.h
+  quick-lint-js/pipe-writer.h
   quick-lint-js/simd.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
