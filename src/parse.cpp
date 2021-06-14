@@ -724,6 +724,30 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
     }
   }();
 
+  if (this->peek().type == token_type::left_paren) {
+    source_code_span operator_span = await_token.span();
+    buffering_error_reporter temp_error_reporter;
+    error_reporter* old_error_reporter =
+        std::exchange(this->error_reporter_, &temp_error_reporter);
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+
+    // Try to parse leading ( as arrow function.
+    expression* ast = this->parse_expression(prec);
+
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    this->error_reporter_ = old_error_reporter;
+
+    bool is_arrow_kind =
+        (ast->kind() == expression_kind::arrow_function_with_statements) ||
+        (ast->kind() == expression_kind::arrow_function_with_expression);
+
+    if (is_arrow_kind) {
+      this->error_reporter_->report(error_await_creating_arrow_function{
+          .await_operator = operator_span,
+      });
+    }
+  }
+
   if (is_identifier) {
     return this->make_expression<expression::variable>(
         await_token.identifier_name(), await_token.type);
@@ -736,11 +760,13 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
     }
 
     expression* child = this->parse_expression(prec);
+
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
     }
+
     return this->make_expression<expression::await>(child, operator_span);
   }
 }
