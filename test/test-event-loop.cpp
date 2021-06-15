@@ -1,8 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <condition_variable>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <mutex>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/pipe.h>
@@ -21,17 +23,39 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 
   platform_file_ref get_readable_pipe() { return this->pipe_; }
 
-  void append(string8_view data) { this->parser_.append(data); }
+  void append(string8_view data) {
+    std::unique_lock lock(this->mutex_);
+    this->read_data_.append(data);
+    this->new_data_.notify_all();
+  }
 
+  string8 get_read_data() {
+    std::unique_lock lock(this->mutex_);
+    return this->read_data_;
+  }
+
+  template <class Func>
+  void wait_until_data(Func &&predicate) {
+    std::unique_lock lock(this->mutex_);
+    this->new_data_.wait(lock, [this, &predicate]() -> bool {
+      return predicate(this->read_data_);
+    });
+  }
+
+ private:
   platform_file_ref pipe_;
-  spy_lsp_message_parser parser_;
+
+  std::mutex mutex_;
+  std::condition_variable new_data_;
+
+  // Protected by mutex_:
+  string8 read_data_;
 };
 
 class test_event_loop : public ::testing::Test {
  public:
   pipe_fds pipe = make_pipe();
   spy_event_loop loop{this->pipe.reader.ref()};
-  spy_lsp_message_parser &parser = this->loop.parser_;
 };
 
 TEST_F(test_event_loop, stops_on_eof) {
@@ -42,29 +66,23 @@ TEST_F(test_event_loop, stops_on_eof) {
 }
 
 TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
-  write_full_message(this->pipe.writer.ref(), u8"Content-Length: 2\r\n\r\nHi");
+  write_full_message(this->pipe.writer.ref(), u8"Hi");
   this->pipe.writer.close();
 
   this->loop.run();
 
-  EXPECT_THAT(this->parser.messages(), ElementsAre(u8"Hi"));
+  EXPECT_EQ(this->loop.get_read_data(), u8"Hi");
 }
 
 TEST_F(test_event_loop, reads_many_messages) {
   std::thread writer_thread([this]() {
-    write_full_message(this->pipe.writer.ref(),
-                       u8"Content-Length: 5\r\n\r\nfirst");
-    parser.wait_until_messages(
-        [](const std::vector<string8> &messages) -> bool {
-          return messages.size() >= 1;
-        });
+    write_full_message(this->pipe.writer.ref(), u8"first");
+    this->loop.wait_until_data(
+        [](const string8 &data) -> bool { return data == u8"first"; });
 
-    write_full_message(this->pipe.writer.ref(),
-                       u8"Content-Length: 6\r\n\r\nsecond");
-    parser.wait_until_messages(
-        [](const std::vector<string8> &messages) -> bool {
-          return messages.size() >= 2;
-        });
+    write_full_message(this->pipe.writer.ref(), u8"SECOND");
+    this->loop.wait_until_data(
+        [](const string8 &data) -> bool { return data == u8"firstSECOND"; });
 
     this->pipe.writer.close();
   });
@@ -72,22 +90,18 @@ TEST_F(test_event_loop, reads_many_messages) {
   this->loop.run();
 
   writer_thread.join();
-  EXPECT_THAT(this->parser.messages(), ElementsAre(u8"first", u8"second"));
+  EXPECT_EQ(this->loop.get_read_data(), u8"firstSECOND");
 }
 
 TEST_F(test_event_loop,
        reads_data_in_pipe_buffer_as_it_arrives_before_writer_close) {
   std::thread writer_thread([this]() {
-    EXPECT_THAT(this->parser.messages(), IsEmpty());
+    EXPECT_EQ(this->loop.get_read_data(), u8"");
 
-    write_full_message(this->pipe.writer.ref(),
-                       u8"Content-Length: 5\r\n\r\nfirst");
+    write_full_message(this->pipe.writer.ref(), u8"first");
 
-    parser.wait_until_messages(
-        [](const std::vector<string8> &messages) -> bool {
-          return !messages.empty();
-        });
-    EXPECT_THAT(this->parser.messages(), ElementsAre(u8"first"));
+    this->loop.wait_until_data(
+        [](const string8 &data) -> bool { return data == u8"first"; });
 
     this->pipe.writer.close();
   });
