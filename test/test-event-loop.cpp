@@ -93,24 +93,6 @@ TEST_F(test_event_loop, reads_many_messages) {
   EXPECT_EQ(this->loop.get_read_data(), u8"firstSECOND");
 }
 
-TEST_F(test_event_loop,
-       reads_data_in_pipe_buffer_as_it_arrives_before_writer_close) {
-  std::thread writer_thread([this]() {
-    EXPECT_EQ(this->loop.get_read_data(), u8"");
-
-    write_full_message(this->pipe.writer.ref(), u8"first");
-
-    this->loop.wait_until_data(
-        [](const string8 &data) -> bool { return data == u8"first"; });
-
-    this->pipe.writer.close();
-  });
-
-  this->loop.run();
-
-  writer_thread.join();
-}
-
 void write_full_message(platform_file_ref file, string8_view message) {
   std::optional<int> bytes_written =
       file.write(message.data(), narrow_cast<int>(message.size()));
