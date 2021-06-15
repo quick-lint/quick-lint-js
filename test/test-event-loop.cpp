@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/pipe-reader.h>
+#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/spy-lsp-message-parser.h>
 #include <thread>
@@ -16,30 +16,41 @@ namespace quick_lint_js {
 namespace {
 void write_full_message(platform_file_ref, string8_view);
 
-class test_lsp_pipe_reader : public ::testing::Test {
- public:
-  pipe_fds pipe = make_pipe();
-  pipe_reader<spy_lsp_message_parser> reader{this->pipe.reader.ref()};
-  spy_lsp_message_parser &parser = this->reader.parser();
+struct spy_event_loop : public event_loop<spy_event_loop> {
+  explicit spy_event_loop(platform_file_ref pipe) : pipe_(pipe) {}
+
+  platform_file_ref get_readable_pipe() { return this->pipe_; }
+
+  void append(string8_view data) { this->parser_.append(data); }
+
+  platform_file_ref pipe_;
+  spy_lsp_message_parser parser_;
 };
 
-TEST_F(test_lsp_pipe_reader, stops_on_eof) {
+class test_event_loop : public ::testing::Test {
+ public:
+  pipe_fds pipe = make_pipe();
+  spy_event_loop loop{this->pipe.reader.ref()};
+  spy_lsp_message_parser &parser = this->loop.parser_;
+};
+
+TEST_F(test_event_loop, stops_on_eof) {
   this->pipe.writer.close();
 
-  this->reader.run();
+  this->loop.run();
   // run() should terminate.
 }
 
-TEST_F(test_lsp_pipe_reader, reads_data_in_pipe_buffer) {
+TEST_F(test_event_loop, reads_data_in_pipe_buffer) {
   write_full_message(this->pipe.writer.ref(), u8"Content-Length: 2\r\n\r\nHi");
   this->pipe.writer.close();
 
-  reader.run();
+  this->loop.run();
 
   EXPECT_THAT(this->parser.messages(), ElementsAre(u8"Hi"));
 }
 
-TEST_F(test_lsp_pipe_reader, reads_many_messages) {
+TEST_F(test_event_loop, reads_many_messages) {
   std::thread writer_thread([this]() {
     write_full_message(this->pipe.writer.ref(),
                        u8"Content-Length: 5\r\n\r\nfirst");
@@ -58,13 +69,13 @@ TEST_F(test_lsp_pipe_reader, reads_many_messages) {
     this->pipe.writer.close();
   });
 
-  this->reader.run();
+  this->loop.run();
 
   writer_thread.join();
   EXPECT_THAT(this->parser.messages(), ElementsAre(u8"first", u8"second"));
 }
 
-TEST_F(test_lsp_pipe_reader,
+TEST_F(test_event_loop,
        reads_data_in_pipe_buffer_as_it_arrives_before_writer_close) {
   std::thread writer_thread([this]() {
     EXPECT_THAT(this->parser.messages(), IsEmpty());
@@ -81,7 +92,7 @@ TEST_F(test_lsp_pipe_reader,
     this->pipe.writer.close();
   });
 
-  this->reader.run();
+  this->loop.run();
 
   writer_thread.join();
 }

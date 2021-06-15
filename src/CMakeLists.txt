@@ -89,6 +89,7 @@ quick_lint_js_add_library(
   quick-lint-js/error-list.h
   quick-lint-js/error-tape.h
   quick-lint-js/error.h
+  quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
   quick-lint-js/file-canonical.h
@@ -119,7 +120,6 @@ quick_lint_js_add_library(
   quick-lint-js/padded-string.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
-  quick-lint-js/pipe-reader.h
   quick-lint-js/pipe-writer.h
   quick-lint-js/simd.h
   quick-lint-js/temporary-directory.h

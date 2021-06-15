@@ -12,7 +12,6 @@
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe-reader.h>
 #include <quick-lint-js/pipe.h>
 #include <thread>
 

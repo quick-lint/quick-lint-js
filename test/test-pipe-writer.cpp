@@ -15,7 +15,6 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe-reader.h>
 #include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/pipe.h>
 #include <thread>

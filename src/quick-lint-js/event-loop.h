@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PIPE_READER_H
-#define QUICK_LINT_JS_PIPE_READER_H
+#ifndef QUICK_LINT_JS_EVENT_LOOP_H
+#define QUICK_LINT_JS_EVENT_LOOP_H
 
 #include <array>
 #include <cstddef>
@@ -13,54 +13,51 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
 
-#if QLJS_HAVE_CXX_CONCEPTS
-#define QLJS_PIPE_READER_PARSER ::quick_lint_js::pipe_reader_parser
-#else
-#define QLJS_PIPE_READER_PARSER class
-#endif
-
 namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
-template <class Parser>
-concept pipe_reader_parser = requires(Parser p, string8_view data) {
-  {p.append(data)};
+template <class Delegate>
+concept event_loop_delegate = requires(Delegate d, string8_view data) {
+  {d.get_readable_pipe()};
+  {d.append(data)};
 };
 #endif
 
-// An pipe_reader consumes bytes of a pipe or socket and sends them to a
-// pipe_reader_parser.
+// An event_loop implements I/O concurrency on a single thread.
 //
-// A pipe_reader can be used to read Language Server Protocol data sent by a
-// client.
-template <QLJS_PIPE_READER_PARSER Parser>
-class pipe_reader {
+// An event_loop manages the following types of I/O:
+//
+// * a readable pipe
+//
+// event_loop uses the CRTP pattern. Inherit from event_loop<your_class>.
+// your_class must satisfy the event_loop_delegate concept.
+template <class Derived>
+class event_loop {
  public:
-  template <class... Args>
-  explicit pipe_reader(platform_file_ref pipe, Args&&... parser_args)
-      : parser_(std::forward<Args>(parser_args)...), pipe_(pipe) {}
-
   void run() {
     for (;;) {
       // TODO(strager): Pick buffer size intelligently.
       std::array<char8, 1024> buffer;
-      file_read_result read_result =
-          this->pipe_.read(buffer.data(), buffer.size());
+      file_read_result read_result = this->derived().get_readable_pipe().read(
+          buffer.data(), buffer.size());
       if (read_result.at_end_of_file) {
         break;
       } else if (read_result.error_message.has_value()) {
         QLJS_UNIMPLEMENTED();
       } else {
-        this->parser().append(string8_view(
+        this->derived().append(string8_view(
             buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
       }
     }
   }
 
-  Parser& parser() noexcept { return this->parser_; }
-
  private:
-  Parser parser_;
-  platform_file_ref pipe_;
+#if QLJS_HAVE_CXX_CONCEPTS
+  event_loop_delegate
+#endif
+      auto&
+      derived() {
+    return *static_cast<Derived*>(this);
+  }
 };
 }
 

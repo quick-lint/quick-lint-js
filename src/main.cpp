@@ -12,6 +12,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
+#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/pipe-reader.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -390,10 +390,28 @@ void run_lsp_server() {
   posix_fd_file_ref output_pipe(STDOUT_FILENO);
 #endif
   basic_configuration_filesystem fs;
-  pipe_reader<lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-                           lsp_pipe_writer>>
-      server(input_pipe, std::forward_as_tuple(&fs),
-             std::forward_as_tuple(output_pipe));
+
+  class lsp_event_loop : public event_loop<lsp_event_loop> {
+   public:
+    explicit lsp_event_loop(platform_file_ref input_pipe,
+                            platform_file_ref output_pipe,
+                            configuration_filesystem *fs)
+        : input_pipe_(input_pipe),
+          endpoint_(std::forward_as_tuple(fs),
+                    std::forward_as_tuple(output_pipe)) {}
+
+    platform_file_ref get_readable_pipe() { return this->input_pipe_; }
+
+    void append(string8_view data) { this->endpoint_.append(data); }
+
+   private:
+    platform_file_ref input_pipe_;
+    lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+                 lsp_pipe_writer>
+        endpoint_;
+  };
+
+  lsp_event_loop server(input_pipe, output_pipe, &fs);
   server.run();
 }
 
