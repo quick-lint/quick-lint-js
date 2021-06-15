@@ -62,6 +62,7 @@ class background_thread_pipe_writer {
 
   // Protected by mutex_:
   byte_buffer_iovec pending_;
+  bool writing_ = false;
   bool stop_ = false;
 };
 #endif

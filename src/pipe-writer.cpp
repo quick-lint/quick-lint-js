@@ -39,7 +39,8 @@ background_thread_pipe_writer::~background_thread_pipe_writer() {
 void background_thread_pipe_writer::flush() {
   std::unique_lock<std::mutex> lock(this->mutex_);
   QLJS_ASSERT(!this->stop_);
-  this->data_is_flushed_.wait(lock, [this] { return this->pending_.empty(); });
+  this->data_is_flushed_.wait(
+      lock, [this] { return !this->writing_ && this->pending_.empty(); });
 }
 
 void background_thread_pipe_writer::write(byte_buffer&& data) {
@@ -89,11 +90,13 @@ void background_thread_pipe_writer::run_flushing_thread() {
 
     {
       byte_buffer_iovec to_write = std::move(this->pending_);
+      this->writing_ = true;
       lock.unlock();
       this->write_all_now_blocking(to_write);
       // Destroy to_write.
     }
     lock.lock();
+    this->writing_ = false;
     if (this->pending_.empty()) {
       this->data_is_flushed_.notify_one();
     }
