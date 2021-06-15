@@ -30,8 +30,6 @@ using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-std::size_t pipe_buffer_size(platform_file_ref);
-
 class test_pipe_writer : public ::testing::Test {
  public:
   pipe_fds pipe = make_pipe_for_pipe_writer();
@@ -59,7 +57,7 @@ TEST_F(test_pipe_writer, large_write_sends_fully) {
       [this]() { return read_file("<pipe>", this->pipe.reader.ref()); });
 
   string8 to_write =
-      u8"[" + string8(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x') +
+      u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
       u8"]";
   this->writer.write(byte_buffer_of(to_write));
   this->writer.flush();
@@ -115,7 +113,7 @@ class pipe_reader_thread {
 
 TEST_F(test_pipe_writer, large_write_with_no_reader_does_not_block) {
   string8 to_write =
-      u8"[" + string8(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x') +
+      u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
       u8"]";
   this->writer.write(byte_buffer_of(to_write));  // Shouldn't block.
 
@@ -156,8 +154,8 @@ TEST_F(test_pipe_writer,
 
 TEST_F(test_pipe_writer,
        multiple_large_messages_with_no_reader_does_not_block) {
-  string8 xs(pipe_buffer_size(this->pipe.writer.ref()) * 3, u8'x');
-  string8 ys(pipe_buffer_size(this->pipe.writer.ref()) * 2, u8'y');
+  string8 xs(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x');
+  string8 ys(this->pipe.writer.get_pipe_buffer_size() * 2, u8'y');
   this->writer.write(byte_buffer_of(xs));  // Shouldn't block.
   std::this_thread::sleep_for(
       std::chrono::milliseconds(1));  // Attempt to expose a race condition.
@@ -176,26 +174,6 @@ TEST_F(test_pipe_writer,
   read_thread.join();
   EXPECT_EQ(read_thread.received_data, expected_data)
       << "more data should not have arrived after closing the pipe";
-}
-
-std::size_t pipe_buffer_size([[maybe_unused]] platform_file_ref pipe) {
-#if QLJS_HAVE_F_GETPIPE_SZ
-  int size = ::fcntl(pipe.get(), F_GETPIPE_SZ);
-  EXPECT_NE(size, -1);
-  return narrow_cast<std::size_t>(size);
-#elif defined(__APPLE__)
-  // See BIG_PIPE_SIZE in <xnu>/bsd/sys/pipe.h.
-  return 65536;
-#elif defined(_WIN32)
-  DWORD outBufferSize = 0;
-  EXPECT_TRUE(::GetNamedPipeInfo(pipe.get(), /*lpFlags=*/nullptr,
-                                 &outBufferSize, /*lpInBufferSize=*/nullptr,
-                                 /*lpMaxInstances=*/nullptr))
-      << windows_handle_file::get_last_error_message();
-  return outBufferSize;
-#else
-#error "Unknown platform"
-#endif
 }
 }
 }

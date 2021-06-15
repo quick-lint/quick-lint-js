@@ -101,6 +101,18 @@ bool windows_handle_file_ref::is_pipe_non_blocking() {
   return (state & PIPE_NOWAIT) == PIPE_NOWAIT;
 }
 
+std::size_t windows_handle_file_ref::get_pipe_buffer_size() {
+  DWORD outBufferSize = 0;
+  BOOL ok =
+      ::GetNamedPipeInfo(this->handle_, /*lpFlags=*/nullptr, &outBufferSize,
+                         /*lpInBufferSize=*/nullptr,
+                         /*lpMaxInstances=*/nullptr);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return outBufferSize;
+}
+
 std::string windows_handle_file_ref::get_last_error_message() {
   return windows_error_message(::GetLastError());
 }
@@ -174,6 +186,23 @@ bool posix_fd_file_ref::is_pipe_non_blocking() {
 #error "Unsupported platform"
 #endif
 }
+
+#if !defined(__EMSCRIPTEN__)
+std::size_t posix_fd_file_ref::get_pipe_buffer_size() {
+#if QLJS_HAVE_F_GETPIPE_SZ
+  int size = ::fcntl(this->fd_, F_GETPIPE_SZ);
+  if (size == -1) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return narrow_cast<std::size_t>(size);
+#elif defined(__APPLE__)
+  // See BIG_PIPE_SIZE in <xnu>/bsd/sys/pipe.h.
+  return 65536;
+#else
+#error "Unknown platform"
+#endif
+}
+#endif
 
 void posix_fd_file_ref::set_pipe_non_blocking() {
 #if QLJS_HAVE_FCNTL_H
