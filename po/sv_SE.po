@@ -1,0 +1,758 @@
+# Copyright (C) 2020  Matthew "strager" Glazar
+# See end of file for extended copyright information.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
+"POT-Creation-Date: 2021-06-16 00:12+0200\n"
+"PO-Revision-Date: 2021-06-16 00:13+0200\n"
+"Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
+"Language-Team: Swedish (Standard)\n"
+"Language: sv_SE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/quick-lint-js/error.h
+msgid "variable assigned before its declaration"
+msgstr "tilldelar variabel före deklaration"
+
+#: src/quick-lint-js/error.h
+msgid "variable declared here"
+msgstr "variabel deklarerades här"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to const global variable"
+msgstr "tilldelar till global konstant variabel"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to const variable"
+msgstr "tilldelar till konstant variabel"
+
+#: src/quick-lint-js/error.h
+msgid "const variable declared here"
+msgstr "konstant variabel deklarerad här"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to const variable before its declaration"
+msgstr "tilldelar konstant variable före dens deklaration"
+
+#: src/quick-lint-js/error.h
+msgid "assignment to undeclared variable"
+msgstr "tilldelar värde till variabel före deklaration"
+
+#: src/quick-lint-js/error.h
+msgid "'await' is only allowed in async functions"
+msgstr "'await' är enbart tillåtet i en 'async' funktion"
+
+#: src/quick-lint-js/error.h
+msgid "BigInt literal contains decimal point"
+msgstr "BigInt heltallitterär innehåller decimaler"
+
+#: src/quick-lint-js/error.h
+msgid "BigInt literal contains exponent"
+msgstr "BigInt heltallitterär innehåller exponent"
+
+#: src/quick-lint-js/error.h
+msgid "C-style for loop is missing its third component"
+msgstr "C-stil 'for' loop saknar tredje komponentent"
+
+#: src/quick-lint-js/error.h
+msgid "assigning to 'async' in a for-of loop requires parentheses"
+msgstr "tilldelning av 'async' i for-of loop kräver paranteser"
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare 'await' inside async function"
+msgstr "kan inte deklarera 'await' inuti async funktion"
+
+#: src/quick-lint-js/error.h
+msgid "classes cannot be named 'let'"
+msgstr "klass kan inte benämnas 'let'"
+
+#: src/quick-lint-js/error.h
+msgid "let statement cannot declare variables named 'let'"
+msgstr "let påstående kan inte deklareras med namnet 'let'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare variable named keyword '{0}'"
+msgstr "kan inte deklarera variabel med nyckelord '{0}'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare 'yield' inside generator function"
+msgstr "kan inte deklarera 'yield' inuti en generatorfunktion"
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare and export variable with 'export default'"
+msgstr "kan inte deklarera och exportera variabel med 'export default'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot export variable named 'let'"
+msgstr "kan inte exportera variabel vid namn 'let'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot export variable named keyword '{0}'"
+msgstr "kan inte exportera variabel med nyckelord '{0}'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot import 'let'"
+msgstr "kan inte importera 'let'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot import variable named keyword '{0}'"
+msgstr "kan inte importera variabel med namngivet nyckelord '{0}'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot reference private variables without object; use 'this.'"
+msgstr "kan inte referera en privat variabel utan ett objekt; använd 'this'"
+
+#: src/quick-lint-js/error.h
+msgid "cannot update variable with '{0}' while declaring it"
+msgstr "kan inte uppdatera variabel med '{0} under deklaration'"
+
+#: src/quick-lint-js/error.h
+msgid "remove '{0}' to update an existing variable"
+msgstr "ta bort '{0}' för att uppdatera en existerande variabel"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'catch' without 'try'"
+msgstr "oförväntad 'catch' utan någon 'try'"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for {1:headlinese}"
+msgstr "saknas stycke för {1:headlinese}"
+
+#: src/quick-lint-js/error.h
+msgid "a class statement is not allowed as the body of {1:singular}"
+msgstr "klass sats är inte tillåtet som ett stycke av {1:singular}"
+
+#: src/quick-lint-js/error.h
+msgid "character is not allowed in identifiers"
+msgstr "tecknet är inte tillåtet i indentifierare"
+
+#: src/quick-lint-js/error.h
+msgid "commas are not allowed after spread parameter"
+msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#: src/quick-lint-js/error.h
+msgid "depth limit exceeded"
+msgstr "djup begränsning överskriden"
+
+#: src/quick-lint-js/error.h
+msgid "'else' has no corresponding 'if'"
+msgstr "'else' har ingen anhörig 'if'"
+
+#: src/quick-lint-js/error.h
+msgid "escaped character is not allowed in identifiers"
+msgstr "flykttecken är inte tillåtet i indentifierare"
+
+#: src/quick-lint-js/error.h
+msgid "code point out of range"
+msgstr "kod punkt ur span"
+
+#: src/quick-lint-js/error.h
+msgid "extra ',' is not allowed between function call arguments"
+msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
+
+#: src/quick-lint-js/error.h
+msgid "expected 'as' between '{1}' and '{2}'"
+msgstr "förväntade 'as' mellan '{1}' och '{2}'"
+
+#: src/quick-lint-js/error.h
+msgid "expected ',' between object literal entries"
+msgstr "förväntade ',' mellan förekommande objektlitteral"
+
+#: src/quick-lint-js/error.h
+msgid "expected expression before newline"
+msgstr "förväntade ett uttryck före nyrad"
+
+#: src/quick-lint-js/error.h
+msgid "expected expression after 'case'"
+msgstr "förväntade ett uttryck efter 'case'"
+
+#: src/quick-lint-js/error.h
+msgid "expected expression before semicolon"
+msgstr "förväntade ett uttryck före semikolon"
+
+#: src/quick-lint-js/error.h
+msgid "expected 'from \"name_of_module.mjs\"'"
+msgstr "förväntade 'from \"name_of_module.mjs\"'"
+
+#: src/quick-lint-js/error.h
+msgid "expected 'from' before module specifier"
+msgstr "förväntade 'from' före modulspecifierare"
+
+#: src/quick-lint-js/error.h
+msgid "expected hexadecimal digits in Unicode escape sequence"
+msgstr "förväntade hexadecimala siffror i Unicode flyktsekvens"
+
+#: src/quick-lint-js/error.h
+msgid "expected '{{'"
+msgstr "förväntade '{{'"
+
+#: src/quick-lint-js/error.h
+msgid "expected ')' to close function call"
+msgstr "förväntade ')' för att slutföra funktionkallelse"
+
+#: src/quick-lint-js/error.h
+msgid "function call started here"
+msgstr "funktionkallelse startar här"
+
+#: src/quick-lint-js/error.h
+msgid "do-while loop needs parentheses around condition"
+msgstr "do-while loop behöver paranteser runt vilkor"
+
+#: src/quick-lint-js/error.h
+msgid "do-while loop is missing '{1}' around condition"
+msgstr "do-while loop saknar '{1}' runt vilkor"
+
+#: src/quick-lint-js/error.h
+msgid "if statement needs parentheses around condition"
+msgstr "if sats behöver paranteser runt vilkor"
+
+#: src/quick-lint-js/error.h
+msgid "if statement is missing '{1}' around condition"
+msgstr "if sats saknar '{1}' runt vilkor"
+
+#: src/quick-lint-js/error.h
+msgid "switch statement needs parentheses around condition"
+msgstr "switch sats behöver paranteser runt vilkor"
+
+#: src/quick-lint-js/error.h
+msgid "switch statement is missing '{1}' around condition"
+msgstr "switch sats saknas '{1}' runt vilkoren"
+
+#: src/quick-lint-js/error.h
+msgid "while loop needs parentheses around condition"
+msgstr "while loop behöver paranteser runt vilkoren"
+
+#: src/quick-lint-js/error.h
+msgid "while loop is missing '{1}' around condition"
+msgstr "while loop saknar '{1}' runt vilkoren"
+
+#: src/quick-lint-js/error.h
+msgid "with statement needs parentheses around expression"
+msgstr "with påstående saknar paranteser runt uttryck"
+
+#: src/quick-lint-js/error.h
+msgid "with statement is missing '{1}' around expression"
+msgstr "with påstående saknar '{1}' runt uttryck"
+
+#: src/quick-lint-js/error.h
+msgid "expected variable name for 'catch'"
+msgstr "förväntade variabel namn för 'catch'"
+
+#: src/quick-lint-js/error.h
+msgid "exporting requires 'default'"
+msgstr "exportering kräver 'default'"
+
+#: src/quick-lint-js/error.h
+msgid "exporting requires '{{' and '}'"
+msgstr "exportering kräver '{{' och '}'"
+
+#: src/quick-lint-js/error.h
+msgid "forwarding exports are only allowed in export-from"
+msgstr "framförandeexportering är enbart tillåtet i export-from"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'finally' without 'try'"
+msgstr "oförväntad 'finally' utan 'try'"
+
+#: src/quick-lint-js/error.h
+msgid "a function statement is not allowed as the body of {1:singular}"
+msgstr "en funktion sats är inte tillåtet som stycke till {1:singular}"
+
+#: src/quick-lint-js/error.h
+msgid "generator function '*' belongs before function name"
+msgstr "generatorfunktion '*' tillhör före funktionens namn"
+
+#: src/quick-lint-js/error.h
+msgid "'in' disallowed in C-style for loop initializer"
+msgstr "'in' är otillåtet i C-stil for loop initierare"
+
+#: src/quick-lint-js/error.h
+msgid "indexing requires an expression"
+msgstr "indexering kräver ett uttryck"
+
+#: src/quick-lint-js/error.h
+msgid "invalid binding in let statement"
+msgstr "ogiltig bindelse i let påstående"
+
+#: src/quick-lint-js/error.h
+msgid "invalid expression left of assignment"
+msgstr "ogiltigt uttryck före tilldelning"
+
+#: src/quick-lint-js/error.h
+msgid "invalid hex escape sequence: {0}"
+msgstr "ogiltig kringående hex sekvens: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "invalid lone literal in object literal"
+msgstr "ogiltigt låneuttryck i objektliteral"
+
+#: src/quick-lint-js/error.h
+msgid "invalid function parameter"
+msgstr "ogiltig funktions parameter"
+
+#: src/quick-lint-js/error.h
+msgid ""
+"'.' operator needs a key name; use + to concatenate strings; use [] to "
+"access with a dynamic key"
+msgstr ""
+"'.' operation behöver nyckelords namn; använd + för att konkatenera sträng; använd [] för att "
+"komma åt med dynamisk nyckel"
+
+#: src/quick-lint-js/error.h
+msgid "invalid UTF-8 sequence"
+msgstr "ogiltig UTF-8 sekvens"
+
+#: src/quick-lint-js/error.h
+msgid "keywords cannot contain escape sequences"
+msgstr "nyckelord kan inte innehålla en flyktsekvens"
+
+#: src/quick-lint-js/error.h
+msgid "legacy octal literal may not be BigInt"
+msgstr "ärftligt octal nummerlitteral kan inte vara BigInt"
+
+#: src/quick-lint-js/error.h
+msgid "legacy octal literals may not contain underscores"
+msgstr "ärftligt octal nummerlitteral kan inte innehålla understräck"
+
+#: src/quick-lint-js/error.h
+msgid "{0} with no bindings"
+msgstr "{0} utan bindningar"
+
+#: src/quick-lint-js/error.h
+msgid "a lexical declaration is not allowed as the body of {1:singular}"
+msgstr "lexikaliskt deklaration är inte tillåtet inuti ett stycke av {1:singular}"
+
+#: src/quick-lint-js/error.h
+msgid "methods should not use the 'function' keyword"
+msgstr "metoder bör inte använda nyckelordet 'function'"
+
+#: src/quick-lint-js/error.h
+msgid "missing end of array; expected ']'"
+msgstr "saknar slut av lista; förväntades ']'"
+
+#: src/quick-lint-js/error.h
+msgid "array started here"
+msgstr "lista startar här"
+
+#: src/quick-lint-js/error.h
+msgid "missing parameters for arrow function"
+msgstr "saknar parametrar före pilfunktion"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for catch clause"
+msgstr "saknar stycke före catch sats"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for class"
+msgstr "saknar stycke för klass"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for do-while loop"
+msgstr "saknar stycke för do-while loop"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for finally clause"
+msgstr "saknar stycke för finally sats"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for 'for' loop"
+msgstr "saknar stycke för 'for' loop"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for 'if' statement"
+msgstr "saknar stycke för 'if' påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for 'switch' statement"
+msgstr "saknar stycke för 'switch' påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for try statement"
+msgstr "saknar stycke för 'try' påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing body for while loop"
+msgstr "saknar stycke för while loop"
+
+#: src/quick-lint-js/error.h
+msgid "missing catch or finally clause for try statement"
+msgstr "saknar catch eller finally sats för try sats"
+
+#: src/quick-lint-js/error.h
+msgid "try statement starts here"
+msgstr "try sats startar här"
+
+#: src/quick-lint-js/error.h
+msgid "missing catch variable name between parentheses"
+msgstr "saknar catch variabelnamn mellan paranteser"
+
+#: src/quick-lint-js/error.h
+msgid "missing comma between object literal entries"
+msgstr "saknar comma mellan förekommande objektliteral"
+
+#: src/quick-lint-js/error.h
+msgid "missing ',' between variable declarations"
+msgstr "saknar ',' mellan variabel deklaration"
+
+#: src/quick-lint-js/error.h
+msgid "missing ':' in conditional expression"
+msgstr "saknar ':' i vilkorsuttryck"
+
+#: src/quick-lint-js/error.h
+msgid "'?' creates a conditional expression"
+msgstr "'?' skapar vilkorsuttryck"
+
+#: src/quick-lint-js/error.h
+msgid "missing condition for if statement"
+msgstr "saknar vilkor i if påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing condition for while statement"
+msgstr "saknar vilkor för while påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing condition for switch statement"
+msgstr "saknar vilkor för switch påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing '=' after variable"
+msgstr "saknar '=' efter variabel"
+
+#: src/quick-lint-js/error.h
+msgid "missing expression between parentheses"
+msgstr "saknar uttryck mellan paranteser"
+
+#: src/quick-lint-js/error.h
+msgid "missing header and body for 'for' loop"
+msgstr "saknar rubrik och stycke för 'for' loop"
+
+#: src/quick-lint-js/error.h
+msgid "for loop needs an iterable, or condition and update clauses"
+msgstr "for loop behöver en itererande eller vilkorligen uppdaterande moment"
+
+#: src/quick-lint-js/error.h
+msgid "use 'while' instead to loop until a condition is false"
+msgstr "använd 'while' istället för att iterera till vilkoren är falskt"
+
+#: src/quick-lint-js/error.h
+msgid "missing function parameter list"
+msgstr "saknar funktions parameter lista"
+
+#: src/quick-lint-js/error.h
+msgid "missing for loop header"
+msgstr "saknar for loop rubrik"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected expression; missing key for object entry"
+msgstr "oförväntat uttryck; saknar nyckel för tillträdande objekt"
+
+#: src/quick-lint-js/error.h
+msgid "missing name in function statement"
+msgstr "saknar namn för funktions påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing name of class"
+msgstr "saknar namn för klass"
+
+#: src/quick-lint-js/error.h
+msgid "missing name of exported class"
+msgstr "saknar namn för exporterad klass"
+
+#: src/quick-lint-js/error.h
+msgid "missing name of exported function"
+msgstr "saknar namn för exporterad funktion"
+
+#: src/quick-lint-js/error.h
+msgid "missing name or parentheses for function"
+msgstr "saknar namn eller paranteser för funktion"
+
+#: src/quick-lint-js/error.h
+msgid "missing operand for operator"
+msgstr "saknar operand för operatör"
+
+#: src/quick-lint-js/error.h
+msgid "redundant delete statement on variable"
+msgstr "redundant delete påstående för variabel"
+
+#: src/quick-lint-js/error.h
+msgid "missing operator between expression and arrow function"
+msgstr "saknar operatör mellan uttryck och pilfunktion"
+
+#: src/quick-lint-js/error.h
+msgid "missing property name after '.' operator"
+msgstr "saknar egenskaps namn efter '.' operatör"
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon after statement"
+msgstr "saknar semikolon efter påstående"
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon between condition and update parts of for loop"
+msgstr "saknar semikolon mellan vilkor och updaterings delen i for loopen"
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon between init and condition parts of for loop"
+msgstr "saknar semikolon mellan start och vilkors delen i for loopen"
+
+#: src/quick-lint-js/error.h
+msgid ""
+"incomplete export; expected 'export default ...' or 'export {{name}' or "
+"'export * from ...' or 'export class' or 'export function' or 'export let'"
+msgstr ""
+"ofullständig exportering; förväntades 'export default ...' eller 'export {{name}' eller "
+"'export * from ...' eller 'export class' eller 'export function' eller 'export let'"
+
+#: src/quick-lint-js/error.h
+msgid "missing value for object property"
+msgstr "saknar värde för objektegenskap"
+
+#: src/quick-lint-js/error.h
+msgid "missing variable name"
+msgstr "saknar variabel namn"
+
+#: src/quick-lint-js/error.h
+msgid "missing 'while (condition)' for do-while statement"
+msgstr "saknar 'while (vilkor)' till do-while påstående"
+
+#: src/quick-lint-js/error.h
+msgid "do-while statement starts here"
+msgstr "do-while påstående startar här"
+
+#: src/quick-lint-js/error.h
+msgid ""
+"newline is not allowed between 'async' and arrow function parameter list"
+msgstr ""
+"nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#: src/quick-lint-js/error.h
+msgid "arrow is here"
+msgstr "pilen är här"
+
+#: src/quick-lint-js/error.h
+msgid "number literal contains consecutive underscores"
+msgstr "numerlitterär innehåller upprepande understräck"
+
+#: src/quick-lint-js/error.h
+msgid "number literal contains trailing underscore(s)"
+msgstr "nummerlitterär innehåller efterföljande understräck"
+
+#: src/quick-lint-js/error.h
+msgid "octal literal may not have exponent"
+msgstr "oktal nummerlitteräl kan inte ha exponent"
+
+#: src/quick-lint-js/error.h
+msgid "octal literal may not have decimal"
+msgstr "oktal nummerlitteräl kan inte ha decimaler"
+
+#: src/quick-lint-js/error.h
+msgid "private properties are not allowed in object literals"
+msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
+
+#: src/quick-lint-js/error.h
+msgid "redeclaration of global variable"
+msgstr "omdeklaration av global variabel"
+
+#: src/quick-lint-js/error.h
+msgid "redeclaration of variable: {0}"
+msgstr "omdekleration av variabel: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "variable already declared here"
+msgstr "variabel är redan deklarerad här"
+
+#: src/quick-lint-js/error.h
+msgid "RegExp literal cannot contain Unicode escapes"
+msgstr "RegExplitterär kan inte innehålla Unicode flykttecken"
+
+#: src/quick-lint-js/error.h
+msgid "stray comma in let statement"
+msgstr "vilset komma i let påstående"
+
+#: src/quick-lint-js/error.h
+msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed block comment"
+msgstr "oavslutad kommentationsstycke"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed code block; expected '}' by end of file"
+msgstr "oavslutad kod stycke; förväntade '}' innan slutet av filen"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed identifier escape sequence"
+msgstr "oavslutad identifierare flyktsekvens"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed object literal; expected '}'"
+msgstr "oavslutad objektlitterär; förväntade '}'"
+
+#: src/quick-lint-js/error.h
+msgid "object literal started here"
+msgstr "objektlitteral startades här"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed regexp literal"
+msgstr "oavslutad regexplitteral"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed string literal"
+msgstr "oavslutad stränglitteral"
+
+#: src/quick-lint-js/error.h
+msgid "unclosed template"
+msgstr "oavslutad mall"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '@'"
+msgstr "oförväntad '@'"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '{0}'"
+msgstr "oförväntad '{0}'"
+
+#: src/quick-lint-js/error.h
+msgid "expected parameter for arrow function, but got an expression instead"
+msgstr "förväntade paramter till pilfunktion, men fick ett uttryck istället"
+
+#: src/quick-lint-js/error.h
+msgid "expected parameter for arrow function, but got a literal instead"
+msgstr "förväntade parameter för pilfunktion, men fick in litterär istället"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '\\' in identifier"
+msgstr "oförväntad '\\' i identifierare"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'case' outside switch statement"
+msgstr "oförväntad 'case' utanför switch sats"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in number literal"
+msgstr "oförväntat tecken i nummerlitteral"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected control character"
+msgstr "oförväntat kontrolltecken"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in binary literal"
+msgstr "oförväntat tecken i binärlitteral"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in octal literal"
+msgstr "oförväntat tecken i oktallitteral"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in hex literal"
+msgstr "oförväntat tecken i hexlitteral"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'default' outside switch statement"
+msgstr "oförväntad 'default' utanför switch sats"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected literal in parameter list; expected parameter name"
+msgstr "oförväntad litteral i parameter lista; förväntade parameter namn"
+
+#: src/quick-lint-js/error.h
+msgid "C-style for loops have only three semicolon-separated components"
+msgstr "C-stil for loops har enbart tre semikolon separerande komponenter"
+
+#: src/quick-lint-js/error.h
+msgid "for-in loop expression cannot have semicolons"
+msgstr "for-in loop satser kan inte ha semikolon"
+
+#: src/quick-lint-js/error.h
+msgid "for-of loop expression cannot have semicolons"
+msgstr "for-of loop satser kan inte ha semikolon"
+
+#: src/quick-lint-js/error.h
+msgid "binary number literal has no digits"
+msgstr "binära nummerlitteraler has inga siffror"
+
+#: src/quick-lint-js/error.h
+msgid "hex number literal has no digits"
+msgstr "hex nummerlitteral har inga siffror"
+
+#: src/quick-lint-js/error.h
+msgid "octal number literal has no digits"
+msgstr "oktal nummerlitteral har inga siffror"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected '#'"
+msgstr "oförväntad '#'"
+
+#: src/quick-lint-js/error.h
+msgid ""
+"unicode byte order mark (BOM) cannot appear before #! at beginning of script"
+msgstr ""
+"unicode byte ordningsmärke (BOM) kan inte förekomma före #! i början av skript"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected identifier"
+msgstr "oförväntad identifierare"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected identifier in expression; missing operator before"
+msgstr "oförväntad identifierare i uttryck; saknar operatör före"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected token"
+msgstr "oförväntad token"
+
+#: src/quick-lint-js/error.h
+msgid ""
+"unexpected token in export; expected 'export default ...' or 'export "
+"{{name}' or 'export * from ...' or 'export class' or 'export function' or "
+"'export let'"
+msgstr ""
+"oförväntad token i export; förväntade 'export default ...' eller 'export "
+"{{name}' eller 'export * from ...' eller 'export class' eller 'export function'  "
+"'export let'"
+
+#: src/quick-lint-js/error.h
+msgid "unexpected token in variable declaration; expected variable name"
+msgstr "oförväntad token i variabel deklaration; förväntade variabel namn"
+
+#: src/quick-lint-js/error.h
+msgid "unmatched indexing bracket"
+msgstr "omatchad indexerande hakparantes"
+
+#: src/quick-lint-js/error.h
+msgid "unmatched parenthesis"
+msgstr "omatchad parantes"
+
+#: src/quick-lint-js/error.h
+msgid "unmatched '}'"
+msgstr "omatchad '}'"
+
+#: src/quick-lint-js/error.h
+msgid "use of undeclared variable: {0}"
+msgstr "användning av odeklarerad variabel: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "variable used before declaration: {0}"
+msgstr "variabel använd före: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "function called before declaration in blocked scope: {0}"
+msgstr "funktion kallad före deklaration i blockstycke: {0}"
+
+#: src/quick-lint-js/error.h
+msgid "function declared here"
+msgstr "funktion deklarerad här"
+
+#: src/quick-lint-js/error.h
+msgid "break can only be used inside of a loop or switch"
+msgstr "break kan enbart vara inuti en loop eller switch"
+
+#: src/quick-lint-js/error.h
+msgid "continue can only be used inside of a loop"
+msgstr "continue kan enbart vara inuti en loop"
