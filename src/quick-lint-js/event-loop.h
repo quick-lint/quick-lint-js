@@ -12,6 +12,8 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/unreachable.h>
+#include <thread>
 
 #if QLJS_HAVE_WINDOWS_H
 #include <Windows.h>
@@ -45,6 +47,10 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 };
 #endif
 
+#if defined(_WIN32)
+windows_handle_file create_io_completion_port() noexcept;
+#endif
+
 // An event_loop implements I/O concurrency on a single thread.
 //
 // An event_loop manages the following types of I/O:
@@ -58,16 +64,30 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 template <class Derived>
 class event_loop {
  public:
+#if defined(_WIN32)
+  enum completion_key : ULONG_PTR {
+    completion_key_invalid = 0,
+    completion_key_stop,
+  };
+#endif
+
+  explicit event_loop()
+#if defined(_WIN32)
+      : io_completion_port_(create_io_completion_port())
+#endif
+  {
+  }
+
+#if QLJS_HAVE_POLL
   void run() {
     while (!this->done_) {
       // TODO(strager): Only call read() if poll() tells us that data is
       // available.
-      this->read_from_pipe();
+      this->done_ = this->read_from_pipe();
       if (this->done_) {
         break;
       }
 
-#if QLJS_HAVE_POLL
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
       QLJS_ASSERT(pipe.is_pipe_non_blocking());
@@ -108,17 +128,64 @@ class event_loop {
           this->derived().on_pipe_write_event(write_pipe_event);
         }
       }
+    }
+  }
 #elif defined(_WIN32)
-      // Nothing to wait for.
-      static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
+  void run() {
+    static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
+
+    this->read_pipe_thread_ =
+        std::thread([this] { this->run_read_pipe_thread(); });
+    for (;;) {
+      DWORD number_of_bytes_transferred;
+      ULONG_PTR completion_key = completion_key_invalid;
+      OVERLAPPED* overlapped;
+      BOOL ok = ::GetQueuedCompletionStatus(
+          /*CompletionPort=*/this->io_completion_port_.get(),
+          /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
+          /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
+          /*dwMilliseconds=*/INFINITE);
+      switch (completion_key) {
+      case completion_key_invalid:
+        QLJS_ASSERT(!ok);
+        QLJS_UNIMPLEMENTED();
+        break;
+
+      case completion_key_stop:
+        QLJS_ASSERT(ok);
+        this->read_pipe_thread_.join();
+        return;
+
+      default:
+        QLJS_UNREACHABLE();
+      }
+    }
+  }
 #else
 #error "Unsupported platform"
 #endif
-    }
-  }
 
  private:
-  void read_from_pipe() {
+#if defined(_WIN32)
+  void run_read_pipe_thread() {
+    while (!this->read_from_pipe()) {
+      // Loop.
+    }
+
+    BOOL ok = ::PostQueuedCompletionStatus(
+        /*CompletionPort=*/this->io_completion_port_.get(),
+        /*dwNumberOfBytesTransferred=*/0,
+        /*dwCompletionKey=*/completion_key_stop,
+        /*lpOverlapped=*/nullptr);
+    if (!ok) {
+      QLJS_UNIMPLEMENTED();
+    }
+  }
+#endif
+
+  // Returns true when the pipe has closed. Returns false if the pipe might
+  // still have data available (now or in the future).
+  bool read_from_pipe() {
     // TODO(strager): Pick buffer size intelligently.
     std::array<char8, 1024> buffer;
     platform_file_ref pipe = this->const_derived().get_readable_pipe();
@@ -129,12 +196,12 @@ class event_loop {
 #endif
     file_read_result read_result = pipe.read(buffer.data(), buffer.size());
     if (read_result.at_end_of_file) {
-      this->done_ = true;
+      return true;
     } else if (read_result.error_message.has_value()) {
 #if QLJS_HAVE_UNISTD_H
       if (errno == EAGAIN) {
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-        return;
+        return false;
 #else
         QLJS_UNREACHABLE();
 #endif
@@ -145,6 +212,7 @@ class event_loop {
       QLJS_ASSERT(read_result.bytes_read != 0);
       this->derived().append(string8_view(
           buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
+      return false;
     }
   }
 
@@ -165,8 +233,26 @@ class event_loop {
     return *static_cast<const Derived*>(this);
   }
 
+#if defined(_WIN32)
+  windows_handle_file io_completion_port_;
+  std::thread read_pipe_thread_;
+#else
   bool done_ = false;
+#endif
 };
+
+#if defined(_WIN32)
+inline windows_handle_file create_io_completion_port() noexcept {
+  windows_handle_file iocp(::CreateIoCompletionPort(
+      /*FileHandle=*/INVALID_HANDLE_VALUE,
+      /*ExistingCompletionPort=*/nullptr, /*CompletionKey=*/0,
+      /*NumberOfConcurrentThreads=*/1));
+  if (!iocp.valid()) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return iocp;
+}
+#endif
 }
 
 #endif
