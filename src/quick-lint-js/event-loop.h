@@ -122,11 +122,11 @@ template <class Derived>
 class poll_event_loop : public event_loop_base<Derived> {
  public:
   void run() {
-    while (!this->done_) {
+    for (;;) {
       // TODO(strager): Only call read() if poll() tells us that data is
       // available.
-      this->done_ = this->read_from_pipe();
-      if (this->done_) {
+      bool done = this->read_from_pipe();
+      if (done) {
         break;
       }
 
@@ -172,9 +172,6 @@ class poll_event_loop : public event_loop_base<Derived> {
       }
     }
   }
-
- private:
-  bool done_ = false;
 };
 #endif
 
