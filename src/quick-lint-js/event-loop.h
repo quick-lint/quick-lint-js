@@ -56,6 +56,7 @@ windows_handle_file create_io_completion_port() noexcept;
 // An event_loop manages the following types of I/O:
 //
 // * a readable pipe
+// * a writable pipe
 //
 // event_loop uses the CRTP pattern. Inherit from event_loop<your_class>.
 // your_class must satisfy the event_loop_delegate concept.
