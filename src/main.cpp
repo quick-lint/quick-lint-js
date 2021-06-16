@@ -24,6 +24,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -404,6 +405,16 @@ void run_lsp_server() {
 
     void append(string8_view data) { this->endpoint_.append(data); }
 
+#if QLJS_HAVE_POLL
+    std::optional<::pollfd> get_pipe_write_pollfd() {
+      return this->endpoint_.remote().get_pollfd();
+    }
+
+    void on_pipe_write_event(const ::pollfd &event) {
+      this->endpoint_.remote().on_poll_event(event);
+    }
+#endif
+
    private:
     platform_file_ref input_pipe_;
     lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
@@ -413,6 +424,9 @@ void run_lsp_server() {
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
   input_pipe.set_pipe_non_blocking();
+#endif
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD
+  output_pipe.set_pipe_non_blocking();
 #endif
   lsp_event_loop server(input_pipe, output_pipe, &fs);
   server.run();

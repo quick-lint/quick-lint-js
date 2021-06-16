@@ -18,9 +18,7 @@
 #if defined(_WIN32)
 #define QLJS_PIPE_WRITER_SEPARATE_THREAD 1
 #else
-// TODO(strager): Use non-blocking I/O after we change the LSP server to use an
-// event loop.
-#define QLJS_PIPE_WRITER_SEPARATE_THREAD 1
+#define QLJS_PIPE_WRITER_SEPARATE_THREAD 0
 #endif
 
 namespace quick_lint_js {
@@ -89,7 +87,7 @@ class non_blocking_pipe_writer {
   void flush();
 
 #if QLJS_HAVE_POLL
-  ::pollfd get_pollfd() noexcept;
+  std::optional<::pollfd> get_pollfd() noexcept;
   void on_poll_event(const ::pollfd &);
 #endif
 

@@ -31,9 +31,17 @@ namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Delegate>
 concept event_loop_delegate = requires(Delegate d, const Delegate cd,
+#if QLJS_HAVE_POLL
+                                       const ::pollfd poll_event,
+#endif
                                        string8_view data) {
   {cd.get_readable_pipe()};
   {d.append(data)};
+
+#if QLJS_HAVE_POLL
+  {d.get_pipe_write_pollfd()};
+  {d.on_pipe_write_event(poll_event)};
+#endif
 };
 #endif
 
@@ -52,32 +60,54 @@ class event_loop {
  public:
   void run() {
     while (!this->done_) {
+      // TODO(strager): Only call read() if poll() tells us that data is
+      // available.
       this->read_from_pipe();
       if (this->done_) {
         break;
       }
 
 #if QLJS_HAVE_POLL
+      static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      ::pollfd pollfds[] = {
-#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-        {.fd = pipe.get(), .events = POLLIN, .revents = 0},
-#endif
-      };
-      QLJS_ASSERT(std::size(pollfds) > 0);
-      int rc = ::poll(pollfds, std::size(pollfds), /*timeout=*/-1);
+      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+
+      std::array<::pollfd, 2> pollfds;
+      std::size_t pollfd_count = 0;
+
+      std::size_t read_pipe_index = pollfd_count;
+      pollfds[pollfd_count++] =
+          ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0};
+
+      std::size_t write_pipe_index = pollfd_count;
+      if (std::optional<::pollfd> event =
+              this->derived().get_pipe_write_pollfd()) {
+        pollfds[pollfd_count++] = *event;
+      }
+
+      QLJS_ASSERT(pollfd_count > 0);
+      QLJS_ASSERT(pollfd_count <= pollfds.size());
+      int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfd_count),
+                      /*timeout=*/-1);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
       }
       QLJS_ASSERT(rc > 0);
-#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-      if (pollfds[0].revents & POLLIN) {
+
+      const ::pollfd& read_pipe_event = pollfds[read_pipe_index];
+      if (read_pipe_event.revents & POLLIN) {
         continue;
       }
-      if (pollfds[0].revents & POLLERR) {
+      if (read_pipe_event.revents & POLLERR) {
         QLJS_UNIMPLEMENTED();
       }
-#endif
+
+      if (pollfd_count > 1) {
+        const ::pollfd& write_pipe_event = pollfds[write_pipe_index];
+        if (write_pipe_event.revents != 0) {
+          this->derived().on_pipe_write_event(write_pipe_event);
+        }
+      }
 #elif defined(_WIN32)
       // Nothing to wait for.
       static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);

@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <chrono>
 #include <condition_variable>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -13,6 +14,7 @@
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -35,12 +37,28 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   }
 
   template <class Func>
-  void wait_until_data(Func &&predicate) {
+  void wait_until_data(Func&& predicate) {
     std::unique_lock lock(this->mutex_);
     this->new_data_.wait(lock, [this, &predicate]() -> bool {
       return predicate(this->read_data_);
     });
   }
+
+#if QLJS_HAVE_POLL
+  std::optional<::pollfd> get_pipe_write_pollfd() const {
+    return this->pipe_write_pollfd_;
+  }
+
+  void on_pipe_write_event(const ::pollfd& event) {
+    this->pipe_write_event_callback_(event);
+  }
+
+  void set_pipe_write_pollfd(const ::pollfd& event,
+                             std::function<void(const ::pollfd&)> on_event) {
+    this->pipe_write_pollfd_ = event;
+    this->pipe_write_event_callback_ = on_event;
+  }
+#endif
 
  private:
   platform_file_ref pipe_;
@@ -50,6 +68,11 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 
   // Protected by mutex_:
   string8 read_data_;
+
+#if QLJS_HAVE_POLL
+  std::optional<::pollfd> pipe_write_pollfd_;
+  std::function<void(const ::pollfd&)> pipe_write_event_callback_;
+#endif
 };
 
 class test_event_loop : public ::testing::Test {
@@ -67,7 +90,7 @@ class test_event_loop : public ::testing::Test {
   }
 };
 
-TEST_F(test_event_loop, stops_on_eof) {
+TEST_F(test_event_loop, stops_on_pipe_read_eof) {
   this->pipe.writer.close();
 
   this->loop.run();
@@ -87,11 +110,11 @@ TEST_F(test_event_loop, reads_many_messages) {
   std::thread writer_thread([this]() {
     write_full_message(this->pipe.writer.ref(), u8"first");
     this->loop.wait_until_data(
-        [](const string8 &data) -> bool { return data == u8"first"; });
+        [](const string8& data) -> bool { return data == u8"first"; });
 
     write_full_message(this->pipe.writer.ref(), u8"SECOND");
     this->loop.wait_until_data(
-        [](const string8 &data) -> bool { return data == u8"firstSECOND"; });
+        [](const string8& data) -> bool { return data == u8"firstSECOND"; });
 
     this->pipe.writer.close();
   });
@@ -101,6 +124,55 @@ TEST_F(test_event_loop, reads_many_messages) {
   writer_thread.join();
   EXPECT_EQ(this->loop.get_read_data(), u8"firstSECOND");
 }
+
+#if QLJS_HAVE_POLL
+TEST_F(test_event_loop, signals_writable_pipe) {
+  bool called = false;
+  this->loop.set_pipe_write_pollfd(
+      ::pollfd{
+          .fd = this->pipe.writer.get(),
+          .events = POLLOUT,
+          .revents = 0,
+      },
+      [this, &called](const ::pollfd& event) {
+        called = true;
+        EXPECT_EQ(event.fd, this->pipe.writer.get());
+        EXPECT_TRUE(event.revents & POLLOUT);
+        // Stop event_loop::run.
+        this->pipe.writer.close();
+      });
+
+  this->loop.run();
+  EXPECT_TRUE(called);
+}
+
+TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
+  // Make a pipe such that POLLOUT will not be signalled.
+  pipe_fds full_pipe = make_pipe();
+  full_pipe.writer.set_pipe_non_blocking();
+  write_full_message(full_pipe.writer.ref(),
+                     string8(full_pipe.writer.get_pipe_buffer_size(), 'x'));
+
+  this->loop.set_pipe_write_pollfd(
+      ::pollfd{
+          .fd = full_pipe.writer.get(),
+          .events = POLLOUT,
+          .revents = 0,
+      },
+      [](const ::pollfd&) {
+        ADD_FAILURE() << "on_pipe_write_event should not be called";
+      });
+
+  std::thread writer_thread([this]() {
+    std::this_thread::sleep_for(10ms);
+    // Interrupt event_loop::run on the main thread.
+    this->pipe.writer.close();
+  });
+  this->loop.run();
+
+  writer_thread.join();
+}
+#endif
 
 void write_full_message(platform_file_ref file, string8_view message) {
   std::optional<int> bytes_written =
