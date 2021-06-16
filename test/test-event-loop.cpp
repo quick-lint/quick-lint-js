@@ -21,7 +21,7 @@ void write_full_message(platform_file_ref, string8_view);
 struct spy_event_loop : public event_loop<spy_event_loop> {
   explicit spy_event_loop(platform_file_ref pipe) : pipe_(pipe) {}
 
-  platform_file_ref get_readable_pipe() { return this->pipe_; }
+  platform_file_ref get_readable_pipe() const { return this->pipe_; }
 
   void append(string8_view data) {
     std::unique_lock lock(this->mutex_);
@@ -54,8 +54,17 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 
 class test_event_loop : public ::testing::Test {
  public:
-  pipe_fds pipe = make_pipe();
+  pipe_fds pipe = make_pipe_for_event_loop();
   spy_event_loop loop{this->pipe.reader.ref()};
+
+ private:
+  static pipe_fds make_pipe_for_event_loop() {
+    pipe_fds pipe = make_pipe();
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+    pipe.reader.set_pipe_non_blocking();
+#endif
+    return pipe;
+  }
 };
 
 TEST_F(test_event_loop, stops_on_eof) {

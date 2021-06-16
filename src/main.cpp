@@ -400,7 +400,7 @@ void run_lsp_server() {
           endpoint_(std::forward_as_tuple(fs),
                     std::forward_as_tuple(output_pipe)) {}
 
-    platform_file_ref get_readable_pipe() { return this->input_pipe_; }
+    platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
 
     void append(string8_view data) { this->endpoint_.append(data); }
 
@@ -411,6 +411,9 @@ void run_lsp_server() {
         endpoint_;
   };
 
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+  input_pipe.set_pipe_non_blocking();
+#endif
   lsp_event_loop server(input_pipe, output_pipe, &fs);
   server.run();
 }
