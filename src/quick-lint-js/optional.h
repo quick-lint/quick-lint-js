@@ -1,6 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#ifndef QUICK_LINT_JS_OPTIONAL_H
+#define QUICK_LINT_JS_OPTIONAL_H
+
 #include <optional>
 
 namespace quick_lint_js {
@@ -16,6 +19,8 @@ const T *get(const std::optional<T> &o) noexcept {
 template <class T>
 T *get(std::optional<T> &&) noexcept = delete;
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
