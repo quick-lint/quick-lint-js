@@ -67,6 +67,13 @@
              await_operator))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_async_static_method, "E269", { source_code_span async_static; },   \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "'async static' is not allowed; write 'static async' instead"),  \
+          async_static))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E005",                    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),       \
