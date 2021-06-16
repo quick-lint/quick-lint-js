@@ -62,23 +62,64 @@ windows_handle_file create_io_completion_port() noexcept;
 //
 // event_loop will never call non-const member functions in parallel.
 template <class Derived>
-class event_loop {
- public:
-#if defined(_WIN32)
-  enum completion_key : ULONG_PTR {
-    completion_key_invalid = 0,
-    completion_key_stop,
-  };
+class event_loop_base {
+ protected:
+  // Returns true when the pipe has closed. Returns false if the pipe might
+  // still have data available (now or in the future).
+  bool read_from_pipe() {
+    // TODO(strager): Pick buffer size intelligently.
+    std::array<char8, 1024> buffer;
+    platform_file_ref pipe = this->const_derived().get_readable_pipe();
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+    QLJS_ASSERT(pipe.is_pipe_non_blocking());
+#else
+    QLJS_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
-
-  explicit event_loop()
-#if defined(_WIN32)
-      : io_completion_port_(create_io_completion_port())
+    file_read_result read_result = pipe.read(buffer.data(), buffer.size());
+    if (read_result.at_end_of_file) {
+      return true;
+    } else if (read_result.error_message.has_value()) {
+#if QLJS_HAVE_UNISTD_H
+      if (errno == EAGAIN) {
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+        return false;
+#else
+        QLJS_UNREACHABLE();
 #endif
-  {
+      }
+#endif
+      QLJS_UNIMPLEMENTED();
+    } else {
+      QLJS_ASSERT(read_result.bytes_read != 0);
+      this->derived().append(string8_view(
+          buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
+      return false;
+    }
   }
 
+#if QLJS_HAVE_CXX_CONCEPTS
+  event_loop_delegate
+#endif
+      auto&
+      derived() {
+    return *static_cast<Derived*>(this);
+  }
+
+  const
+#if QLJS_HAVE_CXX_CONCEPTS
+      event_loop_delegate
+#endif
+      auto&
+      const_derived() const {
+    return *static_cast<const Derived*>(this);
+  }
+};
+
 #if QLJS_HAVE_POLL
+// An event loop using POSIX poll(). See event_loop_base for details.
+template <class Derived>
+class poll_event_loop : public event_loop_base<Derived> {
+ public:
   void run() {
     while (!this->done_) {
       // TODO(strager): Only call read() if poll() tells us that data is
@@ -130,7 +171,26 @@ class event_loop {
       }
     }
   }
-#elif defined(_WIN32)
+
+ private:
+  bool done_ = false;
+};
+#endif
+
+#if defined(_WIN32)
+// An event loop using Win32's I/O completion ports. See event_loop_base for
+// details.
+template <class Derived>
+class windows_event_loop : public event_loop_base<Derived> {
+ public:
+  enum completion_key : ULONG_PTR {
+    completion_key_invalid = 0,
+    completion_key_stop,
+  };
+
+  explicit windows_event_loop()
+      : io_completion_port_(create_io_completion_port()) {}
+
   void run() {
     static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
 
@@ -161,12 +221,8 @@ class event_loop {
       }
     }
   }
-#else
-#error "Unsupported platform"
-#endif
 
  private:
-#if defined(_WIN32)
   void run_read_pipe_thread() {
     while (!this->read_from_pipe()) {
       // Loop.
@@ -181,65 +237,22 @@ class event_loop {
       QLJS_UNIMPLEMENTED();
     }
   }
-#endif
 
-  // Returns true when the pipe has closed. Returns false if the pipe might
-  // still have data available (now or in the future).
-  bool read_from_pipe() {
-    // TODO(strager): Pick buffer size intelligently.
-    std::array<char8, 1024> buffer;
-    platform_file_ref pipe = this->const_derived().get_readable_pipe();
-#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-    QLJS_ASSERT(pipe.is_pipe_non_blocking());
-#else
-    QLJS_ASSERT(!pipe.is_pipe_non_blocking());
-#endif
-    file_read_result read_result = pipe.read(buffer.data(), buffer.size());
-    if (read_result.at_end_of_file) {
-      return true;
-    } else if (read_result.error_message.has_value()) {
-#if QLJS_HAVE_UNISTD_H
-      if (errno == EAGAIN) {
-#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-        return false;
-#else
-        QLJS_UNREACHABLE();
-#endif
-      }
-#endif
-      QLJS_UNIMPLEMENTED();
-    } else {
-      QLJS_ASSERT(read_result.bytes_read != 0);
-      this->derived().append(string8_view(
-          buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
-      return false;
-    }
-  }
-
-#if QLJS_HAVE_CXX_CONCEPTS
-  event_loop_delegate
-#endif
-      auto&
-      derived() {
-    return *static_cast<Derived*>(this);
-  }
-
-  const
-#if QLJS_HAVE_CXX_CONCEPTS
-      event_loop_delegate
-#endif
-      auto&
-      const_derived() const {
-    return *static_cast<const Derived*>(this);
-  }
-
-#if defined(_WIN32)
   windows_handle_file io_completion_port_;
   std::thread read_pipe_thread_;
-#else
-  bool done_ = false;
-#endif
 };
+#endif
+
+template <class Derived>
+using event_loop =
+#if QLJS_HAVE_POLL
+    poll_event_loop
+#elif defined(_WIN32)
+    windows_event_loop
+#else
+#error "Unknown platform"
+#endif
+    <Derived>;
 
 #if defined(_WIN32)
 inline windows_handle_file create_io_completion_port() noexcept {
