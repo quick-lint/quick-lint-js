@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <iostream>
 #include <memory>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
