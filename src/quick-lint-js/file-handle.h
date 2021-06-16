@@ -55,6 +55,7 @@ class windows_handle_file_ref {
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
   bool is_pipe_non_blocking();
+  void set_pipe_non_blocking();
   std::size_t get_pipe_buffer_size();
 
   static std::string get_last_error_message();
@@ -84,6 +85,7 @@ class windows_handle_file : private windows_handle_file_ref {
   using windows_handle_file_ref::get_pipe_buffer_size;
   using windows_handle_file_ref::is_pipe_non_blocking;
   using windows_handle_file_ref::read;
+  using windows_handle_file_ref::set_pipe_non_blocking;
   using windows_handle_file_ref::write;
 
  private:

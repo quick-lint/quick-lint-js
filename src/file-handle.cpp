@@ -53,7 +53,9 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     return file_read_result{
         .at_end_of_file = error == ERROR_BROKEN_PIPE,
         .bytes_read = 0,
-        .error_message = windows_error_message(error),
+        .error_message = error == ERROR_NO_DATA
+                             ? std::nullopt
+                             : std::optional(windows_error_message(error)),
     };
   }
   return file_read_result{
@@ -99,6 +101,16 @@ bool windows_handle_file_ref::is_pipe_non_blocking() {
     QLJS_UNIMPLEMENTED();
   }
   return (state & PIPE_NOWAIT) == PIPE_NOWAIT;
+}
+
+void windows_handle_file_ref::set_pipe_non_blocking() {
+  DWORD mode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
+  BOOL ok = ::SetNamedPipeHandleState(this->get(), /*lpMode=*/&mode,
+                                      /*lpMaxCollectionCount=*/nullptr,
+                                      /*lpCollectDataTimeout=*/nullptr);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
 }
 
 std::size_t windows_handle_file_ref::get_pipe_buffer_size() {
