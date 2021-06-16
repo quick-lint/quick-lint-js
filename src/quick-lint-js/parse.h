@@ -1441,12 +1441,43 @@ class parser {
     QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
     std::optional<identifier> last_ident;
+    const char8 *async_token_begin = nullptr;
     function_attributes method_attributes = function_attributes::normal;
+    bool async_static = false;
 
     auto parse_and_visit_field_or_method_impl =
-        [this, &v](std::optional<identifier> property_name,
-                   source_code_span property_name_span,
-                   function_attributes method_attributes) -> void {
+        [this, &v, &async_static, &async_token_begin](
+            std::optional<identifier> property_name,
+            source_code_span property_name_span,
+            function_attributes method_attributes) -> void {
+      if (async_static) {
+        if (this->peek().type == token_type::star) {
+          // async static *m() {}  // Invalid.
+          method_attributes = function_attributes::async_generator;
+          this->skip();
+        }
+        switch (this->peek().type) {
+        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
+        QLJS_CASE_CONTEXTUAL_KEYWORD:
+        case token_type::identifier:
+        case token_type::private_identifier:
+        case token_type::reserved_keyword_with_escape_sequence:
+          // async static method() {}             // Invalid
+          // async static *myAsyncGenerator() {}  // Invalid
+          this->error_reporter_->report(error_async_static_method{
+              .async_static =
+                  source_code_span(async_token_begin, property_name_span.end()),
+          });
+          property_name = this->peek().identifier_name();
+          property_name_span = property_name->span();
+          this->skip();
+          break;
+        // async static() {}
+        default:
+          break;
+        }
+      }
+
       switch (this->peek().type) {
       // method() { }
       // method { }    // Invalid (missing parameter list).
@@ -1540,14 +1571,41 @@ class parser {
     // async f() {}
     case token_type::kw_async:
       last_ident = this->peek().identifier_name();
+      async_token_begin = this->peek().begin;
       this->skip();
-      if (this->peek().type != token_type::left_paren) {
-        method_attributes = function_attributes::async;
-      }
-      if (this->peek().type == token_type::star) {
-        // async *g() {}
-        method_attributes = function_attributes::async_generator;
-        this->skip();
+      if (this->peek().has_leading_newline) {
+        switch (this->peek().type) {
+        // 'async' is a field name:
+        // class {
+        //   async
+        //   method() {}
+        // }
+        QLJS_CASE_KEYWORD:
+        case token_type::left_square:
+        case token_type::number:
+        case token_type::string:
+        case token_type::identifier:
+        case token_type::private_identifier:
+        case token_type::star:
+          v.visit_property_declaration(last_ident);
+          return;
+        default:
+          break;
+        }
+      } else {
+        if (this->peek().type != token_type::left_paren) {
+          method_attributes = function_attributes::async;
+        }
+        if (this->peek().type == token_type::star) {
+          // async *g() {}
+          method_attributes = function_attributes::async_generator;
+          this->skip();
+        }
+        if (this->peek().type == token_type::kw_static) {
+          // async static method() {}  // Invalid
+          // async static() {}
+          async_static = true;
+        }
       }
       break;
 
@@ -1576,12 +1634,8 @@ class parser {
     // field = initialValue;
     // #field = initialValue;
     QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
-    QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
-    case token_type::kw_async:
-    case token_type::kw_get:
-    case token_type::kw_set:
-    case token_type::kw_static:
     case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence: {
       identifier property_name = this->peek().identifier_name();
