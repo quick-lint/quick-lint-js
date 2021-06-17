@@ -223,25 +223,11 @@ canonical_path_result canonical_path_result::failure(std::string &&error) {
 }
 
 namespace {
-class path_canonicalizer {
+template <class Derived>
+class path_canonicalizer_base {
  public:
-  explicit path_canonicalizer(path_string_view path) : original_path_(path) {}
-
-  canonical_path_result result() {
-    if (!error_.empty()) {
-      return canonical_path_result::failure(std::move(error_));
-    }
-#if QLJS_PATHS_WIN32
-    // HACK(strager): Convert UTF-16 to UTF-8.
-    // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
-    // interpreted as UTF-8 code units! Fix by storing a std::wstring in
-    // canonical_path.
-    return canonical_path_result(std::filesystem::path(canonical_).string(),
-                                 existing_path_length_);
-#else
-    return canonical_path_result(std::move(canonical_), existing_path_length_);
-#endif
-  }
+  explicit path_canonicalizer_base(path_string_view path)
+      : original_path_(path) {}
 
   void canonicalize() {
     if (original_path_.empty()) {
@@ -250,7 +236,7 @@ class path_canonicalizer {
       return;
     }
 
-    process_start_of_path();
+    this->derived().process_start_of_path();
     if (!error_.empty()) return;
 
     while (!path_to_process_.empty()) {
@@ -270,7 +256,7 @@ class path_canonicalizer {
     }
   }
 
- private:
+ protected:
   enum class file_type {
     error,
 
@@ -279,6 +265,148 @@ class path_canonicalizer {
     other,
     symlink,
   };
+
+ private:
+  void process_next_component() {
+    path_string_view component = parse_next_component();
+    QLJS_ASSERT(!component.empty());
+    if (component == dot) {
+      skip_to_next_component();
+    } else if (component == dot_dot) {
+      if (existing_path_length_ == 0) {
+        this->derived().parent();
+      } else {
+        QLJS_ASSERT(!canonical_.empty());
+        canonical_ += preferred_component_separator;
+        canonical_ += component;
+      }
+      skip_to_next_component();
+    } else {
+      std::size_t canonical_length_without_component = canonical_.size();
+
+      canonical_ += preferred_component_separator;
+      canonical_ += component;
+      need_root_slash_ = false;
+
+      if (existing_path_length_ != 0) {
+        // A parent path did not exist, so this path certainly does not exist.
+        // Don't bother checking.
+        skip_to_next_component();
+        return;
+      }
+
+      file_type type = this->derived().get_file_type(canonical_);
+      switch (type) {
+      case file_type::error:
+        QLJS_ASSERT(!error_.empty());
+        return;
+
+      case file_type::does_not_exist:
+        if (existing_path_length_ == 0) {
+          existing_path_length_ = canonical_length_without_component;
+        }
+        skip_to_next_component();
+        break;
+
+      case file_type::directory:
+        skip_to_next_component();
+        break;
+
+      case file_type::other:
+        // Extra components and trailing slashes are not allowed for regular
+        // files, FIFOs, etc.
+        if (!path_to_process_.empty()) {
+          error_ = std::string("failed to canonicalize path ") +
+                   string_for_error_message(original_path_) + ": " +
+                   string_for_error_message(canonical_) + ": " +
+                   std::strerror(ENOTDIR);
+          return;
+        }
+        break;
+
+      case file_type::symlink:
+        this->derived().resolve_symlink();
+        if (!error_.empty()) return;
+        break;
+      }
+    }
+  }
+
+  path_string_view parse_next_component() {
+    std::size_t slash_index =
+        path_to_process_.find_first_of(component_separators);
+    if (slash_index == path_to_process_.npos) {
+      slash_index = path_to_process_.size();
+    }
+    std::size_t component_end_index = slash_index;
+
+    path_string_view component =
+        path_to_process_.substr(0, component_end_index);
+    path_to_process_ = path_to_process_.substr(component_end_index);
+    return component;
+  }
+
+  Derived &derived() { return *static_cast<Derived *>(this); }
+
+ protected:
+  void skip_to_next_component() {
+    std::size_t next_component_index =
+        path_to_process_.find_first_not_of(component_separators);
+    if (next_component_index == path_to_process_.npos) {
+      next_component_index = path_to_process_.size();
+    }
+    path_to_process_ = path_to_process_.substr(next_component_index);
+  }
+
+  path_string_view original_path_;
+
+  // path_to_process_ points either to path (caller's input) or
+  // readlink_buffers_[used_readlink_buffer_].
+  path_string_view path_to_process_ = original_path_;
+
+  path_string canonical_;
+  bool need_root_slash_;
+
+  // During canonicalization, if existing_path_length_ is 0, then we have not
+  // found a non-existing path.
+  //
+  // During canonicalization, if existing_path_length_ is not 0, then we have
+  // found a non-existing path. '..' should be preserved.
+  std::size_t existing_path_length_ = 0;
+
+  path_string readlink_buffers_[2];
+  int used_readlink_buffer_ = 0;  // Index into readlink_buffers_.
+
+  // If non-empty, then an error occurred.
+  std::string error_;
+
+  int symlink_depth_ = 0;
+  static constexpr int symlink_depth_limit_ = 100;
+};
+
+class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
+ private:
+  using base = path_canonicalizer_base<path_canonicalizer>;
+
+ public:
+  using base::canonicalize;
+  using base::path_canonicalizer_base;
+
+  canonical_path_result result() {
+    if (!error_.empty()) {
+      return canonical_path_result::failure(std::move(error_));
+    }
+#if QLJS_PATHS_WIN32
+    // HACK(strager): Convert UTF-16 to UTF-8.
+    // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
+    // interpreted as UTF-8 code units! Fix by storing a std::wstring in
+    // canonical_path.
+    return canonical_path_result(std::filesystem::path(canonical_).string(),
+                                 existing_path_length_);
+#else
+    return canonical_path_result(std::move(canonical_), existing_path_length_);
+#endif
+  }
 
   void process_start_of_path() {
 #if defined(_WIN32)
@@ -368,94 +496,6 @@ class path_canonicalizer {
 #else
 #error "Unsupported platform"
 #endif
-  }
-
-  void process_next_component() {
-    path_string_view component = parse_next_component();
-    QLJS_ASSERT(!component.empty());
-    if (component == dot) {
-      skip_to_next_component();
-    } else if (component == dot_dot) {
-      if (existing_path_length_ == 0) {
-        parent();
-      } else {
-        QLJS_ASSERT(!canonical_.empty());
-        canonical_ += preferred_component_separator;
-        canonical_ += component;
-      }
-      skip_to_next_component();
-    } else {
-      std::size_t canonical_length_without_component = canonical_.size();
-
-      canonical_ += preferred_component_separator;
-      canonical_ += component;
-      need_root_slash_ = false;
-
-      if (existing_path_length_ != 0) {
-        // A parent path did not exist, so this path certainly does not exist.
-        // Don't bother checking.
-        skip_to_next_component();
-        return;
-      }
-
-      file_type type = get_file_type(canonical_);
-      switch (type) {
-      case file_type::error:
-        QLJS_ASSERT(!error_.empty());
-        return;
-
-      case file_type::does_not_exist:
-        if (existing_path_length_ == 0) {
-          existing_path_length_ = canonical_length_without_component;
-        }
-        skip_to_next_component();
-        break;
-
-      case file_type::directory:
-        skip_to_next_component();
-        break;
-
-      case file_type::other:
-        // Extra components and trailing slashes are not allowed for regular
-        // files, FIFOs, etc.
-        if (!path_to_process_.empty()) {
-          error_ = std::string("failed to canonicalize path ") +
-                   string_for_error_message(original_path_) + ": " +
-                   string_for_error_message(canonical_) + ": " +
-                   std::strerror(ENOTDIR);
-          return;
-        }
-        break;
-
-      case file_type::symlink:
-        resolve_symlink();
-        if (!error_.empty()) return;
-        break;
-      }
-    }
-  }
-
-  path_string_view parse_next_component() {
-    std::size_t slash_index =
-        path_to_process_.find_first_of(component_separators);
-    if (slash_index == path_to_process_.npos) {
-      slash_index = path_to_process_.size();
-    }
-    std::size_t component_end_index = slash_index;
-
-    path_string_view component =
-        path_to_process_.substr(0, component_end_index);
-    path_to_process_ = path_to_process_.substr(component_end_index);
-    return component;
-  }
-
-  void skip_to_next_component() {
-    std::size_t next_component_index =
-        path_to_process_.find_first_not_of(component_separators);
-    if (next_component_index == path_to_process_.npos) {
-      next_component_index = path_to_process_.size();
-    }
-    path_to_process_ = path_to_process_.substr(next_component_index);
   }
 
   void parent() {
@@ -574,34 +614,10 @@ class path_canonicalizer {
 #endif
   }
 
+ private:
   void swap_readlink_buffers() {
     used_readlink_buffer_ = 1 - used_readlink_buffer_;
   }
-
-  path_string_view original_path_;
-
-  // path_to_process_ points either to path (caller's input) or
-  // readlink_buffers_[used_readlink_buffer_].
-  path_string_view path_to_process_ = original_path_;
-
-  path_string canonical_;
-  bool need_root_slash_;
-
-  // During canonicalization, if existing_path_length_ is 0, then we have not
-  // found a non-existing path.
-  //
-  // During canonicalization, if existing_path_length_ is not 0, then we have
-  // found a non-existing path. '..' should be preserved.
-  std::size_t existing_path_length_ = 0;
-
-  path_string readlink_buffers_[2];
-  int used_readlink_buffer_ = 0;  // Index into readlink_buffers_.
-
-  // If non-empty, then an error occurred.
-  std::string error_;
-
-  int symlink_depth_ = 0;
-  static constexpr int symlink_depth_limit_ = 100;
 };
 }
 
