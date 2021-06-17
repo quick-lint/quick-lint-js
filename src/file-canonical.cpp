@@ -384,9 +384,11 @@ class path_canonicalizer_base {
   static constexpr int symlink_depth_limit_ = 100;
 };
 
-class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
+#if QLJS_PATHS_POSIX
+class posix_path_canonicalizer
+    : public path_canonicalizer_base<posix_path_canonicalizer> {
  private:
-  using base = path_canonicalizer_base<path_canonicalizer>;
+  using base = path_canonicalizer_base<posix_path_canonicalizer>;
 
  public:
   using base::canonicalize;
@@ -396,20 +398,132 @@ class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
     if (!error_.empty()) {
       return canonical_path_result::failure(std::move(error_));
     }
+    return canonical_path_result(std::move(canonical_), existing_path_length_);
+  }
+
+  void process_start_of_path() {
+    bool is_absolute = !path_to_process_.empty() &&
+                       path_to_process_[0] == preferred_component_separator;
+    if (is_absolute) {
+      path_to_process_ = path_to_process_.substr(1);
+      canonical_.clear();
+      need_root_slash_ = true;
+    } else {
+      load_cwd();
+    }
+  }
+
+  void load_cwd() {
+    // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
+    // buffer?
+    canonical_.resize(PATH_MAX);
+    if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
+      error_ = std::string("failed to get current directory: ") +
+               std::strerror(errno);
+      return;
+    }
+    canonical_.resize(std::strlen(canonical_.c_str()));
+
+    need_root_slash_ = false;
+  }
+
+  void parent() {
+    if (!canonical_.empty()) {
+      canonical_ = parent_path(std::move(canonical_));
+    }
+  }
+
+  file_type get_file_type(const path_string &file_path) {
+    struct stat s;
+    int lstat_rc = ::lstat(file_path.c_str(), &s);
+    if (lstat_rc == -1) {
+      if (errno == ENOENT) {
+        return file_type::does_not_exist;
+      }
+      error_ = std::string("failed to canonicalize path ") +
+               string_for_error_message(original_path_) + ": " +
+               string_for_error_message(canonical_) + ": " +
+               std::strerror(errno);
+      return file_type::error;
+    }
+    if (S_ISLNK(s.st_mode)) {
+      return file_type::symlink;
+    }
+    if (S_ISDIR(s.st_mode)) {
+      return file_type::directory;
+    }
+    return file_type::other;
+  }
+
+  void resolve_symlink() {
+    symlink_depth_ += 1;
+    if (symlink_depth_ >= symlink_depth_limit_) {
+      error_ = std::string("failed to canonicalize path ") +
+               string_for_error_message(original_path_) + ": " +
+               std::strerror(ELOOP);
+      return;
+    }
+
+    std::string &new_readlink_buffer =
+        readlink_buffers_[1 - used_readlink_buffer_];
+    int readlink_rc =
+        read_symbolic_link(canonical_.c_str(), &new_readlink_buffer);
+    if (readlink_rc == -1) {
+      error_ = std::string("failed to canonicalize path ") +
+               string_for_error_message(original_path_) + ": " +
+               string_for_error_message(canonical_) + ": " +
+               std::strerror(errno);
+      return;
+    }
+
+    // Rebase the remaining input components onto the readlink result.
+    bool symlink_is_absolute = new_readlink_buffer[0] == '/';
+    if (!symlink_is_absolute) {
+      canonical_ = parent_path(std::move(canonical_));
+      if (canonical_ != "/" && canonical_ != "//") {
+        canonical_ += '/';
+      }
+      new_readlink_buffer.insert(0, canonical_);
+    }
+    new_readlink_buffer += path_to_process_;
+    path_to_process_ = new_readlink_buffer;
+    // After assigning to path_to_process_,
+    // readlink_buffers_[used_readlink_buffer_] is no longer in use.
+    swap_readlink_buffers();
+
+    process_start_of_path();
+  }
+
+ private:
+  void swap_readlink_buffers() {
+    used_readlink_buffer_ = 1 - used_readlink_buffer_;
+  }
+};
+#endif
+
 #if QLJS_PATHS_WIN32
+class windows_path_canonicalizer
+    : public path_canonicalizer_base<windows_path_canonicalizer> {
+ private:
+  using base = path_canonicalizer_base<windows_path_canonicalizer>;
+
+ public:
+  using base::canonicalize;
+  using base::path_canonicalizer_base;
+
+  canonical_path_result result() {
+    if (!error_.empty()) {
+      return canonical_path_result::failure(std::move(error_));
+    }
     // HACK(strager): Convert UTF-16 to UTF-8.
     // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
     // interpreted as UTF-8 code units! Fix by storing a std::wstring in
     // canonical_path.
     return canonical_path_result(std::filesystem::path(canonical_).string(),
                                  existing_path_length_);
-#else
-    return canonical_path_result(std::move(canonical_), existing_path_length_);
-#endif
   }
 
   void process_start_of_path() {
-#if defined(_WIN32)
     std::wstring temp(path_to_process_);
 
     // The PathCch functions only support '\' as a directory separator. Convert
@@ -448,23 +562,9 @@ class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
       QLJS_UNIMPLEMENTED();
       break;
     }
-#elif QLJS_PATHS_POSIX
-    bool is_absolute = !path_to_process_.empty() &&
-                       path_to_process_[0] == preferred_component_separator;
-    if (is_absolute) {
-      path_to_process_ = path_to_process_.substr(1);
-      canonical_.clear();
-      need_root_slash_ = true;
-    } else {
-      load_cwd();
-    }
-#else
-#error "Unsupported platform"
-#endif
   }
 
   void load_cwd() {
-#if defined(_WIN32)
     // size includes the null terminator.
     DWORD size = ::GetCurrentDirectoryW(0, nullptr);
     if (size == 0) {
@@ -481,25 +581,9 @@ class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
     }
 
     need_root_slash_ = false;
-#elif QLJS_HAVE_UNISTD_H && QLJS_PATHS_POSIX
-    // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
-    // buffer?
-    canonical_.resize(PATH_MAX);
-    if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
-      error_ = std::string("failed to get current directory: ") +
-               std::strerror(errno);
-      return;
-    }
-    canonical_.resize(std::strlen(canonical_.c_str()));
-
-    need_root_slash_ = false;
-#else
-#error "Unsupported platform"
-#endif
   }
 
   void parent() {
-#if defined(_WIN32)
     HRESULT result =
         ::PathCchRemoveFileSpec(canonical_.data(), canonical_.size() + 1);
     switch (result) {
@@ -517,15 +601,9 @@ class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
       break;
     }
     canonical_.resize(std::wcslen(canonical_.data()));
-#else
-    if (!canonical_.empty()) {
-      canonical_ = parent_path(std::move(canonical_));
-    }
-#endif
   }
 
   file_type get_file_type(const path_string &file_path) {
-#if defined(_WIN32)
     DWORD attributes = ::GetFileAttributesW(file_path.c_str());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
       DWORD error = ::GetLastError();
@@ -545,73 +623,11 @@ class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
       return file_type::directory;
     }
     return file_type::other;
-#elif QLJS_HAVE_SYS_STAT_H
-    struct stat s;
-    int lstat_rc = ::lstat(file_path.c_str(), &s);
-    if (lstat_rc == -1) {
-      if (errno == ENOENT) {
-        return file_type::does_not_exist;
-      }
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               string_for_error_message(canonical_) + ": " +
-               std::strerror(errno);
-      return file_type::error;
-    }
-    if (S_ISLNK(s.st_mode)) {
-      return file_type::symlink;
-    }
-    if (S_ISDIR(s.st_mode)) {
-      return file_type::directory;
-    }
-    return file_type::other;
-#else
-#error "Unsupported platform"
-#endif
   }
 
   void resolve_symlink() {
-#if QLJS_HAVE_UNISTD_H
-    symlink_depth_ += 1;
-    if (symlink_depth_ >= symlink_depth_limit_) {
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               std::strerror(ELOOP);
-      return;
-    }
-
-    std::string &new_readlink_buffer =
-        readlink_buffers_[1 - used_readlink_buffer_];
-    int readlink_rc =
-        read_symbolic_link(canonical_.c_str(), &new_readlink_buffer);
-    if (readlink_rc == -1) {
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               string_for_error_message(canonical_) + ": " +
-               std::strerror(errno);
-      return;
-    }
-
-    // Rebase the remaining input components onto the readlink result.
-    bool symlink_is_absolute = new_readlink_buffer[0] == '/';
-    if (!symlink_is_absolute) {
-      canonical_ = parent_path(std::move(canonical_));
-      if (canonical_ != "/" && canonical_ != "//") {
-        canonical_ += '/';
-      }
-      new_readlink_buffer.insert(0, canonical_);
-    }
-    new_readlink_buffer += path_to_process_;
-    path_to_process_ = new_readlink_buffer;
-    // After assigning to path_to_process_,
-    // readlink_buffers_[used_readlink_buffer_] is no longer in use.
-    swap_readlink_buffers();
-
-    process_start_of_path();
-#else
     // TODO(strager): Support symlinks on Windows.
     QLJS_UNIMPLEMENTED();
-#endif
   }
 
  private:
@@ -619,6 +635,7 @@ class path_canonicalizer : public path_canonicalizer_base<path_canonicalizer> {
     used_readlink_buffer_ = 1 - used_readlink_buffer_;
   }
 };
+#endif
 }
 
 canonical_path_result canonicalize_path(const char *path) {
@@ -627,9 +644,9 @@ canonical_path_result canonicalize_path(const char *path) {
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
-  path_canonicalizer canonicalizer(*wpath);
+  windows_path_canonicalizer canonicalizer(*wpath);
 #else
-  path_canonicalizer canonicalizer(path);
+  posix_path_canonicalizer canonicalizer(path);
 #endif
   canonicalizer.canonicalize();
   return canonicalizer.result();
