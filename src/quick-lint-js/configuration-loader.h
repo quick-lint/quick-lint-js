@@ -45,14 +45,18 @@ class configuration_loader {
   void refresh();
 
  private:
+  struct loaded_config_file {
+    configuration config;
+  };
+
   configuration_or_error load_config_file(const char* config_path);
   configuration_or_error find_and_load_config_file(const char* input_path);
 
-  configuration* get_loaded_config(const canonical_path& path) noexcept;
+  loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration_filesystem* fs_;
   configuration default_config_;
-  std::unordered_map<canonical_path, configuration> loaded_config_files_;
+  std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
 };
 
 class basic_configuration_filesystem : public configuration_filesystem {

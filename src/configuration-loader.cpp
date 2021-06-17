@@ -63,9 +63,9 @@ configuration_or_error configuration_loader::load_config_file(
     return configuration_or_error(std::move(canonical_config_path).error());
   }
 
-  if (configuration* config =
+  if (loaded_config_file* config_file =
           this->get_loaded_config(canonical_config_path.canonical())) {
-    return configuration_or_error(config);
+    return configuration_or_error(&config_file->config);
   }
   read_file_result config_json =
       this->fs_->read_file(canonical_config_path.canonical());
@@ -77,10 +77,11 @@ configuration_or_error configuration_loader::load_config_file(
       std::forward_as_tuple(canonical_config_path.canonical()),
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
-  configuration* config = &config_it->second;
-  config->set_config_file_path(std::move(canonical_config_path).canonical());
-  config->load_from_json(&config_json.content);
-  return configuration_or_error(config);
+  loaded_config_file* config_file = &config_it->second;
+  config_file->config.set_config_file_path(
+      std::move(canonical_config_path).canonical());
+  config_file->config.load_from_json(&config_json.content);
+  return configuration_or_error(&config_file->config);
 }
 
 QLJS_WARNING_PUSH
@@ -118,8 +119,9 @@ configuration_or_error configuration_loader::find_and_load_config_file(
       canonical_path config_path = parent_directory;
       config_path.append_component(file_name);
 
-      if (configuration* config = this->get_loaded_config(config_path)) {
-        return configuration_or_error(config);
+      if (loaded_config_file* config_file =
+              this->get_loaded_config(config_path)) {
+        return configuration_or_error(&config_file->config);
       }
 
       read_file_result config_json = this->fs_->read_file(config_path);
@@ -128,10 +130,10 @@ configuration_or_error configuration_loader::find_and_load_config_file(
             std::piecewise_construct, std::forward_as_tuple(config_path),
             std::forward_as_tuple());
         QLJS_ASSERT(inserted);
-        configuration* config = &config_it->second;
-        config->set_config_file_path(std::move(config_path));
-        config->load_from_json(&config_json.content);
-        return configuration_or_error(config);
+        loaded_config_file* config_file = &config_it->second;
+        config_file->config.set_config_file_path(std::move(config_path));
+        config_file->config.load_from_json(&config_json.content);
+        return configuration_or_error(&config_file->config);
       }
       if (!config_json.is_not_found_error) {
         return configuration_or_error(std::move(config_json.error));
@@ -152,8 +154,8 @@ configuration_or_error configuration_loader::find_and_load_config_file(
 
 QLJS_WARNING_POP
 
-configuration* configuration_loader::get_loaded_config(
-    const canonical_path& path) noexcept {
+configuration_loader::loaded_config_file*
+configuration_loader::get_loaded_config(const canonical_path& path) noexcept {
   auto existing_config_it = this->loaded_config_files_.find(path);
   return existing_config_it == this->loaded_config_files_.end()
              ? nullptr
