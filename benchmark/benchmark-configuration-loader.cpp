@@ -25,7 +25,7 @@ void benchmark_no_config_file(::benchmark::State& state) {
 
   for (auto _ : state) {
     configuration_loader loader(basic_configuration_filesystem::instance());
-    configuration* config = loader.load_for_file(path);
+    configuration_or_error config = loader.load_for_file(path);
     ::benchmark::DoNotOptimize(config);
   }
 }

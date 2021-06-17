@@ -22,27 +22,37 @@ class configuration_filesystem {
   virtual read_file_result read_file(const canonical_path&) = 0;
 };
 
+struct configuration_or_error {
+  explicit configuration_or_error(configuration* config);
+  explicit configuration_or_error(std::string&& error);
+
+  bool ok() const noexcept;
+
+  configuration& operator*();
+  configuration* operator->();
+
+  configuration* config = nullptr;
+  std::string error;
+};
+
 class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
-  configuration* load_for_file(const std::string& file_path);
-  configuration* load_for_file(const file_to_lint&);
-
-  std::string error() const;
+  configuration_or_error load_for_file(const std::string& file_path);
+  configuration_or_error load_for_file(const file_to_lint&);
 
   void refresh();
 
  private:
-  configuration* load_config_file(const char* config_path);
-  configuration* find_and_load_config_file(const char* input_path);
+  configuration_or_error load_config_file(const char* config_path);
+  configuration_or_error find_and_load_config_file(const char* input_path);
 
   configuration* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration_filesystem* fs_;
   configuration default_config_;
   std::unordered_map<canonical_path, configuration> loaded_config_files_;
-  std::string last_error_;
 };
 
 class basic_configuration_filesystem : public configuration_filesystem {

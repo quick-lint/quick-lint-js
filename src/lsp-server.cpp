@@ -203,11 +203,16 @@ void linting_lsp_server_handler<Linter>::
   doc.version_json = get_raw_json(version);
 
   switch (doc.type) {
-  case document_type::lintable:
+  case document_type::lintable: {
+    configuration_or_error config = this->get_config(document_path);
+    if (!config.ok()) {
+      QLJS_UNIMPLEMENTED();
+    }
     this->linter_.lint_and_get_diagnostics_notification(
-        *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),
-        doc.version_json, notification_json);
+        *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        notification_json);
     break;
+  }
 
   case document_type::config:
     this->config_loader_.refresh();
@@ -274,9 +279,13 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
+    configuration_or_error config = this->get_config(document_path);
+    if (!config.ok()) {
+      QLJS_UNIMPLEMENTED();
+    }
     this->linter_.lint_and_get_diagnostics_notification(
-        *this->get_config(document_path), doc.doc.string(), get_raw_json(uri),
-        doc.version_json, notification_json);
+        *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        notification_json);
   } else {
     doc.type = document_type::config;
     this->config_loader_.refresh();
@@ -299,11 +308,15 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
         // TODO(strager): Report a warning and use a default configuration.
         QLJS_UNIMPLEMENTED();
       }
+      configuration_or_error config = this->get_config(document_path);
+      if (!config.ok()) {
+        QLJS_UNIMPLEMENTED();
+      }
       // TODO(strager): Don't copy document_uri if it contains only non-special
       // characters.
       // TODO(strager): Cache the result of to_json_escaped_string?
       this->linter_.lint_and_get_diagnostics_notification(
-          *this->get_config(document_path), doc.doc.string(),
+          *config, doc.doc.string(),
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
       need_comma = true;
@@ -313,7 +326,7 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
 }
 
 template <QLJS_LSP_LINTER Linter>
-configuration* linting_lsp_server_handler<Linter>::get_config(
+configuration_or_error linting_lsp_server_handler<Linter>::get_config(
     const std::string& path) {
   return this->config_loader_.load_for_file(path);
 }
