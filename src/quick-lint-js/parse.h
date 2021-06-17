@@ -343,10 +343,36 @@ class parser {
     case token_type::slash:
     case token_type::slash_equal:
     case token_type::string:
-    case token_type::tilde:
+    case token_type::tilde: {
+      // @@@
+      if (this->peek().type == token_type::star) {
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+        token star_token = this->peek();
+        this->skip();
+        if (this->peek().type == token_type::kw_function) {
+          lexer_transaction function_begin_transaction =
+              this->lexer_.begin_transaction();
+          this->skip();
+          this->error_reporter_->report(
+              error_generator_function_star_belongs_before_name{
+                  .function_name = this->peek().span(),
+                  .star = star_token.span(),
+              });
+          this->lexer_.roll_back_transaction(
+              std::move(function_begin_transaction));
+          this->parse_and_visit_function_declaration(
+              v, function_attributes::generator,
+              /*begin=*/this->peek().begin,
+              /*require_name=*/
+              name_requirement::required_for_statement);
+        } else {
+          this->lexer_.roll_back_transaction(std::move(transaction));
+        }
+      }
       this->parse_and_visit_expression(v);
       parse_expression_end();
       break;
+    }
 
     // await settings.save();
     // await = value;

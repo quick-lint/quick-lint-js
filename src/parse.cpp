@@ -2043,7 +2043,8 @@ function_attributes parser::parse_generator_star(
       QLJS_ASSERT(false);
       return function_attributes::async_generator;
     case function_attributes::generator:
-      QLJS_ASSERT(false);
+      // @@@ remove
+      // QLJS_ASSERT(false);
       return function_attributes::generator;
     case function_attributes::normal:
       return function_attributes::generator;
