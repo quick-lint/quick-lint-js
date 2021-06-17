@@ -51,9 +51,7 @@ jobs:
           - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster"}
           - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch"}
           - {runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber"}
-          # TODO(strager): Re-enable Ubuntu 16.04 build when we stop relying on
-          # std::thread.
-          #- {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
     runs-on: ${{ matrix.os.runs_on }}
