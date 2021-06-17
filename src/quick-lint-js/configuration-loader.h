@@ -26,6 +26,7 @@ class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
+  configuration* load_for_file(const std::string& file_path);
   configuration* load_for_file(const file_to_lint&);
 
   std::string error() const;

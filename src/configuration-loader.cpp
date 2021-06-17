@@ -19,6 +19,11 @@ namespace quick_lint_js {
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
+configuration* configuration_loader::load_for_file(
+    const std::string& file_path) {
+  return this->find_and_load_config_file(file_path.c_str());
+}
+
 configuration* configuration_loader::load_for_file(const file_to_lint& file) {
   if (file.config_file) {
     return this->load_config_file(file.config_file);

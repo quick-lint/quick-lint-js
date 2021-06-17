@@ -315,10 +315,7 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
 template <QLJS_LSP_LINTER Linter>
 configuration* linting_lsp_server_handler<Linter>::get_config(
     const std::string& path) {
-  return this->config_loader_.load_for_file(file_to_lint{
-      .path = path.c_str(),
-      .vim_bufnr = std::nullopt,
-  });
+  return this->config_loader_.load_for_file(path);
 }
 
 template <QLJS_LSP_LINTER Linter>

@@ -25,12 +25,7 @@ void benchmark_no_config_file(::benchmark::State& state) {
 
   for (auto _ : state) {
     configuration_loader loader(basic_configuration_filesystem::instance());
-    configuration* config = loader.load_for_file(file_to_lint{
-        .path = path.c_str(),
-        .config_file = nullptr,
-        .is_stdin = false,
-        .vim_bufnr = std::nullopt,
-    });
+    configuration* config = loader.load_for_file(path);
     ::benchmark::DoNotOptimize(config);
   }
 }
