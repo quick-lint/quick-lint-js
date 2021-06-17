@@ -661,6 +661,8 @@ class parser {
     return this->parse_expression(precedence{});
   }
 
+  static bool has_potential_side_effects(expression *ast);
+
  private:
   enum class variable_context {
     lhs,
@@ -2572,8 +2574,31 @@ class parser {
     }
 
     if (this->peek().type == token_type::kw_else) {
+      source_code_span else_span = this->peek().span();
       this->skip();
-      parse_and_visit_body();
+
+      switch (this->peek().type) {
+      default:
+        parse_and_visit_body();
+        break;
+
+      case token_type::left_paren:
+        expression *ast = this->parse_expression(precedence{});
+        this->visit_expression(ast, v, variable_context::rhs);
+
+        if (this->peek().type == token_type::left_curly) {
+          this->consume_semicolon();
+
+          if (!ast->is_arrow_kind() && !this->has_potential_side_effects(ast)) {
+            this->error_reporter_->report(
+                error_else_with_conditional_missing_if{
+                    .else_token = else_span,
+                });
+          }
+          parse_and_visit_body();
+        }
+        break;
+      }
     }
   }
 
