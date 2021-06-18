@@ -753,6 +753,26 @@ TEST(test_parse, generator_function_with_misplaced_star) {
   }
 
   {
+    padded_string code(u8"let x = *function f(y) { yield y; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+                                      "visit_variable_declaration",        // y
+                                      "visit_enter_function_scope_body",   //
+                                      "visit_variable_use",                // y
+                                      "visit_exit_function_scope",         //
+                                      "visit_variable_declaration",        // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_generator_function_star_belongs_before_name, function_name,
+            offsets_matcher(&code, strlen(u8"let x = *function "), u8"f"), star,
+            offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
+  }
+
+  {
     padded_string code(u8"let x = *async function(y) { yield y; }"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -769,6 +789,26 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         ElementsAre(ERROR_TYPE_FIELD(
             error_generator_function_star_belongs_after_keyword_function, star,
             offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
+  }
+
+  {
+    padded_string code(u8"let x = *async function f(y) { yield y; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+                                      "visit_variable_declaration",        // y
+                                      "visit_enter_function_scope_body",   //
+                                      "visit_variable_use",                // y
+                                      "visit_exit_function_scope",         //
+                                      "visit_variable_declaration",        // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_generator_function_star_belongs_before_name, function_name,
+            offsets_matcher(&code, strlen(u8"let x = *async function "), u8"f"),
+            star, offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
   }
 }
 

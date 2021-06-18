@@ -443,9 +443,22 @@ expression* parser::parse_primary_expression(precedence prec) {
           attrb = function_attributes::async_generator;
         }
         if (this->peek().type == token_type::kw_function) {
-          this->error_reporter_->report(
-              error_generator_function_star_belongs_after_keyword_function{
-                  star_token.span()});
+          this->skip();
+          if (this->peek().type == token_type::identifier) {
+            this->error_reporter_->report(
+                error_generator_function_star_belongs_before_name{
+                    .function_name = this->peek().span(),
+                    .star = star_token.span()});
+          } else {
+            this->error_reporter_->report(
+                error_generator_function_star_belongs_after_keyword_function{
+                    .star = star_token.span()});
+          }
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          this->skip();
+          if (has_leading_async) {
+            this->skip();
+          }
           expression* function =
               this->parse_function_expression(attrb, this->peek().begin);
           return function;
