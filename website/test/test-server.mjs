@@ -422,6 +422,63 @@ describe("server", () => {
       let response = await request.get("/?key=value");
       expect(response.data).toBe("/");
     });
+
+    it("included template can refer to relative paths", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.ejs.html"),
+        "<%- await include('./dir/included.ejs.html') %>"
+      );
+      fs.mkdirSync(path.join(wwwRootPath, "dir"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "dir/included.ejs.html"),
+        `<%
+          let url = await import("url");
+          let { hello } = await import(url.pathToFileURL("./hello.mjs"));
+          __append(hello());
+        %>`
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "dir/hello.mjs"),
+        "export function hello() { return 'hi'; }"
+      );
+
+      let response = await request.get("/");
+      expect(response.data).toBe("hi");
+    });
+
+    it("including does not affect later imports", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.ejs.html"),
+        `<%
+          __append(await include("./dir-a/included-a.ejs.html"));
+          __append(" ");
+          let url = await import("url");
+          let { hello } = await import(url.pathToFileURL("./dir-b/hello-b.mjs"));
+          __append(hello());
+        %>`
+      );
+      fs.mkdirSync(path.join(wwwRootPath, "dir-a"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "dir-a/included-a.ejs.html"),
+        `<%
+          let url = await import("url");
+          let { hello } = await import(url.pathToFileURL("./hello-a.mjs"));
+          __append(hello());
+        %>`
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "dir-a/hello-a.mjs"),
+        "export function hello() { return 'hi-a'; }"
+      );
+      fs.mkdirSync(path.join(wwwRootPath, "dir-b"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "dir-b/hello-b.mjs"),
+        "export function hello() { return 'hi-b'; }"
+      );
+
+      let response = await request.get("/");
+      expect(response.data).toBe("hi-a hi-b");
+    });
   });
 });
 

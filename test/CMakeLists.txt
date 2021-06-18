@@ -40,6 +40,7 @@ quick_lint_js_add_executable(
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
+  test-event-loop.cpp
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
@@ -55,7 +56,6 @@ quick_lint_js_add_executable(
   test-lsp-error-reporter.cpp
   test-lsp-location.cpp
   test-lsp-message-parser.cpp
-  test-lsp-pipe-reader.cpp
   test-lsp-pipe-writer.cpp
   test-lsp-server.cpp
   test-math-overflow.cpp
@@ -72,9 +72,11 @@ quick_lint_js_add_executable(
   test-parse-statement.cpp
   test-parse-var.cpp
   test-parse.cpp
+  test-pipe-writer.cpp
   test-string-view.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
+  test-uri.cpp
   test-utf-16.cpp
   test-utf-8.cpp
   test-vector.cpp

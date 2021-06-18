@@ -20,10 +20,13 @@ def main() -> None:
 
     builds_directory = pathlib.Path(args.builds_directory)
     git_commits = get_git_commits()
-    all_builds = [
-        json.loads(build_sizes_file.read_text())
-        for build_sizes_file in builds_directory.glob("*/build-sizes.json")
-    ]
+    all_builds = []
+    for build_sizes_file in builds_directory.glob("*/build-sizes.json"):
+        content = build_sizes_file.read_text()
+        if not content:
+            sys.stderr.write(f"warning: file is empty: {build_sizes_file}\n")
+            continue
+        all_builds.append(json.loads(content))
     series = group_build_sizes(builds=all_builds, git_rev_list=git_commits)
     json.dump(series, sys.stdout, indent=2)
 

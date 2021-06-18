@@ -1,35 +1,16 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_PIPE_WRITER_H
-#define QUICK_LINT_JS_LSP_PIPE_WRITER_H
+#ifndef QUICK_LINT_JS_URI_H
+#define QUICK_LINT_JS_URI_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/pipe-writer.h>
+#include <string>
 
 namespace quick_lint_js {
-class byte_buffer;
-
-// An lsp_pipe_writer sends server->client Language Server Protocol messages via
-// a pipe or socket.
-//
-// lsp_pipe_writer satisfies lsp_endpoint_remote.
-//
-// lsp_pipe_writer is not thread-safe.
-class lsp_pipe_writer : private pipe_writer {
- public:
-  explicit lsp_pipe_writer(platform_file_ref pipe);
-
-  void send_message(byte_buffer &&);
-
-  using pipe_writer::flush;
-#if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
-  using pipe_writer::get_pollfd;
-  using pipe_writer::on_poll_event;
-#endif
-};
+std::string parse_file_from_lsp_uri(string8_view uri);
+std::string parse_file_from_lsp_uri_posix(string8_view uri);
+std::string parse_file_from_lsp_uri_win32(string8_view uri);
 }
 
 #endif

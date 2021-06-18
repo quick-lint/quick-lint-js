@@ -1,53 +1,79 @@
-# flycheck-quicklintjs Emacs plugin
+# Emacs plugin
 
-This directory contains a plugin for the [Emacs text editor][Emacs].
-
-This plugin integrates with other Emacs plugins to show lint rules when editing
-files in Emacs.
-
-**Important**: Installing this Emacs plugin will not also install quick-lint-js
-itself. You must separately install quick-lint-js in order for this plugin to
-work.
-
-Flycheck plugin must be installed and configured in order for this plugin to
-work:
-
-* [Flycheck] - On the fly syntax checking, version 31 or newer
+This directory contains quick-lint-js integration for [GNU Emacs][Emacs] plugins
+ecosystem including [Flymake], [Flycheck], [Eglot] and [LSP Mode].
 
 ## Installation
 
-### Manually
+**Important**: The following steps will not also install quick-lint-js itself.
+You must separately install [quick-lint-js](https://quick-lint-js.com/install)
+in order for this plugin to work.
 
-You need to copy flycheck-quicklintjs.el inside a folder present in Emacs
-load-path, a default one that is looked up by Emacs is
+Copy which plugin integration you like inside a folder present in Emacs
+`load-path`, the plugin integration files are:
+- eglot-quicklintjs.el
+- flycheck-quicklintjs.el
+- flymake-quicklintjs.el
+- lsp-quicklintjs.el
+
+A default folder that is looked up by Emacs is
 `/usr/local/share/emacs/site-lisp` but requires root privileges, alternatively
-you may append a custom folder of your preference containing the
-`flycheck-quicklintjs.el` file to Emacs load-path variable, for example:
+you may append a custom folder of your preference containing the plugin
+integration files to [Emacs load-path][load-path] variable, for example:
 
 ```lisp
 (add-to-list 'load-path "~/.emacs/quicklintjs")
 ```
 
-A less convenient way also possible is appending to `load-path` with Emacs
-command line argument `-L folder`
+It's also possible to append `load-path` with Emacs command line argument
+`-L folder`
 
-### Initialization
+### Eglot
 
-When Emacs is able to find the quick-lint-js library, you need to load it,
-your [Emacs Initialization] file is a good place:
+Make sure you have Eglot installed, it's available on [ELPA] or [MELPA]
+
+`M-x package-install RET eglot RET`
+
+Now load `eglot-quicklintjs` and quick-lint-js should be registered as a LSP
+server, starting Eglot with `M-x eglot RET` in a js-mode buffer should get you
+started.
+
+Usage example in your [Emacs initialization] file.
+
+<details>
+<summary>init.el</summary>
 
 ```lisp
-(require 'flycheck)
-(require 'flycheck-quicklintjs)
+(require 'eglot-quicklintjs)
+
+(defun my-eglot-quicklintjs-setup ()
+  "Configure eglot-quicklintjs for better experience."
+
+  ;; Remove the time to wait after last change before automatically checking
+  ;; buffer.  The default is 0.5 (500ms)
+  (setq-local eglot-send-changes-idle-time 0))
+(add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)
 ```
 
-At this point quick-lint-js should be registered as a checker, which you can
-verify with `M-x flycheck-verify-setup`, optionally we suggest that you add
-this hook to `js-mode`, which will remove the delay after you type that
-Flycheck waits before running the checker, also registers `quick-lint-js`
-as the selected checker by default, instead of `eslint`.
+</details>
+
+### Flycheck
+
+First install the Flycheck, it's available on MELPA.
+
+`M-x package-install RET flycheck RET`
+
+Now load flycheck-quicklintjs and quick-lint-js should be registered as a
+Flycheck checker, you may inspect your setup with
+`M-x flycheck-verify-setup RET`.
+
+Usage example in your [Emacs initialization] file.
+<details>
+  <summary>init.el</summary>
 
 ```lisp
+(require 'flycheck-quicklintjs)
+
 (defun my-flycheck-quicklintjs-setup ()
   "Configure flycheck-quicklintjs for better experience."
 
@@ -68,6 +94,76 @@ as the selected checker by default, instead of `eslint`.
 (add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)
 ```
 
-[Flycheck]: https://www.flycheck.org/
-[Emacs]: https://www.gnu.org/software/emacs/
-[Emacs Initialization]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
+</details>
+
+### Flymake
+
+Flymake is bultin on Emacs but it's supported only on major version 26 or
+higher.
+
+After loading flymake-quicklintjs, you can use `flymake-quicklintjs` function as
+a backend for Flymake.
+
+Usage example in your [Emacs initialization] file.
+<details>
+<summary>init.el</summary>
+
+```lisp
+(require 'flymake-quicklintjs)
+
+(defun my-flymake-quicklintjs-setup ()
+  "Configure flymake-quicklintjs for better experience."
+
+  ;; Enable Flymake
+  (unless (bound-and-true-p flymake-mode)
+    (flymake-mode))
+  (add-hook 'flymake-diagnostic-functions #'flymake-quicklintjs nil t)
+
+  ;; Remove the time to wait after last change before automatically checking
+  ;; buffer.  The default is 0.5 (500ms)
+  (setq-local flymake-no-changes-timeout 0))
+(add-hook 'js-mode-hook #'my-flymake-quicklintjs-setup)
+```
+
+</details>
+
+### LSP Mode
+
+First install the LSP Mode, if you have MELPA configured simply:
+
+`M-x package-install RET lsp-mode RET`
+
+Now require lsp-quicklintjs and quick-lint-js should be registered as a LSP
+server, starting LSP Mode with `M-x lsp RET` in a js-mode buffer should get you
+started.
+
+Usage example in your [Emacs initialization] file.
+<details>
+<summary>init.el</summary>
+
+```lisp
+(require 'lsp-quicklintjs)
+
+(defun my-lsp-quicklintjs-setup ()
+  "Configure lsp-quicklintjs for better experience."
+  ;; Remove the time to wait after last change before automatically checking
+  ;; buffer.  The default is 0.5 (500ms)
+  (setq-local lsp-idle-delay 0))
+(add-hook 'js-mode-hook #'my-lsp-quicklintjs-setup)
+```
+
+</details>
+
+
+[Flymake]:
+https://www.gnu.org/software/emacs/manual/html_node/flymake/index.html
+[Flycheck]: https://www.flycheck.org
+[Eglot]: https://github.com/joaotavora/eglot
+[LSP Mode]: https://emacs-lsp.github.io/lsp-mode
+[Emacs]: https://www.gnu.org/software/emacs
+[Emacs initialization]:
+https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
+[load-path]:
+https://www.gnu.org/software/emacs/manual/html_node/emacs/Lisp-Libraries.html
+[ELPA]: https://elpa.gnu.org
+[MELPA]: https://melpa.org/#/getting-started

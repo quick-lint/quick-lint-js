@@ -67,6 +67,13 @@
              await_operator))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_async_static_method, "E269", { source_code_span async_static; },   \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "'async static' is not allowed; write 'static async' instead"),  \
+          async_static))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E005",                    \
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),       \
@@ -208,6 +215,10 @@
       .error(                                                                  \
           QLJS_TRANSLATABLE("commas are not allowed after spread parameter"),  \
           comma))                                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_depth_limit_exceeded, "E203", { source_code_span token; },         \
+      .error(QLJS_TRANSLATABLE("depth limit exceeded"), token))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E065", { source_code_span else_token; },          \

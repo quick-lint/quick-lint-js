@@ -12,6 +12,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
+#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -23,7 +24,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/pipe-reader.h>
+#include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -158,7 +159,8 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  configuration_loader config_loader;
+  configuration_loader config_loader(
+      basic_configuration_filesystem::instance());
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
@@ -388,10 +390,45 @@ void run_lsp_server() {
   posix_fd_file_ref input_pipe(STDIN_FILENO);
   posix_fd_file_ref output_pipe(STDOUT_FILENO);
 #endif
-  pipe_reader<lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-                           lsp_pipe_writer>>
-      server(input_pipe, std::forward_as_tuple(),
-             std::forward_as_tuple(output_pipe));
+  basic_configuration_filesystem fs;
+
+  class lsp_event_loop : public event_loop<lsp_event_loop> {
+   public:
+    explicit lsp_event_loop(platform_file_ref input_pipe,
+                            platform_file_ref output_pipe,
+                            configuration_filesystem *fs)
+        : input_pipe_(input_pipe),
+          endpoint_(std::forward_as_tuple(fs),
+                    std::forward_as_tuple(output_pipe)) {}
+
+    platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
+
+    void append(string8_view data) { this->endpoint_.append(data); }
+
+#if QLJS_HAVE_POLL
+    std::optional<::pollfd> get_pipe_write_pollfd() {
+      return this->endpoint_.remote().get_pollfd();
+    }
+
+    void on_pipe_write_event(const ::pollfd &event) {
+      this->endpoint_.remote().on_poll_event(event);
+    }
+#endif
+
+   private:
+    platform_file_ref input_pipe_;
+    lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+                 lsp_pipe_writer>
+        endpoint_;
+  };
+
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+  input_pipe.set_pipe_non_blocking();
+#endif
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD
+  output_pipe.set_pipe_non_blocking();
+#endif
+  lsp_event_loop server(input_pipe, output_pipe, &fs);
   server.run();
 }
 

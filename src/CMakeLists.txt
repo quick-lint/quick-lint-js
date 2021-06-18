@@ -13,6 +13,12 @@ option(
   FALSE
 )
 
+set(NEED_THREADS TRUE)
+
+if (NEED_THREADS)
+  find_package(Threads REQUIRED)
+endif ()
+
 quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
@@ -62,6 +68,7 @@ quick_lint_js_add_library(
   options.cpp
   padded-string.cpp
   parse.cpp
+  pipe-writer.cpp
   quick-lint-js/assert.h
   quick-lint-js/bit.h
   quick-lint-js/buffering-error-reporter.h
@@ -82,6 +89,7 @@ quick_lint_js_add_library(
   quick-lint-js/error-list.h
   quick-lint-js/error-tape.h
   quick-lint-js/error.h
+  quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
   quick-lint-js/file-canonical.h
@@ -112,13 +120,14 @@ quick_lint_js_add_library(
   quick-lint-js/padded-string.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
-  quick-lint-js/pipe-reader.h
+  quick-lint-js/pipe-writer.h
   quick-lint-js/simd.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
   quick-lint-js/translation.h
   quick-lint-js/unreachable.h
+  quick-lint-js/uri.h
   quick-lint-js/utf-16.h
   quick-lint-js/utf-8.h
   quick-lint-js/vector.h
@@ -131,6 +140,7 @@ quick_lint_js_add_library(
   text-error-reporter.cpp
   translation-data.cpp
   translation.cpp
+  uri.cpp
   utf-16.cpp
   utf-8.cpp
   vector.cpp
@@ -142,6 +152,10 @@ target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
 if (WIN32)
   target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
+endif ()
+target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (NEED_THREADS)
+  target_link_libraries(quick-lint-js-lib PRIVATE Threads::Threads)
 endif ()
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(

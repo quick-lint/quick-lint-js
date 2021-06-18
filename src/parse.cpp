@@ -3,7 +3,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -78,6 +77,7 @@ parser::loop_guard parser::enter_loop() {
 }
 
 expression* parser::parse_expression(precedence prec) {
+  depth_guard guard(this);
   expression* ast = this->parse_primary_expression(prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
@@ -2115,11 +2115,11 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
 #if QLJS_HAVE_SETJMP
-  if (this->have_unimplemented_token_jmp_buf_) {
+  if (this->have_fatal_parse_error_jmp_buf_) {
     this->error_reporter_->report(error_unexpected_token{
         .token = this->peek().span(),
     });
-    std::longjmp(this->unimplemented_token_jmp_buf_, 1);
+    std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
     QLJS_UNREACHABLE();
   }
 #endif
@@ -2132,6 +2132,22 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   std::fprintf(stderr, " on line %d column %d", token_position.line_number,
                token_position.column_number);
   std::fprintf(stderr, "\n");
+
+  QLJS_CRASH_DISALLOWING_CORE_DUMP();
+}
+
+void parser::crash_on_depth_limit_exceeded() {
+#if QLJS_HAVE_SETJMP
+  if (this->have_fatal_parse_error_jmp_buf_) {
+    this->error_reporter_->report(error_depth_limit_exceeded{
+        .token = this->peek().span(),
+    });
+    std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
+    QLJS_UNREACHABLE();
+  }
+#endif
+
+  std::fprintf(stderr, "Error: parser depth limit exceeded\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }

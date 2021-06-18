@@ -41,6 +41,7 @@
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
-    "prettier": "^2.3.0"
+    "prettier": "^2.3.0",
+    "vsce": "^1.93.0"
   }
 }

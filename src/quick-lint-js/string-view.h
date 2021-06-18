@@ -7,8 +7,9 @@
 #include <string_view>
 
 namespace quick_lint_js {
-inline bool starts_with(std::string_view haystack,
-                        std::string_view needle) noexcept {
+template <class Char>
+inline bool starts_with(std::basic_string_view<Char> haystack,
+                        std::basic_string_view<Char> needle) noexcept {
   return haystack.substr(0, needle.size()) == needle;
 }
 

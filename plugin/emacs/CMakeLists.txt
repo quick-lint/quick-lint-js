@@ -6,6 +6,9 @@ include(GNUInstallDirs)
 
 install(
   FILES flycheck-quicklintjs.el
+  FILES lsp-quicklintjs.el
+  FILES eglot-quicklintjs.el
+  FILES flymake-quicklintjs.el
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp"
 )
 

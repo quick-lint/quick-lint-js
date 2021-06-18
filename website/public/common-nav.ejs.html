@@ -5,7 +5,11 @@
 
 <script>
   //<%
+  let ejs = await import("ejs");
   let path = await import("path");
+  let url = await import("url");
+  let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
+
   function makeRelativeURI(uri) {
     if (/^\w+:/.test(uri)) {
       return uri;
@@ -14,15 +18,29 @@
   }
 
   let navigationPages = [
-    ["/install/", "Install"],
-    ["/demo/", "Try online"],
-    ["/errors/", "Error docs"],
-    ["/cli/", "CLI docs"],
-    ["/config/", "Config docs"],
-    ["/benchmarks/", "Benchmarks"],
-    ["https://github.com/quick-lint/quick-lint-js", "Code on GitHub"],
-    ["/contact/", "Contact"],
+    { uri: "/install/", title: "Install" },
+    { uri: "/demo/", title: "Try online" },
+    { uri: "/errors/", title: "Error docs" },
+    { uri: "/cli/", title: "CLI docs" },
+    { uri: "/config/", title: "Config docs" },
+    { uri: "/benchmarks/", title: "Benchmarks" },
+    {
+      uri: "https://github.com/quick-lint/quick-lint-js",
+      title: "Code on GitHub",
+    },
+    { uri: "/contact/", title: "Contact" },
   ];
+
+  function pageLinkHTML(page) {
+    let titleHTML = ejs.escapeXML(page.title);
+    if (page.uri === currentURI) {
+      return html`<li class="current-page">${titleHTML}</li>`;
+    } else {
+      return html`<li>
+        <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
+      </li>`;
+    }
+  }
   //%>
 </script>
 
@@ -32,12 +50,8 @@
     <li class="side-bar-only">
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
-    <% } %> <% for (let [pageURL, pageTitle] of navigationPages) { %> <% if
-    (pageURL === currentURI) { %>
-    <li class="current-page"><%= pageTitle %></li>
-    <% } else { %>
-    <li><a href="<%= makeRelativeURI(pageURL) %>"><%= pageTitle %></a></li>
-    <% } %> <% } %>
+    <% } %> <% for (let page of navigationPages) { %> <%- pageLinkHTML(page) %>
+    <% } %>
   </ul>
 </nav>
 
