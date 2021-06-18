@@ -242,7 +242,7 @@ class DocumentLinter {
   async _recoverFromCrashAsync(error) {
     // BEGIN CRITICAL SECTION (no awaiting below)
     console.warn(
-      `[quick-lint-js] warning: Parser process crashed. Recovering: ${error.stack}`
+      `[${source}] warning: Parser process crashed. Recovering: ${error.stack}`
     );
     this._state = DocumentLinterState.RECOVERING;
     this._recoveryPromise = (async () => {
@@ -296,7 +296,7 @@ class DocumentLinter {
           break;
         default:
           console.warn(
-            `[quick-lint-js] warning: unexpected severity: ${diag.severity}`
+            `[${source}] warning: unexpected severity: ${diag.severity}`
           );
           vsCodeSeverity = coc.DiagnosticSeverity.Warning;
           break;
@@ -395,7 +395,7 @@ function logAsyncErrors(promise) {
   }
   return promise.catch((error) => {
     const message = error && error.stack ? error.stack : String(error);
-    console.error("[quick-lint-js] error:", message);
+    console.error(`[${source}] error: ${message}`);
   });
 }
 
