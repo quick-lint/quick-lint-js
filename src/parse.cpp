@@ -431,6 +431,28 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::equal:
   case token_type::kw_in:
   case token_type::question: {
+    if (this->peek().type == token_type::star) {
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      token star_token = this->peek();
+      this->skip();
+      if (!this->peek().has_leading_newline) {
+        bool has_leading_async = this->peek().type == token_type::kw_async;
+        function_attributes attrb = function_attributes::generator;
+        if (has_leading_async) {
+          this->skip();
+          attrb = function_attributes::async_generator;
+        }
+        if (this->peek().type == token_type::kw_function) {
+          this->error_reporter_->report(
+              error_generator_function_star_belongs_after_keyword_function{
+                  star_token.span()});
+          expression* function =
+              this->parse_function_expression(attrb, this->peek().begin);
+          return function;
+        }
+      }
+      this->lexer_.roll_back_transaction(std::move(transaction));
+    }
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (prec.binary_operators) {
@@ -2043,8 +2065,7 @@ function_attributes parser::parse_generator_star(
       QLJS_ASSERT(false);
       return function_attributes::async_generator;
     case function_attributes::generator:
-      // @@@ remove
-      // QLJS_ASSERT(false);
+      QLJS_ASSERT(false);
       return function_attributes::generator;
     case function_attributes::normal:
       return function_attributes::generator;

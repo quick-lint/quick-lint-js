@@ -438,6 +438,13 @@
               function_keywords, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_generator_function_star_belongs_after_keyword_function, "E204",    \
+      { source_code_span star; },                                              \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "generator function '*' belongs after keyword function"),     \
+             star))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_generator_function_star_belongs_before_name, "E133",               \
       {                                                                        \
         source_code_span function_name;                                        \
