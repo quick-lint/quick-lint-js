@@ -28,6 +28,9 @@
   "dependencies": {
     "quick-lint-js-wasm": "../../wasm"
   },
+  "bundledDependencies": [
+    "quick-lint-js-wasm"
+  ],
   "activationEvents": [
     "onLanguage:javascript"
   ],
