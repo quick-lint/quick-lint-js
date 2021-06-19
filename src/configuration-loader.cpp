@@ -94,6 +94,15 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 configuration_or_error
 configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
+  auto input_path_config_file_it =
+      this->input_path_config_files_.find(input_path);
+  if (input_path_config_file_it != this->input_path_config_files_.end()) {
+    const canonical_path& config_path = input_path_config_file_it->second;
+    auto config_file_it = this->loaded_config_files_.find(config_path);
+    QLJS_ASSERT(config_file_it != this->loaded_config_files_.end());
+    return configuration_or_error(&config_file_it->second.config);
+  }
+
   canonical_path_result canonical_input_path =
       this->fs_->canonicalize_path(input_path);
   if (!canonical_input_path.ok()) {
@@ -110,7 +119,7 @@ configuration_loader::find_and_load_config_file_for_input(
     parent_directory.parent();
   }
   return this->find_and_load_config_file_in_directory_and_ancestors(
-      std::move(parent_directory));
+      std::move(parent_directory), /*input_path=*/input_path);
 }
 
 configuration_or_error
@@ -124,12 +133,12 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
     canonical_cwd.drop_missing_components();
   }
   return this->find_and_load_config_file_in_directory_and_ancestors(
-      std::move(canonical_cwd).canonical());
+      std::move(canonical_cwd).canonical(), /*input_path=*/nullptr);
 }
 
 configuration_or_error
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
-    canonical_path&& parent_directory) {
+    canonical_path&& parent_directory, const char* input_path) {
   found_config_file found = this->find_config_file_in_directory_and_ancestors(
       std::move(parent_directory));
   if (!found.error.empty()) {
@@ -139,6 +148,12 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     return configuration_or_error(&this->default_config_);
   }
   canonical_path& config_path = *found.path;
+  if (input_path) {
+    auto [_it, inserted] =
+        this->input_path_config_files_.try_emplace(input_path, config_path);
+    QLJS_ASSERT(inserted);
+  }
+
   if (found.already_loaded) {
     return configuration_or_error(&found.already_loaded->config);
   }
@@ -226,7 +241,10 @@ configuration_loader::get_loaded_config(const canonical_path& path) noexcept {
              : &existing_config_it->second;
 }
 
-void configuration_loader::refresh() { this->loaded_config_files_.clear(); }
+void configuration_loader::refresh() {
+  this->input_path_config_files_.clear();
+  this->loaded_config_files_.clear();
+}
 
 basic_configuration_filesystem*
 basic_configuration_filesystem::instance() noexcept {

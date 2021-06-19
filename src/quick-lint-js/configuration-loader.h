@@ -62,7 +62,7 @@ class configuration_loader {
   configuration_or_error find_and_load_config_file_for_current_directory();
 
   configuration_or_error find_and_load_config_file_in_directory_and_ancestors(
-      canonical_path&&);
+      canonical_path&&, const char* input_path);
   found_config_file find_config_file_in_directory_and_ancestors(
       canonical_path&&);
 
@@ -70,6 +70,13 @@ class configuration_loader {
 
   configuration_filesystem* fs_;
   configuration default_config_;
+
+  // Key: an input file path
+  // Value: key to loaded_config_files_ (config file path)
+  std::unordered_map<std::string, canonical_path> input_path_config_files_;
+
+  // Key: config file path
+  // Value: cached parsed configuration
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
 };
 
