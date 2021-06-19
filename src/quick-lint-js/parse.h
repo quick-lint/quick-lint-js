@@ -345,44 +345,19 @@ class parser {
     case token_type::string:
     case token_type::tilde: {
       if (this->peek().type == token_type::star) {
-        lexer_transaction transaction = this->lexer_.begin_transaction();
+        // * 42; // Invalid (missing operand).
+        // *function f() {} // Invalid (misplaced '*').
         token star_token = this->peek();
-        this->skip();
-        if (!this->peek().has_leading_newline) {
-          function_attributes function_attributes_type =
-              function_attributes::generator;
-          bool has_leading_async = this->peek().type == token_type::kw_async;
-          if (has_leading_async) {
-            function_attributes_type = function_attributes::async_generator;
-            this->skip();
-          }
-          if (this->peek().type == token_type::kw_function) {
-            this->skip();
-            if (this->peek().type == token_type::identifier) {
-              this->error_reporter_->report(
-                  error_generator_function_star_belongs_before_name{
-                      .function_name = this->peek().span(),
-                      .star = star_token.span(),
-                  });
-            } else {
-              this->error_reporter_->report(
-                  error_generator_function_star_belongs_after_keyword_function{
-                      .star = star_token.span()});
-            }
-            this->lexer_.roll_back_transaction(std::move(transaction));
-            this->skip();
-            if (has_leading_async) {
-              this->skip();
-            }
-            this->parse_and_visit_function_declaration(
-                v, function_attributes_type,
-                /*begin=*/star_token.begin,
-                /*require_name=*/
-                name_requirement::required_for_statement);
-            break;
-          }
+        std::optional<function_attributes> attrb =
+            this->try_parse_function_with_leading_star();
+        if (attrb.has_value()) {
+          this->parse_and_visit_function_declaration(
+              v, attrb.value(),
+              /*begin=*/star_token.begin,
+              /*require_name=*/
+              name_requirement::required_for_statement);
+          break;
         }
-        this->lexer_.roll_back_transaction(std::move(transaction));
       }
       this->parse_and_visit_expression(v);
       parse_expression_end();
@@ -2210,7 +2185,8 @@ class parser {
       buffering_visitor lhs(this->buffering_visitor_memory());
       if (declaring_token.type == token_type::kw_let &&
           this->is_let_token_a_variable_reference(
-              this->peek(), /*allow_declarations=*/true)) {
+              this->peek(),
+              /*allow_declarations=*/true)) {
         // for (let = expression; cond; up) {}
         // for (let(); cond; up) {}
         // for (let; cond; up) {}
@@ -2534,6 +2510,45 @@ class parser {
     default:
       return std::nullopt;
     }
+  }
+
+  std::optional<function_attributes> try_parse_function_with_leading_star() {
+    QLJS_ASSERT(this->peek().type == token_type::star);
+    token star_token = this->peek();
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (!this->peek().has_leading_newline) {
+      function_attributes attrb = function_attributes::generator;
+      bool has_leading_async = this->peek().type == token_type::kw_async;
+      // *async function f() {}
+      if (has_leading_async) {
+        attrb = function_attributes::async_generator;
+        this->skip();
+      }
+      // *function f() {}
+      if (this->peek().type == token_type::kw_function) {
+        this->skip();
+        if (this->peek().type == token_type::identifier) {
+          this->error_reporter_->report(
+              error_generator_function_star_belongs_before_name{
+                  .function_name = this->peek().span(),
+                  .star = star_token.span(),
+              });
+        } else {
+          this->error_reporter_->report(
+              error_generator_function_star_belongs_after_keyword_function{
+                  .star = star_token.span()});
+        }
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        this->skip();
+        if (has_leading_async) {
+          this->skip();
+        }
+        return attrb;
+      }
+    }
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return std::nullopt;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>

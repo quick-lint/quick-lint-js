@@ -432,39 +432,14 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::kw_in:
   case token_type::question: {
     if (this->peek().type == token_type::star) {
-      lexer_transaction transaction = this->lexer_.begin_transaction();
       token star_token = this->peek();
-      this->skip();
-      if (!this->peek().has_leading_newline) {
-        bool has_leading_async = this->peek().type == token_type::kw_async;
-        function_attributes attrb = function_attributes::generator;
-        if (has_leading_async) {
-          this->skip();
-          attrb = function_attributes::async_generator;
-        }
-        if (this->peek().type == token_type::kw_function) {
-          this->skip();
-          if (this->peek().type == token_type::identifier) {
-            this->error_reporter_->report(
-                error_generator_function_star_belongs_before_name{
-                    .function_name = this->peek().span(),
-                    .star = star_token.span()});
-          } else {
-            this->error_reporter_->report(
-                error_generator_function_star_belongs_after_keyword_function{
-                    .star = star_token.span()});
-          }
-          this->lexer_.roll_back_transaction(std::move(transaction));
-          this->skip();
-          if (has_leading_async) {
-            this->skip();
-          }
-          expression* function =
-              this->parse_function_expression(attrb, star_token.begin);
-          return function;
-        }
+      std::optional<function_attributes> attrb =
+          this->try_parse_function_with_leading_star();
+      if (attrb.has_value()) {
+        expression* function =
+            this->parse_function_expression(attrb.value(), star_token.begin);
+        return function;
       }
-      this->lexer_.roll_back_transaction(std::move(transaction));
     }
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
