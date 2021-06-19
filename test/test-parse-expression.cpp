@@ -3237,6 +3237,13 @@ TEST_F(test_parse_expression,
   }
 }
 
+TEST_F(test_parse_expression, generator_misplaced_star) {
+  test_parser p(u8"(*function f(){})"_sv);
+  expression* ast = p.parse_expression();
+  EXPECT_EQ(p.range(ast).begin_offset(), 1);
+  EXPECT_EQ(p.range(ast).end_offset(), 16);
+}
+
 std::string summarize(const expression& expression) {
   auto children = [&] {
     std::string result;
