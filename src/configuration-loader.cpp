@@ -43,7 +43,7 @@ configuration_loader::configuration_loader(configuration_filesystem* fs)
 
 configuration_or_error configuration_loader::load_for_file(
     const std::string& file_path) {
-  return this->find_and_load_config_file(file_path.c_str());
+  return this->find_and_load_config_file_for_input(file_path.c_str());
 }
 
 configuration_or_error configuration_loader::load_for_file(
@@ -51,7 +51,11 @@ configuration_or_error configuration_loader::load_for_file(
   if (file.config_file) {
     return this->load_config_file(file.config_file);
   } else {
-    return this->find_and_load_config_file(file.path);
+    if (file.path) {
+      return this->find_and_load_config_file_for_input(file.path);
+    } else {
+      return this->find_and_load_config_file_for_current_directory();
+    }
   }
 }
 
@@ -87,15 +91,16 @@ configuration_or_error configuration_loader::load_config_file(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-configuration_or_error configuration_loader::find_and_load_config_file(
+configuration_or_error
+configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
   canonical_path_result canonical_input_path =
-      this->fs_->canonicalize_path(input_path ? input_path : ".");
+      this->fs_->canonicalize_path(input_path);
   if (!canonical_input_path.ok()) {
     return configuration_or_error(std::move(canonical_input_path).error());
   }
 
-  bool should_drop_file_name = input_path != nullptr;
+  bool should_drop_file_name = true;
   if (canonical_input_path.have_missing_components()) {
     canonical_input_path.drop_missing_components();
     should_drop_file_name = false;
@@ -104,7 +109,27 @@ configuration_or_error configuration_loader::find_and_load_config_file(
   if (should_drop_file_name) {
     parent_directory.parent();
   }
+  return this->find_and_load_config_file_in_directory_and_ancestors(
+      std::move(parent_directory));
+}
 
+configuration_or_error
+configuration_loader::find_and_load_config_file_for_current_directory() {
+  canonical_path_result canonical_cwd = this->fs_->canonicalize_path(".");
+  if (!canonical_cwd.ok()) {
+    return configuration_or_error(std::move(canonical_cwd).error());
+  }
+
+  if (canonical_cwd.have_missing_components()) {
+    canonical_cwd.drop_missing_components();
+  }
+  return this->find_and_load_config_file_in_directory_and_ancestors(
+      std::move(canonical_cwd).canonical());
+}
+
+configuration_or_error
+configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
+    canonical_path&& parent_directory) {
   // TODO(strager): Cache directory->config to reduce lookups in cases like the
   // following:
   //

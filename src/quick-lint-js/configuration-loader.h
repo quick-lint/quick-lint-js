@@ -50,7 +50,12 @@ class configuration_loader {
   };
 
   configuration_or_error load_config_file(const char* config_path);
-  configuration_or_error find_and_load_config_file(const char* input_path);
+  configuration_or_error find_and_load_config_file_for_input(
+      const char* input_path);
+  configuration_or_error find_and_load_config_file_for_current_directory();
+
+  configuration_or_error find_and_load_config_file_in_directory_and_ancestors(
+      canonical_path&&);
 
   loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
 
