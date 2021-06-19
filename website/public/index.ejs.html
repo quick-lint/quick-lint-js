@@ -212,6 +212,7 @@
               <th><a href="https://rslint.org/">RSLint</a></th>
               <th><a href="https://deno.land/">Deno</a></th>
               <th><a href="https://rome.tools/">Rome</a></th>
+              <th><a href="https://sonarlint.org/">SonarLint</a></th>
             </tr>
           </thead>
           <tbody>
@@ -241,6 +242,9 @@
                 <span aria-labelledby="feature-speed-rome-slow">🐢</span
                 ><br /><span id="feature-speed-rome-slow">slow</span>
               </td>
+              <td class="unkown">
+                <span id="feature-speed-sonarlint-unkown">?</span>
+              </td>
             </tr>
             <tr>
               <th colspan="2">license</th>
@@ -250,6 +254,8 @@
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
+              <td class="good">free<br />LGPL</td>
+              
             </tr>
             <tr>
               <th colspan="2">easy npm install</th>
@@ -272,6 +278,7 @@
               </td>
               <td class="bad"><span aria-label="hard">❌</span></td>
               <td class="good"><span aria-label="easy">✅</span></td>
+              <td class="bad"><span aria-label="hard">❌</span></td>
             </tr>
             <tr>
               <th colspan="2">easy setup</th>
@@ -292,6 +299,9 @@
               <td class="meh">
                 <span aria-label="hard">❌</span><br />config or
                 <code>init</code>
+              </td>
+              <td class="good">
+                <span aria-label="easy">✅</span><br />zero config
               </td>
             </tr>
             <tr>
@@ -324,6 +334,7 @@
                   >&nbsp;*</span
                 >
               </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
@@ -359,6 +370,7 @@
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
 
             <tr>
@@ -377,6 +389,9 @@
               <td class="meh">
                 <a href="https://rome.tools/docs/lint/rules/">some</a>
               </td>
+              <td class="meh">
+                <a href="https://rules.sonarsource.com/javascript/type/Bug">some</a>
+              </td>
             </tr>
             <tr>
               <th colspan="2">stable</th>
@@ -388,6 +403,7 @@
               <td class="bad"><span aria-label="unstable">❌</span></td>
               <td class="good"><span aria-label="stable">✅</span></td>
               <td class="bad"><span aria-label="unstable">❌</span></td>
+              <td class="good"><span aria-label="stable">✅</span></td>
             </tr>
           </tbody>
 
@@ -400,6 +416,7 @@
               <th><a href="https://rslint.org/">RSLint</a></th>
               <th><a href="https://deno.land/">Deno</a></th>
               <th><a href="https://rome.tools/">Rome</a></th>
+              <th><a href="https://sonarlint.org/">SonarLint</a></th>
             </tr>
             <tr>
               <th>VS Code</th>
@@ -412,6 +429,8 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+
             </tr>
             <tr>
               <th>Vim</th>
@@ -421,6 +440,7 @@
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
@@ -434,6 +454,7 @@
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th>Sublime Text</th>
@@ -443,6 +464,7 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
@@ -457,6 +479,7 @@
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th>Atom</th>
@@ -467,6 +490,7 @@
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th>Emacs</th>
@@ -474,6 +498,7 @@
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
@@ -488,6 +513,7 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
           </tbody>
         </table>
