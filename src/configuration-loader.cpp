@@ -130,6 +130,32 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
 configuration_or_error
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory) {
+  found_config_file found = this->find_config_file_in_directory_and_ancestors(
+      std::move(parent_directory));
+  if (!found.error.empty()) {
+    return configuration_or_error(std::move(found.error));
+  }
+  if (!found.path.has_value()) {
+    return configuration_or_error(&this->default_config_);
+  }
+  canonical_path& config_path = *found.path;
+  if (found.already_loaded) {
+    return configuration_or_error(&found.already_loaded->config);
+  }
+
+  auto [config_it, inserted] = this->loaded_config_files_.emplace(
+      std::piecewise_construct, std::forward_as_tuple(config_path),
+      std::forward_as_tuple());
+  QLJS_ASSERT(inserted);
+  loaded_config_file* config_file = &config_it->second;
+  config_file->config.set_config_file_path(std::move(config_path));
+  config_file->config.load_from_json(&found.file_content);
+  return configuration_or_error(&config_file->config);
+}
+
+configuration_loader::found_config_file
+configuration_loader::find_config_file_in_directory_and_ancestors(
+    canonical_path&& parent_directory) {
   // TODO(strager): Cache directory->config to reduce lookups in cases like the
   // following:
   //
@@ -146,22 +172,30 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
 
       if (loaded_config_file* config_file =
               this->get_loaded_config(config_path)) {
-        return configuration_or_error(&config_file->config);
+        return found_config_file{
+            .path = std::move(config_path),
+            .already_loaded = config_file,
+            .file_content = padded_string(),
+            .error = std::string(),
+        };
       }
 
       read_file_result config_json = this->fs_->read_file(config_path);
       if (config_json.ok()) {
-        auto [config_it, inserted] = this->loaded_config_files_.emplace(
-            std::piecewise_construct, std::forward_as_tuple(config_path),
-            std::forward_as_tuple());
-        QLJS_ASSERT(inserted);
-        loaded_config_file* config_file = &config_it->second;
-        config_file->config.set_config_file_path(std::move(config_path));
-        config_file->config.load_from_json(&config_json.content);
-        return configuration_or_error(&config_file->config);
+        return found_config_file{
+            .path = std::move(config_path),
+            .already_loaded = nullptr,
+            .file_content = std::move(config_json.content),
+            .error = std::string(),
+        };
       }
       if (!config_json.is_not_found_error) {
-        return configuration_or_error(std::move(config_json.error));
+        return found_config_file{
+            .path = std::move(config_path),
+            .already_loaded = nullptr,
+            .file_content = padded_string(),
+            .error = std::move(config_json.error),
+        };
       }
 
       // Loop, looking for a different file.
@@ -174,7 +208,12 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     }
   }
 
-  return configuration_or_error(&this->default_config_);
+  return found_config_file{
+      .path = std::nullopt,
+      .already_loaded = nullptr,
+      .file_content = padded_string(),
+      .error = std::string(),
+  };
 }
 
 QLJS_WARNING_POP

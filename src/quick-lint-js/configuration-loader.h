@@ -49,12 +49,21 @@ class configuration_loader {
     configuration config;
   };
 
+  struct found_config_file {
+    std::optional<canonical_path> path;
+    loaded_config_file* already_loaded = nullptr;
+    padded_string file_content{};
+    std::string error;
+  };
+
   configuration_or_error load_config_file(const char* config_path);
   configuration_or_error find_and_load_config_file_for_input(
       const char* input_path);
   configuration_or_error find_and_load_config_file_for_current_directory();
 
   configuration_or_error find_and_load_config_file_in_directory_and_ancestors(
+      canonical_path&&);
+  found_config_file find_config_file_in_directory_and_ancestors(
       canonical_path&&);
 
   loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
