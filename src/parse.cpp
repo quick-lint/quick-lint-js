@@ -460,7 +460,7 @@ expression* parser::parse_primary_expression(precedence prec) {
             this->skip();
           }
           expression* function =
-              this->parse_function_expression(attrb, this->peek().begin);
+              this->parse_function_expression(attrb, star_token.begin);
           return function;
         }
       }

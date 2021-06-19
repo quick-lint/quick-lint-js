@@ -376,7 +376,7 @@ class parser {
             }
             this->parse_and_visit_function_declaration(
                 v, function_attributes_type,
-                /*begin=*/this->peek().begin,
+                /*begin=*/star_token.begin,
                 /*require_name=*/
                 name_requirement::required_for_statement);
             break;
