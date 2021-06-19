@@ -431,6 +431,16 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::equal:
   case token_type::kw_in:
   case token_type::question: {
+    if (this->peek().type == token_type::star) {
+      token star_token = this->peek();
+      std::optional<function_attributes> attrb =
+          this->try_parse_function_with_leading_star();
+      if (attrb.has_value()) {
+        expression* function =
+            this->parse_function_expression(attrb.value(), star_token.begin);
+        return function;
+      }
+    }
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (prec.binary_operators) {
