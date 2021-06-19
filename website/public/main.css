@@ -103,6 +103,13 @@ header nav li li:first-child .current-page:before {
   /* Extend the vertical line to the baseline of the parent nav entry. */
   top: calc(var(--nav-entry-padding) * -1);
 }
+@media (prefers-color-scheme: dark) {
+  header nav li li {
+    --bullets-current-color: #eee;
+    --bullets-line-color: #999;
+    --bullets-link-color: #999;
+  }
+}
 
 header {
   display: grid;
@@ -300,15 +307,22 @@ pre mark:empty::before {
     display: unset;
   }
 
+  .side-bar-nav header nav li li a:link:after,
+  .side-bar-nav header nav li li .current-page:after {
+    margin-left: 0.5em;
+  }
   .side-bar-nav header nav li li {
     --bullets-circle-width: 7px;
     --bullets-current-color: #93a1a1;
     --bullets-line-color: #93a1a1;
     --bullets-link-color: #eee8d5;
   }
-  .side-bar-nav header nav li li a:link:after,
-  .side-bar-nav header nav li li .current-page:after {
-    margin-left: 0.5em;
+  @media (prefers-color-scheme: dark) {
+    .side-bar-nav header nav li li {
+      --bullets-current-color: #586e75;
+      --bullets-line-color: #073642;
+      --bullets-link-color: #073642;
+    }
   }
 }
 
