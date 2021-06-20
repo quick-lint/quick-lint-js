@@ -18,7 +18,11 @@
   }
 
   let navigationPages = [
-    { uri: "/install/", title: "Install" },
+    {
+      uri: "/install/",
+      title: "Install",
+      subpages: [{ uri: "/releases/", title: "Releases" }],
+    },
     { uri: "/demo/", title: "Try online" },
     {
       uri: "/docs/",
