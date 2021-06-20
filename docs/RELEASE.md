@@ -23,8 +23,8 @@ Follow the following steps to release a new version of quick-lint-js:
    * plugin/vscode/BUILDING.md
    * plugin/vscode/package.json
    * src/quick-lint-js/version.h
-   * website/index.html
-   * website/install.html
+   * website/public/index.ejs.html
+   * website/public/install/index.ejs.html
 
 2. Create a commit. Push it to GitHub on a non-main branch on
    https://github.com/quick-lint/quick-lint-js (not a fork).
