@@ -6,6 +6,8 @@ import os from "os";
 import path from "path";
 import { ErrorDocumentation } from "../src/error-documentation.mjs";
 
+const unKnownErrorCode = "E0XXX";
+
 describe("error documentation", () => {
   it("error code from file path", () => {
     expect(
@@ -152,9 +154,19 @@ wasn't that neat?
       "file.md",
       "code:\n\n    \ufeff--BOM\n"
     );
-    doc.diagnostics = [[{ begin: 0, end: 1 }]];
+    doc.diagnostics = [
+      [
+        {
+          begin: 0,
+          end: 1,
+          message: "unknown error",
+          code: unKnownErrorCode,
+          severity: 5,
+        },
+      ],
+    ];
     expect(doc.toHTML()).toContain(
-      "<code><mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
+      '<code><mark data-message="unknown error" data-code="E0XXX" data-severity="5"><span class=\'unicode-bom\'>\u{feff}</span></mark>--BOM'
     );
   });
 });

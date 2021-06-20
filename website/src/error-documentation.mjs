@@ -66,7 +66,7 @@ markdownParser.renderer.rules = {
     // Wrap BOM in a <span>.
     if (
       ["\u{feff}", "<mark>\u{feff}</mark>"].some((bom) =>
-        codeHTML.startsWith(bom)
+        codeHTML.includes(bom)
       )
     ) {
       codeHTML = codeHTML.replace(
