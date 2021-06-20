@@ -40,7 +40,7 @@ Beta release.
 * `++a[0];` no longer reports an assignment-to-const-variable error if `a` was
   declared with `const` (implemented by [Himanshu][])
 * `'undefined' === typeof foo ? 3 : 4` no longer reports a warning that `foo` is
-  undeclared
+  undeclared (implemented by [Himanshu][])
 * Building tests with GCC 11.1.1 no longer fails due to `-Werror`
 * Various crashes given invalid JavaScript no longer happen
 * Building the VS Code plugin now works on Windows (implemented by [Jimmy
