@@ -55,6 +55,7 @@ Beta release.
 [AidenThing]: https://github.com/AidenThing
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
+[Jimmy Qiu]: https://github.com/lifeinData
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
 [Matheus Sousa]: https://github.com/keyehzy
