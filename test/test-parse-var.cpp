@@ -92,7 +92,10 @@ TEST(test_parse, parse_simple_const) {
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, u8"x");
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
-  EXPECT_THAT(v.errors, IsEmpty());
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_missing_initializer_in_const_declaration, variable_name,
+                  offsets_matcher(&code, strlen(u8"const "), u8"x"))));
 }
 
 TEST(test_parse, let_asi) {
@@ -861,10 +864,15 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                     u8"x", variable_kind::_const}));
     cli_source_position::offset_type end_of_const_statement =
         strlen(u8"const x");
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_semicolon_after_statement, where,
-                    offsets_matcher(&code, end_of_const_statement, u8""))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_missing_initializer_in_const_declaration,
+                             variable_name,
+                             offsets_matcher(&code, strlen(u8"const "), u8"x")),
+            ERROR_TYPE_FIELD(
+                error_missing_semicolon_after_statement, where,
+                offsets_matcher(&code, end_of_const_statement, u8""))));
   }
 }
 

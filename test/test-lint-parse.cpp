@@ -85,7 +85,10 @@ TEST(test_lint,
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, IsEmpty());
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_missing_initializer_in_const_declaration, variable_name,
+                  offsets_matcher(&input, strlen(u8"const "), u8"f"))));
 }
 
 TEST(test_lint, typeof_with_conditional_operator) {
