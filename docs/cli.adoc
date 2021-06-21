@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 = quick-lint-js(1)
@@ -27,7 +27,7 @@ This command has two modes:
 *quick-lint-js* [<options>] _file_ [_file_...]::
   Batch mode (default).
   Check the given files, and report errors to the terminal (standard error).
-  --output-format can be used to customize how errors look.
+  *--output-format* can be used to customize how errors look.
 
 *quick-lint-js* --lsp-server::
   LSP server mode.
@@ -39,21 +39,40 @@ This command has two modes:
 *--output-format*=_format_::
   Customize how errors are printed. _format_ is one of the following:
 +
-pass:[-] *gnu-like* (default): a human-readable format similar to GCC.
-+
-pass:[-] *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
-+
+--
+- *gnu-like* (default): a human-readable format similar to GCC.
+- *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
+
 Incompatible with *--lsp-server*.
+--
 
 *--vim-file-bufnr*=_number_::
   Set the _bufnr_ property for errors printed with the *--output-format=vim-qflist-json* option.
-  *--vim-file-bufnr* applies only to files which are given later in the command line.
-  Therefore, if multiple files are given, *--vim-file-bufnr* can be specified multiple times.
++
+*--vim-file-bufnr* applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, *--vim-file-bufnr* can be specified multiple times.
+
+[#config-file]
+*--config-file*=_file_::
+  Read configuration options from _file_ and apply them to input files which are given later in the command line.
+ifdef::backend-manpage[]
+  See *quick-lint-js.config*(5) for the format of configuration files.
+endif::[]
+ifdef::backend-html5[]
+  See the link:../config/[config docs] for the format of configuration files.
+endif::[]
++
+If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
+See the <<Example>> section for an example.
++
+If *--config-file* is not given, an empty configuration file is assumed.
++
+Incompatible with *--lsp-server*.
 
 *--exit-fail-on*=_errors_::
   Cause *quick-lint-js* to exit with a non-zero exit code if any of the discovered errors is listed in _errors_.
 +
-See the "ERROR LISTS" section for a description of the format for _errors_.
+See the <<Error lists>> section for a description of the format for _errors_.
 +
 Incompatible with *--lsp-server*.
 
@@ -70,6 +89,10 @@ Incompatible with *--lsp-server*.
 +
 Incompatible with *--output-format*.
 
+*--dump-config*::
+  Print quick-lint-js' configuration and exit.
+  *This option is not yet implemented.*
+
 *-h*::
 *--help*::
   Print a help message and exit.
@@ -82,6 +105,7 @@ The output format is not intended to be machine-parsable and may change in the f
 +
 The output format is not intended to be machine-parsable and may change in the future.
 
+[#error-lists]
 == Error lists
 
 Some options, such as *--exit-fail-on*, accept an error list.
@@ -147,6 +171,7 @@ The specific status code may change in the future.
   Change the language used for error and warning messages.
   For example, set *LC_ALL=en* to see messages written in United States English.
 
+[#examples]
 == Example
 
 To lint a file called _lib/index.js_, writing error messages to the terminal:
@@ -186,16 +211,27 @@ $ echo $?
 ----
 ____
 
+To lint source files with a strict configuration file and lint test files with a lax configuration file:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* \
+    --config-file strict-quick-lint-js.config src/index.js src/helpers.js \
+    --config-file lax-quick-lint-js.config test/test-app.js
+----
+____
+
 ifdef::backend-manpage[]
 
 == See also
 
 *eslint*(1)
+*quick-lint-js.config*(1)
 
 endif::backend-manpage[]
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

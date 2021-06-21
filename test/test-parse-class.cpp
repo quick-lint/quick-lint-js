@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <gmock/gmock.h>
@@ -1078,11 +1078,115 @@ TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
             offsets_matcher(&code, strlen(u8"with (obj) "), u8"class"))));
   }
 }
+
+TEST(test_parse, async_static_method_is_disallowed) {
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"class C { async static m() { await myPromise; } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+
+    EXPECT_EQ(v.property_declarations[0].name, u8"m");
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       // m
+                            "visit_enter_function_scope",       // m
+                            "visit_enter_function_scope_body",  // m
+                            "visit_variable_use",               // myPromise
+                            "visit_exit_function_scope",        // m
+                            "visit_exit_class_scope"));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_async_static_method, async_static,
+            offsets_matcher(&code, strlen(u8"class C { "), u8"async static"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { async static static() { } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_EQ(v.property_declarations[0].name, u8"static");
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_async_static_method, async_static,
+            offsets_matcher(&code, strlen(u8"class C { "), u8"async static"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { async static *m() { } }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_EQ(v.property_declarations[0].name, u8"m");
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_async_static_method, async_static,
+            offsets_matcher(&code, strlen(u8"class C { "), u8"async static"))));
+  }
+}
+
+TEST(test_parse, static_method_allows_newline_after_static_keyword) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { static\n m() { } }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"m");
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { static\n *m() { } }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"m");
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { static\n async *m() { } }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"m");
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { static\n async\n *m() { } }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"async");
+    EXPECT_EQ(v.property_declarations[1].name, u8"m");
+  }
+}
+
+TEST(test_parse, async_method_prohibits_newline_after_async_keyword) {
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { async\n m() { } }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"async");
+    EXPECT_EQ(v.property_declarations[1].name, u8"m");
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { async\n static m() { } }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"async");
+    EXPECT_EQ(v.property_declarations[1].name, u8"m");
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C { async\n = 42 }"_sv);
+    EXPECT_EQ(v.property_declarations[0].name, u8"async");
+  }
+}
 }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

@@ -30,7 +30,7 @@ struct implementation_simdjson_result_base {
   /**
    * Create a new empty result with error = UNINITIALIZED.
    */
-  simdjson_really_inline implementation_simdjson_result_base() noexcept;
+  simdjson_really_inline implementation_simdjson_result_base() noexcept = default;
 
   /**
    * Create a new error result.
@@ -46,21 +46,6 @@ struct implementation_simdjson_result_base {
    * Create a new result with both things (use if you don't want to branch when creating the result).
    */
   simdjson_really_inline implementation_simdjson_result_base(T &&value, error_code error) noexcept;
-
-  /**
-   * Move a result.
-   */
-  simdjson_really_inline implementation_simdjson_result_base(implementation_simdjson_result_base<T> &&value) noexcept = default;
-
-  /**
-   * Copy a result.
-   */
-  simdjson_really_inline implementation_simdjson_result_base(const implementation_simdjson_result_base<T> &value) = default;
-
-  /**
-   * Create a new empty result with error = UNINITIALIZED.
-   */
-  simdjson_really_inline ~implementation_simdjson_result_base() noexcept;
 
   /**
    * Move the value and the error to the provided variables.
@@ -112,10 +97,22 @@ struct implementation_simdjson_result_base {
    */
   simdjson_really_inline operator T&&() && noexcept(false);
 
+  /**
+   * Get the result value. This function is safe if and only
+   * the error() method returns a value that evoluates to false.
+   */
+  simdjson_really_inline const T& value_unsafe() const& noexcept;
+
+  /**
+   * Take the result value (move it). This function is safe if and only
+   * the error() method returns a value that evoluates to false.
+   */
+  simdjson_really_inline T&& value_unsafe() && noexcept;
+
 #endif // SIMDJSON_EXCEPTIONS
 
-  T first;
-  error_code second;
+  T first{};
+  error_code second{UNINITIALIZED};
 }; // struct implementation_simdjson_result_base
 
 } // namespace SIMDJSON_IMPLEMENTATION

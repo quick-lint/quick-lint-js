@@ -1,10 +1,10 @@
-# Copyright 2021 Matthew Glazar
+# Copyright 2021 Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 name: benchmark-lsp
 
 author: Matthew "strager" Glazar
-copyright: Copyright (C) 2020  Matthew Glazar
+copyright: Copyright (C) 2020  Matthew "strager" Glazar
 description: Measure speed of Language Server Protocol (LSP) servers
 license-file: COPYING
 license: BSD3
@@ -45,7 +45,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N1
 
-# Copyright 2021 Matthew Glazar
+# Copyright 2021 Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

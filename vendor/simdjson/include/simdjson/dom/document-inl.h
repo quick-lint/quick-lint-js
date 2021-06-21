@@ -19,27 +19,41 @@ namespace dom {
 inline element document::root() const noexcept {
   return element(internal::tape_ref(this, 1));
 }
+simdjson_warn_unused
+inline size_t document::capacity() const noexcept {
+  return allocated_capacity;
+}
 
 simdjson_warn_unused
 inline error_code document::allocate(size_t capacity) noexcept {
   if (capacity == 0) {
     string_buf.reset();
     tape.reset();
+    allocated_capacity = 0;
     return SUCCESS;
   }
 
-  // a pathological input like "[[[[..." would generate len tape elements, so
-  // need a capacity of at least len + 1, but it is also possible to do
+  // a pathological input like "[[[[..." would generate capacity tape elements, so
+  // need a capacity of at least capacity + 1, but it is also possible to do
   // worse with "[7,7,7,7,6,7,7,7,6,7,7,6,[7,7,7,7,6,7,7,7,6,7,7,6,7,7,7,7,7,7,6"
-  //where len + 1 tape elements are
+  //where capacity + 1 tape elements are
   // generated, see issue https://github.com/lemire/simdjson/issues/345
   size_t tape_capacity = SIMDJSON_ROUNDUP_N(capacity + 3, 64);
-  // a document with only zero-length strings... could have len/3 string
-  // and we would need len/3 * 5 bytes on the string buffer
+  // a document with only zero-length strings... could have capacity/3 string
+  // and we would need capacity/3 * 5 bytes on the string buffer
   size_t string_capacity = SIMDJSON_ROUNDUP_N(5 * capacity / 3 + SIMDJSON_PADDING, 64);
   string_buf.reset( new (std::nothrow) uint8_t[string_capacity]);
   tape.reset(new (std::nothrow) uint64_t[tape_capacity]);
-  return string_buf && tape ? SUCCESS : MEMALLOC;
+  if(!(string_buf && tape)) {
+    allocated_capacity = 0;
+    string_buf.reset();
+    tape.reset();
+    return MEMALLOC;
+  }
+  // Technically the allocated_capacity might be larger than capacity
+  // so the next line is pessimistic.
+  allocated_capacity = capacity;
+  return SUCCESS;
 }
 
 inline bool document::dump_raw_tape(std::ostream &os) const noexcept {
@@ -68,7 +82,7 @@ inline bool document::dump_raw_tape(std::ostream &os) const noexcept {
       os << "string \"";
       std::memcpy(&string_length, string_buf.get() + payload, sizeof(uint32_t));
       os << internal::escape_json_string(std::string_view(
-        (const char *)(string_buf.get() + payload + sizeof(uint32_t)),
+        reinterpret_cast<const char *>(string_buf.get() + payload + sizeof(uint32_t)),
         string_length
       ));
       os << '"';
@@ -105,20 +119,23 @@ inline bool document::dump_raw_tape(std::ostream &os) const noexcept {
       os << "false\n";
       break;
     case '{': // we have an object
-      os << "{\t// pointing to next tape location " << payload
-         << " (first node after the scope) \n";
-      break;
-    case '}': // we end an object
-      os << "}\t// pointing to previous tape location " << payload
-         << " (start of the scope) \n";
+      os << "{\t// pointing to next tape location " << uint32_t(payload)
+         << " (first node after the scope), "
+         << " saturated count "
+         << ((payload >> 32) & internal::JSON_COUNT_MASK)<< "\n";
+      break;    case '}': // we end an object
+      os << "}\t// pointing to previous tape location " << uint32_t(payload)
+         << " (start of the scope)\n";
       break;
     case '[': // we start an array
-      os << "[\t// pointing to next tape location " << payload
-         << " (first node after the scope) \n";
+      os << "[\t// pointing to next tape location " << uint32_t(payload)
+         << " (first node after the scope), "
+         << " saturated count "
+         << ((payload >> 32) & internal::JSON_COUNT_MASK)<< "\n";
       break;
     case ']': // we end an array
-      os << "]\t// pointing to previous tape location " << payload
-         << " (start of the scope) \n";
+      os << "]\t// pointing to previous tape location " << uint32_t(payload)
+         << " (start of the scope)\n";
       break;
     case 'r': // we start and end with the root node
       // should we be hitting the root node?

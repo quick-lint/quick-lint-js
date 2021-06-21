@@ -1,13 +1,18 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 _quick-lint-js () {
         local cur opts
         _init_completion -n = || return
 
-        opts='--help --version --lsp-server --stdin --exit-fail-on= --output-format= --vim-file-bufnr='
+        opts='--help --version --lsp-server --config-file= --stdin --exit-fail-on= --output-format= --vim-file-bufnr='
 
         case $cur in
+                --config-file=*)
+                        _split_longopt
+                        _filedir
+                        return
+                        ;;
                 --output-format=*)
                         COMPREPLY=($(compgen -W 'gnu-like vim-qflint-json' -- "${cur#*=}"))
                         return
@@ -29,7 +34,7 @@ _quick-lint-js () {
 complete -F _quick-lint-js quick-lint-js
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

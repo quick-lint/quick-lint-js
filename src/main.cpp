@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cerrno>
@@ -8,8 +8,11 @@
 #include <iostream>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration-loader.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
+#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -21,7 +24,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/pipe-reader.h>
+#include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -31,6 +34,7 @@
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <variant>
 
 #if QLJS_HAVE_UNISTD_H
@@ -103,7 +107,7 @@ class any_error_reporter {
 
 [[noreturn]] void handle_options(quick_lint_js::options o);
 
-void process_file(padded_string_view input, error_reporter *,
+void process_file(padded_string_view input, configuration &, error_reporter *,
                   bool print_parser_visits);
 
 void run_lsp_server();
@@ -155,9 +159,16 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
+  configuration_loader config_loader(
+      basic_configuration_filesystem::instance());
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
+    configuration_or_error config = config_loader.load_for_file(file);
+    if (!config.ok()) {
+      std::fprintf(stderr, "error: %s\n", config.error.c_str());
+      std::exit(1);
+    }
     quick_lint_js::read_file_result source;
     if (file.is_stdin) {
       source = quick_lint_js::read_stdin();
@@ -166,7 +177,7 @@ void handle_options(quick_lint_js::options o) {
     }
     source.exit_if_not_ok();
     reporter.set_source(&source.content, file);
-    quick_lint_js::process_file(&source.content, reporter.get(),
+    quick_lint_js::process_file(&source.content, *config, reporter.get(),
                                 o.print_parser_visits);
   }
   reporter.finish();
@@ -353,10 +364,10 @@ class multi_visitor {
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
     multi_visitor<debug_visitor, debug_visitor>);
 
-void process_file(padded_string_view input, error_reporter *error_reporter,
-                  bool print_parser_visits) {
+void process_file(padded_string_view input, configuration &config,
+                  error_reporter *error_reporter, bool print_parser_visits) {
   parser p(input, error_reporter);
-  linter l(error_reporter);
+  linter l(error_reporter, &config.globals());
   // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
   // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
   if (print_parser_visits) {
@@ -379,10 +390,45 @@ void run_lsp_server() {
   posix_fd_file_ref input_pipe(STDIN_FILENO);
   posix_fd_file_ref output_pipe(STDOUT_FILENO);
 #endif
-  pipe_reader<lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-                           lsp_pipe_writer>>
-      server(input_pipe, std::forward_as_tuple(),
-             std::forward_as_tuple(output_pipe));
+  basic_configuration_filesystem fs;
+
+  class lsp_event_loop : public event_loop<lsp_event_loop> {
+   public:
+    explicit lsp_event_loop(platform_file_ref input_pipe,
+                            platform_file_ref output_pipe,
+                            configuration_filesystem *fs)
+        : input_pipe_(input_pipe),
+          endpoint_(std::forward_as_tuple(fs),
+                    std::forward_as_tuple(output_pipe)) {}
+
+    platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
+
+    void append(string8_view data) { this->endpoint_.append(data); }
+
+#if QLJS_HAVE_POLL
+    std::optional<::pollfd> get_pipe_write_pollfd() {
+      return this->endpoint_.remote().get_pollfd();
+    }
+
+    void on_pipe_write_event(const ::pollfd &event) {
+      this->endpoint_.remote().on_poll_event(event);
+    }
+#endif
+
+   private:
+    platform_file_ref input_pipe_;
+    lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+                 lsp_pipe_writer>
+        endpoint_;
+  };
+
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+  input_pipe.set_pipe_non_blocking();
+#endif
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD
+  output_pipe.set_pipe_non_blocking();
+#endif
+  lsp_event_loop server(input_pipe, output_pipe, &fs);
   server.run();
 }
 
@@ -395,6 +441,8 @@ void print_help_message() {
 
   std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
             << "OPTIONS\n";
+  print_option("--config-file=[FILE]",
+               "Read configuration from a JSON file for later input files");
   print_option("--exit-fail-on=[CODES]",
                "Fail with a non-zero exit code if any of these");
   print_option("", "errors are found (default: \"all\")");
@@ -415,10 +463,10 @@ void print_help_message() {
 #endif
   if (mention_man_page) {
     std::cout << "\nFor more information, run 'man quick-lint-js' or visit\n"
-                 "https://quick-lint-js.com/cli.html\n";
+                 "https://quick-lint-js.com/cli/\n";
   } else {
     std::cout
-        << "\nFor more information, visit https://quick-lint-js.com/cli.html\n";
+        << "\nFor more information, visit https://quick-lint-js.com/cli/\n";
   }
 }
 
@@ -429,7 +477,7 @@ void print_version_information() {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 set -e
@@ -16,7 +16,7 @@ done
 locales="$(printf '%s\n' ${locales} | LC_ALL=C sort)"
 
 {
-  printf '// Copyright (C) 2020  Matthew Glazar\n'
+  printf '// Copyright (C) 2020  Matthew "strager" Glazar\n'
   printf '// See end of file for extended copyright information.\n'
   printf '\n'
   printf '// This file is **GENERATED** by tools/compile-translations.\n'
@@ -55,7 +55,7 @@ locales="$(printf '%s\n' ${locales} | LC_ALL=C sort)"
 
   printf '\n'
   printf '// quick-lint-js finds bugs in JavaScript programs.\n'
-  printf '// Copyright (C) 2020  Matthew Glazar\n'
+  printf '// Copyright (C) 2020  Matthew "strager" Glazar\n'
   printf '//\n'
   printf '// This file is part of quick-lint-js.\n'
   printf '//\n'
@@ -74,7 +74,7 @@ locales="$(printf '%s\n' ${locales} | LC_ALL=C sort)"
 } >src/translation-data.cpp
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

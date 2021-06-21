@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 import argparse
@@ -20,10 +20,13 @@ def main() -> None:
 
     builds_directory = pathlib.Path(args.builds_directory)
     git_commits = get_git_commits()
-    all_builds = [
-        json.loads(build_sizes_file.read_text())
-        for build_sizes_file in builds_directory.glob("*/build-sizes.json")
-    ]
+    all_builds = []
+    for build_sizes_file in builds_directory.glob("*/build-sizes.json"):
+        content = build_sizes_file.read_text()
+        if not content:
+            sys.stderr.write(f"warning: file is empty: {build_sizes_file}\n")
+            continue
+        all_builds.append(json.loads(content))
     series = group_build_sizes(builds=all_builds, git_rev_list=git_commits)
     json.dump(series, sys.stdout, indent=2)
 
@@ -211,7 +214,7 @@ if __name__ == "__main__":
     main()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

@@ -1,7 +1,6 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <iostream>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/json.h>
@@ -106,7 +105,7 @@ void lsp_error_formatter::write_after_message(severity sev,
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

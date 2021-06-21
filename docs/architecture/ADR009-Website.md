@@ -1,6 +1,6 @@
 # ADR009: Website
 
-**Status**: Accepted but unimplemented.
+**Status**: Accepted and active.
 
 ## Context
 

@@ -1,10 +1,9 @@
-#include <cmath>
 #include <limits>
 namespace simdjson {
 namespace internal {
 
 /**
- * The code in the internal::from_chars function is meant to handle the floating-point number parsing 
+ * The code in the internal::from_chars function is meant to handle the floating-point number parsing
  * when we have more than 19 digits in the decimal mantissa. This should only be seen
  * in adversarial scenarios: we do not expect production systems to even produce
  * such floating-point numbers.
@@ -64,7 +63,6 @@ decimal parse_decimal(const char *&p) noexcept {
   decimal answer;
   answer.num_digits = 0;
   answer.decimal_point = 0;
-  answer.negative = false;
   answer.truncated = false;
   answer.negative = (*p == '-');
   if ((*p == '-') || (*p == '+')) {
@@ -75,17 +73,15 @@ decimal parse_decimal(const char *&p) noexcept {
     ++p;
   }
   while (is_integer(*p)) {
-    if (answer.num_digits + 1 < max_digits) {
-      answer.digits[answer.num_digits++] = uint8_t(*p - '0');
-    } else {
-      answer.truncated = true;
+    if (answer.num_digits < max_digits) {
+      answer.digits[answer.num_digits] = uint8_t(*p - '0');
     }
+    answer.num_digits++;
     ++p;
   }
-  const char *first_after_period{};
   if (*p == '.') {
     ++p;
-    first_after_period = p;
+    const char *first_after_period = p;
     // if we have not yet encountered a zero, we have to skip it as well
     if (answer.num_digits == 0) {
       // skip zeros
@@ -94,16 +90,28 @@ decimal parse_decimal(const char *&p) noexcept {
       }
     }
     while (is_integer(*p)) {
-      if (answer.num_digits + 1 < max_digits) {
-        answer.digits[answer.num_digits++] = uint8_t(*p - '0');
-      } else {
-        answer.truncated = true;
+      if (answer.num_digits < max_digits) {
+        answer.digits[answer.num_digits] = uint8_t(*p - '0');
       }
+      answer.num_digits++;
       ++p;
     }
     answer.decimal_point = int32_t(first_after_period - p);
   }
-
+  if(answer.num_digits > 0) {
+    const char *preverse = p - 1;
+    int32_t trailing_zeros = 0;
+    while ((*preverse == '0') || (*preverse == '.')) {
+      if(*preverse == '0') { trailing_zeros++; };
+      --preverse;
+    }
+    answer.decimal_point += int32_t(answer.num_digits);
+    answer.num_digits -= uint32_t(trailing_zeros);
+  }
+  if(answer.num_digits > max_digits ) {
+    answer.num_digits = max_digits;
+    answer.truncated = true;
+  }
   if (('e' == *p) || ('E' == *p)) {
     ++p;
     bool neg_exp = false;
@@ -123,7 +131,6 @@ decimal parse_decimal(const char *&p) noexcept {
     }
     answer.decimal_point += (neg_exp ? -exp_number : exp_number);
   }
-  answer.decimal_point += answer.num_digits;
   return answer;
 }
 
@@ -358,21 +365,21 @@ template <typename binary> adjusted_mantissa compute_float(decimal &d) {
   }
   // At this point, going further, we can assume that d.num_digits > 0.
   // We want to guard against excessive decimal point values because
-  // they can result in long running times. Indeed, we do 
+  // they can result in long running times. Indeed, we do
   // shifts by at most 60 bits. We have that log(10**400)/log(2**60) ~= 22
   // which is fine, but log(10**299995)/log(2**60) ~= 16609 which is not
   // fine (runs for a long time).
   //
   if(d.decimal_point < -324) {
     // We have something smaller than 1e-324 which is always zero
-    // in binary64 and binary32. 
+    // in binary64 and binary32.
     // It should be zero.
     answer.power2 = 0;
     answer.mantissa = 0;
     return answer;
   } else if(d.decimal_point >= 310) {
     // We have something at least as large as 0.1e310 which is
-    // always infinite.    
+    // always infinite.
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
     return answer;

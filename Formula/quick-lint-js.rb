@@ -1,9 +1,10 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 class QuickLintJs < Formula
   desc "Find bugs in your JavaScript code"
   homepage "https://quick-lint-js.com/"
+  url "https://github.com/quick-lint/quick-lint-js/archive/refs/tags/0.2.0.tar.gz"
   head "https://github.com/quick-lint/quick-lint-js.git", :branch => "master"
   license "GPL-3.0-or-later"
 
@@ -23,7 +24,7 @@ class QuickLintJs < Formula
 end
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

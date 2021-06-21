@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cstddef>
@@ -150,6 +150,7 @@ options parse_options(int argc, char** argv) {
   options o;
 
   std::optional<int> next_vim_file_bufnr;
+  const char* active_config_file = nullptr;
   bool has_stdin = false;
 
   arg_parser parser(argc, argv);
@@ -161,12 +162,14 @@ options parse_options(int argc, char** argv) {
           continue;
         }
         file_to_lint file{.path = "<stdin>",
+                          .config_file = active_config_file,
                           .is_stdin = true,
                           .vim_bufnr = next_vim_file_bufnr};
         has_stdin = true;
         o.files_to_lint.emplace_back(file);
       } else {
         file_to_lint file{.path = argument,
+                          .config_file = active_config_file,
                           .is_stdin = false,
                           .vim_bufnr = next_vim_file_bufnr};
         o.files_to_lint.emplace_back(file);
@@ -185,6 +188,10 @@ options parse_options(int argc, char** argv) {
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
+    } else if (const char* arg_value =
+                   parser.match_option_with_value("--config-file"sv)) {
+      active_config_file = arg_value;
+      o.has_config_file = true;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
       int bufnr;
@@ -212,6 +219,7 @@ options parse_options(int argc, char** argv) {
         continue;
       }
       file_to_lint file{.path = "<stdin>",
+                        .config_file = active_config_file,
                         .is_stdin = true,
                         .vim_bufnr = next_vim_file_bufnr};
       o.files_to_lint.emplace_back(file);
@@ -241,6 +249,9 @@ bool options::dump_errors(std::ostream& out) const {
       out << "warning: ignoring files given on command line in "
              "--lsp-server mode\n";
     }
+    if (this->has_config_file) {
+      out << "warning: --config-file ignored in --lsp-server mode\n";
+    }
   }
   if (this->has_multiple_stdin) {
     out << "warning: multiple standard input given on command line\n";
@@ -262,7 +273,7 @@ bool options::dump_errors(std::ostream& out) const {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

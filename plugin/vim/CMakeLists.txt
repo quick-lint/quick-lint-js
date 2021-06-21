@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -6,19 +6,24 @@ include(GNUInstallDirs)
 
 install(
   FILES quick-lint-js.vim/autoload/quick_lint_js_ale.vim
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/addons/autoload"
+  DESTINATION "${QUICK_LINT_JS_INSTALL_VIM_DIR}/autoload"
 )
 install(
   FILES quick-lint-js.vim/ale_linters/javascript/quick_lint_js.vim
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/addons/ale_linters/javascript"
+  DESTINATION "${QUICK_LINT_JS_INSTALL_VIM_DIR}/ale_linters/javascript"
+)
+
+install(
+  FILES quick-lint-js.vim/autoload/quick_lint_js_ale.vim
+  DESTINATION "${QUICK_LINT_JS_INSTALL_NEOVIM_DIR}/autoload"
 )
 install(
-  FILES quick-lint-js.yaml
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/vim/registry"
+  FILES quick-lint-js.vim/ale_linters/javascript/quick_lint_js.vim
+  DESTINATION "${QUICK_LINT_JS_INSTALL_NEOVIM_DIR}/ale_linters/javascript"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

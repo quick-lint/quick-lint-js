@@ -32,17 +32,17 @@ public:
 
   /**
    * Start iterating an on-demand JSON document.
-   * 
+   *
    *   ondemand::parser parser;
    *   document doc = parser.iterate(json);
-   * 
+   *
    * ### IMPORTANT: Buffer Lifetime
-   * 
+   *
    * Because parsing is done while you iterate, you *must* keep the JSON buffer around at least as
    * long as the document iteration.
-   * 
+   *
    * ### IMPORTANT: Document Lifetime
-   * 
+   *
    * Only one iteration at a time can happen per parser, and the parser *must* be kept alive during
    * iteration to ensure intermediate buffers can be accessed. Any document must be destroyed before
    * you call parse() again or destroy the parser.
@@ -53,8 +53,11 @@ public:
    * those bytes are initialized to, as long as they are allocated.
    *
    * @param json The JSON to parse.
-   * 
+   * @param len The length of the JSON.
+   * @param capacity The number of bytes allocated in the JSON (must be at least len+SIMDJSON_PADDING).
+   *
    * @return The document, or an error:
+   *         - INSUFFICIENT_PADDING if the input has less than SIMDJSON_PADDING extra bytes.
    *         - MEMALLOC if realloc_if_needed the parser does not have enough capacity, and memory
    *           allocation fails.
    *         - EMPTY if the document is all whitespace.
@@ -62,23 +65,37 @@ public:
    *         - UNESCAPED_CHARS if a string contains control characters that must be escaped
    *         - UNCLOSED_STRING if there is an unclosed string in the document.
    */
-  simdjson_warn_unused simdjson_result<document> iterate(const padded_string &json) & noexcept;
-  simdjson_warn_unused simdjson_result<document> iterate(const std::string &json) & noexcept = delete;
+  simdjson_warn_unused simdjson_result<document> iterate(padded_string_view json) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(const char *json, size_t len, size_t capacity) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(const uint8_t *json, size_t len, size_t capacity) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(std::string_view json, size_t capacity) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(const std::string &json) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(const simdjson_result<padded_string> &json) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(const simdjson_result<padded_string_view> &json) & noexcept;
+  /** @overload simdjson_result<document> iterate(padded_string_view json) & noexcept */
+  simdjson_warn_unused simdjson_result<document> iterate(padded_string &&json) & noexcept = delete;
+
   /**
    * @private
-   * 
+   *
    * Start iterating an on-demand JSON document.
-   * 
+   *
    *   ondemand::parser parser;
    *   json_iterator doc = parser.iterate(json);
-   * 
+   *
    * ### IMPORTANT: Buffer Lifetime
-   * 
+   *
    * Because parsing is done while you iterate, you *must* keep the JSON buffer around at least as
    * long as the document iteration.
-   * 
+   *
    * ### IMPORTANT: Document Lifetime
-   * 
+   *
    * Only one iteration at a time can happen per parser, and the parser *must* be kept alive during
    * iteration to ensure intermediate buffers can be accessed. Any document must be destroyed before
    * you call parse() again or destroy the parser.
@@ -89,8 +106,11 @@ public:
    * those bytes are initialized to, as long as they are allocated.
    *
    * @param json The JSON to parse.
-   * 
+   * @param len The length of the JSON.
+   * @param allocated The number of bytes allocated in the JSON (must be at least len+SIMDJSON_PADDING).
+   *
    * @return The iterator, or an error:
+   *         - INSUFFICIENT_PADDING if the input has less than SIMDJSON_PADDING extra bytes.
    *         - MEMALLOC if realloc_if_needed the parser does not have enough capacity, and memory
    *           allocation fails.
    *         - EMPTY if the document is all whitespace.
@@ -98,13 +118,22 @@ public:
    *         - UNESCAPED_CHARS if a string contains control characters that must be escaped
    *         - UNCLOSED_STRING if there is an unclosed string in the document.
    */
-  simdjson_warn_unused simdjson_result<json_iterator> iterate_raw(const padded_string &json) & noexcept;
+  simdjson_warn_unused simdjson_result<json_iterator> iterate_raw(padded_string_view json) & noexcept;
+
+  /** The capacity of this parser (the largest document it can process). */
+  simdjson_really_inline size_t capacity() const noexcept;
+  /** The maximum depth of this parser (the most deeply nested objects and arrays it can process). */
+  simdjson_really_inline size_t max_depth() const noexcept;
 
 private:
-  dom_parser_implementation dom_parser{};
+  /** @private [for benchmarking access] The implementation to use */
+  std::unique_ptr<internal::dom_parser_implementation> implementation{};
   size_t _capacity{0};
-  size_t _max_depth{0};
+  size_t _max_depth{DEFAULT_MAX_DEPTH};
   std::unique_ptr<uint8_t[]> string_buf{};
+#ifdef SIMDJSON_DEVELOPMENT_CHECKS
+  std::unique_ptr<token_position[]> start_positions{};
+#endif
 
   /**
    * Ensure this parser has enough memory to process JSON documents up to `capacity` bytes in length
@@ -130,10 +159,7 @@ struct simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::parser> : public SIMDJ
 public:
   simdjson_really_inline simdjson_result(SIMDJSON_IMPLEMENTATION::ondemand::parser &&value) noexcept; ///< @private
   simdjson_really_inline simdjson_result(error_code error) noexcept; ///< @private
-
   simdjson_really_inline simdjson_result() noexcept = default;
-  simdjson_really_inline simdjson_result(simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::parser> &&a) noexcept = default;
-  simdjson_really_inline ~simdjson_result() noexcept = default; ///< @private
 };
 
 } // namespace simdjson

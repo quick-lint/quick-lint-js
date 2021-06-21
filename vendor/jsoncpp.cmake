@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 set(BUILD_OBJECT_LIBS FALSE CACHE INTERNAL "")
@@ -27,7 +27,7 @@ quick_lint_js_add_warning_options_if_supported(
 )
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

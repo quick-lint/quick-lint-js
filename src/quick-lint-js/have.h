@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 // See ADR001-Feature-testing-with-have-h.md for usage of and rationale for this
@@ -31,6 +31,18 @@
 #endif
 #if !defined(QLJS_HAVE_FCNTL_H)
 #define QLJS_HAVE_FCNTL_H 0
+#endif
+
+#if defined(QLJS_HAVE_LIBGEN_H) && QLJS_HAVE_LIBGEN_H
+#elif defined(__has_include)
+#if __has_include(<libgen.h>)
+#define QLJS_HAVE_LIBGEN_H 1
+#endif
+#elif defined(__unix__)
+#define QLJS_HAVE_LIBGEN_H 1
+#endif
+#if !defined(QLJS_HAVE_LIBGEN_H)
+#define QLJS_HAVE_LIBGEN_H 0
 #endif
 
 #if defined(QLJS_HAVE_PTHREAD_H) && QLJS_HAVE_PTHREAD_H
@@ -110,6 +122,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_DIRNAME)
+#if QLJS_HAVE_LIBGEN_H
+#define QLJS_HAVE_DIRNAME 1
+#else
+#define QLJS_HAVE_DIRNAME 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_MKDTEMP)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
     (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
@@ -133,6 +153,24 @@
 #define QLJS_HAVE_PIPE 1
 #else
 #define QLJS_HAVE_PIPE 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_REALPATH)
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
+     _POSIX_VERSION >= 200112L)
+#define QLJS_HAVE_REALPATH 1
+#else
+#define QLJS_HAVE_REALPATH 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_POLL)
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#define QLJS_HAVE_POLL 1
+#else
+#define QLJS_HAVE_POLL 0
 #endif
 #endif
 
@@ -283,10 +321,16 @@
 #define QLJS_HAVE_SETJMP 0
 #endif
 
+#if !defined(QLJS_HAVE_STD_TRANSPARENT_KEYS)
+// TODO(strager): Set this to 1 if is_transparent is supported by
+// std::unordered_map::find (C++20).
+#define QLJS_HAVE_STD_TRANSPARENT_KEYS 0
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

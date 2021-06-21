@@ -1,0 +1,95 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+name: Arch Linux package
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build-arch-linux-pkg:
+    name: build Arch Linux .pkg
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    steps:
+      - name: install dependencies
+        run: pacman -Syyuu --noconfirm base-devel git namcap
+
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Needed to determine package version.
+
+      - name: set up arch-builder user
+        run: |
+          useradd arch-builder
+          printf 'arch-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/arch-builder
+          printf 'Set disable_coredump false\n' >> /etc/sudo.conf
+          chown -R arch-builder .
+
+      - name: build PKGBUILD-dev
+        run: |
+          cd dist/arch/
+          sudo -u arch-builder makepkg --syncdeps --cleanbuild -p PKGBUILD-dev --noconfirm
+
+      - name: lint package
+        run: |
+          cd dist/arch/
+          namcap PKGBUILD-dev PKGBUILD-git PKGBUILD-release ./quick-lint-js-*.pkg.tar.zst |& tee errors
+          if [ -s errors ]; then
+            printf 'error: namcap reported an error\n' >&2
+            exit 1
+          fi
+
+      - name: upload build to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-arch-${{ github.sha }}
+          path: dist/arch/quick-lint-js-*.pkg.tar.zst
+      - name: upload build to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: dist/arch/quick-lint-js-*.pkg.tar.zst
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/arch/
+          user: ${{ secrets.artifacts_user }}
+
+  test-arch-linux-pkg:
+    name: test on Arch Linux
+    needs: build-arch-linux-pkg
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-arch-${{ github.sha }}
+
+      - name: install dependencies
+        run: pacman -Syyuu --noconfirm
+
+      - name: install quick-lint-js
+        run: pacman -U ./quick-lint-js-*.pkg.tar.zst --noconfirm
+      - name: test quick-lint-js
+        run: quick-lint-js --version
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_STRING_VIEW_H
@@ -7,8 +7,9 @@
 #include <string_view>
 
 namespace quick_lint_js {
-inline bool starts_with(std::string_view haystack,
-                        std::string_view needle) noexcept {
+template <class Char>
+inline bool starts_with(std::basic_string_view<Char> haystack,
+                        std::basic_string_view<Char> needle) noexcept {
   return haystack.substr(0, needle.size()) == needle;
 }
 
@@ -30,7 +31,7 @@ inline std::string_view remove_suffix_if_present(
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

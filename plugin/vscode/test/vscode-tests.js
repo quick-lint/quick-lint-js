@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 "use strict";
@@ -315,41 +315,40 @@ tests = {
     await waitUntilNoDiagnosticsAsync(helloURI);
   },
 
-  "changing previously-edited document while editor is closed lints when reopening editor": async ({
-    addCleanup,
-  }) => {
-    let scratchDirectory = makeScratchDirectory({ addCleanup });
-    let helloFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(helloFilePath, "/* empty file */\n");
-    let helloURI = vscode.Uri.file(helloFilePath);
+  "changing previously-edited document while editor is closed lints when reopening editor":
+    async ({ addCleanup }) => {
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let helloFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(helloFilePath, "/* empty file */\n");
+      let helloURI = vscode.Uri.file(helloFilePath);
 
-    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
-    let _originalHelloEditor = await vscode.window.showTextDocument(
-      helloDocument,
-      vscode.ViewColumn.One
-    );
-    await loadExtensionAsync({ addCleanup });
-    // Wait for possible linting to take effect.
-    await sleepAsync(100);
+      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+      let _originalHelloEditor = await vscode.window.showTextDocument(
+        helloDocument,
+        vscode.ViewColumn.One
+      );
+      await loadExtensionAsync({ addCleanup });
+      // Wait for possible linting to take effect.
+      await sleepAsync(100);
 
-    // Close _originalHelloEditor.
-    let otherURI = vscode.Uri.parse("untitled:other.txt");
-    let otherDocument = await vscode.workspace.openTextDocument(otherURI);
-    let _otherEditor = await vscode.window.showTextDocument(
-      otherDocument,
-      vscode.ViewColumn.One
-    );
+      // Close _originalHelloEditor.
+      let otherURI = vscode.Uri.parse("untitled:other.txt");
+      let otherDocument = await vscode.workspace.openTextDocument(otherURI);
+      let _otherEditor = await vscode.window.showTextDocument(
+        otherDocument,
+        vscode.ViewColumn.One
+      );
 
-    fs.writeFileSync(helloFilePath, "let x;let x;");
-    // Wait for possible linting to take effect.
-    await sleepAsync(100);
+      fs.writeFileSync(helloFilePath, "let x;let x;");
+      // Wait for possible linting to take effect.
+      await sleepAsync(100);
 
-    let _newHelloEditor = await vscode.window.showTextDocument(
-      helloDocument,
-      vscode.ViewColumn.Two
-    );
-    await waitUntilAnyDiagnosticsAsync(helloURI);
-  },
+      let _newHelloEditor = await vscode.window.showTextDocument(
+        helloDocument,
+        vscode.ViewColumn.Two
+      );
+      await waitUntilAnyDiagnosticsAsync(helloURI);
+    },
 
   "opening editor for existing documents lints": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
@@ -494,7 +493,7 @@ exports.run = runAsync;
 // vscode-test will invoke the exports.run for us.
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

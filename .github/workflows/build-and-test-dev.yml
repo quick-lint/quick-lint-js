@@ -16,7 +16,10 @@ jobs:
       matrix:
         toolchain:
           - {docker_container: "archlinux:base", name: "Arch Linux", install_dependencies_script: "pacman -Syyuu --noconfirm cmake gcc ninja", extra_environment: ""}
-          - {docker_container: "centos:centos8", name: "CentOS 8", install_dependencies_script: "dnf --enablerepo=powertools install -y cmake gcc-c++ ninja-build", extra_environment: ""}
+            # HACK(strager): Upgrade libarchive to work around "symbol lookup
+            # error: cmake: undefined symbol: archive_write_add_filter_zstd"
+            # error: https://access.redhat.com/solutions/6068431
+          - {docker_container: "centos:centos8", name: "CentOS 8", install_dependencies_script: "dnf --enablerepo=powertools install -y cmake gcc-c++ ninja-build libarchive", extra_environment: ""}
           - {docker_container: "debian:buster", name: "Debian 10 Buster", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "fedora:32", name: "Fedora 32", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}
           - {docker_container: "fedora:34", name: "Fedora 34", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}

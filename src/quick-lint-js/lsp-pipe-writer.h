@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_LSP_PIPE_WRITER_H
@@ -7,6 +7,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/pipe-writer.h>
 
 namespace quick_lint_js {
 class byte_buffer;
@@ -15,26 +16,26 @@ class byte_buffer;
 // a pipe or socket.
 //
 // lsp_pipe_writer satisfies lsp_endpoint_remote.
-class lsp_pipe_writer {
+//
+// lsp_pipe_writer is not thread-safe.
+class lsp_pipe_writer : private pipe_writer {
  public:
   explicit lsp_pipe_writer(platform_file_ref pipe);
 
-  void send_message(byte_buffer&&);
+  void send_message(byte_buffer &&);
 
- private:
-  void write(string8_view);
-#if QLJS_HAVE_WRITEV
-  void write(byte_buffer_iovec&&);
+  using pipe_writer::flush;
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
+  using pipe_writer::get_pollfd;
+  using pipe_writer::on_poll_event;
 #endif
-
-  platform_file_ref pipe_;
 };
 }
 
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

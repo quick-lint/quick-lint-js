@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- Copyright (C) 2020  Matthew Glazar -->
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
-<html>
+<html lang="en">
   <head>
     <%- await include("../common-head.ejs.html") %>
     <title>quick-lint-js: installing</title>
@@ -86,7 +86,7 @@
       }
 
       /* Stack items on top of each other if the screen isn't wide enough to
-         arrange them horizontally. */
+               arrange them horizontally. */
       @media only screen and (max-width: 34em) {
         .os-column-table {
           grid-template-areas: "linux" "macos" "windows";
@@ -97,7 +97,7 @@
       }
 
       /* HACK(strager): Work around bug in EdgeHTML 13.10586 causing the Windows
-         column of the operating systems column group to be super wide. */
+               column of the operating systems column group to be super wide. */
       img.os-logo[src$="/windows.svg"] {
         width: 1.2em;
       }
@@ -127,7 +127,7 @@
       }
 
       /* Add lots of spacing between different install procedures so people
-         don't start reading the wrong instructions. */
+               don't start reading the wrong instructions. */
       article {
         margin-top: 2rem;
         margin-bottom: 4rem;
@@ -137,7 +137,8 @@
       }
 
       .long-shell-command-line {
-        /* 4 = "$ ".length + 4 spaces of indentation */
+        /* 6 = "$ ".length + 4 spaces of indentation */
+        display: inline-block;
         padding-left: 6ch;
         text-indent: -6ch;
         white-space: normal;
@@ -157,7 +158,13 @@
 
     <main>
       <h2>Install quick-lint-js</h2>
-      <p>Latest version: 0.2.0 (beta) (released <time>April 5, 2021</time>)</p>
+      <p>
+        Latest version: 0.2.0 (beta) (released
+        <time datetime="2021-04-05">April 5, 2021</time>)<br /><a
+          href="../releases/"
+          >Previous versions</a
+        >
+      </p>
 
       <figure class="comparison install-comparison">
         <table>
@@ -187,16 +194,19 @@
                   class="install-logo"
                   src="../gnome-terminal.svg"
                   alt=""
-                  aria-labeled-by="install-artifact-cli"
-                /><br /><span id="install-artifact-cli">CLI</span>
+                  aria-labelledby="install-artifact-cli"
+                />&nbsp;<span id="install-artifact-cli"
+                  ><abbr title="command line interface">CLI</abbr>
+                  &amp;<br /><abbr title="language server protocol">LSP</abbr>
+                  server</span
+                >
               </th>
-              <th>LSP server</th>
               <th>
                 <img
                   class="install-logo"
                   src="../vscode.png"
                   alt=""
-                  aria-labeled-by="install-artifact-vscode"
+                  aria-labelledby="install-artifact-vscode"
                 /><br /><span id="install-artifact-vscode"
                   >VS&nbsp;Code<br />extension</span
                 >
@@ -206,7 +216,7 @@
                   class="install-logo"
                   src="../vim.gif"
                   alt=""
-                  aria-labeled-by="install-artifact-vim"
+                  aria-labelledby="install-artifact-vim"
                 /><br /><span id="install-artifact-vim">Vim<br />plugin</span>
               </th>
             </tr>
@@ -219,7 +229,7 @@
                     class="install-logo"
                     src="../npm.svg"
                     alt=""
-                    aria-labeled-by="install-method-npm"
+                    aria-labelledby="install-method-npm"
                   />&nbsp;<span id="install-method-npm">npm</span></a
                 >
               </th>
@@ -253,26 +263,23 @@
                 <a href="#npm">
                   <span
                     ><span aria-label="installed">✅</span
-                    ><span
-                      aria-label="goodies not included"
-                      title="goodies not included"
-                      class="footnote-marker"
-                      >&nbsp;*</span
+                    ><span class="footnote-marker"
+                      ><span
+                        aria-label="goodies not included"
+                        title="goodies not included"
+                        >&nbsp;*</span
+                      ><span
+                        aria-label="not installed globally"
+                        title="not installed globally"
+                        >†</span
+                      ></span
                     ></span
-                  >
-                </a>
+                  ></a
+                >
               </td>
               <td class="meh">
                 <a href="#npm"
-                  ><span
-                    ><span aria-label="installed">✅</span
-                    ><span
-                      aria-label="not installed globally"
-                      title="not installed globally"
-                      class="footnote-marker"
-                      >&nbsp;†</span
-                    ></span
-                  ></a
+                  ><span><span aria-label="installed">✅</span></span></a
                 >
               </td>
               <td><span aria-label="not installed"></span></td>
@@ -286,7 +293,7 @@
                     class="install-logo"
                     src="../homebrew.svg"
                     alt=""
-                    aria-labeled-by="install-method-homebrew"
+                    aria-labelledby="install-method-homebrew"
                   />&nbsp;<span id="install-method-homebrew">Homebrew</span></a
                 >
               </th>
@@ -305,11 +312,10 @@
               <td class="good">
                 <a href="#homebrew"><span aria-label="installed">✅</span></a>
               </td>
+              <td><span aria-label="not installed"></span></td>
               <td class="good">
                 <a href="#homebrew"><span aria-label="installed">✅</span></a>
               </td>
-              <td><span aria-label="not installed"></span></td>
-              <td><span aria-label="not installed"></span></td>
             </tr>
 
             <tr>
@@ -319,13 +325,13 @@
                     class="install-logo"
                     src="../debian.svg"
                     alt=""
-                    aria-labeled-by="install-method-debian"
+                    aria-labelledby="install-method-debian"
                   />&nbsp;<span id="install-method-debian">Debian</span
                   ><br /><img
                     class="install-logo"
                     src="../ubuntu.svg"
                     alt=""
-                    aria-labeled-by="install-method-ubuntu"
+                    aria-labelledby="install-method-ubuntu"
                   />&nbsp;<span id="install-method-ubuntu">Ubuntu</span></a
                 >
               </th>
@@ -344,9 +350,6 @@
               <td class="good">
                 <a href="#debian"><span aria-label="installed">✅</span></a>
               </td>
-              <td class="good">
-                <a href="#debian"><span aria-label="installed">✅</span></a>
-              </td>
               <td><span aria-label="not installed"></span></td>
               <td class="good">
                 <a href="#debian"><span aria-label="installed">✅</span></a>
@@ -360,7 +363,7 @@
                     class="install-logo"
                     src="../nix.svg"
                     alt=""
-                    aria-labeled-by="install-method-nix"
+                    aria-labelledby="install-method-nix"
                   />&nbsp;<span id="install-method-nix">Nix</span></a
                 >
               </th>
@@ -386,11 +389,42 @@
               <td class="good">
                 <a href="#nix"><span aria-label="installed">✅</span></a>
               </td>
+              <td><span aria-label="not installed"></span></td>
+              <td><span aria-label="not installed"></span></td>
+            </tr>
+
+            <tr>
+              <th>
+                <a href="#arch-linux"
+                  ><img
+                    class="install-logo"
+                    src="../arch-linux.svg"
+                    alt=""
+                    aria-labelledby="install-method-arch-linux"
+                  />&nbsp;<span id="install-method-arch-linux"
+                    >Arch Linux</span
+                  ></a
+                >
+              </th>
+
+              <td class="os">
+                <img
+                  class="os-logo"
+                  src="../linux.svg"
+                  alt="GNU/Linux"
+                  title="GNU/Linux"
+                />
+              </td>
+              <td class="os"></td>
+              <td class="os"></td>
+
               <td class="good">
-                <a href="#nix"><span aria-label="installed">✅</span></a>
+                <a href="#arch-linux"><span aria-label="installed">✅</span></a>
               </td>
               <td><span aria-label="not installed"></span></td>
-              <td><span aria-label="not installed"></span></td>
+              <td class="good">
+                <a href="#arch-linux"><span aria-label="installed">✅</span></a>
+              </td>
             </tr>
 
             <tr>
@@ -400,7 +434,7 @@
                     class="install-logo"
                     src="../vscode.png"
                     alt=""
-                    aria-labeled-by="install-method-vscode"
+                    aria-labelledby="install-method-vscode"
                   />&nbsp;<span id="install-method-vscode"
                     >VS&nbsp;Code<br />marketplace</span
                   ></a
@@ -433,7 +467,6 @@
               </td>
 
               <td><span aria-label="not installed"></span></td>
-              <td><span aria-label="not installed"></span></td>
               <td class="good">
                 <a href="#vscode-marketplace"
                   ><span aria-label="installed">✅</span></a
@@ -449,7 +482,7 @@
                     class="install-logo"
                     src="../open-vsx.svg"
                     alt=""
-                    aria-labeled-by="install-method-open-vsx"
+                    aria-labelledby="install-method-open-vsx"
                   />&nbsp;<span id="install-method-open-vsx"
                     >Open&nbsp;VSX</span
                   ></a
@@ -481,7 +514,6 @@
                 />
               </td>
 
-              <td><span aria-label="not installed"></span></td>
               <td><span aria-label="not installed"></span></td>
               <td class="good">
                 <a href="#open-vsx"><span aria-label="installed">✅</span></a>
@@ -531,9 +563,6 @@
                 >
               </td>
               <td class="good">
-                <a href="#manual"><span aria-label="installed">✅</span></a>
-              </td>
-              <td class="good">
                 <a href="#manual-vscode"
                   ><span aria-label="installed">✅</span></a
                 >
@@ -571,7 +600,6 @@
 
               <td><span aria-label="not installed"></span></td>
               <td><span aria-label="not installed"></span></td>
-              <td><span aria-label="not installed"></span></td>
               <td class="good">
                 <a href="#manual-vim"><span aria-label="installed">✅</span></a>
               </td>
@@ -605,7 +633,6 @@
                 />
               </td>
 
-              <td class="good"><span aria-label="installed">✅</span></td>
               <td class="good"><span aria-label="installed">✅</span></td>
               <td class="good"><span aria-label="installed">✅</span></td>
               <td class="good"><span aria-label="installed">✅</span></td>
@@ -674,6 +701,15 @@
                   src="../nix.svg"
                   alt=""
                 />&nbsp;Nix</a
+              >
+            </li>
+            <li>
+              <a href="#arch-linux"
+                ><img
+                  class="install-logo"
+                  src="../arch-linux.svg"
+                  alt=""
+                />&nbsp;Arch Linux</a
               >
             </li>
             <li><a href="#manual">Manual (pre-built)</a></li>
@@ -774,6 +810,15 @@
                   src="../ubuntu.svg"
                   alt=""
                 />&nbsp;Ubuntu</a
+              >
+            </li>
+            <li>
+              <a href="#arch-linux"
+                ><img
+                  class="install-logo"
+                  src="../arch-linux.svg"
+                  alt=""
+                />&nbsp;Arch Linux</a
               >
             </li>
             <li><a href="#manual-vim">Manual</a></li>
@@ -942,7 +987,7 @@
           quick-lint-js' tap to your Homebrew installation:
         </p>
         <blockquote>
-          <pre><code><div class="long-shell-command-line"><kbd>brew tap quick-lint/quick-lint-js https://github.com/quick-lint/quick-lint-js.git</kbd></div></code></pre>
+          <pre><code><span class="long-shell-command-line"><kbd>brew tap quick-lint/quick-lint-js https://github.com/quick-lint/quick-lint-js.git</kbd></span></code></pre>
         </blockquote>
 
         <p>
@@ -950,7 +995,7 @@
           quick-lint-js:
         </p>
         <blockquote>
-          <pre><code><kbd>brew install --HEAD quick-lint-js</kbd></code></pre>
+          <pre><code><kbd>brew install quick-lint-js</kbd></code></pre>
         </blockquote>
 
         <p>
@@ -960,6 +1005,11 @@
         <blockquote>
           <pre><code><kbd>quick-lint-js --help</kbd></code></pre>
         </blockquote>
+
+        <p>
+          Configure the Vim plugin by opening Vim and running
+          <kbd>:help quick-lint-js</kbd>.
+        </p>
       </article>
 
       <article id="debian">
@@ -981,7 +1031,7 @@
         <p>Open a terminal, and run the following commands:</p>
         <blockquote>
           <pre><code><kbd>curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -</kbd>
-<div class="long-shell-command-line"><kbd>printf '\n# https://quick-lint-js.com/install.html#debian\ndeb https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></div>
+<span class="long-shell-command-line"><kbd>printf '\n# https://quick-lint-js.com/install/#debian\ndeb https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></span>
 <kbd>sudo apt-get update</kbd>
 
 # <img class="install-logo" src="../gnome-terminal.svg" alt="" /> CLI and LSP server
@@ -996,6 +1046,11 @@
           <pre><code><kbd>quick-lint-js --version</kbd>
 quick-lint-js version 0.2.0</code></pre>
         </blockquote>
+
+        <p>
+          Configure the Vim plugin by opening Vim and running
+          <kbd>:help quick-lint-js</kbd>.
+        </p>
       </article>
 
       <article id="nix">
@@ -1032,6 +1087,63 @@ quick-lint-js version 0.2.0</code></pre>
           <pre><code><kbd>quick-lint-js --version</kbd>
 quick-lint-js version 0.2.0</code></pre>
         </blockquote>
+      </article>
+
+      <article id="arch-linux">
+        <h2>
+          <img class="install-logo" src="../arch-linux.svg" alt="" />&nbsp;Arch
+          Linux
+        </h2>
+        <p>
+          Supported operating systems:
+          <img
+            class="os-logo"
+            src="../linux.svg"
+            alt="GNU/Linux"
+            title="GNU/Linux"
+          />
+        </p>
+
+        <p>quick-lint-js has two packages in the AUR:</p>
+        <ul>
+          <li>
+            <a href="https://aur.archlinux.org/packages/quick-lint-js/"
+              >quick-lint-js</a
+            >: latest stable release
+          </li>
+          <li>
+            <a href="https://aur.archlinux.org/packages/quick-lint-js-git/"
+              >quick-lint-js-git</a
+            >: unstable version from VCS
+          </li>
+        </ul>
+
+        <p>
+          If you are using an
+          <a href="https://wiki.archlinux.org/title/AUR_helpers">AUR helper</a>,
+          install quick-lint-js on Arch Linux using your helper. For example, to
+          install with <a href="https://github.com/Jguer/yay">yay</a>, open a
+          terminal and run the following commands:
+        </p>
+        <blockquote>
+          <pre><code><kbd>yay -Sy quick-lint-js</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          If you want to install without an AUR helper, download and install the
+          package from AUR manually by running the following commands:
+        </p>
+        <blockquote>
+          <pre><code><kbd>pacman -Sy base-devel git</kbd>
+<kbd>git clone https://aur.archlinux.org/quick-lint-js.git aur-quick-lint-js</kbd>
+<kbd>cd aur-quick-lint-js</kbd>
+<kbd>makepkg -si</kbd></code></pre>
+        </blockquote>
+
+        <p>
+          Configure the Vim plugin by opening Vim and running
+          <kbd>:help quick-lint-js</kbd>.
+        </p>
       </article>
 
       <article id="vscode-marketplace">
@@ -1181,19 +1293,19 @@ quick-lint-js version 0.2.0</code></pre>
             <ul>
               <li>
                 <a
-                  href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/manual/linux.tar.gz"
+                  href="https://c.quick-lint-js.com/releases/0.2.0/manual/linux.tar.gz"
                   >GNU/Linux</a
                 >
               </li>
               <li>
                 <a
-                  href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/manual/macos.tar.gz"
+                  href="https://c.quick-lint-js.com/releases/0.2.0/manual/macos.tar.gz"
                   >macOS</a
                 >
               </li>
               <li>
                 <a
-                  href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/manual/windows.zip"
+                  href="https://c.quick-lint-js.com/releases/0.2.0/manual/windows.zip"
                   >Windows</a
                 >
               </li>
@@ -1298,6 +1410,7 @@ quick-lint-js version 0.2.0</code></pre>
                   />
                   npm</a
                 >
+                (global install only)
               </li>
 
               <li>
@@ -1371,10 +1484,9 @@ quick-lint-js version 0.2.0</code></pre>
           <img class="os-logo" src="../macos.svg" alt="" />&nbsp;macOS
         </h5>
         <ol>
-          <!-- TODO(strager): Create a /releases/ directory. -->
           <li>
             <a
-              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vim/quick-lint-js-vim.zip"
+              href="https://c.quick-lint-js.com/releases/0.2.0/vim/quick-lint-js-vim.zip"
               >Download the quick-lint-js Vim plugin.</a
             >
           </li>
@@ -1397,10 +1509,9 @@ quick-lint-js version 0.2.0</code></pre>
           <img class="os-logo" src="../windows.svg" alt="" />&nbsp;Windows
         </h5>
         <ol>
-          <!-- TODO(strager): Create a /releases/ directory. -->
           <li>
             <a
-              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vim/quick-lint-js-vim.zip"
+              href="https://c.quick-lint-js.com/releases/0.2.0/vim/quick-lint-js-vim.zip"
               >Download the quick-lint-js Vim plugin.</a
             >
           </li>
@@ -1425,16 +1536,14 @@ quick-lint-js version 0.2.0</code></pre>
           This option requires
           <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
         </p>
-        <p />
         <h5>
           <img class="os-logo" src="../linux.svg" alt="" />&nbsp;GNU/Linux and
           <img class="os-logo" src="../macos.svg" alt="" />&nbsp;macOS
         </h5>
         <ol>
-          <!-- TODO(strager): Create a /releases/ directory. -->
           <li>
             <a
-              href="https://c.quick-lint-js.com/builds/55527f6708b5bc53f0ddf3c140c82daccaab9e76/vim/quick-lint-js-vim.zip"
+              href="https://c.quick-lint-js.com/releases/0.2.0/vim/quick-lint-js-vim.zip"
               >Download the quick-lint-js Vim plugin.</a
             >
           </li>
@@ -1456,7 +1565,7 @@ quick-lint-js version 0.2.0</code></pre>
             <code class="vim">call&nbsp;plug#begin(...)</code> and
             <code class="vim">call&nbsp;plug#end()</code>:
             <blockquote>
-              <pre><code class="vim">Plug 'strager/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+              <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
             </blockquote>
           </li>
           <li>Restart Vim.</li>
@@ -1474,12 +1583,22 @@ quick-lint-js version 0.2.0</code></pre>
             <code class="vim">call&nbsp;vundle#begin(...)</code> and
             <code class="vim">call&nbsp;vundle#end()</code>:
             <blockquote>
-              <pre><code class="vim">Plugin 'strager/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+              <pre><code class="vim">Plugin 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
             </blockquote>
           </li>
           <li>Restart Vim.</li>
           <li>In Vim, run <code class="vim">:PluginInstall</code>.</li>
         </ol>
+
+        <h3>Configuring</h3>
+        <p>
+          Configure the Vim plugin by opening Vim and running
+          <kbd>:help quick-lint-js</kbd>, or
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/blob/master/plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt"
+            >read the Vim plugin docs online</a
+          >.
+        </p>
       </article>
     </main>
 
@@ -1504,7 +1623,7 @@ quick-lint-js version 0.2.0</code></pre>
 
 <!--
 quick-lint-js finds bugs in JavaScript programs.
-Copyright (C) 2020  Matthew Glazar
+Copyright (C) 2020  Matthew "strager" Glazar
 
 This file is part of quick-lint-js.
 

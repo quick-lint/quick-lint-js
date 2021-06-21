@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cerrno>
@@ -44,6 +44,13 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   if (result.ec == std::errc{}) {
     value = static_cast<char32_t>(parsed_value);
   }
+  return from_chars_result{.ptr = result.ptr, .ec = result.ec};
+}
+
+from_chars_result from_chars_hex(const char *begin, const char *end,
+                                 std::uint8_t &value) {
+  std::from_chars_result result =
+      std::from_chars(begin, end, value, /*base=*/16);
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
 
@@ -130,6 +137,21 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
 }
 
+from_chars_result from_chars_hex(const char *begin, const char *end,
+                                 std::uint8_t &value) {
+  char32_t long_value;
+  from_chars_result result = from_chars_hex(begin, end, long_value);
+  if (result.ec != std::errc()) {
+    return result;
+  }
+  if (!in_range<std::uint8_t>(long_value)) {
+    return from_chars_result{.ptr = result.ptr,
+                             .ec = std::errc::result_out_of_range};
+  }
+  value = static_cast<std::uint8_t>(long_value);
+  return result;
+}
+
 template <class T>
 char8 *write_integer(T value, char8 *out) {
   char *buffer = reinterpret_cast<char *>(out);
@@ -175,7 +197,7 @@ template char8 *write_integer<unsigned long long>(unsigned long long,
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

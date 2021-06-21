@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_LINT_H
@@ -13,6 +13,31 @@
 #include <vector>
 
 namespace quick_lint_js {
+struct global_declared_variable {
+  string8_view name;
+  bool is_writable;
+  // If false, the variable was already lexically declared in the module thus
+  // cannot be declared by the user with 'let'.
+  bool is_shadowable;
+
+  variable_kind kind() const noexcept;
+};
+
+class global_declared_variable_set {
+ public:
+  void add_predefined_global_variable(const char8 *name, bool is_writable);
+  void add_predefined_module_variable(const char8 *name, bool is_writable);
+  global_declared_variable *add_variable(string8_view name);
+
+  void add_default_variables();
+
+  const global_declared_variable *find(identifier name) const noexcept;
+  const global_declared_variable *find(string8_view name) const noexcept;
+
+ private:
+  std::vector<global_declared_variable> variables_;
+};
+
 // A linter is a parse_visitor which finds non-syntax bugs.
 //
 // linter-s detect the following bugs (and possibly more):
@@ -24,7 +49,8 @@ namespace quick_lint_js {
 // The linter class implements variable lookup internally.
 class linter {
  public:
-  explicit linter(error_reporter *error_reporter);
+  explicit linter(error_reporter *error_reporter,
+                  const global_declared_variable_set *global_variables);
 
   void visit_enter_block_scope();
   void visit_enter_with_scope();
@@ -53,66 +79,9 @@ class linter {
   };
 
   struct declared_variable {
-    static declared_variable make_local(
-        identifier name, variable_kind kind,
-        declared_variable_scope declaration_scope) noexcept {
-      return declared_variable(name, kind, declaration_scope);
-    }
-
-    static declared_variable make_global(string8_view global_variable_name,
-                                         variable_kind kind) noexcept {
-      return declared_variable(global_variable_name, kind);
-    }
-
-    identifier declaration() const noexcept {
-      QLJS_ASSERT(!this->is_global_variable());
-      return this->declaration_;
-    }
-
-    string8_view name() const noexcept {
-      if (this->is_global_variable()) {
-        return this->global_variable_name_;
-      } else {
-        return this->declaration_.normalized_name();
-      }
-    }
-
-    variable_kind kind() const noexcept { return this->kind_; }
-
-    declared_variable_scope declaration_scope() const noexcept {
-      return this->declaration_scope_;
-    }
-
-    bool is_global_variable() const noexcept {
-      return this->is_global_variable_;
-    }
-
-   private:
-    explicit declared_variable(string8_view global_variable_name,
-                               variable_kind kind) noexcept
-        : kind_(kind),
-          declaration_scope_(
-              declared_variable_scope::declared_in_current_scope),
-          is_global_variable_(true),
-          global_variable_name_(global_variable_name) {}
-
-    explicit declared_variable(
-        identifier name, variable_kind kind,
-        declared_variable_scope declaration_scope) noexcept
-        : kind_(kind),
-          declaration_scope_(declaration_scope),
-          is_global_variable_(false),
-          declaration_(name) {}
-
-    variable_kind kind_;
-    declared_variable_scope declaration_scope_;
-    bool is_global_variable_;
-    union {
-      // If is_global_variable_ is false:
-      identifier declaration_;
-      // If is_global_variable_ is true:
-      string8_view global_variable_name_;
-    };
+    identifier declaration;
+    variable_kind kind;
+    declared_variable_scope declaration_scope;
   };
 
   enum class used_variable_kind {
@@ -135,7 +104,6 @@ class linter {
     const declared_variable *add_variable_declaration(identifier name,
                                                       variable_kind,
                                                       declared_variable_scope);
-    void add_predefined_variable_declaration(const char8 *name, variable_kind);
 
     const declared_variable *find(identifier name) const noexcept;
 
@@ -167,10 +135,11 @@ class linter {
   };
 
   struct global_scope {
-    explicit global_scope(const declared_variable_set *declared_variables)
+    explicit global_scope(
+        const global_declared_variable_set *declared_variables)
         : declared_variables(*declared_variables) {}
 
-    const declared_variable_set &declared_variables;
+    const global_declared_variable_set &declared_variables;
     std::vector<used_variable> variables_used;
     std::vector<used_variable> variables_used_in_descendant_scope;
   };
@@ -222,15 +191,28 @@ class linter {
   void report_error_if_assignment_is_illegal(
       const declared_variable *var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
+  void report_error_if_assignment_is_illegal(
+      const global_declared_variable *var, const identifier &assignment,
+      bool is_assigned_before_declaration) const;
+  void report_error_if_assignment_is_illegal(
+      variable_kind kind, bool is_global_variable,
+      const identifier *declaration, const identifier &assignment,
+      bool is_assigned_before_declaration) const;
+
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;
+  void report_error_if_variable_declaration_conflicts_in_scope(
+      const global_scope &scope, const declared_variable &var) const;
+  void report_error_if_variable_declaration_conflicts(
+      const identifier *already_declared, variable_kind already_declared_kind,
+      declared_variable_scope already_declared_declaration_scope,
+      bool already_declared_is_global_variable, identifier newly_declared_name,
+      variable_kind newly_declared_kind,
+      declared_variable_scope newly_declared_declaration_scope) const;
 
   scope &current_scope() noexcept { return this->scopes_.current_scope(); }
   scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
-
-  static linter::declared_variable_set make_global_variables();
-  const static linter::declared_variable_set *get_global_variables();
 
   scopes scopes_;
 
@@ -249,7 +231,7 @@ QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

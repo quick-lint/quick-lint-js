@@ -11,8 +11,9 @@
   "dependencies": {
     "asciidoctor": "^2.2.4",
     "ejs": "^3.1.6",
-    "esbuild-wasm": "^0.11.23",
+    "esbuild-wasm": "^0.12.5",
     "express": "^4.17.1",
+    "jsdom": "16.6.0",
     "markdown-it": "^12.0.6",
     "mime": "^2.5.2",
     "morgan": "^1.10.0",
@@ -22,7 +23,6 @@
     "axios": "^0.21.1",
     "colors": "^1.4.0",
     "jasmine": "^3.7.0",
-    "jsdom": "16.5.3",
-    "prettier": "2.3.0"
+    "prettier": "^2.3.0"
   }
 }

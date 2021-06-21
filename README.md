@@ -16,7 +16,7 @@ quick-lint-js finds many bugs, including:
 
 ## Installing
 
-See [installation instructions](https://quick-lint-js.com/install.html) for how
+See [installation instructions](https://quick-lint-js.com/install/) for how
 to install quick-lint-js' CLI, LSP server, and editor plugins.
 
 See [build instructions](docs/BUILDING.md) for how to build quick-lint-js for
@@ -24,8 +24,13 @@ development.
 
 ## Contact
 
+**Bugs and feature requests**: [file an issue on GitHub](https://github.com/quick-lint/quick-lint-js/issues)
+
 **IRC**: ask questions in [#quick-lint-js][quick-lint-js-irc-web] on
-[freenode][]
+[Libera.Chat][]
+
+**Security bug reports (private disclosure)**: email
+[strager.nds@gmail.com](mailto:strager.nds@gmail.com)
 
 ## Values
 
@@ -46,6 +51,6 @@ development.
   * **No configuration**. quick-lint-js works out-of-the-box. You don't need
     configuration files to tell quick-lint-js what buggy code looks like.
 
-[freenode]: https://freenode.net/
-[quick-lint-js-irc-web]: https://webchat.freenode.net/#quick-lint-js
+[Libera.Chat]: https://libera.chat/
+[quick-lint-js-irc-web]: https://kiwiirc.com/nextclient/irc.libera.chat/#quick-lint-js
 [quick-lint-js]: https://quick-lint-js.com/

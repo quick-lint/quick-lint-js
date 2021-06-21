@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -7,7 +7,30 @@ if (POLICY CMP0091)
 endif ()
 project(quick-lint-js VERSION 0.2.0)
 
+include(GNUInstallDirs)
+
 option(QUICK_LINT_JS_ENABLE_BENCHMARKS "Build microbenchmark programs" OFF)
+set(
+  QUICK_LINT_JS_INSTALL_LICENSES_DIR
+  "${CMAKE_INSTALL_DOCDIR}"
+  CACHE
+  STRING
+  "Install licenses into this directory relative to CMAKE_INSTALL_PREFIX"
+)
+set(
+  QUICK_LINT_JS_INSTALL_NEOVIM_DIR
+  "${CMAKE_INSTALL_DATAROOTDIR}/nvim/site"
+  CACHE
+  STRING
+  "Install Neovim files into this directory relative to CMAKE_INSTALL_PREFIX"
+)
+set(
+  QUICK_LINT_JS_INSTALL_VIM_DIR
+  "${CMAKE_INSTALL_DATAROOTDIR}/vim/vimfiles"
+  CACHE
+  STRING
+  "Install Vim files into this directory relative to CMAKE_INSTALL_PREFIX"
+)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -44,7 +67,7 @@ if (BUILD_TESTING)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

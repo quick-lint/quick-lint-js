@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_LSP_ERROR_REPORTER_H
@@ -55,7 +55,7 @@ class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

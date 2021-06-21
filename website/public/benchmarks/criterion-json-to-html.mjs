@@ -1,9 +1,10 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 import assert from "assert";
 import ejs from "ejs";
 import fs from "fs";
+import { html } from "../../src/html-tag.mjs";
 
 export function makeBenchmarkHTML(seriess) {
   let maxMS = Math.max(...seriess.map((series) => series.maxMS));
@@ -71,7 +72,8 @@ export function makeBenchmarkHTML(seriess) {
       <div class="x-axis-label">response time (lower is better)</div>
       <label
         class="log-scale javascript-only"
-        title="checked: logarithmic X axis (emphasizing ratios).&#013;unchecked: linear X axis (emphasizing time)."
+        title="checked: logarithmic X axis (emphasizing ratios).
+unchecked: linear X axis (emphasizing time)."
         ><input type="checkbox" class="log-scale-select" /> log scale</label
       >
     </div>
@@ -163,23 +165,8 @@ class Series {
   }
 }
 
-function html(strings, ...expressions) {
-  assert.strictEqual(strings.length, expressions.length + 1);
-  let out = [];
-  for (let i = 0; i < expressions.length; ++i) {
-    out.push(strings[i]);
-    if (Array.isArray(expressions[i])) {
-      out.push(...expressions[i]);
-    } else {
-      out.push(expressions[i]);
-    }
-  }
-  out.push(strings[expressions.length]);
-  return out.join("");
-}
-
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

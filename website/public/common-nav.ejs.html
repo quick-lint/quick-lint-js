@@ -1,22 +1,56 @@
 <%#
-<!-- Copyright (C) 2020  Matthew Glazar -->
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 %>
 
 <script>
   //<%
+  let ejs = await import("ejs");
   let path = await import("path");
+  let url = await import("url");
+  let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
+
   function makeRelativeURI(uri) {
+    if (/^\w+:/.test(uri)) {
+      return uri;
+    }
     return path.posix.relative(currentURI, uri) + "/";
   }
 
   let navigationPages = [
-    ["/install/", "Install"],
-    ["/demo/", "Try online"],
-    ["/errors/", "Error docs"],
-    ["/cli/", "CLI docs"],
-    ["/benchmarks/", "Benchmarks"],
+    {
+      uri: "/install/",
+      title: "Install",
+      subpages: [{ uri: "/releases/", title: "Releases" }],
+    },
+    { uri: "/demo/", title: "Try online" },
+    {
+      uri: "/docs/",
+      title: "Docs",
+      subpages: [
+        { uri: "/errors/", title: "Errors" },
+        { uri: "/cli/", title: "CLI" },
+        { uri: "/config/", title: "Config" },
+      ],
+    },
+    { uri: "/benchmarks/", title: "Benchmarks" },
+    {
+      uri: "https://github.com/quick-lint/quick-lint-js",
+      title: "Code on GitHub",
+    },
+    { uri: "/contact/", title: "Contact" },
   ];
+
+  function pageLinkHTML(page) {
+    let titleHTML = ejs.escapeXML(page.title);
+    if (page.uri === currentURI) {
+      return html`<li><span class="current-page">${titleHTML}</span></li>`;
+    } else {
+      return html`<li>
+        <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
+      </li>`;
+    }
+  }
   //%>
 </script>
 
@@ -26,22 +60,25 @@
     <li class="side-bar-only">
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
-    <% } %> <% for (let [pageURL, pageTitle] of navigationPages) { %> <% if
-    (pageURL === currentURI) { %>
-    <li class="current-page"><%= pageTitle %></li>
-    <% } else { %>
-    <li><a href="<%= makeRelativeURI(pageURL) %>"><%= pageTitle %></a></li>
-    <% } %> <% } %>
+    <% } %> <% for (let page of navigationPages) { %> <% if (page.subpages) { %>
     <li>
-      <a href="https://github.com/quick-lint/quick-lint-js">Code on GitHub</a>
+      <%- pageLinkHTML(page).replace("<" + "/li>", "") %> <% if (page.uri ===
+      currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
+      %>
+      <ul>
+        <% for (let subpage of page.subpages) { %> <%- pageLinkHTML(subpage) %>
+        <% } %>
+      </ul>
+      <% } %>
     </li>
+    <% } else { %> <%- pageLinkHTML(page) %> <% } %> <% } %>
   </ul>
 </nav>
 
 <%#
 <!--
 quick-lint-js finds bugs in JavaScript programs.
-Copyright (C) 2020  Matthew Glazar
+Copyright (C) 2020  Matthew "strager" Glazar
 
 This file is part of quick-lint-js.
 

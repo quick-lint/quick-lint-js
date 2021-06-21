@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <algorithm>
@@ -1072,7 +1072,8 @@ parse_digits_again:
         source_code_span(garbage_begin, input)});
     input = this->parse_octal_digits(input);
   }
-  if (*input == 'n') {
+  bool is_bigint = *input == 'n';
+  if (is_bigint) {
     input += 1;
     this->error_reporter_->report(error_legacy_octal_literal_may_not_be_big_int{
         source_code_span(garbage_begin, input)});
@@ -1136,7 +1137,8 @@ void lexer::parse_number() {
       consume_garbage();
     }
   }
-  if (*input == 'n') {
+  bool is_bigint = *input == 'n';
+  if (is_bigint) {
     input += 1;
     if (has_decimal_point) {
       this->error_reporter_->report(
@@ -1163,7 +1165,8 @@ void lexer::parse_hexadecimal_number() {
 
   input = parse_hex_digits_and_underscores(input);
   bool found_digits = input != this->input_;
-  if (*input == u8'n') {
+  bool is_bigint = *input == u8'n';
+  if (is_bigint) {
     ++input;
   }
 
@@ -1991,7 +1994,7 @@ std::ostream& operator<<(std::ostream& out, token_type type) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

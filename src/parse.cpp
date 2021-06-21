@@ -1,9 +1,8 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -78,8 +77,9 @@ parser::loop_guard parser::enter_loop() {
 }
 
 expression* parser::parse_expression(precedence prec) {
+  depth_guard guard(this);
   expression* ast = this->parse_primary_expression(prec);
-  if (!prec.binary_operators) {
+  if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
   }
   return this->parse_expression_remainder(ast, prec);
@@ -220,7 +220,8 @@ expression* parser::parse_primary_expression(precedence prec) {
     expression* child = this->parse_expression(
         precedence{.binary_operators = true,
                    .math_or_logical_or_assignment = false,
-                   .commas = false});
+                   .commas = false,
+                   .is_typeof = (type == token_type::kw_typeof)});
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -247,7 +248,9 @@ expression* parser::parse_primary_expression(precedence prec) {
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* child = this->parse_expression(
-        precedence{.binary_operators = false, .commas = false});
+        precedence{.binary_operators = false,
+                   .math_or_logical_or_assignment = false,
+                   .commas = false});
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -428,6 +431,16 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::equal:
   case token_type::kw_in:
   case token_type::question: {
+    if (this->peek().type == token_type::star) {
+      token star_token = this->peek();
+      std::optional<function_attributes> attrb =
+          this->try_parse_function_with_leading_star();
+      if (attrb.has_value()) {
+        expression* function =
+            this->parse_function_expression(attrb.value(), star_token.begin);
+        return function;
+      }
+    }
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (prec.binary_operators) {
@@ -517,9 +530,7 @@ expression* parser::parse_async_expression_only(token async_token) {
   // async () => {}  // Arrow function.
   // async()         // Function call.
   case token_type::left_paren: {
-    if (this->peek().has_leading_newline) {
-      goto variable_reference;
-    }
+    bool newline_after_async = this->peek().has_leading_newline;
 
     vector<expression*> parameters(
         "parse_expression async arrow function parameters",
@@ -552,6 +563,13 @@ expression* parser::parse_async_expression_only(token async_token) {
     this->skip();
 
     if (this->peek().type == token_type::equal_greater) {
+      if (newline_after_async) {
+        this->error_reporter_->report(
+            error_newline_not_allowed_between_async_and_parameter_list{
+                .async = async_token.span(),
+                .arrow = this->peek().span(),
+            });
+      }
       // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
       return parse_arrow_function_arrow_and_body(std::move(parameters));
     } else {
@@ -985,6 +1003,9 @@ next:
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
+    if (prec.is_typeof) {
+      break;
+    }
     source_code_span question_span = this->peek().span();
     this->skip();
 
@@ -1168,19 +1189,27 @@ void parser::parse_arrow_function_expression_remainder(
 
   // f(x, y) => {}
   case expression_kind::call:
-    left_paren_begin =
-        expression_cast<expression::call>(lhs)->left_paren_span().begin();
-    for (int i = 1; i < lhs->child_count(); ++i) {
-      parameters.emplace_back(lhs->child(i));
+    if (this->peek().type == token_type::left_curly) {
+      left_paren_begin =
+          expression_cast<expression::call>(lhs)->left_paren_span().begin();
+      for (int i = 1; i < lhs->child_count(); ++i) {
+        parameters.emplace_back(lhs->child(i));
+      }
+      // We will report
+      // error_missing_operator_between_expression_and_arrow_function
+      // elsewhere.
+      break;
     }
-    break;
+    [[fallthrough]];
 
+  // f() => z
   // 42 => {}
   case expression_kind::dot:
   case expression_kind::literal: {
     source_code_span lhs_span = lhs->span();
     left_paren_begin = lhs_span.begin();
     switch (lhs->kind()) {
+    case expression_kind::call:
     case expression_kind::dot:
       this->error_reporter_->report(error_unexpected_arrow_after_expression{
           .arrow = arrow_span,
@@ -1575,6 +1604,11 @@ expression* parser::parse_object_literal() {
           key_token.report_errors_for_escape_sequences_in_keyword(
               this->error_reporter_);
           goto single_token_key_and_value_identifier;
+
+        // { #privateName }  // Invalid.
+        case token_type::private_identifier:
+          // We already reported an error. Ignore.
+          break;
 
         default:
           QLJS_UNIMPLEMENTED();
@@ -2091,11 +2125,11 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
 #if QLJS_HAVE_SETJMP
-  if (this->have_unimplemented_token_jmp_buf_) {
+  if (this->have_fatal_parse_error_jmp_buf_) {
     this->error_reporter_->report(error_unexpected_token{
         .token = this->peek().span(),
     });
-    std::longjmp(this->unimplemented_token_jmp_buf_, 1);
+    std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
     QLJS_UNREACHABLE();
   }
 #endif
@@ -2108,6 +2142,22 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   std::fprintf(stderr, " on line %d column %d", token_position.line_number,
                token_position.column_number);
   std::fprintf(stderr, "\n");
+
+  QLJS_CRASH_DISALLOWING_CORE_DUMP();
+}
+
+void parser::crash_on_depth_limit_exceeded() {
+#if QLJS_HAVE_SETJMP
+  if (this->have_fatal_parse_error_jmp_buf_) {
+    this->error_reporter_->report(error_depth_limit_exceeded{
+        .token = this->peek().span(),
+    });
+    std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
+    QLJS_UNREACHABLE();
+  }
+#endif
+
+  std::fprintf(stderr, "Error: parser depth limit exceeded\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
@@ -2134,7 +2184,7 @@ parser::function_guard::~function_guard() noexcept {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

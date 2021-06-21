@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_PARSE_JSON_H
@@ -19,15 +19,15 @@ bool parse_json(string8_view json, ::Json::Value *result,
                 ::Json::String *errors);
 #endif
 
-::Json::Value simdjson_to_jsoncpp(const ::simdjson::dom::element &);
+::Json::Value simdjson_to_jsoncpp(::simdjson::ondemand::value &);
 ::Json::Value simdjson_to_jsoncpp(
-    ::simdjson::simdjson_result<::simdjson::dom::element> &&);
+    ::simdjson::simdjson_result<::simdjson::ondemand::value> &&);
 }
 
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

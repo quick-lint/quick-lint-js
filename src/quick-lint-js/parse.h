@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_PARSE_H
@@ -99,6 +99,8 @@ class parser {
 
   class function_guard;
 
+  class depth_guard;
+
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
       : lexer_(input, error_reporter), error_reporter_(error_reporter) {}
@@ -124,17 +126,17 @@ class parser {
   //
   // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
   template <QLJS_PARSE_VISITOR Visitor>
-  bool parse_and_visit_module_catching_unimplemented(Visitor &v) {
-    this->have_unimplemented_token_jmp_buf_ = true;
+  bool parse_and_visit_module_catching_fatal_parse_errors(Visitor &v) {
+    this->have_fatal_parse_error_jmp_buf_ = true;
     bool ok;
-    if (setjmp(this->unimplemented_token_jmp_buf_) == 0) {
+    if (setjmp(this->fatal_parse_error_jmp_buf_) == 0) {
       this->parse_and_visit_module(v);
       ok = true;
     } else {
       // QLJS_PARSER_UNIMPLEMENTED was called.
       ok = false;
     }
-    this->have_unimplemented_token_jmp_buf_ = false;
+    this->have_fatal_parse_error_jmp_buf_ = false;
     return ok;
   }
 #endif
@@ -175,6 +177,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
                                                bool allow_declarations = true) {
+    depth_guard d_guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
         this->error_reporter_->report(error_unmatched_parenthesis{
@@ -340,10 +343,26 @@ class parser {
     case token_type::slash:
     case token_type::slash_equal:
     case token_type::string:
-    case token_type::tilde:
+    case token_type::tilde: {
+      if (this->peek().type == token_type::star) {
+        // * 42; // Invalid (missing operand).
+        // *function f() {} // Invalid (misplaced '*').
+        token star_token = this->peek();
+        std::optional<function_attributes> attrb =
+            this->try_parse_function_with_leading_star();
+        if (attrb.has_value()) {
+          this->parse_and_visit_function_declaration(
+              v, attrb.value(),
+              /*begin=*/star_token.begin,
+              /*require_name=*/
+              name_requirement::required_for_statement);
+          break;
+        }
+      }
       this->parse_and_visit_expression(v);
       parse_expression_end();
       break;
+    }
 
     // await settings.save();
     // await = value;
@@ -1441,12 +1460,43 @@ class parser {
     QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
     std::optional<identifier> last_ident;
+    const char8 *async_token_begin = nullptr;
     function_attributes method_attributes = function_attributes::normal;
+    bool async_static = false;
 
     auto parse_and_visit_field_or_method_impl =
-        [this, &v](std::optional<identifier> property_name,
-                   source_code_span property_name_span,
-                   function_attributes method_attributes) -> void {
+        [this, &v, &async_static, &async_token_begin](
+            std::optional<identifier> property_name,
+            source_code_span property_name_span,
+            function_attributes method_attributes) -> void {
+      if (async_static) {
+        if (this->peek().type == token_type::star) {
+          // async static *m() {}  // Invalid.
+          method_attributes = function_attributes::async_generator;
+          this->skip();
+        }
+        switch (this->peek().type) {
+        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
+        QLJS_CASE_CONTEXTUAL_KEYWORD:
+        case token_type::identifier:
+        case token_type::private_identifier:
+        case token_type::reserved_keyword_with_escape_sequence:
+          // async static method() {}             // Invalid
+          // async static *myAsyncGenerator() {}  // Invalid
+          this->error_reporter_->report(error_async_static_method{
+              .async_static =
+                  source_code_span(async_token_begin, property_name_span.end()),
+          });
+          property_name = this->peek().identifier_name();
+          property_name_span = property_name->span();
+          this->skip();
+          break;
+        // async static() {}
+        default:
+          break;
+        }
+      }
+
       switch (this->peek().type) {
       // method() { }
       // method { }    // Invalid (missing parameter list).
@@ -1540,14 +1590,41 @@ class parser {
     // async f() {}
     case token_type::kw_async:
       last_ident = this->peek().identifier_name();
+      async_token_begin = this->peek().begin;
       this->skip();
-      if (this->peek().type != token_type::left_paren) {
-        method_attributes = function_attributes::async;
-      }
-      if (this->peek().type == token_type::star) {
-        // async *g() {}
-        method_attributes = function_attributes::async_generator;
-        this->skip();
+      if (this->peek().has_leading_newline) {
+        switch (this->peek().type) {
+        // 'async' is a field name:
+        // class {
+        //   async
+        //   method() {}
+        // }
+        QLJS_CASE_KEYWORD:
+        case token_type::left_square:
+        case token_type::number:
+        case token_type::string:
+        case token_type::identifier:
+        case token_type::private_identifier:
+        case token_type::star:
+          v.visit_property_declaration(last_ident);
+          return;
+        default:
+          break;
+        }
+      } else {
+        if (this->peek().type != token_type::left_paren) {
+          method_attributes = function_attributes::async;
+        }
+        if (this->peek().type == token_type::star) {
+          // async *g() {}
+          method_attributes = function_attributes::async_generator;
+          this->skip();
+        }
+        if (this->peek().type == token_type::kw_static) {
+          // async static method() {}  // Invalid
+          // async static() {}
+          async_static = true;
+        }
       }
       break;
 
@@ -1576,12 +1653,8 @@ class parser {
     // field = initialValue;
     // #field = initialValue;
     QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
-    QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC:
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::identifier:
-    case token_type::kw_async:
-    case token_type::kw_get:
-    case token_type::kw_set:
-    case token_type::kw_static:
     case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence: {
       identifier property_name = this->peek().identifier_name();
@@ -2112,7 +2185,8 @@ class parser {
       buffering_visitor lhs(this->buffering_visitor_memory());
       if (declaring_token.type == token_type::kw_let &&
           this->is_let_token_a_variable_reference(
-              this->peek(), /*allow_declarations=*/true)) {
+              this->peek(),
+              /*allow_declarations=*/true)) {
         // for (let = expression; cond; up) {}
         // for (let(); cond; up) {}
         // for (let; cond; up) {}
@@ -2436,6 +2510,57 @@ class parser {
     default:
       return std::nullopt;
     }
+  }
+
+  // If the function returns nullopt, no tokens are consumed.
+  //
+  // If the function returns a function_attributes, tokens are consumed until
+  // the kw_function (i.e. the * and possibly a following async are skipped)
+  // E.g. *async function f() {}
+  // In this case `*async` is consumed.
+  std::optional<function_attributes> try_parse_function_with_leading_star() {
+    QLJS_ASSERT(this->peek().type == token_type::star);
+    token star_token = this->peek();
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (this->peek().has_leading_newline) {
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return std::nullopt;
+    }
+
+    function_attributes attrb = function_attributes::generator;
+    bool has_leading_async = this->peek().type == token_type::kw_async;
+    // *async
+    if (has_leading_async) {
+      attrb = function_attributes::async_generator;
+      this->skip();
+    }
+
+    if (this->peek().type != token_type::kw_function) {
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return std::nullopt;
+    }
+
+    // *function f() {}
+    this->skip();
+    if (this->peek().type == token_type::identifier) {
+      this->error_reporter_->report(
+          error_generator_function_star_belongs_before_name{
+              .function_name = this->peek().span(),
+              .star = star_token.span(),
+          });
+    } else {
+      this->error_reporter_->report(
+          error_generator_function_star_belongs_after_keyword_function{
+              .star = star_token.span()});
+    }
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    this->skip();
+    // *async function f() {}
+    if (has_leading_async) {
+      this->skip();
+    }
+    return attrb;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -3026,6 +3151,28 @@ class parser {
               });
           goto initialize_variable;
 
+        case token_type::kw_await:
+        case token_type::kw_class:
+        case token_type::kw_function:
+        case token_type::kw_new:
+        case token_type::kw_null:
+        case token_type::kw_this:
+        case token_type::kw_typeof: {
+          if (this->peek().has_leading_newline) {
+            this->visit_binding_element(variable, v, declaration_kind);
+            this->lexer_.insert_semicolon();
+            return;
+          }
+          const char8 *here = this->lexer_.end_of_previous_token();
+          this->error_reporter_->report(error_missing_equal_after_variable{
+              .expected_equal = source_code_span(here, here),
+          });
+          this->parse_and_visit_expression(
+              v, precedence{.commas = false, .in_operator = allow_in_operator});
+          this->visit_binding_element(variable, v, declaration_kind);
+          break;
+        }
+
         // let x;
         // let x, y;
         default:
@@ -3244,6 +3391,13 @@ class parser {
       });
       break;
 
+    case expression_kind::call:
+    case expression_kind::literal:
+      this->error_reporter_->report(error_invalid_parameter{
+          .parameter = ast->span(),
+      });
+      break;
+
     default:
       QLJS_UNIMPLEMENTED();
       break;
@@ -3259,6 +3413,7 @@ class parser {
     // If true, parse unexpected trailing identifiers as part of the expression
     // (and emit an error).
     bool trailing_identifiers = false;
+    bool is_typeof = false;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -3318,6 +3473,8 @@ class parser {
       const char *qljs_file_name, int qljs_line,
       const char *qljs_function_name);
 
+  [[noreturn]] void crash_on_depth_limit_exceeded();
+
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args) {
     return this->expressions_.make_expression<Expression>(
@@ -3362,6 +3519,29 @@ class parser {
     bool old_value_;
   };
 
+  class depth_guard {
+   public:
+    explicit depth_guard(parser *p) noexcept
+        : parser_(p), old_depth_(p->depth_) {
+      if (p->depth_ + 1 > p->stack_limit) {
+        p->crash_on_depth_limit_exceeded();
+      }
+      p->depth_++;
+    }
+
+    depth_guard(const depth_guard &) = delete;
+    depth_guard &operator=(const depth_guard &) = delete;
+
+    ~depth_guard() noexcept {
+      QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
+      this->parser_->depth_ = this->old_depth_;
+    }
+
+   private:
+    parser *parser_;
+    int old_depth_;
+  };
+
   quick_lint_js::lexer lexer_;
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
@@ -3380,14 +3560,17 @@ class parser {
   bool in_switch_statement_ = false;
 
 #if QLJS_HAVE_SETJMP
-  bool have_unimplemented_token_jmp_buf_ = false;
-  std::jmp_buf unimplemented_token_jmp_buf_;
+  bool have_fatal_parse_error_jmp_buf_ = false;
+  std::jmp_buf fatal_parse_error_jmp_buf_;
 #endif
+
+  int depth_ = 0;
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
 
  public:
+  static constexpr const int stack_limit = 150;
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
 };
@@ -3398,7 +3581,7 @@ class parser {
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

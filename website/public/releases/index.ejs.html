@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <%- await include("../common-head.ejs.html") %>
+    <script>
+      //<%
+      let fs = await import("fs");
+      let url = await import("url");
+
+      let moduleCacheBust = "#" + Date.now();
+
+      let { releasesMarkdownToHTML } = await import(
+        url.pathToFileURL("../../src/release-documentation.mjs") +
+          moduleCacheBust
+      );
+      //%>
+    </script>
+    <title>quick-lint-js: releases</title>
+    <meta name="description" content="Older versions of quick-lint-js" />
+    <link href="../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header>
+      <h1><a href="..">quick-lint-js</a></h1>
+      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+      <%- await include("../common-nav.ejs.html") %>
+    </header>
+
+    <main>
+      <h2>Releases &amp; change log</h2>
+
+      <article>
+        <%- releasesMarkdownToHTML(await
+        fs.promises.readFile("../../../docs/RELEASES.md", "utf-8")) %>
+      </article>
+    </main>
+
+    <footer>
+      <nav>
+        <ul>
+          <li><a href="..">quick-lint-js home page</a></li>
+          <li><a href="../hiring/">we're hiring! get paid to code</a></li>
+          <li><a href="../benchmarks/">benchmarks vs other linters</a></li>
+          <li><a href="../demo/">try quick-lint-js in your browser</a></li>
+          <li>
+            <a href="https://github.com/quick-lint/quick-lint-js"
+              >source code on GitHub</a
+            >
+          </li>
+          <li><a href="../license/">copyright and license information</a></li>
+        </ul>
+      </nav>
+    </footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

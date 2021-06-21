@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_INTEGER_H
@@ -20,6 +20,8 @@ from_chars_result from_chars(const char *begin, const char *end,
                              std::size_t &value);
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value);
+from_chars_result from_chars_hex(const char *begin, const char *end,
+                                 unsigned char &value);
 
 template <class T>
 inline constexpr int integer_string_length =
@@ -41,7 +43,7 @@ extern template char8 *write_integer<unsigned long long>(unsigned long long,
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

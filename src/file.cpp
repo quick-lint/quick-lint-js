@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <algorithm>
@@ -16,10 +16,15 @@
 #include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
+#include <stdlib.h>
 #include <string>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+
+#if QLJS_HAVE_STD_FILESYSTEM
+#include <filesystem>
 #endif
 
 #if QLJS_HAVE_SYS_STAT_H
@@ -53,8 +58,8 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
-void read_file_buffered(platform_file_ref file, int buffer_size,
-                        read_file_result *out) {
+void read_file_buffered(platform_file_ref file, const char *path,
+                        int buffer_size, read_file_result *out) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
@@ -72,7 +77,8 @@ void read_file_buffered(platform_file_ref file, int buffer_size,
     file_read_result read_result =
         file.read(&out->content.data()[size_before], buffer_size);
     if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
-      out->error = "failed to read from file: " + *read_result.error_message;
+      out->error = std::string("failed to read from ") + path + ": " +
+                   *read_result.error_message;
       return;
     }
     std::optional<int> new_size =
@@ -87,7 +93,8 @@ void read_file_buffered(platform_file_ref file, int buffer_size,
 }
 
 read_file_result read_file_with_expected_size(platform_file_ref file,
-                                              int file_size, int buffer_size) {
+                                              const char *path, int file_size,
+                                              int buffer_size) {
   read_file_result result;
 
   std::optional<int> size_to_read = checked_add(file_size, 1);
@@ -100,7 +107,8 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
   file_read_result read_result =
       file.read(result.content.data(), *size_to_read);
   if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
-    result.error = "failed to read from file: " + *read_result.error_message;
+    result.error = std::string("failed to read from ") + path + ": " +
+                   *read_result.error_message;
     return result;
   }
   if (read_result.bytes_read == file_size) {
@@ -110,8 +118,8 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
         file.read(result.content.data() + file_size, 1);
     if (!extra_read_result.at_end_of_file &&
         extra_read_result.error_message.has_value()) {
-      result.error =
-          "failed to read from file: " + *extra_read_result.error_message;
+      result.error = std::string("failed to read from ") + path + ": " +
+                     *extra_read_result.error_message;
       return result;
     }
     result.content.resize(read_result.bytes_read +
@@ -121,13 +129,13 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
       return result;
     } else {
       // We didn't read the entire file the first time. Keep reading.
-      read_file_buffered(file, buffer_size, &result);
+      read_file_buffered(file, path, buffer_size, &result);
       return result;
     }
   } else {
     result.content.resize(read_result.bytes_read);
     // We did not read the entire file. There is more data to read.
-    read_file_buffered(file, buffer_size, &result);
+    read_file_buffered(file, path, buffer_size, &result);
     return result;
   }
 }
@@ -149,7 +157,8 @@ read_file_result read_file(const char *path, windows_handle_file_ref file) {
         std::string("file too large to read into memory: ") + path);
   }
   return read_file_with_expected_size(
-      /*file=*/file, /*file_size=*/narrow_cast<int>(file_size.QuadPart),
+      /*file=*/file, /*path=*/path,
+      /*file_size=*/narrow_cast<int>(file_size.QuadPart),
       /*buffer_size=*/buffer_size);
 }
 #endif
@@ -182,7 +191,7 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
         std::string("file too large to read into memory: ") + path);
   }
   return read_file_with_expected_size(
-      /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
+      /*file=*/file, /*path=*/path, /*file_size=*/narrow_cast<int>(file_size),
       /*buffer_size=*/reasonable_buffer_size(s));
 }
 #endif
@@ -205,8 +214,11 @@ read_file_result read_file(const char *path) {
       /*hTemplateFile=*/nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
     DWORD error = ::GetLastError();
-    return read_file_result::failure(std::string("failed to open ") + path +
-                                     ": " + windows_error_message(error));
+    read_file_result result =
+        read_file_result::failure(std::string("failed to open ") + path + ": " +
+                                  windows_error_message(error));
+    result.is_not_found_error = error == ERROR_FILE_NOT_FOUND;
+    return result;
   }
   windows_handle_file file(handle);
   return read_file(path, file.ref());
@@ -223,8 +235,10 @@ read_file_result read_file(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
     int error = errno;
-    return read_file_result::failure(std::string("failed to open ") + path +
-                                     ": " + std::strerror(error));
+    read_file_result result = read_file_result::failure(
+        std::string("failed to open ") + path + ": " + std::strerror(error));
+    result.is_not_found_error = error == ENOENT;
+    return result;
   }
   posix_fd_file file(fd);
   return read_file(path, file.ref());
@@ -265,7 +279,7 @@ void write_file(const char *path, string8_view content) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

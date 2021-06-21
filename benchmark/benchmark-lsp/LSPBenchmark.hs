@@ -1,4 +1,4 @@
--- Copyright 2021 Matthew Glazar
+-- Copyright 2021 Matthew "strager" Glazar
 -- See end of file for extended copyright information.
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -232,7 +232,7 @@ instance NFData IO.Handle where
 
 instance NFData Process.ProcessHandle where
   rnf x = x `seq` ()
--- Copyright 2021 Matthew Glazar
+-- Copyright 2021 Matthew "strager" Glazar
 --
 -- This file is part of quick-lint-js.
 --

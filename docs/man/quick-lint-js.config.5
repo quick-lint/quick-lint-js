@@ -1,0 +1,490 @@
+.\" Copyright (C) 2020  Matthew "strager" Glazar
+.\" See end of file for extended copyright information.
+.\" This file was generated using generate-man-pages.
+.
+.\" Manual page for the 'man' utility.
+.
+.
+'\" t
+.\"     Title: quick-lint-js.config
+.\"    Author: [see the "AUTHOR(S)" section]
+.\" Generator: Asciidoctor 2.0.12
+.\"    Manual: \ \&
+.\"    Source: quick-lint-js version 0.2.0
+.\"  Language: English
+.\"
+.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version 0.2.0" "\ \&"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+quick\-lint\-js.config \- configuration file for *quick\-lint\-js*(1)
+.SH "SYNOPSIS"
+.sp
+\f(CRquick\-lint\-js.config\fP
+.br
+\f(CR.quick\-lint\-js.config\fP
+.br
+\f(CRpackage.json\fP\(cqs \fBquick\-lint\-js.config\fP property
+.SH "DESCRIPTION"
+.sp
+The
+\fBquick\-lint\-js\fP(1) program,
+and also quick\-lint\-js editor plugins, can be configured using a \f(CRquick\-lint\-js.config\fP file.
+.sp
+\fBThese configuration options are not yet implemented.\fP
+.SH "FILES"
+.sp
+quick\-lint\-js uses the following algorithm to find its configuration:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Compute the absolute canonical path of the input JavaScript file by joining the JavaScript file\(cqs given path with the current working directory, following all symbolic links, and resolving all \f(CR.\fP and \f(CR..\fP components.
+Remove the last component of the absolute canonical path.
+Remember this path as the \fIcurrent directory\fP.
+.sp
+If the input JavaScript file has no path (e.g. if its contents are given using standard input), remember the current working directory as the \fIcurrent directory\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+Look for a configuration file in the \fIcurrent directory\fP:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Check if the file \f(CRquick\-lint\-js.config\fP exists.
+If so, use it as the configuration file and stop.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+Check if the file \f(CR.quick\-lint\-js.config\fP exists.
+If so, use it as the configuration file and stop.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 3." 4.2
+.\}
+Check if the file \f(CRpackage.json\fP exists.
+If so, use it as the configuration file and stop.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 4." 4.2
+.\}
+Go to step 3.
+.RE
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 3." 4.2
+.\}
+If the \fIcurrent directory\fP is a filesystem root, assume no configuration file and stop.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 4." 4.2
+.\}
+Remove the last component of the \fIcurrent directory\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 5.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 5." 4.2
+.\}
+Go to step 2.
+.RE
+.sp
+In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP, \f(CR.quick\-lint\-js.config\fP, or \f(CRpackage.json\fP in ancestor directories.
+If multiple files are found, \f(CRquick\-lint\-js.config\fP is used if present, otherwise \f(CR.quick\-lint\-js.config\fP is used if present.
+.sp
+If no configuration file is found, quick\-lint\-js behaves as if a \f(CRquick\-lint\-js.config\fP file was found with contents \f(CR{}\fP.
+.sp
+In addition to the above search algorithm, the
+\fB\-\-config\-file\fP command\-line option
+can be given to
+\fBquick\-lint\-js\fP(1).
+.SH "FORMAT"
+.sp
+\f(CRquick\-lint\-js.config\fP and \f(CR.quick\-lint\-js.config\fP files contain UTF\-8\-encoded JSON (per RFC 8259).
+The top\-level object contains quick\-lint\-js configuration properties.
+A \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP file with no configuration looks like this:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{}
+.fam
+.fi
+.if n .RE
+.sp
+\f(CRquick\-lint\-js.config\fP and \f(CR.quick\-lint\-js.config\fP do not support a dedicated comment syntax.
+To write a comment, you can create an object key starting a space character.
+quick\-lint\-js will ignore an object property if its key starts with a space.
+For example:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  " ": "this file configures quick\-lint\-js",
+  "globals": {
+    " exported by Prototype.js": null,
+    "$": true,
+    "Ajax": true,
+    "Class": true,
+    "Element": true,
+
+    " exported by Google Charts": null,
+    "chart": true
+  }
+}
+.fam
+.fi
+.if n .RE
+.sp
+\f(CRpackage.json\fP files contain UTF\-8\-encoded JSON.
+The \fBquick\-lint\-js.config\fP property of the top\-level object contains quick\-lint\-js configuration properties.
+If the \fBquick\-lint\-js.config\fP property is missing, it is assumed to be an empty object ({}).
+A \f(CRpackage.json\fP file might look like this:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "name": "my\-npm\-package",
+  "version": "0.1.0",
+  "quick\-lint\-js.config": {
+    "globals": {
+      "YUI": {"writable": false}
+    }
+  }
+}
+.fam
+.fi
+.if n .RE
+.SH "OPTIONS"
+.sp
+The quick\-lint\-js configuration object can contain one or more of the following keys:
+.sp
+\fBglobals\fP
+.RS 4
+Optional.
+Global variables which programs can use.
+\fBThis configuration property is not yet implemented.\fP
+.sp
+\fBglobals\fP is an object
+Its format is described in the Globals section below.
+.RE
+.sp
+\fBglobal\-groups\fP
+.RS 4
+Optional.
+Pre\-defined categories of global variables which programs can use.
+\fBThis configuration property is not yet implemented.\fP
+.sp
+\fBglobal\-groups\fP is either an array or a boolean.
+.sp
+If \fBglobal\-groups\fP is \fBtrue\fP or not present, then it\(cqs as if the value was an array of all possible group names, except for \fBliterally\-anything\fP.
+.sp
+If \fBglobal\-groups\fP is \fBfalse\fP or an empty array, then no global variables are defined aside from those listed in the \fBglobals\fP configuration property.
+.sp
+If \fBglobal\-groups\fP is a non\-empty array, then global variables are defined per the given group names.
+Each group name is a string.
+For the list of group names, see the [global\-groups] section.
+.RE
+.SH "GLOBALS"
+.sp
+The \fBglobals\fP configuration property tells quick\-lint\-js what global variables to assume exist.
+.sp
+If the global variables you want are from a popular platform or library, you might want to use \fBglobal\-groups\fP instead.
+.sp
+Each property in the \fBglobals\fP configuration property represents a single global variable.
+The property\(cqs key is the JavaScript variable name.
+The property\(cqs value can be either \fBtrue\fP, \fBfalse\fP, or an object:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If the value is \fBtrue\fP, then the variable is defined as if the property\(cqs value was \fB{}\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If the value is \fBfalse\fP, then the variable is not defined, even if a group listed in \fBglobal\-groups\fP would otherwise define the variable.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If the value is an object, then the variable is defined with attributes according to the object:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBshadowable\fP: Optional.
+If \fBtrue\fP or not present, the variable can redefined in the program\(cqs outer\-most scope.
+If \fBfalse\fP, the variable cannot be redefined in the program\(cqs outer\-most scope.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBwritable\fP: Optional.
+If \fBtrue\fP or not present, the variable can be assigned to.
+If \fBfalse\fP, the variable cannot be assigned to.
+.RE
+.RE
+.sp
+JSON Unicode escapes (\fB"\(rsu0068ello"\fP) are allowed in the variable name.
+JavaScript Unicode escapes (\fB"\(rs\(rsu{68}llo"\fP) are not allowed in the variable name.
+.SH "GLOBAL GROUPS"
+.sp
+The following groups are supported for the \fBglobal\-groups\fP configuration property:
+.sp
+\fBliterally\-anything\fP
+.RS 4
+all possible global variables.
+All global variables are defined as shadowable and writable.
+This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the \fBglobals\fP configuration property).
+This group is not enabled by default.
+.RE
+.sp
+\fBbrowser\fP
+.RS 4
+globals defined in HTML and DOM standards, including \fBwindow\fP, \fBalert\fP, and \fBconsole\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBecmascript\fP
+.RS 4
+globals defined by the latest ECMAScript (JavaScript) standard, including \fBObject\fP and \fBNaN\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBjasmine\fP
+.RS 4
+globals defined by the Jasmine test framework, including \fBdescribe\fP, \fBit\fP, and \fBexpect\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBjest\fP
+.RS 4
+globals defined by the Jest test framework, including \fBdescribe\fP, \fBtest\fP, and \fBexpect\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBjquery\fP
+.RS 4
+globals defined by the jQuery library, including \fB$\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBnode.js\fP
+.RS 4
+globals defined by Node.js for CommonJS modules, including \fBrequire\fP, \fBconsole\fP, and \fB__dirname\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBnode.js\-es\fP
+.RS 4
+globals defined by Node.js for ES modules, including \fBconsole\fP and \fBprocess\fP.
+This group is enabled by default.
+.RE
+.SH "EXAMPLES"
+.sp
+Imagine we have a browser\-only application.
+Its tests are written using the Jest testing framework.
+It uses the Google Maps libraries, which are exposed using the \fBgoogle\fP global variable.
+Such an application might have the following \f(CRquick\-lint\-js.config\fP file:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "global\-groups": ["browser", "ecmascript", "jest"],
+  "globals": {
+    "google": {"writable": false}
+  }
+}
+.fam
+.fi
+.if n .RE
+.sp
+Alternatively, the application might prefer to have fewer files in the project.
+In this case, the application configures quick\-lint\-js in its \f(CRpackage.json\fP file:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "name": "acme",
+  "version": "1.2.1",
+  "devDependencies": {
+    "jest": "3.0.1"
+  },
+  "quick\-lint\-js.config": {
+    "global\-groups": ["browser", "ecmascript", "jest"],
+    "globals": {
+      "google": {"writable": false}
+    }
+  }
+}
+.fam
+.fi
+.if n .RE
+.sp
+.ce
+\l'\n(.lu*25u/100u\(ap'
+.sp
+If you want to suppress E002, E033, E057, or E059, configure \fBglobals\fP or \fBglobal\-groups\fP.
+For example, if you\(cqre seeing a spurious warning E057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in \f(CRquick\-lint\-js.config\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "globals": {
+    "MyLibrary": true
+  }
+}
+.fam
+.fi
+.if n .RE
+.sp
+If you are not seeing E002, E033, E057, or E059 (false negative), but you want to see E057 "use of undeclared variable: $", use one of the following configuration in \f(CRquick\-lint\-js.config\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "globals": {
+    "$": false
+  }
+}
+.fam
+.fi
+.if n .RE
+.sp
+Alternatively, suppress the \fBjquery\fP globals group (which defines \fB$\fP as a global variable) by enabling only the environments you use in your project with this \f(CRquick\-lint\-js.config\fP:
+.sp
+.if n .RS 4
+.nf
+.fam C
+{
+  "global\-groups": ["ecmascript", "node.js"]
+}
+.fam
+.fi
+.if n .RE
+.SH "SEE ALSO"
+.sp
+\fBquick\-lint\-js\fP(1)
+
+.\" quick-lint-js finds bugs in JavaScript programs.
+.\" Copyright (C) 2020  Matthew "strager" Glazar
+.\"
+.\" This file is part of quick-lint-js.
+.\"
+.\" quick-lint-js is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" quick-lint-js is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

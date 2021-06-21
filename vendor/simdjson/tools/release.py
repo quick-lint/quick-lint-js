@@ -164,7 +164,7 @@ print("modified "+doxyfile+", a backup was made")
 
 
 
-cp = subprocess.run(["bash", "amalgamate.sh"], stdout=subprocess.DEVNULL, cwd=maindir+ os.sep + "singleheader")  # doesn't capture output
+cp = subprocess.run(["python3", "amalgamate.py"], stdout=subprocess.DEVNULL, cwd=maindir+ os.sep + "singleheader")  # doesn't capture output
 if(cp.returncode != 0):
     print("Failed to run amalgamate")
 
@@ -181,7 +181,7 @@ readmedata = open(readmefile).read()
 m = pattern.search(readmedata)
 if m == None:
     print(colored(255, 0, 0, 'I cannot find a link to the API documentation in your README?????'))
-else: 
+else:
     detectedreadme = m.group(1)
     print("found a link to your API documentation in the README file: "+detectedreadme+" ("+toversionstring(*newversion)+")")
     if(atleastminor):

@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -12,6 +12,12 @@ option(
   "Enable the QLJS_DUMP_VECTORS option at run-time"
   FALSE
 )
+
+set(NEED_THREADS TRUE)
+
+if (NEED_THREADS)
+  find_package(Threads REQUIRED)
+endif ()
 
 quick_lint_js_add_executable(
   quick-lint-js
@@ -29,15 +35,20 @@ quick_lint_js_add_library(
   assert.cpp
   buffering-error-reporter.cpp
   byte-buffer.cpp
+  c-api-error-reporter.cpp
   c-api.cpp
   char8.cpp
   cli-location.cpp
+  configuration-loader.cpp
+  configuration.cpp
   crash.cpp
   document.cpp
   error-collector.cpp
   error-formatter.cpp
   error-list.cpp
+  file-canonical.cpp
   file-handle.cpp
+  file-path.cpp
   file.cpp
   gmo.cpp
   integer.cpp
@@ -57,14 +68,18 @@ quick_lint_js_add_library(
   options.cpp
   padded-string.cpp
   parse.cpp
+  pipe-writer.cpp
   quick-lint-js/assert.h
   quick-lint-js/bit.h
   quick-lint-js/buffering-error-reporter.h
   quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.h
+  quick-lint-js/c-api-error-reporter.h
   quick-lint-js/c-api.h
   quick-lint-js/char8.h
   quick-lint-js/cli-location.h
+  quick-lint-js/configuration-loader.h
+  quick-lint-js/configuration.h
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
@@ -74,9 +89,12 @@ quick_lint_js_add_library(
   quick-lint-js/error-list.h
   quick-lint-js/error-tape.h
   quick-lint-js/error.h
+  quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
+  quick-lint-js/file-canonical.h
   quick-lint-js/file-handle.h
+  quick-lint-js/file-path.h
   quick-lint-js/file.h
   quick-lint-js/force-inline.h
   quick-lint-js/gmo.h
@@ -102,38 +120,43 @@ quick_lint_js_add_library(
   quick-lint-js/padded-string.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
-  quick-lint-js/pipe-reader.h
+  quick-lint-js/pipe-writer.h
   quick-lint-js/simd.h
+  quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
   quick-lint-js/translation.h
   quick-lint-js/unreachable.h
+  quick-lint-js/uri.h
   quick-lint-js/utf-16.h
   quick-lint-js/utf-8.h
   quick-lint-js/vector.h
   quick-lint-js/version.h
   quick-lint-js/vim-location.h
   quick-lint-js/vim-qflist-json-error-reporter.h
-  quick-lint-js/vscode-error-reporter.h
   quick-lint-js/warning.h
-  quick-lint-js/web-demo-error-reporter-2.h
-  quick-lint-js/web-demo-error-reporter.h
   quick-lint-js/web-demo-location.h
+  temporary-directory.cpp
   text-error-reporter.cpp
   translation-data.cpp
   translation.cpp
+  uri.cpp
   utf-16.cpp
   utf-8.cpp
   vector.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
-  vscode-error-reporter.cpp
-  web-demo-error-reporter-2.cpp
-  web-demo-error-reporter.cpp
   web-demo-location.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (WIN32)
+  target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
+endif ()
+target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+if (NEED_THREADS)
+  target_link_libraries(quick-lint-js-lib PRIVATE Threads::Threads)
+endif ()
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   target_precompile_headers(
     quick-lint-js-lib
@@ -195,13 +218,13 @@ quick_lint_js_collect_copyright(
 if (TARGET quick-lint-js-licenses)
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
-    DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+    DESTINATION "${QUICK_LINT_JS_INSTALL_LICENSES_DIR}"
     RENAME copyright
   )
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

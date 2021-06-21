@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <algorithm>
@@ -16,10 +16,9 @@
 
 namespace quick_lint_js {
 namespace {
-#if QLJS_HAVE_WRITEV
 string8 get_data(const byte_buffer_iovec&);
-::iovec make_chunk(string8_view);
-#endif
+byte_buffer_chunk make_chunk(string8_view);
+void assert_no_empty_iovec(const byte_buffer_iovec&);
 
 TEST(test_byte_buffer, empty_byte_buffer_is_empty) {
   byte_buffer bb;
@@ -233,7 +232,83 @@ TEST(test_byte_buffer, clear_then_append) {
   EXPECT_EQ(data, u8"world");
 }
 
-#if QLJS_HAVE_WRITEV
+TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
+  // Create three chunks for bb_1.
+  byte_buffer bb_1;
+  string8 bb_1_expected;
+  bb_1.append_copy(u8"hello");
+  bb_1_expected.append(u8"hello");
+  bb_1.append_copy(string8(byte_buffer::default_chunk_size * 2, '-'));
+  bb_1_expected.append(string8(byte_buffer::default_chunk_size * 2, '-'));
+  bb_1.append_copy(u8"world");
+  bb_1_expected.append(u8"world");
+
+  // Create three chunks for bb_2.
+  byte_buffer bb_2;
+  string8 bb_2_expected;
+  bb_2.append_copy(u8"HELLO");
+  bb_2_expected.append(u8"HELLO");
+  bb_2.append_copy(string8(byte_buffer::default_chunk_size * 2, '_'));
+  bb_2_expected.append(string8(byte_buffer::default_chunk_size * 2, '_'));
+  bb_2.append_copy(u8"WORLD");
+  bb_2_expected.append(u8"WORLD");
+
+  byte_buffer_iovec iov = std::move(bb_1).to_iovec();
+  string8 iov_expected = bb_1_expected;
+  iov.append(std::move(bb_2));
+  iov_expected.append(bb_2_expected);
+
+  EXPECT_EQ(get_data(iov), iov_expected);
+}
+
+TEST(test_byte_buffer, append_empty_byte_buffer_to_byte_buffer_iovec) {
+  byte_buffer bb_1;
+  bb_1.append_copy(u8"hello");
+  byte_buffer_iovec iov = std::move(bb_1).to_iovec();
+
+  byte_buffer bb_2;
+  iov.append(std::move(bb_2));
+
+  EXPECT_EQ(get_data(iov), u8"hello");
+}
+
+TEST(test_byte_buffer,
+     append_byte_buffer_to_indirectly_empty_byte_buffer_iovec) {
+  byte_buffer bb_1;
+  byte_buffer_iovec iov = std::move(bb_1).to_iovec();
+
+  byte_buffer bb_2;
+  bb_2.append_copy(u8"hello");
+  iov.append(std::move(bb_2));
+
+  EXPECT_EQ(get_data(iov), u8"hello");
+}
+
+TEST(test_byte_buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
+  byte_buffer_iovec iov(std::vector<byte_buffer_chunk>{});
+
+  byte_buffer bb;
+  bb.append_copy(u8"hello");
+  iov.append(std::move(bb));
+
+  EXPECT_EQ(get_data(iov), u8"hello");
+}
+
+TEST(test_byte_buffer, append_byte_buffer_to_exhausted_byte_buffer_iovec) {
+  std::vector<byte_buffer_chunk> chunks = {
+      make_chunk(u8"hello"),
+      make_chunk(u8"world"),
+  };
+  byte_buffer_iovec iov(std::move(chunks));
+  iov.remove_front(strlen(u8"helloworld"));
+
+  byte_buffer bb;
+  bb.append_copy(u8"hiya");
+  iov.append(std::move(bb));
+
+  EXPECT_EQ(get_data(iov), u8"hiya");
+}
+
 TEST(test_byte_buffer, iovec) {
   byte_buffer bb;
 
@@ -255,11 +330,51 @@ TEST(test_byte_buffer, iovec) {
   byte_buffer_iovec iovec = std::move(bb).to_iovec();
   EXPECT_EQ(get_data(iovec), expected_data);
 }
-#endif
 
-#if QLJS_HAVE_WRITEV
+TEST(test_byte_buffer, empty_byte_buffer_to_iovec_has_no_chunks) {
+  byte_buffer bb;
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  EXPECT_EQ(iovec.iovec_count(), 0);
+}
+
+TEST(test_byte_buffer,
+     byte_buffer_with_huge_append_to_iovec_has_no_empty_chunks) {
+  // byte_buffer used to have a bug. If the first reservation was larger than
+  // default_chunk_size, two chunks were created: an empty first chunk, and a
+  // large second chunk. The first (empty) chunk stuck around for the conversion
+  // to byte_buffer_iovec.
+  byte_buffer bb;
+  bb.append_copy(string8(byte_buffer::default_chunk_size * 3, 'x'));
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  assert_no_empty_iovec(iovec);
+}
+
+TEST(test_byte_buffer,
+     byte_buffer_with_undone_append_to_iovec_has_no_empty_chunks) {
+  // byte_buffer used to have a bug. If a reservation was cancelled, an empty
+  // chunk was created. The empty chunk stuck around for the conversion to
+  // byte_buffer_iovec.
+  byte_buffer bb;
+  bb.append(1, []([[maybe_unused]] void* data) -> std::size_t { return 0; });
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  assert_no_empty_iovec(iovec);
+}
+
+TEST(test_byte_buffer,
+     byte_buffer_with_large_undone_append_to_iovec_has_no_empty_chunks) {
+  // byte_buffer used to have a bug. If the first reservation was larger than
+  // default_chunk_size, two chunks were created: an empty first chunk, and a
+  // large second chunk. The first (empty) chunk stuck around for the conversion
+  // to byte_buffer_iovec, and the second (also empty) chunk also stuck around.
+  byte_buffer bb;
+  bb.append(byte_buffer::default_chunk_size * 3,
+            []([[maybe_unused]] void* data) -> std::size_t { return 0; });
+  byte_buffer_iovec iovec = std::move(bb).to_iovec();
+  assert_no_empty_iovec(iovec);
+}
+
 TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -270,7 +385,7 @@ TEST(test_byte_buffer_iovec, remove_front_entire_single_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_front_entire_multiple_chunks) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8"beautiful"),
       make_chunk(u8"world"),
@@ -281,7 +396,7 @@ TEST(test_byte_buffer_iovec, remove_front_entire_multiple_chunks) {
 }
 
 TEST(test_byte_buffer_iovec, remove_front_all_chunks) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -292,7 +407,7 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks) {
 }
 
 TEST(test_byte_buffer_iovec, remove_part_of_first_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -303,7 +418,7 @@ TEST(test_byte_buffer_iovec, remove_part_of_first_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_parts_of_first_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8" "),
       make_chunk(u8"world"),
@@ -316,7 +431,7 @@ TEST(test_byte_buffer_iovec, remove_parts_of_first_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_first_chunk_and_part_of_second_chunk) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8"beautiful"),
       make_chunk(u8"world"),
@@ -327,7 +442,7 @@ TEST(test_byte_buffer_iovec, remove_first_chunk_and_part_of_second_chunk) {
 }
 
 TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
-  std::vector<::iovec> chunks = {
+  std::vector<byte_buffer_chunk> chunks = {
       make_chunk(u8"hello"),
       make_chunk(u8"beautiful"),
       make_chunk(u8"world"),
@@ -339,29 +454,57 @@ TEST(test_byte_buffer_iovec, remove_front_all_chunks_byte_by_byte) {
   }
   EXPECT_EQ(get_data(bb), u8"");
 }
-#endif
 
-#if QLJS_HAVE_WRITEV
+TEST(test_byte_buffer_iovec, moving_makes_original_empty) {
+  std::vector<byte_buffer_chunk> chunks = {
+      make_chunk(u8"hello"),
+      make_chunk(u8"beautiful"),
+      make_chunk(u8"world"),
+  };
+  byte_buffer_iovec bb_1(std::move(chunks));
+
+  byte_buffer_iovec bb_2(std::move(bb_1));
+  EXPECT_EQ(bb_1.iovec_count(), 0);
+}
+
 string8 get_data(const byte_buffer_iovec& bb) {
   string8 data;
   for (int i = 0; i < bb.iovec_count(); ++i) {
-    const ::iovec& chunk = bb.iovec()[i];
+    const byte_buffer_chunk& chunk = bb.iovec()[i];
+#if QLJS_HAVE_WRITEV
     data.append(reinterpret_cast<const char8*>(chunk.iov_base), chunk.iov_len);
+#else
+    data.append(reinterpret_cast<const char8*>(chunk.data), chunk.size);
+#endif
   }
   return data;
 }
 
-::iovec make_chunk(string8_view data) {
+byte_buffer_chunk make_chunk(string8_view data) {
   char8* chunk_data = new char8[data.size()];
   std::copy_n(data.data(), data.size(), chunk_data);
-  return ::iovec{.iov_base = chunk_data, .iov_len = data.size()};
-}
+#if QLJS_HAVE_WRITEV
+  return byte_buffer_chunk{.iov_base = chunk_data, .iov_len = data.size()};
+#else
+  return byte_buffer_chunk{.data = reinterpret_cast<std::byte*>(chunk_data),
+                           .size = data.size()};
 #endif
+}
+
+void assert_no_empty_iovec(const byte_buffer_iovec& iovec) {
+  for (int i = 0; i < iovec.iovec_count(); ++i) {
+#if QLJS_HAVE_WRITEV
+    EXPECT_NE(iovec.iovec()[i].iov_len, 0);
+#else
+    EXPECT_NE(iovec.iovec()[i].size, 0);
+#endif
+  }
+}
 }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

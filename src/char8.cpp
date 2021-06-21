@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cstddef>
@@ -37,6 +37,22 @@ std::string to_string(const string8_view &s) {
 }
 #else
 std::string to_string(const string8_view &s) { return std::string(s); }
+#endif
+
+#if QLJS_HAVE_CHAR8_T
+std::string_view to_string_view(string8_view s) {
+  return std::string_view(reinterpret_cast<const char *>(s.data()), s.size());
+}
+#else
+std::string_view to_string_view(string8_view s) { return s; }
+#endif
+
+#if QLJS_HAVE_CHAR8_T
+string8_view to_string8_view(std::string_view s) {
+  return string8_view(reinterpret_cast<const char8 *>(s.data()), s.size());
+}
+#else
+string8_view to_string8_view(std::string_view s) { return s; }
 #endif
 
 #if QLJS_HAVE_CHAR8_T
@@ -96,7 +112,7 @@ void PrintTo(char8_t *const &s, std::ostream *out) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

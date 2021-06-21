@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_ERROR_H
@@ -65,6 +65,13 @@
       { source_code_span await_operator; },                                    \
       .error(QLJS_TRANSLATABLE("'await' is only allowed in async functions"),  \
              await_operator))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_async_static_method, "E269", { source_code_span async_static; },   \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE(                                                   \
+              "'async static' is not allowed; write 'static async' instead"),  \
+          async_static))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E005",                    \
@@ -208,6 +215,10 @@
       .error(                                                                  \
           QLJS_TRANSLATABLE("commas are not allowed after spread parameter"),  \
           comma))                                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_depth_limit_exceeded, "E203", { source_code_span token; },         \
+      .error(QLJS_TRANSLATABLE("depth limit exceeded"), token))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E065", { source_code_span else_token; },          \
@@ -427,6 +438,13 @@
               function_keywords, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_generator_function_star_belongs_after_keyword_function, "E204",    \
+      { source_code_span star; },                                              \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "generator function '*' belongs after keyword function"),     \
+             star))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_generator_function_star_belongs_before_name, "E133",               \
       {                                                                        \
         source_code_span function_name;                                        \
@@ -470,6 +488,10 @@
       { source_code_span where; },                                             \
       .error(QLJS_TRANSLATABLE("invalid lone literal in object literal"),      \
              where))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_invalid_parameter, "E151", { source_code_span parameter; },        \
+      .error(QLJS_TRANSLATABLE("invalid function parameter"), parameter))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_rhs_for_dot_operator, "E074", { source_code_span dot; },   \
@@ -657,6 +679,11 @@
              switch_keyword))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_equal_after_variable, "E202",                              \
+      { source_code_span expected_equal; },                                    \
+      .error(QLJS_TRANSLATABLE("missing '=' after variable"), expected_equal)) \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_expression_between_parentheses, "E078",                    \
       {                                                                        \
         source_code_span left_paren;                                           \
@@ -815,6 +842,17 @@
              expected_while)                                                   \
           .note(QLJS_TRANSLATABLE("do-while statement starts here"),           \
                 do_token))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_newline_not_allowed_between_async_and_parameter_list, "E163",      \
+      {                                                                        \
+        source_code_span async;                                                \
+        source_code_span arrow;                                                \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE("newline is not allowed between 'async' and "   \
+                               "arrow function parameter list"),               \
+             async)                                                            \
+          .note(QLJS_TRANSLATABLE("arrow is here"), arrow))                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores, "E028",           \
@@ -1139,6 +1177,7 @@
       { source_code_span continue_statement; },                                \
       .error(QLJS_TRANSLATABLE("continue can only be used inside of a loop"),  \
              continue_statement))                                              \
+                                                                               \
   /* END */
 
 namespace quick_lint_js {
@@ -1180,7 +1219,7 @@ inline null_error_reporter null_error_reporter::instance;
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

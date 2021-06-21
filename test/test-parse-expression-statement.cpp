@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <gmock/gmock.h>
@@ -557,6 +557,22 @@ TEST(test_parse, parse_typeof_with_non_variable) {
   }
 }
 
+TEST(test_parse, parse_typeof_with_conditional_operator) {
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof x ? 10 : 20"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_expression(u8"typeof x.y ? 10 : 20"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  }
+}
+
 TEST(test_parse, parse_array_subscript) {
   {
     spy_visitor v = parse_and_visit_expression(u8"array[index]"_sv);
@@ -1088,30 +1104,28 @@ TEST(test_parse, async_followed_by_newline_is_a_variable_reference) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"async"},
                             spy_visitor::visited_variable_use{u8"b"}));
   }
+}
 
+TEST(test_parse, async_followed_by_newline_and_arrow_function) {
   {
     padded_string code(u8"x = async\n(a) => b;"_sv);
     spy_visitor v;
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // async
-                                      "visit_enter_function_scope",
-                                      "visit_variable_declaration",  // a
-                                      "visit_enter_function_scope_body",
-                                      "visit_variable_use",         // b
-                                      "visit_exit_function_scope",  //
-                                      "visit_variable_assignment",  // x
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // b
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_assignment",        // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"async"},
-                            spy_visitor::visited_variable_use{u8"b"}));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
-            ::testing::VariantWith<
-                error_missing_operator_between_expression_and_arrow_function>(
-                ::testing::_)))
-        << "errors should be the same as in 'x = f(a) => b;'";
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_newline_not_allowed_between_async_and_parameter_list, async,
+            offsets_matcher(&code, strlen(u8"x = "), u8"async"),  //
+            arrow,
+            offsets_matcher(&code, strlen(u8"x = async\n(x) "), u8"=>"))));
   }
 }
 
@@ -1359,7 +1373,7 @@ TEST(test_parse, let_as_statement_body_allows_asi) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

@@ -4,13 +4,14 @@
 #include "simdjson/portability.h"
 #include "simdjson/common_defs.h" // for SIMDJSON_PADDING
 #include "simdjson/error.h"
-
 #include <cstring>
 #include <memory>
 #include <string>
 #include <ostream>
 
 namespace simdjson {
+
+class padded_string_view;
 
 /**
  * String with extra allocation for ease of use with parser::parse()
@@ -98,7 +99,15 @@ struct padded_string final {
   operator std::string_view() const;
 
   /**
+   * Create a padded_string_view with the same content.
+   */
+  operator padded_string_view() const noexcept;
+
+  /**
    * Load this padded string from a file.
+   *
+   * @return IO_ERROR on error. Be mindful that on some 32-bit systems,
+   * the file size might be limited to 2 GB.
    *
    * @param path the path to the file.
    **/
@@ -145,11 +154,11 @@ inline simdjson::padded_string operator "" _padded(const char *str, size_t len) 
 namespace simdjson {
 namespace internal {
 
-// The allocate_padded_buffer function is a low-level function to allocate memory 
-// with padding so we can read past the "length" bytes safely. It is used by 
+// The allocate_padded_buffer function is a low-level function to allocate memory
+// with padding so we can read past the "length" bytes safely. It is used by
 // the padded_string class automatically. It returns nullptr in case
 // of error: the caller should check for a null pointer.
-// The length parameter is the maximum size in bytes of the string. 
+// The length parameter is the maximum size in bytes of the string.
 // The caller is responsible to free the memory (e.g., delete[] (...)).
 inline char *allocate_padded_buffer(size_t length) noexcept;
 

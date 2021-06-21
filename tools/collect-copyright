@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 """Generate quick-lint-js copyright documentation.
@@ -20,6 +20,7 @@ import typing
 import unittest
 
 archive_to_vendor_project = {
+    "Pathcch.lib": None,
     "boost_container.lib": "boost",
     "libboost_container.a": "boost",
     "libquick-lint-js-lib.a": None,
@@ -72,7 +73,7 @@ def main() -> None:
         f"""\
 # quick-lint-js licenses
 
-The quick-lint-js program is Copyright (C) 2020 Matthew Glazar. It is
+The quick-lint-js program is Copyright (C) 2020 Matthew "strager" Glazar. It is
 distributed under the following license:
 {markdown_block_quote(qljs_license_text)}
 
@@ -730,16 +731,6 @@ Discarded input sections
  .note.GNU-stack
                 0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o
  .note.GNU-stack
-~/P/quicklint-js> cat linkmap
-Archive member included because of file (symbol)
-
-/usr/lib/x86_64-linux-gnu/libc_nonshared.a(elf-init.oS)
-                              /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o (__libc_csu_init)
-
-Discarded input sections
-
- .note.GNU-stack
-                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o
 """
         link_map = parse_link_map(raw_link_map)
         self.assertEqual(
@@ -925,7 +916,7 @@ if __name__ == "__main__":
     main()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

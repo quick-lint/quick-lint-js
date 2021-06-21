@@ -1,17 +1,18 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cstddef>
+#include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/vscode-error-reporter.h>
-#include <quick-lint-js/web-demo-error-reporter-2.h>
+#include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
 namespace {
@@ -23,7 +24,7 @@ class qljs_parser_base {
     this->error_reporter_.set_input(this->document_.string(),
                                     &this->document_.locator());
     parser p(this->document_.string(), &this->error_reporter_);
-    linter l(&this->error_reporter_);
+    linter l(&this->error_reporter_, &this->config_.globals());
     // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead
     // of parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
     p.parse_and_visit_module(l);
@@ -33,13 +34,16 @@ class qljs_parser_base {
 
   quick_lint_js::document<Locator> document_;
   ErrorReporter error_reporter_;
+  configuration config_;
 };
 }
 }
 
 struct qljs_vscode_parser final
     : public quick_lint_js::qljs_parser_base<
-          quick_lint_js::lsp_locator, quick_lint_js::vscode_error_reporter> {
+          quick_lint_js::lsp_locator,
+          quick_lint_js::c_api_error_reporter<qljs_vscode_diagnostic,
+                                              quick_lint_js::lsp_locator>> {
  public:
   void replace_text(int start_line, int start_character, int end_line,
                     int end_character,
@@ -81,7 +85,8 @@ const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
 struct qljs_web_demo_parser final
     : public quick_lint_js::qljs_parser_base<
           quick_lint_js::web_demo_locator,
-          quick_lint_js::web_demo_error_reporter_2> {
+          quick_lint_js::c_api_error_reporter<
+              qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
@@ -107,7 +112,7 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

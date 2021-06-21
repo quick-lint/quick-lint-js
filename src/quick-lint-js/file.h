@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_FILE_H
@@ -13,6 +13,7 @@ namespace quick_lint_js {
 struct read_file_result {
   padded_string content;
   std::string error;
+  bool is_not_found_error = false;
 
   bool ok() const noexcept { return this->error.empty(); }
   void exit_if_not_ok() const;
@@ -33,7 +34,7 @@ void write_file(const char *path, string8_view content);
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

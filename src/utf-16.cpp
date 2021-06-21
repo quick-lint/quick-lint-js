@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <cstddef>
@@ -73,6 +73,9 @@ void mbargv::conversion_failed(wchar_t *warg) {
 
 std::optional<std::wstring> mbstring_to_wstring(const char *mbstring) {
   int mbstring_size = narrow_cast<int>(std::strlen(mbstring));
+  if (mbstring_size == 0) {
+    return L"";
+  }
   int size_required = MultiByteToWideChar(
       /*CodePage=*/CP_UTF8,
       /*dwFlags=*/0,
@@ -101,7 +104,7 @@ std::optional<std::wstring> mbstring_to_wstring(const char *mbstring) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

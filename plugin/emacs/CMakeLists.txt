@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -6,11 +6,14 @@ include(GNUInstallDirs)
 
 install(
   FILES flycheck-quicklintjs.el
+  FILES lsp-quicklintjs.el
+  FILES eglot-quicklintjs.el
+  FILES flymake-quicklintjs.el
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

@@ -37,9 +37,10 @@
   },
   "devDependencies": {
     "colors": "1.4.0",
-    "prettier": "2.1.2",
-    "tape": "5.0.1",
-    "vscode-test": "1.4.1"
+    "prettier": "^2.3.0",
+    "tape": "5.2.2",
+    "vsce": "^1.93.0",
+    "vscode-test": "1.5.2"
   },
   "dependencies": {
     "quick-lint-js-wasm": "../../wasm"

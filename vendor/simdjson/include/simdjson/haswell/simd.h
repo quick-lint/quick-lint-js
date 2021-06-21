@@ -28,9 +28,9 @@ namespace simd {
     simdjson_really_inline Child operator&(const Child other) const { return _mm256_and_si256(*this, other); }
     simdjson_really_inline Child operator^(const Child other) const { return _mm256_xor_si256(*this, other); }
     simdjson_really_inline Child bit_andnot(const Child other) const { return _mm256_andnot_si256(other, *this); }
-    simdjson_really_inline Child& operator|=(const Child other) { auto this_cast = (Child*)this; *this_cast = *this_cast | other; return *this_cast; }
-    simdjson_really_inline Child& operator&=(const Child other) { auto this_cast = (Child*)this; *this_cast = *this_cast & other; return *this_cast; }
-    simdjson_really_inline Child& operator^=(const Child other) { auto this_cast = (Child*)this; *this_cast = *this_cast ^ other; return *this_cast; }
+    simdjson_really_inline Child& operator|=(const Child other) { auto this_cast = static_cast<Child*>(this); *this_cast = *this_cast | other; return *this_cast; }
+    simdjson_really_inline Child& operator&=(const Child other) { auto this_cast = static_cast<Child*>(this); *this_cast = *this_cast & other; return *this_cast; }
+    simdjson_really_inline Child& operator^=(const Child other) { auto this_cast = static_cast<Child*>(this); *this_cast = *this_cast ^ other; return *this_cast; }
   };
 
   // Forward-declared so they can be used by splat and friends.
@@ -99,8 +99,8 @@ namespace simd {
     // Addition/subtraction are the same for signed and unsigned
     simdjson_really_inline simd8<T> operator+(const simd8<T> other) const { return _mm256_add_epi8(*this, other); }
     simdjson_really_inline simd8<T> operator-(const simd8<T> other) const { return _mm256_sub_epi8(*this, other); }
-    simdjson_really_inline simd8<T>& operator+=(const simd8<T> other) { *this = *this + other; return *(simd8<T>*)this; }
-    simdjson_really_inline simd8<T>& operator-=(const simd8<T> other) { *this = *this - other; return *(simd8<T>*)this; }
+    simdjson_really_inline simd8<T>& operator+=(const simd8<T> other) { *this = *this + other; return *static_cast<simd8<T>*>(this); }
+    simdjson_really_inline simd8<T>& operator-=(const simd8<T> other) { *this = *this - other; return *static_cast<simd8<T>*>(this); }
 
     // Override to distinguish from bool version
     simdjson_really_inline simd8<T> operator~() const { return *this ^ 0xFFu; }
@@ -132,11 +132,11 @@ namespace simd {
       // next line just loads the 64-bit values thintable_epi8[mask1] and
       // thintable_epi8[mask2] into a 128-bit register, using only
       // two instructions on most compilers.
-      __m256i shufmask =  _mm256_set_epi64x(thintable_epi8[mask4], thintable_epi8[mask3], 
+      __m256i shufmask =  _mm256_set_epi64x(thintable_epi8[mask4], thintable_epi8[mask3],
         thintable_epi8[mask2], thintable_epi8[mask1]);
       // we increment by 0x08 the second half of the mask and so forth
       shufmask =
-      _mm256_add_epi8(shufmask, _mm256_set_epi32(0x18181818, 0x18181818, 
+      _mm256_add_epi8(shufmask, _mm256_set_epi32(0x18181818, 0x18181818,
          0x10101010, 0x10101010, 0x08080808, 0x08080808, 0, 0));
       // this is the version "nearly pruned"
       __m256i pruned = _mm256_shuffle_epi8(*this, shufmask);
@@ -148,9 +148,9 @@ namespace simd {
       // then load the corresponding mask
       // could be done with _mm256_loadu2_m128i but many standard libraries omit this intrinsic.
       __m256i v256 = _mm256_castsi128_si256(
-        _mm_loadu_si128((const __m128i *)(pshufb_combine_table + pop1 * 8)));
+        _mm_loadu_si128(reinterpret_cast<const __m128i *>(pshufb_combine_table + pop1 * 8)));
       __m256i compactmask = _mm256_insertf128_si256(v256,
-         _mm_loadu_si128((const __m128i *)(pshufb_combine_table + pop3 * 8)), 1);
+         _mm_loadu_si128(reinterpret_cast<const __m128i *>(pshufb_combine_table + pop3 * 8)), 1);
       __m256i almostthere =  _mm256_shuffle_epi8(pruned, compactmask);
       // We just need to write out the result.
       // This is the tricky bit that is hard to do
@@ -159,9 +159,9 @@ namespace simd {
       // the two 128-bit lanes with an offset.
       __m128i v128;
       v128 = _mm256_castsi256_si128(almostthere);
-      _mm_storeu_si128( (__m128i *)output, v128);
+      _mm_storeu_si128( reinterpret_cast<__m128i *>(output), v128);
       v128 = _mm256_extractf128_si256(almostthere, 1);
-      _mm_storeu_si128( (__m128i *)(output + 16 - count_ones(mask & 0xFFFF)), v128);
+      _mm_storeu_si128( reinterpret_cast<__m128i *>(output + 16 - count_ones(mask & 0xFFFF)), v128);
     }
 
     template<typename L>
@@ -297,7 +297,7 @@ namespace simd {
     const simd8<T> chunks[NUM_CHUNKS];
 
     simd8x64(const simd8x64<T>& o) = delete; // no copy allowed
-    simd8x64<T>& operator=(const simd8<T> other) = delete; // no assignment allowed
+    simd8x64<T>& operator=(const simd8<T>& other) = delete; // no assignment allowed
     simd8x64() = delete; // no default constructor allowed
 
     simdjson_really_inline simd8x64(const simd8<T> chunk0, const simd8<T> chunk1) : chunks{chunk0, chunk1} {}

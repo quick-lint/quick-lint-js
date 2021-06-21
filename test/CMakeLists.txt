@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
@@ -14,6 +14,7 @@ quick_lint_js_add_executable(
   quick-lint-js/array.h
   quick-lint-js/characters.h
   quick-lint-js/error-matcher.h
+  quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
   quick-lint-js/parse-support.h
@@ -28,14 +29,20 @@ quick_lint_js_add_executable(
   test-buffering-error-reporter.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
+  test-c-api-error-reporter.cpp
   test-c-api.cpp
   test-cli-location.cpp
+  test-configuration-loader.cpp
+  test-configuration.cpp
   test-constant-divider.cpp
   test-crash.cpp
   test-document.cpp
   test-error-formatter.cpp
   test-error-list.cpp
   test-error.cpp
+  test-event-loop.cpp
+  test-file-canonical.cpp
+  test-file-path.cpp
   test-file.cpp
   test-gmo.cpp
   test-integer-decimal.cpp
@@ -49,7 +56,6 @@ quick_lint_js_add_executable(
   test-lsp-error-reporter.cpp
   test-lsp-location.cpp
   test-lsp-message-parser.cpp
-  test-lsp-pipe-reader.cpp
   test-lsp-pipe-writer.cpp
   test-lsp-server.cpp
   test-math-overflow.cpp
@@ -66,16 +72,16 @@ quick_lint_js_add_executable(
   test-parse-statement.cpp
   test-parse-var.cpp
   test-parse.cpp
+  test-pipe-writer.cpp
   test-string-view.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
+  test-uri.cpp
   test-utf-16.cpp
   test-utf-8.cpp
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
-  test-vscode-error-reporter.cpp
-  test-web-demo-error-reporter.cpp
   test-web-demo-location.cpp
   test-write-integer.cpp
 )
@@ -177,7 +183,7 @@ if (PYTHONINTERP_FOUND)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

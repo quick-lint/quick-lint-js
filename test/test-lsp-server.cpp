@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <gmock/gmock.h>
@@ -6,6 +6,8 @@
 #include <json/value.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/padded-string.h>
@@ -20,6 +22,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -35,32 +38,36 @@ using endpoint = lsp_endpoint<linting_lsp_server_handler<mock_lsp_linter>,
                               spy_lsp_endpoint_remote>;
 
 template <class LinterCallback>
-endpoint make_endpoint(LinterCallback&& linter_callback) {
+endpoint make_endpoint(configuration_filesystem* fs,
+                       LinterCallback&& linter_callback) {
   return endpoint(
       /*handler_args=*/std::forward_as_tuple(
-          std::forward<LinterCallback>(linter_callback)),
+          fs, std::forward<LinterCallback>(linter_callback)),
       /*remote_args=*/std::forward_as_tuple());
 }
 
-endpoint make_endpoint() {
-  return make_endpoint(
-      [](padded_string_view, ::simdjson::dom::element&, byte_buffer&) {});
+endpoint make_endpoint(configuration_filesystem* fs) {
+  return make_endpoint(fs, [](configuration&, padded_string_view, string8_view,
+                              string8_view, byte_buffer&) {});
 }
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  std::function<void(padded_string_view code,
-                     ::simdjson::dom::element& text_document,
+  std::function<void(configuration&, padded_string_view code,
+                     string8_view uri_json, string8_view version,
                      byte_buffer& notification_json)>
       lint_callback;
   std::vector<string8> lint_calls;
 
+  fake_configuration_filesystem fs;
   endpoint server = make_endpoint(
-      [this](padded_string_view code, ::simdjson::dom::element& text_document,
-             byte_buffer& notification_json) {
+      &fs, [this](configuration& config, padded_string_view code,
+                  string8_view uri_json, string8_view version_json,
+                  byte_buffer& notification_json) {
         this->lint_calls.emplace_back(code.string_view());
         if (this->lint_callback) {
-          this->lint_callback(code, text_document, notification_json);
+          this->lint_callback(config, code, uri_json, version_json,
+                              notification_json);
         }
       });
   spy_lsp_endpoint_remote& client = server.remote();
@@ -114,7 +121,8 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
            test_case{u8R"("id value goes \"here\"")",
                      ::Json::Value("id value goes \"here\"")},
        }) {
-    auto server = make_endpoint();
+    fake_configuration_filesystem fs;
+    auto server = make_endpoint(&fs);
     spy_lsp_endpoint_remote& client = server.remote();
 
     server.append(
@@ -213,12 +221,12 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 }
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
-  this->lint_callback = [&](padded_string_view code,
-                            ::simdjson::dom::element& text_document,
+  this->lint_callback = [&](configuration&, padded_string_view code,
+                            string8_view uri_json, string8_view version,
                             byte_buffer& notification_json) {
     EXPECT_EQ(code, u8"let x = x;");
-    EXPECT_EQ(simdjson_to_jsoncpp(text_document["uri"]), "file:///test.js");
-    EXPECT_EQ(simdjson_to_jsoncpp(text_document["version"]), 10);
+    EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
+    EXPECT_EQ(version, u8"10"sv);
 
     notification_json.append_copy(
         u8R"--(
@@ -251,6 +259,69 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
           "textDocument": {
             "uri": "file:///test.js",
             "languageId": "javascript",
+            "version": 10,
+            "text": "let x = x;"
+          }
+        }
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::Json::Value& response = this->client.messages[0];
+  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+  EXPECT_FALSE(response.isMember("error"));
+  // LSP PublishDiagnosticsParams:
+  EXPECT_EQ(response["params"]["uri"], "file:///test.js");
+  EXPECT_EQ(response["params"]["version"], 10);
+  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 8);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
+  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
+}
+
+TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
+  this->lint_callback = [&](configuration&, padded_string_view code,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer& notification_json) {
+    EXPECT_EQ(code, u8"let x = x;");
+    EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
+    EXPECT_EQ(version_json, u8"10");
+    notification_json.append_copy(
+        u8R"--(
+              {
+                "method":"textDocument/publishDiagnostics",
+                "params":{
+                  "uri": "file:///test.js",
+                  "version": 10,
+                  "diagnostics": [
+                    {
+                      "range": {
+                        "start": {"line": 0, "character": 8},
+                        "end": {"line": 0, "character": 9}
+                      },
+                      "severity": 1,
+                        "message": "variable used before declaration: x"
+                      }
+                  ]
+                },
+                "jsonrpc":"2.0"
+              }
+            )--");
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "js",
             "version": 10,
             "text": "let x = x;"
           }
@@ -419,6 +490,504 @@ TEST_F(test_linting_lsp_server,
       })"));
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"the slow purple fox"));
+}
+
+TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"testGlobalVariable": true}})");
+
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
+TEST_F(test_linting_lsp_server,
+       linting_uses_config_from_file_with_special_chars_in_document_uri) {
+  this->fs.create_file(this->fs.rooted("a%b~/quick-lint-js.config"),
+                       u8R"({"globals": {"testGlobalVariable": true}})");
+
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(a%25b%7E/%E2%98%83.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "snowman"
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"snowman"));
+}
+
+TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"modified"sv));
+  };
+
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"modified": false}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"modified\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
+TEST_F(test_linting_lsp_server,
+       linting_uses_already_opened_shadowing_config_file) {
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"haveConfigWithoutDot"sv));
+    EXPECT_FALSE(config.globals().find(u8"haveConfigWithDot"sv));
+    ASSERT_TRUE(config.config_file_path().has_value());
+    EXPECT_THAT(config.config_file_path()->c_str(),
+                ::testing::Not(::testing::HasSubstr(".quick-lint-js.config")));
+  };
+
+  this->fs.create_file(this->fs.rooted(".quick-lint-js.config"),
+                       u8R"({"globals": {"haveConfigWithDot": false}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"haveConfigWithoutDot\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
+TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
+  bool after_config_was_loaded = false;
+
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer&) {
+    if (config.globals().find(u8"after"sv)) {
+      EXPECT_FALSE(config.globals().find(u8"before"sv));
+      EXPECT_EQ(version_json, u8"10");
+      EXPECT_EQ(uri_json,
+                u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
+      after_config_was_loaded = true;
+    }
+  };
+
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"before": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"before\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+  // Change 'before' to 'after'.
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 14},
+                "end": {"line": 0, "character": 20}
+              },
+              "text": "after"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_TRUE(after_config_was_loaded);
+}
+
+TEST_F(test_linting_lsp_server,
+       editing_config_lints_latest_version_of_js_file) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"before": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"before\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "version": 10,
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "text": ""
+          }
+        }
+      })"));
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "version": 11,
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js"
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 0},
+                "end": {"line": 0, "character": 0}
+              },
+              "text": "updated"
+            }
+          ]
+        }
+      })"));
+
+  this->lint_callback = [&](configuration&, padded_string_view, string8_view,
+                            string8_view version_json,
+                            byte_buffer&) { EXPECT_EQ(version_json, u8"11"); };
+  this->lint_calls.clear();
+
+  // Change 'before' to 'after'.
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 14},
+                "end": {"line": 0, "character": 20}
+              },
+              "text": "after"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"updated"sv));
+}
+
+TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
+  this->lint_callback = [&](configuration&, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer& notification_json) {
+    notification_json.append_copy(
+        u8R"(
+              {
+                "method": "textDocument/publishDiagnostics",
+                "params":{
+                  "uri": )" +
+        string8(uri_json) +
+        u8R"(,
+                  "version": )" +
+        string8(version_json) +
+        u8R"(,
+                  "diagnostics": []
+                },
+                "jsonrpc":"2.0"
+              }
+            )");
+  };
+
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"before": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"before\": true}}"
+          }
+        }
+      })"));
+
+  for (const char8* js_file : {u8"a.js", u8"b.js", u8"c.js"}) {
+    this->server.append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": ")" +
+                     this->fs.file_uri_prefix_8() + js_file + u8R"(",
+              "languageId": "javascript",
+              "version": 10,
+              "text": "/* )" +
+                     js_file + u8R"( */"
+            }
+          }
+        })"));
+  }
+
+  this->lint_calls.clear();
+  this->client.messages.clear();
+  // Change 'before' to 'after'.
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "range": {
+                "start": {"line": 0, "character": 14},
+                "end": {"line": 0, "character": 20}
+              },
+              "text": "after"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls,
+              ::testing::UnorderedElementsAre(u8"/* a.js */", u8"/* b.js */",
+                                              u8"/* c.js */"));
+
+  ASSERT_THAT(this->client.messages, ElementsAre(::testing::_));
+  std::vector<std::string> linted_uris;
+  for (::Json::Value& notification : this->client.messages[0]) {
+    EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
+    linted_uris.emplace_back(notification["params"]["uri"].asString());
+  }
+  EXPECT_THAT(linted_uris,
+              ::testing::UnorderedElementsAre(
+                  to_string(this->fs.file_uri_prefix_8() + u8"a.js"),
+                  to_string(this->fs.file_uri_prefix_8() + u8"b.js"),
+                  to_string(this->fs.file_uri_prefix_8() + u8"c.js")));
+}
+
+TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
+  bool after_config_was_loaded = false;
+
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer&) {
+    if (config.globals().find(u8"after"sv)) {
+      EXPECT_FALSE(config.globals().find(u8"before"sv));
+      EXPECT_EQ(version_json, u8"10");
+      EXPECT_EQ(uri_json,
+                u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
+      after_config_was_loaded = true;
+    }
+  };
+
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"before": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"after\": true}}"
+          }
+        }
+      })"));
+
+  EXPECT_TRUE(after_config_was_loaded);
+}
+
+TEST_F(
+    test_linting_lsp_server,
+    linting_uses_config_from_filesystem_if_config_is_opened_then_closed_before_opening_js_file) {
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view, byte_buffer&) {
+    EXPECT_TRUE(config.globals().find(u8"v1"sv));
+    EXPECT_FALSE(config.globals().find(u8"v2"sv));
+  };
+
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"v1": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"v2\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didClose",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -595,24 +1164,14 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
-  ::simdjson::dom::parser json_parser;
-  ::simdjson::error_code parse_error;
-
-  ::simdjson::dom::element text_document;
-  json_parser
-      .parse(std::string(R"--({
-        "uri": "file:///test.js",
-        "version": 10
-      })--"))
-      .tie(text_document, parse_error);
-  ASSERT_EQ(parse_error, ::simdjson::error_code::SUCCESS);
-
   padded_string code(u8"let x = x;"_sv);
   byte_buffer notification_json_buffer;
+  configuration config;
 
   lsp_javascript_linter linter;
-  linter.lint_and_get_diagnostics_notification(&code, text_document,
-                                               notification_json_buffer);
+  linter.lint_and_get_diagnostics_notification(
+      config, &code, u8"\"file:///test.js\""sv, u8"10"sv,
+      notification_json_buffer);
 
   std::string notification_json;
   notification_json.resize(notification_json_buffer.size());
@@ -642,9 +1201,10 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   // (an identifier with an escape sequence), and makes sure desyncing doesn't
   // happen.
 
+  fake_configuration_filesystem fs;
   lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                spy_lsp_endpoint_remote>
-      server;
+      server(std::forward_as_tuple(&fs), std::forward_as_tuple());
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -708,7 +1268,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

@@ -1,11 +1,14 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 import MarkdownIt from "markdown-it";
+import assert from "assert";
 import fs from "fs";
+import jsdom from "jsdom";
 import path from "path";
 import url from "url";
 import { createProcessFactoryAsync } from "quick-lint-js-wasm/quick-lint-js.js";
+import { markEditorText } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
@@ -41,17 +44,39 @@ markdownParser.renderer.rules = {
     let token = tokens[tokenIndex];
     let content = token.content;
 
-    let out = `<figure><pre><code>`;
-
-    // Wrap BOM in a <span>.
-    if (content[0] === "\u{feff}") {
-      out += "<span class='unicode-bom'>\u{feff}</span>";
-      content = content.substr(1);
+    if (typeof env.dom === "undefined") {
+      env.dom = new jsdom.JSDOM("");
+    }
+    if (typeof env.codeBlockIndex === "undefined") {
+      env.codeBlockIndex = 0;
     }
 
-    return `${out}${markdownParser.utils.escapeHtml(
-      content
-    )}</code></pre></figure>`;
+    let codeElement = env.dom.window.document.createElement("code");
+    codeElement.appendChild(env.dom.window.document.createTextNode(content));
+
+    if (env.doc.diagnostics !== null) {
+      markEditorText(
+        codeElement,
+        env.dom.window,
+        env.doc.diagnostics[env.codeBlockIndex]
+      );
+    }
+
+    let codeHTML = codeElement.innerHTML;
+    // Wrap BOM in a <span>.
+    if (
+      ["\u{feff}", "<mark>\u{feff}</mark>"].some((bom) =>
+        codeHTML.startsWith(bom)
+      )
+    ) {
+      codeHTML = codeHTML.replace(
+        /\ufeff/,
+        "<span class='unicode-bom'>\u{feff}</span>"
+      );
+    }
+
+    env.codeBlockIndex += 1;
+    return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
   },
 
   fence(tokens, tokenIndex, options, env, self) {
@@ -72,10 +97,29 @@ export class ErrorDocumentation {
     this.filePath = filePath;
     this.titleErrorCode = titleErrorCode;
     this.titleErrorDescription = titleErrorDescription;
+    this.diagnostics = null;
   }
 
   get filePathErrorCode() {
     return path.basename(this.filePath, ".md");
+  }
+
+  async findDiagnosticsAsync() {
+    if (this.diagnostics !== null) {
+      // Already found.
+      return;
+    }
+
+    this.diagnostics = [];
+    let factory = await createProcessFactoryAsync();
+    let process = await factory.createProcessAsync();
+    for (let i = 0; i < this.codeBlocks.length; ++i) {
+      let parser = await process.createParserForWebDemoAsync();
+      parser.setText(this.codeBlocks[i]);
+      let diagnostics = parser.lint();
+      this.diagnostics.push(diagnostics);
+    }
+    assert.strictEqual(this.diagnostics.length, this.codeBlocks.length);
   }
 
   static async parseFileAsync(filePath) {
@@ -154,15 +198,9 @@ export class ErrorDocumentation {
     if (this.codeBlocks.length === 0) {
       foundProblems.push(`${this.filePath}: error: missing code blocks`);
     }
-    let factory = await createProcessFactoryAsync();
-    let process = await factory.createProcessAsync();
+    await this.findDiagnosticsAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
-      let parser = await process.createParserForVSCodeAsync();
-      parser.replaceText(
-        { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-        this.codeBlocks[i]
-      );
-      let diagnostics = parser.lint();
+      let diagnostics = this.diagnostics[i];
 
       let expectDiagnostic = i === 0;
       if (expectDiagnostic) {
@@ -227,7 +265,7 @@ export async function loadErrorDocumentationFilesAsync(rootPath) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

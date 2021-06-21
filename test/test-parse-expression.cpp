@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <gmock/gmock.h>
@@ -401,6 +401,13 @@ TEST_F(test_parse_expression, parse_typeof_unary_operator) {
   {
     expression* ast = this->parse_expression(u8"typeof o.p"_sv);
     EXPECT_EQ(summarize(ast), "typeof(dot(var o, p))");
+  }
+}
+
+TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
+  {
+    expression* ast = this->parse_expression(u8"typeof o ? 10 : 20"_sv);
+    EXPECT_EQ(summarize(ast), "cond(typeof(var o), literal, literal)");
   }
 }
 
@@ -1412,6 +1419,40 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_minusminus) {
   }
 }
 
+TEST_F(test_parse_expression, parse_prefix_plusplus_plus_operand) {
+  {
+    test_parser p(u8"++x\n+\ny"_sv);
+
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"--x\n+\ny"_sv);
+
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"++x.y"_sv);
+
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(dot(var x, y))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser p(u8"++x[y]"_sv);
+
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "rwunary(index(var x, var y))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"--"_sv);
@@ -2320,6 +2361,17 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                     offsets_matcher(p.code(), strlen(u8"{"), u8"#key"))));
   }
 
+  {
+    test_parser p(u8"{#key, [other]: value}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "object(var other, var value)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_private_properties_are_not_allowed_in_object_literals,
+                    private_identifier,
+                    offsets_matcher(p.code(), strlen(u8"{"), u8"#key"))));
+  }
+
   for (string8 prefix :
        {u8"", u8"async ", u8"get ", u8"set ", u8"*", u8"async *"}) {
     padded_string code(u8"{ " + prefix + u8"#method() { } }");
@@ -2840,12 +2892,12 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"a() => b"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(var a, arrowexpr(var b))");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_operator_between_expression_and_arrow_function, where,
-            offsets_matcher(p.code(), 0, u8"a("))));
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unexpected_arrow_after_expression, arrow,
+                    offsets_matcher(p.code(), strlen(u8"a() "), u8"=>"),  //
+                    expression, offsets_matcher(p.code(), 0, u8"a()"))));
+    EXPECT_EQ(summarize(ast), "binary(call(var a), var b)");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 0 + strlen(u8"a() => b"));
   }
@@ -2853,7 +2905,31 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"a(b) => c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(var a, arrowexpr(var b, var c))");
+    EXPECT_EQ(summarize(ast), "binary(call(var a, var b), var c)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_unexpected_arrow_after_expression, arrow,
+                    offsets_matcher(p.code(), strlen(u8"a(b) "), u8"=>"),  //
+                    expression, offsets_matcher(p.code(), 0, u8"a(b)"))));
+  }
+
+  {
+    test_parser p(u8"a() => {}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var a, arrowblock())");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_operator_between_expression_and_arrow_function, where,
+            offsets_matcher(p.code(), 0, u8"a("))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), 0 + strlen(u8"a() => {}"));
+  }
+
+  {
+    test_parser p(u8"a(b) => {}"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var a, arrowblock(var b))");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_FIELD(
@@ -3161,6 +3237,13 @@ TEST_F(test_parse_expression,
   }
 }
 
+TEST_F(test_parse_expression, generator_misplaced_star) {
+  test_parser p(u8"(*function f(){})"_sv);
+  expression* ast = p.parse_expression();
+  EXPECT_EQ(p.range(ast).begin_offset(), 1);
+  EXPECT_EQ(p.range(ast).end_offset(), 16);
+}
+
 std::string summarize(const expression& expression) {
   auto children = [&] {
     std::string result;
@@ -3306,7 +3389,7 @@ QLJS_WARNING_POP
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

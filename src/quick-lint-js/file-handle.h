@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_FILE_HANDLE_H
@@ -45,28 +45,45 @@ std::string windows_error_message(DWORD error);
 
 #if QLJS_HAVE_WINDOWS_H
 // windows_handle_file_ref is a non-owning reference to a Win32 file handle.
+//
+// windows_handle_file_ref may hold an invalid handle (NULL or
+// INVALID_HANDLE_VALUE).
 class windows_handle_file_ref {
  public:
   explicit windows_handle_file_ref(HANDLE) noexcept;
+
+  bool valid() const noexcept;
 
   HANDLE get() noexcept;
 
   file_read_result read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
+  bool is_pipe_non_blocking();
+  void set_pipe_non_blocking();
+  std::size_t get_pipe_buffer_size();
+
   static std::string get_last_error_message();
 
  protected:
   HANDLE handle_;
+
+  static constexpr HANDLE invalid_handle_1 = nullptr;
+  static constexpr HANDLE invalid_handle_2 = INVALID_HANDLE_VALUE;
 };
 
 // windows_handle_file is the owner of a Win32 file handle.
+//
+// windows_handle_file may hold an invalid handle (NULL or
+// INVALID_HANDLE_VALUE).
 class windows_handle_file : private windows_handle_file_ref {
  public:
   explicit windows_handle_file(HANDLE) noexcept;
 
   windows_handle_file(const windows_handle_file &) = delete;
   windows_handle_file &operator=(const windows_handle_file &) = delete;
+
+  windows_handle_file(windows_handle_file &&) noexcept;
 
   ~windows_handle_file();
 
@@ -76,38 +93,55 @@ class windows_handle_file : private windows_handle_file_ref {
 
   using windows_handle_file_ref::get;
   using windows_handle_file_ref::get_last_error_message;
+  using windows_handle_file_ref::get_pipe_buffer_size;
+  using windows_handle_file_ref::is_pipe_non_blocking;
   using windows_handle_file_ref::read;
+  using windows_handle_file_ref::set_pipe_non_blocking;
+  using windows_handle_file_ref::valid;
   using windows_handle_file_ref::write;
-
- private:
-  static constexpr HANDLE invalid_handle = nullptr;
 };
 #endif
 
 #if QLJS_HAVE_UNISTD_H
 // posix_fd_file_ref is a non-owning reference to a POSIX file descriptor.
+//
+// posix_fd_file_ref may hold an invalid fd (-1).
 class posix_fd_file_ref {
  public:
+  explicit posix_fd_file_ref() noexcept;
   explicit posix_fd_file_ref(int fd) noexcept;
+
+  bool valid() const noexcept;
 
   int get() noexcept;
 
   file_read_result read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
 
+  bool is_pipe_non_blocking();
+  void set_pipe_non_blocking();
+  std::size_t get_pipe_buffer_size();
+
   static std::string get_last_error_message();
 
  protected:
+  static constexpr int invalid_fd = -1;
+
   int fd_;
 };
 
 // posix_fd_file is the owner of a POSIX file descriptor.
+//
+// posix_fd_file may hold an invalid fd (-1).
 class posix_fd_file : private posix_fd_file_ref {
  public:
+  explicit posix_fd_file() noexcept;
   explicit posix_fd_file(int fd) noexcept;
 
   posix_fd_file(const posix_fd_file &) = delete;
   posix_fd_file &operator=(const posix_fd_file &) = delete;
+
+  posix_fd_file(posix_fd_file &&) noexcept;
 
   ~posix_fd_file();
 
@@ -117,11 +151,11 @@ class posix_fd_file : private posix_fd_file_ref {
 
   using posix_fd_file_ref::get;
   using posix_fd_file_ref::get_last_error_message;
+  using posix_fd_file_ref::get_pipe_buffer_size;
+  using posix_fd_file_ref::is_pipe_non_blocking;
   using posix_fd_file_ref::read;
+  using posix_fd_file_ref::set_pipe_non_blocking;
   using posix_fd_file_ref::write;
-
- private:
-  static constexpr int invalid_fd = -1;
 };
 #endif
 
@@ -139,7 +173,7 @@ using platform_file_ref = posix_fd_file_ref;
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

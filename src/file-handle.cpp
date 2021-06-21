@@ -1,6 +1,7 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <array>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -14,6 +15,7 @@
 #include <quick-lint-js/string-view.h>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
@@ -34,15 +36,18 @@
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
 windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
-    : handle_(handle) {
-  QLJS_ASSERT(this->handle_ != nullptr);
-  QLJS_ASSERT(this->handle_ != INVALID_HANDLE_VALUE);
+    : handle_(handle) {}
+
+bool windows_handle_file_ref::valid() const noexcept {
+  return this->handle_ != this->invalid_handle_1 &&
+         this->handle_ != this->invalid_handle_2;
 }
 
 HANDLE windows_handle_file_ref::get() noexcept { return this->handle_; }
 
 file_read_result windows_handle_file_ref::read(void *buffer,
                                                int buffer_size) noexcept {
+  QLJS_ASSERT(this->valid());
   DWORD read_size;
   if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
                   &read_size,
@@ -51,7 +56,9 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     return file_read_result{
         .at_end_of_file = error == ERROR_BROKEN_PIPE,
         .bytes_read = 0,
-        .error_message = windows_error_message(error),
+        .error_message = error == ERROR_NO_DATA
+                             ? std::nullopt
+                             : std::optional(windows_error_message(error)),
     };
   }
   return file_read_result{
@@ -75,6 +82,7 @@ file_read_result windows_handle_file_ref::read(void *buffer,
 
 std::optional<int> windows_handle_file_ref::write(const void *buffer,
                                                   int buffer_size) noexcept {
+  QLJS_ASSERT(this->valid());
   DWORD write_size;
   if (!::WriteFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
                    &write_size,
@@ -84,6 +92,46 @@ std::optional<int> windows_handle_file_ref::write(const void *buffer,
   return narrow_cast<int>(write_size);
 }
 
+bool windows_handle_file_ref::is_pipe_non_blocking() {
+  QLJS_ASSERT(this->valid());
+  DWORD state;
+  BOOL ok = ::GetNamedPipeHandleStateA(this->get(),
+                                       /*lpState=*/&state,
+                                       /*lpCurInstances=*/nullptr,
+                                       /*lpMaxCollectionCount=*/nullptr,
+                                       /*lpCollectDataTimeout=*/nullptr,
+                                       /*lpUserName=*/nullptr,
+                                       /*nMaxUserNameSize=*/0);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return (state & PIPE_NOWAIT) == PIPE_NOWAIT;
+}
+
+void windows_handle_file_ref::set_pipe_non_blocking() {
+  QLJS_ASSERT(this->valid());
+  DWORD mode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
+  BOOL ok = ::SetNamedPipeHandleState(this->get(), /*lpMode=*/&mode,
+                                      /*lpMaxCollectionCount=*/nullptr,
+                                      /*lpCollectDataTimeout=*/nullptr);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+}
+
+std::size_t windows_handle_file_ref::get_pipe_buffer_size() {
+  QLJS_ASSERT(this->valid());
+  DWORD outBufferSize = 0;
+  BOOL ok =
+      ::GetNamedPipeInfo(this->handle_, /*lpFlags=*/nullptr, &outBufferSize,
+                         /*lpInBufferSize=*/nullptr,
+                         /*lpMaxInstances=*/nullptr);
+  if (!ok) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return outBufferSize;
+}
+
 std::string windows_handle_file_ref::get_last_error_message() {
   return windows_error_message(::GetLastError());
 }
@@ -91,31 +139,44 @@ std::string windows_handle_file_ref::get_last_error_message() {
 windows_handle_file::windows_handle_file(HANDLE handle) noexcept
     : windows_handle_file_ref(handle) {}
 
+windows_handle_file::windows_handle_file(windows_handle_file &&other) noexcept
+    : windows_handle_file_ref(
+          std::exchange(other.handle_, this->invalid_handle_1)) {}
+
 windows_handle_file::~windows_handle_file() {
-  if (this->handle_ != this->invalid_handle) {
+  if (this->valid()) {
     this->close();
   }
 }
 
 void windows_handle_file::close() {
+  QLJS_ASSERT(this->valid());
   if (!::CloseHandle(this->handle_)) {
     std::fprintf(stderr, "error: failed to close file\n");
   }
-  this->handle_ = this->invalid_handle;
+  this->handle_ = this->invalid_handle_1;
 }
 
 windows_handle_file_ref windows_handle_file::ref() noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_UNISTD_H
+posix_fd_file_ref::posix_fd_file_ref() noexcept
+    : posix_fd_file_ref(this->invalid_fd) {}
+
 posix_fd_file_ref::posix_fd_file_ref(int fd) noexcept : fd_(fd) {
-  QLJS_ASSERT(this->fd_ != -1);
+  QLJS_ASSERT(this->fd_ >= 0 || this->fd_ == this->invalid_fd);
+}
+
+bool posix_fd_file_ref::valid() const noexcept {
+  return this->fd_ != this->invalid_fd;
 }
 
 int posix_fd_file_ref::get() noexcept { return this->fd_; }
 
 file_read_result posix_fd_file_ref::read(void *buffer,
                                          int buffer_size) noexcept {
+  QLJS_ASSERT(this->valid());
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
@@ -134,6 +195,7 @@ file_read_result posix_fd_file_ref::read(void *buffer,
 
 std::optional<int> posix_fd_file_ref::write(const void *buffer,
                                             int buffer_size) noexcept {
+  QLJS_ASSERT(this->valid());
   ::ssize_t written_size =
       ::write(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (written_size == -1) {
@@ -142,22 +204,66 @@ std::optional<int> posix_fd_file_ref::write(const void *buffer,
   return narrow_cast<int>(written_size);
 }
 
+bool posix_fd_file_ref::is_pipe_non_blocking() {
+  QLJS_ASSERT(this->valid());
+#if QLJS_HAVE_FCNTL_H
+  int rc = ::fcntl(this->get(), F_GETFL);
+  if (rc == -1) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return (rc & O_NONBLOCK) != 0;
+#else
+#error "Unsupported platform"
+#endif
+}
+
+#if !defined(__EMSCRIPTEN__)
+std::size_t posix_fd_file_ref::get_pipe_buffer_size() {
+  QLJS_ASSERT(this->valid());
+#if QLJS_HAVE_F_GETPIPE_SZ
+  int size = ::fcntl(this->fd_, F_GETPIPE_SZ);
+  if (size == -1) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return narrow_cast<std::size_t>(size);
+#elif defined(__APPLE__)
+  // See BIG_PIPE_SIZE in <xnu>/bsd/sys/pipe.h.
+  return 65536;
+#else
+#error "Unknown platform"
+#endif
+}
+#endif
+
+void posix_fd_file_ref::set_pipe_non_blocking() {
+  QLJS_ASSERT(this->valid());
+#if QLJS_HAVE_FCNTL_H
+  int rc = ::fcntl(this->get(), F_SETFL, O_NONBLOCK);
+  if (rc != 0) {
+    QLJS_UNIMPLEMENTED();
+  }
+#else
+#error "Unsupported platform"
+#endif
+}
+
 std::string posix_fd_file_ref::get_last_error_message() {
   return std::strerror(errno);
 }
 
-posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {
-  QLJS_ASSERT(fd != invalid_fd);
-}
+posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {}
+
+posix_fd_file::posix_fd_file(posix_fd_file &&other) noexcept
+    : posix_fd_file_ref(std::exchange(other.fd_, this->invalid_fd)) {}
 
 posix_fd_file::~posix_fd_file() {
-  if (this->fd_ != invalid_fd) {
+  if (this->valid()) {
     this->close();
   }
 }
 
 void posix_fd_file::close() {
-  QLJS_ASSERT(this->fd_ != invalid_fd);
+  QLJS_ASSERT(this->valid());
   int rc = ::close(this->fd_);
   if (rc != 0) {
     std::fprintf(stderr, "error: failed to close file: %s\n",
@@ -199,7 +305,7 @@ std::string windows_error_message(DWORD error) {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

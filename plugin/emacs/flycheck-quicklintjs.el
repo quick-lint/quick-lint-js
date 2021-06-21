@@ -1,4 +1,4 @@
-;;; flycheck-quicklintjs --- quick-lint-js flycheck support   -*- lexical-binding: t; -*-
+;;; flycheck-quicklintjs --- quick-lint-js Flycheck support   -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -50,18 +50,22 @@
 
 https://quick-lint-js.com"
   :command	("quick-lint-js"
-			 "--output-format=gnu-like"
-			 (eval flycheck-quicklintjs-args)
-			 source)
-  :standard-input 't
+                 "--output-format=gnu-like"
+                 "--stdin"
+                 (eval flycheck-quicklintjs-args))
+  :standard-input t
   :error-patterns ((error
-                    line-start (file-name) ":" line ":" column ":"
+                    line-start "<stdin>:" line ":" column ":"
                     (zero-or-more whitespace) "error:" (zero-or-more whitespace)
-                    (message) line-end)
+                    (message) "[" (id "E" (one-or-more digit)) "]" line-end)
                    (warning
-                    line-start (file-name) ":" line ":" column ":"
+                    line-start "<stdin>:" line ":" column ":"
                     (zero-or-more whitespace) "warning:" (zero-or-more whitespace)
-                    (message) line-end))
+                    (message) "[" (id "E" (one-or-more digit)) "]" line-end))
+  :error-explainer (lambda (err)
+                     (let ((error-code (flycheck-error-id err))
+                           (url "https://quick-lint-js.com/errors/#%s"))
+                       (and error-code `(url . ,(format url error-code)))))
   :modes js-mode)
 
 (add-to-list 'flycheck-checkers 'javascript-quicklintjs t)
@@ -69,7 +73,7 @@ https://quick-lint-js.com"
 (provide 'flycheck-quicklintjs)
 
 ;; quick-lint-js finds bugs in JavaScript programs.
-;; Copyright (C) 2020  Matthew Glazar
+;; Copyright (C) 2020  Matthew "strager" Glazar
 ;;
 ;; This file is part of quick-lint-js.
 ;;

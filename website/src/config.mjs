@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 import path from "path";
@@ -9,7 +9,7 @@ let __dirname = path.dirname(__filename);
 
 export let websiteConfig = {
   esbuildBundles: {
-    "/demo/demo.bundled.mjs": {
+    "/demo/demo.bundled.js": {
       entryPoints: ["/demo/demo.mjs"],
       external: ["fs", "path"],
     },
@@ -24,7 +24,7 @@ export let websiteConfig = {
 };
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

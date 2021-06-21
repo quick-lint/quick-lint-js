@@ -1,16 +1,18 @@
-cmake_minimum_required(VERSION 3.9) # CMP0069 NEW
-
+cmake_minimum_required(VERSION 3.9)
+# CMP0025: Compiler id for Apple Clang is now AppleClang.
+# https://cmake.org/cmake/help/v3.17/policy/CMP0025.html
+cmake_policy(SET CMP0025 NEW)
 project(simdjson
   DESCRIPTION "Parsing gigabytes of JSON per second"
   LANGUAGES CXX C
 )
 
 set(PROJECT_VERSION_MAJOR 0)
-set(PROJECT_VERSION_MINOR 6)
-set(PROJECT_VERSION_PATCH 0)
-set(SIMDJSON_SEMANTIC_VERSION "0.6.0" CACHE STRING "simdjson semantic version")
-set(SIMDJSON_LIB_VERSION "4.0.0" CACHE STRING "simdjson library version")
-set(SIMDJSON_LIB_SOVERSION "4" CACHE STRING "simdjson library soversion")
+set(PROJECT_VERSION_MINOR 9)
+set(PROJECT_VERSION_PATCH 4)
+set(SIMDJSON_SEMANTIC_VERSION "0.9.4" CACHE STRING "simdjson semantic version")
+set(SIMDJSON_LIB_VERSION "8.0.0" CACHE STRING "simdjson library version")
+set(SIMDJSON_LIB_SOVERSION "8" CACHE STRING "simdjson library soversion")
 set(SIMDJSON_GITHUB_REPOSITORY https://github.com/simdjson/simdjson)
 
 include(GNUInstallDirs)
@@ -42,6 +44,14 @@ if(NOT(SIMDJSON_JUST_LIBRARY))
   add_subdirectory(singleheader)
 endif()
 install(FILES singleheader/simdjson.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+option(SIMDJSON_ENABLE_THREADS "Link with thread support" ON)
+include(CMakePackageConfigHelpers)
+configure_package_config_file("${PROJECT_SOURCE_DIR}/cmake/simdjson-config.cmake.in"
+      "${PROJECT_BINARY_DIR}/simdjson-config.cmake"
+      INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/simdjson"
+      NO_SET_AND_CHECK_MACRO
+      NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 #
 # Compile tools / tests / benchmarks

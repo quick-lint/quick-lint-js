@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <algorithm>
@@ -9,10 +9,14 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <simdjson/common_defs.h>
 #include <string>
 #include <utility>
 
 namespace quick_lint_js {
+static_assert(padded_string::padding_size >= ::simdjson::SIMDJSON_PADDING,
+              "padded_string must have enough padded to satisfy simdjson");
+
 namespace {
 std::array<char8, padded_string::padding_size> empty_string = {};
 }
@@ -147,7 +151,7 @@ bool operator!=(const padded_string_view& x, string8_view y) noexcept {
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

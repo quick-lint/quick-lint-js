@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <gmock/gmock.h>
@@ -17,6 +17,7 @@
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
@@ -515,7 +516,7 @@ TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
   {
     spy_visitor v;
     parser p(&unimplemented_token_code, &v);
-    bool ok = p.parse_and_visit_module_catching_unimplemented(v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.errors,
@@ -539,11 +540,126 @@ TEST(test_escape_first_character_in_keyword,
   EXPECT_EQ(escape_first_character_in_keyword(u8"b1n z"_sv), u8"\\u{62}1n z");
   EXPECT_EQ(escape_first_character_in_keyword(u8"ZYXW"_sv), u8"\\u{5a}YXW");
 }
+
+string8 repeated_str(string8_view before, string8_view inner,
+                     string8_view after, size_t depth) {
+  string8 reps;
+  reps.reserve((before.size() + after.size()) * depth + inner.size());
+  auto append_str_to_reps = [&](string8_view str) {
+    for (size_t i = 0; i < depth; i++) {
+      reps.append(str);
+    }
+  };
+  append_str_to_reps(before);
+  reps.append(inner);
+  append_str_to_reps(after);
+  return reps;
+}
+
+TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
+  {
+    for (const string8 &exps : {
+             repeated_str(u8"(", u8"10", u8")", parser::stack_limit - 2),
+             repeated_str(u8"[", u8"10", u8"]", parser::stack_limit - 2),
+             repeated_str(u8"{", u8"10", u8"}", parser::stack_limit - 2),
+             repeated_str(u8"while(true) ", u8"10", u8"",
+                          parser::stack_limit - 2),
+             repeated_str(u8"for(;;) ", u8"10", u8"", parser::stack_limit - 2),
+             repeated_str(u8"await ", u8"10", u8"", parser::stack_limit - 2),
+             repeated_str(u8"if(true) ", u8"10", u8"", parser::stack_limit - 2),
+             repeated_str(u8"function f() { ", u8"", u8"}",
+                          parser::stack_limit - 1),
+             repeated_str(u8"() => { ", u8"", u8"}",
+                          (parser::stack_limit / 2) - 1),
+             repeated_str(u8"if(true) { ", u8"", u8"}",
+                          (parser::stack_limit / 2) - 1),
+             repeated_str(u8"while(true) { ", u8"", u8"}",
+                          (parser::stack_limit / 2) - 1),
+             repeated_str(u8"for(;;) { ", u8"", u8"}",
+                          (parser::stack_limit / 2) - 1),
+             repeated_str(u8"with({}) { ", u8"", u8"}",
+                          (parser::stack_limit / 2) - 1),
+             repeated_str(u8"do{ ", u8"", u8"} while (true);",
+                          (parser::stack_limit / 2) - 1),
+             repeated_str(u8"try{ ", u8"", u8"} catch(e) {}",
+                          parser::stack_limit - 1),
+             repeated_str(u8"class C { m() { ", u8"", u8"} }",
+                          parser::stack_limit - 1),
+         }) {
+      padded_string code(exps);
+      spy_visitor v;
+      parser p(&code, &v);
+      bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+      EXPECT_TRUE(ok);
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+  }
+
+  {
+    padded_string code(
+        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit - 3) +
+        u8")");
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_TRUE(ok);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+#if QLJS_HAVE_SETJMP
+TEST(test_overflow, parser_depth_limit_exceeded) {
+  for (const string8 &exps : {
+           repeated_str(u8"(", u8"10", u8")", parser::stack_limit + 1),
+           repeated_str(u8"[", u8"10", u8"]", parser::stack_limit + 1),
+           repeated_str(u8"{", u8"10", u8"}", parser::stack_limit + 1),
+           repeated_str(u8"while(true) ", u8"10", u8"",
+                        parser::stack_limit + 1),
+           repeated_str(u8"for(;;) ", u8"10", u8"", parser::stack_limit + 1),
+           repeated_str(u8"await ", u8"10", u8"", parser::stack_limit + 1),
+           repeated_str(u8"if(true) ", u8"10", u8"", parser::stack_limit + 1),
+           repeated_str(u8"function f() { ", u8"", u8"}",
+                        parser::stack_limit + 1),
+           repeated_str(u8"() => { ", u8"", u8"}", parser::stack_limit + 1),
+           repeated_str(u8"if(true) { ", u8"", u8"}", parser::stack_limit + 1),
+           repeated_str(u8"while(true) { ", u8"", u8"}",
+                        parser::stack_limit + 1),
+           repeated_str(u8"for(;;) { ", u8"", u8"}", parser::stack_limit + 1),
+           repeated_str(u8"with({}) { ", u8"", u8"}", parser::stack_limit + 1),
+           repeated_str(u8"do{ ", u8"", u8"} while (true);",
+                        parser::stack_limit + 1),
+           repeated_str(u8"try{ ", u8"", u8"} catch(e) {}",
+                        parser::stack_limit + 1),
+           repeated_str(u8"class C { m() { ", u8"", u8"} }",
+                        parser::stack_limit + 1),
+       }) {
+    padded_string code(exps);
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_FALSE(ok);
+    ElementsAre(
+        ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
+  }
+
+  {
+    padded_string code(
+        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) +
+        u8")");
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_FALSE(ok);
+    ElementsAre(
+        ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
+  }
+}
+#endif
 }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

@@ -23,5 +23,5 @@ Description: debug symbols for quick-lint-js (JavaScript linter)
 Package: quick-lint-js-vim
 Architecture: all
 Depends: ${misc:Depends}, quick-lint-js, vim, vim-addon-manager
-Description: Vim plugin for quick-lint-js
+Description: Vim and Neovim plugin for quick-lint-js
  quick-lint-js finds bugs in your JavaScript code.

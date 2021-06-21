@@ -8,9 +8,14 @@ editor][VisualStudioCode].
 To build this extension, first [build the quick-lint-js-wasm
 package](../../wasm/README.md#Building).
 
-Then, run the following command to create `quick-lint-js-0.2.0.vsix`:
+Then, run the following command:
 
-    $ npx vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
+    $ cd plugin/vscode/  # Navigate to this directory.
+    $ yarn install --force
+
+Finally, run the following command to create `quick-lint-js-0.2.0.vsix`:
+
+    $ ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
 ## Testing
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_CHAR8_H
@@ -43,6 +43,9 @@ inline string8_view out_string8(string8_view sv) noexcept { return sv; }
 string8 to_string8(const std::string &);
 std::string to_string(const string8_view &);
 
+std::string_view to_string_view(string8_view);
+string8_view to_string8_view(std::string_view);
+
 std::size_t strlen(const char8 *);
 const char8 *strchr(const char8 *haystack, char8 needle);
 const char8 *strstr(const char8 *haystack, const char8 *needle);
@@ -82,7 +85,7 @@ void PrintTo(char8_t *const &, std::ostream *);
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

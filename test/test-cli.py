@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 import os
@@ -70,12 +70,76 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 0)
             self.assertIn("[E017]", result.stderr)  # Error should be printed
 
+    def test_single_config_file(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file = pathlib.Path(test_directory) / "config.json"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--config-file",
+                    str(config_file),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
+    def test_missing_explicit_config_file(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file = pathlib.Path(test_directory) / "config.json"
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--config-file",
+                    str(config_file),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertIn("config.json", result.stderr)
+            self.assertIn("error:", result.stderr)
+            self.assertEqual(result.returncode, 1)
+
+    def test_automatically_find_config_file(self) -> None:
+        for config_file_name in ("quick-lint-js.config", ".quick-lint-js.config"):
+            with tempfile.TemporaryDirectory() as test_directory:
+                test_file = pathlib.Path(test_directory) / "test.js"
+                test_file.write_text("console.log(myGlobalVariable);")
+
+                config_file = pathlib.Path(test_directory) / config_file_name
+                config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+
+                result = subprocess.run(
+                    [
+                        get_quick_lint_js_executable_path(),
+                        str(test_file),
+                    ],
+                    capture_output=True,
+                    encoding="utf-8",
+                )
+                self.assertEqual(result.stderr, "")
+                self.assertEqual(result.stdout, "")
+                self.assertEqual(result.returncode, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

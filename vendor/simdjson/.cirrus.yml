@@ -6,6 +6,11 @@ task:
 
   env:
     ASSUME_ALWAYS_YES: YES
+    simdjson_DEPENDENCY_CACHE_DIR: $HOME/.dep_cache
+  dep_cache:
+    folder: $HOME/.dep_cache
+    reupload_on_changes: false
+    fingerprint_script: cat dependencies/CMakeLists.txt
   setup_script:
     - pkg update -f
     - pkg install bash
@@ -18,4 +23,4 @@ task:
     - make
   test_script:
     - cd build
-    - ctest --output-on-failure -E checkperf
+    - ctest --output-on-failure -LE explicitonly

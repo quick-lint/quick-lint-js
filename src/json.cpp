@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #include <iosfwd>
@@ -9,20 +9,16 @@
 #include <quick-lint-js/unreachable.h>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
-namespace quick_lint_js {
-template <class Char>
-void write_json_escaped_string(std::ostream &output,
-                               std::basic_string_view<Char> string) {
-  auto write_string = [&](std::basic_string_view<Char> s) {
-    if constexpr (std::is_same_v<Char, char>) {
-      output << s;
-    } else {
-      output << out_string8(s);
-    }
-  };
+using namespace std::literals::string_view_literals;
 
+namespace quick_lint_js {
+namespace {
+template <class Char, class WriteFunc>
+void write_json_escaped_string_impl(WriteFunc &&write_string,
+                                    std::basic_string_view<Char> string) {
   for (;;) {
     auto special_character_index =
         string.find_first_of(reinterpret_cast<const Char *>(u8"\\\"\n"));
@@ -33,13 +29,13 @@ void write_json_escaped_string(std::ostream &output,
     Char special_character = string[special_character_index];
     switch (special_character) {
     case u8'\\':
-      output << "\\\\";
+      write_string(u8"\\\\"sv);
       break;
     case u8'"':
-      output << "\\\"";
+      write_string(u8"\\\""sv);
       break;
     case u8'\n':
-      output << "\\n";
+      write_string(u8"\\n"sv);
       break;
     default:
       QLJS_UNREACHABLE();
@@ -47,6 +43,22 @@ void write_json_escaped_string(std::ostream &output,
     string = string.substr(special_character_index + 1);
   }
   write_string(string);
+}
+}
+
+template <class Char>
+void write_json_escaped_string(std::ostream &output,
+                               std::basic_string_view<Char> string) {
+  write_json_escaped_string_impl(
+      [&](const auto &s) {
+        if constexpr (std::is_same_v<std::decay_t<decltype(s)>,
+                                     std::string_view>) {
+          output << s;
+        } else {
+          output << out_string8(s);
+        }
+      },
+      string);
 }
 
 template void write_json_escaped_string<char>(std::ostream &,
@@ -57,23 +69,21 @@ template void write_json_escaped_string<char8_t>(
 #endif
 
 void write_json_escaped_string(byte_buffer &output, string8_view string) {
-  for (;;) {
-    auto special_character_index = string.find_first_of(u8"\\\"");
-    if (special_character_index == string.npos) {
-      break;
-    }
-    output.append_copy(string.substr(0, special_character_index));
-    char8 *out = reinterpret_cast<char8 *>(output.append(2));
-    out[0] = u8'\\';
-    out[1] = string[special_character_index];
-    string = string.substr(special_character_index + 1);
-  }
-  output.append_copy(string);
+  write_json_escaped_string_impl(
+      [&](const string8_view &s) { output.append_copy(s); }, string);
+}
+
+string8 to_json_escaped_string_with_quotes(string8_view string) {
+  string8 output = u8"\"";
+  write_json_escaped_string_impl(
+      [&](const string8_view &s) { output.append(s); }, string);
+  output.push_back(u8'"');
+  return output;
 }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

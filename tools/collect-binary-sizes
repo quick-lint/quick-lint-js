@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 import argparse
@@ -146,6 +146,9 @@ class DebianPackageRecorder(Recorder):
 
 class LLVMSizeRecorder(Recorder):
     def record(self, sizes: Sizes) -> None:
+        if self.is_npm_package_dummy_file():
+            return
+
         RegularFileRecorder(name=self._name, path=self._path, type="exe").record(
             sizes=sizes
         )
@@ -177,6 +180,15 @@ class LLVMSizeRecorder(Recorder):
             if match is not None:
                 sizes.append((match.group("section"), int(match.group("size"))))
         return sizes
+
+    def is_npm_package_dummy_file(self):
+        # HACK(strager): Our npm package contains a dummy file named
+        # quick-lint-js.exe. It's not really a Windows executable. Don't give it
+        # to llvm-size, and don't record its size at all.
+        magic = b"This file gets overwritten by preinstall.js.\n"
+        with open(self._path, "rb") as file:
+            header = file.read(len(magic))
+            return header == magic
 
 
 class StandardArchiveFileRecorder(Recorder):
@@ -290,7 +302,7 @@ if __name__ == "__main__":
     main()
 
 # quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# Copyright (C) 2020  Matthew "strager" Glazar
 #
 # This file is part of quick-lint-js.
 #

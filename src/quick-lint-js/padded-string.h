@@ -1,4 +1,4 @@
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
 #ifndef QUICK_LINT_JS_PADDED_STRING_H
@@ -18,7 +18,7 @@ class padded_string {
  public:
   using size_type = int;
 
-  static constexpr size_type padding_size = 16;
+  static constexpr size_type padding_size = 32;
 
   explicit padded_string();
   explicit padded_string(string8 &&);
@@ -100,6 +100,9 @@ class padded_string_view {
   const char8 *data() const noexcept { return this->data_; }
 
   size_type size() const noexcept { return this->length_; }
+  size_type padded_size() const noexcept {
+    return this->size() + padded_string::padding_size;
+  }
 
   const char8 *null_terminator() const noexcept {
     return this->data_ + this->length_;
@@ -133,7 +136,7 @@ class padded_string_view {
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew Glazar
+// Copyright (C) 2020  Matthew "strager" Glazar
 //
 // This file is part of quick-lint-js.
 //

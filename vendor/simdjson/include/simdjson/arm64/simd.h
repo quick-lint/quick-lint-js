@@ -1,7 +1,7 @@
 #ifndef SIMDJSON_ARM64_SIMD_H
 #define SIMDJSON_ARM64_SIMD_H
 
-#include "simdjson.h"
+#include "simdjson/base.h"
 #include "simdjson/internal/simdprune_tables.h"
 #include "simdjson/arm64/bitmanipulation.h"
 #include <type_traits>
@@ -115,9 +115,9 @@ simdjson_really_inline int8x16_t make_int8x16_t(int8_t x1,  int8_t x2,  int8_t x
     simdjson_really_inline simd8<T> operator^(const simd8<T> other) const { return veorq_u8(*this, other); }
     simdjson_really_inline simd8<T> bit_andnot(const simd8<T> other) const { return vbicq_u8(*this, other); }
     simdjson_really_inline simd8<T> operator~() const { return *this ^ 0xFFu; }
-    simdjson_really_inline simd8<T>& operator|=(const simd8<T> other) { auto this_cast = (simd8<T>*)this; *this_cast = *this_cast | other; return *this_cast; }
-    simdjson_really_inline simd8<T>& operator&=(const simd8<T> other) { auto this_cast = (simd8<T>*)this; *this_cast = *this_cast & other; return *this_cast; }
-    simdjson_really_inline simd8<T>& operator^=(const simd8<T> other) { auto this_cast = (simd8<T>*)this; *this_cast = *this_cast ^ other; return *this_cast; }
+    simdjson_really_inline simd8<T>& operator|=(const simd8<T> other) { auto this_cast = static_cast<simd8<T>*>(this); *this_cast = *this_cast | other; return *this_cast; }
+    simdjson_really_inline simd8<T>& operator&=(const simd8<T> other) { auto this_cast = static_cast<simd8<T>*>(this); *this_cast = *this_cast & other; return *this_cast; }
+    simdjson_really_inline simd8<T>& operator^=(const simd8<T> other) { auto this_cast = static_cast<simd8<T>*>(this); *this_cast = *this_cast ^ other; return *this_cast; }
 
     simdjson_really_inline Mask operator==(const simd8<T> other) const { return vceqq_u8(*this, other); }
 
@@ -284,9 +284,9 @@ simdjson_really_inline int8x16_t make_int8x16_t(int8_t x1,  int8_t x2,  int8_t x
       // only the first pop1 bytes from the first 8 bytes, and then
       // it fills in with the bytes from the second 8 bytes + some filling
       // at the end.
-      uint8x16_t compactmask = vld1q_u8((const uint8_t *)(pshufb_combine_table + pop1 * 8));
+      uint8x16_t compactmask = vld1q_u8(reinterpret_cast<const uint8_t *>(pshufb_combine_table + pop1 * 8));
       uint8x16_t answer = vqtbl1q_u8(pruned, compactmask);
-      vst1q_u8((uint8_t*) output, answer);
+      vst1q_u8(reinterpret_cast<uint8_t*>(output), answer);
     }
 
     template<typename L>
@@ -421,9 +421,9 @@ simdjson_really_inline int8x16_t make_int8x16_t(int8_t x1,  int8_t x2,  int8_t x
     const simd8<T> chunks[NUM_CHUNKS];
 
     simd8x64(const simd8x64<T>& o) = delete; // no copy allowed
-    simd8x64<T>& operator=(const simd8<T> other) = delete; // no assignment allowed
+    simd8x64<T>& operator=(const simd8<T>& other) = delete; // no assignment allowed
     simd8x64() = delete; // no default constructor allowed
-    
+
     simdjson_really_inline simd8x64(const simd8<T> chunk0, const simd8<T> chunk1, const simd8<T> chunk2, const simd8<T> chunk3) : chunks{chunk0, chunk1, chunk2, chunk3} {}
     simdjson_really_inline simd8x64(const T ptr[64]) : chunks{simd8<T>::load(ptr), simd8<T>::load(ptr+16), simd8<T>::load(ptr+32), simd8<T>::load(ptr+48)} {}
 
