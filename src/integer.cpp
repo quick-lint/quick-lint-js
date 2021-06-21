@@ -156,20 +156,14 @@ template <class T>
 char8 *write_integer(T value, char8 *out) {
   char *buffer = reinterpret_cast<char *>(out);
   constexpr std::size_t buffer_size = integer_string_length<T>;
-  constexpr const char *format =
-      std::is_same_v<T, int>
-          ? "%d"
-          : std::is_same_v<T, long>
-                ? "%ld"
-                : std::is_same_v<T, long long>
-                      ? "%lld"
-                      : std::is_same_v<T, unsigned>
-                            ? "%u"
-                            : std::is_same_v<T, unsigned long>
-                                  ? "%lu"
-                                  : std::is_same_v<T, unsigned long long>
-                                        ? "%llu"
-                                        : "";
+  constexpr const char *format = std::is_same_v<T, int>             ? "%d"
+                                 : std::is_same_v<T, long>          ? "%ld"
+                                 : std::is_same_v<T, long long>     ? "%lld"
+                                 : std::is_same_v<T, unsigned>      ? "%u"
+                                 : std::is_same_v<T, unsigned long> ? "%lu"
+                                 : std::is_same_v<T, unsigned long long>
+                                     ? "%llu"
+                                     : "";
   static_assert(*format != '\0', "Unsupported integer type");
 
   int rc = std::snprintf(buffer, buffer_size, format, value);

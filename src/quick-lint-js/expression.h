@@ -96,7 +96,7 @@ class expression_arena {
       std::is_trivially_destructible_v<std::remove_reference_t<T>>;
 
   template <class Expression, class... Args>
-  expression *make_expression(Args &&... args);
+  expression *make_expression(Args &&...args);
 
   template <class T, std::size_t InSituCapacity>
   array_ptr<T> make_array(vector<T, InSituCapacity> &&);
@@ -130,7 +130,7 @@ class expression_arena {
 
  private:
   template <class T, class... Args>
-  T *allocate(Args &&... args) {
+  T *allocate(Args &&...args) {
     static_assert(is_allocatable<T>);
     return this->allocator_.new_object<T>(std::forward<Args>(args)...);
   }
@@ -311,7 +311,7 @@ class expression_arena::array_ptr {
 };
 
 template <class Expression, class... Args>
-expression *expression_arena::make_expression(Args &&... args) {
+expression *expression_arena::make_expression(Args &&...args) {
   expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
   return result;
@@ -1233,8 +1233,8 @@ inline int expression::object_entry_count() const noexcept {
       [](const auto &self) { return self.object_entry_count_impl(); });
 }
 
-inline object_property_value_pair expression::object_entry(int index) const
-    noexcept {
+inline object_property_value_pair expression::object_entry(
+    int index) const noexcept {
   return this->with_derived(
       [&](const auto &self) { return self.object_entry_impl(index); });
 }

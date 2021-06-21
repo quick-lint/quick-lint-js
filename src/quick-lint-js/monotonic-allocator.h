@@ -12,7 +12,7 @@ namespace quick_lint_js {
 class monotonic_allocator {
  public:
   template <class T, class... Args>
-  [[nodiscard]] T *new_object(Args &&... args) {
+  [[nodiscard]] T *new_object(Args &&...args) {
     T *result = this->standard_allocator<T>().allocate(1);
     result = new (result) T(std::forward<Args>(args)...);
     return result;

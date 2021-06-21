@@ -241,13 +241,13 @@ int lsp_locator::find_line_at_offset(offset_type offset) const {
                           this->offset_of_lines_.begin());
 }
 
-lsp_locator::offset_type lsp_locator::offset(const char8 *source) const
-    noexcept {
+lsp_locator::offset_type lsp_locator::offset(
+    const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-lsp_position lsp_locator::position(int line_number, offset_type offset) const
-    noexcept {
+lsp_position lsp_locator::position(int line_number,
+                                   offset_type offset) const noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii =
