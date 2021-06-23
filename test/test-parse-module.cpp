@@ -42,19 +42,11 @@ TEST(test_parse, export_variable) {
   }
 
   {
-    padded_string code(u8"export const x;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    spy_visitor v = parse_and_visit_statement(u8"export const x = null;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_const}));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_initializer_in_const_declaration, variable_name,
-            offsets_matcher(&code, strlen(u8"export const "), u8"x"))));
   }
 }
 
