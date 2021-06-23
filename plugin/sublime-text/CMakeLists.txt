@@ -3,7 +3,9 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-if (QUICK_LINT_JS_SUBLIME_TEXT AND BUILD_SHARED_LIBS)
+if (QUICK_LINT_JS_SUBLIME_TEXT AND
+    BUILD_SHARED_LIBS AND
+    CMAKE_POSITION_INDEPENDENT_CODE)
   # 0.2.0 -> 020
   string(
     REPLACE
@@ -73,7 +75,8 @@ ${SUBLIME_TEXT_PROJECT_VERSION}-${SUBLIME_TEXT_PACKAGE_PLATFORM}\
 elseif (QUICK_LINT_JS_SUBLIME_TEXT)
   message(
     FATAL_ERROR
-    "You need to set BUILD_SHARED_LIBS=ON to build the Sublime Text plugin."
+    "You need to set BUILD_SHARED_LIBS=ON and CMAKE_POSITION_INDEPENDENT_CODE=ON \
+to build the Sublime Text plugin."
   )
 endif ()
 
