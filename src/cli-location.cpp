@@ -86,8 +86,8 @@ cli_source_position::line_number_type cli_locator::find_line_at_offset(
          1;
 }
 
-cli_source_position::offset_type cli_locator::offset(
-    const char8 *source) const noexcept {
+cli_source_position::offset_type cli_locator::offset(const char8 *source) const
+    noexcept {
   return narrow_cast<cli_source_position::offset_type>(source -
                                                        this->input_.data());
 }

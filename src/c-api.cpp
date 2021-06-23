@@ -124,8 +124,7 @@ struct qljs_sublime_text_parser final
   }
 };
 
-qljs_sublime_text_parser*
-qljs_sublime_text_create_parser(void) {
+qljs_sublime_text_parser* qljs_sublime_text_create_parser(void) {
   qljs_sublime_text_parser* p = new qljs_sublime_text_parser();
   return p;
 }

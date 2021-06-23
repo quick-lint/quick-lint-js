@@ -19,8 +19,8 @@ sublime_text_source_range sublime_text_locator::range(
   };
 }
 
-sublime_text_source_offset sublime_text_locator::position(
-    const char8* c) const noexcept {
+sublime_text_source_offset sublime_text_locator::position(const char8* c) const
+    noexcept {
   int byte_offset = narrow_cast<int>(c - this->input_.data());
   return narrow_cast<sublime_text_source_offset>(count_lsp_characters_in_utf_8(
       this->input_, byte_offset, /*count_utf_16_code_units_in_offset=*/false));

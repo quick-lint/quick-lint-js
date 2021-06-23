@@ -18,8 +18,8 @@ web_demo_source_range web_demo_locator::range(source_code_span span) const {
   };
 }
 
-web_demo_source_offset web_demo_locator::position(
-    const char8* c) const noexcept {
+web_demo_source_offset web_demo_locator::position(const char8* c) const
+    noexcept {
   int byte_offset = narrow_cast<int>(c - this->input_.data());
   return narrow_cast<web_demo_source_offset>(
       count_lsp_characters_in_utf_8(this->input_, byte_offset));

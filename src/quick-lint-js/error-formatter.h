@@ -125,7 +125,7 @@ class error_formatter : public error_formatter_base {
   }
 
   template <class... Args>
-  error_formatter &note(const gmo_message &message, Args &&...parameters) {
+  error_formatter &note(const gmo_message &message, Args &&... parameters) {
     this->add(severity::note, message, std::forward<Args>(parameters)...);
     return *this;
   }
@@ -135,7 +135,7 @@ class error_formatter : public error_formatter_base {
  private:
   template <class Origin, class... Args>
   void add(severity sev, const gmo_message &message, const Origin &origin,
-           Args &&...parameters) {
+           Args &&... parameters) {
     this->add(sev, message, this->to_span(origin),
               {this->to_parameter(origin),
                this->to_parameter(std::forward<Args>(parameters))...});

@@ -36,8 +36,8 @@ namespace {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wattributes")
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
-[[gnu::always_inline]] decode_utf_8_result decode_utf_8_inline(
-    padded_string_view input) noexcept {
+[[gnu::always_inline]] decode_utf_8_result
+    decode_utf_8_inline(padded_string_view input) noexcept {
   auto is_continuation_byte = [](std::uint8_t byte) noexcept -> bool {
     return (byte & 0b1100'0000) == 0b1000'0000;
   };
@@ -77,9 +77,9 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
   } else if ((c[0] & 0b1111'0000) == 0b1110'0000) {
     // 3-byte sequence (0xe0..0xef).
     static_assert(padded_string::padding_size >= 2);
-    bool byte_1_ok = (c[0] == 0xe0   ? 0xa0 <= c[1] && c[1] <= 0xbf
-                      : c[0] == 0xed ? 0x80 <= c[1] && c[1] <= 0x9f
-                                     : is_continuation_byte(c[1]));
+    bool byte_1_ok = (c[0] == 0xe0 ? 0xa0 <= c[1] && c[1] <= 0xbf
+                                   : c[0] == 0xed ? 0x80 <= c[1] && c[1] <= 0x9f
+                                                  : is_continuation_byte(c[1]));
     bool byte_2_ok = is_continuation_byte(c[2]);
     if (byte_1_ok && byte_2_ok) {
       return decode_utf_8_result{
@@ -100,9 +100,9 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
     // 4-byte sequence (0xf0..0xf7).
     static_assert(padded_string::padding_size >= 3);
     bool byte_0_ok = c[0] <= 0xf4;
-    bool byte_1_ok = (c[0] == 0xf0   ? 0x90 <= c[1] && c[1] <= 0xbf
-                      : c[0] == 0xf4 ? 0x80 <= c[1] && c[1] <= 0x8f
-                                     : is_continuation_byte(c[1]));
+    bool byte_1_ok = (c[0] == 0xf0 ? 0x90 <= c[1] && c[1] <= 0xbf
+                                   : c[0] == 0xf4 ? 0x80 <= c[1] && c[1] <= 0x8f
+                                                  : is_continuation_byte(c[1]));
     bool byte_2_ok = is_continuation_byte(c[2]);
     bool byte_3_ok = is_continuation_byte(c[3]);
     if (byte_0_ok && byte_1_ok && byte_2_ok && byte_3_ok) {
@@ -180,7 +180,7 @@ const char8* advance_lsp_characters_in_utf_8(string8_view utf_8,
 
 std::ptrdiff_t count_lsp_characters_in_utf_8(
     padded_string_view utf_8, int offset,
-    bool count_utf_16_code_units_in_offset/*= true*/) noexcept {
+    bool count_utf_16_code_units_in_offset /*= true*/) noexcept {
   const char8* c = utf_8.data();
   const char8* end = utf_8.null_terminator();
   const char8* stop = c + offset;
