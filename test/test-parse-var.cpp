@@ -95,6 +95,20 @@ TEST(test_parse, parse_simple_const) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
+TEST(test_parse, parse_const_with_no_initializers) {
+  spy_visitor v;
+  padded_string code(u8"const x;"_sv);
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  ASSERT_EQ(v.variable_declarations.size(), 1);
+  EXPECT_EQ(v.variable_declarations[0].name, u8"x");
+  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_missing_initializer_in_const_declaration, variable_name,
+                  offsets_matcher(&code, strlen(u8"const "), u8"x"))));
+}
+
 TEST(test_parse, let_asi) {
   {
     spy_visitor v = parse_and_visit_module(u8"let x\ny"_sv);
