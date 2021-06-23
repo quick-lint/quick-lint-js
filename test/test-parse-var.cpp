@@ -873,11 +873,11 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let}));
-    cli_source_position::offset_type end_of_const_statement = strlen(u8"let x");
+    cli_source_position::offset_type end_of_let_statement = strlen(u8"let x");
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_semicolon_after_statement, where,
-                    offsets_matcher(&code, end_of_const_statement, u8""))));
+                    offsets_matcher(&code, end_of_let_statement, u8""))));
   }
 }
 
