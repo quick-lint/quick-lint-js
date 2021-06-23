@@ -178,8 +178,9 @@ const char8* advance_lsp_characters_in_utf_8(string8_view utf_8,
   return utf_8.data() + (c - utf_8_copy.data());
 }
 
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view utf_8,
-                                             int offset) noexcept {
+std::ptrdiff_t count_lsp_characters_in_utf_8(
+    padded_string_view utf_8, int offset,
+    bool count_utf_16_code_units_in_offset/*= true*/) noexcept {
   const char8* c = utf_8.data();
   const char8* end = utf_8.null_terminator();
   const char8* stop = c + offset;
@@ -191,7 +192,7 @@ std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view utf_8,
         break;
       }
       c += result.size;
-      if (result.code_point >= 0x10000) {
+      if (result.code_point >= 0x10000 && count_utf_16_code_units_in_offset) {
         count += 2;
       } else {
         count += 1;

@@ -10,6 +10,7 @@
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/sublime-text-location.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/web-demo-location.h>
@@ -112,6 +113,10 @@ void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
     diag.start_character = r.start.character;
     diag.end_line = r.end.line;
     diag.end_character = r.end.character;
+  } else if constexpr (std::is_same_v<Locator, sublime_text_locator>) {
+    sublime_text_source_range r = this->reporter_->locator_->range(origin);
+    diag.begin_offset = narrow_cast<int>(r.begin);
+    diag.end_offset = narrow_cast<int>(r.end);
   } else {
     web_demo_source_range r = this->reporter_->locator_->range(origin);
     diag.begin_offset = narrow_cast<int>(r.begin);
@@ -129,6 +134,11 @@ template class c_api_error_reporter<qljs_vscode_diagnostic, lsp_locator>;
 template class c_api_error_formatter<qljs_web_demo_diagnostic,
                                      web_demo_locator>;
 template class c_api_error_reporter<qljs_web_demo_diagnostic, web_demo_locator>;
+
+template class c_api_error_formatter<qljs_sublime_text_diagnostic,
+                                     sublime_text_locator>;
+template class c_api_error_reporter<qljs_sublime_text_diagnostic,
+                                    sublime_text_locator>;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

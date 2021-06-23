@@ -1,32 +1,31 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTF_8_H
-#define QUICK_LINT_JS_UTF_8_H
-
-#include <cstddef>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/sublime-text-location.h>
+#include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
+    : input_(input) {}
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
-};
-
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-
-const char8* advance_lsp_characters_in_utf_8(string8_view,
-                                             int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(
-    padded_string_view, int offset,
-    bool count_utf_16_code_units_in_offset = true) noexcept;
+sublime_text_source_range sublime_text_locator::range(
+    source_code_span span) const {
+  return sublime_text_source_range{
+      .begin = this->position(span.begin()),
+      .end = this->position(span.end()),
+  };
 }
 
-#endif
+sublime_text_source_offset sublime_text_locator::position(
+    const char8* c) const noexcept {
+  int byte_offset = narrow_cast<int>(c - this->input_.data());
+  return narrow_cast<sublime_text_source_offset>(count_lsp_characters_in_utf_8(
+      this->input_, byte_offset, /*count_utf_16_code_units_in_offset=*/false));
+}
+}  // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

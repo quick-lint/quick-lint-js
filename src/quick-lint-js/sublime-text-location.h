@@ -1,32 +1,38 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTF_8_H
-#define QUICK_LINT_JS_UTF_8_H
+#ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+#define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
-#include <cstddef>
+#include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+class source_code_span;
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
+using sublime_text_source_offset = std::uint32_t;
+
+struct sublime_text_source_range {
+  sublime_text_source_offset begin;
+  sublime_text_source_offset end;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
+class sublime_text_locator {
+ public:
+  using range_type = sublime_text_source_range;
 
-const char8* advance_lsp_characters_in_utf_8(string8_view,
-                                             int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(
-    padded_string_view, int offset,
-    bool count_utf_16_code_units_in_offset = true) noexcept;
-}
+  explicit sublime_text_locator(padded_string_view input) noexcept;
 
-#endif
+  sublime_text_source_range range(source_code_span) const;
+  sublime_text_source_offset position(const char8*) const noexcept;
+
+ private:
+  padded_string_view input_;
+};
+}  // namespace quick_lint_js
+
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

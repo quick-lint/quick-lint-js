@@ -17,7 +17,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def __init__(self, view):
         self.view = view
-        self.parser = c_api.Parser(False)
+        self.parser = c_api.Parser()
         self.diagnostics = []
         self.on_modified()
 

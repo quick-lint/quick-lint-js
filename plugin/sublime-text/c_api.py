@@ -79,17 +79,17 @@ def set_argtypes_and_restype(func, argtypes=[], restype=None):
 def create_library():
     lib = load_library()
     set_argtypes_and_restype(
-        lib.qljs_web_demo_create_parser, restype=ParserStructurePointer
+        lib.qljs_sublime_text_create_parser, restype=ParserStructurePointer
     )
     set_argtypes_and_restype(
-        lib.qljs_web_demo_destroy_parser, argtypes=[ParserStructurePointer]
+        lib.qljs_sublime_text_destroy_parser, argtypes=[ParserStructurePointer]
     )
     set_argtypes_and_restype(
-        lib.qljs_web_demo_set_text,
+        lib.qljs_sublime_text_set_text,
         argtypes=[ParserStructurePointer, ctypes.c_void_p, ctypes.c_size_t],
     )
     set_argtypes_and_restype(
-        lib.qljs_web_demo_lint,
+        lib.qljs_sublime_text_lint,
         argtypes=[ParserStructurePointer],
         restype=DiagnosticStructurePointer,
     )
@@ -97,16 +97,6 @@ def create_library():
 
 
 LIB = create_library()
-
-CHARACTERS_WITH_TWO_UTF_16_CODE_UNITS_REGEX_PATTERN = re.compile(
-    # Bytes: 4 First code point: U+10000 Last code point: U+10FFFF
-    "[%s-%s]"
-    % (chr(0x10000), chr(0x10FFFF))
-)
-
-
-def replace_characters_with_two_utf_16_code_units(replacement, string):
-    return CHARACTERS_WITH_TWO_UTF_16_CODE_UNITS_REGEX_PATTERN.sub(replacement, string)
 
 
 class Diagnostic:
@@ -119,28 +109,24 @@ class Diagnostic:
 
 
 class Parser:
-    def __init__(self, count_utf_16_code_units_in_offset=True):
-        self._c_parser = LIB.qljs_web_demo_create_parser()
-        self.count_utf_16_code_units_in_offset = count_utf_16_code_units_in_offset
+    def __init__(self):
+        self._c_parser = LIB.qljs_sublime_text_create_parser()
         if self._c_parser is None:
             raise MemoryError()
 
     def __del__(self):
         if self._c_parser is not None:
-            LIB.qljs_web_demo_destroy_parser(self._c_parser)
+            LIB.qljs_sublime_text_destroy_parser(self._c_parser)
 
     def set_text(self, text):
-        if not self.count_utf_16_code_units_in_offset:
-            # ￿  Name: <Not a Character> Unicode: U+FFFF
-            text = replace_characters_with_two_utf_16_code_units("￿", text)
         text_encoded = text.encode()
         text_encoded_byte_count = len(text_encoded)
-        LIB.qljs_web_demo_set_text(
+        LIB.qljs_sublime_text_set_text(
             self._c_parser, text_encoded, text_encoded_byte_count
         )
 
     def lint(self):
-        _c_diags = LIB.qljs_web_demo_lint(self._c_parser)
+        _c_diags = LIB.qljs_sublime_text_lint(self._c_parser)
         diags = []
         for _c_diag in _c_diags:
             if _c_diag.message is None:
