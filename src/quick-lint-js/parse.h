@@ -3176,6 +3176,11 @@ class parser {
         // let x;
         // let x, y;
         default:
+          if (declaration_kind == variable_kind::_const) {
+            this->error_reporter_->report(
+                error_missing_initializer_in_const_declaration{
+                    .variable_name = variable->span()});
+          }
           this->visit_binding_element(variable, v, declaration_kind);
           break;
         }

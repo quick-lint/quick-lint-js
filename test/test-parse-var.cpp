@@ -86,13 +86,27 @@ TEST(test_parse, parse_simple_var) {
 
 TEST(test_parse, parse_simple_const) {
   spy_visitor v;
-  padded_string code(u8"const x"_sv);
+  padded_string code(u8"const x = null"_sv);
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, u8"x");
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
   EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_parse, parse_const_with_no_initializers) {
+  spy_visitor v;
+  padded_string code(u8"const x;"_sv);
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  ASSERT_EQ(v.variable_declarations.size(), 1);
+  EXPECT_EQ(v.variable_declarations[0].name, u8"x");
+  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_missing_initializer_in_const_declaration, variable_name,
+                  offsets_matcher(&code, strlen(u8"const "), u8"x"))));
 }
 
 TEST(test_parse, let_asi) {
@@ -852,19 +866,18 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
   }
   {
     spy_visitor v;
-    padded_string code(u8"const x debugger"_sv);
+    padded_string code(u8"let x debugger"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_const}));
-    cli_source_position::offset_type end_of_const_statement =
-        strlen(u8"const x");
+                    u8"x", variable_kind::_let}));
+    cli_source_position::offset_type end_of_let_statement = strlen(u8"let x");
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_semicolon_after_statement, where,
-                    offsets_matcher(&code, end_of_const_statement, u8""))));
+                    offsets_matcher(&code, end_of_let_statement, u8""))));
   }
 }
 

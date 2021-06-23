@@ -733,6 +733,12 @@
       .error(QLJS_TRANSLATABLE("missing for loop header"), where))             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_initializer_in_const_declaration, "E205",                  \
+      { source_code_span variable_name; },                                     \
+      .error(QLJS_TRANSLATABLE("missing initializer in const declaration"),    \
+             variable_name))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_key_for_object_entry, "E154",                              \
       { source_code_span expression; },                                        \
       .error(QLJS_TRANSLATABLE(                                                \
