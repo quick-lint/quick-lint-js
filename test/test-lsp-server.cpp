@@ -997,6 +997,84 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
                                                  u8"dir-a/test.js")));
 }
 
+TEST_F(test_linting_lsp_server,
+       editing_js_file_after_shadowing_config_uses_latest_config) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(.quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"before\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "original"
+          }
+        }
+      })"));
+
+  // After opening test.js, create quick-lint-js.config which shadows
+  // .quick-lint-js.config.
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"after\": true}}"
+          }
+        }
+      })"));
+
+  this->lint_calls.clear();
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view version_json,
+                            byte_buffer&) {
+    EXPECT_EQ(version_json, u8"11");
+    EXPECT_FALSE(config.globals().find(u8"before"sv));
+    EXPECT_TRUE(config.globals().find(u8"after"sv));
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "version": 11,
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js"
+          },
+          "contentChanges": [
+            {
+              "text": "modified"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"modified"));
+}
+
 TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   bool after_config_was_loaded = false;
 

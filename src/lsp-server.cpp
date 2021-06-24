@@ -204,12 +204,8 @@ void linting_lsp_server_handler<Linter>::
 
   switch (doc.type) {
   case document_type::lintable: {
-    configuration_or_error config = this->get_config(document_path, &doc);
-    if (!config.ok()) {
-      QLJS_UNIMPLEMENTED();
-    }
     this->linter_.lint_and_get_diagnostics_notification(
-        *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
     break;
   }
@@ -281,10 +277,13 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
-    configuration_or_error config = this->get_config(document_path, &doc);
+    configuration_or_error config =
+        this->config_loader_.watch_and_load_for_file(document_path,
+                                                     /*token=*/&doc);
     if (!config.ok()) {
       QLJS_UNIMPLEMENTED();
     }
+    doc.config = config.config;
     this->linter_.lint_and_get_diagnostics_notification(
         *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
@@ -325,6 +324,7 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
         QLJS_UNIMPLEMENTED();
       }
       configuration* config = change_it->config;
+      doc.config = config;
       // TODO(strager): Don't copy document_uri if it contains only non-special
       // characters.
       // TODO(strager): Cache the result of to_json_escaped_string?
@@ -336,12 +336,6 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
     }
   }
   notification_json.append_copy(u8']');
-}
-
-template <QLJS_LSP_LINTER Linter>
-configuration_or_error linting_lsp_server_handler<Linter>::get_config(
-    const std::string& path, document* doc) {
-  return this->config_loader_.watch_and_load_for_file(path, /*token=*/doc);
 }
 
 template <QLJS_LSP_LINTER Linter>
