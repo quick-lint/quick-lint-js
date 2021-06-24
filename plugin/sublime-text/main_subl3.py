@@ -39,22 +39,22 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
                     self._add_popup(diag)
 
     def _add_squiggly_underlines(self):
-        error_regions = []
         warning_regions = []
+        error_regions = []
         for diag in self.diagnostics:
             region = sublime.Region(diag.begin_offset, diag.end_offset)
-            if diag.severity == c_api.SeverityEnumeration.ERROR:
-                error_regions.append(region)
-            elif diag.severity == c_api.SeverityEnumeration.WARNING:
+            if diag.severity == c_api.SeverityEnumeration.WARNING:
                 warning_regions.append(region)
+            elif diag.severity == c_api.SeverityEnumeration.ERROR:
+                error_regions.append(region)
 
         flags = (
             sublime.DRAW_SQUIGGLY_UNDERLINE
             | sublime.DRAW_NO_FILL
             | sublime.DRAW_NO_OUTLINE
         )
-        self.view.add_regions("1", error_regions, "region.redish", "", flags)
         self.view.add_regions("2", warning_regions, "region.orangish", "", flags)
+        self.view.add_regions("1", error_regions, "region.redish", "", flags)
 
     def _add_popup(self, diagnostic):
         minihtml = """
