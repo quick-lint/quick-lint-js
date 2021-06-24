@@ -324,10 +324,7 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
         // TODO(strager): Report a warning and use a default configuration.
         QLJS_UNIMPLEMENTED();
       }
-      configuration_or_error config = this->get_config(document_path, &doc);
-      if (!config.ok()) {
-        QLJS_UNIMPLEMENTED();
-      }
+      configuration* config = change_it->config;
       // TODO(strager): Don't copy document_uri if it contains only non-special
       // characters.
       // TODO(strager): Cache the result of to_json_escaped_string?
