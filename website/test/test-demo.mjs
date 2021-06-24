@@ -16,23 +16,13 @@ function preElementWithHTML(html) {
 describe("markEditorText", () => {
   it("mark first word on line", () => {
     let editor = preElementWithHTML("hello world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 5,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 0, end: 5 }]);
     assert.strictEqual(editor.innerHTML, "<mark>hello</mark> world");
   });
 
   it("mark last word on line", () => {
     let editor = preElementWithHTML("hello world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 6,
-        end: 11,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 6, end: 11 }]);
     assert.strictEqual(editor.innerHTML, "hello <mark>world</mark>");
   });
 
@@ -42,23 +32,13 @@ describe("markEditorText", () => {
     editor.appendChild(dom.window.document.createTextNode("hello"));
     editor.appendChild(dom.window.document.createTextNode("world"));
 
-    markEditorText(editor, dom.window, [
-      {
-        begin: 3,
-        end: 8,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 3, end: 8 }]);
     assert.strictEqual(editor.innerHTML, "hel<mark>lowor</mark>ld");
   });
 
   it("marking deletes existing non-overlapping marks", () => {
     let editor = preElementWithHTML("<mark>hello</mark> world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 6,
-        end: 11,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 6, end: 11 }]);
     assert.strictEqual(editor.innerHTML, "hello <mark>world</mark>");
   });
 
@@ -71,14 +51,8 @@ describe("markEditorText", () => {
   it("multiple new marks", () => {
     let editor = preElementWithHTML("hello world");
     markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 5,
-      },
-      {
-        begin: 6,
-        end: 11,
-      },
+      { begin: 0, end: 5 },
+      { begin: 6, end: 11 },
     ]);
     assert.strictEqual(
       editor.innerHTML,
@@ -88,92 +62,51 @@ describe("markEditorText", () => {
 
   it("marking removes empty <mark>", () => {
     let editor = preElementWithHTML("<mark></mark> world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 1,
-        end: 6,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 1, end: 6 }]);
     assert.strictEqual(editor.innerHTML, " <mark>world</mark>");
   });
 
   it("marking preserves <br> immediately after mark", () => {
     let editor = preElementWithHTML("hello<br>world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 5,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 0, end: 5 }]);
     assert.strictEqual(editor.innerHTML, "<mark>hello</mark><br>world");
   });
 
   it("marking preserves <br> before inserted mark", () => {
     let editor = preElementWithHTML("one<br>twothree");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 7,
-        end: 7 + "three".length,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 7, end: 7 + "three".length }]);
     assert.strictEqual(editor.innerHTML, "one<br>two<mark>three</mark>");
   });
 
   it("marking preserves <br> after inserted mark", () => {
     let editor = preElementWithHTML("onetwo<br>three");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 3,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 0, end: 3 }]);
     assert.strictEqual(editor.innerHTML, "<mark>one</mark>two<br>three");
   });
 
   it("mark exactly over existing <mark>", () => {
     let editor = preElementWithHTML("<mark>hello</mark> world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 5,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 0, end: 5 }]);
     assert.strictEqual(editor.innerHTML, "<mark>hello</mark> world");
   });
 
   it("mark starts at end of existing <mark>", () => {
     let editor = preElementWithHTML("<mark>hello</mark>world");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 5,
-        end: 10,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 5, end: 10 }]);
     assert.strictEqual(editor.innerHTML, "hello<mark>world</mark>");
   });
 
   it("add empty mark", () => {
     let editor = preElementWithHTML("helloworld");
-    markEditorText(editor, dom.window, [
-      {
-        begin: 5,
-        end: 5,
-      },
-    ]);
+    markEditorText(editor, dom.window, [{ begin: 5, end: 5 }]);
     assert.strictEqual(editor.innerHTML, "hello<mark></mark>world");
   });
 
   it("add empty mark immediately after non-empty mark", () => {
     let editor = preElementWithHTML("helloworld");
     markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 5,
-      },
-      {
-        begin: 5,
-        end: 5,
-      },
+      { begin: 0, end: 5 },
+      { begin: 5, end: 5 },
     ]);
     assert.strictEqual(
       editor.innerHTML,
@@ -184,14 +117,8 @@ describe("markEditorText", () => {
   it("identical marks are merged", () => {
     let editor = preElementWithHTML("helloworld");
     markEditorText(editor, dom.window, [
-      {
-        begin: 0,
-        end: 5,
-      },
-      {
-        begin: 0,
-        end: 5,
-      },
+      { begin: 0, end: 5 },
+      { begin: 0, end: 5 },
     ]);
     assert.strictEqual(editor.innerHTML, "<mark>hello</mark>world");
   });
