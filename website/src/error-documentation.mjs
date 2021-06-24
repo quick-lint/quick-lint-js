@@ -63,12 +63,9 @@ markdownParser.renderer.rules = {
     }
 
     let codeHTML = codeElement.innerHTML;
+
     // Wrap BOM in a <span>.
-    if (
-      ["\u{feff}", "<mark>\u{feff}</mark>"].some((bom) =>
-        codeHTML.startsWith(bom)
-      )
-    ) {
+    if (codeHTML.startsWith("\u{feff}") || marksHasBOM(codeHTML)) {
       codeHTML = codeHTML.replace(
         /\ufeff/,
         "<span class='unicode-bom'>\u{feff}</span>"
@@ -83,6 +80,16 @@ markdownParser.renderer.rules = {
     return this.code_block(tokens, tokenIndex, options, env, self);
   },
 };
+
+function marksHasBOM(codeHTML) {
+  const dom = new jsdom.JSDOM(codeHTML);
+  for (const mark of dom.window.document.querySelectorAll("mark")) {
+    if (mark.textContent?.includes("\u{feff}")) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export class ErrorDocumentation {
   constructor({
