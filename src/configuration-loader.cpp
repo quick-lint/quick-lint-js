@@ -106,15 +106,6 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 configuration_or_error
 configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
-  auto input_path_config_file_it =
-      this->input_path_config_files_.find(input_path);
-  if (input_path_config_file_it != this->input_path_config_files_.end()) {
-    const canonical_path& config_path = input_path_config_file_it->second;
-    auto config_file_it = this->loaded_config_files_.find(config_path);
-    QLJS_ASSERT(config_file_it != this->loaded_config_files_.end());
-    return configuration_or_error(&config_file_it->second.config);
-  }
-
   canonical_path_result parent_directory =
       this->get_parent_directory(input_path);
   if (!parent_directory.ok()) {
@@ -151,10 +142,6 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   }
   canonical_path& config_path = *found.path;
   if (input_path) {
-    auto [_it, inserted] =
-        this->input_path_config_files_.try_emplace(input_path, config_path);
-    QLJS_ASSERT(inserted);
-
     for (watched_path& watch : this->watched_paths_) {
       if (watch.input_path == input_path) {
         watch.config_path = config_path;
