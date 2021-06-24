@@ -105,7 +105,7 @@ class linting_lsp_server_handler {
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request, byte_buffer& notification_json);
 
-  void relint_open_documents(
+  void handle_config_file_changes(
       const std::vector<configuration_change>& config_changes,
       byte_buffer& notification_json);
 

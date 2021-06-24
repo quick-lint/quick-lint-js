@@ -213,7 +213,7 @@ void linting_lsp_server_handler<Linter>::
   case document_type::config: {
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->relint_open_documents(config_changes, notification_json);
+    this->handle_config_file_changes(config_changes, notification_json);
     break;
   }
 
@@ -291,12 +291,12 @@ void linting_lsp_server_handler<Linter>::
     doc.type = document_type::config;
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->relint_open_documents(config_changes, notification_json);
+    this->handle_config_file_changes(config_changes, notification_json);
   }
 }
 
 template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::relint_open_documents(
+void linting_lsp_server_handler<Linter>::handle_config_file_changes(
     const std::vector<configuration_change>& config_changes,
     byte_buffer& notification_json) {
   bool need_comma = false;
