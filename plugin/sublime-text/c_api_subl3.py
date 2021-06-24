@@ -3,7 +3,6 @@
 
 import ctypes
 import os
-import re
 import zipfile
 
 
