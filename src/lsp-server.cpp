@@ -204,7 +204,7 @@ void linting_lsp_server_handler<Linter>::
 
   switch (doc.type) {
   case document_type::lintable: {
-    configuration_or_error config = this->get_config(document_path);
+    configuration_or_error config = this->get_config(document_path, &doc);
     if (!config.ok()) {
       QLJS_UNIMPLEMENTED();
     }
@@ -214,10 +214,12 @@ void linting_lsp_server_handler<Linter>::
     break;
   }
 
-  case document_type::config:
-    this->config_loader_.refresh();
-    this->relint_open_documents(notification_json);
+  case document_type::config: {
+    std::vector<configuration_change> config_changes =
+        this->config_loader_.refresh();
+    this->relint_open_documents(config_changes, notification_json);
     break;
+  }
 
   case document_type::unknown:
     // Ignore.
@@ -279,7 +281,7 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
-    configuration_or_error config = this->get_config(document_path);
+    configuration_or_error config = this->get_config(document_path, &doc);
     if (!config.ok()) {
       QLJS_UNIMPLEMENTED();
     }
@@ -288,27 +290,41 @@ void linting_lsp_server_handler<Linter>::
         notification_json);
   } else {
     doc.type = document_type::config;
-    this->config_loader_.refresh();
-    this->relint_open_documents(notification_json);
+    std::vector<configuration_change> config_changes =
+        this->config_loader_.refresh();
+    this->relint_open_documents(config_changes, notification_json);
   }
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::relint_open_documents(
+    const std::vector<configuration_change>& config_changes,
     byte_buffer& notification_json) {
   bool need_comma = false;
   notification_json.append_copy(u8'[');
-  for (auto& [document_uri, doc] : this->documents_) {
+  for (auto& entry : this->documents_) {
+    const string8& document_uri = entry.first;
+    document& doc = entry.second;
     if (doc.type == document_type::lintable) {
+      auto change_it =
+          std::find_if(config_changes.begin(), config_changes.end(),
+                       [&](const configuration_change& change) {
+                         return change.token == &doc;
+                       });
+      if (change_it == config_changes.end()) {
+        continue;
+      }
+
       if (need_comma) {
         notification_json.append_copy(u8',');
       }
+
       std::string document_path = parse_file_from_lsp_uri(document_uri);
       if (document_path.empty()) {
         // TODO(strager): Report a warning and use a default configuration.
         QLJS_UNIMPLEMENTED();
       }
-      configuration_or_error config = this->get_config(document_path);
+      configuration_or_error config = this->get_config(document_path, &doc);
       if (!config.ok()) {
         QLJS_UNIMPLEMENTED();
       }
@@ -327,8 +343,8 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
 
 template <QLJS_LSP_LINTER Linter>
 configuration_or_error linting_lsp_server_handler<Linter>::get_config(
-    const std::string& path) {
-  return this->config_loader_.watch_and_load_for_file(path, /*token=*/nullptr);
+    const std::string& path, document* doc) {
+  return this->config_loader_.watch_and_load_for_file(path, /*token=*/doc);
 }
 
 template <QLJS_LSP_LINTER Linter>

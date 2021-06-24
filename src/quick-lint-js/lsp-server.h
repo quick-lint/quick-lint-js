@@ -102,9 +102,11 @@ class linting_lsp_server_handler {
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request, byte_buffer& notification_json);
 
-  void relint_open_documents(byte_buffer& notification_json);
+  void relint_open_documents(
+      const std::vector<configuration_change>& config_changes,
+      byte_buffer& notification_json);
 
-  configuration_or_error get_config(const std::string& path);
+  configuration_or_error get_config(const std::string& path, document* doc);
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
