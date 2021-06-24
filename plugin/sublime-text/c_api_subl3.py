@@ -100,8 +100,8 @@ LIB = create_library()
 
 class Diagnostic:
     def __init__(self, _c_diag):
-        self.message = _c_diag.message.decode()
-        self.code = _c_diag.code.decode()
+        self.message = _c_diag.message.decode(encoding="utf-8")
+        self.code = _c_diag.code.decode(encoding="utf-8")
         self.severity = _c_diag.severity
         self.begin_offset = _c_diag.begin_offset
         self.end_offset = _c_diag.end_offset
@@ -118,7 +118,7 @@ class Parser:
             LIB.qljs_sublime_text_destroy_parser(self._c_parser)
 
     def set_text(self, text):
-        text_encoded = text.encode()
+        text_encoded = text.encode(encoding="utf-8")
         text_encoded_byte_count = len(text_encoded)
         LIB.qljs_sublime_text_set_text(
             self._c_parser, text_encoded, text_encoded_byte_count
