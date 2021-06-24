@@ -118,20 +118,20 @@ class Parser:
             LIB.qljs_sublime_text_destroy_parser(self._c_parser)
 
     def set_text(self, text):
-        text_encoded = text.encode(encoding="utf-8")
-        text_encoded_byte_count = len(text_encoded)
+        text_utf_8 = text.encode(encoding="utf-8")
+        text_utf_8_byte_count = len(text_utf_8)
         LIB.qljs_sublime_text_set_text(
-            self._c_parser, text_encoded, text_encoded_byte_count
+            self._c_parser, text_utf_8, text_utf_8_byte_count
         )
 
     def lint(self):
-        _c_diags = LIB.qljs_sublime_text_lint(self._c_parser)
-        diags = []
-        for _c_diag in _c_diags:
+        _c_diagnostics = LIB.qljs_sublime_text_lint(self._c_parser)
+        diagnostics = []
+        for _c_diag in _c_diagnostics:
             if _c_diag.message is None:
                 break
-            diags.append(Diagnostic(_c_diag))
-        return diags
+            diagnostics.append(Diagnostic(_c_diag))
+        return diagnostics
 
 
 # quick-lint-js finds bugs in JavaScript programs.
