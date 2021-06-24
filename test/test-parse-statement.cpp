@@ -987,9 +987,52 @@ TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
     }
   }
+}
 
-  // TODO(#214): Disallow labels named 'await' in async functions.
-  // TODO(#214): Disallow labels named 'yield' in generator functions.
+TEST(test_parse, disallow_label_named_await_in_async_function) {
+  spy_visitor v;
+  padded_string code(u8"async function f() {\nawait:\n}"_sv);
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                    "visit_enter_function_scope",
+                                    "visit_enter_function_scope_body",
+                                    "visit_exit_function_scope"));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(ERROR_TYPE_2_FIELDS(
+          error_label_named_await_not_allowed_in_async_function, await,
+          offsets_matcher(&code, strlen(u8"async function f() {\n"), u8"await"),
+          colon,
+          offsets_matcher(&code, strlen(u8"async function f() {\nawait"),
+                          u8":"))));
+}
+
+TEST(test_parse, disallow_label_named_yield_in_generator_function) {
+  spy_visitor v;
+  padded_string code(u8"function *f() {\nyield:\n}"_sv);
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                    "visit_enter_function_scope",
+                                    "visit_enter_function_scope_body",
+                                    "visit_exit_function_scope"));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(
+          ERROR_TYPE_2_FIELDS(
+              error_label_named_yield_not_allowed_in_generator_function, yield,
+              offsets_matcher(&code, strlen(u8"function *f() {\n"), u8"yield"),
+              colon,
+              offsets_matcher(&code, strlen(u8"function *f() {\nyield"),
+                              u8":")),
+          ERROR_TYPE_FIELD(
+              error_missing_semicolon_after_statement, where,
+              offsets_matcher(&code, strlen(u8"function *f() {\nyield"), u8"")),
+          ERROR_TYPE_FIELD(
+              error_unexpected_token, token,
+              offsets_matcher(&code, strlen(u8"function *f() {\nyield"),
+                              u8":"))));
 }
 
 TEST(test_parse, enum_statement_not_yet_implemented) {
