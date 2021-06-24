@@ -26,6 +26,10 @@ class configuration_filesystem {
 struct configuration_change {
   const std::string* watched_path;  // Never nullptr.
   configuration* config;            // Never nullptr.
+
+  // token is the pointer given to
+  // configuration_loader::watch_and_load_for_file.
+  void* token;
 };
 
 struct configuration_or_error {
@@ -45,7 +49,8 @@ class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
-  configuration_or_error watch_and_load_for_file(const std::string& file_path);
+  configuration_or_error watch_and_load_for_file(const std::string& file_path,
+                                                 const void* token);
   configuration_or_error load_for_file(const std::string& file_path);
   configuration_or_error load_for_file(const file_to_lint&);
 
@@ -62,6 +67,11 @@ class configuration_loader {
     loaded_config_file* already_loaded = nullptr;
     padded_string file_content{};
     std::string error;
+  };
+
+  struct watched_path {
+    std::string input_path;
+    void* token;
   };
 
   configuration_or_error load_config_file(const char* config_path);
@@ -89,7 +99,7 @@ class configuration_loader {
   // Value: cached parsed configuration
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
 
-  std::vector<std::string> watched_paths_;
+  std::vector<watched_path> watched_paths_;
 };
 
 class basic_configuration_filesystem : public configuration_filesystem {

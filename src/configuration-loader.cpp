@@ -42,8 +42,11 @@ configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
 configuration_or_error configuration_loader::watch_and_load_for_file(
-    const std::string& file_path) {
-  this->watched_paths_.emplace_back(file_path);
+    const std::string& file_path, const void* token) {
+  this->watched_paths_.emplace_back(watched_path{
+      .input_path = std::move(file_path),
+      .token = const_cast<void*>(token),
+  });
   return this->find_and_load_config_file_for_input(file_path.c_str());
 }
 
@@ -267,7 +270,8 @@ std::vector<configuration_change> configuration_loader::refresh() {
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files =
       std::move(this->loaded_config_files_);
 
-  for (const std::string& input_path : this->watched_paths_) {
+  for (const watched_path& watch : this->watched_paths_) {
+    const std::string& input_path = watch.input_path;
     canonical_path_result parent_directory =
         this->get_parent_directory(input_path.c_str());
     if (!parent_directory.ok()) {
@@ -304,6 +308,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
       changes.emplace_back(configuration_change{
           .watched_path = &input_path,
           .config = config,
+          .token = watch.token,
       });
       if (latest.path.has_value()) {
         this->input_path_config_files_.insert_or_assign(input_path,
@@ -343,9 +348,16 @@ std::vector<configuration_change> configuration_loader::refresh() {
                            });
           bool already_changed = existing_change_it != changes.end();
           if (!already_changed) {
+            auto watch_it = std::find_if(
+                this->watched_paths_.begin(), this->watched_paths_.end(),
+                [&](const watched_path& watch) {
+                  return watch.input_path == input_path;
+                });
+            QLJS_ASSERT(watch_it != this->watched_paths_.end());
             changes.emplace_back(configuration_change{
                 .watched_path = &input_path,
                 .config = &loaded_config.config,
+                .token = watch_it->token,
             });
           }
         }

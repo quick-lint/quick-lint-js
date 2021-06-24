@@ -328,7 +328,7 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
 template <QLJS_LSP_LINTER Linter>
 configuration_or_error linting_lsp_server_handler<Linter>::get_config(
     const std::string& path) {
-  return this->config_loader_.watch_and_load_for_file(path);
+  return this->config_loader_.watch_and_load_for_file(path, /*token=*/nullptr);
 }
 
 template <QLJS_LSP_LINTER Linter>

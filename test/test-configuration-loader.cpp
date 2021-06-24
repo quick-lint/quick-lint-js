@@ -599,7 +599,7 @@ TEST_F(test_configuration_loader, config_found_initially_is_unchanged) {
     write_file(config_file, u8"{}");
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::vector<configuration_change> changes = loader.refresh();
     EXPECT_THAT(changes, IsEmpty());
@@ -615,7 +615,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"before": true}})");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   write_file(config_file, u8R"({"globals": {"after": true}})");
 
@@ -634,7 +634,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"before": true}})");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   {
     FILE* file = std::fopen(config_file.c_str(), "r+");
@@ -662,7 +662,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"a": true}})");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   write_file(config_file, u8R"({"globals": {"b": true}})");
   write_file(config_file, u8R"({"globals": {"a": true}})");
@@ -684,7 +684,7 @@ TEST_F(test_configuration_loader,
   write_file(new_config_file, u8R"({"globals": {"after": true}})");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(new_config_file, config_file);
 
@@ -707,7 +707,7 @@ TEST_F(test_configuration_loader,
   write_file(new_config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(new_config_file, config_file);
 
@@ -724,7 +724,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string temp_config_file = project_dir + "/temp.config";
   move_file(config_file, temp_config_file);
@@ -744,7 +744,7 @@ TEST_F(test_configuration_loader, creating_config_in_same_dir_is_detected) {
     write_file(js_file, u8"");
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
@@ -766,7 +766,7 @@ TEST_F(test_configuration_loader,
     std::string js_file = project_dir + "/hello.js";
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
@@ -789,7 +789,7 @@ TEST_F(test_configuration_loader, creating_config_in_parent_dir_is_detected) {
     write_file(js_file, u8"");
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     std::string config_file = project_dir + "/" + config_file_name;
     write_file(config_file, u8"{}");
@@ -810,7 +810,7 @@ TEST_F(test_configuration_loader,
   write_file(secondary_config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string primary_config_file = project_dir + "/quick-lint-js.config";
   write_file(primary_config_file, u8"{}");
@@ -839,7 +839,7 @@ TEST_F(test_configuration_loader,
       write_file(outer_config_file, u8"{}");
 
       configuration_loader loader(basic_configuration_filesystem::instance());
-      loader.watch_and_load_for_file(js_file);
+      loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       std::string inner_config_file =
           project_dir + "/dir/" + inner_config_file_name;
@@ -866,7 +866,7 @@ TEST_F(test_configuration_loader, deleting_config_in_same_dir_is_detected) {
     write_file(config_file, u8"{}");
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     EXPECT_EQ(std::remove(config_file.c_str()), 0)
         << "failed to delete " << config_file << ": " << std::strerror(errno);
@@ -889,7 +889,7 @@ TEST_F(test_configuration_loader,
   write_file(secondary_config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   EXPECT_EQ(std::remove(primary_config_file.c_str()), 0)
       << "failed to delete " << primary_config_file << ": "
@@ -923,7 +923,7 @@ TEST_F(test_configuration_loader,
       write_file(inner_config_file, u8"{}");
 
       configuration_loader loader(basic_configuration_filesystem::instance());
-      loader.watch_and_load_for_file(js_file);
+      loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       EXPECT_EQ(std::remove(inner_config_file.c_str()), 0)
           << "failed to delete " << inner_config_file << ": "
@@ -950,7 +950,7 @@ TEST_F(test_configuration_loader, moving_config_away_in_same_dir_is_detected) {
     write_file(config_file, u8"{}");
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     move_file(config_file, (project_dir + "/moved.config"));
 
@@ -972,7 +972,7 @@ TEST_F(test_configuration_loader,
   write_file(secondary_config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(primary_config_file, (project_dir + "/moved.config"));
 
@@ -1004,7 +1004,7 @@ TEST_F(test_configuration_loader,
       write_file(inner_config_file, u8"{}");
 
       configuration_loader loader(basic_configuration_filesystem::instance());
-      loader.watch_and_load_for_file(js_file);
+      loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       move_file(inner_config_file, (project_dir + "/dir/moved.config"));
 
@@ -1030,7 +1030,7 @@ TEST_F(test_configuration_loader, moving_config_into_same_dir_is_detected) {
     std::string renamed_config_file = project_dir + "/" + config_file_name;
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     move_file(temp_config_file, renamed_config_file);
 
@@ -1056,7 +1056,7 @@ TEST_F(test_configuration_loader, moving_config_into_parent_dir_is_detected) {
     std::string renamed_config_file = project_dir + "/" + config_file_name;
 
     configuration_loader loader(basic_configuration_filesystem::instance());
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
     move_file(temp_config_file, renamed_config_file);
 
@@ -1090,7 +1090,7 @@ TEST_F(test_configuration_loader,
           project_dir + "/dir/" + inner_config_file_name;
 
       configuration_loader loader(basic_configuration_filesystem::instance());
-      loader.watch_and_load_for_file(js_file);
+      loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
       move_file(temp_config_file, inner_config_file);
 
@@ -1115,7 +1115,7 @@ TEST_F(test_configuration_loader,
   std::string primary_config_file = project_dir + "/quick-lint-js.config";
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file(temp_config_file, primary_config_file);
 
@@ -1135,7 +1135,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
@@ -1158,7 +1158,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
@@ -1180,7 +1180,7 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
@@ -1196,7 +1196,7 @@ TEST_F(test_configuration_loader, moving_file_keeps_config) {
   write_file(config_file, u8"{}");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/oldfile.js"), (project_dir + "/newfile.js"));
 
@@ -1210,7 +1210,7 @@ TEST_F(test_configuration_loader,
   std::string js_file = project_dir + "/dir/test.js";
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   create_directory(project_dir + "/dir");
   std::vector<configuration_change> changes = loader.refresh();
@@ -1234,7 +1234,7 @@ TEST_F(
   std::string js_file = project_dir + "/dir/test.js";
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(js_file);
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   create_directory(project_dir + "/dir");
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
@@ -1260,7 +1260,7 @@ TEST_F(test_configuration_loader,
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   for (const std::string& js_file : js_files) {
-    loader.watch_and_load_for_file(js_file);
+    loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   }
 
   std::string config_file = project_dir + "/quick-lint-js.config";
@@ -1272,6 +1272,9 @@ TEST_F(test_configuration_loader,
     SCOPED_TRACE(*change.watched_path);
     EXPECT_EQ(js_files.count(*change.watched_path), 1)
         << "change should report a watched file";
+    const std::string* token =
+        reinterpret_cast<const std::string*>(change.token);
+    EXPECT_EQ(js_files.count(*token), 1) << "change should have a valid token";
     EXPECT_EQ(unconfigured_js_files.erase(*change.watched_path), 1)
         << "change should report no duplicate watched files";
     EXPECT_SAME_FILE(change.config->config_file_path(), config_file);
@@ -1296,8 +1299,8 @@ TEST_F(test_configuration_loader,
   write_file(inner_config_file, u8R"({"globals": {"inner": true}})");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  loader.watch_and_load_for_file(inner_js_file);
-  loader.watch_and_load_for_file(outer_js_file);
+  loader.watch_and_load_for_file(inner_js_file, /*token=*/&inner_js_file);
+  loader.watch_and_load_for_file(outer_js_file, /*token=*/&outer_js_file);
 
   EXPECT_EQ(std::remove(inner_config_file.c_str()), 0)
       << "failed to delete " << inner_config_file << ": "
@@ -1307,12 +1310,16 @@ TEST_F(test_configuration_loader,
   std::vector<configuration_change> changes = loader.refresh();
 
   std::vector<std::string> watched_paths;
+  std::vector<void*> watched_tokens;
   for (const configuration_change& change : changes) {
     watched_paths.emplace_back(*change.watched_path);
+    watched_tokens.emplace_back(change.token);
   }
-  EXPECT_THAT(watched_paths,
-              UnorderedElementsAre(::testing::HasSubstr("outer.js"),
-                                   ::testing::HasSubstr("inner.js")));
+  EXPECT_THAT(watched_paths, ::testing::UnorderedElementsAre(
+                                 ::testing::HasSubstr("outer.js"),
+                                 ::testing::HasSubstr("inner.js")));
+  EXPECT_THAT(watched_tokens,
+              ::testing::UnorderedElementsAre(&inner_js_file, &outer_js_file));
 
   for (const configuration_change& change : changes) {
     EXPECT_SAME_FILE(change.config->config_file_path(), outer_config_file);
