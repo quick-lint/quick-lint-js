@@ -99,9 +99,12 @@ class EditorMarker {
         this._markEndNode = splitNodeAtMarkEnd(splitIndex);
 
         let mark = this._window.document.createElement("mark");
-        mark.setAttribute("data-message", currentMark.message);
-        mark.setAttribute("data-code", currentMark.code);
-        mark.setAttribute("data-severity", currentMark.severity);
+
+        if (currentMark.message && currentMark.code && currentMark.severity) {
+          mark.setAttribute("data-message", currentMark.message);
+          mark.setAttribute("data-code", currentMark.code);
+          mark.setAttribute("data-severity", currentMark.severity);
+        }
 
         if (this._markBeginNode === this._markEndNode.nextSibling) {
           // Special case: insert an empty <mark>.
