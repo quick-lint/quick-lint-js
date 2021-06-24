@@ -152,14 +152,7 @@ wasn't that neat?
       "file.md",
       "code:\n\n    \ufeff--BOM\n"
     );
-    doc.diagnostics = [
-      [
-        {
-          begin: 0,
-          end: 1,
-        },
-      ],
-    ];
+    doc.diagnostics = [[{ begin: 0, end: 1 }]];
     expect(doc.toHTML()).toContain(
       "<code><mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
     );
