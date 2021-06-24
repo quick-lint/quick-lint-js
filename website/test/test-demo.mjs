@@ -6,7 +6,6 @@ import jsdom from "jsdom";
 import { markEditorText, sanitizeMarks } from "../public/demo/editor.mjs";
 
 let dom = new jsdom.JSDOM("");
-const unKnownErrorCode = "E0XXX";
 
 function preElementWithHTML(html) {
   let element = dom.window.document.createElement("pre");
@@ -21,15 +20,9 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 5,
-        message: "first word error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      '<mark data-message="first word error" data-code="E0XXX" data-severity="5">hello</mark> world'
-    );
+    assert.strictEqual(editor.innerHTML, "<mark>hello</mark> world");
   });
 
   it("mark last word on line", () => {
@@ -38,15 +31,9 @@ describe("markEditorText", () => {
       {
         begin: 6,
         end: 11,
-        message: "last word error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      'hello <mark data-message="last word error" data-code="E0XXX" data-severity="5">world</mark>'
-    );
+    assert.strictEqual(editor.innerHTML, "hello <mark>world</mark>");
   });
 
   it("mark across two text nodes", () => {
@@ -59,15 +46,9 @@ describe("markEditorText", () => {
       {
         begin: 3,
         end: 8,
-        message: "lowor error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      'hel<mark data-message="lowor error" data-code="E0XXX" data-severity="5">lowor</mark>ld'
-    );
+    assert.strictEqual(editor.innerHTML, "hel<mark>lowor</mark>ld");
   });
 
   it("marking deletes existing non-overlapping marks", () => {
@@ -76,15 +57,9 @@ describe("markEditorText", () => {
       {
         begin: 6,
         end: 11,
-        message: "non-overlapping marks error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      'hello <mark data-message="non-overlapping marks error" data-code="E0XXX" data-severity="5">world</mark>'
-    );
+    assert.strictEqual(editor.innerHTML, "hello <mark>world</mark>");
   });
 
   it("marking with no marks deletes existing marks", () => {
@@ -99,21 +74,15 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 5,
-        message: "multi mark error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
       {
         begin: 6,
         end: 11,
-        message: "multi mark error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
     assert.strictEqual(
       editor.innerHTML,
-      '<mark data-message="multi mark error" data-code="E0XXX" data-severity="5">hello</mark> <mark data-message="multi mark error" data-code="E0XXX" data-severity="5">world</mark>'
+      "<mark>hello</mark> <mark>world</mark>"
     );
   });
 
@@ -123,15 +92,9 @@ describe("markEditorText", () => {
       {
         begin: 1,
         end: 6,
-        message: "empty mark error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      ' <mark data-message="empty mark error" data-code="E0XXX" data-severity="5">world</mark>'
-    );
+    assert.strictEqual(editor.innerHTML, " <mark>world</mark>");
   });
 
   it("marking preserves <br> immediately after mark", () => {
@@ -140,15 +103,9 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      '<mark data-message="unknow error" data-code="E0XXX" data-severity="5">hello</mark><br>world'
-    );
+    assert.strictEqual(editor.innerHTML, "<mark>hello</mark><br>world");
   });
 
   it("marking preserves <br> before inserted mark", () => {
@@ -157,15 +114,9 @@ describe("markEditorText", () => {
       {
         begin: 7,
         end: 7 + "three".length,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      'one<br>two<mark data-message="unknow error" data-code="E0XXX" data-severity="5">three</mark>'
-    );
+    assert.strictEqual(editor.innerHTML, "one<br>two<mark>three</mark>");
   });
 
   it("marking preserves <br> after inserted mark", () => {
@@ -174,15 +125,9 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 3,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      '<mark data-message="unknow error" data-code="E0XXX" data-severity="5">one</mark>two<br>three'
-    );
+    assert.strictEqual(editor.innerHTML, "<mark>one</mark>two<br>three");
   });
 
   it("mark exactly over existing <mark>", () => {
@@ -191,15 +136,9 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      '<mark data-message="unknow error" data-code="E0XXX" data-severity="5">hello</mark> world'
-    );
+    assert.strictEqual(editor.innerHTML, "<mark>hello</mark> world");
   });
 
   it("mark starts at end of existing <mark>", () => {
@@ -208,15 +147,9 @@ describe("markEditorText", () => {
       {
         begin: 5,
         end: 10,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      'hello<mark data-message="unknow error" data-code="E0XXX" data-severity="5">world</mark>'
-    );
+    assert.strictEqual(editor.innerHTML, "hello<mark>world</mark>");
   });
 
   it("add empty mark", () => {
@@ -225,15 +158,9 @@ describe("markEditorText", () => {
       {
         begin: 5,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      'hello<mark data-message="unknow error" data-code="E0XXX" data-severity="5"></mark>world'
-    );
+    assert.strictEqual(editor.innerHTML, "hello<mark></mark>world");
   });
 
   it("add empty mark immediately after non-empty mark", () => {
@@ -242,21 +169,15 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
       {
         begin: 5,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
     assert.strictEqual(
       editor.innerHTML,
-      '<mark data-message="unknow error" data-code="E0XXX" data-severity="5">hello</mark><mark data-message="unknow error" data-code="E0XXX" data-severity="5"></mark>world'
+      "<mark>hello</mark><mark></mark>world"
     );
   });
 
@@ -266,22 +187,13 @@ describe("markEditorText", () => {
       {
         begin: 0,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
       {
         begin: 0,
         end: 5,
-        message: "unknow error",
-        code: unKnownErrorCode,
-        severity: 5,
       },
     ]);
-    assert.strictEqual(
-      editor.innerHTML,
-      '<mark data-message="unknow error" data-code="E0XXX" data-severity="5">hello</mark>world'
-    );
+    assert.strictEqual(editor.innerHTML, "<mark>hello</mark>world");
   });
 });
 
