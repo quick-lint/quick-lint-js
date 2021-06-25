@@ -372,6 +372,11 @@ class parser {
       this->skip();
       if (this->peek().type == token_type::colon) {
         // Labelled statement.
+        if (this->in_async_function_) {
+          this->error_reporter_->report(
+              error_label_named_await_not_allowed_in_async_function{
+                  .await = await_token.span(), .colon = this->peek().span()});
+        }
         this->skip();
         goto parse_statement;
       } else {
