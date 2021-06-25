@@ -991,7 +991,7 @@ TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
 
 TEST(test_parse, disallow_label_named_await_in_async_function) {
   spy_visitor v;
-  padded_string code(u8"async function f() {\nawait:\n}"_sv);
+  padded_string code(u8"async function f() {await:}"_sv);
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
@@ -1002,9 +1002,9 @@ TEST(test_parse, disallow_label_named_await_in_async_function) {
       v.errors,
       ElementsAre(ERROR_TYPE_2_FIELDS(
           error_label_named_await_not_allowed_in_async_function, await,
-          offsets_matcher(&code, strlen(u8"async function f() {\n"), u8"await"),
+          offsets_matcher(&code, strlen(u8"async function f() {"), u8"await"),
           colon,
-          offsets_matcher(&code, strlen(u8"async function f() {\nawait"),
+          offsets_matcher(&code, strlen(u8"async function f() {await"),
                           u8":"))));
 }
 
