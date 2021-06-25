@@ -36,6 +36,8 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
     return this->read_data_;
   }
 
+  void on_filesystem_change() {}
+
   template <class Func>
   void wait_until_data(Func&& predicate) {
     std::unique_lock lock(this->mutex_);

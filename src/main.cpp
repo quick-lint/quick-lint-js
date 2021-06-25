@@ -405,6 +405,8 @@ void run_lsp_server() {
 
     void append(string8_view data) { this->endpoint_.append(data); }
 
+    void on_filesystem_change() { this->endpoint_.filesystem_changed(); }
+
 #if QLJS_HAVE_POLL
     std::optional<::pollfd> get_pipe_write_pollfd() {
       return this->endpoint_.remote().get_pollfd();

@@ -133,6 +133,14 @@ void linting_lsp_server_handler<Linter>::handle_notification(
 }
 
 template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::filesystem_changed(
+    std::vector<byte_buffer>& notification_jsons) {
+  std::vector<configuration_change> config_changes =
+      this->config_loader_.refresh();
+  this->handle_config_file_changes(config_changes, notification_jsons);
+}
+
+template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_initialize_request(
     ::simdjson::ondemand::object& request, byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");

@@ -77,6 +77,8 @@ class linting_lsp_server_handler {
   void handle_notification(::simdjson::ondemand::object& request,
                            std::vector<byte_buffer>& notification_jsons);
 
+  void filesystem_changed(std::vector<byte_buffer>& notification_jsons);
+
  private:
   enum class document_type {
     config,    // quick-lint-js.config

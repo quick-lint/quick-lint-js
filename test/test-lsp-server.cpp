@@ -1122,6 +1122,61 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
   EXPECT_TRUE(after_config_was_loaded);
 }
 
+TEST_F(test_linting_lsp_server,
+       changing_config_on_filesystem_relints_open_js_files) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"before": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  bool after_config_was_loaded = false;
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer& notification_json) {
+    EXPECT_TRUE(config.globals().find(u8"after"sv));
+    EXPECT_FALSE(config.globals().find(u8"before"sv));
+    EXPECT_EQ(version_json, u8"10");
+    EXPECT_EQ(uri_json, u8"\"" + this->fs.file_uri_prefix_8() + u8"test.js\"");
+    after_config_was_loaded = true;
+
+    notification_json.append_copy(
+        u8R"({
+      "method": "textDocument/publishDiagnostics",
+      "params": {
+        "uri": ")" +
+        this->fs.file_uri_prefix_8() +
+        u8R"(test.js",
+        "version": 10,
+        "diagnostics": []
+      },
+      "jsonrpc": "2.0"
+    })");
+  };
+  this->client.messages.clear();
+
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"after": true}})");
+  this->server.filesystem_changed();
+
+  EXPECT_TRUE(after_config_was_loaded);
+
+  ASSERT_THAT(this->client.messages, ElementsAre(::testing::_));
+  ::Json::Value& notification = this->client.messages[0];
+  EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
+}
+
 TEST_F(
     test_linting_lsp_server,
     linting_uses_config_from_filesystem_if_config_is_opened_then_closed_before_opening_js_file) {

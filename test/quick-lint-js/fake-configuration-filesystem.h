@@ -17,9 +17,9 @@
 namespace quick_lint_js {
 class fake_configuration_filesystem : public configuration_filesystem {
  public:
+  // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content) {
-    auto [_file_it, inserted] = this->files_.try_emplace(path, content);
-    QLJS_ASSERT(inserted);
+    this->files_.insert_or_assign(path, content);
   }
 
   canonical_path rooted(const char* path) const {

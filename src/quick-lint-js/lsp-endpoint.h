@@ -71,6 +71,14 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
 
   Remote& remote() noexcept { return this->remote_; }
 
+  void filesystem_changed() {
+    std::vector<byte_buffer> notification_jsons;
+    this->handler_.filesystem_changed(notification_jsons);
+    for (byte_buffer& notification_json : notification_jsons) {
+      this->remote_.send_message(std::move(notification_json));
+    }
+  }
+
  private:
   void message_parsed(string8_view message) {
     // TODO(strager): Avoid copying the message.

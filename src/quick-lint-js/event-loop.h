@@ -40,6 +40,8 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
   {cd.get_readable_pipe()};
   {d.append(data)};
 
+  {d.on_filesystem_change()};
+
 #if QLJS_HAVE_POLL
   {d.get_pipe_write_pollfd()};
   {d.on_pipe_write_event(poll_event)};
@@ -92,6 +94,7 @@ class event_loop_base {
       QLJS_UNIMPLEMENTED();
     } else {
       QLJS_ASSERT(read_result.bytes_read != 0);
+      std::lock_guard<std::mutex> lock(this->user_code_mutex_);
       this->derived().append(string8_view(
           buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
       return false;
@@ -114,6 +117,13 @@ class event_loop_base {
       const_derived() const {
     return *static_cast<const Derived*>(this);
   }
+
+ protected:
+  // Acquire user_code_mutex_ when calling non-const member functions of
+  // Derived.
+  // TODO(strager): Only use a lock on Windows. Avoid the lock on POSIX
+  // platforms where we only have one thread.
+  std::mutex user_code_mutex_;
 };
 
 #if QLJS_HAVE_POLL
@@ -150,11 +160,18 @@ class poll_event_loop : public event_loop_base<Derived> {
       QLJS_ASSERT(pollfd_count > 0);
       QLJS_ASSERT(pollfd_count <= pollfds.size());
       int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfd_count),
-                      /*timeout=*/-1);
+                      /*timeout=*/1000);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
       }
-      QLJS_ASSERT(rc > 0);
+      // TODO(strager): Watch the filesystem with inotify/queue instead of
+      // polling the file system every second.
+      QLJS_ASSERT(rc >= 0);
+
+      if (rc == 0) {
+        // Timed out.
+        this->derived().on_filesystem_change();
+      }
 
       const ::pollfd& read_pipe_event = pollfds[read_pipe_index];
       if (read_pipe_event.revents & POLLIN) {
@@ -202,9 +219,20 @@ class windows_event_loop : public event_loop_base<Derived> {
           /*CompletionPort=*/this->io_completion_port_.get(),
           /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
           /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
-          /*dwMilliseconds=*/INFINITE);
+          /*dwMilliseconds=*/1000);
       if (!overlapped) {
-        QLJS_UNIMPLEMENTED();
+        DWORD error = ::GetLastError();
+        switch (error) {
+        case WAIT_TIMEOUT: {
+          std::lock_guard<std::mutex> lock(this->user_code_mutex_);
+          this->derived().on_filesystem_change();
+          continue;
+        }
+
+        default:
+          QLJS_UNIMPLEMENTED();
+          break;
+        }
       }
 
       switch (completion_key) {
