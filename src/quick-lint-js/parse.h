@@ -392,15 +392,6 @@ class parser {
     // yield: for(;;);
     case token_type::kw_yield:
       if (this->in_generator_function_) {
-        source_code_span yield_span = this->peek().span();
-        lexer_transaction transaction = this->lexer_.begin_transaction();
-        this->skip();
-        if (this->peek().type == token_type::colon) {
-          this->error_reporter_->report(
-              error_label_named_yield_not_allowed_in_generator_function{
-                  .yield = yield_span, .colon = this->peek().span()});
-        }
-        this->lexer_.roll_back_transaction(std::move(transaction));
         this->parse_and_visit_expression(v);
         parse_expression_end();
         break;

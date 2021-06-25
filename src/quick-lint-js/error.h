@@ -521,16 +521,6 @@
              await))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_label_named_yield_not_allowed_in_generator_function, "E207",       \
-      {                                                                        \
-        source_code_span yield;                                                \
-        source_code_span colon;                                                \
-      },                                                                       \
-      .error(QLJS_TRANSLATABLE(                                                \
-                 "label named 'yield' not allowed in generator function"),     \
-             yield))                                                           \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_legacy_octal_literal_may_not_be_big_int, "E032",                   \
       { source_code_span characters; },                                        \
       .error(QLJS_TRANSLATABLE("legacy octal literal may not be BigInt"),      \
