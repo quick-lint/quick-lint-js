@@ -52,6 +52,6 @@
   },
   "devDependencies": {
     "prettier": "^2.3.0",
-    "vsce": "^1.93.0"
+    "vsce": "^1.95.0"
   }
 }
