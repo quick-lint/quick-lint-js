@@ -7,7 +7,8 @@
     "vscode": "^1.43.0"
   },
   "activationEvents": [
-    "onLanguage:javascript"
+    "onLanguage:javascript",
+    "onLanguage:json"
   ],
   "main": "./extension",
   "contributes": {
@@ -32,7 +33,16 @@
           "description": "Log messages between VS Code and quick-lint-js."
         }
       }
-    }
+    },
+    "languages": [
+      {
+        "id": "json",
+        "filenames": [
+          "quick-lint-js.config",
+          ".quick-lint-js.config"
+        ]
+      }
+    ]
   },
   "scripts": {
     "fmt": "prettier --write '*.js' '*.json' '.vscode/*.json'"
