@@ -994,9 +994,9 @@ TEST(test_parse, disallow_label_named_await_in_async_function) {
   padded_string code(u8"async function f() {\nawait:\n}"_sv);
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
-                                    "visit_enter_function_scope",
-                                    "visit_enter_function_scope_body",
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                    "visit_enter_function_scope",       //
+                                    "visit_enter_function_scope_body",  //
                                     "visit_exit_function_scope"));
   EXPECT_THAT(
       v.errors,
