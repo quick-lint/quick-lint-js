@@ -101,17 +101,18 @@ void linting_lsp_server_handler<Linter>::handle_request(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_notification(
-    ::simdjson::ondemand::object& request, byte_buffer& notification_json) {
+    ::simdjson::ondemand::object& request,
+    std::vector<byte_buffer>& notification_jsons) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(request,
-                                                       notification_json);
+                                                       notification_jsons);
   } else if (method == "textDocument/didOpen") {
     this->handle_text_document_did_open_notification(request,
-                                                     notification_json);
+                                                     notification_jsons);
   } else if (method == "textDocument/didClose") {
     this->handle_text_document_did_close_notification(request);
   } else if (method == "initialized") {
@@ -164,7 +165,8 @@ void linting_lsp_server_handler<Linter>::handle_shutdown_request(
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_change_notification(
-        ::simdjson::ondemand::object& request, byte_buffer& notification_json) {
+        ::simdjson::ondemand::object& request,
+        std::vector<byte_buffer>& notification_jsons) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -204,6 +206,7 @@ void linting_lsp_server_handler<Linter>::
 
   switch (doc.type) {
   case document_type::lintable: {
+    byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
         *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
@@ -213,7 +216,7 @@ void linting_lsp_server_handler<Linter>::
   case document_type::config: {
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes, notification_json);
+    this->handle_config_file_changes(config_changes, notification_jsons);
     break;
   }
 
@@ -241,7 +244,8 @@ void linting_lsp_server_handler<Linter>::
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_open_notification(
-        ::simdjson::ondemand::object& request, byte_buffer& notification_json) {
+        ::simdjson::ondemand::object& request,
+        std::vector<byte_buffer>& notification_jsons) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -284,6 +288,7 @@ void linting_lsp_server_handler<Linter>::
       QLJS_UNIMPLEMENTED();
     }
     doc.config = config.config;
+    byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
         *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
@@ -291,16 +296,14 @@ void linting_lsp_server_handler<Linter>::
     doc.type = document_type::config;
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes, notification_json);
+    this->handle_config_file_changes(config_changes, notification_jsons);
   }
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_config_file_changes(
     const std::vector<configuration_change>& config_changes,
-    byte_buffer& notification_json) {
-  bool need_comma = false;
-  notification_json.append_copy(u8'[');
+    std::vector<byte_buffer>& notification_jsons) {
   for (auto& entry : this->documents_) {
     const string8& document_uri = entry.first;
     document& doc = entry.second;
@@ -314,10 +317,6 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
         continue;
       }
 
-      if (need_comma) {
-        notification_json.append_copy(u8',');
-      }
-
       std::string document_path = parse_file_from_lsp_uri(document_uri);
       if (document_path.empty()) {
         // TODO(strager): Report a warning and use a default configuration.
@@ -325,6 +324,7 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
       }
       configuration* config = change_it->config;
       doc.config = config;
+      byte_buffer& notification_json = notification_jsons.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special
       // characters.
       // TODO(strager): Cache the result of to_json_escaped_string?
@@ -332,10 +332,8 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
           *config, doc.doc.string(),
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
-      need_comma = true;
     }
   }
-  notification_json.append_copy(u8']');
 }
 
 template <QLJS_LSP_LINTER Linter>

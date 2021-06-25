@@ -874,9 +874,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
               ::testing::UnorderedElementsAre(u8"/* a.js */", u8"/* b.js */",
                                               u8"/* c.js */"));
 
-  ASSERT_THAT(this->client.messages, ElementsAre(::testing::_));
   std::vector<std::string> linted_uris;
-  for (::Json::Value& notification : this->client.messages[0]) {
+  for (::Json::Value& notification : this->client.messages) {
     EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
     linted_uris.emplace_back(notification["params"]["uri"].asString());
   }
@@ -987,9 +986,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"/* dir-a/test.js */"));
 
-  ASSERT_THAT(this->client.messages, ElementsAre(::testing::_));
   std::vector<std::string> linted_uris;
-  for (::Json::Value& notification : this->client.messages[0]) {
+  for (::Json::Value& notification : this->client.messages) {
     EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
     linted_uris.emplace_back(notification["params"]["uri"].asString());
   }

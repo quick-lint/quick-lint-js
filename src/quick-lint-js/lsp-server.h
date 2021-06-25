@@ -75,7 +75,7 @@ class linting_lsp_server_handler {
   void handle_request(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
   void handle_notification(::simdjson::ondemand::object& request,
-                           byte_buffer& notification_json);
+                           std::vector<byte_buffer>& notification_jsons);
 
  private:
   enum class document_type {
@@ -99,15 +99,17 @@ class linting_lsp_server_handler {
                                byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      ::simdjson::ondemand::object& request, byte_buffer& notification_json);
+      ::simdjson::ondemand::object& request,
+      std::vector<byte_buffer>& notification_jsons);
   void handle_text_document_did_close_notification(
       ::simdjson::ondemand::object& request);
   void handle_text_document_did_open_notification(
-      ::simdjson::ondemand::object& request, byte_buffer& notification_json);
+      ::simdjson::ondemand::object& request,
+      std::vector<byte_buffer>& notification_jsons);
 
   void handle_config_file_changes(
       const std::vector<configuration_change>& config_changes,
-      byte_buffer& notification_json);
+      std::vector<byte_buffer>& notification_jsons);
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
