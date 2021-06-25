@@ -1008,6 +1008,27 @@ TEST(test_parse, disallow_label_named_await_in_async_function) {
                           u8":"))));
 }
 
+TEST(test_parse, disallow_label_named_yield_in_generator_function) {
+  spy_visitor v;
+  padded_string code(u8"function *f() {yield:}"_sv);
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                    "visit_enter_function_scope",       //
+                                    "visit_enter_function_scope_body",  //
+                                    "visit_exit_function_scope"));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(
+          ERROR_TYPE_FIELD(
+              error_missing_semicolon_after_statement, where,
+              offsets_matcher(&code, strlen(u8"function *f() {yield"), u8"")),
+          ERROR_TYPE_FIELD(
+              error_unexpected_token, token,
+              offsets_matcher(&code, strlen(u8"function *f() {yield"),
+                              u8":"))));
+}
+
 TEST(test_parse, enum_statement_not_yet_implemented) {
   {
     spy_visitor v;
