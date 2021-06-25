@@ -203,10 +203,13 @@ class windows_event_loop : public event_loop_base<Derived> {
           /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
           /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
           /*dwMilliseconds=*/INFINITE);
+      if (!overlapped) {
+        QLJS_UNIMPLEMENTED();
+      }
+
       switch (completion_key) {
       case completion_key_invalid:
-        QLJS_ASSERT(!ok);
-        QLJS_UNIMPLEMENTED();
+        QLJS_UNREACHABLE();
         break;
 
       case completion_key_stop:
@@ -230,7 +233,7 @@ class windows_event_loop : public event_loop_base<Derived> {
         /*CompletionPort=*/this->io_completion_port_.get(),
         /*dwNumberOfBytesTransferred=*/0,
         /*dwCompletionKey=*/completion_key_stop,
-        /*lpOverlapped=*/nullptr);
+        /*lpOverlapped=*/reinterpret_cast<OVERLAPPED*>(1));
     if (!ok) {
       QLJS_UNIMPLEMENTED();
     }
