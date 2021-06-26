@@ -15,7 +15,7 @@ class Buffer:
 
 
 class QuickLintJsListener(sublime_plugin.ViewEventListener):
-    buffers = {}
+    _buffers = {}
 
     @classmethod
     def is_applicable(cls, settings):
@@ -29,11 +29,11 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         return False
 
     def __init__(self, view):
-        self.view = view
+        super().__init__(view)
         buffer_id = view.buffer_id()
-        if not QuickLintJsListener.buffers.get(buffer_id):
-            QuickLintJsListener.buffers[buffer_id] = Buffer()
-        self.buffer = self.buffers[buffer_id]
+        if not self._buffers.get(buffer_id):
+            self._buffers[buffer_id] = Buffer()
+        self.buffer = self._buffers[buffer_id]
         self.buffer.views.append(self.view)
         self.on_modified()
 

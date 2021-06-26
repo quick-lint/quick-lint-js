@@ -70,7 +70,7 @@ def load_library():
     return lib
 
 
-def set_argtypes_and_restype(func, argtypes=[], restype=None):
+def set_argtypes_and_restype(func, argtypes, restype):
     func.argtypes = argtypes
     func.restype = restype
 
@@ -78,14 +78,19 @@ def set_argtypes_and_restype(func, argtypes=[], restype=None):
 def create_library():
     lib = load_library()
     set_argtypes_and_restype(
-        lib.qljs_sublime_text_create_parser, restype=ParserStructurePointer
+        lib.qljs_sublime_text_create_parser,
+        argtypes=[],
+        restype=ParserStructurePointer,
     )
     set_argtypes_and_restype(
-        lib.qljs_sublime_text_destroy_parser, argtypes=[ParserStructurePointer]
+        lib.qljs_sublime_text_destroy_parser,
+        argtypes=[ParserStructurePointer],
+        restype=None,
     )
     set_argtypes_and_restype(
         lib.qljs_sublime_text_set_text,
         argtypes=[ParserStructurePointer, ctypes.c_void_p, ctypes.c_size_t],
+        restype=None,
     )
     set_argtypes_and_restype(
         lib.qljs_sublime_text_lint,
@@ -99,38 +104,38 @@ LIB = create_library()
 
 
 class Diagnostic:
-    def __init__(self, _c_diag):
-        self.message = _c_diag.message.decode(encoding="utf-8")
-        self.code = _c_diag.code.decode(encoding="utf-8")
-        self.severity = _c_diag.severity
-        self.begin_offset = _c_diag.begin_offset
-        self.end_offset = _c_diag.end_offset
+    def __init__(self, ctypes_diagnostic):
+        self.message = ctypes_diagnostic.message.decode(encoding="utf-8")
+        self.code = ctypes_diagnostic.code.decode(encoding="utf-8")
+        self.severity = ctypes_diagnostic.severity
+        self.begin_offset = ctypes_diagnostic.begin_offset
+        self.end_offset = ctypes_diagnostic.end_offset
 
 
 class Parser:
     def __init__(self):
-        self._c_parser = LIB.qljs_sublime_text_create_parser()
-        if self._c_parser is None:
+        self._ctypes_parser = LIB.qljs_sublime_text_create_parser()
+        if self._ctypes_parser is None:
             raise MemoryError()
 
     def __del__(self):
-        if self._c_parser is not None:
-            LIB.qljs_sublime_text_destroy_parser(self._c_parser)
+        if self._ctypes_parser is not None:
+            LIB.qljs_sublime_text_destroy_parser(self._ctypes_parser)
 
     def set_text(self, text):
         text_utf_8 = text.encode(encoding="utf-8")
         text_utf_8_byte_count = len(text_utf_8)
         LIB.qljs_sublime_text_set_text(
-            self._c_parser, text_utf_8, text_utf_8_byte_count
+            self._ctypes_parser, text_utf_8, text_utf_8_byte_count
         )
 
     def lint(self):
-        _c_diagnostics = LIB.qljs_sublime_text_lint(self._c_parser)
+        ctypes_diagnostics = LIB.qljs_sublime_text_lint(self._ctypes_parser)
         diagnostics = []
-        for _c_diag in _c_diagnostics:
-            if _c_diag.message is None:
+        for ctypes_diag in ctypes_diagnostics:
+            if ctypes_diag.message is None:
                 break
-            diagnostics.append(Diagnostic(_c_diag))
+            diagnostics.append(Diagnostic(ctypes_diag))
         return diagnostics
 
 
