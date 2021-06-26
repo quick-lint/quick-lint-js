@@ -81,7 +81,7 @@ markdownParser.renderer.rules = {
   },
 };
 
-function codeHasBOM(codeHTML) {
+export function codeHasBOM(codeHTML) {
   const dom = new jsdom.JSDOM(codeHTML);
   const mark = dom.window.document.querySelector("mark");
   return (

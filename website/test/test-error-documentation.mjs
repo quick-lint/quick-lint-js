@@ -4,7 +4,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { ErrorDocumentation } from "../src/error-documentation.mjs";
+import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
@@ -156,6 +156,30 @@ wasn't that neat?
     expect(doc.toHTML()).toContain(
       "<code><mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
     );
+  });
+
+  it("many possibilities of html code has bom", () => {
+    const possibilities = [
+      "<mark>\u{feff}hello</mark>",
+      '<mark data-code="E123">\u{feff}hello</mark>',
+      "hello<mark>\u{feff}world</mark>",
+    ];
+    possibilities.forEach((possibility) => {
+      expect(codeHasBOM(possibility)).toBe(true);
+    });
+  });
+
+  it("many possibilities of html code has NOT bom", () => {
+    const possibilities = [
+      "<mark>hello\u{feff}</mark>",
+      '<mark data-code="E123">hello\u{feff}</mark>',
+      '<mark data-code="E123">h\u{feff}ello</mark>',
+      "h\u{feff}ello<mark>world</mark>",
+      "hello<mark>world</mark>\u{feff}",
+    ];
+    possibilities.forEach((possibility) => {
+      expect(codeHasBOM(possibility)).toBe(false);
+    });
   });
 });
 
