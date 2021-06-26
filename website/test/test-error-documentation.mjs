@@ -4,6 +4,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import jsdom from "jsdom";
 import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
 
 describe("error documentation", () => {
@@ -162,7 +163,7 @@ wasn't that neat?
     const possibilities = [
       "<mark>\u{feff}hello</mark>",
       '<mark data-code="E123">\u{feff}hello</mark>',
-      "hello<mark>\u{feff}world</mark>",
+      "\u{feff}<mark>world</mark>",
     ];
     possibilities.forEach((possibility) => {
       expect(codeHasBOM(possibility)).toBe(true);
@@ -175,8 +176,9 @@ wasn't that neat?
       '<mark data-code="E123">hello\u{feff}</mark>',
       '<mark data-code="E123">h\u{feff}ello</mark>',
       "h\u{feff}ello<mark>world</mark>",
-      "hello<mark>world</mark>\u{feff}",
+      "hello<mark>\u{feff}world</mark>",
     ];
+
     possibilities.forEach((possibility) => {
       expect(codeHasBOM(possibility)).toBe(false);
     });

@@ -83,10 +83,7 @@ markdownParser.renderer.rules = {
 
 export function codeHasBOM(codeHTML) {
   const dom = new jsdom.JSDOM(codeHTML);
-  const mark = dom.window.document.querySelector("mark");
-  return (
-    codeHTML.startsWith("\u{feff}") || mark?.textContent.startsWith("\u{feff}")
-  );
+  return dom.window.document.firstChild.textContent.startsWith("\u{feff}");
 }
 
 export class ErrorDocumentation {
