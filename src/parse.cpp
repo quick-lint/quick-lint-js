@@ -863,6 +863,7 @@ next:
     case expression_kind::index:
     case expression_kind::object:
     case expression_kind::variable:
+    case expression_kind::private_variable:
       break;
     }
     expression* rhs = this->parse_expression(
