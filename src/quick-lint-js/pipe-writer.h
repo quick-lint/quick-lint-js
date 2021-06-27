@@ -11,6 +11,10 @@
 #include <quick-lint-js/have.h>
 #include <thread>
 
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
+
 #if QLJS_HAVE_POLL
 #include <poll.h>
 #endif
@@ -86,8 +90,14 @@ class non_blocking_pipe_writer {
   // For testing purposes only.
   void flush();
 
-#if QLJS_HAVE_POLL
+#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
   std::optional<posix_fd_file_ref> get_event_fd() noexcept;
+#endif
+
+#if QLJS_HAVE_KQUEUE
+  void on_poll_event(const struct ::kevent &);
+#endif
+#if QLJS_HAVE_POLL
   void on_poll_event(const ::pollfd &);
 #endif
 

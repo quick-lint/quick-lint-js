@@ -155,6 +155,7 @@ class posix_fd_file : private posix_fd_file_ref {
   using posix_fd_file_ref::is_pipe_non_blocking;
   using posix_fd_file_ref::read;
   using posix_fd_file_ref::set_pipe_non_blocking;
+  using posix_fd_file_ref::valid;
   using posix_fd_file_ref::write;
 };
 #endif

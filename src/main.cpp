@@ -37,6 +37,10 @@
 #include <unordered_map>
 #include <variant>
 
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
+
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -407,11 +411,17 @@ void run_lsp_server() {
 
     void on_filesystem_change() { this->endpoint_.filesystem_changed(); }
 
-#if QLJS_HAVE_POLL
+#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
     std::optional<posix_fd_file_ref> get_pipe_write_fd() {
       return this->endpoint_.remote().get_event_fd();
     }
+#endif
 
+#if QLJS_HAVE_KQUEUE
+    void on_pipe_write_event(const struct ::kevent &event) {
+      this->endpoint_.remote().on_poll_event(event);
+    }
+#elif QLJS_HAVE_POLL
     void on_pipe_write_event(const ::pollfd &event) {
       this->endpoint_.remote().on_poll_event(event);
     }

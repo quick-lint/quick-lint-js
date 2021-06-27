@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -14,6 +15,10 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <thread>
+
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
 
 #if QLJS_HAVE_WINDOWS_H
 #include <Windows.h>
@@ -126,6 +131,98 @@ class event_loop_base {
   std::mutex user_code_mutex_;
 };
 
+#if QLJS_HAVE_KQUEUE
+// An event loop using BSD kqueue(). See event_loop_base for details.
+template <class Derived>
+class kqueue_event_loop : public event_loop_base<Derived> {
+ public:
+  enum event_udata : std::uintptr_t {
+    event_udata_readable_pipe,
+    event_udata_pipe_write,
+  };
+
+  void run() {
+    posix_fd_file kqueue_fd(::kqueue());
+    QLJS_ASSERT(kqueue_fd.valid());
+
+    {
+      static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
+      platform_file_ref pipe = this->const_derived().get_readable_pipe();
+      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+
+      std::array<struct ::kevent, 2> changes;
+      std::size_t change_count = 0;
+
+      EV_SET(&changes[change_count++], pipe.get(), EVFILT_READ, EV_ADD, 0, 0,
+             reinterpret_cast<void*>(event_udata_readable_pipe));
+
+      if (std::optional<posix_fd_file_ref> fd =
+              this->derived().get_pipe_write_fd()) {
+        EV_SET(&changes[change_count++], fd->get(), EVFILT_WRITE, EV_ADD, 0, 0,
+               reinterpret_cast<void*>(event_udata_pipe_write));
+      }
+
+      QLJS_ASSERT(change_count > 0);
+      QLJS_ASSERT(change_count <= changes.size());
+      ::timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
+      int rc = ::kevent(kqueue_fd.get(),
+                        /*changelist=*/changes.data(),
+                        /*nchanges=*/narrow_cast<int>(change_count),
+                        /*eventlist=*/nullptr, /*nevents=*/0,
+                        /*timeout=*/&timeout);
+      if (rc == -1) {
+        QLJS_UNIMPLEMENTED();
+      }
+      QLJS_ASSERT(rc == 0);
+    }
+
+    for (;;) {
+      std::array<struct ::kevent, 2> events;
+      ::timespec timeout = {.tv_sec = 1, .tv_nsec = 0};
+      int rc = ::kevent(kqueue_fd.get(),
+                        /*changelist=*/nullptr, /*nchanges=*/0,
+                        /*eventlist=*/events.data(),
+                        /*nevents=*/narrow_cast<int>(events.size()),
+                        /*timeout=*/&timeout);
+      if (rc == -1) {
+        QLJS_UNIMPLEMENTED();
+      }
+      // TODO(strager): Watch the filesystem with EVFILT_VNODE instead of
+      // polling the file system every second.
+      QLJS_ASSERT(rc >= 0);
+
+      if (rc == 0) {
+        // Timed out.
+        this->derived().on_filesystem_change();
+      }
+
+      for (int i = 0; i < rc; ++i) {
+        struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
+        switch (reinterpret_cast<std::uintptr_t>(event.udata)) {
+        case event_udata_readable_pipe: {
+          QLJS_ASSERT(event.filter == EVFILT_READ);
+          bool done = this->read_from_pipe();
+          if (done) {
+            return;
+          }
+          break;
+        }
+
+        case event_udata_pipe_write:
+          QLJS_ASSERT(event.filter == EVFILT_WRITE);
+          this->derived().on_pipe_write_event(event);
+          break;
+
+        default:
+          QLJS_UNREACHABLE();
+          break;
+        }
+      }
+    }
+  }
+};
+#endif
+
 #if QLJS_HAVE_POLL
 // An event loop using POSIX poll(). See event_loop_base for details.
 template <class Derived>
@@ -168,8 +265,8 @@ class poll_event_loop : public event_loop_base<Derived> {
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
       }
-      // TODO(strager): Watch the filesystem with inotify/queue instead of
-      // polling the file system every second.
+      // TODO(strager): Watch the filesystem with inotify instead of polling the
+      // file system every second.
       QLJS_ASSERT(rc >= 0);
 
       if (rc == 0) {
@@ -278,7 +375,9 @@ class windows_event_loop : public event_loop_base<Derived> {
 
 template <class Derived>
 using event_loop =
-#if QLJS_HAVE_POLL
+#if QLJS_HAVE_KQUEUE
+    kqueue_event_loop
+#elif QLJS_HAVE_POLL
     poll_event_loop
 #elif defined(_WIN32)
     windows_event_loop

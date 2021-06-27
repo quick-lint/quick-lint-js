@@ -129,7 +129,7 @@ void non_blocking_pipe_writer::flush() {
 #endif
 }
 
-#if QLJS_HAVE_POLL
+#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
 std::optional<posix_fd_file_ref>
 non_blocking_pipe_writer::get_event_fd() noexcept {
   if (this->pending_.empty()) {
@@ -138,7 +138,22 @@ non_blocking_pipe_writer::get_event_fd() noexcept {
     return this->pipe_;
   }
 }
+#endif
 
+#if QLJS_HAVE_KQUEUE
+void non_blocking_pipe_writer::on_poll_event(const struct ::kevent& event) {
+  QLJS_ASSERT(narrow_cast<int>(event.ident) != this->pipe_.get());
+  if (event.flags & EV_ERROR) {
+    QLJS_UNIMPLEMENTED();
+  }
+  if (event.flags & EV_EOF) {
+    QLJS_UNIMPLEMENTED();
+  }
+  this->write_as_much_as_possible_now_non_blocking(this->pending_);
+}
+#endif
+
+#if QLJS_HAVE_POLL
 void non_blocking_pipe_writer::on_poll_event(const ::pollfd& fd) {
   QLJS_ASSERT(fd.revents != 0);
   if (fd.revents & POLLERR) {
