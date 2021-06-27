@@ -1,6 +1,8 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+"""Creates communication between plugin and C++ code."""
+
 import ctypes
 import os
 import zipfile
@@ -12,6 +14,8 @@ class SeverityEnumeration:
 
 
 class DiagnosticStructure(ctypes.Structure):
+    """Diagnostic layer used to communicate with the C++ code."""
+
     _fields_ = [
         ("message", ctypes.c_char_p),
         ("code", ctypes.c_char_p),
@@ -25,6 +29,8 @@ DiagnosticStructurePointer = ctypes.POINTER(DiagnosticStructure)
 
 
 class ParserStructure(ctypes.Structure):
+    """Parser layer used to communicate with the C++ code."""
+
     _fields_ = []
 
 
@@ -104,6 +110,8 @@ LIB = create_library()
 
 
 class Diagnostic:
+    """Diagnostic layer used to communicate with the plugin."""
+
     def __init__(self, ctypes_diagnostic):
         self.message = ctypes_diagnostic.message.decode(encoding="utf-8")
         self.code = ctypes_diagnostic.code.decode(encoding="utf-8")
@@ -113,6 +121,8 @@ class Diagnostic:
 
 
 class Parser:
+    """Parser layer used to communicate with the plugin."""
+
     def __init__(self):
         self._ctypes_parser = LIB.qljs_sublime_text_create_parser()
         if self._ctypes_parser is None:

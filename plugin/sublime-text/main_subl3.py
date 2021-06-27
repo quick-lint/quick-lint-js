@@ -1,6 +1,12 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+"""Shows to the user the diagnostics provided by quick-lint-js."""
+
+# Just for the sake of clarity, you can think of a buffer as a block of
+# memory that contains the file's text and a view as a tab in the
+# sublime text.
+
 import sublime
 import sublime_plugin
 
@@ -8,6 +14,11 @@ from . import c_api
 
 
 class Buffer:
+    """Represents the file's text buffer.
+
+    Multiple view objects may share the same buffer.
+    """
+
     def __init__(self):
         self.views = []
         self.parser = c_api.Parser()
@@ -15,6 +26,16 @@ class Buffer:
 
 
 class QuickLintJsListener(sublime_plugin.ViewEventListener):
+    """Listens for events bound to a specific view."""
+
+    # The internal strategy used is to share information between
+    # all views that belong to the same buffer. Because that way,
+    # if there are multiple views (tabs) of the same buffer (file),
+    # they will all apply the same changes (have squiggly underlines
+    # and pop-ups available):
+    #
+    # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
+
     _buffers = {}
 
     @classmethod
@@ -54,6 +75,8 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
             for diag in self.buffer.diagnostics:
+                # If the user hovers over the diagnostic region (region
+                # with squiggly underlines).
                 if diag.begin_offset <= point <= diag.end_offset:
                     self._add_popup(diag)
 
