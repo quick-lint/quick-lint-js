@@ -112,12 +112,17 @@ non_blocking_pipe_writer::non_blocking_pipe_writer(platform_file_ref pipe)
 
 void non_blocking_pipe_writer::flush() {
 #if QLJS_HAVE_POLL
-  while (std::optional<::pollfd> event = this->get_pollfd()) {
-    int rc = ::poll(&*event, 1, /*timeout=*/-1);
+  while (std::optional<posix_fd_file_ref> fd = this->get_event_fd()) {
+    ::pollfd event = {
+        .fd = fd->get(),
+        .events = POLLOUT,
+        .revents = 0,
+    };
+    int rc = ::poll(&event, 1, /*timeout=*/-1);
     if (rc == -1) {
       QLJS_UNIMPLEMENTED();
     }
-    this->on_poll_event(*event);
+    this->on_poll_event(event);
   }
 #else
 #error "Unsupported platform"
@@ -125,15 +130,12 @@ void non_blocking_pipe_writer::flush() {
 }
 
 #if QLJS_HAVE_POLL
-std::optional<::pollfd> non_blocking_pipe_writer::get_pollfd() noexcept {
+std::optional<posix_fd_file_ref>
+non_blocking_pipe_writer::get_event_fd() noexcept {
   if (this->pending_.empty()) {
     return std::nullopt;
   } else {
-    return ::pollfd{
-        .fd = this->pipe_.get(),
-        .events = POLLOUT,
-        .revents = 0,
-    };
+    return this->pipe_;
   }
 }
 

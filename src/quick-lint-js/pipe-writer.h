@@ -87,7 +87,7 @@ class non_blocking_pipe_writer {
   void flush();
 
 #if QLJS_HAVE_POLL
-  std::optional<::pollfd> get_pollfd() noexcept;
+  std::optional<posix_fd_file_ref> get_event_fd() noexcept;
   void on_poll_event(const ::pollfd &);
 #endif
 

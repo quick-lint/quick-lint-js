@@ -43,7 +43,7 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
   {d.on_filesystem_change()};
 
 #if QLJS_HAVE_POLL
-  {d.get_pipe_write_pollfd()};
+  {d.get_pipe_write_fd()};
   {d.on_pipe_write_event(poll_event)};
 #endif
 };
@@ -152,9 +152,13 @@ class poll_event_loop : public event_loop_base<Derived> {
           ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0};
 
       std::size_t write_pipe_index = pollfd_count;
-      if (std::optional<::pollfd> event =
-              this->derived().get_pipe_write_pollfd()) {
-        pollfds[pollfd_count++] = *event;
+      if (std::optional<posix_fd_file_ref> fd =
+              this->derived().get_pipe_write_fd()) {
+        pollfds[pollfd_count++] = ::pollfd{
+            .fd = fd->get(),
+            .events = POLLOUT,
+            .revents = 0,
+        };
       }
 
       QLJS_ASSERT(pollfd_count > 0);

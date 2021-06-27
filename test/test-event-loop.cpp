@@ -47,17 +47,17 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   }
 
 #if QLJS_HAVE_POLL
-  std::optional<::pollfd> get_pipe_write_pollfd() const {
-    return this->pipe_write_pollfd_;
+  std::optional<posix_fd_file_ref> get_pipe_write_fd() const {
+    return this->pipe_write_fd_;
   }
 
   void on_pipe_write_event(const ::pollfd& event) {
     this->pipe_write_event_callback_(event);
   }
 
-  void set_pipe_write_pollfd(const ::pollfd& event,
-                             std::function<void(const ::pollfd&)> on_event) {
-    this->pipe_write_pollfd_ = event;
+  void set_pipe_write(posix_fd_file_ref pipe_fd,
+                      std::function<void(const ::pollfd&)> on_event) {
+    this->pipe_write_fd_ = pipe_fd;
     this->pipe_write_event_callback_ = on_event;
   }
 #endif
@@ -72,7 +72,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   string8 read_data_;
 
 #if QLJS_HAVE_POLL
-  std::optional<::pollfd> pipe_write_pollfd_;
+  std::optional<posix_fd_file_ref> pipe_write_fd_;
   std::function<void(const ::pollfd&)> pipe_write_event_callback_;
 #endif
 };
@@ -130,19 +130,14 @@ TEST_F(test_event_loop, reads_many_messages) {
 #if QLJS_HAVE_POLL
 TEST_F(test_event_loop, signals_writable_pipe) {
   bool called = false;
-  this->loop.set_pipe_write_pollfd(
-      ::pollfd{
-          .fd = this->pipe.writer.get(),
-          .events = POLLOUT,
-          .revents = 0,
-      },
-      [this, &called](const ::pollfd& event) {
-        called = true;
-        EXPECT_EQ(event.fd, this->pipe.writer.get());
-        EXPECT_TRUE(event.revents & POLLOUT);
-        // Stop event_loop::run.
-        this->pipe.writer.close();
-      });
+  this->loop.set_pipe_write(this->pipe.writer.ref(),
+                            [this, &called](const ::pollfd& event) {
+                              called = true;
+                              EXPECT_EQ(event.fd, this->pipe.writer.get());
+                              EXPECT_TRUE(event.revents & POLLOUT);
+                              // Stop event_loop::run.
+                              this->pipe.writer.close();
+                            });
 
   this->loop.run();
   EXPECT_TRUE(called);
@@ -155,15 +150,9 @@ TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
   write_full_message(full_pipe.writer.ref(),
                      string8(full_pipe.writer.get_pipe_buffer_size(), 'x'));
 
-  this->loop.set_pipe_write_pollfd(
-      ::pollfd{
-          .fd = full_pipe.writer.get(),
-          .events = POLLOUT,
-          .revents = 0,
-      },
-      [](const ::pollfd&) {
-        ADD_FAILURE() << "on_pipe_write_event should not be called";
-      });
+  this->loop.set_pipe_write(full_pipe.writer.ref(), [](const ::pollfd&) {
+    ADD_FAILURE() << "on_pipe_write_event should not be called";
+  });
 
   std::thread writer_thread([this]() {
     std::this_thread::sleep_for(10ms);

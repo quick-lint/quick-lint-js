@@ -408,8 +408,8 @@ void run_lsp_server() {
     void on_filesystem_change() { this->endpoint_.filesystem_changed(); }
 
 #if QLJS_HAVE_POLL
-    std::optional<::pollfd> get_pipe_write_pollfd() {
-      return this->endpoint_.remote().get_pollfd();
+    std::optional<posix_fd_file_ref> get_pipe_write_fd() {
+      return this->endpoint_.remote().get_event_fd();
     }
 
     void on_pipe_write_event(const ::pollfd &event) {
