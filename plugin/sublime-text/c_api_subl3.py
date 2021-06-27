@@ -131,6 +131,7 @@ class Parser:
     def __del__(self):
         if self._ctypes_parser is not None:
             LIB.qljs_sublime_text_destroy_parser(self._ctypes_parser)
+            self._ctypes_parser = None
 
     def set_text(self, text):
         text_utf_8 = text.encode(encoding="utf-8")
