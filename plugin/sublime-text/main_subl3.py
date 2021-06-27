@@ -52,7 +52,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def __init__(self, view):
         super().__init__(view)
         self.buffer_id = view.buffer_id()
-        if not self._buffers.get(self.buffer_id):
+        if self.buffer_id not in self._buffers:
             self._buffers[self.buffer_id] = Buffer()
         self.buffer = self._buffers[self.buffer_id]
         self.buffer.views.append(self.view)
