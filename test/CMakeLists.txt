@@ -89,6 +89,7 @@ target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(
   quick-lint-js-test
   PRIVATE
+  boost
   gmock
   gmock_main
   gtest

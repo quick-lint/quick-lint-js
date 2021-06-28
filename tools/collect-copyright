@@ -21,8 +21,8 @@ import unittest
 
 archive_to_vendor_project = {
     "Pathcch.lib": None,
-    "boost_container.lib": "boost",
-    "libboost_container.a": "boost",
+    "boost.lib": "boost",
+    "libboost.a": "boost",
     "libquick-lint-js-lib.a": None,
     "libsimdjson.a": "simdjson",
     "quick-lint-js-lib.lib": None,
