@@ -112,7 +112,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
         flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
         location = diagnostic.begin_offset
-        max_width, max_height = self.view.viewport_extent()
+        max_width, max_height = (1366, 768)
         self.view.show_popup(content, flags, location, max_width, max_height)
 
 
