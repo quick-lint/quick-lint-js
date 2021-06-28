@@ -4,23 +4,24 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/sublime-text-location.h>
+#include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
-sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
+sublime_text_3_locator::sublime_text_3_locator(
+    padded_string_view input) noexcept
     : input_(input) {}
 
-sublime_text_source_range sublime_text_locator::range(
+sublime_text_3_source_range sublime_text_3_locator::range(
     source_code_span span) const {
-  return sublime_text_source_range{
+  return sublime_text_3_source_range{
       .begin = this->position(span.begin()),
       .end = this->position(span.end()),
   };
 }
 
-sublime_text_source_offset sublime_text_locator::position(const char8* c) const
-    noexcept {
+sublime_text_3_source_offset sublime_text_3_locator::position(
+    const char8* c) const noexcept {
   int byte_offset = narrow_cast<int>(c - this->input_.data());
 
   // The count_utf_16_code_units_in_offset value is set to false because of a
@@ -32,8 +33,10 @@ sublime_text_source_offset sublime_text_locator::position(const char8* c) const
   //
   // https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-855188012
   //
-  return narrow_cast<sublime_text_source_offset>(count_lsp_characters_in_utf_8(
-      this->input_, byte_offset, /*count_utf_16_code_units_in_offset=*/false));
+  return narrow_cast<sublime_text_3_source_offset>(
+      count_lsp_characters_in_utf_8(
+          this->input_, byte_offset,
+          /*count_utf_16_code_units_in_offset=*/false));
 }
 }  // namespace quick_lint_js
 

@@ -10,7 +10,7 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/sublime-text-location.h>
+#include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/warning.h>
 #include <quick-lint-js/web-demo-location.h>
 
@@ -33,7 +33,7 @@ template <class Locator>
 void document<Locator>::replace_text(typename Locator::range_type range,
                                      string8_view replacement_text) {
   if constexpr (std::is_same_v<Locator, web_demo_locator> ||
-                std::is_same_v<Locator, sublime_text_locator>) {
+                std::is_same_v<Locator, sublime_text_3_locator>) {
     static_cast<void>(range);
     static_cast<void>(replacement_text);
     QLJS_UNIMPLEMENTED();
@@ -72,7 +72,7 @@ const Locator& document<Locator>::locator() noexcept {
 
 template class document<lsp_locator>;
 template class document<web_demo_locator>;
-template class document<sublime_text_locator>;
+template class document<sublime_text_3_locator>;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

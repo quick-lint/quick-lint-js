@@ -16,12 +16,12 @@
 
 struct qljs_vscode_diagnostic;
 struct qljs_web_demo_diagnostic;
-struct qljs_sublime_text_diagnostic;
+struct qljs_sublime_text_3_diagnostic;
 
 namespace quick_lint_js {
 class lsp_locator;
 class web_demo_locator;
-class sublime_text_locator;
+class sublime_text_3_locator;
 
 template <class Diagnostic, class Locator>
 class c_api_error_formatter;
@@ -86,10 +86,10 @@ extern template class c_api_error_formatter<qljs_web_demo_diagnostic,
 extern template class c_api_error_reporter<qljs_web_demo_diagnostic,
                                            web_demo_locator>;
 
-extern template class c_api_error_formatter<qljs_sublime_text_diagnostic,
-                                            sublime_text_locator>;
-extern template class c_api_error_reporter<qljs_sublime_text_diagnostic,
-                                           sublime_text_locator>;
+extern template class c_api_error_formatter<qljs_sublime_text_3_diagnostic,
+                                            sublime_text_3_locator>;
+extern template class c_api_error_reporter<qljs_sublime_text_3_diagnostic,
+                                           sublime_text_3_locator>;
 
 QLJS_WARNING_POP
 }

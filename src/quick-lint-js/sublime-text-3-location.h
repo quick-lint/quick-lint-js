@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
-#define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+#ifndef QUICK_LINT_JS_SUBLIME_TEXT_3_LOCATION_H
+#define QUICK_LINT_JS_SUBLIME_TEXT_3_LOCATION_H
 
 #include <cstdint>
 #include <quick-lint-js/char8.h>
@@ -11,28 +11,28 @@
 namespace quick_lint_js {
 class source_code_span;
 
-using sublime_text_source_offset = std::uint32_t;
+using sublime_text_3_source_offset = std::uint32_t;
 
-struct sublime_text_source_range {
-  sublime_text_source_offset begin;
-  sublime_text_source_offset end;
+struct sublime_text_3_source_range {
+  sublime_text_3_source_offset begin;
+  sublime_text_3_source_offset end;
 };
 
-class sublime_text_locator {
+class sublime_text_3_locator {
  public:
-  using range_type = sublime_text_source_range;
+  using range_type = sublime_text_3_source_range;
 
-  explicit sublime_text_locator(padded_string_view input) noexcept;
+  explicit sublime_text_3_locator(padded_string_view input) noexcept;
 
-  sublime_text_source_range range(source_code_span) const;
-  sublime_text_source_offset position(const char8*) const noexcept;
+  sublime_text_3_source_range range(source_code_span) const;
+  sublime_text_3_source_offset position(const char8*) const noexcept;
 
  private:
   padded_string_view input_;
 };
 }  // namespace quick_lint_js
 
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_3_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

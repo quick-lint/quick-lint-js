@@ -84,22 +84,22 @@ def set_argtypes_and_restype(func, argtypes, restype):
 def create_library():
     lib = load_library()
     set_argtypes_and_restype(
-        lib.qljs_sublime_text_create_parser,
+        lib.qljs_sublime_text_3_create_parser,
         argtypes=[],
         restype=ParserStructurePointer,
     )
     set_argtypes_and_restype(
-        lib.qljs_sublime_text_destroy_parser,
+        lib.qljs_sublime_text_3_destroy_parser,
         argtypes=[ParserStructurePointer],
         restype=None,
     )
     set_argtypes_and_restype(
-        lib.qljs_sublime_text_set_text,
+        lib.qljs_sublime_text_3_set_text,
         argtypes=[ParserStructurePointer, ctypes.c_void_p, ctypes.c_size_t],
         restype=None,
     )
     set_argtypes_and_restype(
-        lib.qljs_sublime_text_lint,
+        lib.qljs_sublime_text_3_lint,
         argtypes=[ParserStructurePointer],
         restype=DiagnosticStructurePointer,
     )
@@ -124,24 +124,24 @@ class Parser:
     """Parser layer used to communicate with the plugin."""
 
     def __init__(self):
-        self._ctypes_parser = LIB.qljs_sublime_text_create_parser()
+        self._ctypes_parser = LIB.qljs_sublime_text_3_create_parser()
         if self._ctypes_parser is None:
             raise MemoryError()
 
     def __del__(self):
         if self._ctypes_parser is not None:
-            LIB.qljs_sublime_text_destroy_parser(self._ctypes_parser)
+            LIB.qljs_sublime_text_3_destroy_parser(self._ctypes_parser)
             self._ctypes_parser = None
 
     def set_text(self, text):
         text_utf_8 = text.encode(encoding="utf-8")
         text_utf_8_byte_count = len(text_utf_8)
-        LIB.qljs_sublime_text_set_text(
+        LIB.qljs_sublime_text_3_set_text(
             self._ctypes_parser, text_utf_8, text_utf_8_byte_count
         )
 
     def lint(self):
-        ctypes_diagnostics = LIB.qljs_sublime_text_lint(self._ctypes_parser)
+        ctypes_diagnostics = LIB.qljs_sublime_text_3_lint(self._ctypes_parser)
         diagnostics = []
         for ctypes_diag in ctypes_diagnostics:
             if ctypes_diag.message is None:

@@ -12,7 +12,7 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/sublime-text-location.h>
+#include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
@@ -112,35 +112,37 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
   return p->lint();
 }
 
-struct qljs_sublime_text_parser final
+struct qljs_sublime_text_3_parser final
     : public quick_lint_js::qljs_parser_base<
-          quick_lint_js::sublime_text_locator,
+          quick_lint_js::sublime_text_3_locator,
           quick_lint_js::c_api_error_reporter<
-              qljs_sublime_text_diagnostic,
-              quick_lint_js::sublime_text_locator>> {
+              qljs_sublime_text_3_diagnostic,
+              quick_lint_js::sublime_text_3_locator>> {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
 };
 
-qljs_sublime_text_parser* qljs_sublime_text_create_parser(void) {
-  qljs_sublime_text_parser* p = new qljs_sublime_text_parser();
+qljs_sublime_text_3_parser* qljs_sublime_text_3_create_parser(void) {
+  qljs_sublime_text_3_parser* p = new qljs_sublime_text_3_parser();
   return p;
 }
 
-void qljs_sublime_text_destroy_parser(qljs_sublime_text_parser* p) { delete p; }
+void qljs_sublime_text_3_destroy_parser(qljs_sublime_text_3_parser* p) {
+  delete p;
+}
 
-void qljs_sublime_text_set_text(qljs_sublime_text_parser* p,
-                                const void* text_utf_8,
-                                size_t text_byte_count) {
+void qljs_sublime_text_3_set_text(qljs_sublime_text_3_parser* p,
+                                  const void* text_utf_8,
+                                  size_t text_byte_count) {
   p->set_text(quick_lint_js::string8_view(
       reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
       text_byte_count));
 }
 
-const qljs_sublime_text_diagnostic* qljs_sublime_text_lint(
-    qljs_sublime_text_parser* p) {
+const qljs_sublime_text_3_diagnostic* qljs_sublime_text_3_lint(
+    qljs_sublime_text_3_parser* p) {
   return p->lint();
 }
 

@@ -7,7 +7,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/sublime-text-location.h>
+#include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
@@ -31,7 +31,7 @@ class document {
 
 extern template class document<lsp_locator>;
 extern template class document<web_demo_locator>;
-extern template class document<sublime_text_locator>;
+extern template class document<sublime_text_3_locator>;
 }
 
 #endif
