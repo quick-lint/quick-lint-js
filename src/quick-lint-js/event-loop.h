@@ -244,14 +244,15 @@ class poll_event_loop : public event_loop_base<Derived> {
       std::array<::pollfd, 2> pollfds;
       std::size_t pollfd_count = 0;
 
-      std::size_t read_pipe_index = pollfd_count;
-      pollfds[pollfd_count++] =
+      std::size_t read_pipe_index = pollfd_count++;
+      pollfds[read_pipe_index] =
           ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0};
 
-      std::size_t write_pipe_index = pollfd_count;
+      std::optional<std::size_t> write_pipe_index;
       if (std::optional<posix_fd_file_ref> fd =
               this->derived().get_pipe_write_fd()) {
-        pollfds[pollfd_count++] = ::pollfd{
+        write_pipe_index = pollfd_count++;
+        pollfds[*write_pipe_index] = ::pollfd{
             .fd = fd->get(),
             .events = POLLOUT,
             .revents = 0,
@@ -282,8 +283,8 @@ class poll_event_loop : public event_loop_base<Derived> {
         QLJS_UNIMPLEMENTED();
       }
 
-      if (pollfd_count > 1) {
-        const ::pollfd& write_pipe_event = pollfds[write_pipe_index];
+      if (write_pipe_index.has_value()) {
+        const ::pollfd& write_pipe_event = pollfds[*write_pipe_index];
         if (write_pipe_event.revents != 0) {
           this->derived().on_pipe_write_event(write_pipe_event);
         }
