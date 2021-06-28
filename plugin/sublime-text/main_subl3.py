@@ -77,8 +77,8 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
             for diag in self.buffer.diagnostics:
-                # If the user hovers over the diagnostic region (region
-                # with squiggly underlines).
+                # If the user hovers over the diagnostic region
+                # (region with squiggly underlines).
                 if diag.begin_offset <= point <= diag.end_offset:
                     self._add_popup(diag)
 
