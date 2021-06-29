@@ -249,6 +249,9 @@ void linting_lsp_server_handler<Linter>::
 
   this->config_fs_.close_document(path);
   this->documents_.erase(string8(uri));
+  // TODO(strager): Signal to configuration_loader and
+  // change_detecting_filesystem_* that we no longer need to track changes to
+  // this .js document's config file.
 
   this->filesystem_changed(notification_jsons);
 }
