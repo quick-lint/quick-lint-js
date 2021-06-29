@@ -114,7 +114,8 @@ void linting_lsp_server_handler<Linter>::handle_notification(
     this->handle_text_document_did_open_notification(request,
                                                      notification_jsons);
   } else if (method == "textDocument/didClose") {
-    this->handle_text_document_did_close_notification(request);
+    this->handle_text_document_did_close_notification(request,
+                                                      notification_jsons);
   } else if (method == "initialized") {
     // Do nothing.
   } else if (method == "exit") {
@@ -237,7 +238,8 @@ void linting_lsp_server_handler<Linter>::
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
-        ::simdjson::ondemand::object& request) {
+        ::simdjson::ondemand::object& request,
+        std::vector<byte_buffer>& notification_jsons) {
   string8_view uri = make_string_view(request["params"]["textDocument"]["uri"]);
   std::string path = parse_file_from_lsp_uri(uri);
   if (path.empty()) {
@@ -247,6 +249,8 @@ void linting_lsp_server_handler<Linter>::
 
   this->config_fs_.close_document(path);
   this->documents_.erase(string8(uri));
+
+  this->filesystem_changed(notification_jsons);
 }
 
 template <QLJS_LSP_LINTER Linter>

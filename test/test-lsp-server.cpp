@@ -1232,6 +1232,73 @@ TEST_F(
 }
 
 TEST_F(test_linting_lsp_server,
+       closing_open_config_reloads_config_from_filesystem) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"configFromFilesystem": true}})");
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "{\"globals\": {\"configFromLSP\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  this->lint_calls.clear();
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view,
+                            byte_buffer& notification_json) {
+    EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"sv));
+    EXPECT_FALSE(config.globals().find(u8"configFromLSP"sv));
+    notification_json.append_copy(
+        u8R"({
+      "method": "textDocument/publishDiagnostics",
+      "params": {
+        "uri": ")" +
+        this->fs.file_uri_prefix_8() +
+        u8R"(test.js",
+        "version": 10,
+        "diagnostics": []
+      },
+      "jsonrpc": "2.0"
+    })");
+  };
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didClose",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config"
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
+TEST_F(test_linting_lsp_server,
        changing_non_javascript_document_produces_no_lint) {
   this->server.append(
       make_message(u8R"({

@@ -104,7 +104,8 @@ class linting_lsp_server_handler {
       ::simdjson::ondemand::object& request,
       std::vector<byte_buffer>& notification_jsons);
   void handle_text_document_did_close_notification(
-      ::simdjson::ondemand::object& request);
+      ::simdjson::ondemand::object& request,
+      std::vector<byte_buffer>& notification_jsons);
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request,
       std::vector<byte_buffer>& notification_jsons);
