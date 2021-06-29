@@ -16,6 +16,7 @@
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
+#include <quick-lint-js/string-view.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -23,6 +24,7 @@
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -1815,13 +1817,18 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                   ElementsAre(spy_visitor::visited_variable_use{name}));
     }
 
-    // TODO(#215): Disallow 'await' as parameter to async arrow function.
     for (string8 code : {
              u8"(async " + name + u8" => null)",
              u8"(async (" + name + u8") => null)",
              u8"(" + name + u8" => null)",
              u8"((" + name + u8") => null)",
          }) {
+      if (name == u8"await" &&
+          quick_lint_js::starts_with(string8_view(code), u8"(async"sv)) {
+        // NOTE(erlliam): await parameter isn't allowed in async functions. See
+        // test_parse.disallow_await_parameter_in_async_arrow_function.
+        continue;
+      }
       SCOPED_TRACE(out_string8(code));
       spy_visitor v =
           parse_and_visit_statement(code, function_attributes::normal);
