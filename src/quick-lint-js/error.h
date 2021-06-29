@@ -1194,6 +1194,15 @@
       .error(QLJS_TRANSLATABLE("continue can only be used inside of a loop"),  \
              continue_statement))                                              \
                                                                                \
+  QLJS_ERROR_TYPE(                                                             \
+      error_typescript_style_const_field, "E165",                              \
+      { source_code_span const_token; },                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "const fields within classes are only "                       \
+                 "allowed in TypeScript, not Javascript"),                     \
+             const_token))                                                     \
+                                                                               \
+                                                                               \
   /* END */
 
 namespace quick_lint_js {
