@@ -41,6 +41,7 @@ class configuration {
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
   std::optional<canonical_path> config_file_path_;
+  bool add_global_group_browser_ = true;
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;

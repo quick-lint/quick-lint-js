@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/global-variables.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
@@ -23,6 +24,15 @@ namespace {
 }
 
 const global_declared_variable_set& configuration::globals() noexcept {
+  if (this->add_global_group_browser_) {
+    for (const char8** it = global_variables_browser; *it; ++it) {
+      string8_view global(*it);
+      if (!this->should_remove_global_variable(global)) {
+        this->globals_.add_variable(global);
+      }
+    }
+  }
+
   if (this->add_global_group_ecmascript_) {
     const char8* writable_global_variables[] = {
         // ECMA-262 18.1 Value Properties of the Global Object
@@ -141,11 +151,16 @@ const std::optional<canonical_path>& configuration::config_file_path() const {
 }
 
 void configuration::reset_global_groups() {
+  this->add_global_group_browser_ = false;
   this->add_global_group_node_js_ = false;
   this->add_global_group_ecmascript_ = false;
 }
 
 bool configuration::add_global_group(string8_view group_name) {
+  if (group_name == u8"browser"sv) {
+    this->add_global_group_browser_ = true;
+    return true;
+  }
   if (group_name == u8"ecmascript"sv) {
     this->add_global_group_ecmascript_ = true;
     return true;

@@ -35,6 +35,8 @@ Beta release.
 
 ### Fixed
 
+* Using browser variables such as `document` and `window` no longer reports
+  undesired undeclared variable warnings
 * `with` statements and `eval` no longer cause spurious undeclared variable
   warnings (implemented by [Himanshu][])
 * `++a[0];` no longer reports an assignment-to-const-variable error if `a` was
