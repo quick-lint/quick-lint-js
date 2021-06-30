@@ -10,6 +10,7 @@
       let moduleCacheBust = "#" + Date.now();
 
       let {
+        ProblemsError,
         documentationDirectoryPath,
         loadErrorDocumentationFilesAsync,
         reportProblemsInDocumentsAsync,
@@ -20,7 +21,6 @@
       let documents = await loadErrorDocumentationFilesAsync(
         documentationDirectoryPath
       );
-      await reportProblemsInDocumentsAsync(documents);
       //%>
     </script>
     <title>quick-lint-js: errors and warnings</title>
@@ -74,6 +74,21 @@
       <p>
         quick-lint-js can find the following warnings and errors in your code:
       </p>
+
+      <% try { await reportProblemsInDocumentsAsync(documents); } catch (e) { if
+      (e instanceof ProblemsError) { %>
+      <div
+        style="background-color: #fdd; border: 1px solid #f00; padding: 0.5em"
+      >
+        <p>
+          quick-lint-js found inconsistencies in the error documentation. If
+          you're hacking on the website, rebuild quick-lint-js for the website
+          by following <code>wasm/README.md</code> and
+          <code>website/README.md</code>.
+        </p>
+        <p style="white-space: pre-line"><%= e %></p>
+      </div>
+      <% } else { throw e; } } %>
 
       <ul class="table-of-contents">
         <% for (let doc of documents) { %>

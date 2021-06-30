@@ -239,7 +239,7 @@ export async function reportProblemsInDocumentsAsync(documents) {
     foundProblems.push(...(await doc.findProblemsAsync()));
   }
   if (foundProblems.length !== 0) {
-    throw new Error(
+    throw new ProblemsError(
       `found problems in error documents:\n${foundProblems.join("\n")}`
     );
   }
@@ -265,6 +265,8 @@ export async function loadErrorDocumentationFilesAsync(rootPath) {
   });
   return documents;
 }
+
+export class ProblemsError extends Error {}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
