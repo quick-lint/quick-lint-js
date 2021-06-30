@@ -19,10 +19,9 @@ class Buffer:
     Multiple view objects may share the same buffer.
     """
 
-    def __init__(self):
-        self.views = []
-        self.parser = c_api.Parser()
-        self.diagnostics = []
+    def __init__(self, view):
+        self.views = [view]
+        self.parser = c_api.Parser(view)
 
 
 class BuffersManager:
@@ -34,12 +33,13 @@ class BuffersManager:
     def add_view(self, view):
         id_ = view.buffer_id()
         if id_ not in self._buffers:
-            self._buffers[id_] = Buffer()
-        self._buffers[id_].views.append(view)
+            self._buffers[id_] = Buffer(view)
+        else:
+            self._buffers[id_].views.append(view)
 
     def remove_view(self, view):
         id_ = view.buffer_id()
-        self._buffers[id_].views.remove()
+        self._buffers[id_].views.remove(view)
         if not self._buffers[id_].views:
             del self._buffers[id_]
 
@@ -85,19 +85,16 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         self.on_modified()
 
     def on_modified(self):
-        viewsize = self.view.size()
-        allregion = sublime.Region(0, viewsize)
-        allcontent = self.view.substr(allregion)
-        self.buffer.parser.set_text(allcontent)
-        self.buffer.diagnostics = self.buffer.parser.lint()
+        self.buffer.parser.set_text()
+        self.buffer.parser.lint()
         self._add_squiggly_underlines()
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
-            for diagnostic in self.buffer.diagnostics:
+            for diagnostic in self.buffer.parser.diagnostics:
                 # If the user hovers over the diagnostic region
                 # (region with squiggly underlines).
-                if diagnostic.begin_offset <= point <= diagnostic.end_offset:
+                if diagnostic.region.contains(point):
                     self._add_popup(diagnostic)
 
     def _add_squiggly_underlines(self):
@@ -114,12 +111,11 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def _get_severity_regions(self):
         warning_regions = []
         error_regions = []
-        for diagnostic in self.buffer.diagnostics:
-            region = sublime.Region(diagnostic.begin_offset, diagnostic.end_offset)
+        for diagnostic in self.buffer.parser.diagnostics:
             if c_api.SeverityEnumeration.WARNING == diagnostic.severity:
-                warning_regions.append(region)
+                warning_regions.append(diagnostic.region)
             elif c_api.SeverityEnumeration.ERROR == diagnostic.severity:
-                error_regions.append(region)
+                error_regions.append(diagnostic.region)
         return warning_regions, error_regions
 
     def _add_popup(self, diagnostic):
@@ -132,7 +128,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         content = minihtml % (diagnostic.message, color, diagnostic.code)
 
         flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
-        location = diagnostic.begin_offset
+        location = diagnostic.region.begin()
         max_width, max_height = (1366, 768)
         self.view.show_popup(content, flags, location, max_width, max_height)
 

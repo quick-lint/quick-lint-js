@@ -7,6 +7,8 @@ import ctypes
 import os
 import zipfile
 
+import sublime
+
 
 class SeverityEnumeration:
     ERROR = 1
@@ -116,14 +118,17 @@ class Diagnostic:
         self.message = ctypes_diagnostic.message.decode(encoding="utf-8")
         self.code = ctypes_diagnostic.code.decode(encoding="utf-8")
         self.severity = ctypes_diagnostic.severity
-        self.begin_offset = ctypes_diagnostic.begin_offset
-        self.end_offset = ctypes_diagnostic.end_offset
+        self.region = sublime.Region(
+            ctypes_diagnostic.begin_offset, ctypes_diagnostic.end_offset
+        )
 
 
 class Parser:
     """Parser layer used to communicate with the plugin."""
 
-    def __init__(self):
+    def __init__(self, view):
+        self.view = view
+        self.diagnostics = []
         self._ctypes_parser = LIB.qljs_sublime_text_3_create_parser()
         if self._ctypes_parser is None:
             raise MemoryError()
@@ -133,8 +138,11 @@ class Parser:
             LIB.qljs_sublime_text_3_destroy_parser(self._ctypes_parser)
             self._ctypes_parser = None
 
-    def set_text(self, text):
-        text_utf8 = text.encode(encoding="utf-8")
+    def set_text(self):
+        viewsize = self.view.size()
+        allregion = sublime.Region(0, viewsize)
+        allcontent = self.view.substr(allregion)
+        text_utf8 = allcontent.encode(encoding="utf-8")
         text_len_utf8 = len(text_utf8)
         LIB.qljs_sublime_text_3_set_text(
             self._ctypes_parser,
@@ -149,7 +157,7 @@ class Parser:
             if ctypes_diagnostic.message is None:
                 break
             diagnostics.append(Diagnostic(ctypes_diagnostic))
-        return diagnostics
+        self.diagnostics = diagnostics
 
 
 # quick-lint-js finds bugs in JavaScript programs.
