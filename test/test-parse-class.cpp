@@ -1182,6 +1182,21 @@ TEST(test_parse, async_method_prohibits_newline_after_async_keyword) {
     EXPECT_EQ(v.property_declarations[0].name, u8"async");
   }
 }
+TEST(test_parse, typescript_style_const_field) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { const f = null }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"f"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_typescript_style_const_field, const_token,
+            offsets_matcher(&code, strlen(u8"class C { "), u8"const"))));
+  }
+}
 }
 }
 
