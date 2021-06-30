@@ -134,19 +134,21 @@ class Parser:
             self._ctypes_parser = None
 
     def set_text(self, text):
-        text_utf_8 = text.encode(encoding="utf-8")
-        text_utf_8_byte_count = len(text_utf_8)
+        text_utf8 = text.encode(encoding="utf-8")
+        text_len_utf8 = len(text_utf8)
         LIB.qljs_sublime_text_3_set_text(
-            self._ctypes_parser, text_utf_8, text_utf_8_byte_count
+            self._ctypes_parser,
+            text_utf8,
+            text_len_utf8,
         )
 
     def lint(self):
         ctypes_diagnostics = LIB.qljs_sublime_text_3_lint(self._ctypes_parser)
         diagnostics = []
-        for ctypes_diag in ctypes_diagnostics:
-            if ctypes_diag.message is None:
+        for ctypes_diagnostic in ctypes_diagnostics:
+            if ctypes_diagnostic.message is None:
                 break
-            diagnostics.append(Diagnostic(ctypes_diag))
+            diagnostics.append(Diagnostic(ctypes_diagnostic))
         return diagnostics
 
 

@@ -76,20 +76,20 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
-            for diag in self.buffer.diagnostics:
+            for diagnostic in self.buffer.diagnostics:
                 # If the user hovers over the diagnostic region
                 # (region with squiggly underlines).
-                if diag.begin_offset <= point <= diag.end_offset:
-                    self._add_popup(diag)
+                if diagnostic.begin_offset <= point <= diagnostic.end_offset:
+                    self._add_popup(diagnostic)
 
     def _add_squiggly_underlines(self):
         warning_regions = []
         error_regions = []
-        for diag in self.buffer.diagnostics:
-            region = sublime.Region(diag.begin_offset, diag.end_offset)
-            if diag.severity == c_api.SeverityEnumeration.WARNING:
+        for diagnostic in self.buffer.diagnostics:
+            region = sublime.Region(diagnostic.begin_offset, diagnostic.end_offset)
+            if diagnostic.severity == c_api.SeverityEnumeration.WARNING:
                 warning_regions.append(region)
-            elif diag.severity == c_api.SeverityEnumeration.ERROR:
+            elif diagnostic.severity == c_api.SeverityEnumeration.ERROR:
                 error_regions.append(region)
 
         flags = (
