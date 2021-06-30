@@ -34,7 +34,7 @@ ${SUBLIME_TEXT_PROJECT_VERSION}-${SUBLIME_TEXT_PACKAGE_PLATFORM}\
     SUBLIME_TEXT_PACKAGE_FILES
     "${CMAKE_BINARY_DIR}/src/libquick-lint-js-lib.so"
     "${CMAKE_CURRENT_SOURCE_DIR}/c_api_subl3.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/main_subl3.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/plugin_subl3.py"
   )
 
   add_custom_target(
@@ -48,8 +48,8 @@ ${SUBLIME_TEXT_PROJECT_VERSION}-${SUBLIME_TEXT_PACKAGE_PLATFORM}\
     "sublime-text-package-files/c_api_subl3.py"
     "sublime-text-package-files/c_api.py"
     COMMAND "${CMAKE_COMMAND}" -E rename
-    "sublime-text-package-files/main_subl3.py"
-    "sublime-text-package-files/main.py"
+    "sublime-text-package-files/plugin_subl3.py"
+    "sublime-text-package-files/plugin.py"
 
     # Change the current working directory and
     # run the `cmake -E tar ...` command.
