@@ -273,20 +273,23 @@ body.javascript .javascript-only {
 .chart .tick .marker {
   z-index: 1;
 }
-.chart .series .bar {
-  z-index: 2;
+.chart .series {
+  z-index: 2; /* For mouse events, not visuals. */
 }
-.chart .series .error-bars {
+.chart .series .bar {
   z-index: 3;
 }
-.chart .tick .label {
+.chart .series .error-bars {
   z-index: 4;
 }
-.chart .series .label {
+.chart .tick .label {
   z-index: 5;
 }
-.chart .log-scale {
+.chart .series .label {
   z-index: 6;
+}
+.chart .log-scale {
+  z-index: 7;
 }
 
 .benchmark-table {
