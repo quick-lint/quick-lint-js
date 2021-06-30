@@ -1196,6 +1196,19 @@ TEST(test_parse, typescript_style_const_field) {
             error_typescript_style_const_field, const_token,
             offsets_matcher(&code, strlen(u8"class C { "), u8"const"))));
   }
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { const f }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"f"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_typescript_style_const_field, const_token,
+            offsets_matcher(&code, strlen(u8"class C { "), u8"const"))));
+  }
 }
 }
 }
