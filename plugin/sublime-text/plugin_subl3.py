@@ -25,6 +25,29 @@ class Buffer:
         self.diagnostics = []
 
 
+class BuffersManager:
+    """Manages the buffers."""
+
+    def __init__(self):
+        self._buffers = {}
+
+    def add_view(self, view):
+        id_ = view.buffer_id()
+        if id_ not in self._buffers:
+            self._buffers[id_] = Buffer()
+        self._buffers[id_].views.append(view)
+
+    def remove_view(self, view):
+        id_ = view.buffer_id()
+        self._buffers[id_].views.remove()
+        if not self._buffers[id_].views:
+            del self._buffers[id_]
+
+    def get_buffer(self, view):
+        id_ = view.buffer_id()
+        return self._buffers[id_]
+
+
 class QuickLintJsListener(sublime_plugin.ViewEventListener):
     """Listens for events bound to a specific view."""
 
@@ -36,7 +59,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     #
     # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
-    _buffers = {}
+    _buffers_manager = BuffersManager()
 
     @classmethod
     def is_applicable(cls, settings):
@@ -51,17 +74,12 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def __init__(self, view):
         super().__init__(view)
-        self.buffer_id = view.buffer_id()
-        if self.buffer_id not in self._buffers:
-            self._buffers[self.buffer_id] = Buffer()
-        self.buffer = self._buffers[self.buffer_id]
-        self.buffer.views.append(self.view)
+        self._buffers_manager.add_view(self.view)
+        self.buffer = self._buffers_manager.get_buffer(self.view)
         self.on_modified()
 
     def __del__(self):
-        self.buffer.views.remove(self.view)
-        if not self.buffer.views:
-            del self._buffers[self.buffer_id]
+        self._buffers_manager.remove_view(self.view)
 
     def on_load(self):
         self.on_modified()
