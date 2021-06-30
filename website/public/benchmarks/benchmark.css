@@ -319,33 +319,17 @@ body.javascript .javascript-only {
   }
 }
 
-/* Create a border around each row which is visible if a row is selected. (Only
-   one row can be selected at a time.) */
-.benchmark-table tbody tr td,
-.benchmark-table tbody tr th {
-  border: 2px solid transparent;
-}
-.benchmark-table tbody tr:not(:last-child) td,
-.benchmark-table tbody tr:not(:last-child) th {
-  border-bottom-width: 0;
-}
-.benchmark-table tbody tr td:not(:first-child),
-.benchmark-table tbody tr th:not(:first-child) {
-  border-left-width: 0;
-}
-.benchmark-table tbody tr td:not(:last-child),
-.benchmark-table tbody tr th:not(:last-child) {
-  border-right-width: 0;
-}
-.benchmark-table tbody tr.selected td,
-.benchmark-table tbody tr.selected th {
-  border-bottom-width: 2px;
-  border-color: hsla(var(--hue), 70%, 50%);
+/* Deemphasize unselected rows. */
+.benchmark-table.have-selection tbody tr:not(.selected) td,
+.benchmark-table.have-selection tbody tr:not(.selected) th {
+  background-color: hsla(var(--hue), 70%, 90%);
+  color: rgba(0, 0, 0, 0.4);
 }
 @media (prefers-color-scheme: dark) {
-  .benchmark-table tbody tr.selected td,
-  .benchmark-table tbody tr.selected th {
-    border-color: hsla(var(--hue), 70%, 40%);
+  .benchmark-table.have-selection tbody tr:not(.selected) td,
+  .benchmark-table.have-selection tbody tr:not(.selected) th {
+    background-color: hsla(var(--hue), 70%, 10%);
+    color: rgba(255, 255, 255, 0.4);
   }
 }
 
