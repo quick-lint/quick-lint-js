@@ -635,6 +635,8 @@ TEST_F(test_lex, lex_strings) {
   this->check_tokens(u8"\"hello\\\nworld\"", {token_type::string});
   this->check_tokens(u8"'hello\\x0aworld'", {token_type::string});
   this->check_tokens(u8R"('\x68\x65\x6c\x6C\x6f')", {token_type::string});
+  this->check_tokens(u8R"('\uabcd')", {token_type::string});
+  this->check_tokens(u8R"('\u{abcd}')", {token_type::string});
 
   this->check_tokens_with_errors(
       u8R"("unterminated)", {token_type::string},
@@ -804,13 +806,25 @@ TEST_F(test_lex, lex_strings) {
                                  offsets_matcher(input, 10, 12))));
       });
 
-  // TODO(#187): Report invalid unicode escape sequences. For example:
-  //
-  // "hello\u"
-  // "hello\u{110000}"
+  this->check_tokens_with_errors(
+      u8"'hello\\u'", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 6, 9))));
+      });
+
+  this->check_tokens_with_errors(
+      u8"'hello\\u{110000}'", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_code_point_in_unicode_out_of_range,
+                        escape_sequence, offsets_matcher(input, 6, 16))));
+      });
 
   // TODO(#187): Report octal escape sequences in strict mode.
-
   // TODO(#187): Report invalid octal escape sequences in non-strict mode.
 }
 
@@ -935,8 +949,23 @@ world`)",
                                 offsets_matcher(input, 0, 14))));
       });
 
-  // TODO(#187): Report invalid escape sequences, like with plain string
-  // literals.
+  this->check_tokens_with_errors(
+      u8"`hello\\u`"_sv, {token_type::complete_template},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_expected_hex_digits_in_unicode_escape,
+                        escape_sequence, offsets_matcher(input, 6, 9))));
+      });
+
+  this->check_tokens_with_errors(
+      u8"`hello\\u{110000}`", {token_type::complete_template},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_FIELD(
+                        error_escaped_code_point_in_unicode_out_of_range,
+                        escape_sequence, offsets_matcher(input, 6, 16))));
+      });
 }
 
 TEST_F(test_lex, lex_template_literal_with_ascii_control_characters) {
