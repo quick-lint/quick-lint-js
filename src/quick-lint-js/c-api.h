@@ -65,6 +65,26 @@ void qljs_sublime_text_3_set_text(qljs_sublime_text_3_parser*,
 const qljs_sublime_text_3_diagnostic* qljs_sublime_text_3_lint(
     qljs_sublime_text_3_parser*);
 
+typedef struct qljs_sublime_text_4_parser qljs_sublime_text_4_parser;
+struct qljs_sublime_text_4_diagnostic {
+  const char* message;
+  const char* code;
+  qljs_severity severity;
+  int start_line;
+  int start_character;
+  int end_line;
+  int end_character;
+};
+qljs_sublime_text_4_parser* qljs_sublime_text_4_create_parser(void);
+void qljs_sublime_text_4_destroy_parser(qljs_sublime_text_4_parser*);
+void qljs_sublime_text_4_replace_text(qljs_sublime_text_4_parser*,
+                                      int start_line, int start_character,
+                                      int end_line, int end_character,
+                                      const void* replacement_text_utf_8,
+                                      size_t replacement_text_byte_count);
+const qljs_sublime_text_4_diagnostic* qljs_sublime_text_4_lint(
+    qljs_sublime_text_4_parser*);
+
 #if defined(__cplusplus)
 }
 #endif
