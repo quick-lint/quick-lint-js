@@ -939,6 +939,13 @@
              enum_keyword))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_typescript_style_const_field, "E165",                              \
+      { source_code_span const_token; },                                       \
+      .error(QLJS_TRANSLATABLE("const fields within classes are only "         \
+                               "allowed in TypeScript, not JavaScript"),       \
+             const_token))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_block_comment, "E037",                                    \
       { source_code_span comment_open; },                                      \
       .error(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))       \
