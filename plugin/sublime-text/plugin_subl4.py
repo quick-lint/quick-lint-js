@@ -123,6 +123,20 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
         self.plugin_buffer.parser.lint()
         self.add_squiggly_underlines()
 
+    def on_reload(self):
+        # This function is called, for example, when a file is changed
+        # outside of the editor:
+        #
+        # https://github.com/sublimehq/sublime_text/issues/9#issuecomment-16922940
+        self.on_load()
+
+    def on_revert(self):
+        # This function is called, for example, via the menu entry
+        # `File | Revert File`:
+        #
+        # https://superuser.com/q/815045
+        self.on_load()
+
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
             for diagnostic in self.plugin_buffer.parser.diagnostics:
