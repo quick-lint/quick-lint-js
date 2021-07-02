@@ -18,6 +18,13 @@ class SeverityEnumeration:
 class DiagnosticStructure(ctypes.Structure):
     """Diagnostic layer used to communicate with the C++ code."""
 
+    # struct qljs_sublime_text_3_diagnostic {
+    #   const char* message;
+    #   const char* code;
+    #   qljs_severity severity;
+    #   int begin_offset;
+    #   int end_offset;
+    # };
     _fields_ = [
         ("message", ctypes.c_char_p),
         ("code", ctypes.c_char_p),
