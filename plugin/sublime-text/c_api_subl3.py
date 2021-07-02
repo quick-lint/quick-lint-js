@@ -50,8 +50,8 @@ def get_script_path_directory():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def string_remove_suffix(string, suffix):
-    return string[: -len(suffix)]
+def get_parent_directory(path, level=1):
+    return os.path.normpath(os.path.join(path, *([".."] * level)))
 
 
 def load_library():
@@ -63,15 +63,14 @@ def load_library():
     #
     # To:
     # |-- quick-lint-js-v020-linux_x86_64.sublime-package
-    # |-- quick-lint-js-v020-linux_x86_64
+    # |-- quick-lint-js
     #     |-- libquick-lint-js-lib.so
     #
     script_path_directory = get_script_path_directory()
     if script_path_directory.endswith(".sublime-package"):
         with zipfile.ZipFile(script_path_directory, mode="r") as package_file:
-            lib_path_directory = string_remove_suffix(
-                script_path_directory, ".sublime-package"
-            )
+            lib_path_directory = get_parent_directory(script_path_directory)
+            lib_path_directory += "/quick-lint-js"
             package_file.extract(
                 "libquick-lint-js-lib.so",
                 path=lib_path_directory,
