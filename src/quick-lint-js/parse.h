@@ -1541,7 +1541,7 @@ class parser {
           // class C {
           //   const field
           // }
-          if ("const" == to_string(property_name_span.string_view())) {
+          if (u8"const" == property_name_span.string_view()) {
             this->error_reporter_->report(error_typescript_style_const_field{
                 .const_token = property_name_span,
             });
