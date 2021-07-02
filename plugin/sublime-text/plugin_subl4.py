@@ -59,7 +59,7 @@ class PluginBuffersManager:
 
 
 class QuickLintJsListener:
-    """Basis for the listeners present in this plugin."""
+    """Base for the listeners present in this plugin."""
 
     plugin_buffers_manager = PluginBuffersManager()
 
