@@ -1198,7 +1198,7 @@
       error_typescript_style_const_field, "E165",                              \
       { source_code_span const_token; },                                       \
       .error(QLJS_TRANSLATABLE("const fields within classes are only "         \
-                               "allowed in TypeScript, not Javascript"),       \
+                               "allowed in TypeScript, not JavaScript"),       \
              const_token))                                                     \
                                                                                \
   /* END */
