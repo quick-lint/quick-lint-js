@@ -28,24 +28,24 @@ class BuffersManager:
     """Manages the buffers."""
 
     def __init__(self):
-        self._buffers = {}
+        self.buffers = {}
 
     def add_view(self, view):
         id_ = view.buffer_id()
-        if id_ not in self._buffers:
-            self._buffers[id_] = Buffer(view)
+        if id_ not in self.buffers:
+            self.buffers[id_] = Buffer(view)
         else:
-            self._buffers[id_].views.append(view)
+            self.buffers[id_].views.append(view)
 
     def remove_view(self, view):
         id_ = view.buffer_id()
-        self._buffers[id_].views.remove(view)
-        if not self._buffers[id_].views:
-            del self._buffers[id_]
+        self.buffers[id_].views.remove(view)
+        if not self.buffers[id_].views:
+            del self.buffers[id_]
 
     def get_buffer(self, view):
         id_ = view.buffer_id()
-        return self._buffers[id_]
+        return self.buffers[id_]
 
 
 class QuickLintJsListener(sublime_plugin.ViewEventListener):
@@ -59,7 +59,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     #
     # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
-    _buffers_manager = BuffersManager()
+    buffers_manager = BuffersManager()
 
     @classmethod
     def is_applicable(cls, settings):
@@ -74,12 +74,12 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def __init__(self, view):
         super().__init__(view)
-        self._buffers_manager.add_view(self.view)
-        self.buffer = self._buffers_manager.get_buffer(self.view)
+        self.buffers_manager.add_view(self.view)
+        self.buffer = self.buffers_manager.get_buffer(self.view)
         self.on_modified()
 
     def __del__(self):
-        self._buffers_manager.remove_view(self.view)
+        self.buffers_manager.remove_view(self.view)
 
     def on_load(self):
         self.on_modified()
@@ -87,7 +87,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def on_modified(self):
         self.buffer.parser.set_text()
         self.buffer.parser.lint()
-        self._add_squiggly_underlines()
+        self.add_squiggly_underlines()
 
     def on_hover(self, point, hover_zone):
         if hover_zone == sublime.HOVER_TEXT:
@@ -95,10 +95,10 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
                 # If the user hovers over the diagnostic region
                 # (region with squiggly underlines).
                 if diagnostic.region.contains(point):
-                    self._add_popup(diagnostic)
+                    self.add_popup(diagnostic)
 
-    def _add_squiggly_underlines(self):
-        warning_regions, error_regions = self._get_severity_regions()
+    def add_squiggly_underlines(self):
+        warning_regions, error_regions = self.get_severity_regions()
         flags = (
             sublime.DRAW_SQUIGGLY_UNDERLINE
             | sublime.DRAW_NO_FILL
@@ -108,7 +108,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
             view.add_regions("2", warning_regions, "region.orangish", "", flags)
             view.add_regions("1", error_regions, "region.redish", "", flags)
 
-    def _get_severity_regions(self):
+    def get_severity_regions(self):
         warning_regions = []
         error_regions = []
         for diagnostic in self.buffer.parser.diagnostics:
@@ -118,7 +118,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
                 error_regions.append(diagnostic.region)
         return warning_regions, error_regions
 
-    def _add_popup(self, diagnostic):
+    def add_popup(self, diagnostic):
         minihtml = """
         <span>%s
             <span style=\"color: %s;\">quick-lint-js(%s)</span>
