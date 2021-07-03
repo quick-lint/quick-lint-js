@@ -60,7 +60,7 @@ Follow the following steps to release a new version of quick-lint-js:
       hash, then click "Run workflow" button.
 
 10. Create a Git tag named after the version number (e.g. `0.1.0`). Push it to
-   GitHub.
+    GitHub.
 
 11. Push the commit to the `master` branch on GitHub.
 
