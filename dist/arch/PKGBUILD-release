@@ -37,12 +37,6 @@ check() {
 package() {
   cd "${pkgname}-${pkgver}"
   DESTDIR="${pkgdir}/" ninja -C build install
-
-  # TODO(strager): Remove the following after releasing a new version:
-  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
-  mv "${pkgdir}/usr/share/doc/quick-lint-js/copyright" "${pkgdir}/usr/share/licenses/${pkgname}/copyright"
-  rmdir "${pkgdir}/usr/share/doc/quick-lint-js/"
-  rmdir "${pkgdir}/usr/share/doc/"
 }
 
 # quick-lint-js finds bugs in JavaScript programs.
