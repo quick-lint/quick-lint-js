@@ -6,7 +6,7 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
-## Unreleased
+## 0.3.0 (2021-07-02)
 
 Beta release.
 
@@ -23,7 +23,6 @@ Beta release.
 * Translations: Swedish (implemented by [Kim "Linden"][])
 * Emacs plugin (implemented by [wagner riffel][])
 * Neovim plugin
-* Global variables can be configured using a `quick-lint-js.config` file
 * Errors and warnings are now documented on the website
 * Various new errors and error message improvements (implemented by
   [AidenThing][], [Daniel La Rocque][], [Erlliam Mejia][], [Himanshu][], [Lee
@@ -32,6 +31,8 @@ Beta release.
   Mehta][])
 * `--stdin` CLI option allows reading JavaScript from standard input instead of
   a file (implemented by [wagner riffel][])
+* Partially implemented: Global variables can be configured using a
+  `quick-lint-js.config` file
 
 ### Fixed
 

@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 = quick-lint-js(1)
-:version: 0.2.0
+:version: 0.3.0
 :mansource: quick-lint-js version {version}
 :toc:
 :reproducible:
