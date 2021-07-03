@@ -48,7 +48,7 @@ Follow the following steps to release a new version of quick-lint-js:
    * With the `vscode/quick-lint-js-*.vsix` artifact:
      `npx vsce publish --packagePath ./quick-lint-js-*.vsix`
    * With the `vscode/quick-lint-js-*.vsix` artifact:
-     `npx ovsx publish --packagePath ./quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN`
+     `npx ovsx publish ./quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN`
    * With the `npm/quick-lint-js-*.tgz` artifact:
      `npm publish ./quick-lint-js-*.tgz`
    * Run the `dist/debian/sync-releases-to-apt` script.
