@@ -131,8 +131,8 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
         self.on_load()
 
     def on_revert(self):
-        # This function is called, for example, via the menu entry
-        # `File | Revert File`:
+        # This function is called, for example, when the user clicks
+        # the menu entry under `File | Revert file`
         #
         # https://superuser.com/q/815045
         self.on_load()
