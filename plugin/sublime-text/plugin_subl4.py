@@ -74,7 +74,7 @@ class QuickLintJsListener:
         )
 
     def __del__(self):
-        if hasattr(self, "view"):
+        if hasattr(self, "view") and hasattr(self, "buffer_id"):
             self.plugin_buffers_manager.remove_view(self.view, self.buffer_id)
 
     def add_squiggly_underlines(self):
