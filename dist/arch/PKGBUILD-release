@@ -17,7 +17,7 @@ checkdepends=(icu)
 provides=()
 conflicts=(quick-lint-js)
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/quick-lint/${pkgname}/archive/refs/tags/${pkgver}.tar.gz")
-sha512sums=('dddc90c73ffb5b35473d477a2758d73e6ad84810085139393dc55a6ccc39d3138aeea742f41eaa8ffd308dc189e1d28e0724c1601ee4e752706c47c63c697244')
+sha512sums=(SKIP)
 
 build() {
   cd "${pkgname}-${pkgver}"
