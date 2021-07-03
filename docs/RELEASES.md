@@ -26,8 +26,8 @@ Beta release.
 * Global variables can be configured using a `quick-lint-js.config` file
 * Errors and warnings are now documented on the website
 * Various new errors and error message improvements (implemented by
-  [AidenThing][], [Erlliam Mejia][], [Himanshu][], [Lee Wannacott][], [Matheus
-  Sousa][])
+  [AidenThing][], [Daniel La Rocque][], [Erlliam Mejia][], [Himanshu][], [Lee
+  Wannacott][], [Matheus Sousa][])
 * Shell completion for the CLI (Bash, Fish, Zsh) (implemented by [Shivam
   Mehta][])
 * `--stdin` CLI option allows reading JavaScript from standard input instead of
@@ -55,6 +55,7 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [AidenThing]: https://github.com/AidenThing
+[Daniel La Rocque]: https://github.com/dlarocque
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
 [Jimmy Qiu]: https://github.com/lifeinData
