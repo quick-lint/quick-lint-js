@@ -1246,6 +1246,8 @@ const char8* lexer::parse_hex_digits_and_underscores(
       [](char8 character) -> bool { return is_hex_digit(character); }, input);
 }
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
@@ -1310,6 +1312,7 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
   }
   return input;
 }
+QLJS_WARNING_POP
 
 lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
   const char8* identifier_begin = input;
