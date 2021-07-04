@@ -1248,6 +1248,7 @@ const char8* lexer::parse_hex_digits_and_underscores(
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+// TODO: factor duplication with parse_identifier_slow
 const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
@@ -1262,6 +1263,9 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
     bool found_non_hex_digit = false;
     while (*input != u8'}') {
       if (*input == '\0' && this->is_eof(input)) {
+        // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
+        // indicate whether the token is a template literal, a string literal
+        // or an identifier.
         this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
             .escape_sequence = get_escape_span()});
         return input;
@@ -1283,6 +1287,9 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
     code_point_hex_begin = input;
     for (int i = 0; i < 4; ++i) {
       if (*input == '\0' && this->is_eof(input)) {
+        // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
+        // indicate whether the token is a template literal, a string literal
+        // or an identifier.
         this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
             .escape_sequence = get_escape_span()});
         return input;
