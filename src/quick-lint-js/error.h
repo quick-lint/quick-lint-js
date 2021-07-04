@@ -240,8 +240,8 @@
   QLJS_ERROR_TYPE(                                                             \
       error_escaped_code_point_in_unicode_out_of_range, "E207",                \
       { source_code_span escape_sequence; },                                   \
-      .error(QLJS_TRANSLATABLE("Code point in unicode escape sequence must "   \
-                               "not be greater than 10FFFF"),                  \
+      .error(QLJS_TRANSLATABLE("code point in Unicode escape sequence must "   \
+                               "not be greater than U+10FFFF"),                  \
              escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
