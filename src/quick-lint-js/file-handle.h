@@ -22,20 +22,17 @@ namespace quick_lint_js {
 //
 // A file_read_result is in exactly one of three states:
 //
-// * end of file (at_end_of_file is true)
-// * error (at_end_of_file is false and error_message.has_value() is true)
-// * success (at_end_of_file is false and error_message.has_value() is false)
+//   state       | bytes_read.has_value() | error_message.has_value()
+// --------------+------------------------+----------------------------
+//   end of file | false                  | false
+//   error       | false                  | true
+//   success     | true                   | false
 struct file_read_result {
-  // If at_end_of_file is true, then the value of bytes_read is
-  // platform-specific, and whether error_message holds a value is
-  // platform-specific.
-  bool at_end_of_file;
+  bool at_end_of_file() const noexcept {
+    return !this->bytes_read.has_value() && !this->error_message.has_value();
+  }
 
-  // If at_end_of_file is true, then bytes_read's value is indeterminate.
-  //
-  // If error_message holds a value, then bytes_read's value is indeterminate.
-  int bytes_read;
-
+  std::optional<int> bytes_read;
   std::optional<std::string> error_message;
 };
 

@@ -91,7 +91,7 @@ class event_loop_base {
     QLJS_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
     file_read_result read_result = pipe.read(buffer.data(), buffer.size());
-    if (read_result.at_end_of_file) {
+    if (read_result.at_end_of_file()) {
       return true;
     } else if (read_result.error_message.has_value()) {
 #if QLJS_HAVE_UNISTD_H
@@ -108,7 +108,7 @@ class event_loop_base {
       QLJS_ASSERT(read_result.bytes_read != 0);
       std::lock_guard<std::mutex> lock(this->user_code_mutex_);
       this->derived().append(string8_view(
-          buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
+          buffer.data(), narrow_cast<std::size_t>(*read_result.bytes_read)));
       return false;
     }
   }

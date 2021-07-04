@@ -48,7 +48,7 @@ core_style linux_detect_core_style() {
   std::array<char, 1> core_pattern;
   file_read_result read_result =
       file.read(core_pattern.data(), core_pattern.size());
-  if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
+  if (!read_result.at_end_of_file() && read_result.error_message.has_value()) {
     std::fprintf(
         stderr,
         "warning: failed to determine method to disable core dumping: %s\n",
@@ -56,7 +56,7 @@ core_style linux_detect_core_style() {
     return core_style::unknown;
   }
 
-  if (read_result.at_end_of_file || read_result.bytes_read == 0) {
+  if (read_result.at_end_of_file() || read_result.bytes_read == 0) {
     // kernel.core_pattern is empty. The file name is 'core' or 'core.PID'.
     return core_style::file_path;
   } else if (core_pattern[0] == '|') {

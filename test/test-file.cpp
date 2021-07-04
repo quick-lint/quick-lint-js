@@ -82,6 +82,15 @@ TEST_F(test_file, read_regular_file) {
   EXPECT_EQ(file_content.content, string8_view(u8"hello\nworld!\n"));
 }
 
+TEST_F(test_file, read_empty_regular_file) {
+  std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
+  write_file(temp_file_path, u8"");
+
+  read_file_result file_content = read_file(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8""));
+}
+
 TEST_F(test_file, read_non_existing_file) {
   std::string temp_file_path =
       this->make_temporary_directory() + "/does-not-exist.js";
@@ -120,6 +129,19 @@ TEST_F(test_file, read_fifo) {
   read_file_result file_content = read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error;
   EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
+
+  writer_thread.join();
+}
+
+TEST_F(test_file, read_empty_fifo) {
+  std::string temp_file_path = this->make_temporary_directory() + "/fifo.js";
+  ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
+
+  std::thread writer_thread([&]() { write_file(temp_file_path, u8""); });
+
+  read_file_result file_content = read_file(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error;
+  EXPECT_EQ(file_content.content, string8_view(u8""));
 
   writer_thread.join();
 }

@@ -76,19 +76,21 @@ void read_file_buffered(platform_file_ref file, const char *path,
 
     file_read_result read_result =
         file.read(&out->content.data()[size_before], buffer_size);
-    if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
+    if (!read_result.at_end_of_file() &&
+        read_result.error_message.has_value()) {
       out->error = std::string("failed to read from ") + path + ": " +
                    *read_result.error_message;
       return;
     }
-    std::optional<int> new_size =
-        checked_add(size_before, read_result.bytes_read);
-    QLJS_ASSERT(new_size.has_value());
-    out->content.resize(*new_size);
-    if (read_result.at_end_of_file) {
+    if (read_result.at_end_of_file()) {
       // We read the entire file.
+      out->content.resize(size_before);
       return;
     }
+    std::optional<int> new_size =
+        checked_add(size_before, *read_result.bytes_read);
+    QLJS_ASSERT(new_size.has_value());
+    out->content.resize(*new_size);
   }
 }
 
@@ -106,9 +108,14 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
 
   file_read_result read_result =
       file.read(result.content.data(), *size_to_read);
-  if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
+  if (!read_result.at_end_of_file() && read_result.error_message.has_value()) {
     result.error = std::string("failed to read from ") + path + ": " +
                    *read_result.error_message;
+    return result;
+  }
+  if (read_result.at_end_of_file()) {
+    // The file was empty.
+    result.content.resize(0);
     return result;
   }
   if (read_result.bytes_read == file_size) {
@@ -116,24 +123,25 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
     // byte.
     file_read_result extra_read_result =
         file.read(result.content.data() + file_size, 1);
-    if (!extra_read_result.at_end_of_file &&
+    if (!extra_read_result.at_end_of_file() &&
         extra_read_result.error_message.has_value()) {
       result.error = std::string("failed to read from ") + path + ": " +
                      *extra_read_result.error_message;
       return result;
     }
-    result.content.resize(read_result.bytes_read +
-                          extra_read_result.bytes_read);
-    if (extra_read_result.at_end_of_file) {
+    if (extra_read_result.at_end_of_file()) {
       // We definitely read the entire file.
+      result.content.resize(*read_result.bytes_read);
       return result;
     } else {
       // We didn't read the entire file the first time. Keep reading.
+      result.content.resize(*read_result.bytes_read +
+                            *extra_read_result.bytes_read);
       read_file_buffered(file, path, buffer_size, &result);
       return result;
     }
   } else {
-    result.content.resize(read_result.bytes_read);
+    result.content.resize(*read_result.bytes_read);
     // We did not read the entire file. There is more data to read.
     read_file_buffered(file, path, buffer_size, &result);
     return result;

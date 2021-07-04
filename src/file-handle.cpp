@@ -53,12 +53,22 @@ file_read_result windows_handle_file_ref::read(void *buffer,
                   &read_size,
                   /*lpOverlapped=*/nullptr)) {
     DWORD error = ::GetLastError();
-    return file_read_result{
-        .at_end_of_file = error == ERROR_BROKEN_PIPE,
-        .bytes_read = 0,
-        .error_message = error == ERROR_NO_DATA
-                             ? std::nullopt
-                             : std::optional(windows_error_message(error)),
+    switch (error) {
+    case ERROR_BROKEN_PIPE:
+      return file_read_result{
+          .bytes_read = std::nullopt,
+          .error_message = std::nullopt,
+      };
+    case ERROR_NO_DATA:
+      return file_read_result{
+          .bytes_read = 0,
+          .error_message = std::nullopt,
+      };
+    default:
+      return file_read_result{
+          .bytes_read = std::nullopt,
+          .error_message = windows_error_message(error),
+      };
     };
   }
   return file_read_result{
@@ -74,8 +84,8 @@ file_read_result windows_handle_file_ref::read(void *buffer,
       // In my experiments, I haven't been able to make ReadFile give
       // 0-bytes-read in this case. However, given the documentation, when we
       // get 0 bytes read, we should ask the pipe if we reached EOF.
-      .at_end_of_file = read_size == 0,
-      .bytes_read = narrow_cast<int>(read_size),
+      .bytes_read = read_size == 0 ? std::nullopt
+                                   : std::optional(narrow_cast<int>(read_size)),
       .error_message = std::nullopt,
   };
 }
@@ -181,14 +191,14 @@ file_read_result posix_fd_file_ref::read(void *buffer,
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
     return file_read_result{
-        .at_end_of_file = false,
-        .bytes_read = 0,
+        .bytes_read = std::nullopt,
         .error_message = this->get_last_error_message(),
     };
   }
   return file_read_result{
-      .at_end_of_file = read_size == 0,
-      .bytes_read = narrow_cast<int>(read_size),
+      .bytes_read = read_size == 0
+                        ? std::nullopt
+                        : std::optional<int>(narrow_cast<int>(read_size)),
       .error_message = std::nullopt,
   };
 }
