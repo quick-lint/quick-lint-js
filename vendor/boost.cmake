@@ -20,6 +20,7 @@ target_compile_definitions(
   PUBLIC
   BOOST_ALL_NO_LIB
   BOOST_CONTAINER_NO_LIB
+  BOOST_LEAF_NO_EXCEPTIONS
 )
 # Disable undesirable warnings in headers and source files.
 quick_lint_js_add_warning_options_if_supported(

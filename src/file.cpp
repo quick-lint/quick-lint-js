@@ -2,6 +2,10 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/context.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -15,6 +19,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <stdlib.h>
 #include <string>
@@ -74,12 +79,34 @@ void read_file_buffered(platform_file_ref file, const char *path,
       out->content.resize_grow_uninitialized(size_before + buffer_size);
     }
 
+    boost::leaf::context<
+#if QLJS_HAVE_WINDOWS_H
+        boost::leaf::windows::e_LastError
+#elif QLJS_HAVE_UNISTD_H
+        boost::leaf::e_errno
+#endif
+        >
+        error_context;
+    auto error_context_guard = boost::leaf::activate_context(error_context);
     file_read_result read_result =
         file.read(&out->content.data()[size_before], buffer_size);
-    if (!read_result.at_end_of_file() &&
-        read_result.error_message.has_value()) {
-      out->error = std::string("failed to read from ") + path + ": " +
-                   *read_result.error_message;
+    if (!read_result) {
+      error_context.deactivate();
+      out->error = error_context.handle_error<std::string>(
+          read_result.error(),
+#if QLJS_HAVE_WINDOWS_H
+          [&](const boost::leaf::windows::e_LastError &error) {
+            return std::string("failed to read from ") + path + ": " +
+                   error_message(error);
+          },
+#endif
+#if QLJS_HAVE_UNISTD_H
+          [&](const boost::leaf::e_errno &error) {
+            return std::string("failed to read from ") + path + ": " +
+                   error_message(error);
+          },
+#endif
+          []() -> std::string { QLJS_UNREACHABLE(); });
       return;
     }
     if (read_result.at_end_of_file()) {
@@ -88,7 +115,7 @@ void read_file_buffered(platform_file_ref file, const char *path,
       return;
     }
     std::optional<int> new_size =
-        checked_add(size_before, *read_result.bytes_read);
+        checked_add(size_before, read_result.bytes_read());
     QLJS_ASSERT(new_size.has_value());
     out->content.resize(*new_size);
   }
@@ -106,11 +133,38 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
   }
   result.content.resize_grow_uninitialized(*size_to_read);
 
+  boost::leaf::context<
+#if QLJS_HAVE_WINDOWS_H
+      boost::leaf::windows::e_LastError
+#elif QLJS_HAVE_UNISTD_H
+      boost::leaf::e_errno
+#endif
+      >
+      error_context;
+  auto error_context_guard = boost::leaf::activate_context(error_context);
+  auto get_error = [&](auto &&r) -> std::string {
+    return error_context.handle_error<std::string>(
+        r.error(),
+#if QLJS_HAVE_WINDOWS_H
+        [&](const boost::leaf::windows::e_LastError &error) {
+          return std::string("failed to read from ") + path + ": " +
+                 error_message(error);
+        },
+#endif
+#if QLJS_HAVE_UNISTD_H
+        [&](const boost::leaf::e_errno &error) {
+          return std::string("failed to read from ") + path + ": " +
+                 error_message(error);
+        },
+#endif
+        []() -> std::string { QLJS_UNREACHABLE(); });
+  };
+
   file_read_result read_result =
       file.read(result.content.data(), *size_to_read);
-  if (!read_result.at_end_of_file() && read_result.error_message.has_value()) {
-    result.error = std::string("failed to read from ") + path + ": " +
-                   *read_result.error_message;
+  if (!read_result) {
+    error_context.deactivate();
+    result.error = get_error(read_result);
     return result;
   }
   if (read_result.at_end_of_file()) {
@@ -118,30 +172,29 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
     result.content.resize(0);
     return result;
   }
-  if (read_result.bytes_read == file_size) {
+  if (read_result.bytes_read() == file_size) {
     // We possibly read the entire file. Make extra sure by reading one more
     // byte.
     file_read_result extra_read_result =
         file.read(result.content.data() + file_size, 1);
-    if (!extra_read_result.at_end_of_file() &&
-        extra_read_result.error_message.has_value()) {
-      result.error = std::string("failed to read from ") + path + ": " +
-                     *extra_read_result.error_message;
+    if (!extra_read_result) {
+      error_context.deactivate();
+      result.error = get_error(read_result);
       return result;
     }
     if (extra_read_result.at_end_of_file()) {
       // We definitely read the entire file.
-      result.content.resize(*read_result.bytes_read);
+      result.content.resize(read_result.bytes_read());
       return result;
     } else {
       // We didn't read the entire file the first time. Keep reading.
-      result.content.resize(*read_result.bytes_read +
-                            *extra_read_result.bytes_read);
+      result.content.resize(read_result.bytes_read() +
+                            extra_read_result.bytes_read());
       read_file_buffered(file, path, buffer_size, &result);
       return result;
     }
   } else {
-    result.content.resize(*read_result.bytes_read);
+    result.content.resize(read_result.bytes_read());
     // We did not read the entire file. There is more data to read.
     read_file_buffered(file, path, buffer_size, &result);
     return result;

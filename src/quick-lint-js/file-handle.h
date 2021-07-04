@@ -4,7 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_HANDLE_H
 #define QUICK_LINT_JS_FILE_HANDLE_H
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/result.hpp>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
 #include <string>
 
@@ -22,22 +25,43 @@ namespace quick_lint_js {
 //
 // A file_read_result is in exactly one of three states:
 //
-//   state       | bytes_read.has_value() | error_message.has_value()
-// --------------+------------------------+----------------------------
-//   end of file | false                  | false
-//   error       | false                  | true
-//   success     | true                   | false
-struct file_read_result {
-  bool at_end_of_file() const noexcept {
-    return !this->bytes_read.has_value() && !this->error_message.has_value();
+//   state       | ->has_value() | .ok()
+// --------------+---------------+----------------------------
+//   end of file | false         | true
+//   error       | false         | false
+//   success     | true          | true
+struct file_read_result : public boost::leaf::result<std::optional<int>> {
+  using boost::leaf::result<std::optional<int>>::result;
+
+  /*implicit*/ file_read_result(int bytes_read)
+      : file_read_result(std::optional<int>(bytes_read)) {}
+
+  static file_read_result end_of_file() noexcept {
+    return file_read_result(std::optional<int>());
   }
 
-  std::optional<int> bytes_read;
-  std::optional<std::string> error_message;
+  bool ok() const noexcept { return bool(*this); }
+
+  bool at_end_of_file() const noexcept {
+    return this->ok() && !this->value().has_value();
+  }
+
+  int bytes_read() const noexcept {
+    QLJS_ASSERT(this->ok());
+    QLJS_ASSERT(!this->at_end_of_file());
+    return ***this;
+  }
 };
 
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+std::string error_message(boost::leaf::e_errno);
+#endif
+#if QLJS_HAVE_WINDOWS_H
+std::string error_message(boost::leaf::windows::e_LastError);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H

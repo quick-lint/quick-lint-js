@@ -2,6 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/error.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -55,39 +58,26 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     DWORD error = ::GetLastError();
     switch (error) {
     case ERROR_BROKEN_PIPE:
-      return file_read_result{
-          .bytes_read = std::nullopt,
-          .error_message = std::nullopt,
-      };
+      return file_read_result::end_of_file();
     case ERROR_NO_DATA:
-      return file_read_result{
-          .bytes_read = 0,
-          .error_message = std::nullopt,
-      };
+      return 0;
     default:
-      return file_read_result{
-          .bytes_read = std::nullopt,
-          .error_message = windows_error_message(error),
-      };
+      return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
     };
   }
-  return file_read_result{
-      // TODO(strager): Microsoft's documentation for ReadFile claims the
-      // following:
-      //
-      // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns
-      // > TRUE on a pipe, the other end of the pipe called the WriteFile
-      // > function with nNumberOfBytesToWrite set to zero.
-      //
-      // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
-      //
-      // In my experiments, I haven't been able to make ReadFile give
-      // 0-bytes-read in this case. However, given the documentation, when we
-      // get 0 bytes read, we should ask the pipe if we reached EOF.
-      .bytes_read = read_size == 0 ? std::nullopt
-                                   : std::optional(narrow_cast<int>(read_size)),
-      .error_message = std::nullopt,
-  };
+  // TODO(strager): Microsoft's documentation for ReadFile claims the following:
+  //
+  // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns TRUE
+  // > on a pipe, the other end of the pipe called the WriteFile function with
+  // > nNumberOfBytesToWrite set to zero.
+  //
+  // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+  //
+  // In my experiments, I haven't been able to make ReadFile give 0-bytes-read
+  // in this case. However, given the documentation, when we get 0 bytes read,
+  // we should ask the pipe if we reached EOF.
+  return read_size == 0 ? file_read_result::end_of_file()
+                        : file_read_result(narrow_cast<int>(read_size));
 }
 
 std::optional<int> windows_handle_file_ref::write(const void *buffer,
@@ -190,17 +180,10 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return file_read_result{
-        .bytes_read = std::nullopt,
-        .error_message = this->get_last_error_message(),
-    };
+    return boost::leaf::new_error(boost::leaf::e_errno{errno});
   }
-  return file_read_result{
-      .bytes_read = read_size == 0
-                        ? std::nullopt
-                        : std::optional<int>(narrow_cast<int>(read_size)),
-      .error_message = std::nullopt,
-  };
+  return read_size == 0 ? file_read_result::end_of_file()
+                        : file_read_result(narrow_cast<int>(read_size));
 }
 
 std::optional<int> posix_fd_file_ref::write(const void *buffer,
@@ -320,6 +303,18 @@ std::string windows_error_message(DWORD error) {
   std::string message_copy(message);
   static_cast<void>(::LocalFree(get_last_error_message));
   return message_copy;
+}
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+std::string error_message(boost::leaf::e_errno error) {
+  return std::strerror(error.value);
+}
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+std::string error_message(boost::leaf::windows::e_LastError error) {
+  return windows_error_message(error.value);
 }
 #endif
 }

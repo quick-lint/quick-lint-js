@@ -5,6 +5,8 @@
 #define QUICK_LINT_JS_EVENT_LOOP_H
 
 #include <array>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/pred.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -82,35 +84,43 @@ class event_loop_base {
   // Returns true when the pipe has closed. Returns false if the pipe might
   // still have data available (now or in the future).
   bool read_from_pipe() {
-    // TODO(strager): Pick buffer size intelligently.
-    std::array<char8, 1024> buffer;
-    platform_file_ref pipe = this->const_derived().get_readable_pipe();
+    return boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<bool> {
+          // TODO(strager): Pick buffer size intelligently.
+          std::array<char8, 1024> buffer;
+          platform_file_ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-    QLJS_ASSERT(pipe.is_pipe_non_blocking());
+          QLJS_ASSERT(pipe.is_pipe_non_blocking());
 #else
-    QLJS_ASSERT(!pipe.is_pipe_non_blocking());
+          QLJS_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
-    file_read_result read_result = pipe.read(buffer.data(), buffer.size());
-    if (read_result.at_end_of_file()) {
-      return true;
-    } else if (read_result.error_message.has_value()) {
+          file_read_result read_result =
+              pipe.read(buffer.data(), buffer.size());
+          if (!read_result) return read_result.error();
+          if (read_result.at_end_of_file()) {
+            return true;
+          } else {
+            QLJS_ASSERT(read_result.bytes_read() != 0);
+            std::lock_guard<std::mutex> lock(this->user_code_mutex_);
+            this->derived().append(string8_view(
+                buffer.data(),
+                narrow_cast<std::size_t>(read_result.bytes_read())));
+            return false;
+          }
+        },
 #if QLJS_HAVE_UNISTD_H
-      if (errno == EAGAIN) {
+        [](boost::leaf::match_value<boost::leaf::e_errno, EAGAIN>) -> bool {
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-        return false;
+          return false;
 #else
-        QLJS_UNREACHABLE();
+          QLJS_UNREACHABLE();
 #endif
-      }
+        },
 #endif
-      QLJS_UNIMPLEMENTED();
-    } else {
-      QLJS_ASSERT(read_result.bytes_read != 0);
-      std::lock_guard<std::mutex> lock(this->user_code_mutex_);
-      this->derived().append(string8_view(
-          buffer.data(), narrow_cast<std::size_t>(*read_result.bytes_read)));
-      return false;
-    }
+        []() -> bool {
+          QLJS_UNIMPLEMENTED();
+          return true;
+        });
   }
 
 #if QLJS_HAVE_CXX_CONCEPTS
