@@ -65,32 +65,32 @@ read_file_result read_file_result::failure(const std::string &error) {
 namespace {
 boost::leaf::result<void> read_file_buffered(platform_file_ref file,
                                              int buffer_size,
-                                             read_file_result *out) {
+                                             padded_string *out_content) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
-    int size_before = out->content.size();
+    int size_before = out_content->size();
     {
       std::optional<int> new_size = checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
         return boost::leaf::new_error(e_file_too_large());
       }
-      out->content.resize_grow_uninitialized(size_before + buffer_size);
+      out_content->resize_grow_uninitialized(size_before + buffer_size);
     }
 
     file_read_result read_result =
-        file.read(&out->content.data()[size_before], buffer_size);
+        file.read(&out_content->data()[size_before], buffer_size);
     if (!read_result) return read_result.error();
     if (read_result.at_end_of_file()) {
       // We read the entire file.
-      out->content.resize(size_before);
+      out_content->resize(size_before);
       return {};
     }
     std::optional<int> new_size =
         checked_add(size_before, read_result.bytes_read());
     QLJS_ASSERT(new_size.has_value());
-    out->content.resize(*new_size);
+    out_content->resize(*new_size);
   }
 }
 
@@ -167,7 +167,7 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
       result.content.resize(read_result.bytes_read() +
                             extra_read_result.bytes_read());
       boost::leaf::result<void> r =
-          read_file_buffered(file, buffer_size, &result);
+          read_file_buffered(file, buffer_size, &result.content);
       if (!r) {
         error_context.deactivate();
         result.error = get_error(r);
@@ -179,7 +179,7 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
     result.content.resize(read_result.bytes_read());
     // We did not read the entire file. There is more data to read.
     boost::leaf::result<void> r =
-        read_file_buffered(file, buffer_size, &result);
+        read_file_buffered(file, buffer_size, &result.content);
     if (!r) {
       error_context.deactivate();
       result.error = get_error(r);
