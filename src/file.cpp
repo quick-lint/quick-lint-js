@@ -94,7 +94,7 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
   }
 }
 
-boost::leaf::result<padded_string> read_file_with_expected_size_impl(
+boost::leaf::result<padded_string> read_file_with_expected_size(
     platform_file_ref file, int file_size, int buffer_size) {
   padded_string content;
 
@@ -138,14 +138,31 @@ boost::leaf::result<padded_string> read_file_with_expected_size_impl(
     return content;
   }
 }
+}
 
-read_file_result read_file_with_expected_size(platform_file_ref file,
-                                              const char *path, int file_size,
-                                              int buffer_size) {
+#if defined(QLJS_FILE_WINDOWS)
+read_file_result read_file(const char *path, windows_handle_file_ref file) {
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<read_file_result> {
+        int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
+
+        ::LARGE_INTEGER file_size;
+        if (!::GetFileSizeEx(file.get(), &file_size)) {
+          DWORD error = ::GetLastError();
+          return read_file_result::failure(
+              std::string("failed to get size of file ") + path + ": " +
+              windows_error_message(error));
+        }
+        if (!in_range<int>(file_size.QuadPart)) {
+          return read_file_result::failure(
+              std::string("file too large to read into memory: ") + path);
+        }
+
         boost::leaf::result<padded_string> content =
-            read_file_with_expected_size_impl(file, file_size, buffer_size);
+            read_file_with_expected_size(
+                /*file=*/file,
+                /*file_size=*/narrow_cast<int>(file_size.QuadPart),
+                /*buffer_size=*/buffer_size);
         if (!content) return content.error();
         read_file_result result;
         result.content = std::move(*content);
@@ -154,41 +171,11 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
       [](e_file_too_large) {
         return read_file_result::failure("file too large to read into memory");
       },
-#if QLJS_HAVE_WINDOWS_H
       [&](const boost::leaf::windows::e_LastError &error) {
         return read_file_result::failure(std::string("failed to read from ") +
                                          path + ": " + error_message(error));
       },
-#endif
-#if QLJS_HAVE_UNISTD_H
-      [&](const boost::leaf::e_errno &error) {
-        return read_file_result::failure(std::string("failed to read from ") +
-                                         path + ": " + error_message(error));
-      },
-#endif
       []() -> read_file_result { QLJS_UNREACHABLE(); });
-}
-}
-
-#if defined(QLJS_FILE_WINDOWS)
-read_file_result read_file(const char *path, windows_handle_file_ref file) {
-  int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
-
-  ::LARGE_INTEGER file_size;
-  if (!::GetFileSizeEx(file.get(), &file_size)) {
-    DWORD error = ::GetLastError();
-    return read_file_result::failure(
-        std::string("failed to get size of file ") + path + ": " +
-        windows_error_message(error));
-  }
-  if (!in_range<int>(file_size.QuadPart)) {
-    return read_file_result::failure(
-        std::string("file too large to read into memory: ") + path);
-  }
-  return read_file_with_expected_size(
-      /*file=*/file, /*path=*/path,
-      /*file_size=*/narrow_cast<int>(file_size.QuadPart),
-      /*buffer_size=*/buffer_size);
 }
 #endif
 
@@ -206,22 +193,39 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 
 read_file_result read_file(const char *path, posix_fd_file_ref file) {
-  struct stat s;
-  int rc = ::fstat(file.get(), &s);
-  if (rc == -1) {
-    int error = errno;
-    return read_file_result::failure(
-        std::string("failed to get file info from ") + path + ": " +
-        std::strerror(error));
-  }
-  auto file_size = s.st_size;
-  if (!in_range<int>(file_size)) {
-    return read_file_result::failure(
-        std::string("file too large to read into memory: ") + path);
-  }
-  return read_file_with_expected_size(
-      /*file=*/file, /*path=*/path, /*file_size=*/narrow_cast<int>(file_size),
-      /*buffer_size=*/reasonable_buffer_size(s));
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<read_file_result> {
+        struct stat s;
+        int rc = ::fstat(file.get(), &s);
+        if (rc == -1) {
+          int error = errno;
+          return read_file_result::failure(
+              std::string("failed to get file info from ") + path + ": " +
+              std::strerror(error));
+        }
+        auto file_size = s.st_size;
+        if (!in_range<int>(file_size)) {
+          return read_file_result::failure(
+              std::string("file too large to read into memory: ") + path);
+        }
+
+        boost::leaf::result<padded_string> content =
+            read_file_with_expected_size(
+                /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
+                /*buffer_size=*/reasonable_buffer_size(s));
+        if (!content) return content.error();
+        read_file_result result;
+        result.content = std::move(*content);
+        return result;
+      },
+      [](e_file_too_large) {
+        return read_file_result::failure("file too large to read into memory");
+      },
+      [&](const boost::leaf::e_errno &error) {
+        return read_file_result::failure(std::string("failed to read from ") +
+                                         path + ": " + error_message(error));
+      },
+      []() -> read_file_result { QLJS_UNREACHABLE(); });
 }
 #endif
 
