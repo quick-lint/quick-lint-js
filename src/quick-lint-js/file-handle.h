@@ -31,7 +31,7 @@ struct file_read_result {
   // platform-specific.
   bool at_end_of_file;
 
-  // If at_end_of_file is true, then bytes_read equals 0.
+  // If at_end_of_file is true, then bytes_read's value is indeterminate.
   //
   // If error_message holds a value, then bytes_read's value is indeterminate.
   int bytes_read;
