@@ -154,8 +154,7 @@ read_file_result read_file(const char *path, windows_handle_file_ref file) {
               windows_error_message(error));
         }
         if (!in_range<int>(file_size.QuadPart)) {
-          return read_file_result::failure(
-              std::string("file too large to read into memory: ") + path);
+          return boost::leaf::new_error(e_file_too_large());
         }
 
         boost::leaf::result<padded_string> content =
@@ -168,8 +167,9 @@ read_file_result read_file(const char *path, windows_handle_file_ref file) {
         result.content = std::move(*content);
         return result;
       },
-      [](e_file_too_large) {
-        return read_file_result::failure("file too large to read into memory");
+      [&](e_file_too_large) {
+        return read_file_result::failure(
+            std::string("file too large to read into memory: ") + path);
       },
       [&](const boost::leaf::windows::e_LastError &error) {
         return read_file_result::failure(std::string("failed to read from ") +
@@ -205,8 +205,7 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
         }
         auto file_size = s.st_size;
         if (!in_range<int>(file_size)) {
-          return read_file_result::failure(
-              std::string("file too large to read into memory: ") + path);
+          return boost::leaf::new_error(e_file_too_large());
         }
 
         boost::leaf::result<padded_string> content =
@@ -218,8 +217,9 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
         result.content = std::move(*content);
         return result;
       },
-      [](e_file_too_large) {
-        return read_file_result::failure("file too large to read into memory");
+      [&](e_file_too_large) {
+        return read_file_result::failure(
+            std::string("file too large to read into memory: ") + path);
       },
       [&](const boost::leaf::e_errno &error) {
         return read_file_result::failure(std::string("failed to read from ") +
