@@ -94,54 +94,62 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
   }
 }
 
+boost::leaf::result<padded_string> read_file_with_expected_size_impl(
+    platform_file_ref file, int file_size, int buffer_size) {
+  padded_string content;
+
+  std::optional<int> size_to_read = checked_add(file_size, 1);
+  if (!size_to_read.has_value()) {
+    return boost::leaf::new_error(e_file_too_large());
+  }
+  content.resize_grow_uninitialized(*size_to_read);
+
+  file_read_result read_result = file.read(content.data(), *size_to_read);
+  if (!read_result) return read_result.error();
+  if (read_result.at_end_of_file()) {
+    // The file was empty.
+    content.resize(0);
+    return content;
+  }
+  if (read_result.bytes_read() == file_size) {
+    // We possibly read the entire file. Make extra sure by reading one more
+    // byte.
+    file_read_result extra_read_result =
+        file.read(content.data() + file_size, 1);
+    if (!extra_read_result) return extra_read_result.error();
+    if (extra_read_result.at_end_of_file()) {
+      // We definitely read the entire file.
+      content.resize(read_result.bytes_read());
+      return content;
+    } else {
+      // We didn't read the entire file the first time. Keep reading.
+      content.resize(read_result.bytes_read() + extra_read_result.bytes_read());
+      boost::leaf::result<void> r =
+          read_file_buffered(file, buffer_size, &content);
+      if (!r) return r.error();
+      return content;
+    }
+  } else {
+    content.resize(read_result.bytes_read());
+    // We did not read the entire file. There is more data to read.
+    boost::leaf::result<void> r =
+        read_file_buffered(file, buffer_size, &content);
+    if (!r) return r.error();
+    return content;
+  }
+}
+
 read_file_result read_file_with_expected_size(platform_file_ref file,
                                               const char *path, int file_size,
                                               int buffer_size) {
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<read_file_result> {
+        boost::leaf::result<padded_string> content =
+            read_file_with_expected_size_impl(file, file_size, buffer_size);
+        if (!content) return content.error();
         read_file_result result;
-
-        std::optional<int> size_to_read = checked_add(file_size, 1);
-        if (!size_to_read.has_value()) {
-          return boost::leaf::new_error(e_file_too_large());
-        }
-        result.content.resize_grow_uninitialized(*size_to_read);
-
-        file_read_result read_result =
-            file.read(result.content.data(), *size_to_read);
-        if (!read_result) return read_result.error();
-        if (read_result.at_end_of_file()) {
-          // The file was empty.
-          result.content.resize(0);
-          return result;
-        }
-        if (read_result.bytes_read() == file_size) {
-          // We possibly read the entire file. Make extra sure by reading one
-          // more byte.
-          file_read_result extra_read_result =
-              file.read(result.content.data() + file_size, 1);
-          if (!extra_read_result) return extra_read_result.error();
-          if (extra_read_result.at_end_of_file()) {
-            // We definitely read the entire file.
-            result.content.resize(read_result.bytes_read());
-            return result;
-          } else {
-            // We didn't read the entire file the first time. Keep reading.
-            result.content.resize(read_result.bytes_read() +
-                                  extra_read_result.bytes_read());
-            boost::leaf::result<void> r =
-                read_file_buffered(file, buffer_size, &result.content);
-            if (!r) return r.error();
-            return result;
-          }
-        } else {
-          result.content.resize(read_result.bytes_read());
-          // We did not read the entire file. There is more data to read.
-          boost::leaf::result<void> r =
-              read_file_buffered(file, buffer_size, &result.content);
-          if (!r) return r.error();
-          return result;
-        }
+        result.content = std::move(*content);
+        return result;
       },
       [](e_file_too_large) {
         return read_file_result::failure("file too large to read into memory");
