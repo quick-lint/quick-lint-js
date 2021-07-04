@@ -38,7 +38,7 @@ release archive:
     $ cd ../../
     $ rm -r /PATH/TO/quick-lint-js/vendor/boost/
     $ mkdir /PATH/TO/quick-lint-js/vendor/boost/
-    $ boost_libs="boost/container/pmr/global_resource.hpp boost/container/pmr/memory_resource.hpp boost/container/pmr/monotonic_buffer_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/container/small_vector.hpp"
+    $ boost_libs="boost/container/pmr/global_resource.hpp boost/leaf.hpp boost/container/pmr/memory_resource.hpp boost/container/pmr/monotonic_buffer_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/container/small_vector.hpp"
     $ eval ./dist/bin/bcp ${boost_libs} /PATH/TO/quick-lint-js/vendor/boost/
     $ eval ./dist/bin/bcp --report ${boost_libs} /PATH/TO/quick-lint-js/vendor/boost/report.html
     $ cp LICENSE_1_0.txt /PATH/TO/quick-lint-js/vendor/boost/
