@@ -63,8 +63,9 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
-void read_file_buffered(platform_file_ref file, const char *path,
-                        int buffer_size, read_file_result *out) {
+boost::leaf::result<void> read_file_buffered(platform_file_ref file,
+                                             int buffer_size,
+                                             read_file_result *out) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
@@ -73,46 +74,18 @@ void read_file_buffered(platform_file_ref file, const char *path,
       std::optional<int> new_size = checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
-        out->error = "file too large to read into memory";
-        return;
+        return boost::leaf::new_error(e_file_too_large());
       }
       out->content.resize_grow_uninitialized(size_before + buffer_size);
     }
 
-    boost::leaf::context<
-#if QLJS_HAVE_WINDOWS_H
-        boost::leaf::windows::e_LastError
-#elif QLJS_HAVE_UNISTD_H
-        boost::leaf::e_errno
-#endif
-        >
-        error_context;
-    auto error_context_guard = boost::leaf::activate_context(error_context);
     file_read_result read_result =
         file.read(&out->content.data()[size_before], buffer_size);
-    if (!read_result) {
-      error_context.deactivate();
-      out->error = error_context.handle_error<std::string>(
-          read_result.error(),
-#if QLJS_HAVE_WINDOWS_H
-          [&](const boost::leaf::windows::e_LastError &error) {
-            return std::string("failed to read from ") + path + ": " +
-                   error_message(error);
-          },
-#endif
-#if QLJS_HAVE_UNISTD_H
-          [&](const boost::leaf::e_errno &error) {
-            return std::string("failed to read from ") + path + ": " +
-                   error_message(error);
-          },
-#endif
-          []() -> std::string { QLJS_UNREACHABLE(); });
-      return;
-    }
+    if (!read_result) return read_result.error();
     if (read_result.at_end_of_file()) {
       // We read the entire file.
       out->content.resize(size_before);
-      return;
+      return {};
     }
     std::optional<int> new_size =
         checked_add(size_before, read_result.bytes_read());
@@ -135,16 +108,19 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
 
   boost::leaf::context<
 #if QLJS_HAVE_WINDOWS_H
-      boost::leaf::windows::e_LastError
+      boost::leaf::windows::e_LastError,
 #elif QLJS_HAVE_UNISTD_H
-      boost::leaf::e_errno
+      boost::leaf::e_errno,
 #endif
-      >
+      e_file_too_large>
       error_context;
   auto error_context_guard = boost::leaf::activate_context(error_context);
   auto get_error = [&](auto &&r) -> std::string {
     return error_context.handle_error<std::string>(
         r.error(),
+        [](e_file_too_large) -> std::string {
+          return "file too large to read into memory";
+        },
 #if QLJS_HAVE_WINDOWS_H
         [&](const boost::leaf::windows::e_LastError &error) {
           return std::string("failed to read from ") + path + ": " +
@@ -190,13 +166,25 @@ read_file_result read_file_with_expected_size(platform_file_ref file,
       // We didn't read the entire file the first time. Keep reading.
       result.content.resize(read_result.bytes_read() +
                             extra_read_result.bytes_read());
-      read_file_buffered(file, path, buffer_size, &result);
+      boost::leaf::result<void> r =
+          read_file_buffered(file, buffer_size, &result);
+      if (!r) {
+        error_context.deactivate();
+        result.error = get_error(r);
+        return result;
+      }
       return result;
     }
   } else {
     result.content.resize(read_result.bytes_read());
     // We did not read the entire file. There is more data to read.
-    read_file_buffered(file, path, buffer_size, &result);
+    boost::leaf::result<void> r =
+        read_file_buffered(file, buffer_size, &result);
+    if (!r) {
+      error_context.deactivate();
+      result.error = get_error(r);
+      return result;
+    }
     return result;
   }
 }

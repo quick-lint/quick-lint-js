@@ -21,6 +21,8 @@ struct read_file_result {
   static read_file_result failure(const std::string &error);
 };
 
+struct e_file_too_large {};
+
 read_file_result read_file(const char *path);
 
 read_file_result read_file(const char *path, platform_file_ref);
