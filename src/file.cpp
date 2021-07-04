@@ -97,96 +97,68 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
 read_file_result read_file_with_expected_size(platform_file_ref file,
                                               const char *path, int file_size,
                                               int buffer_size) {
-  read_file_result result;
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<read_file_result> {
+        read_file_result result;
 
-  std::optional<int> size_to_read = checked_add(file_size, 1);
-  if (!size_to_read.has_value()) {
-    result.error = "file too large to read into memory";
-    return result;
-  }
-  result.content.resize_grow_uninitialized(*size_to_read);
+        std::optional<int> size_to_read = checked_add(file_size, 1);
+        if (!size_to_read.has_value()) {
+          return boost::leaf::new_error(e_file_too_large());
+        }
+        result.content.resize_grow_uninitialized(*size_to_read);
 
-  boost::leaf::context<
+        file_read_result read_result =
+            file.read(result.content.data(), *size_to_read);
+        if (!read_result) return read_result.error();
+        if (read_result.at_end_of_file()) {
+          // The file was empty.
+          result.content.resize(0);
+          return result;
+        }
+        if (read_result.bytes_read() == file_size) {
+          // We possibly read the entire file. Make extra sure by reading one
+          // more byte.
+          file_read_result extra_read_result =
+              file.read(result.content.data() + file_size, 1);
+          if (!extra_read_result) return extra_read_result.error();
+          if (extra_read_result.at_end_of_file()) {
+            // We definitely read the entire file.
+            result.content.resize(read_result.bytes_read());
+            return result;
+          } else {
+            // We didn't read the entire file the first time. Keep reading.
+            result.content.resize(read_result.bytes_read() +
+                                  extra_read_result.bytes_read());
+            boost::leaf::result<void> r =
+                read_file_buffered(file, buffer_size, &result.content);
+            if (!r) return r.error();
+            return result;
+          }
+        } else {
+          result.content.resize(read_result.bytes_read());
+          // We did not read the entire file. There is more data to read.
+          boost::leaf::result<void> r =
+              read_file_buffered(file, buffer_size, &result.content);
+          if (!r) return r.error();
+          return result;
+        }
+      },
+      [](e_file_too_large) {
+        return read_file_result::failure("file too large to read into memory");
+      },
 #if QLJS_HAVE_WINDOWS_H
-      boost::leaf::windows::e_LastError,
-#elif QLJS_HAVE_UNISTD_H
-      boost::leaf::e_errno,
-#endif
-      e_file_too_large>
-      error_context;
-  auto error_context_guard = boost::leaf::activate_context(error_context);
-  auto get_error = [&](auto &&r) -> std::string {
-    return error_context.handle_error<std::string>(
-        r.error(),
-        [](e_file_too_large) -> std::string {
-          return "file too large to read into memory";
-        },
-#if QLJS_HAVE_WINDOWS_H
-        [&](const boost::leaf::windows::e_LastError &error) {
-          return std::string("failed to read from ") + path + ": " +
-                 error_message(error);
-        },
+      [&](const boost::leaf::windows::e_LastError &error) {
+        return read_file_result::failure(std::string("failed to read from ") +
+                                         path + ": " + error_message(error));
+      },
 #endif
 #if QLJS_HAVE_UNISTD_H
-        [&](const boost::leaf::e_errno &error) {
-          return std::string("failed to read from ") + path + ": " +
-                 error_message(error);
-        },
+      [&](const boost::leaf::e_errno &error) {
+        return read_file_result::failure(std::string("failed to read from ") +
+                                         path + ": " + error_message(error));
+      },
 #endif
-        []() -> std::string { QLJS_UNREACHABLE(); });
-  };
-
-  file_read_result read_result =
-      file.read(result.content.data(), *size_to_read);
-  if (!read_result) {
-    error_context.deactivate();
-    result.error = get_error(read_result);
-    return result;
-  }
-  if (read_result.at_end_of_file()) {
-    // The file was empty.
-    result.content.resize(0);
-    return result;
-  }
-  if (read_result.bytes_read() == file_size) {
-    // We possibly read the entire file. Make extra sure by reading one more
-    // byte.
-    file_read_result extra_read_result =
-        file.read(result.content.data() + file_size, 1);
-    if (!extra_read_result) {
-      error_context.deactivate();
-      result.error = get_error(read_result);
-      return result;
-    }
-    if (extra_read_result.at_end_of_file()) {
-      // We definitely read the entire file.
-      result.content.resize(read_result.bytes_read());
-      return result;
-    } else {
-      // We didn't read the entire file the first time. Keep reading.
-      result.content.resize(read_result.bytes_read() +
-                            extra_read_result.bytes_read());
-      boost::leaf::result<void> r =
-          read_file_buffered(file, buffer_size, &result.content);
-      if (!r) {
-        error_context.deactivate();
-        result.error = get_error(r);
-        return result;
-      }
-      return result;
-    }
-  } else {
-    result.content.resize(read_result.bytes_read());
-    // We did not read the entire file. There is more data to read.
-    boost::leaf::result<void> r =
-        read_file_buffered(file, buffer_size, &result.content);
-    if (!r) {
-      error_context.deactivate();
-      result.error = get_error(r);
-      return result;
-    }
-    return result;
-  }
+      []() -> read_file_result { QLJS_UNREACHABLE(); });
 }
 }
 
