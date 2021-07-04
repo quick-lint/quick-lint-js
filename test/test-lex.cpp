@@ -857,6 +857,8 @@ TEST_F(test_lex, lex_templates) {
 world`)",
       {token_type::complete_template});
   this->check_tokens(u8"`hello\\\nworld`"_sv, {token_type::complete_template});
+  this->check_tokens(u8R"(`\uabcd`)", {token_type::complete_template});
+  this->check_tokens(u8R"(`\u{abcd}`)", {token_type::complete_template});
 
   {
     padded_string code(u8"`hello${42}`"_sv);
