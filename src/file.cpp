@@ -177,6 +177,24 @@ read_file_result read_file(const char *path, windows_handle_file_ref file) {
       },
       []() -> read_file_result { QLJS_UNREACHABLE(); });
 }
+
+boost::leaf::result<padded_string> read_file_2(windows_handle_file_ref file) {
+  int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
+
+  ::LARGE_INTEGER file_size;
+  if (!::GetFileSizeEx(file.get(), &file_size)) {
+    DWORD error = ::GetLastError();
+    return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+  }
+  if (!in_range<int>(file_size.QuadPart)) {
+    return boost::leaf::new_error(e_file_too_large());
+  }
+
+  return read_file_with_expected_size(
+      /*file=*/file,
+      /*file_size=*/narrow_cast<int>(file_size.QuadPart),
+      /*buffer_size=*/buffer_size);
+}
 #endif
 
 #if defined(QLJS_FILE_POSIX)
@@ -227,6 +245,22 @@ read_file_result read_file(const char *path, posix_fd_file_ref file) {
       },
       []() -> read_file_result { QLJS_UNREACHABLE(); });
 }
+
+boost::leaf::result<padded_string> read_file_2(posix_fd_file_ref file) {
+  struct stat s;
+  int rc = ::fstat(file.get(), &s);
+  if (rc == -1) {
+    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+  }
+  auto file_size = s.st_size;
+  if (!in_range<int>(file_size)) {
+    return boost::leaf::new_error(e_file_too_large());
+  }
+
+  return read_file_with_expected_size(
+      /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
+      /*buffer_size=*/reasonable_buffer_size(s));
+}
 #endif
 
 #if defined(QLJS_FILE_WINDOWS)
@@ -257,9 +291,30 @@ read_file_result read_file(const char *path) {
   return read_file(path, file.ref());
 }
 
-read_file_result read_stdin() {
+boost::leaf::result<padded_string> read_file_2(const char *path) {
+  std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
+  if (!wpath) {
+    DWORD error = ::GetLastError();
+    return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+  }
+  HANDLE handle = ::CreateFileW(
+      wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
+      /*dwShareMode=*/FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+      /*lpSecurityAttributes=*/nullptr,
+      /*dwCreationDisposition=*/OPEN_EXISTING,
+      /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
+      /*hTemplateFile=*/nullptr);
+  if (handle == INVALID_HANDLE_VALUE) {
+    DWORD error = ::GetLastError();
+    return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+  }
+  windows_handle_file file(handle);
+  return read_file_2(file.ref());
+}
+
+boost::leaf::result<padded_string> read_stdin_2() {
   windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
-  return read_file("<stdin>", file);
+  return read_file_2(file);
 }
 #endif
 
@@ -277,9 +332,18 @@ read_file_result read_file(const char *path) {
   return read_file(path, file.ref());
 }
 
-read_file_result read_stdin() {
+boost::leaf::result<padded_string> read_file_2(const char *path) {
+  int fd = ::open(path, O_CLOEXEC | O_RDONLY);
+  if (fd == -1) {
+    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+  }
+  posix_fd_file file(fd);
+  return read_file_2(file.ref());
+}
+
+boost::leaf::result<padded_string> read_stdin_2() {
   posix_fd_file_ref file(STDIN_FILENO);
-  return read_file("<stdin>", file);
+  return read_file_2(file);
 }
 #endif
 

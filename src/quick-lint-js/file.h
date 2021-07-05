@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_FILE_H
 #define QUICK_LINT_JS_FILE_H
 
+#include <boost/leaf/result.hpp>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/padded-string.h>
@@ -24,10 +25,16 @@ struct read_file_result {
 struct e_file_too_large {};
 
 read_file_result read_file(const char *path);
-
 read_file_result read_file(const char *path, platform_file_ref);
 
-read_file_result read_stdin(void);
+// Possible error types:
+//
+// * boost::leaf::e_errno
+// * boost::leaf::windows::e_LastError
+// * e_file_too_large
+boost::leaf::result<padded_string> read_file_2(const char *path);
+boost::leaf::result<padded_string> read_file_2(platform_file_ref);
+boost::leaf::result<padded_string> read_stdin_2(void);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);

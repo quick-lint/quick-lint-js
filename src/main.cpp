@@ -174,16 +174,48 @@ void handle_options(quick_lint_js::options o) {
       std::fprintf(stderr, "error: %s\n", config.error.c_str());
       std::exit(1);
     }
-    quick_lint_js::read_file_result source;
-    if (file.is_stdin) {
-      source = quick_lint_js::read_stdin();
-    } else {
-      source = quick_lint_js::read_file(file.path);
-    }
-    source.exit_if_not_ok();
-    reporter.set_source(&source.content, file);
-    quick_lint_js::process_file(&source.content, *config, reporter.get(),
-                                o.print_parser_visits);
+    const char *file_name_for_error_messages =
+        file.is_stdin ? "<stdin>" : file.path;
+    boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<void> {
+          boost::leaf::result<padded_string> source =
+              file.is_stdin ? quick_lint_js::read_stdin_2()
+                            : quick_lint_js::read_file_2(file.path);
+          if (!source) return source.error();
+          reporter.set_source(&*source, file);
+          quick_lint_js::process_file(&*source, *config, reporter.get(),
+                                      o.print_parser_visits);
+          return {};
+        },
+        [&](e_file_too_large) {
+          std::fprintf(stderr,
+                       "error: file too large to read into memory: %s\n",
+                       file_name_for_error_messages);
+          std::exit(1);
+        },
+#if QLJS_HAVE_WINDOWS_H
+        [&](const boost::leaf::windows::e_LastError &error) {
+          std::fprintf(stderr, "error: failed to read from %s: %s\n",
+                       file_name_for_error_messages,
+                       error_message(error).c_str());
+          std::exit(1);
+        },
+#endif
+#if QLJS_HAVE_UNISTD_H
+        [&](const boost::leaf::e_errno &error) {
+          std::fprintf(stderr, "error: failed to read from %s: %s\n",
+                       file_name_for_error_messages,
+                       std::strerror(error.value));
+          std::exit(1);
+        },
+#endif
+        [&]() {
+          QLJS_ASSERT(
+              false);  // Other catch clauses should have happened instead.
+          std::fprintf(stderr, "error: failed to read from %s\n",
+                       file_name_for_error_messages);
+          std::exit(1);
+        });
   }
   reporter.finish();
 
