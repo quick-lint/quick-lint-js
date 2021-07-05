@@ -583,10 +583,17 @@ class RedHat:
         return packages
 
     def get_copyright(self, package: InstalledPackage) -> str:
-        raw_text = (
-            pathlib.Path("/usr/share/licenses") / package.source / "LICENSES"
-        ).read_text()
-        return raw_text.replace("\x0C", "\n---\n")
+        error = None
+        for file_name in ("LICENSES", "LICENSE.TXT"):
+            try:
+                raw_text = (
+                    pathlib.Path("/usr/share/licenses") / package.source / file_name
+                ).read_text()
+                return raw_text.replace("\x0C", "\n---\n")
+            except FileNotFoundError as e:
+                error = e
+        assert error is not None
+        raise error
 
     @staticmethod
     def _rpm_package_for_installed_file(file_path: str) -> str:
