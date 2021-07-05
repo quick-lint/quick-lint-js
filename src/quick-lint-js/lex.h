@@ -223,6 +223,7 @@ class lexer {
   const char8* parse_decimal_digits_and_underscores(
       const char8* input) noexcept;
   const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;
+  const char8* parse_unicode_escape(const char8* input) noexcept;
 
   parsed_identifier parse_identifier(const char8*);
   parsed_identifier parse_identifier_slow(const char8* input,
