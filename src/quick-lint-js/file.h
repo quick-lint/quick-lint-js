@@ -4,11 +4,17 @@
 #ifndef QUICK_LINT_JS_FILE_H
 #define QUICK_LINT_JS_FILE_H
 
+#include <boost/leaf/common.hpp>
 #include <boost/leaf/result.hpp>
+#include <cstdio>
+#include <cstring>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
+#include <tuple>
 
 namespace quick_lint_js {
 struct read_file_result {
@@ -38,6 +44,36 @@ boost::leaf::result<padded_string> read_stdin_2(void);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
+
+template <class Result>
+auto exit_on_read_file_error_handlers(const char *path) {
+  return std::tuple(
+      [path](e_file_too_large) -> Result {
+        std::fprintf(stderr, "error: file too large to read into memory: %s\n",
+                     path);
+        std::exit(1);
+      },
+#if QLJS_HAVE_WINDOWS_H
+      [path](const boost::leaf::windows::e_LastError &error) -> Result {
+        std::fprintf(stderr, "error: failed to read from %s: %s\n", path,
+                     error_message(error).c_str());
+        std::exit(1);
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
+      [path](const boost::leaf::e_errno &error) -> Result {
+        std::fprintf(stderr, "error: failed to read from %s: %s\n", path,
+                     std::strerror(error.value));
+        std::exit(1);
+      },
+#endif
+      [path]() -> Result {
+        QLJS_ASSERT(
+            false);  // Other catch clauses should have happened instead.
+        std::fprintf(stderr, "error: failed to read from %s\n", path);
+        std::exit(1);
+      });
+}
 }
 
 #endif

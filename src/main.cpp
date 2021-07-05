@@ -187,35 +187,7 @@ void handle_options(quick_lint_js::options o) {
                                       o.print_parser_visits);
           return {};
         },
-        [&](e_file_too_large) {
-          std::fprintf(stderr,
-                       "error: file too large to read into memory: %s\n",
-                       file_name_for_error_messages);
-          std::exit(1);
-        },
-#if QLJS_HAVE_WINDOWS_H
-        [&](const boost::leaf::windows::e_LastError &error) {
-          std::fprintf(stderr, "error: failed to read from %s: %s\n",
-                       file_name_for_error_messages,
-                       error_message(error).c_str());
-          std::exit(1);
-        },
-#endif
-#if QLJS_HAVE_UNISTD_H
-        [&](const boost::leaf::e_errno &error) {
-          std::fprintf(stderr, "error: failed to read from %s: %s\n",
-                       file_name_for_error_messages,
-                       std::strerror(error.value));
-          std::exit(1);
-        },
-#endif
-        [&]() {
-          QLJS_ASSERT(
-              false);  // Other catch clauses should have happened instead.
-          std::fprintf(stderr, "error: failed to read from %s\n",
-                       file_name_for_error_messages);
-          std::exit(1);
-        });
+        exit_on_read_file_error_handlers<void>(file_name_for_error_messages));
   }
   reporter.finish();
 
