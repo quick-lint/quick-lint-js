@@ -30,6 +30,11 @@ namespace quick_lint_js {
 //   end of file | false         | true
 //   error       | false         | false
 //   success     | true          | true
+//
+// Possible error types:
+//
+// * boost::leaf::e_errno
+// * boost::leaf::windows::e_LastError
 struct file_read_result : public boost::leaf::result<std::optional<int>> {
   using boost::leaf::result<std::optional<int>>::result;
 
