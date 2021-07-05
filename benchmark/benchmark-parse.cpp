@@ -26,11 +26,10 @@ void benchmark_parse(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  read_file_result source(quick_lint_js::read_file(source_path));
-  source.exit_if_not_ok();
+  padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
   for (auto _ : state) {
-    parser p(&source.content, &null_error_reporter::instance);
+    parser p(&source, &null_error_reporter::instance);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }

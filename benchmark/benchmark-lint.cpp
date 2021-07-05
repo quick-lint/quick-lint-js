@@ -30,11 +30,10 @@ void benchmark_lint(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  read_file_result source(quick_lint_js::read_file(source_path));
-  source.exit_if_not_ok();
+  padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
   configuration config;
-  parser p(&source.content, &null_error_reporter::instance);
+  parser p(&source, &null_error_reporter::instance);
   buffering_visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
@@ -55,12 +54,11 @@ void benchmark_parse_and_lint(benchmark::State &state) {
                  source_path_env_var);
     std::exit(1);
   }
-  read_file_result source(quick_lint_js::read_file(source_path));
-  source.exit_if_not_ok();
+  padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
   configuration config;
   for (auto _ : state) {
-    parser p(&source.content, &null_error_reporter::instance);
+    parser p(&source, &null_error_reporter::instance);
     linter l(&null_error_reporter::instance, &config.globals());
     p.parse_and_visit_module(l);
   }
