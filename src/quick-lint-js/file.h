@@ -47,32 +47,39 @@ padded_string read_file_or_exit(const char *path);
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
 
-template <class Result>
-auto exit_on_read_file_error_handlers(const char *path) {
+// Signature for handle_error:
+// <<any rvalue result type>> handle_error(const std::string &message);
+template <class Func>
+auto make_read_file_error_handlers(const char *path, const Func &handle_error) {
+  using namespace std::literals::string_literals;
   return std::tuple(
-      [path](e_file_too_large) -> Result {
-        std::fprintf(stderr, "error: file too large to read into memory: %s\n",
-                     path);
-        std::exit(1);
+      [handle_error, path](e_file_too_large) {
+        return handle_error("file too large to read into memory: "s + path);
       },
 #if QLJS_HAVE_WINDOWS_H
-      [path](const boost::leaf::windows::e_LastError &error) -> Result {
-        std::fprintf(stderr, "error: failed to read from %s: %s\n", path,
-                     error_message(error).c_str());
-        std::exit(1);
+      [handle_error, path](const boost::leaf::windows::e_LastError &error) {
+        return handle_error("failed to read from "s + path + ": "s +
+                            error_message(error));
       },
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [path](const boost::leaf::e_errno &error) -> Result {
-        std::fprintf(stderr, "error: failed to read from %s: %s\n", path,
-                     std::strerror(error.value));
-        std::exit(1);
+      [handle_error, path](const boost::leaf::e_errno &error) {
+        return handle_error("failed to read from "s + path + ": "s +
+                            std::strerror(error.value));
       },
 #endif
-      [path]() -> Result {
+      [handle_error, path]() {
         QLJS_ASSERT(
             false);  // Other catch clauses should have happened instead.
-        std::fprintf(stderr, "error: failed to read from %s\n", path);
+        return handle_error("failed to read from "s + path);
+      });
+}
+
+template <class Result>
+auto exit_on_read_file_error_handlers(const char *path) {
+  return make_read_file_error_handlers(
+      path, [](const std::string &message) -> Result {
+        std::fprintf(stderr, "error: %s\n", message.c_str());
         std::exit(1);
       });
 }
