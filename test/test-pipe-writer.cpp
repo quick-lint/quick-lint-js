@@ -2,6 +2,10 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/leaf/capture.hpp>
+#include <boost/leaf/context.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <condition_variable>
 #include <cstddef>
 #include <cstring>
@@ -51,9 +55,16 @@ byte_buffer byte_buffer_of(string8_view data) {
 }
 
 TEST_F(test_pipe_writer, large_write_sends_fully) {
-  std::future<read_file_result> data_future = std::async(
-      std::launch::async,
-      [this]() { return read_file("<pipe>", this->pipe.reader.ref()); });
+  auto read_file_error_handlers = make_read_file_error_handlers(
+      "<pipe>",
+      [](const std::string& message) -> void { ADD_FAILURE() << message; });
+  std::future<boost::leaf::result<padded_string>> data_future =
+      std::async(std::launch::async, [this] {
+        return boost::leaf::capture(
+            boost::leaf::make_shared_context<decltype(
+                read_file_error_handlers)>(),
+            [&] { return read_file_2(this->pipe.reader.ref()); });
+      });
 
   string8 to_write =
       u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
@@ -62,9 +73,14 @@ TEST_F(test_pipe_writer, large_write_sends_fully) {
   this->writer.flush();
   this->pipe.writer.close();
 
-  read_file_result data = data_future.get();
-  ASSERT_TRUE(data.ok()) << data.error;
-  EXPECT_EQ(data.content, to_write);
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<padded_string> data = data_future.get();
+        if (!data) return data.error();
+        EXPECT_EQ(*data, to_write);
+        return {};
+      },
+      read_file_error_handlers);
 }
 
 // pipe_reader_thread reads data from a pipe using a background thread. When
