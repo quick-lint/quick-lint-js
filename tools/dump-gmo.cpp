@@ -1,33 +1,45 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/gmo.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+  using namespace quick_lint_js;
+
   if (argc != 2) {
     std::cerr << "error: expected file name\n";
     std::exit(EXIT_FAILURE);
   }
 
-  quick_lint_js::read_file_result gmo_data = quick_lint_js::read_file(argv[1]);
-  gmo_data.exit_if_not_ok();
-  quick_lint_js::gmo_file gmo(gmo_data.content.data());
+  const char* gmo_path = argv[1];
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<padded_string> gmo_data = read_file_2(gmo_path);
+        if (!gmo_data) return gmo_data.error();
 
-  for (quick_lint_js::gmo_file::word_type i = 0; i < gmo.string_count(); ++i) {
-    std::string_view original = gmo.original_string_at(i);
-    std::string_view translated = gmo.translated_string_at(i);
-    std::cerr << original << "\n  -> " << translated << '\n';
+        quick_lint_js::gmo_file gmo(gmo_data->data());
 
-    std::string_view translated_by_lookup = gmo.find_translation(
-        quick_lint_js::gmo_message(original.data(), original.size()));
-    if (translated_by_lookup != translated) {
-      std::cerr << "    !!! error: lookup returned instead: "
-                << translated_by_lookup << '\n';
-    }
-  }
+        for (quick_lint_js::gmo_file::word_type i = 0; i < gmo.string_count();
+             ++i) {
+          std::string_view original = gmo.original_string_at(i);
+          std::string_view translated = gmo.translated_string_at(i);
+          std::cerr << original << "\n  -> " << translated << '\n';
+
+          std::string_view translated_by_lookup = gmo.find_translation(
+              quick_lint_js::gmo_message(original.data(), original.size()));
+          if (translated_by_lookup != translated) {
+            std::cerr << "    !!! error: lookup returned instead: "
+                      << translated_by_lookup << '\n';
+          }
+        }
+        return {};
+      },
+      exit_on_read_file_error_handlers<void>(gmo_path));
 
   return EXIT_SUCCESS;
 }
