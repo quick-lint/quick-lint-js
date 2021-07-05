@@ -42,6 +42,8 @@ boost::leaf::result<padded_string> read_file_2(const char *path);
 boost::leaf::result<padded_string> read_file_2(platform_file_ref);
 boost::leaf::result<padded_string> read_stdin_2(void);
 
+padded_string read_file_or_exit(const char *path);
+
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
 

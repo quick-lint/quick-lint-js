@@ -347,6 +347,12 @@ boost::leaf::result<padded_string> read_stdin_2() {
 }
 #endif
 
+padded_string read_file_or_exit(const char *path) {
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<padded_string> { return read_file_2(path); },
+      exit_on_read_file_error_handlers<padded_string>(path));
+}
+
 void write_file(const std::string &path, string8_view content) {
   write_file(path.c_str(), content);
 }

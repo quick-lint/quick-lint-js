@@ -17,29 +17,21 @@ int main(int argc, char** argv) {
   }
 
   const char* gmo_path = argv[1];
-  boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<void> {
-        boost::leaf::result<padded_string> gmo_data = read_file_2(gmo_path);
-        if (!gmo_data) return gmo_data.error();
+  padded_string gmo_data = read_file_or_exit(gmo_path);
+  quick_lint_js::gmo_file gmo(gmo_data.data());
 
-        quick_lint_js::gmo_file gmo(gmo_data->data());
+  for (quick_lint_js::gmo_file::word_type i = 0; i < gmo.string_count(); ++i) {
+    std::string_view original = gmo.original_string_at(i);
+    std::string_view translated = gmo.translated_string_at(i);
+    std::cerr << original << "\n  -> " << translated << '\n';
 
-        for (quick_lint_js::gmo_file::word_type i = 0; i < gmo.string_count();
-             ++i) {
-          std::string_view original = gmo.original_string_at(i);
-          std::string_view translated = gmo.translated_string_at(i);
-          std::cerr << original << "\n  -> " << translated << '\n';
-
-          std::string_view translated_by_lookup = gmo.find_translation(
-              quick_lint_js::gmo_message(original.data(), original.size()));
-          if (translated_by_lookup != translated) {
-            std::cerr << "    !!! error: lookup returned instead: "
-                      << translated_by_lookup << '\n';
-          }
-        }
-        return {};
-      },
-      exit_on_read_file_error_handlers<void>(gmo_path));
+    std::string_view translated_by_lookup = gmo.find_translation(
+        quick_lint_js::gmo_message(original.data(), original.size()));
+    if (translated_by_lookup != translated) {
+      std::cerr << "    !!! error: lookup returned instead: "
+                << translated_by_lookup << '\n';
+    }
+  }
 
   return EXIT_SUCCESS;
 }
