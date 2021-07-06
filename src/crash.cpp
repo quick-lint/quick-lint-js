@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/leaf/common.hpp>
 #include <boost/leaf/handle_errors.hpp>
 #include <boost/leaf/result.hpp>
 #include <cerrno>
@@ -63,11 +64,11 @@ core_style linux_detect_core_style() {
           return core_style::file_path;
         }
       },
-      [](const std::string& error_message) {
+      [](boost::leaf::e_errno error) {
         std::fprintf(
             stderr,
             "warning: failed to determine method to disable core dumping: %s\n",
-            error_message.c_str());
+            std::strerror(error.value));
         return core_style::unknown;
       },
       []() {
