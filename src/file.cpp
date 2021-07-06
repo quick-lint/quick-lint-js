@@ -347,6 +347,19 @@ boost::leaf::result<padded_string> read_stdin_2() {
 }
 #endif
 
+sloppy_result<padded_string> read_file_sloppy(const char *path) {
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
+        boost::leaf::result<padded_string> content = read_file_2(path);
+        if (!content) return content.error();
+        return sloppy_result<padded_string>(std::move(*content));
+      },
+      make_read_file_error_handlers(
+          path, [](const std::string &message) -> sloppy_result<padded_string> {
+            return sloppy_result<padded_string>::failure(message);
+          }));
+}
+
 sloppy_result<padded_string> read_file_sloppy(const char *path,
                                               platform_file_ref file) {
   return boost::leaf::try_handle_all(

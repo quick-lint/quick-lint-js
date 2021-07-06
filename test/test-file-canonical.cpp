@@ -17,6 +17,7 @@
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/sloppy-result.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <string>
@@ -76,9 +77,10 @@ TEST_F(test_file_canonical, canonical_path_to_regular_file) {
   ASSERT_TRUE(canonical.ok()) << std::move(canonical).error();
   EXPECT_FALSE(canonical.have_missing_components());
 
-  read_file_result file_content = read_file(canonical.c_str());
-  ASSERT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"hello\nworld!\n"));
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(canonical.c_str());
+  ASSERT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8"hello\nworld!\n"));
 }
 
 TEST_F(test_file_canonical, canonical_path_to_directory) {
