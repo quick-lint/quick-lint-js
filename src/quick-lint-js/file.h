@@ -13,6 +13,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/sloppy-result.h>
 #include <string>
 #include <tuple>
 
@@ -41,6 +42,9 @@ read_file_result read_file(const char *path, platform_file_ref);
 boost::leaf::result<padded_string> read_file_2(const char *path);
 boost::leaf::result<padded_string> read_file_2(platform_file_ref);
 boost::leaf::result<padded_string> read_stdin_2(void);
+
+sloppy_result<padded_string> read_file_sloppy(const char *path,
+                                              platform_file_ref);
 
 padded_string read_file_or_exit(const char *path);
 
