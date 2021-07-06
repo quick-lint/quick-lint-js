@@ -5,6 +5,9 @@
 
 #if QLJS_HAVE_KQUEUE
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/error.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -43,34 +46,23 @@ canonical_path_result change_detecting_filesystem_kqueue::canonicalize_path(
   return quick_lint_js::canonicalize_path(path);
 }
 
-read_file_result change_detecting_filesystem_kqueue::read_file(
-    const canonical_path& path) {
+boost::leaf::result<padded_string>
+change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    int error = errno;
-    read_file_result result = read_file_result::failure(
-        std::string("failed to open ") + directory.c_str() + ": " +
-        std::strerror(error));
-    result.is_not_found_error = error == ENOENT;
-    return result;
+    return boost::leaf::new_error(boost::leaf::e_errno{errno});
   }
 
   // TODO(strager): Use openat. watch_directory opened a directory fd.
   posix_fd_file file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    int error = errno;
-    read_file_result result =
-        read_file_result::failure(std::string("failed to open ") +
-                                  path.c_str() + ": " + std::strerror(error));
-    result.is_not_found_error = error == ENOENT;
-    return result;
+    return boost::leaf::new_error(boost::leaf::e_errno{errno});
   }
 
   auto watch_it = this->watch_file(canonical_path(path), std::move(file));
-  return quick_lint_js::read_file(watch_it->first.c_str(),
-                                  watch_it->second.fd.ref());
+  return quick_lint_js::read_file_2(watch_it->second.fd.ref());
 }
 
 bool change_detecting_filesystem_kqueue::watch_directory(

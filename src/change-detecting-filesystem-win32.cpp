@@ -4,6 +4,7 @@
 #if defined(_WIN32)
 
 #include <Windows.h>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -86,21 +87,17 @@ canonical_path_result change_detecting_filesystem_win32::canonicalize_path(
   return quick_lint_js::canonicalize_path(path);
 }
 
-read_file_result change_detecting_filesystem_win32::read_file(
+boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(
     const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    int error = ::GetLastError();
-    read_file_result result = read_file_result::failure(
-        std::string("failed to open ") + directory.c_str() + ": " +
-        windows_error_message(error));
-    result.is_not_found_error = error == ERROR_FILE_NOT_FOUND;
-    return result;
+    return boost::leaf::new_error(
+        boost::leaf::windows::e_LastError{::GetLastError()});
   }
 
-  return quick_lint_js::read_file(path.c_str());
+  return quick_lint_js::read_file_2(path.c_str());
 }
 
 bool change_detecting_filesystem_win32::handle_event(

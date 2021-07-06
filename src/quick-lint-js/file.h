@@ -53,8 +53,9 @@ padded_string read_file_or_exit(const char *path);
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
 
-// Signature for handle_error:
+// Valid signatures for handle_error:
 // <<any rvalue result type>> handle_error(const std::string &message);
+// <<any rvalue result type>> handle_error(std::string &&message);
 template <class Func>
 auto make_read_file_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;

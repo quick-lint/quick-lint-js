@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
+#include <boost/leaf/result.hpp>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
@@ -20,7 +21,8 @@ class configuration_filesystem {
   virtual ~configuration_filesystem() = default;
 
   virtual canonical_path_result canonicalize_path(const std::string&) = 0;
-  virtual read_file_result read_file(const canonical_path&) = 0;
+  virtual boost::leaf::result<padded_string> read_file(
+      const canonical_path&) = 0;
 };
 
 struct configuration_change {
@@ -106,7 +108,7 @@ class basic_configuration_filesystem : public configuration_filesystem {
   static basic_configuration_filesystem* instance() noexcept;
 
   canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 };
 }
 

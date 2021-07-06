@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_H
 #define QUICK_LINT_JS_LSP_SERVER_H
 
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
 #include <quick-lint-js/assert.h>
@@ -50,7 +51,7 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
       configuration_filesystem* underlying_fs);
 
   canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   void open_document(const std::string&, document<lsp_locator>*);
   void close_document(const std::string&);

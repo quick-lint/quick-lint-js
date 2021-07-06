@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -23,10 +24,8 @@ class null_configuration_filesystem : public configuration_filesystem {
     return canonical_path_result(std::string(path), /*existing_path_length=*/0);
   }
 
-  read_file_result read_file(const canonical_path&) override {
-    read_file_result result = read_file_result::failure("");
-    result.is_not_found_error = true;
-    return result;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override {
+    return boost::leaf::new_error(boost::leaf::e_errno{ENOENT});
   }
 };
 }

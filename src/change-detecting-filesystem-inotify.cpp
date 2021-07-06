@@ -5,6 +5,7 @@
 
 #if QLJS_HAVE_INOTIFY
 
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -60,21 +61,16 @@ canonical_path_result change_detecting_filesystem_inotify::canonicalize_path(
   return quick_lint_js::canonicalize_path(path);
 }
 
-read_file_result change_detecting_filesystem_inotify::read_file(
-    const canonical_path& path) {
+boost::leaf::result<padded_string>
+change_detecting_filesystem_inotify::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    int error = errno;
-    read_file_result result = read_file_result::failure(
-        std::string("failed to open ") + directory.c_str() + ": " +
-        std::strerror(error));
-    result.is_not_found_error = error == ENOENT;
-    return result;
+    return boost::leaf::new_error(boost::leaf::e_errno{errno});
   }
 
-  return quick_lint_js::read_file(path.c_str());
+  return quick_lint_js::read_file_2(path.c_str());
 }
 
 posix_fd_file_ref

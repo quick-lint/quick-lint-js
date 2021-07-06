@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -55,8 +56,8 @@ canonical_path_result lsp_overlay_configuration_filesystem::canonicalize_path(
   return this->underlying_fs_->canonicalize_path(path);
 }
 
-read_file_result lsp_overlay_configuration_filesystem::read_file(
-    const canonical_path& path) {
+boost::leaf::result<padded_string>
+lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
   std::string_view key = path.path();
 #else
@@ -66,9 +67,7 @@ read_file_result lsp_overlay_configuration_filesystem::read_file(
   if (doc_it == this->overlaid_documents_.end()) {
     return this->underlying_fs_->read_file(path);
   }
-  read_file_result result;
-  result.content = padded_string(doc_it->second->string().string_view());
-  return result;
+  return padded_string(doc_it->second->string().string_view());
 }
 
 void lsp_overlay_configuration_filesystem::open_document(

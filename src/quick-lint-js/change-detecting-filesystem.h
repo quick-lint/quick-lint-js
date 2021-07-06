@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 #define QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 
+#include <boost/leaf/result.hpp>
 #include <memory>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
@@ -39,7 +40,7 @@ class change_detecting_filesystem_inotify : public configuration_filesystem {
   ~change_detecting_filesystem_inotify() override;
 
   canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   posix_fd_file_ref get_inotify_fd() noexcept;
   void handle_poll_event(const ::pollfd& event);
@@ -64,7 +65,7 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem {
   ~change_detecting_filesystem_kqueue() override;
 
   canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
 
@@ -109,7 +110,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
   ~change_detecting_filesystem_win32() override;
 
   canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   windows_handle_file_ref io_completion_port() const noexcept {
     return this->io_completion_port_;
