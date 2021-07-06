@@ -2,6 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <climits>
 #include <cstddef>
@@ -42,6 +45,8 @@
 #define QLJS_PATHS_WIN32 0
 #endif
 
+using namespace std::literals::string_literals;
+
 namespace quick_lint_js {
 namespace {
 #if QLJS_PATHS_WIN32
@@ -78,7 +83,6 @@ int read_symbolic_link(const char *symlink_path, std::string *out);
 #endif
 
 #if QLJS_PATHS_POSIX
-std::string string_for_error_message(std::string_view);
 const std::string &string_for_error_message(const std::string &);
 #endif
 
@@ -229,19 +233,17 @@ class path_canonicalizer_base {
   explicit path_canonicalizer_base(path_string_view path)
       : original_path_(path) {}
 
-  void canonicalize() {
+  boost::leaf::result<void> canonicalize() {
     if (original_path_.empty()) {
-      error_ = std::string("failed to canonicalize empty path: ") +
-               std::strerror(EINVAL);
-      return;
+      return boost::leaf::new_error(e_invalid_argument_empty_path());
     }
 
-    this->derived().process_start_of_path();
-    if (!error_.empty()) return;
+    boost::leaf::result<void> ok = this->derived().process_start_of_path();
+    if (!ok) return ok.error();
 
     while (!path_to_process_.empty()) {
-      process_next_component();
-      if (!error_.empty()) return;
+      boost::leaf::result<void> next_ok = process_next_component();
+      if (!next_ok) return next_ok.error();
     }
 
     if (need_root_slash_) {
@@ -254,12 +256,12 @@ class path_canonicalizer_base {
     if (existing_path_length_ == 0) {
       existing_path_length_ = canonical_.size();
     }
+
+    return {};
   }
 
  protected:
   enum class file_type {
-    error,
-
     directory,
     does_not_exist,
     other,
@@ -267,7 +269,7 @@ class path_canonicalizer_base {
   };
 
  private:
-  void process_next_component() {
+  boost::leaf::result<void> process_next_component() {
     path_string_view component = parse_next_component();
     QLJS_ASSERT(!component.empty());
     if (component == dot) {
@@ -292,15 +294,13 @@ class path_canonicalizer_base {
         // A parent path did not exist, so this path certainly does not exist.
         // Don't bother checking.
         skip_to_next_component();
-        return;
+        return {};
       }
 
-      file_type type = this->derived().get_file_type(canonical_);
-      switch (type) {
-      case file_type::error:
-        QLJS_ASSERT(!error_.empty());
-        return;
-
+      boost::leaf::result<file_type> type =
+          this->derived().get_file_type(canonical_);
+      if (!type) return type.error();
+      switch (*type) {
       case file_type::does_not_exist:
         if (existing_path_length_ == 0) {
           existing_path_length_ = canonical_length_without_component;
@@ -316,20 +316,21 @@ class path_canonicalizer_base {
         // Extra components and trailing slashes are not allowed for regular
         // files, FIFOs, etc.
         if (!path_to_process_.empty()) {
-          error_ = std::string("failed to canonicalize path ") +
-                   string_for_error_message(original_path_) + ": " +
-                   string_for_error_message(canonical_) + ": " +
-                   std::strerror(ENOTDIR);
-          return;
+          return boost::leaf::new_error(
+              boost::leaf::e_errno{ENOTDIR},
+              e_canonicalizing_path{string_for_error_message(canonical_)});
         }
         break;
 
-      case file_type::symlink:
-        this->derived().resolve_symlink();
-        if (!error_.empty()) return;
+      case file_type::symlink: {
+        boost::leaf::result<void> ok = this->derived().resolve_symlink();
+        if (!ok) return ok.error();
         break;
       }
+      }
     }
+
+    return {};
   }
 
   path_string_view parse_next_component() {
@@ -377,9 +378,6 @@ class path_canonicalizer_base {
   path_string readlink_buffers_[2];
   int used_readlink_buffer_ = 0;  // Index into readlink_buffers_.
 
-  // If non-empty, then an error occurred.
-  std::string error_;
-
   int symlink_depth_ = 0;
   static constexpr int symlink_depth_limit_ = 100;
 };
@@ -395,13 +393,10 @@ class posix_path_canonicalizer
   using base::path_canonicalizer_base;
 
   canonical_path_result result() {
-    if (!error_.empty()) {
-      return canonical_path_result::failure(std::move(error_));
-    }
     return canonical_path_result(std::move(canonical_), existing_path_length_);
   }
 
-  void process_start_of_path() {
+  boost::leaf::result<void> process_start_of_path() {
     bool is_absolute = !path_to_process_.empty() &&
                        path_to_process_[0] == preferred_component_separator;
     if (is_absolute) {
@@ -409,22 +404,23 @@ class posix_path_canonicalizer
       canonical_.clear();
       need_root_slash_ = true;
     } else {
-      load_cwd();
+      boost::leaf::result<void> ok = load_cwd();
+      if (!ok) return ok.error();
     }
+    return {};
   }
 
-  void load_cwd() {
+  boost::leaf::result<void> load_cwd() {
     // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
     // buffer?
     canonical_.resize(PATH_MAX);
     if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
-      error_ = std::string("failed to get current directory: ") +
-               std::strerror(errno);
-      return;
+      return boost::leaf::new_error(boost::leaf::e_errno{errno});
     }
     canonical_.resize(std::strlen(canonical_.c_str()));
 
     need_root_slash_ = false;
+    return {};
   }
 
   void parent() {
@@ -433,18 +429,16 @@ class posix_path_canonicalizer
     }
   }
 
-  file_type get_file_type(const path_string &file_path) {
+  boost::leaf::result<file_type> get_file_type(const path_string &file_path) {
     struct stat s;
     int lstat_rc = ::lstat(file_path.c_str(), &s);
     if (lstat_rc == -1) {
       if (errno == ENOENT) {
         return file_type::does_not_exist;
       }
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               string_for_error_message(canonical_) + ": " +
-               std::strerror(errno);
-      return file_type::error;
+      return boost::leaf::new_error(
+          boost::leaf::e_errno{errno},
+          e_canonicalizing_path{string_for_error_message(canonical_)});
     }
     if (S_ISLNK(s.st_mode)) {
       return file_type::symlink;
@@ -455,13 +449,10 @@ class posix_path_canonicalizer
     return file_type::other;
   }
 
-  void resolve_symlink() {
+  boost::leaf::result<void> resolve_symlink() {
     symlink_depth_ += 1;
     if (symlink_depth_ >= symlink_depth_limit_) {
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               std::strerror(ELOOP);
-      return;
+      return boost::leaf::new_error(e_too_many_symlinks());
     }
 
     std::string &new_readlink_buffer =
@@ -469,11 +460,9 @@ class posix_path_canonicalizer
     int readlink_rc =
         read_symbolic_link(canonical_.c_str(), &new_readlink_buffer);
     if (readlink_rc == -1) {
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               string_for_error_message(canonical_) + ": " +
-               std::strerror(errno);
-      return;
+      return boost::leaf::new_error(
+          boost::leaf::e_errno{errno},
+          e_canonicalizing_path{string_for_error_message(canonical_)});
     }
 
     // Rebase the remaining input components onto the readlink result.
@@ -492,6 +481,8 @@ class posix_path_canonicalizer
     swap_readlink_buffers();
 
     process_start_of_path();
+
+    return {};
   }
 
  private:
@@ -512,9 +503,6 @@ class windows_path_canonicalizer
   using base::path_canonicalizer_base;
 
   canonical_path_result result() {
-    if (!error_.empty()) {
-      return canonical_path_result::failure(std::move(error_));
-    }
     // HACK(strager): Convert UTF-16 to UTF-8.
     // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
     // interpreted as UTF-8 code units! Fix by storing a std::wstring in
@@ -523,7 +511,7 @@ class windows_path_canonicalizer
                                  existing_path_length_);
   }
 
-  void process_start_of_path() {
+  boost::leaf::result<void> process_start_of_path() {
     std::wstring temp(path_to_process_);
 
     // The PathCch functions only support '\' as a directory separator. Convert
@@ -553,18 +541,22 @@ class windows_path_canonicalizer
       need_root_slash_ = true;
       break;
 
-    case HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER):
+    case HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER): {
       // Path is invalid or is relative. Assume that it is relative.
-      load_cwd();
+      boost::leaf::result<void> ok = load_cwd();
+      if (!ok) return ok.error();
       break;
+    }
 
     default:
       QLJS_UNIMPLEMENTED();
       break;
     }
+
+    return {};
   }
 
-  void load_cwd() {
+  boost::leaf::result<void> load_cwd() {
     // size includes the null terminator.
     DWORD size = ::GetCurrentDirectoryW(0, nullptr);
     if (size == 0) {
@@ -581,6 +573,7 @@ class windows_path_canonicalizer
     }
 
     need_root_slash_ = false;
+    return {};
   }
 
   void parent() {
@@ -603,18 +596,16 @@ class windows_path_canonicalizer
     canonical_.resize(std::wcslen(canonical_.data()));
   }
 
-  file_type get_file_type(const path_string &file_path) {
+  boost::leaf::result<file_type> get_file_type(const path_string &file_path) {
     DWORD attributes = ::GetFileAttributesW(file_path.c_str());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
       DWORD error = ::GetLastError();
       if (error == ERROR_FILE_NOT_FOUND) {
         return file_type::does_not_exist;
       }
-      error_ = std::string("failed to canonicalize path ") +
-               string_for_error_message(original_path_) + ": " +
-               string_for_error_message(canonical_) + ": " +
-               windows_error_message(error);
-      return file_type::error;
+      return boost::leaf::new_error(
+          boost::leaf::windows::e_LastError{error},
+          e_canonicalizing_path{string_for_error_message(canonical_)});
     }
     if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) {
       return file_type::symlink;
@@ -625,9 +616,10 @@ class windows_path_canonicalizer
     return file_type::other;
   }
 
-  void resolve_symlink() {
+  boost::leaf::result<void> resolve_symlink() {
     // TODO(strager): Support symlinks on Windows.
     QLJS_UNIMPLEMENTED();
+    return {};
   }
 
  private:
@@ -639,17 +631,47 @@ class windows_path_canonicalizer
 }
 
 canonical_path_result canonicalize_path(const char *path) {
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<canonical_path_result> {
 #if defined(_WIN32)
-  std::optional<std::wstring> wpath = mbstring_to_wstring(path);
-  if (!wpath.has_value()) {
-    QLJS_UNIMPLEMENTED();
-  }
-  windows_path_canonicalizer canonicalizer(*wpath);
+        std::optional<std::wstring> wpath = mbstring_to_wstring(path);
+        if (!wpath.has_value()) {
+          QLJS_UNIMPLEMENTED();
+        }
+        windows_path_canonicalizer canonicalizer(*wpath);
 #else
-  posix_path_canonicalizer canonicalizer(path);
+        posix_path_canonicalizer canonicalizer(path);
 #endif
-  canonicalizer.canonicalize();
-  return canonicalizer.result();
+        boost::leaf::result<void> ok = canonicalizer.canonicalize();
+        if (!ok) return ok.error();
+        return canonicalizer.result();
+      },
+      [&](boost::leaf::e_errno error,
+          const e_canonicalizing_path &canonicalizing) {
+        return canonical_path_result::failure(
+            "failed to canonicalize "s + canonicalizing.path + ": "s + path +
+            ": "s + std::strerror(error.value));
+      },
+      [&](boost::leaf::e_errno error) {
+        return canonical_path_result::failure("failed to canonicalize "s +
+                                              path + ": "s +
+                                              std::strerror(error.value));
+      },
+      [&](e_too_many_symlinks) {
+        return canonical_path_result::failure("failed to canonicalize "s +
+                                              path +
+                                              ": Too many levels of symlink"s);
+      },
+      [&](e_invalid_argument_empty_path) {
+        return canonical_path_result::failure(
+            "failed to canonicalize empty path: "s + std::strerror(EINVAL));
+      },
+      [&]() {
+        QLJS_ASSERT(false);  // One of the above handlers should have handled
+                             // the error already.
+        return canonical_path_result::failure("failed to canonicalize path: "s +
+                                              path);
+      });
 }
 
 canonical_path_result canonicalize_path(const std::string &path) {
@@ -685,10 +707,6 @@ retry:
 #endif
 
 #if QLJS_PATHS_POSIX
-std::string string_for_error_message(std::string_view s) {
-  return std::string(s);
-}
-
 const std::string &string_for_error_message(const std::string &s) { return s; }
 #endif
 
