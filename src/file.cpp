@@ -215,7 +215,7 @@ boost::leaf::result<padded_string> read_file(const char *path) {
   return read_file(file.ref());
 }
 
-boost::leaf::result<padded_string> read_stdin_2() {
+boost::leaf::result<padded_string> read_stdin() {
   windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
   return read_file(file);
 }
@@ -233,7 +233,7 @@ boost::leaf::result<padded_string> read_file(const char *path) {
   return read_file(file.ref());
 }
 
-boost::leaf::result<padded_string> read_stdin_2() {
+boost::leaf::result<padded_string> read_stdin() {
   posix_fd_file_ref file(STDIN_FILENO);
   return read_file(file);
 }

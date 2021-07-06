@@ -177,7 +177,7 @@ void handle_options(quick_lint_js::options o) {
     boost::leaf::try_handle_all(
         [&]() -> boost::leaf::result<void> {
           boost::leaf::result<padded_string> source =
-              file.is_stdin ? quick_lint_js::read_stdin_2()
+              file.is_stdin ? quick_lint_js::read_stdin()
                             : quick_lint_js::read_file(file.path);
           if (!source) return source.error();
           reporter.set_source(&*source, file);
