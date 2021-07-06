@@ -69,6 +69,14 @@ class test_file_canonical : public ::testing::Test {
   }
 };
 
+bool process_ignores_filesystem_permissions() noexcept {
+#if QLJS_HAVE_UNISTD_H
+  return ::geteuid() == 0;
+#else
+  return false;
+#endif
+}
+
 TEST_F(test_file_canonical, canonical_path_to_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
   write_file(temp_file_path, u8"hello\nworld!\n");
@@ -745,6 +753,56 @@ TEST_F(test_file_canonical,
               Not(HasSubstr("\\otherlinkdir\\")));
   EXPECT_SAME_FILE(canonical.path(), temp_dir + "/realdir/subdir/hello.js");
   EXPECT_SAME_FILE(canonical.path(), input_path);
+}
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+TEST_F(test_file_canonical, unsearchable_parent_directory) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory(temp_dir + "/dir");
+  write_file(temp_dir + "/dir/file", u8"hello");
+  ASSERT_EQ(::chmod((temp_dir + "/dir").c_str(), 0600), 0)
+      << std::strerror(errno);
+
+  std::string input_path = temp_dir + "/dir/file";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("dir/file"));
+  EXPECT_THAT(error, HasSubstr("Permission denied"));
+
+  // Allow test cleanup to delete the directory.
+  EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
+      << std::strerror(errno);
+}
+
+TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory(temp_dir + "/dir");
+  create_directory(temp_dir + "/dir/subdir");
+  write_file(temp_dir + "/dir/subdir/file", u8"hello");
+  ASSERT_EQ(::chmod((temp_dir + "/dir").c_str(), 0600), 0)
+      << std::strerror(errno);
+
+  std::string input_path = temp_dir + "/dir/subdir/file";
+  canonical_path_result canonical = canonicalize_path(input_path);
+  EXPECT_FALSE(canonical.ok());
+  std::string error = std::move(canonical).error();
+  EXPECT_THAT(error, HasSubstr("dir/subdir:"));
+  EXPECT_THAT(error, HasSubstr("dir/subdir/file"));
+  EXPECT_THAT(error, HasSubstr("Permission denied"));
+
+  // Allow test cleanup to delete the directory.
+  EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
+      << std::strerror(errno);
 }
 #endif
 
