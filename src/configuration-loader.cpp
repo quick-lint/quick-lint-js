@@ -214,21 +214,10 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
                 .error = std::string(),
             };
           },
-#if QLJS_HAVE_WINDOWS_H
-          [](boost::leaf::match_value<boost::leaf::windows::e_LastError,
-                                      ERROR_FILE_NOT_FOUND>)
-              -> std::optional<found_config_file> {
+          make_file_not_found_handler([]() -> std::optional<found_config_file> {
             // Loop, looking for a different file.
             return std::nullopt;
-          },
-#endif
-#if QLJS_HAVE_UNISTD_H
-          [](boost::leaf::match_value<boost::leaf::e_errno, ENOENT>)
-              -> std::optional<found_config_file> {
-            // Loop, looking for a different file.
-            return std::nullopt;
-          },
-#endif
+          }),
           make_read_file_error_handlers(
               [&](std::string&& message) -> std::optional<found_config_file> {
                 return found_config_file{

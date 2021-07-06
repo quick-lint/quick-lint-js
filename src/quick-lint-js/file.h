@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_FILE_H
 
 #include <boost/leaf/common.hpp>
+#include <boost/leaf/pred.hpp>
 #include <boost/leaf/result.hpp>
 #include <cstdio>
 #include <cstring>
@@ -52,6 +53,26 @@ padded_string read_file_or_exit(const char *path);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
+
+// Valid signatures for handle_error:
+// <<any rvalue result type>> handle_error();
+template <class Func>
+auto make_file_not_found_handler(const Func &handle_error) {
+  return std::tuple(
+#if QLJS_HAVE_WINDOWS_H
+      [handle_error](boost::leaf::match_value<boost::leaf::windows::e_LastError,
+                                              ERROR_FILE_NOT_FOUND>) {
+        return handle_error();
+      }
+#endif
+#if QLJS_HAVE_UNISTD_H
+          [handle_error](
+              boost::leaf::match_value<boost::leaf::e_errno, ENOENT>) {
+            return handle_error();
+          }
+#endif
+  );
+}
 
 // Valid signatures for handle_error:
 // <<any rvalue result type>> handle_error(const std::string &message);
