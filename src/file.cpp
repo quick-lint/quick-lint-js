@@ -5,6 +5,7 @@
 #include <boost/leaf/common.hpp>
 #include <boost/leaf/context.hpp>
 #include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/on_error.hpp>
 #include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
@@ -292,6 +293,8 @@ read_file_result read_file(const char *path) {
 }
 
 boost::leaf::result<padded_string> read_file_2(const char *path) {
+  // TODO(strager): Avoid copying the path string, especially on success.
+  auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
   if (!wpath) {
     DWORD error = ::GetLastError();
@@ -333,6 +336,8 @@ read_file_result read_file(const char *path) {
 }
 
 boost::leaf::result<padded_string> read_file_2(const char *path) {
+  // TODO(strager): Avoid copying the path string, especially on success.
+  auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
     return boost::leaf::new_error(boost::leaf::e_errno{errno});
@@ -355,7 +360,7 @@ sloppy_result<padded_string> read_file_sloppy(const char *path) {
         return sloppy_result<padded_string>(std::move(*content));
       },
       make_read_file_error_handlers(
-          path, [](const std::string &message) -> sloppy_result<padded_string> {
+          [](const std::string &message) -> sloppy_result<padded_string> {
             return sloppy_result<padded_string>::failure(message);
           }));
 }
@@ -364,12 +369,14 @@ sloppy_result<padded_string> read_file_sloppy(const char *path,
                                               platform_file_ref file) {
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
+        // TODO(strager): Avoid copying the path string, especially on success.
+        auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
         boost::leaf::result<padded_string> content = read_file_2(file);
         if (!content) return content.error();
         return sloppy_result<padded_string>(std::move(*content));
       },
       make_read_file_error_handlers(
-          path, [](const std::string &message) -> sloppy_result<padded_string> {
+          [](const std::string &message) -> sloppy_result<padded_string> {
             return sloppy_result<padded_string>::failure(message);
           }));
 }
@@ -377,7 +384,7 @@ sloppy_result<padded_string> read_file_sloppy(const char *path,
 padded_string read_file_or_exit(const char *path) {
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<padded_string> { return read_file_2(path); },
-      exit_on_read_file_error_handlers<padded_string>(path));
+      exit_on_read_file_error_handlers<padded_string>());
 }
 
 void write_file(const std::string &path, string8_view content) {

@@ -37,6 +37,7 @@ read_file_result read_file(const char *path, platform_file_ref);
 // Possible error types:
 //
 // * boost::leaf::e_errno
+// * boost::leaf::e_file_name
 // * boost::leaf::windows::e_LastError
 // * e_file_too_large
 boost::leaf::result<padded_string> read_file_2(const char *path);
@@ -55,35 +56,53 @@ void write_file(const char *path, string8_view content);
 // Signature for handle_error:
 // <<any rvalue result type>> handle_error(const std::string &message);
 template <class Func>
-auto make_read_file_error_handlers(const char *path, const Func &handle_error) {
+auto make_read_file_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;
   return std::tuple(
-      [handle_error, path](e_file_too_large) {
-        return handle_error("file too large to read into memory: "s + path);
+      [handle_error](e_file_too_large, const boost::leaf::e_file_name &path) {
+        return handle_error("file too large to read into memory: "s +
+                            path.value);
       },
 #if QLJS_HAVE_WINDOWS_H
-      [handle_error, path](const boost::leaf::windows::e_LastError &error) {
-        return handle_error("failed to read from "s + path + ": "s +
+      [handle_error](const boost::leaf::windows::e_LastError &error,
+                     const boost::leaf::e_file_name &path) {
+        return handle_error("failed to read from "s + path.value + ": "s +
                             error_message(error));
       },
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [handle_error, path](const boost::leaf::e_errno &error) {
-        return handle_error("failed to read from "s + path + ": "s +
+      [handle_error](const boost::leaf::e_errno &error,
+                     const boost::leaf::e_file_name &path) {
+        return handle_error("failed to read from "s + path.value + ": "s +
                             std::strerror(error.value));
       },
 #endif
-      [handle_error, path]() {
+      [handle_error](e_file_too_large) {
+        return handle_error("file too large to read into memory"s);
+      },
+#if QLJS_HAVE_WINDOWS_H
+      [handle_error](const boost::leaf::windows::e_LastError &error) {
+        return handle_error("failed to read from file: "s +
+                            error_message(error));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
+      [handle_error](const boost::leaf::e_errno &error) {
+        return handle_error("failed to read from file: "s +
+                            std::strerror(error.value));
+      },
+#endif
+      [handle_error]() {
         QLJS_ASSERT(
             false);  // Other catch clauses should have happened instead.
-        return handle_error("failed to read from "s + path);
+        return handle_error("failed to read from file"s);
       });
 }
 
 template <class Result>
-auto exit_on_read_file_error_handlers(const char *path) {
+auto exit_on_read_file_error_handlers() {
   return make_read_file_error_handlers(
-      path, [](const std::string &message) -> Result {
+      [](const std::string &message) -> Result {
         std::fprintf(stderr, "error: %s\n", message.c_str());
         std::exit(1);
       });

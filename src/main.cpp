@@ -174,8 +174,6 @@ void handle_options(quick_lint_js::options o) {
       std::fprintf(stderr, "error: %s\n", config.error.c_str());
       std::exit(1);
     }
-    const char *file_name_for_error_messages =
-        file.is_stdin ? "<stdin>" : file.path;
     boost::leaf::try_handle_all(
         [&]() -> boost::leaf::result<void> {
           boost::leaf::result<padded_string> source =
@@ -187,7 +185,7 @@ void handle_options(quick_lint_js::options o) {
                                       o.print_parser_visits);
           return {};
         },
-        exit_on_read_file_error_handlers<void>(file_name_for_error_messages));
+        exit_on_read_file_error_handlers<void>());
   }
   reporter.finish();
 
