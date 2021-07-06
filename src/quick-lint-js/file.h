@@ -32,9 +32,6 @@ struct read_file_result {
 
 struct e_file_too_large {};
 
-read_file_result read_file(const char *path);
-read_file_result read_file(const char *path, platform_file_ref);
-
 // Possible error types:
 //
 // * boost::leaf::e_errno
