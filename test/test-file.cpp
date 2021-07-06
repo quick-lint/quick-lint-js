@@ -98,12 +98,20 @@ TEST_F(test_file, read_non_existing_file) {
   std::string temp_file_path =
       this->make_temporary_directory() + "/does-not-exist.js";
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
-  EXPECT_FALSE(file_content.ok());
-  EXPECT_TRUE(file_content.is_not_found_error);
-  EXPECT_THAT(file_content.error, HasSubstr("does-not-exist.js"));
-  EXPECT_THAT(file_content.error,
-              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<padded_string> file_content =
+            read_file_2(temp_file_path.c_str());
+        if (!file_content) return file_content.error();
+        ADD_FAILURE() << "read_file_2 should have failed";
+        return {};
+      },
+      make_file_not_found_handler([] {
+        // Test passed.
+      }),
+      make_read_file_error_handlers([](const std::string& message) {
+        ADD_FAILURE() << "expected file-not-found error, but got: " << message;
+      }));
 }
 
 TEST_F(test_file, read_non_existing_file_sloppy_message) {
@@ -121,16 +129,19 @@ TEST_F(test_file, read_non_existing_file_sloppy_message) {
 TEST_F(test_file, read_directory) {
   std::string temp_file_path = this->make_temporary_directory();
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
-  EXPECT_FALSE(file_content.ok());
-  EXPECT_FALSE(file_content.is_not_found_error);
-  EXPECT_THAT(file_content.error, HasSubstr(temp_file_path));
-  EXPECT_THAT(
-      file_content.error,
-      testing::AnyOf(
-          HasSubstr("Is a directory"),
-          HasSubstr("Access is denied")  // TODO(strager): Improve this message.
-          ));
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<padded_string> file_content =
+            read_file_2(temp_file_path.c_str());
+        if (!file_content) return file_content.error();
+        ADD_FAILURE() << "read_file_2 should have failed";
+        return {};
+      },
+      make_file_not_found_handler(
+          [] { ADD_FAILURE() << "expected not file-not-found error"; }),
+      make_read_file_error_handlers([](const std::string&) {
+        // Test passed.
+      }));
 }
 
 TEST_F(test_file, read_directory_sloppy_message) {
