@@ -38,8 +38,8 @@ struct e_file_too_large {};
 // * boost::leaf::e_file_name
 // * boost::leaf::windows::e_LastError
 // * e_file_too_large
-boost::leaf::result<padded_string> read_file_2(const char *path);
-boost::leaf::result<padded_string> read_file_2(platform_file_ref);
+boost::leaf::result<padded_string> read_file(const char *path);
+boost::leaf::result<padded_string> read_file(platform_file_ref);
 boost::leaf::result<padded_string> read_stdin_2(void);
 
 sloppy_result<padded_string> read_file_sloppy(const char *path);

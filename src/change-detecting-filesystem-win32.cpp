@@ -97,7 +97,7 @@ boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(
         boost::leaf::windows::e_LastError{::GetLastError()});
   }
 
-  return quick_lint_js::read_file_2(path.c_str());
+  return quick_lint_js::read_file(path.c_str());
 }
 
 bool change_detecting_filesystem_win32::handle_event(

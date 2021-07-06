@@ -142,7 +142,7 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-boost::leaf::result<padded_string> read_file_2(windows_handle_file_ref file) {
+boost::leaf::result<padded_string> read_file(windows_handle_file_ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
   ::LARGE_INTEGER file_size;
@@ -174,7 +174,7 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 }
 
-boost::leaf::result<padded_string> read_file_2(posix_fd_file_ref file) {
+boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
@@ -192,7 +192,7 @@ boost::leaf::result<padded_string> read_file_2(posix_fd_file_ref file) {
 #endif
 
 #if defined(QLJS_FILE_WINDOWS)
-boost::leaf::result<padded_string> read_file_2(const char *path) {
+boost::leaf::result<padded_string> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
@@ -212,17 +212,17 @@ boost::leaf::result<padded_string> read_file_2(const char *path) {
     return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
   }
   windows_handle_file file(handle);
-  return read_file_2(file.ref());
+  return read_file(file.ref());
 }
 
 boost::leaf::result<padded_string> read_stdin_2() {
   windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
-  return read_file_2(file);
+  return read_file(file);
 }
 #endif
 
 #if defined(QLJS_FILE_POSIX)
-boost::leaf::result<padded_string> read_file_2(const char *path) {
+boost::leaf::result<padded_string> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
@@ -230,19 +230,19 @@ boost::leaf::result<padded_string> read_file_2(const char *path) {
     return boost::leaf::new_error(boost::leaf::e_errno{errno});
   }
   posix_fd_file file(fd);
-  return read_file_2(file.ref());
+  return read_file(file.ref());
 }
 
 boost::leaf::result<padded_string> read_stdin_2() {
   posix_fd_file_ref file(STDIN_FILENO);
-  return read_file_2(file);
+  return read_file(file);
 }
 #endif
 
 sloppy_result<padded_string> read_file_sloppy(const char *path) {
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
-        boost::leaf::result<padded_string> content = read_file_2(path);
+        boost::leaf::result<padded_string> content = read_file(path);
         if (!content) return content.error();
         return sloppy_result<padded_string>(std::move(*content));
       },
@@ -258,7 +258,7 @@ sloppy_result<padded_string> read_file_sloppy(const char *path,
       [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
         // TODO(strager): Avoid copying the path string, especially on success.
         auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
-        boost::leaf::result<padded_string> content = read_file_2(file);
+        boost::leaf::result<padded_string> content = read_file(file);
         if (!content) return content.error();
         return sloppy_result<padded_string>(std::move(*content));
       },
@@ -270,7 +270,7 @@ sloppy_result<padded_string> read_file_sloppy(const char *path,
 
 padded_string read_file_or_exit(const char *path) {
   return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<padded_string> { return read_file_2(path); },
+      [&]() -> boost::leaf::result<padded_string> { return read_file(path); },
       exit_on_read_file_error_handlers<padded_string>());
 }
 

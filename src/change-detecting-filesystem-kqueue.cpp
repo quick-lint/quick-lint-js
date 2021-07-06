@@ -62,7 +62,7 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   }
 
   auto watch_it = this->watch_file(canonical_path(path), std::move(file));
-  return quick_lint_js::read_file_2(watch_it->second.fd.ref());
+  return quick_lint_js::read_file(watch_it->second.fd.ref());
 }
 
 bool change_detecting_filesystem_kqueue::watch_directory(

@@ -380,7 +380,7 @@ canonical_path_result basic_configuration_filesystem::canonicalize_path(
 
 boost::leaf::result<padded_string> basic_configuration_filesystem::read_file(
     const canonical_path& path) {
-  return quick_lint_js::read_file_2(path.c_str());
+  return quick_lint_js::read_file(path.c_str());
 }
 }
 

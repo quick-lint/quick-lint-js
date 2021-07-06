@@ -101,9 +101,9 @@ TEST_F(test_file, read_non_existing_file) {
   boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<void> {
         boost::leaf::result<padded_string> file_content =
-            read_file_2(temp_file_path.c_str());
+            read_file(temp_file_path.c_str());
         if (!file_content) return file_content.error();
-        ADD_FAILURE() << "read_file_2 should have failed";
+        ADD_FAILURE() << "read_file should have failed";
         return {};
       },
       make_file_not_found_handler([] {
@@ -132,9 +132,9 @@ TEST_F(test_file, read_directory) {
   boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<void> {
         boost::leaf::result<padded_string> file_content =
-            read_file_2(temp_file_path.c_str());
+            read_file(temp_file_path.c_str());
         if (!file_content) return file_content.error();
-        ADD_FAILURE() << "read_file_2 should have failed";
+        ADD_FAILURE() << "read_file should have failed";
         return {};
       },
       make_file_not_found_handler(

@@ -70,7 +70,7 @@ change_detecting_filesystem_inotify::read_file(const canonical_path& path) {
     return boost::leaf::new_error(boost::leaf::e_errno{errno});
   }
 
-  return quick_lint_js::read_file_2(path.c_str());
+  return quick_lint_js::read_file(path.c_str());
 }
 
 posix_fd_file_ref
