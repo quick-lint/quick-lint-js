@@ -189,19 +189,19 @@ def detect_system_package_manager(
         ).rstrip("\n")
         if any(is_path_relative(root_path=brew_prefix, sub_path=f) for f in files):
             return Homebrew(brew_prefix=brew_prefix)
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
     try:
         subprocess.check_output(["rpm", "--query", "glibc"])
         return RedHat()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
     try:
         subprocess.check_output(["dpkg-query", "--list", "libc6"])
         return Debian()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
     return None
