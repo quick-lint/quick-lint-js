@@ -678,6 +678,69 @@ canonical_path_result canonicalize_path(const std::string &path) {
   return canonicalize_path(path.c_str());
 }
 
+boost::leaf::result<canonical_path_result> canonicalize_path_2(
+    const char *path) {
+#if defined(_WIN32)
+  std::optional<std::wstring> wpath = mbstring_to_wstring(path);
+  if (!wpath.has_value()) {
+    QLJS_UNIMPLEMENTED();
+  }
+  windows_path_canonicalizer canonicalizer(*wpath);
+#else
+  posix_path_canonicalizer canonicalizer(path);
+#endif
+  boost::leaf::result<void> ok = canonicalizer.canonicalize();
+  if (!ok) return ok.error();
+  return canonicalizer.result();
+}
+
+boost::leaf::result<canonical_path_result> canonicalize_path_2(
+    const std::string &path) {
+  return canonicalize_path_2(path.c_str());
+}
+
+sloppy_result<canonical_path_result> canonicalize_path_sloppy(
+    const char *path) {
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<sloppy_result<canonical_path_result>> {
+        boost::leaf::result<canonical_path_result> canonical =
+            canonicalize_path_2(path);
+        if (!canonical) return canonical.error();
+        return sloppy_result<canonical_path_result>(*canonical);
+      },
+      [&](boost::leaf::e_errno error,
+          const e_canonicalizing_path &canonicalizing) {
+        return sloppy_result<canonical_path_result>::failure(
+            "failed to canonicalize "s + canonicalizing.path + ": "s + path +
+            ": "s + std::strerror(error.value));
+      },
+      [&](boost::leaf::e_errno error) {
+        return sloppy_result<canonical_path_result>::failure(
+            "failed to canonicalize "s + path + ": "s +
+            std::strerror(error.value));
+      },
+      [&](e_too_many_symlinks) {
+        return sloppy_result<canonical_path_result>::failure(
+            "failed to canonicalize "s + path +
+            ": Too many levels of symlink"s);
+      },
+      [&](e_invalid_argument_empty_path) {
+        return sloppy_result<canonical_path_result>::failure(
+            "failed to canonicalize empty path: "s + std::strerror(EINVAL));
+      },
+      [&]() {
+        QLJS_ASSERT(false);  // One of the above handlers should have handled
+                             // the error already.
+        return sloppy_result<canonical_path_result>::failure(
+            "failed to canonicalize path: "s + path);
+      });
+}
+
+sloppy_result<canonical_path_result> canonicalize_path_sloppy(
+    const std::string &path) {
+  return canonicalize_path_sloppy(path.c_str());
+}
+
 namespace {
 #if QLJS_HAVE_UNISTD_H
 int read_symbolic_link(const char *symlink_path, std::string *out) {

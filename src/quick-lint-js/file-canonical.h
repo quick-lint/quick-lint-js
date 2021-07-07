@@ -4,9 +4,11 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <quick-lint-js/sloppy-result.h>
 #include <string>
 #include <string_view>
 
@@ -106,6 +108,15 @@ struct e_too_many_symlinks {};
 
 canonical_path_result canonicalize_path(const char *path);
 canonical_path_result canonicalize_path(const std::string &path);
+
+boost::leaf::result<canonical_path_result> canonicalize_path_2(
+    const char *path);
+boost::leaf::result<canonical_path_result> canonicalize_path_2(
+    const std::string &path);
+
+sloppy_result<canonical_path_result> canonicalize_path_sloppy(const char *path);
+sloppy_result<canonical_path_result> canonicalize_path_sloppy(
+    const std::string &path);
 }
 
 namespace std {
