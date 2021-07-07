@@ -112,6 +112,7 @@ canonical_path_result canonicalize_path(const std::string &path);
 // Possible error types:
 //
 // * boost::leaf::e_errno
+// * boost::leaf::e_file_name
 // * boost::leaf::windows::e_LastError
 // * e_canonicalizing_path
 // * e_invalid_argument_empty_path

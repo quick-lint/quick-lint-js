@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <boost/leaf/common.hpp>
 #include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/on_error.hpp>
 #include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <climits>
@@ -680,6 +681,7 @@ canonical_path_result canonicalize_path(const std::string &path) {
 
 boost::leaf::result<canonical_path_result> canonicalize_path_2(
     const char *path) {
+  auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
 #if defined(_WIN32)
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath.has_value()) {
