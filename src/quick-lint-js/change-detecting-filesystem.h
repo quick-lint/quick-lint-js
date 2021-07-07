@@ -39,7 +39,8 @@ class change_detecting_filesystem_inotify : public configuration_filesystem {
   explicit change_detecting_filesystem_inotify();
   ~change_detecting_filesystem_inotify() override;
 
-  canonical_path_result canonicalize_path(const std::string&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   posix_fd_file_ref get_inotify_fd() noexcept;
@@ -64,7 +65,8 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem {
                                               void* udata);
   ~change_detecting_filesystem_kqueue() override;
 
-  canonical_path_result canonicalize_path(const std::string&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
@@ -109,7 +111,8 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
       windows_handle_file_ref io_completion_port, ::ULONG_PTR completion_key);
   ~change_detecting_filesystem_win32() override;
 
-  canonical_path_result canonicalize_path(const std::string&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   windows_handle_file_ref io_completion_port() const noexcept {

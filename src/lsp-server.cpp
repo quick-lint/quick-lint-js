@@ -51,7 +51,8 @@ lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
     configuration_filesystem* underlying_fs)
     : underlying_fs_(underlying_fs) {}
 
-canonical_path_result lsp_overlay_configuration_filesystem::canonicalize_path(
+boost::leaf::result<canonical_path_result>
+lsp_overlay_configuration_filesystem::canonicalize_path(
     const std::string& path) {
   return this->underlying_fs_->canonicalize_path(path);
 }

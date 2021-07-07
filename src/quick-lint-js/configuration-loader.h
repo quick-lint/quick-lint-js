@@ -20,7 +20,8 @@ class configuration_filesystem {
  public:
   virtual ~configuration_filesystem() = default;
 
-  virtual canonical_path_result canonicalize_path(const std::string&) = 0;
+  virtual boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) = 0;
   virtual boost::leaf::result<padded_string> read_file(
       const canonical_path&) = 0;
 };
@@ -89,7 +90,8 @@ class configuration_loader {
   found_config_file find_config_file_in_directory_and_ancestors(
       canonical_path&&);
 
-  canonical_path_result get_parent_directory(const char* input_path);
+  boost::leaf::result<canonical_path_result> get_parent_directory(
+      const char* input_path);
 
   loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
 
@@ -107,7 +109,8 @@ class basic_configuration_filesystem : public configuration_filesystem {
  public:
   static basic_configuration_filesystem* instance() noexcept;
 
-  canonical_path_result canonicalize_path(const std::string&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 };
 }

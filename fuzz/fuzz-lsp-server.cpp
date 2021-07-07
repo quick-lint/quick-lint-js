@@ -20,7 +20,8 @@ class null_lsp_endpoint_remote {
 
 class null_configuration_filesystem : public configuration_filesystem {
  public:
-  canonical_path_result canonicalize_path(const std::string& path) override {
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string& path) override {
     return canonical_path_result(std::string(path), /*existing_path_length=*/0);
   }
 

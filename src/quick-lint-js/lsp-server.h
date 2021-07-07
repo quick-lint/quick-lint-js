@@ -50,7 +50,8 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
   explicit lsp_overlay_configuration_filesystem(
       configuration_filesystem* underlying_fs);
 
-  canonical_path_result canonicalize_path(const std::string&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   void open_document(const std::string&, document<lsp_locator>*);

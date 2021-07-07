@@ -56,9 +56,10 @@ change_detecting_filesystem_inotify::~change_detecting_filesystem_inotify() {
   garbage_inotify_fds.push_back(std::move(this->inotify_fd_));
 }
 
-canonical_path_result change_detecting_filesystem_inotify::canonicalize_path(
+boost::leaf::result<canonical_path_result>
+change_detecting_filesystem_inotify::canonicalize_path(
     const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
+  return quick_lint_js::canonicalize_path_2(path);
 }
 
 boost::leaf::result<padded_string>
