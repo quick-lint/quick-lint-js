@@ -1,6 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <cassert>
 #include <cerrno>
 #include <chrono>
@@ -21,6 +24,7 @@
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <string>
+#include <tuple>
 
 #if defined(_WIN32)
 // TODO(strager): This should be 1, not 0. Windows allows you to access
@@ -69,6 +73,27 @@ class test_file_canonical : public ::testing::Test {
   }
 };
 
+template <class Path>
+boost::leaf::result<void> canonicalize_expecting_failure(const Path& path) {
+  boost::leaf::result<canonical_path_result> canonical =
+      canonicalize_path_2(path);
+  if (!canonical) return canonical.error();
+  ADD_FAILURE() << "canonicalize_path_2 should have failed";
+  return {};
+}
+
+auto fail_test_error_handlers() {
+  return std::tuple(
+      [](boost::leaf::e_errno error) {
+        ADD_FAILURE() << "error: " << std::strerror(error.value);
+      },
+      [](e_too_many_symlinks) { ADD_FAILURE() << "error: too many symlinks"; },
+      [](e_invalid_argument_empty_path) {
+        ADD_FAILURE() << "error: invalid argument: empty path";
+      },
+      []() { ADD_FAILURE() << "unknown error"; });
+}
+
 bool process_ignores_filesystem_permissions() noexcept {
 #if QLJS_HAVE_UNISTD_H
   return ::geteuid() == 0;
@@ -109,10 +134,11 @@ TEST_F(test_file_canonical, canonical_path_of_empty_fails) {
   std::string temp_dir = this->make_temporary_directory();
   this->set_current_working_directory(temp_dir);
 
-  canonical_path_result canonical = canonicalize_path("");
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("Invalid argument"));
+  boost::leaf::try_handle_all([] { return canonicalize_expecting_failure(""); },
+                              [](e_invalid_argument_empty_path) {
+                                // Test passed.
+                              },
+                              fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical,
@@ -135,14 +161,14 @@ TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
   write_file(temp_dir + "/file.txt", u8"");
 
   std::string input_path = temp_dir + "/file.txt/";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("file.txt"));
-  EXPECT_THAT(error, AnyOf(HasSubstr("Not a directory"),
-                           // TODO(strager): Improve error message.
-                           HasSubstr("The filename, directory name, or volume "
-                                     "label syntax is incorrect")));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, ENOTDIR) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file.txt"));
+      },
+      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical, canonical_path_to_non_existing_file_succeeds) {
@@ -188,12 +214,14 @@ TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {
   write_file(temp_dir + "/file", u8"");
 
   std::string input_path = temp_dir + "/file/subfile";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("file/subfile"));
-  EXPECT_THAT(error, AnyOf(HasSubstr("Not a directory"),
-                           HasSubstr("cannot find the path specified")));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, ENOTDIR) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file"));
+      },
+      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical, canonical_path_removes_dot_components) {
@@ -229,13 +257,14 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/./something";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("just-a-file"));
-  EXPECT_THAT(error,
-              AnyOf(HasSubstr("Not a directory"),
-                    HasSubstr("The system cannot find the path specified")));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, ENOTDIR) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical,
@@ -266,14 +295,14 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/other.txt", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/../other.text";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("just-a-file"));
-  EXPECT_THAT(error,
-              AnyOf(HasSubstr("Not a directory"),
-                    HasSubstr("No such file or directory"),
-                    HasSubstr("The system cannot find the file specified")));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, ENOTDIR) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+      fail_test_error_handlers());
 }
 
 #if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
@@ -299,13 +328,14 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("just-a-file"));
-  EXPECT_THAT(error,
-              AnyOf(HasSubstr("Not a directory"),
-                    HasSubstr("The system cannot find the path specified")));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, ENOTDIR) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+      fail_test_error_handlers());
 }
 #endif
 
@@ -330,13 +360,14 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/.";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("just-a-file"));
-  EXPECT_THAT(error,
-              AnyOf(HasSubstr("Not a directory"),
-                    HasSubstr("The system cannot find the path specified")));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, ENOTDIR) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+      fail_test_error_handlers());
 }
 #endif
 
@@ -687,11 +718,12 @@ TEST_F(test_file_canonical,
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/link1/file.js";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("link1/file.js"));
-  EXPECT_THAT(error, HasSubstr("Too many levels"));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](e_too_many_symlinks) {
+        // Test passed.
+      },
+      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical,
@@ -801,11 +833,14 @@ TEST_F(test_file_canonical, unsearchable_parent_directory) {
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/dir/file";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("dir/file"));
-  EXPECT_THAT(error, HasSubstr("Permission denied"));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, EACCES) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("dir/file"));
+      },
+      fail_test_error_handlers());
 
   // Allow test cleanup to delete the directory.
   EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
@@ -825,12 +860,14 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/dir/subdir/file";
-  canonical_path_result canonical = canonicalize_path(input_path);
-  EXPECT_FALSE(canonical.ok());
-  std::string error = std::move(canonical).error();
-  EXPECT_THAT(error, HasSubstr("dir/subdir:"));
-  EXPECT_THAT(error, HasSubstr("dir/subdir/file"));
-  EXPECT_THAT(error, HasSubstr("Permission denied"));
+  boost::leaf::try_handle_all(
+      [&] { return canonicalize_expecting_failure(input_path); },
+      [](const e_canonicalizing_path& canonicalizing,
+         boost::leaf::e_errno error) {
+        EXPECT_EQ(error.value, EACCES) << std::strerror(error.value);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("dir/subdir"));
+      },
+      fail_test_error_handlers());
 
   // Allow test cleanup to delete the directory.
   EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)

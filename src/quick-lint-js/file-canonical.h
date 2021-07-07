@@ -109,6 +109,13 @@ struct e_too_many_symlinks {};
 canonical_path_result canonicalize_path(const char *path);
 canonical_path_result canonicalize_path(const std::string &path);
 
+// Possible error types:
+//
+// * boost::leaf::e_errno
+// * boost::leaf::windows::e_LastError
+// * e_canonicalizing_path
+// * e_invalid_argument_empty_path
+// * e_too_many_symlinks
 boost::leaf::result<canonical_path_result> canonicalize_path_2(
     const char *path);
 boost::leaf::result<canonical_path_result> canonicalize_path_2(
