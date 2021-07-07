@@ -83,15 +83,9 @@ boost::leaf::result<void> canonicalize_expecting_failure(const Path& path) {
 }
 
 auto fail_test_error_handlers() {
-  return std::tuple(
-      [](boost::leaf::e_errno error) {
-        ADD_FAILURE() << "error: " << std::strerror(error.value);
-      },
-      [](e_too_many_symlinks) { ADD_FAILURE() << "error: too many symlinks"; },
-      [](e_invalid_argument_empty_path) {
-        ADD_FAILURE() << "error: invalid argument: empty path";
-      },
-      []() { ADD_FAILURE() << "unknown error"; });
+  return make_canonicalize_path_error_handlers([](const std::string& message) {
+    ADD_FAILURE() << "error: " << message;
+  });
 }
 
 bool process_ignores_filesystem_permissions() noexcept {

@@ -710,32 +710,10 @@ sloppy_result<canonical_path_result> canonicalize_path_sloppy(
         if (!canonical) return canonical.error();
         return sloppy_result<canonical_path_result>(*canonical);
       },
-      [&](boost::leaf::e_errno error,
-          const e_canonicalizing_path &canonicalizing) {
+      make_canonicalize_path_error_handlers([](std::string &&message) {
         return sloppy_result<canonical_path_result>::failure(
-            "failed to canonicalize "s + canonicalizing.path + ": "s + path +
-            ": "s + std::strerror(error.value));
-      },
-      [&](boost::leaf::e_errno error) {
-        return sloppy_result<canonical_path_result>::failure(
-            "failed to canonicalize "s + path + ": "s +
-            std::strerror(error.value));
-      },
-      [&](e_too_many_symlinks) {
-        return sloppy_result<canonical_path_result>::failure(
-            "failed to canonicalize "s + path +
-            ": Too many levels of symlink"s);
-      },
-      [&](e_invalid_argument_empty_path) {
-        return sloppy_result<canonical_path_result>::failure(
-            "failed to canonicalize empty path: "s + std::strerror(EINVAL));
-      },
-      [&]() {
-        QLJS_ASSERT(false);  // One of the above handlers should have handled
-                             // the error already.
-        return sloppy_result<canonical_path_result>::failure(
-            "failed to canonicalize path: "s + path);
-      });
+            std::move(message));
+      }));
 }
 
 sloppy_result<canonical_path_result> canonicalize_path_sloppy(

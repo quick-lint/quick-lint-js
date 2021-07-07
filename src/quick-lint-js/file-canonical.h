@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
+#include <boost/leaf/common.hpp>
 #include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
@@ -11,6 +12,7 @@
 #include <quick-lint-js/sloppy-result.h>
 #include <string>
 #include <string_view>
+#include <tuple>
 
 namespace quick_lint_js {
 class canonical_path_result;
@@ -125,6 +127,41 @@ boost::leaf::result<canonical_path_result> canonicalize_path_2(
 sloppy_result<canonical_path_result> canonicalize_path_sloppy(const char *path);
 sloppy_result<canonical_path_result> canonicalize_path_sloppy(
     const std::string &path);
+
+// Valid signatures for handle_error:
+// <<any rvalue result type>> handle_error(const std::string &message);
+// <<any rvalue result type>> handle_error(std::string &&message);
+template <class Func>
+auto make_canonicalize_path_error_handlers(const Func &handle_error) {
+  using namespace std::literals::string_literals;
+  return std::tuple(
+      [handle_error](const boost::leaf::e_file_name &path,
+                     boost::leaf::e_errno error,
+                     const e_canonicalizing_path &canonicalizing) {
+        return handle_error("failed to canonicalize "s + canonicalizing.path +
+                            ": "s + path.value + ": "s +
+                            std::strerror(error.value));
+      },
+      [handle_error](const boost::leaf::e_file_name &path,
+                     boost::leaf::e_errno error) {
+        return handle_error("failed to canonicalize "s + path.value + ": "s +
+                            std::strerror(error.value));
+      },
+      [handle_error](const boost::leaf::e_file_name &path,
+                     e_too_many_symlinks) {
+        return handle_error("failed to canonicalize "s + path.value +
+                            ": Too many levels of symlink"s);
+      },
+      [handle_error](e_invalid_argument_empty_path) {
+        return handle_error("failed to canonicalize empty path: "s +
+                            std::strerror(EINVAL));
+      },
+      [handle_error]() {
+        QLJS_ASSERT(false);  // One of the above handlers should have handled
+                             // the error already.
+        return handle_error("failed to canonicalize path"s);
+      });
+}
 }
 
 namespace std {
