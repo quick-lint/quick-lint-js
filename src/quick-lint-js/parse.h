@@ -438,11 +438,13 @@ class parser {
       goto parse_loop_label_or_expression_starting_with_identifier;
 
     // class C {}
-    case token_type::kw_class:
+    case token_type::kw_class: {
+      class_guard g(this, std::exchange(this->in_class_, true));
       this->parse_and_visit_class(
           v,
           /*require_name=*/name_requirement::required_for_statement);
       break;
+    }
 
     // switch (x) { default: ; }
     case token_type::kw_switch: {
@@ -3577,6 +3579,7 @@ class parser {
   bool in_generator_function_ = false;
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
+  bool in_class_ = false;
 
 #if QLJS_HAVE_SETJMP
   bool have_fatal_parse_error_jmp_buf_ = false;
@@ -3587,11 +3590,13 @@ class parser {
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
+  using class_guard = bool_guard<&parser::in_class_>;
 
  public:
   static constexpr const int stack_limit = 150;
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
+  [[nodiscard]] class_guard enter_class();
 };
 }
 

@@ -795,6 +795,23 @@ TEST(test_parse, expression_statement) {
   }
 }
 
+TEST(test_parse, cannot_reference_private_identifier_outside_class) {
+  {
+    padded_string code(u8"this.#x = 10;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+    EXPECT_THAT(v.visits, IsEmpty());
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_access_private_identifier_outside_class,
+                    private_identifier,
+                    offsets_matcher(&code, strlen(u8"this."), u8"#x"))));
+  }
+}
+
 TEST(test_parse, asi_plusplus_minusminus) {
   {
     spy_visitor v;
