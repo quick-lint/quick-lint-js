@@ -5,9 +5,6 @@ cmake_minimum_required(VERSION 3.10)
 if (POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif ()
-# NOTE(cahian): The `VERSION` option value of the `project` command is
-# used during the Sublime Text plugin build process to define the
-# package name.
 project(quick-lint-js VERSION 0.2.0)
 
 include(GNUInstallDirs)
