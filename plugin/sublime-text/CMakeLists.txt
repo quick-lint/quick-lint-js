@@ -72,7 +72,7 @@ ${SUBLIME_TEXT_PACKAGE_PLATFORM}.sublime-package"
     # run the `cmake -E tar ...` command.
     COMMAND "${CMAKE_COMMAND}" -E chdir
     sublime-text-package-files
-    "${CMAKE_COMMAND}" -E tar cvf
+    "${CMAKE_COMMAND}" -E tar cf
     "${SUBLIME_TEXT_PACKAGE_PATH}" .
     --format=zip
   )
