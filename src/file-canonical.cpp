@@ -681,6 +681,7 @@ canonical_path_result canonicalize_path(const std::string &path) {
 
 boost::leaf::result<canonical_path_result> canonicalize_path_2(
     const char *path) {
+  auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
 #if defined(_WIN32)
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);

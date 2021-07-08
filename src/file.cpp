@@ -143,6 +143,7 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
 
 #if defined(QLJS_FILE_WINDOWS)
 boost::leaf::result<padded_string> read_file(windows_handle_file_ref file) {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
   ::LARGE_INTEGER file_size;
@@ -175,6 +176,7 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 
 boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
@@ -193,6 +195,7 @@ boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
 
 #if defined(QLJS_FILE_WINDOWS)
 boost::leaf::result<padded_string> read_file(const char *path) {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
@@ -223,6 +226,7 @@ boost::leaf::result<padded_string> read_stdin() {
 
 #if defined(QLJS_FILE_POSIX)
 boost::leaf::result<padded_string> read_file(const char *path) {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);

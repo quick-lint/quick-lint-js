@@ -102,6 +102,7 @@ class canonical_path_result {
   std::size_t existing_path_length_;
 };
 
+struct e_api_canonicalize_path {};
 struct e_canonicalizing_path {
   std::string path;
 };
@@ -116,6 +117,7 @@ canonical_path_result canonicalize_path(const std::string &path);
 // * boost::leaf::e_errno
 // * boost::leaf::e_file_name
 // * boost::leaf::windows::e_LastError
+// * e_api_canonicalize_path (always present)
 // * e_canonicalizing_path
 // * e_invalid_argument_empty_path
 // * e_too_many_symlinks
@@ -135,28 +137,37 @@ template <class Func>
 auto make_canonicalize_path_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;
   return std::tuple(
-      [handle_error](const boost::leaf::e_file_name &path,
+      [handle_error](e_api_canonicalize_path,
+                     const boost::leaf::e_file_name &path,
                      boost::leaf::e_errno error,
                      const e_canonicalizing_path &canonicalizing) {
         return handle_error("failed to canonicalize "s + canonicalizing.path +
                             ": "s + path.value + ": "s +
                             std::strerror(error.value));
       },
-      [handle_error](const boost::leaf::e_file_name &path,
+      [handle_error](e_api_canonicalize_path,
+                     const boost::leaf::e_file_name &path,
                      boost::leaf::e_errno error) {
         return handle_error("failed to canonicalize "s + path.value + ": "s +
                             std::strerror(error.value));
       },
-      [handle_error](const boost::leaf::e_file_name &path,
+      [handle_error](e_api_canonicalize_path,
+                     const boost::leaf::e_file_name &path,
                      e_too_many_symlinks) {
         return handle_error("failed to canonicalize "s + path.value +
                             ": Too many levels of symlink"s);
       },
-      [handle_error](e_invalid_argument_empty_path) {
+      [handle_error](e_api_canonicalize_path, e_invalid_argument_empty_path) {
         return handle_error("failed to canonicalize empty path: "s +
                             std::strerror(EINVAL));
       },
+      [handle_error](e_api_canonicalize_path) {
+        QLJS_ASSERT(false);  // One of the above handlers should have handled
+                             // the error already.
+        return handle_error("failed to canonicalize path"s);
+      },
       [handle_error]() {
+        // TODO(strager): Get rid of this handler.
         QLJS_ASSERT(false);  // One of the above handlers should have handled
                              // the error already.
         return handle_error("failed to canonicalize path"s);
