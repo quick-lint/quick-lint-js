@@ -6,6 +6,25 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+Beta release.
+
+### Added
+
+* Various new errors (implemented by [Himanshu][])
+* Partially implemented: Global variables can be configured using a
+  `quick-lint-js.config` file
+
+### Fixed
+
+* `for (const x of xs)` no longer warns about a missing initializer for `x`
+  (E205) (implemented by [Himanshu][])
+* Building quick-lint-js with AddressSanitizer on Fedora no longer fails in
+  `collect-copyright`
+* Building quick-lint-js no longer fails if a directory called `brew` exists
+  anywhere in `$PATH`
+
 ## 0.3.0 (2021-07-02)
 
 Beta release.
