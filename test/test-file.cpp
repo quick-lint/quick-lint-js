@@ -19,6 +19,7 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/sloppy-result.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
@@ -77,32 +78,83 @@ TEST_F(test_file, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
   write_file(temp_file_path, u8"hello\nworld!\n");
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
-  EXPECT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"hello\nworld!\n"));
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8"hello\nworld!\n"));
+}
+
+TEST_F(test_file, read_empty_regular_file) {
+  std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
+  write_file(temp_file_path, u8"");
+
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8""));
 }
 
 TEST_F(test_file, read_non_existing_file) {
   std::string temp_file_path =
       this->make_temporary_directory() + "/does-not-exist.js";
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<padded_string> file_content =
+            read_file(temp_file_path.c_str());
+        if (!file_content) return file_content.error();
+        ADD_FAILURE() << "read_file should have failed";
+        return {};
+      },
+      make_file_not_found_handler([] {
+        // Test passed.
+      }),
+      make_read_file_error_handlers([](const std::string& message) {
+        ADD_FAILURE() << "expected file-not-found error, but got: " << message;
+      }),
+      []() { ADD_FAILURE() << "unknown error"; });
+}
+
+TEST_F(test_file, read_non_existing_file_sloppy_message) {
+  std::string temp_file_path =
+      this->make_temporary_directory() + "/does-not-exist.js";
+
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
-  EXPECT_TRUE(file_content.is_not_found_error);
-  EXPECT_THAT(file_content.error, HasSubstr("does-not-exist.js"));
-  EXPECT_THAT(file_content.error,
+  EXPECT_THAT(file_content.error(), HasSubstr("does-not-exist.js"));
+  EXPECT_THAT(file_content.error(),
               AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
 }
 
 TEST_F(test_file, read_directory) {
   std::string temp_file_path = this->make_temporary_directory();
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<padded_string> file_content =
+            read_file(temp_file_path.c_str());
+        if (!file_content) return file_content.error();
+        ADD_FAILURE() << "read_file should have failed";
+        return {};
+      },
+      make_file_not_found_handler(
+          [] { ADD_FAILURE() << "expected not file-not-found error"; }),
+      make_read_file_error_handlers([](const std::string&) {
+        // Test passed.
+      }),
+      []() { ADD_FAILURE() << "unknown error"; });
+}
+
+TEST_F(test_file, read_directory_sloppy_message) {
+  std::string temp_file_path = this->make_temporary_directory();
+
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
-  EXPECT_FALSE(file_content.is_not_found_error);
-  EXPECT_THAT(file_content.error, HasSubstr(temp_file_path));
+  EXPECT_THAT(file_content.error(), HasSubstr(temp_file_path));
   EXPECT_THAT(
-      file_content.error,
+      file_content.error(),
       testing::AnyOf(
           HasSubstr("Is a directory"),
           HasSubstr("Access is denied")  // TODO(strager): Improve this message.
@@ -117,9 +169,24 @@ TEST_F(test_file, read_fifo) {
   std::thread writer_thread(
       [&]() { write_file(temp_file_path, u8"hello from fifo"); });
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
-  EXPECT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
+
+  writer_thread.join();
+}
+
+TEST_F(test_file, read_empty_fifo) {
+  std::string temp_file_path = this->make_temporary_directory() + "/fifo.js";
+  ASSERT_EQ(::mkfifo(temp_file_path.c_str(), 0700), 0) << std::strerror(errno);
+
+  std::thread writer_thread([&]() { write_file(temp_file_path, u8""); });
+
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8""));
 
   writer_thread.join();
 }
@@ -149,9 +216,10 @@ TEST_F(test_file, read_fifo_multiple_writes) {
     }
   });
 
-  read_file_result file_content = read_file(temp_file_path.c_str());
-  EXPECT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy(temp_file_path.c_str());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
 
   writer_thread.join();
 }
@@ -178,9 +246,10 @@ TEST_F(test_file, read_pipe_multiple_writes) {
     pipe.writer.close();
   });
 
-  read_file_result file_content = read_file("<pipe>", pipe.reader.ref());
-  EXPECT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"hello from fifo"));
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy("<pipe>", pipe.reader.ref());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
 
   writer_thread.join();
 }
@@ -211,9 +280,10 @@ TEST_F(test_file, read_pipe_empty_writes) {
     pipe.writer.close();
   });
 
-  read_file_result file_content = read_file("<pipe>", pipe.reader.ref());
-  EXPECT_TRUE(file_content.ok()) << file_content.error;
-  EXPECT_EQ(file_content.content, string8_view(u8"helloworld"));
+  sloppy_result<padded_string> file_content =
+      read_file_sloppy("<pipe>", pipe.reader.ref());
+  EXPECT_TRUE(file_content.ok()) << file_content.error();
+  EXPECT_EQ(*file_content, string8_view(u8"helloworld"));
 
   writer_thread.join();
 }

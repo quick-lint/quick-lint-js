@@ -188,6 +188,10 @@ class Benchmark {
         getSeries(seriesElement) === seriesToSelect
       );
     }
+    this.tableElement.classList.toggle(
+      "have-selection",
+      seriesToSelect !== null
+    );
     for (let rowElement of this.tableElement.querySelectorAll("tbody tr")) {
       rowElement.classList.toggle(
         "selected",

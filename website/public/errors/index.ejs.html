@@ -10,6 +10,7 @@
       let moduleCacheBust = "#" + Date.now();
 
       let {
+        ProblemsError,
         documentationDirectoryPath,
         loadErrorDocumentationFilesAsync,
         reportProblemsInDocumentsAsync,
@@ -20,7 +21,6 @@
       let documents = await loadErrorDocumentationFilesAsync(
         documentationDirectoryPath
       );
-      await reportProblemsInDocumentsAsync(documents);
       //%>
     </script>
     <title>quick-lint-js: errors and warnings</title>
@@ -75,6 +75,21 @@
         quick-lint-js can find the following warnings and errors in your code:
       </p>
 
+      <% try { await reportProblemsInDocumentsAsync(documents); } catch (e) { if
+      (e instanceof ProblemsError) { %>
+      <div
+        style="background-color: #fdd; border: 1px solid #f00; padding: 0.5em"
+      >
+        <p>
+          quick-lint-js found inconsistencies in the error documentation. If
+          you're hacking on the website, rebuild quick-lint-js for the website
+          by following <code>wasm/README.md</code> and
+          <code>website/README.md</code>.
+        </p>
+        <p style="white-space: pre-line"><%= e %></p>
+      </div>
+      <% } else { throw e; } } %>
+
       <ul class="table-of-contents">
         <% for (let doc of documents) { %>
         <li>
@@ -88,24 +103,7 @@
       <% for (let doc of documents) { %> <%- doc.toHTML() %> <% } %>
     </main>
 
-    <footer>
-      <nav>
-        <ul>
-          <li><a href="..">quick-lint-js home page</a></li>
-          <li><a href="../hiring.html">we're hiring! get paid to code</a></li>
-          <li><a href="../cli.html">CLI documentation</a></li>
-          <li><a href="../demo/">try quick-lint-js in your browser</a></li>
-          <li>
-            <a href="https://github.com/quick-lint/quick-lint-js"
-              >source code on GitHub</a
-            >
-          </li>
-          <li>
-            <a href="../license.html">copyright and license information</a>
-          </li>
-        </ul>
-      </nav>
-    </footer>
+    <footer><%- await include("../common-footer-nav.ejs.html") %></footer>
   </body>
 </html>
 

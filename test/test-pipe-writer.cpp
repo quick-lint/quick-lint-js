@@ -2,6 +2,10 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/leaf/capture.hpp>
+#include <boost/leaf/context.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <condition_variable>
 #include <cstddef>
 #include <cstring>
@@ -17,6 +21,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/sloppy-result.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H
@@ -51,9 +56,9 @@ byte_buffer byte_buffer_of(string8_view data) {
 }
 
 TEST_F(test_pipe_writer, large_write_sends_fully) {
-  std::future<read_file_result> data_future = std::async(
+  std::future<sloppy_result<padded_string>> data_future = std::async(
       std::launch::async,
-      [this]() { return read_file("<pipe>", this->pipe.reader.ref()); });
+      [this] { return read_file_sloppy("<pipe>", this->pipe.reader.ref()); });
 
   string8 to_write =
       u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
@@ -62,9 +67,9 @@ TEST_F(test_pipe_writer, large_write_sends_fully) {
   this->writer.flush();
   this->pipe.writer.close();
 
-  read_file_result data = data_future.get();
-  ASSERT_TRUE(data.ok()) << data.error;
-  EXPECT_EQ(data.content, to_write);
+  sloppy_result<padded_string> data = data_future.get();
+  ASSERT_TRUE(data.ok()) << data.error();
+  EXPECT_EQ(*data, to_write);
 }
 
 // pipe_reader_thread reads data from a pipe using a background thread. When
@@ -78,15 +83,14 @@ class pipe_reader_thread {
             std::array<char8, (1 << 16)> buffer;
             file_read_result read_result =
                 pipe.read(buffer.data(), buffer.size());
-            if (read_result.at_end_of_file) {
+            if (!read_result) QLJS_UNIMPLEMENTED();
+            if (read_result.at_end_of_file()) {
               return;
-            } else if (read_result.error_message.has_value()) {
-              QLJS_UNIMPLEMENTED();
             } else {
               std::unique_lock<std::mutex> lock(this->mutex_);
               this->received_data.append(string8_view(
                   buffer.data(),
-                  narrow_cast<std::size_t>(read_result.bytes_read)));
+                  narrow_cast<std::size_t>(read_result.bytes_read())));
               this->data_received_.notify_one();
             }
           }

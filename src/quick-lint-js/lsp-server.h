@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_H
 #define QUICK_LINT_JS_LSP_SERVER_H
 
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
 #include <quick-lint-js/assert.h>
@@ -49,8 +50,9 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
   explicit lsp_overlay_configuration_filesystem(
       configuration_filesystem* underlying_fs);
 
-  canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
   void open_document(const std::string&, document<lsp_locator>*);
   void close_document(const std::string&);
@@ -75,7 +77,9 @@ class linting_lsp_server_handler {
   void handle_request(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
   void handle_notification(::simdjson::ondemand::object& request,
-                           byte_buffer& notification_json);
+                           std::vector<byte_buffer>& notification_jsons);
+
+  void filesystem_changed(std::vector<byte_buffer>& notification_jsons);
 
  private:
   enum class document_type {
@@ -88,6 +92,9 @@ class linting_lsp_server_handler {
     quick_lint_js::document<lsp_locator> doc;
     document_type type = document_type::unknown;
     string8 version_json;
+
+    // Used only if type == document_type::lintable.
+    configuration* config;
   };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
@@ -96,15 +103,18 @@ class linting_lsp_server_handler {
                                byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      ::simdjson::ondemand::object& request, byte_buffer& notification_json);
+      ::simdjson::ondemand::object& request,
+      std::vector<byte_buffer>& notification_jsons);
   void handle_text_document_did_close_notification(
-      ::simdjson::ondemand::object& request);
+      ::simdjson::ondemand::object& request,
+      std::vector<byte_buffer>& notification_jsons);
   void handle_text_document_did_open_notification(
-      ::simdjson::ondemand::object& request, byte_buffer& notification_json);
+      ::simdjson::ondemand::object& request,
+      std::vector<byte_buffer>& notification_jsons);
 
-  void relint_open_documents(byte_buffer& notification_json);
-
-  configuration_or_error get_config(const std::string& path);
+  void handle_config_file_changes(
+      const std::vector<configuration_change>& config_changes,
+      std::vector<byte_buffer>& notification_jsons);
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);

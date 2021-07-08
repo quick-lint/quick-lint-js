@@ -13,6 +13,7 @@
 #include <quick-lint-js/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/sloppy-result.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H
@@ -50,9 +51,10 @@ TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
   this->writer.flush();
   this->pipe.writer.close();
 
-  read_file_result data = read_file("<pipe>", this->pipe.reader.ref());
-  ASSERT_TRUE(data.ok()) << data.error;
-  EXPECT_EQ(data.content, u8"Content-Length: 2\r\n\r\nhi");
+  sloppy_result<padded_string> data =
+      read_file_sloppy("<pipe>", this->pipe.reader.ref());
+  ASSERT_TRUE(data.ok()) << data.error();
+  EXPECT_EQ(*data, u8"Content-Length: 2\r\n\r\nhi");
 }
 }
 }

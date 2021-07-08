@@ -144,8 +144,11 @@ import option ;
 import tools/boost\_install/boost-install ;
 
 path-constant BOOST_ROOT : . ;
-constant BOOST_VERSION : 1.74.0 ;
+constant BOOST_VERSION : 1.76.0 ;
 constant BOOST_JAMROOT_MODULE : $(__name__) ;
+
+# Allow subprojects to simply `import config : requires ;` to get access to the requires rule
+modules.poke : BOOST_BUILD_PATH : $(BOOST_ROOT)/libs/config/checks [ modules.peek : BOOST_BUILD_PATH ] ;
 
 boostcpp.set-version $(BOOST_VERSION) ;
 

@@ -2,6 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -35,35 +38,45 @@ enum class core_style {
 };
 
 core_style linux_detect_core_style() {
-  int fd = ::open("/proc/sys/kernel/core_pattern", O_CLOEXEC | O_RDONLY);
-  if (fd == -1) {
-    std::fprintf(
-        stderr,
-        "warning: failed to determine method to disable core dumping: %s\n",
-        std::strerror(errno));
-    return core_style::unknown;
-  }
-  posix_fd_file file(fd);
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<core_style> {
+        int fd = ::open("/proc/sys/kernel/core_pattern", O_CLOEXEC | O_RDONLY);
+        if (fd == -1) {
+          std::fprintf(stderr,
+                       "warning: failed to determine method to disable core "
+                       "dumping: %s\n",
+                       std::strerror(errno));
+          return core_style::unknown;
+        }
+        posix_fd_file file(fd);
 
-  std::array<char, 1> core_pattern;
-  file_read_result read_result =
-      file.read(core_pattern.data(), core_pattern.size());
-  if (!read_result.at_end_of_file && read_result.error_message.has_value()) {
-    std::fprintf(
-        stderr,
-        "warning: failed to determine method to disable core dumping: %s\n",
-        read_result.error_message->c_str());
-    return core_style::unknown;
-  }
-
-  if (read_result.at_end_of_file || read_result.bytes_read == 0) {
-    // kernel.core_pattern is empty. The file name is 'core' or 'core.PID'.
-    return core_style::file_path;
-  } else if (core_pattern[0] == '|') {
-    return core_style::pipe;
-  } else {
-    return core_style::file_path;
-  }
+        std::array<char, 1> core_pattern;
+        file_read_result read_result =
+            file.read(core_pattern.data(), core_pattern.size());
+        if (!read_result) return read_result.error();
+        if (read_result.at_end_of_file() || *read_result == 0) {
+          // kernel.core_pattern is empty. The file name is 'core' or
+          // 'core.PID'.
+          return core_style::file_path;
+        } else if (core_pattern[0] == '|') {
+          return core_style::pipe;
+        } else {
+          return core_style::file_path;
+        }
+      },
+      [](boost::leaf::e_errno error) {
+        std::fprintf(
+            stderr,
+            "warning: failed to determine method to disable core dumping: %s\n",
+            std::strerror(error.value));
+        return core_style::unknown;
+      },
+      []() {
+        std::fprintf(
+            stderr,
+            "warning: failed to determine method to disable core dumping\n");
+        return core_style::unknown;
+      });
 }
 #endif
 }

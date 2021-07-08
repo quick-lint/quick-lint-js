@@ -112,31 +112,48 @@ non_blocking_pipe_writer::non_blocking_pipe_writer(platform_file_ref pipe)
 
 void non_blocking_pipe_writer::flush() {
 #if QLJS_HAVE_POLL
-  while (std::optional<::pollfd> event = this->get_pollfd()) {
-    int rc = ::poll(&*event, 1, /*timeout=*/-1);
+  while (std::optional<posix_fd_file_ref> fd = this->get_event_fd()) {
+    ::pollfd event = {
+        .fd = fd->get(),
+        .events = POLLOUT,
+        .revents = 0,
+    };
+    int rc = ::poll(&event, 1, /*timeout=*/-1);
     if (rc == -1) {
       QLJS_UNIMPLEMENTED();
     }
-    this->on_poll_event(*event);
+    this->on_poll_event(event);
   }
 #else
 #error "Unsupported platform"
 #endif
 }
 
-#if QLJS_HAVE_POLL
-std::optional<::pollfd> non_blocking_pipe_writer::get_pollfd() noexcept {
+#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
+std::optional<posix_fd_file_ref>
+non_blocking_pipe_writer::get_event_fd() noexcept {
   if (this->pending_.empty()) {
     return std::nullopt;
   } else {
-    return ::pollfd{
-        .fd = this->pipe_.get(),
-        .events = POLLOUT,
-        .revents = 0,
-    };
+    return this->pipe_;
   }
 }
+#endif
 
+#if QLJS_HAVE_KQUEUE
+void non_blocking_pipe_writer::on_poll_event(const struct ::kevent& event) {
+  QLJS_ASSERT(narrow_cast<int>(event.ident) != this->pipe_.get());
+  if (event.flags & EV_ERROR) {
+    QLJS_UNIMPLEMENTED();
+  }
+  if (event.flags & EV_EOF) {
+    QLJS_UNIMPLEMENTED();
+  }
+  this->write_as_much_as_possible_now_non_blocking(this->pending_);
+}
+#endif
+
+#if QLJS_HAVE_POLL
 void non_blocking_pipe_writer::on_poll_event(const ::pollfd& fd) {
   QLJS_ASSERT(fd.revents != 0);
   if (fd.revents & POLLERR) {

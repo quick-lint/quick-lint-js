@@ -11,6 +11,7 @@ software used by quick-lint-js (and quick-lint-js' own copyright and license).
 
 import argparse
 import json
+import logging
 import os
 import pathlib
 import re
@@ -19,10 +20,12 @@ import sys
 import typing
 import unittest
 
+logger = logging.getLogger(__name__)
+
 archive_to_vendor_project = {
     "Pathcch.lib": None,
-    "boost_container.lib": "boost",
-    "libboost_container.a": "boost",
+    "boost.lib": "boost",
+    "libboost.a": "boost",
     "libquick-lint-js-lib.a": None,
     "libsimdjson.a": "simdjson",
     "quick-lint-js-lib.lib": None,
@@ -49,6 +52,8 @@ archive_to_vendor_project = {
 
 
 def main() -> None:
+    logging.basicConfig()
+
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument(
         "--linkmap",
@@ -66,7 +71,16 @@ def main() -> None:
         required=False,
         default=str(pathlib.Path(__file__).parent / ".." / "vendor" / "README.txt"),
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="Print debugging messages",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     qljs_license_text = (pathlib.Path(__file__).parent / ".." / "COPYING").read_text()
     print(
@@ -175,19 +189,19 @@ def detect_system_package_manager(
         ).rstrip("\n")
         if any(is_path_relative(root_path=brew_prefix, sub_path=f) for f in files):
             return Homebrew(brew_prefix=brew_prefix)
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
     try:
         subprocess.check_output(["rpm", "--query", "glibc"])
         return RedHat()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
     try:
         subprocess.check_output(["dpkg-query", "--list", "libc6"])
         return Debian()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
 
     return None
@@ -386,7 +400,10 @@ class Debian:
         for line in process.stdout.splitlines():
             match = re.match(f"^(?P<package>\S+): (?P<file>.*)$", line)
             if match is not None:
-                packages.append(match.group("package"))
+                file = match.group("file")
+                package_name = match.group("package")
+                packages.append(package_name)
+                logger.debug("dpkg %s contains file %s", package_name, file)
         return packages
 
     @classmethod
@@ -583,20 +600,30 @@ class RedHat:
         return packages
 
     def get_copyright(self, package: InstalledPackage) -> str:
-        raw_text = (
-            pathlib.Path("/usr/share/licenses") / package.source / "LICENSES"
-        ).read_text()
-        return raw_text.replace("\x0C", "\n---\n")
+        error = None
+        for file_name in ("LICENSES", "LICENSE.TXT"):
+            try:
+                raw_text = (
+                    pathlib.Path("/usr/share/licenses") / package.source / file_name
+                ).read_text()
+                return raw_text.replace("\x0C", "\n---\n")
+            except FileNotFoundError as e:
+                error = e
+        assert error is not None
+        raise error
 
     @staticmethod
     def _rpm_package_for_installed_file(file_path: str) -> str:
+        logger.debug("checking which RPM provides file %s", file_path)
         process = subprocess.run(
             ["rpm", "--query", "--whatprovides", "--", file_path],
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
         process.check_returncode()
-        return process.stdout.rstrip("\n")
+        rpm_name = process.stdout.rstrip("\n")
+        logger.debug("RPM %s provides file %s", rpm_name, file_path)
+        return rpm_name
 
     @classmethod
     def _get_rpm_package(cls, package_name: str) -> InstalledPackage:

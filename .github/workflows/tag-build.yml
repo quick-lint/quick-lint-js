@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     env:
-      QLJS_VERSION: "0.2.0"
+      QLJS_VERSION: "0.3.0"
     steps:
       - name: create tag file
         run: |
