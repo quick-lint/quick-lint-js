@@ -372,6 +372,11 @@ class parser {
       this->skip();
       if (this->peek().type == token_type::colon) {
         // Labelled statement.
+        if (this->in_async_function_) {
+          this->error_reporter_->report(
+              error_label_named_await_not_allowed_in_async_function{
+                  .await = await_token.span(), .colon = this->peek().span()});
+        }
         this->skip();
         goto parse_statement;
       } else {
@@ -1533,9 +1538,18 @@ class parser {
           // }
           v.visit_property_declaration(property_name);
         } else {
-          this->error_reporter_->report(error_unexpected_token{
-              .token = property_name_span,
-          });
+          // class C {
+          //   const field
+          // }
+          if (u8"const" == property_name_span.string_view()) {
+            this->error_reporter_->report(error_typescript_style_const_field{
+                .const_token = property_name_span,
+            });
+          } else {
+            this->error_reporter_->report(error_unexpected_token{
+                .token = property_name_span,
+            });
+          }
         }
         break;
 
@@ -3176,6 +3190,11 @@ class parser {
         // let x;
         // let x, y;
         default:
+          if (declaration_kind == variable_kind::_const) {
+            this->error_reporter_->report(
+                error_missing_initializer_in_const_declaration{
+                    .variable_name = variable->span()});
+          }
           this->visit_binding_element(variable, v, declaration_kind);
           break;
         }

@@ -10,6 +10,25 @@ Semantic Versioning.
 
 Beta release.
 
+### Added
+
+* Various new errors (implemented by [Himanshu][])
+* Partially implemented: Global variables can be configured using a
+  `quick-lint-js.config` file
+
+### Fixed
+
+* `for (const x of xs)` no longer warns about a missing initializer for `x`
+  (E205) (implemented by [Himanshu][])
+* Building quick-lint-js with AddressSanitizer on Fedora no longer fails in
+  `collect-copyright`
+* Building quick-lint-js no longer fails if a directory called `brew` exists
+  anywhere in `$PATH`
+
+## 0.3.0 (2021-07-02)
+
+Beta release.
+
 ### Security
 
 * Vim plugin: Version 0.2.0 executed `node_modules/.bin/quick-lint-js` without
@@ -23,18 +42,21 @@ Beta release.
 * Translations: Swedish (implemented by [Kim "Linden"][])
 * Emacs plugin (implemented by [wagner riffel][])
 * Neovim plugin
-* Global variables can be configured using a `quick-lint-js.config` file
 * Errors and warnings are now documented on the website
 * Various new errors and error message improvements (implemented by
-  [AidenThing][], [Erlliam Mejia][], [Himanshu][], [Lee Wannacott][], [Matheus
-  Sousa][])
+  [AidenThing][], [Daniel La Rocque][], [Erlliam Mejia][], [Himanshu][], [Lee
+  Wannacott][], [Matheus Sousa][])
 * Shell completion for the CLI (Bash, Fish, Zsh) (implemented by [Shivam
   Mehta][])
 * `--stdin` CLI option allows reading JavaScript from standard input instead of
   a file (implemented by [wagner riffel][])
+* Partially implemented: Global variables can be configured using a
+  `quick-lint-js.config` file
 
 ### Fixed
 
+* Using browser variables such as `document` and `window` no longer reports
+  undesired undeclared variable warnings
 * `with` statements and `eval` no longer cause spurious undeclared variable
   warnings (implemented by [Himanshu][])
 * `++a[0];` no longer reports an assignment-to-const-variable error if `a` was
@@ -53,6 +75,7 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [AidenThing]: https://github.com/AidenThing
+[Daniel La Rocque]: https://github.com/dlarocque
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
 [Jimmy Qiu]: https://github.com/lifeinData

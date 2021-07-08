@@ -4,12 +4,14 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
+#include <boost/leaf/result.hpp>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace quick_lint_js {
 struct file_to_lint;
@@ -18,8 +20,19 @@ class configuration_filesystem {
  public:
   virtual ~configuration_filesystem() = default;
 
-  virtual canonical_path_result canonicalize_path(const std::string&) = 0;
-  virtual read_file_result read_file(const canonical_path&) = 0;
+  virtual boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) = 0;
+  virtual boost::leaf::result<padded_string> read_file(
+      const canonical_path&) = 0;
+};
+
+struct configuration_change {
+  const std::string* watched_path;  // Never nullptr.
+  configuration* config;            // Never nullptr.
+
+  // token is the pointer given to
+  // configuration_loader::watch_and_load_for_file.
+  void* token;
 };
 
 struct configuration_or_error {
@@ -39,14 +52,19 @@ class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
+  configuration_filesystem* fs() noexcept { return this->fs_; }
+
+  configuration_or_error watch_and_load_for_file(const std::string& file_path,
+                                                 const void* token);
   configuration_or_error load_for_file(const std::string& file_path);
   configuration_or_error load_for_file(const file_to_lint&);
 
-  void refresh();
+  std::vector<configuration_change> refresh();
 
  private:
   struct loaded_config_file {
     configuration config;
+    padded_string file_content;
   };
 
   struct found_config_file {
@@ -54,6 +72,12 @@ class configuration_loader {
     loaded_config_file* already_loaded = nullptr;
     padded_string file_content{};
     std::string error;
+  };
+
+  struct watched_path {
+    std::string input_path;
+    std::optional<canonical_path> config_path;
+    void* token;
   };
 
   configuration_or_error load_config_file(const char* config_path);
@@ -66,26 +90,28 @@ class configuration_loader {
   found_config_file find_config_file_in_directory_and_ancestors(
       canonical_path&&);
 
+  boost::leaf::result<canonical_path_result> get_parent_directory(
+      const char* input_path);
+
   loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration_filesystem* fs_;
   configuration default_config_;
 
-  // Key: an input file path
-  // Value: key to loaded_config_files_ (config file path)
-  std::unordered_map<std::string, canonical_path> input_path_config_files_;
-
   // Key: config file path
   // Value: cached parsed configuration
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
+
+  std::vector<watched_path> watched_paths_;
 };
 
 class basic_configuration_filesystem : public configuration_filesystem {
  public:
   static basic_configuration_filesystem* instance() noexcept;
 
-  canonical_path_result canonicalize_path(const std::string&) override;
-  read_file_result read_file(const canonical_path&) override;
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string&) override;
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 };
 }
 

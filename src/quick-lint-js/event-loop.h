@@ -5,7 +5,10 @@
 #define QUICK_LINT_JS_EVENT_LOOP_H
 
 #include <array>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/pred.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -14,6 +17,10 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <thread>
+
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
 
 #if QLJS_HAVE_WINDOWS_H
 #include <Windows.h>
@@ -41,8 +48,17 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
   {d.append(data)};
 
 #if QLJS_HAVE_POLL
-  {d.get_pipe_write_pollfd()};
+  {d.get_pipe_write_fd()};
   {d.on_pipe_write_event(poll_event)};
+#endif
+
+#if QLJS_HAVE_INOTIFY
+  {d.get_inotify_fd()};
+  {d.on_fs_changed_event(poll_event)};
+#endif
+
+#if QLJS_HAVE_KQUEUE
+  {d.on_fs_changed_kevents()};
 #endif
 };
 #endif
@@ -68,34 +84,43 @@ class event_loop_base {
   // Returns true when the pipe has closed. Returns false if the pipe might
   // still have data available (now or in the future).
   bool read_from_pipe() {
-    // TODO(strager): Pick buffer size intelligently.
-    std::array<char8, 1024> buffer;
-    platform_file_ref pipe = this->const_derived().get_readable_pipe();
+    return boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<bool> {
+          // TODO(strager): Pick buffer size intelligently.
+          std::array<char8, 1024> buffer;
+          platform_file_ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-    QLJS_ASSERT(pipe.is_pipe_non_blocking());
+          QLJS_ASSERT(pipe.is_pipe_non_blocking());
 #else
-    QLJS_ASSERT(!pipe.is_pipe_non_blocking());
+          QLJS_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
-    file_read_result read_result = pipe.read(buffer.data(), buffer.size());
-    if (read_result.at_end_of_file) {
-      return true;
-    } else if (read_result.error_message.has_value()) {
+          file_read_result read_result =
+              pipe.read(buffer.data(), buffer.size());
+          if (!read_result) return read_result.error();
+          if (read_result.at_end_of_file()) {
+            return true;
+          } else {
+            QLJS_ASSERT(read_result.bytes_read() != 0);
+            std::lock_guard<std::mutex> lock(this->user_code_mutex_);
+            this->derived().append(string8_view(
+                buffer.data(),
+                narrow_cast<std::size_t>(read_result.bytes_read())));
+            return false;
+          }
+        },
 #if QLJS_HAVE_UNISTD_H
-      if (errno == EAGAIN) {
+        [](boost::leaf::match_value<boost::leaf::e_errno, EAGAIN>) -> bool {
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-        return false;
+          return false;
 #else
-        QLJS_UNREACHABLE();
+          QLJS_UNREACHABLE();
 #endif
-      }
+        },
 #endif
-      QLJS_UNIMPLEMENTED();
-    } else {
-      QLJS_ASSERT(read_result.bytes_read != 0);
-      this->derived().append(string8_view(
-          buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read)));
-      return false;
-    }
+        []() -> bool {
+          QLJS_UNIMPLEMENTED();
+          return true;
+        });
   }
 
 #if QLJS_HAVE_CXX_CONCEPTS
@@ -114,7 +139,111 @@ class event_loop_base {
       const_derived() const {
     return *static_cast<const Derived*>(this);
   }
+
+ protected:
+  // Acquire user_code_mutex_ when calling non-const member functions of
+  // Derived.
+  // TODO(strager): Only use a lock on Windows. Avoid the lock on POSIX
+  // platforms where we only have one thread.
+  std::mutex user_code_mutex_;
 };
+
+#if QLJS_HAVE_KQUEUE
+// An event loop using BSD kqueue(). See event_loop_base for details.
+template <class Derived>
+class kqueue_event_loop : public event_loop_base<Derived> {
+ public:
+  enum event_udata : std::uintptr_t {
+    event_udata_readable_pipe,
+    event_udata_pipe_write,
+    event_udata_fs_changed,
+  };
+
+  explicit kqueue_event_loop() : kqueue_fd_(::kqueue()) {
+    QLJS_ASSERT(this->kqueue_fd_.valid());
+  }
+
+  posix_fd_file_ref kqueue_fd() noexcept { return this->kqueue_fd_.ref(); }
+
+  void run() {
+    {
+      static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
+      platform_file_ref pipe = this->const_derived().get_readable_pipe();
+      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+
+      std::array<struct ::kevent, 2> changes;
+      std::size_t change_count = 0;
+
+      EV_SET(&changes[change_count++], pipe.get(), EVFILT_READ, EV_ADD, 0, 0,
+             reinterpret_cast<void*>(event_udata_readable_pipe));
+
+      if (std::optional<posix_fd_file_ref> fd =
+              this->derived().get_pipe_write_fd()) {
+        EV_SET(&changes[change_count++], fd->get(), EVFILT_WRITE, EV_ADD, 0, 0,
+               reinterpret_cast<void*>(event_udata_pipe_write));
+      }
+
+      QLJS_ASSERT(change_count > 0);
+      QLJS_ASSERT(change_count <= changes.size());
+      ::timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
+      int rc = ::kevent(this->kqueue_fd_.get(),
+                        /*changelist=*/changes.data(),
+                        /*nchanges=*/narrow_cast<int>(change_count),
+                        /*eventlist=*/nullptr, /*nevents=*/0,
+                        /*timeout=*/&timeout);
+      if (rc == -1) {
+        QLJS_UNIMPLEMENTED();
+      }
+      QLJS_ASSERT(rc == 0);
+    }
+
+    for (;;) {
+      std::array<struct ::kevent, 10> events;
+      int rc = ::kevent(this->kqueue_fd_.get(),
+                        /*changelist=*/nullptr, /*nchanges=*/0,
+                        /*eventlist=*/events.data(),
+                        /*nevents=*/narrow_cast<int>(events.size()),
+                        /*timeout=*/nullptr);
+      if (rc == -1) {
+        QLJS_UNIMPLEMENTED();
+      }
+      QLJS_ASSERT(rc > 0);
+
+      bool fs_changed = false;
+      for (int i = 0; i < rc; ++i) {
+        struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
+        switch (reinterpret_cast<std::uintptr_t>(event.udata)) {
+        case event_udata_readable_pipe: {
+          QLJS_ASSERT(event.filter == EVFILT_READ);
+          bool done = this->read_from_pipe();
+          if (done) {
+            return;
+          }
+          break;
+        }
+
+        case event_udata_pipe_write:
+          QLJS_ASSERT(event.filter == EVFILT_WRITE);
+          this->derived().on_pipe_write_event(event);
+          break;
+
+        case event_udata_fs_changed:
+          fs_changed = true;
+          break;
+
+        default:
+          QLJS_UNREACHABLE();
+          break;
+        }
+      }
+      this->derived().on_fs_changed_kevents();
+    }
+  }
+
+ private:
+  posix_fd_file kqueue_fd_;
+};
+#endif
 
 #if QLJS_HAVE_POLL
 // An event loop using POSIX poll(). See event_loop_base for details.
@@ -134,18 +263,36 @@ class poll_event_loop : public event_loop_base<Derived> {
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
       QLJS_ASSERT(pipe.is_pipe_non_blocking());
 
-      std::array<::pollfd, 2> pollfds;
+      std::array<::pollfd, 3> pollfds;
       std::size_t pollfd_count = 0;
 
-      std::size_t read_pipe_index = pollfd_count;
-      pollfds[pollfd_count++] =
+      std::size_t read_pipe_index = pollfd_count++;
+      pollfds[read_pipe_index] =
           ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0};
 
-      std::size_t write_pipe_index = pollfd_count;
-      if (std::optional<::pollfd> event =
-              this->derived().get_pipe_write_pollfd()) {
-        pollfds[pollfd_count++] = *event;
+      std::optional<std::size_t> write_pipe_index;
+      if (std::optional<posix_fd_file_ref> fd =
+              this->derived().get_pipe_write_fd()) {
+        write_pipe_index = pollfd_count++;
+        pollfds[*write_pipe_index] = ::pollfd{
+            .fd = fd->get(),
+            .events = POLLOUT,
+            .revents = 0,
+        };
       }
+
+#if QLJS_HAVE_INOTIFY
+      std::optional<std::size_t> inotify_index;
+      if (std::optional<posix_fd_file_ref> fd =
+              this->derived().get_inotify_fd()) {
+        inotify_index = pollfd_count++;
+        pollfds[*inotify_index] = ::pollfd{
+            .fd = fd->get(),
+            .events = POLLIN,
+            .revents = 0,
+        };
+      }
+#endif
 
       QLJS_ASSERT(pollfd_count > 0);
       QLJS_ASSERT(pollfd_count <= pollfds.size());
@@ -164,12 +311,21 @@ class poll_event_loop : public event_loop_base<Derived> {
         QLJS_UNIMPLEMENTED();
       }
 
-      if (pollfd_count > 1) {
-        const ::pollfd& write_pipe_event = pollfds[write_pipe_index];
+      if (write_pipe_index.has_value()) {
+        const ::pollfd& write_pipe_event = pollfds[*write_pipe_index];
         if (write_pipe_event.revents != 0) {
           this->derived().on_pipe_write_event(write_pipe_event);
         }
       }
+
+#if QLJS_HAVE_INOTIFY
+      if (inotify_index.has_value()) {
+        const ::pollfd& inotify_event = pollfds[*inotify_index];
+        if (inotify_event.revents != 0) {
+          this->derived().on_fs_changed_event(inotify_event);
+        }
+      }
+#endif
     }
   }
 };
@@ -184,10 +340,15 @@ class windows_event_loop : public event_loop_base<Derived> {
   enum completion_key : ULONG_PTR {
     completion_key_invalid = 0,
     completion_key_stop,
+    completion_key_fs_changed,
   };
 
   explicit windows_event_loop()
       : io_completion_port_(create_io_completion_port()) {}
+
+  windows_handle_file_ref io_completion_port() noexcept {
+    return this->io_completion_port_.ref();
+  }
 
   void run() {
     static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
@@ -203,16 +364,33 @@ class windows_event_loop : public event_loop_base<Derived> {
           /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
           /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
           /*dwMilliseconds=*/INFINITE);
+      DWORD error = ok ? 0 : ::GetLastError();
+      if (!overlapped) {
+        switch (error) {
+        case WAIT_TIMEOUT:
+          QLJS_UNREACHABLE();
+          break;
+
+        default:
+          QLJS_UNIMPLEMENTED();
+          break;
+        }
+      }
+
       switch (completion_key) {
       case completion_key_invalid:
-        QLJS_ASSERT(!ok);
-        QLJS_UNIMPLEMENTED();
+        QLJS_UNREACHABLE();
         break;
 
       case completion_key_stop:
         QLJS_ASSERT(ok);
         this->read_pipe_thread_.join();
         return;
+
+      case completion_key_fs_changed:
+        this->derived().on_fs_changed_event(overlapped,
+                                            number_of_bytes_transferred, error);
+        break;
 
       default:
         QLJS_UNREACHABLE();
@@ -230,7 +408,7 @@ class windows_event_loop : public event_loop_base<Derived> {
         /*CompletionPort=*/this->io_completion_port_.get(),
         /*dwNumberOfBytesTransferred=*/0,
         /*dwCompletionKey=*/completion_key_stop,
-        /*lpOverlapped=*/nullptr);
+        /*lpOverlapped=*/reinterpret_cast<OVERLAPPED*>(1));
     if (!ok) {
       QLJS_UNIMPLEMENTED();
     }
@@ -243,7 +421,9 @@ class windows_event_loop : public event_loop_base<Derived> {
 
 template <class Derived>
 using event_loop =
-#if QLJS_HAVE_POLL
+#if QLJS_HAVE_KQUEUE
+    kqueue_event_loop
+#elif QLJS_HAVE_POLL
     poll_event_loop
 #elif defined(_WIN32)
     windows_event_loop

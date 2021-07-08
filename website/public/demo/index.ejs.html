@@ -41,6 +41,7 @@
         background: transparent;
         position: relative;
         z-index: 2;
+        outline: none;
       }
       #shadow-code-input,
       #shadow-code-input mark {
@@ -49,6 +50,16 @@
       #shadow-code-input {
         z-index: 1;
         position: absolute;
+      }
+
+      #error-box {
+        background-color: #252526;
+        color: yellow;
+        border: 1px solid #fff;
+        padding: 5px;
+        font-size: 0.8rem;
+        max-width: 300px;
+        z-index: 999999;
       }
 
       #shadow-code-input {
@@ -112,23 +123,7 @@ console.log(`Welcome, ${ocupation}!`);
       <script src="demo.bundled.js"></script>
     </main>
 
-    <footer>
-      <nav>
-        <ul>
-          <li><a href="../">quick-lint-js home page</a></li>
-          <li><a href="../hiring/">we're hiring! get paid to code</a></li>
-          <li><a href="../benchmarks/">benchmarks vs other linters</a></li>
-          <li>
-            <a href="https://github.com/quick-lint/quick-lint-js"
-              >source code on GitHub</a
-            >
-          </li>
-          <li>
-            <a href="../license/">copyright and license information</a>
-          </li>
-        </ul>
-      </nav>
-    </footer>
+    <footer><%- await include("../common-footer-nav.ejs.html") %></footer>
   </body>
 </html>
 

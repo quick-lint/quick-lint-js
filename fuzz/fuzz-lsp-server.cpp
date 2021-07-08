@@ -2,10 +2,12 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 
@@ -15,6 +17,18 @@ class null_lsp_endpoint_remote {
  public:
   void send_message(const byte_buffer&) {}
 };
+
+class null_configuration_filesystem : public configuration_filesystem {
+ public:
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string& path) override {
+    return canonical_path_result(std::string(path), /*existing_path_length=*/0);
+  }
+
+  boost::leaf::result<padded_string> read_file(const canonical_path&) override {
+    return boost::leaf::new_error(boost::leaf::e_errno{ENOENT});
+  }
+};
 }
 }
 
@@ -22,9 +36,10 @@ extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   using namespace quick_lint_js;
 
+  null_configuration_filesystem fs;
   lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                null_lsp_endpoint_remote>
-      server;
+      server(std::forward_as_tuple(&fs), std::forward_as_tuple());
 
   std::size_t i = 0;
   auto size_remaining = [&]() -> std::size_t { return size - i; };

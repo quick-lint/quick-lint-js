@@ -4,7 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_HANDLE_H
 #define QUICK_LINT_JS_FILE_HANDLE_H
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/result.hpp>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
 #include <string>
 
@@ -22,25 +25,48 @@ namespace quick_lint_js {
 //
 // A file_read_result is in exactly one of three states:
 //
-// * end of file (at_end_of_file is true)
-// * error (at_end_of_file is false and error_message.has_value() is true)
-// * success (at_end_of_file is false and error_message.has_value() is false)
-struct file_read_result {
-  // If at_end_of_file is true, then the value of bytes_read is
-  // platform-specific, and whether error_message holds a value is
-  // platform-specific.
-  bool at_end_of_file;
+//   state       | ->has_value() | .ok()
+// --------------+---------------+----------------------------
+//   end of file | false         | true
+//   error       | false         | false
+//   success     | true          | true
+//
+// Possible error types:
+//
+// * boost::leaf::e_errno
+// * boost::leaf::windows::e_LastError
+struct file_read_result : public boost::leaf::result<std::optional<int>> {
+  using boost::leaf::result<std::optional<int>>::result;
 
-  // If at_end_of_file is true, then bytes_read equals 0.
-  //
-  // If error_message holds a value, then bytes_read's value is indeterminate.
-  int bytes_read;
+  /*implicit*/ file_read_result(int bytes_read)
+      : file_read_result(std::optional<int>(bytes_read)) {}
 
-  std::optional<std::string> error_message;
+  static file_read_result end_of_file() noexcept {
+    return file_read_result(std::optional<int>());
+  }
+
+  bool ok() const noexcept { return bool(*this); }
+
+  bool at_end_of_file() const noexcept {
+    return this->ok() && !this->value().has_value();
+  }
+
+  int bytes_read() const noexcept {
+    QLJS_ASSERT(this->ok());
+    QLJS_ASSERT(!this->at_end_of_file());
+    return ***this;
+  }
 };
 
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+std::string error_message(boost::leaf::e_errno);
+#endif
+#if QLJS_HAVE_WINDOWS_H
+std::string error_message(boost::leaf::windows::e_LastError);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
@@ -142,6 +168,7 @@ class posix_fd_file : private posix_fd_file_ref {
   posix_fd_file &operator=(const posix_fd_file &) = delete;
 
   posix_fd_file(posix_fd_file &&) noexcept;
+  posix_fd_file &operator=(posix_fd_file &&) noexcept;
 
   ~posix_fd_file();
 
@@ -155,6 +182,7 @@ class posix_fd_file : private posix_fd_file_ref {
   using posix_fd_file_ref::is_pipe_non_blocking;
   using posix_fd_file_ref::read;
   using posix_fd_file_ref::set_pipe_non_blocking;
+  using posix_fd_file_ref::valid;
   using posix_fd_file_ref::write;
 };
 #endif

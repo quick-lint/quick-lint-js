@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
@@ -36,6 +37,10 @@
 #include <tuple>
 #include <unordered_map>
 #include <variant>
+
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
 
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>
@@ -169,16 +174,23 @@ void handle_options(quick_lint_js::options o) {
       std::fprintf(stderr, "error: %s\n", config.error.c_str());
       std::exit(1);
     }
-    quick_lint_js::read_file_result source;
-    if (file.is_stdin) {
-      source = quick_lint_js::read_stdin();
-    } else {
-      source = quick_lint_js::read_file(file.path);
-    }
-    source.exit_if_not_ok();
-    reporter.set_source(&source.content, file);
-    quick_lint_js::process_file(&source.content, *config, reporter.get(),
-                                o.print_parser_visits);
+    boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<void> {
+          boost::leaf::result<padded_string> source =
+              file.is_stdin ? quick_lint_js::read_stdin()
+                            : quick_lint_js::read_file(file.path);
+          if (!source) return source.error();
+          reporter.set_source(&*source, file);
+          quick_lint_js::process_file(&*source, *config, reporter.get(),
+                                      o.print_parser_visits);
+          return {};
+        },
+        exit_on_read_file_error_handlers<void>(),
+        []() {
+          QLJS_ASSERT(false);
+          std::fprintf(stderr, "error: unknown error\n");
+          std::exit(1);
+        });
   }
   reporter.finish();
 
@@ -395,27 +407,81 @@ void run_lsp_server() {
   class lsp_event_loop : public event_loop<lsp_event_loop> {
    public:
     explicit lsp_event_loop(platform_file_ref input_pipe,
-                            platform_file_ref output_pipe,
-                            configuration_filesystem *fs)
-        : input_pipe_(input_pipe),
-          endpoint_(std::forward_as_tuple(fs),
-                    std::forward_as_tuple(output_pipe)) {}
+                            platform_file_ref output_pipe)
+        :
+#if QLJS_HAVE_KQUEUE
+          fs_(this->kqueue_fd(),
+              reinterpret_cast<void *>(event_udata_fs_changed)),
+#elif QLJS_HAVE_INOTIFY
+          fs_(),
+#elif defined(_WIN32)
+          fs_(this->io_completion_port(), completion_key_fs_changed),
+#else
+#error "Unsupported platform"
+#endif
+          input_pipe_(input_pipe),
+          endpoint_(std::forward_as_tuple(&this->fs_),
+                    std::forward_as_tuple(output_pipe)) {
+    }
 
     platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
 
     void append(string8_view data) { this->endpoint_.append(data); }
 
-#if QLJS_HAVE_POLL
-    std::optional<::pollfd> get_pipe_write_pollfd() {
-      return this->endpoint_.remote().get_pollfd();
+#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
+    std::optional<posix_fd_file_ref> get_pipe_write_fd() {
+      return this->endpoint_.remote().get_event_fd();
     }
+#endif
 
+#if QLJS_HAVE_KQUEUE
+    void on_pipe_write_event(const struct ::kevent &event) {
+      this->endpoint_.remote().on_poll_event(event);
+    }
+#elif QLJS_HAVE_POLL
     void on_pipe_write_event(const ::pollfd &event) {
       this->endpoint_.remote().on_poll_event(event);
     }
 #endif
 
+#if QLJS_HAVE_KQUEUE
+    void on_fs_changed_kevents() { this->endpoint_.filesystem_changed(); }
+#endif
+
+#if QLJS_HAVE_INOTIFY
+    std::optional<posix_fd_file_ref> get_inotify_fd() {
+      return this->fs_.get_inotify_fd();
+    }
+
+    void on_fs_changed_event(const ::pollfd &event) {
+      this->fs_.handle_poll_event(event);
+      this->endpoint_.filesystem_changed();
+    }
+#endif
+
+#if defined(_WIN32)
+    void on_fs_changed_event(::OVERLAPPED *overlapped,
+                             ::DWORD number_of_bytes_transferred,
+                             ::DWORD error) {
+      bool fs_changed = this->fs_.handle_event(
+          overlapped, number_of_bytes_transferred, error);
+      if (fs_changed) {
+        this->endpoint_.filesystem_changed();
+      }
+    }
+#endif
+
    private:
+#if QLJS_HAVE_KQUEUE
+    change_detecting_filesystem_kqueue fs_;
+#elif QLJS_HAVE_INOTIFY
+    change_detecting_filesystem_inotify fs_;
+#elif defined(_WIN32)
+    change_detecting_filesystem_win32 fs_;
+#else
+#error "Unsupported platform"
+#endif
+
     platform_file_ref input_pipe_;
     lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                  lsp_pipe_writer>
@@ -428,7 +494,7 @@ void run_lsp_server() {
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD
   output_pipe.set_pipe_non_blocking();
 #endif
-  lsp_event_loop server(input_pipe, output_pipe, &fs);
+  lsp_event_loop server(input_pipe, output_pipe);
   server.run();
 }
 

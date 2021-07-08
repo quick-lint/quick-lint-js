@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -50,13 +51,14 @@ lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
     configuration_filesystem* underlying_fs)
     : underlying_fs_(underlying_fs) {}
 
-canonical_path_result lsp_overlay_configuration_filesystem::canonicalize_path(
+boost::leaf::result<canonical_path_result>
+lsp_overlay_configuration_filesystem::canonicalize_path(
     const std::string& path) {
   return this->underlying_fs_->canonicalize_path(path);
 }
 
-read_file_result lsp_overlay_configuration_filesystem::read_file(
-    const canonical_path& path) {
+boost::leaf::result<padded_string>
+lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
   std::string_view key = path.path();
 #else
@@ -66,9 +68,7 @@ read_file_result lsp_overlay_configuration_filesystem::read_file(
   if (doc_it == this->overlaid_documents_.end()) {
     return this->underlying_fs_->read_file(path);
   }
-  read_file_result result;
-  result.content = padded_string(doc_it->second->string().string_view());
-  return result;
+  return padded_string(doc_it->second->string().string_view());
 }
 
 void lsp_overlay_configuration_filesystem::open_document(
@@ -101,19 +101,21 @@ void linting_lsp_server_handler<Linter>::handle_request(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_notification(
-    ::simdjson::ondemand::object& request, byte_buffer& notification_json) {
+    ::simdjson::ondemand::object& request,
+    std::vector<byte_buffer>& notification_jsons) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(request,
-                                                       notification_json);
+                                                       notification_jsons);
   } else if (method == "textDocument/didOpen") {
     this->handle_text_document_did_open_notification(request,
-                                                     notification_json);
+                                                     notification_jsons);
   } else if (method == "textDocument/didClose") {
-    this->handle_text_document_did_close_notification(request);
+    this->handle_text_document_did_close_notification(request,
+                                                      notification_jsons);
   } else if (method == "initialized") {
     // Do nothing.
   } else if (method == "exit") {
@@ -129,6 +131,14 @@ void linting_lsp_server_handler<Linter>::handle_notification(
   } else {
     QLJS_UNIMPLEMENTED();
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::filesystem_changed(
+    std::vector<byte_buffer>& notification_jsons) {
+  std::vector<configuration_change> config_changes =
+      this->config_loader_.refresh();
+  this->handle_config_file_changes(config_changes, notification_jsons);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -164,7 +174,8 @@ void linting_lsp_server_handler<Linter>::handle_shutdown_request(
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_change_notification(
-        ::simdjson::ondemand::object& request, byte_buffer& notification_json) {
+        ::simdjson::ondemand::object& request,
+        std::vector<byte_buffer>& notification_jsons) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -204,20 +215,19 @@ void linting_lsp_server_handler<Linter>::
 
   switch (doc.type) {
   case document_type::lintable: {
-    configuration_or_error config = this->get_config(document_path);
-    if (!config.ok()) {
-      QLJS_UNIMPLEMENTED();
-    }
+    byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
     break;
   }
 
-  case document_type::config:
-    this->config_loader_.refresh();
-    this->relint_open_documents(notification_json);
+  case document_type::config: {
+    std::vector<configuration_change> config_changes =
+        this->config_loader_.refresh();
+    this->handle_config_file_changes(config_changes, notification_jsons);
     break;
+  }
 
   case document_type::unknown:
     // Ignore.
@@ -228,7 +238,8 @@ void linting_lsp_server_handler<Linter>::
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
-        ::simdjson::ondemand::object& request) {
+        ::simdjson::ondemand::object& request,
+        std::vector<byte_buffer>& notification_jsons) {
   string8_view uri = make_string_view(request["params"]["textDocument"]["uri"]);
   std::string path = parse_file_from_lsp_uri(uri);
   if (path.empty()) {
@@ -238,12 +249,18 @@ void linting_lsp_server_handler<Linter>::
 
   this->config_fs_.close_document(path);
   this->documents_.erase(string8(uri));
+  // TODO(strager): Signal to configuration_loader and
+  // change_detecting_filesystem_* that we no longer need to track changes to
+  // this .js document's config file.
+
+  this->filesystem_changed(notification_jsons);
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_open_notification(
-        ::simdjson::ondemand::object& request, byte_buffer& notification_json) {
+        ::simdjson::ondemand::object& request,
+        std::vector<byte_buffer>& notification_jsons) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -279,39 +296,50 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
-    configuration_or_error config = this->get_config(document_path);
+    configuration_or_error config =
+        this->config_loader_.watch_and_load_for_file(document_path,
+                                                     /*token=*/&doc);
     if (!config.ok()) {
       QLJS_UNIMPLEMENTED();
     }
+    doc.config = config.config;
+    byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
         *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
   } else {
     doc.type = document_type::config;
-    this->config_loader_.refresh();
-    this->relint_open_documents(notification_json);
+    std::vector<configuration_change> config_changes =
+        this->config_loader_.refresh();
+    this->handle_config_file_changes(config_changes, notification_jsons);
   }
 }
 
 template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::relint_open_documents(
-    byte_buffer& notification_json) {
-  bool need_comma = false;
-  notification_json.append_copy(u8'[');
-  for (auto& [document_uri, doc] : this->documents_) {
+void linting_lsp_server_handler<Linter>::handle_config_file_changes(
+    const std::vector<configuration_change>& config_changes,
+    std::vector<byte_buffer>& notification_jsons) {
+  for (auto& entry : this->documents_) {
+    const string8& document_uri = entry.first;
+    document& doc = entry.second;
     if (doc.type == document_type::lintable) {
-      if (need_comma) {
-        notification_json.append_copy(u8',');
+      auto change_it =
+          std::find_if(config_changes.begin(), config_changes.end(),
+                       [&](const configuration_change& change) {
+                         return change.token == &doc;
+                       });
+      if (change_it == config_changes.end()) {
+        continue;
       }
+
       std::string document_path = parse_file_from_lsp_uri(document_uri);
       if (document_path.empty()) {
         // TODO(strager): Report a warning and use a default configuration.
         QLJS_UNIMPLEMENTED();
       }
-      configuration_or_error config = this->get_config(document_path);
-      if (!config.ok()) {
-        QLJS_UNIMPLEMENTED();
-      }
+      configuration* config = change_it->config;
+      doc.config = config;
+      byte_buffer& notification_json = notification_jsons.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special
       // characters.
       // TODO(strager): Cache the result of to_json_escaped_string?
@@ -319,16 +347,8 @@ void linting_lsp_server_handler<Linter>::relint_open_documents(
           *config, doc.doc.string(),
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
-      need_comma = true;
     }
   }
-  notification_json.append_copy(u8']');
-}
-
-template <QLJS_LSP_LINTER Linter>
-configuration_or_error linting_lsp_server_handler<Linter>::get_config(
-    const std::string& path) {
-  return this->config_loader_.load_for_file(path);
 }
 
 template <QLJS_LSP_LINTER Linter>

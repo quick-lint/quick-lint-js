@@ -570,6 +570,17 @@ expression* parser::parse_async_expression_only(token async_token) {
                 .arrow = this->peek().span(),
             });
       }
+      for (auto parameter : parameters) {
+        if (parameter->kind() == expression_kind::variable &&
+            parameter->variable_identifier_token_type() ==
+                token_type::kw_await) {
+          // async (await) => {}  // Invalid
+          this->error_reporter_->report(
+              error_cannot_declare_await_in_async_function{
+                  .name = parameter->variable_identifier(),
+              });
+        }
+      }
       // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
       return parse_arrow_function_arrow_and_body(std::move(parameters));
     } else {
@@ -606,6 +617,13 @@ expression* parser::parse_async_expression_only(token async_token) {
       goto variable_reference;
     }
 
+    if (this->peek().type == token_type::kw_await) {
+      // async await => {}  // Invalid
+      this->error_reporter_->report(
+          error_cannot_declare_await_in_async_function{
+              .name = this->peek().identifier_name(),
+          });
+    }
     std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
             identifier(this->peek().span()), this->peek().type)};
@@ -863,6 +881,7 @@ next:
     case expression_kind::index:
     case expression_kind::object:
     case expression_kind::variable:
+    case expression_kind::private_variable:
       break;
     }
     expression* rhs = this->parse_expression(

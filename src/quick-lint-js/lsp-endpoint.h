@@ -14,6 +14,7 @@
 #include <simdjson.h>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #if QLJS_HAVE_CXX_CONCEPTS
 #define QLJS_LSP_ENDPOINT_HANDLER ::quick_lint_js::lsp_endpoint_handler
@@ -31,11 +32,11 @@ concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
 };
 
 template <class Handler>
-concept lsp_endpoint_handler = requires(Handler h,
-                                        ::simdjson::ondemand::object request,
-                                        byte_buffer reply) {
+concept lsp_endpoint_handler =
+    requires(Handler h, ::simdjson::ondemand::object request, byte_buffer reply,
+             std::vector<byte_buffer> notification_jsons) {
   {h.handle_request(request, reply)};
-  {h.handle_notification(request, reply)};
+  {h.handle_notification(request, notification_jsons)};
 };
 #endif
 
@@ -70,6 +71,14 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
 
   Remote& remote() noexcept { return this->remote_; }
 
+  void filesystem_changed() {
+    std::vector<byte_buffer> notification_jsons;
+    this->handler_.filesystem_changed(notification_jsons);
+    for (byte_buffer& notification_json : notification_jsons) {
+      this->remote_.send_message(std::move(notification_json));
+    }
+  }
+
  private:
   void message_parsed(string8_view message) {
     // TODO(strager): Avoid copying the message.
@@ -87,7 +96,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     }
 
     byte_buffer response_json;
-    byte_buffer notification_json;
+    std::vector<byte_buffer> notification_jsons;
 
     ::simdjson::ondemand::array batched_requests;
     bool is_batch_request = request_document.get(batched_requests) ==
@@ -103,7 +112,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
           QLJS_UNIMPLEMENTED();
         }
         this->handle_message(
-            sub_request, response_json, notification_json,
+            sub_request, response_json, notification_jsons,
             /*add_comma_before_response=*/response_json.size() !=
                 empty_response_json_size);
       }
@@ -113,7 +122,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       if (request_document.get(request) != ::simdjson::error_code::SUCCESS) {
         QLJS_UNIMPLEMENTED();
       }
-      this->handle_message(request, response_json, notification_json,
+      this->handle_message(request, response_json, notification_jsons,
                            /*add_comma_before_response=*/false);
     }
 
@@ -125,14 +134,18 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     if (!response_json.empty()) {
       this->remote_.send_message(std::move(response_json));
     }
-    if (!notification_json.empty()) {
+    for (byte_buffer& notification_json : notification_jsons) {
+      if (notification_json.empty()) {
+        // TODO(strager): Fix our tests so they don't make empty byte_buffer-s.
+        continue;
+      }
       this->remote_.send_message(std::move(notification_json));
     }
   }
 
   void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json,
-                      byte_buffer& notification_json,
+                      std::vector<byte_buffer>& notification_jsons,
                       bool add_comma_before_response) {
     switch (request["id"].error()) {
     case ::simdjson::error_code::SUCCESS:
@@ -143,7 +156,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
       break;
 
     case ::simdjson::error_code::NO_SUCH_FIELD:
-      this->handler_.handle_notification(request, notification_json);
+      this->handler_.handle_notification(request, notification_jsons);
       break;
 
     case ::simdjson::error_code::TAPE_ERROR:

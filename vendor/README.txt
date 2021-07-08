@@ -26,23 +26,39 @@ Version: v1.5.1
 The boost directory contains Boost, free peer-reviewed portable C++ source
 libraries.
 
-Many directories and files have been deleted to reduce storage consumption.
+The boost directory was generated using Boost's [bcp
+tool](https://www.boost.org/doc/libs/1_76_0/tools/bcp/doc/html/index.html). To
+regenerate the boost directory, run the following commands inside a Boost
+release archive:
 
-The following patches have been manually applied:
+    $ cd /PATH/TO/BOOST/
+    $ ./bootstrap.sh
+    $ cd tools/bcp/
+    $ ../../b2
+    $ cd ../../
+    $ rm -r /PATH/TO/quick-lint-js/vendor/boost/
+    $ mkdir /PATH/TO/quick-lint-js/vendor/boost/
+    $ boost_libs="boost/container/pmr/global_resource.hpp boost/leaf.hpp boost/container/pmr/memory_resource.hpp boost/container/pmr/monotonic_buffer_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/container/small_vector.hpp"
+    $ eval ./dist/bin/bcp ${boost_libs} /PATH/TO/quick-lint-js/vendor/boost/
+    $ eval ./dist/bin/bcp --report ${boost_libs} /PATH/TO/quick-lint-js/vendor/boost/report.html
+    $ cp LICENSE_1_0.txt /PATH/TO/quick-lint-js/vendor/boost/
+    $ rm -r /PATH/TO/quick-lint-js/vendor/boost/usr/
+
+Additionally, the following patches have been manually applied:
 
 * boost-static-var.patch
 
 Copyright: various
-Download URL: https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
-Download date: August 25, 2020
-Git commit: a7090e8ce184501cfc9e80afa6cafb5bfd3b371c (et al)
+Download URL: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2
+Download date: June 27, 2021
+Git commit: ccb2ab3b4384a16deafaa849de509bce2b2cbada (et al)
 License file: boost/LICENSE_1_0.txt
 License type: BSL-1.0
 Location: boost
 Project URL: https://www.boost.org/
-Release URL: https://www.boost.org/users/history/version_1_74_0.html
-Release date: August 14th, 2020
-Version: 1.74.0
+Release URL: https://www.boost.org/users/history/version_1_76_0.html
+Release date: April 16th, 2021
+Version: 1.76.0
 
 ## googletest
 
