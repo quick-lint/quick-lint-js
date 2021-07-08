@@ -274,7 +274,7 @@ TEST_F(test_file_canonical,
   std::string temp_dir = this->make_temporary_directory();
   sloppy_result<canonical_path_result> temp_dir_canonical =
       canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical->ok()) << temp_dir_canonical.error();
+  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
 
   sloppy_result<canonical_path_result> canonical =
       canonicalize_path_sloppy(temp_dir + "/does-not-exist/./file.js");

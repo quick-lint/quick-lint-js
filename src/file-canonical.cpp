@@ -181,50 +181,31 @@ canonical_path_result::canonical_path_result(std::string &&path,
     : path_(std::move(path)), existing_path_length_(existing_path_length) {}
 
 std::string_view canonical_path_result::path() const &noexcept {
-  QLJS_ASSERT(this->ok());
   return this->path_->path();
 }
 
 std::string &&canonical_path_result::path() && noexcept {
-  QLJS_ASSERT(this->ok());
   return std::move(*this->path_).path();
 }
 
 const char *canonical_path_result::c_str() const noexcept {
-  QLJS_ASSERT(this->ok());
   return this->path_->c_str();
 }
 
 const canonical_path &canonical_path_result::canonical() const &noexcept {
-  QLJS_ASSERT(this->ok());
   return *this->path_;
 }
 
 canonical_path &&canonical_path_result::canonical() && noexcept {
-  QLJS_ASSERT(this->ok());
   return std::move(*this->path_);
 }
 
-std::string &&canonical_path_result::error() && noexcept {
-  QLJS_ASSERT(!this->ok());
-  return std::move(this->error_);
-}
-
 bool canonical_path_result::have_missing_components() const noexcept {
-  QLJS_ASSERT(this->ok());
   return this->existing_path_length_ != this->path_->path_.size();
 }
 
 void canonical_path_result::drop_missing_components() {
-  QLJS_ASSERT(this->ok());
   this->path_->path_.resize(this->existing_path_length_);
-}
-
-canonical_path_result canonical_path_result::failure(std::string &&error) {
-  canonical_path_result result;
-  result.error_ = std::move(error);
-  QLJS_ASSERT(!result.ok());
-  return result;
 }
 
 namespace {

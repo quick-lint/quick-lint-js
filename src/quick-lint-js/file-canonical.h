@@ -85,20 +85,13 @@ class canonical_path_result {
   const canonical_path &canonical() const &noexcept;
   canonical_path &&canonical() && noexcept;
 
-  std::string &&error() && noexcept;
-
-  bool ok() const noexcept { return this->error_.empty(); }
-
   bool have_missing_components() const noexcept;
   void drop_missing_components();
-
-  static canonical_path_result failure(std::string &&error);
 
  private:
   explicit canonical_path_result();
 
   std::optional<canonical_path> path_;
-  std::string error_;
   std::size_t existing_path_length_;
 };
 
