@@ -274,7 +274,7 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
 
     EXPECT_FALSE(config.ok());
     EXPECT_THAT(config.error,
-                HasSubstr(canonicalize_path(config_file).c_str()));
+                HasSubstr(canonicalize_path_sloppy(config_file)->c_str()));
     EXPECT_THAT(
         config.error,
         AnyOf(HasSubstr("Is a directory"),
