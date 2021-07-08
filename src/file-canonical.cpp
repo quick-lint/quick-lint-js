@@ -631,8 +631,7 @@ class windows_path_canonicalizer
 #endif
 }
 
-boost::leaf::result<canonical_path_result> canonicalize_path_2(
-    const char *path) {
+boost::leaf::result<canonical_path_result> canonicalize_path(const char *path) {
   auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
 #if defined(_WIN32)
@@ -649,9 +648,9 @@ boost::leaf::result<canonical_path_result> canonicalize_path_2(
   return canonicalizer.result();
 }
 
-boost::leaf::result<canonical_path_result> canonicalize_path_2(
+boost::leaf::result<canonical_path_result> canonicalize_path(
     const std::string &path) {
-  return canonicalize_path_2(path.c_str());
+  return canonicalize_path(path.c_str());
 }
 
 sloppy_result<canonical_path_result> canonicalize_path_sloppy(
@@ -659,7 +658,7 @@ sloppy_result<canonical_path_result> canonicalize_path_sloppy(
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<sloppy_result<canonical_path_result>> {
         boost::leaf::result<canonical_path_result> canonical =
-            canonicalize_path_2(path);
+            canonicalize_path(path);
         if (!canonical) return canonical.error();
         return sloppy_result<canonical_path_result>(*canonical);
       },

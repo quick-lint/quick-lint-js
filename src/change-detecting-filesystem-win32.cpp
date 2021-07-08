@@ -84,7 +84,7 @@ change_detecting_filesystem_win32::~change_detecting_filesystem_win32() {
 
 boost::leaf::result<canonical_path_result>
 change_detecting_filesystem_win32::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path_2(path);
+  return quick_lint_js::canonicalize_path(path);
 }
 
 boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(

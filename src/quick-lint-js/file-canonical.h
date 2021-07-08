@@ -118,9 +118,8 @@ struct e_too_many_symlinks {};
 // * e_canonicalizing_path
 // * e_invalid_argument_empty_path
 // * e_too_many_symlinks
-boost::leaf::result<canonical_path_result> canonicalize_path_2(
-    const char *path);
-boost::leaf::result<canonical_path_result> canonicalize_path_2(
+boost::leaf::result<canonical_path_result> canonicalize_path(const char *path);
+boost::leaf::result<canonical_path_result> canonicalize_path(
     const std::string &path);
 
 sloppy_result<canonical_path_result> canonicalize_path_sloppy(const char *path);

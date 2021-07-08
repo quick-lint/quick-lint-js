@@ -76,9 +76,9 @@ class test_file_canonical : public ::testing::Test {
 template <class Path>
 boost::leaf::result<void> canonicalize_expecting_failure(const Path& path) {
   boost::leaf::result<canonical_path_result> canonical =
-      canonicalize_path_2(path);
+      canonicalize_path(path);
   if (!canonical) return canonical.error();
-  ADD_FAILURE() << "canonicalize_path_2 should have failed";
+  ADD_FAILURE() << "canonicalize_path should have failed";
   return {};
 }
 
