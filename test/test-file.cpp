@@ -111,7 +111,8 @@ TEST_F(test_file, read_non_existing_file) {
       }),
       make_read_file_error_handlers([](const std::string& message) {
         ADD_FAILURE() << "expected file-not-found error, but got: " << message;
-      }));
+      }),
+      []() { ADD_FAILURE() << "unknown error"; });
 }
 
 TEST_F(test_file, read_non_existing_file_sloppy_message) {
@@ -141,7 +142,8 @@ TEST_F(test_file, read_directory) {
           [] { ADD_FAILURE() << "expected not file-not-found error"; }),
       make_read_file_error_handlers([](const std::string&) {
         // Test passed.
-      }));
+      }),
+      []() { ADD_FAILURE() << "unknown error"; });
 }
 
 TEST_F(test_file, read_directory_sloppy_message) {

@@ -108,7 +108,11 @@ configuration_or_error configuration_loader::load_config_file(
       make_read_file_error_handlers(
           [](std::string&& message) -> configuration_or_error {
             return configuration_or_error(std::move(message));
-          }));
+          }),
+      []() {
+        QLJS_ASSERT(false);
+        return configuration_or_error("unknown error");
+      });
 }
 
 QLJS_WARNING_PUSH
@@ -226,7 +230,16 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
                     .file_content = padded_string(),
                     .error = std::move(message),
                 };
-              }));
+              }),
+          [&]() {
+            QLJS_ASSERT(false);
+            return found_config_file{
+                .path = std::move(config_path),
+                .already_loaded = nullptr,
+                .file_content = padded_string(),
+                .error = "unknown error",
+            };
+          });
       if (found.has_value()) {
         return std::move(*found);
       }

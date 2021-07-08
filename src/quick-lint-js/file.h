@@ -120,12 +120,6 @@ auto make_read_file_error_handlers(const Func &handle_error) {
         QLJS_ASSERT(
             false);  // Other catch clauses should have happened instead.
         return handle_error("failed to read from file"s);
-      },
-      [handle_error]() {
-        // TODO(strager): Get rid of this handler.
-        QLJS_ASSERT(
-            false);  // Other catch clauses should have happened instead.
-        return handle_error("failed to read from file"s);
       });
 }
 

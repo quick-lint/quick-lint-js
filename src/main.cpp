@@ -185,7 +185,12 @@ void handle_options(quick_lint_js::options o) {
                                       o.print_parser_visits);
           return {};
         },
-        exit_on_read_file_error_handlers<void>());
+        exit_on_read_file_error_handlers<void>(),
+        []() {
+          QLJS_ASSERT(false);
+          std::fprintf(stderr, "error: unknown error\n");
+          std::exit(1);
+        });
   }
   reporter.finish();
 

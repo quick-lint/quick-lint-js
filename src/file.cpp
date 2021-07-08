@@ -253,7 +253,8 @@ sloppy_result<padded_string> read_file_sloppy(const char *path) {
       make_read_file_error_handlers(
           [](const std::string &message) -> sloppy_result<padded_string> {
             return sloppy_result<padded_string>::failure(message);
-          }));
+          }),
+      []() -> sloppy_result<padded_string> { QLJS_UNREACHABLE(); });
 }
 
 sloppy_result<padded_string> read_file_sloppy(const char *path,
@@ -269,13 +270,19 @@ sloppy_result<padded_string> read_file_sloppy(const char *path,
       make_read_file_error_handlers(
           [](const std::string &message) -> sloppy_result<padded_string> {
             return sloppy_result<padded_string>::failure(message);
-          }));
+          }),
+      []() -> sloppy_result<padded_string> { QLJS_UNREACHABLE(); });
 }
 
 padded_string read_file_or_exit(const char *path) {
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<padded_string> { return read_file(path); },
-      exit_on_read_file_error_handlers<padded_string>());
+      exit_on_read_file_error_handlers<padded_string>(),
+      []() -> padded_string {
+        QLJS_ASSERT(false);
+        std::fprintf(stderr, "error: unknown error\n");
+        std::exit(1);
+      });
 }
 
 void write_file(const std::string &path, string8_view content) {
