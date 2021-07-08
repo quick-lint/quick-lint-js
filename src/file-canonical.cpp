@@ -631,54 +631,6 @@ class windows_path_canonicalizer
 #endif
 }
 
-canonical_path_result canonicalize_path(const char *path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<canonical_path_result> {
-#if defined(_WIN32)
-        std::optional<std::wstring> wpath = mbstring_to_wstring(path);
-        if (!wpath.has_value()) {
-          QLJS_UNIMPLEMENTED();
-        }
-        windows_path_canonicalizer canonicalizer(*wpath);
-#else
-        posix_path_canonicalizer canonicalizer(path);
-#endif
-        boost::leaf::result<void> ok = canonicalizer.canonicalize();
-        if (!ok) return ok.error();
-        return canonicalizer.result();
-      },
-      [&](boost::leaf::e_errno error,
-          const e_canonicalizing_path &canonicalizing) {
-        return canonical_path_result::failure(
-            "failed to canonicalize "s + canonicalizing.path + ": "s + path +
-            ": "s + std::strerror(error.value));
-      },
-      [&](boost::leaf::e_errno error) {
-        return canonical_path_result::failure("failed to canonicalize "s +
-                                              path + ": "s +
-                                              std::strerror(error.value));
-      },
-      [&](e_too_many_symlinks) {
-        return canonical_path_result::failure("failed to canonicalize "s +
-                                              path +
-                                              ": Too many levels of symlink"s);
-      },
-      [&](e_invalid_argument_empty_path) {
-        return canonical_path_result::failure(
-            "failed to canonicalize empty path: "s + std::strerror(EINVAL));
-      },
-      [&]() {
-        QLJS_ASSERT(false);  // One of the above handlers should have handled
-                             // the error already.
-        return canonical_path_result::failure("failed to canonicalize path: "s +
-                                              path);
-      });
-}
-
-canonical_path_result canonicalize_path(const std::string &path) {
-  return canonicalize_path(path.c_str());
-}
-
 boost::leaf::result<canonical_path_result> canonicalize_path_2(
     const char *path) {
   auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());

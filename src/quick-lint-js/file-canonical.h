@@ -109,9 +109,6 @@ struct e_canonicalizing_path {
 struct e_invalid_argument_empty_path {};
 struct e_too_many_symlinks {};
 
-canonical_path_result canonicalize_path(const char *path);
-canonical_path_result canonicalize_path(const std::string &path);
-
 // Possible error types:
 //
 // * boost::leaf::e_errno
