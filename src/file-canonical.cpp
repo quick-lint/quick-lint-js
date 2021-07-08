@@ -714,7 +714,11 @@ sloppy_result<canonical_path_result> canonicalize_path_sloppy(
       make_canonicalize_path_error_handlers([](std::string &&message) {
         return sloppy_result<canonical_path_result>::failure(
             std::move(message));
-      }));
+      }),
+      []() {
+        QLJS_ASSERT(false);
+        return sloppy_result<canonical_path_result>::failure("unknown error");
+      });
 }
 
 sloppy_result<canonical_path_result> canonicalize_path_sloppy(

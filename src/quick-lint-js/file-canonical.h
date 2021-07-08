@@ -165,12 +165,6 @@ auto make_canonicalize_path_error_handlers(const Func &handle_error) {
         QLJS_ASSERT(false);  // One of the above handlers should have handled
                              // the error already.
         return handle_error("failed to canonicalize path"s);
-      },
-      [handle_error]() {
-        // TODO(strager): Get rid of this handler.
-        QLJS_ASSERT(false);  // One of the above handlers should have handled
-                             // the error already.
-        return handle_error("failed to canonicalize path"s);
       });
 }
 }

@@ -83,9 +83,11 @@ boost::leaf::result<void> canonicalize_expecting_failure(const Path& path) {
 }
 
 auto fail_test_error_handlers() {
-  return make_canonicalize_path_error_handlers([](const std::string& message) {
-    ADD_FAILURE() << "error: " << message;
-  });
+  return std::tuple(
+      make_canonicalize_path_error_handlers([](const std::string& message) {
+        ADD_FAILURE() << "error: " << message;
+      }),
+      []() { ADD_FAILURE() << "unknown error"; });
 }
 
 bool process_ignores_filesystem_permissions() noexcept {
