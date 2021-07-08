@@ -78,16 +78,28 @@ ${SUBLIME_TEXT_PACKAGE_PLATFORM}.sublime-package"
   )
   add_dependencies(quick-lint-js-sublime-text quick-lint-js-lib)
 
-  if (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text-3/Installed Packages")
+  if (QUICK_LINT_JS_SUBLIME_TEXT_3)
     set(
       SUBLIME_TEXT_PACKAGE_DESTINATION
       "$ENV{HOME}/.config/sublime-text-3/Installed Packages"
     )
-  else ()
-    set(
-      SUBLIME_TEXT_PACKAGE_DESTINATION
-      "$ENV{HOME}/.config/sublime-text/Installed Packages"
-    )
+  elseif (QUICK_LINT_JS_SUBLIME_TEXT_4)
+    if (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text/Installed Packages")
+      set(
+        SUBLIME_TEXT_PACKAGE_DESTINATION
+        "$ENV{HOME}/.config/sublime-text/Installed Packages"
+      )
+    elseif (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text-3/Installed Packages")
+      set(
+        SUBLIME_TEXT_PACKAGE_DESTINATION
+        "$ENV{HOME}/.config/sublime-text-3/Installed Packages"
+      )
+    else ()
+      set(
+        SUBLIME_TEXT_PACKAGE_DESTINATION
+        "$ENV{HOME}/.config/sublime-text/Installed Packages"
+      )
+    endif ()
   endif ()
   install(
     FILES "${SUBLIME_TEXT_PACKAGE_PATH}"
