@@ -174,39 +174,51 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
 configuration_or_error
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory, const char* input_path) {
-  found_config_file found = this->find_config_file_in_directory_and_ancestors(
-      std::move(parent_directory));
-  if (!found.error.empty()) {
-    return configuration_or_error(std::move(found.error));
-  }
-  if (!found.path.has_value()) {
-    return configuration_or_error(&this->default_config_);
-  }
-  canonical_path& config_path = *found.path;
-  if (input_path) {
-    for (watched_path& watch : this->watched_paths_) {
-      if (watch.input_path == input_path) {
-        watch.config_path = config_path;
-      }
-    }
-  }
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<configuration_or_error> {
+        boost::leaf::result<found_config_file> found =
+            this->find_config_file_in_directory_and_ancestors(
+                std::move(parent_directory));
+        if (!found) return found.error();
+        if (!found->path.has_value()) {
+          return configuration_or_error(&this->default_config_);
+        }
+        canonical_path& config_path = *found->path;
+        if (input_path) {
+          for (watched_path& watch : this->watched_paths_) {
+            if (watch.input_path == input_path) {
+              watch.config_path = config_path;
+            }
+          }
+        }
 
-  if (found.already_loaded) {
-    return configuration_or_error(&found.already_loaded->config);
-  }
+        if (found->already_loaded) {
+          return configuration_or_error(&found->already_loaded->config);
+        }
 
-  auto [config_it, inserted] = this->loaded_config_files_.emplace(
-      std::piecewise_construct, std::forward_as_tuple(config_path),
-      std::forward_as_tuple());
-  QLJS_ASSERT(inserted);
-  loaded_config_file* config_file = &config_it->second;
-  config_file->file_content = std::move(found.file_content);
-  config_file->config.set_config_file_path(std::move(config_path));
-  config_file->config.load_from_json(&config_file->file_content);
-  return configuration_or_error(&config_file->config);
+        auto [config_it, inserted] = this->loaded_config_files_.emplace(
+            std::piecewise_construct, std::forward_as_tuple(config_path),
+            std::forward_as_tuple());
+        QLJS_ASSERT(inserted);
+        loaded_config_file* config_file = &config_it->second;
+        config_file->file_content = std::move(found->file_content);
+        config_file->config.set_config_file_path(std::move(config_path));
+        config_file->config.load_from_json(&config_file->file_content);
+        return configuration_or_error(&config_file->config);
+      },
+      make_read_file_error_handlers([](std::string&& message) {
+        return configuration_or_error(std::move(message));
+      }),
+      [](boost::leaf::e_errno error) {
+        return configuration_or_error(std::strerror(error.value));
+      },
+      [&]() {
+        QLJS_ASSERT(false);
+        return configuration_or_error("unknown error");
+      });
 }
 
-configuration_loader::found_config_file
+boost::leaf::result<configuration_loader::found_config_file>
 configuration_loader::find_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory) {
   // TODO(strager): Cache directory->config to reduce lookups in cases like the
@@ -229,54 +241,29 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
             .path = std::move(config_path),
             .already_loaded = config_file,
             .file_content = padded_string(),
-            .error = std::string(),
         };
       }
 
-      std::optional<found_config_file> found = boost::leaf::try_handle_all(
-          [&]() -> boost::leaf::result<std::optional<found_config_file>> {
-            boost::leaf::result<padded_string> config_json =
-                this->fs_->read_file(config_path);
-            if (!config_json) return config_json.error();
-            return found_config_file{
-                .path = std::move(config_path),
-                .already_loaded = nullptr,
-                .file_content = std::move(*config_json),
-                .error = std::string(),
-            };
-          },
-          make_file_not_found_handler([]() -> std::optional<found_config_file> {
-            // Loop, looking for a different file.
-            return std::nullopt;
-          }),
-          make_read_file_error_handlers(
-              [&](std::string&& message) -> std::optional<found_config_file> {
-                return found_config_file{
+      boost::leaf::result<std::optional<found_config_file>> found =
+          boost::leaf::try_handle_some(
+              [&]() -> boost::leaf::result<std::optional<found_config_file>> {
+                boost::leaf::result<padded_string> config_json =
+                    this->fs_->read_file(config_path);
+                if (!config_json) return config_json.error();
+                return std::optional<found_config_file>(found_config_file{
                     .path = std::move(config_path),
                     .already_loaded = nullptr,
-                    .file_content = padded_string(),
-                    .error = std::move(message),
-                };
-              }),
-          [&](boost::leaf::e_errno error) -> std::optional<found_config_file> {
-            return found_config_file{
-                .path = std::move(config_path),
-                .already_loaded = nullptr,
-                .file_content = padded_string(),
-                .error = std::strerror(error.value),
-            };
-          },
-          [&]() {
-            QLJS_ASSERT(false);
-            return found_config_file{
-                .path = std::move(config_path),
-                .already_loaded = nullptr,
-                .file_content = padded_string(),
-                .error = "unknown error",
-            };
-          });
-      if (found.has_value()) {
-        return std::move(*found);
+                    .file_content = std::move(*config_json),
+                });
+              },
+              make_file_not_found_handler(
+                  []() -> std::optional<found_config_file> {
+                    // Loop, looking for a different file.
+                    return std::nullopt;
+                  }));
+      if (!found) return found.error();
+      if (found->has_value()) {
+        return std::move(**found);
       }
 
       // Loop, looking for a different file.
@@ -293,7 +280,6 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
       .path = std::nullopt,
       .already_loaded = nullptr,
       .file_content = padded_string(),
-      .error = std::string(),
   };
 }
 
@@ -364,30 +350,56 @@ std::vector<configuration_change> configuration_loader::refresh() {
     if (!parent_directory.has_value()) {
       continue;
     }
-    found_config_file latest =
-        this->find_config_file_in_directory_and_ancestors(
-            std::move(*parent_directory).canonical());
-    if (!latest.error.empty()) {
-      if (watch.error != latest.error) {
-        watch.error = std::move(latest.error);
-        changes.emplace_back(configuration_change{
-            .watched_path = &input_path,
-            .config = &this->default_config_,
-            .token = watch.token,
+    std::optional<found_config_file> latest = boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<std::optional<found_config_file>> {
+          boost::leaf::result<found_config_file> found =
+              this->find_config_file_in_directory_and_ancestors(
+                  std::move(*parent_directory).canonical());
+          if (!found) return found.error();
+          return std::optional<found_config_file>(std::move(*found));
+        },
+        make_read_file_error_handlers(
+            [&](std::string&& message) -> std::optional<found_config_file> {
+              if (watch.error != message) {
+                watch.error = std::move(message);
+                changes.emplace_back(configuration_change{
+                    .watched_path = &input_path,
+                    .config = &this->default_config_,
+                    .token = watch.token,
+                });
+              }
+              return std::nullopt;
+            }),
+        [&](boost::leaf::e_errno error) -> std::optional<found_config_file> {
+          const char* message = std::strerror(error.value);
+          if (watch.error != message) {
+            watch.error = message;
+            changes.emplace_back(configuration_change{
+                .watched_path = &input_path,
+                .config = &this->default_config_,
+                .token = watch.token,
+            });
+          }
+          return std::nullopt;
+        },
+        []() -> std::optional<found_config_file> {
+          QLJS_ASSERT(false);
+          return std::nullopt;
         });
-      }
+    if (!latest.has_value()) {
       continue;
     }
 
-    if (latest.path != watch.config_path) {
+    if (latest->path != watch.config_path) {
       configuration* config;
-      if (latest.path.has_value()) {
-        auto loaded_config_it = loaded_config_files.find(*latest.path);
+      if (latest->path.has_value()) {
+        auto loaded_config_it = loaded_config_files.find(*latest->path);
         if (loaded_config_it == loaded_config_files.end()) {
-          loaded_config_file& loaded_config = loaded_config_files[*latest.path];
-          loaded_config.file_content = std::move(latest.file_content);
+          loaded_config_file& loaded_config =
+              loaded_config_files[*latest->path];
+          loaded_config.file_content = std::move(latest->file_content);
           loaded_config.config.reset();
-          loaded_config.config.set_config_file_path(*latest.path);
+          loaded_config.config.set_config_file_path(*latest->path);
           loaded_config.config.load_from_json(&loaded_config.file_content);
           config = &loaded_config.config;
         } else {
@@ -401,7 +413,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
           .config = config,
           .token = watch.token,
       });
-      watch.config_path = latest.path;
+      watch.config_path = latest->path;
     }
   }
 

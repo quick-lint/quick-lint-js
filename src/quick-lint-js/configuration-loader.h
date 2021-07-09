@@ -71,7 +71,6 @@ class configuration_loader {
     std::optional<canonical_path> path;
     loaded_config_file* already_loaded = nullptr;
     padded_string file_content{};
-    std::string error;
   };
 
   struct watched_path {
@@ -88,8 +87,8 @@ class configuration_loader {
 
   configuration_or_error find_and_load_config_file_in_directory_and_ancestors(
       canonical_path&&, const char* input_path);
-  found_config_file find_config_file_in_directory_and_ancestors(
-      canonical_path&&);
+  boost::leaf::result<found_config_file>
+  find_config_file_in_directory_and_ancestors(canonical_path&&);
 
   boost::leaf::result<canonical_path_result> get_parent_directory(
       const char* input_path);
