@@ -8,6 +8,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/sloppy-result.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -56,8 +57,12 @@ class configuration_loader {
 
   configuration_or_error watch_and_load_for_file(const std::string& file_path,
                                                  const void* token);
-  configuration_or_error load_for_file(const std::string& file_path);
-  configuration_or_error load_for_file(const file_to_lint&);
+  boost::leaf::result<configuration*> load_for_file(
+      const std::string& file_path);
+  boost::leaf::result<configuration*> load_for_file(const file_to_lint&);
+  sloppy_result<configuration*> load_for_file_sloppy(
+      const std::string& file_path);
+  sloppy_result<configuration*> load_for_file_sloppy(const file_to_lint&);
 
   std::vector<configuration_change> refresh();
 

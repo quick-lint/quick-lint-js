@@ -81,56 +81,65 @@ configuration_or_error configuration_loader::watch_and_load_for_file(
       });
 }
 
-configuration_or_error configuration_loader::load_for_file(
+boost::leaf::result<configuration*> configuration_loader::load_for_file(
+    const std::string& file_path) {
+  return this->find_and_load_config_file_for_input(file_path.c_str());
+}
+
+boost::leaf::result<configuration*> configuration_loader::load_for_file(
+    const file_to_lint& file) {
+  if (file.config_file) {
+    return this->load_config_file(file.config_file);
+  } else {
+    if (file.path) {
+      return this->find_and_load_config_file_for_input(file.path);
+    } else {
+      return this->find_and_load_config_file_for_current_directory();
+    }
+  }
+}
+
+sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
     const std::string& file_path) {
   return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        return this->find_and_load_config_file_for_input(file_path.c_str());
+      [&]() -> boost::leaf::result<sloppy_result<configuration*>> {
+        return this->load_for_file(file_path);
       },
-      make_canonicalize_path_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
+      make_canonicalize_path_error_handlers([](std::string&& message) {
+        return sloppy_result<configuration*>::failure(std::move(message));
+      }),
       make_read_file_error_handlers([](std::string&& message) {
-        return configuration_or_error(std::move(message));
+        return sloppy_result<configuration*>::failure(std::move(message));
       }),
       [](boost::leaf::e_errno error) {
-        return configuration_or_error(std::strerror(error.value));
+        return sloppy_result<configuration*>::failure(
+            std::strerror(error.value));
       },
       []() {
         QLJS_ASSERT(false);
-        return configuration_or_error("unknown error");
+        return sloppy_result<configuration*>::failure("unknown error");
       });
 }
 
-configuration_or_error configuration_loader::load_for_file(
+sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
     const file_to_lint& file) {
   return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        if (file.config_file) {
-          return this->load_config_file(file.config_file);
-        } else {
-          if (file.path) {
-            return this->find_and_load_config_file_for_input(file.path);
-          } else {
-            return this->find_and_load_config_file_for_current_directory();
-          }
-        }
+      [&]() -> boost::leaf::result<sloppy_result<configuration*>> {
+        return this->load_for_file(file);
       },
-      make_canonicalize_path_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
-      make_read_file_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
+      make_canonicalize_path_error_handlers([](std::string&& message) {
+        return sloppy_result<configuration*>::failure(std::move(message));
+      }),
+      make_read_file_error_handlers([](std::string&& message) {
+        return sloppy_result<configuration*>::failure(std::move(message));
+      }),
       [](boost::leaf::e_errno error) {
-        return configuration_or_error(std::strerror(error.value));
+        return sloppy_result<configuration*>::failure(
+            std::strerror(error.value));
       },
       []() {
         QLJS_ASSERT(false);
-        return configuration_or_error("unknown error");
+        return sloppy_result<configuration*>::failure("unknown error");
       });
 }
 
