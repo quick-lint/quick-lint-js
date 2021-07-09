@@ -71,7 +71,22 @@ configuration_or_error configuration_loader::load_for_file(
 configuration_or_error configuration_loader::load_for_file(
     const file_to_lint& file) {
   if (file.config_file) {
-    return this->load_config_file(file.config_file);
+    return boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<configuration_or_error> {
+          return this->load_config_file(file.config_file);
+        },
+        make_canonicalize_path_error_handlers(
+            [](std::string&& message) -> configuration_or_error {
+              return configuration_or_error(std::move(message));
+            }),
+        make_read_file_error_handlers(
+            [](std::string&& message) -> configuration_or_error {
+              return configuration_or_error(std::move(message));
+            }),
+        []() {
+          QLJS_ASSERT(false);
+          return configuration_or_error("unknown error");
+        });
   } else {
     if (file.path) {
       return this->find_and_load_config_file_for_input(file.path);
@@ -98,45 +113,30 @@ configuration_or_error configuration_loader::load_for_file(
   }
 }
 
-configuration_or_error configuration_loader::load_config_file(
+boost::leaf::result<configuration*> configuration_loader::load_config_file(
     const char* config_path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        boost::leaf::result<canonical_path_result> canonical_config_path =
-            this->fs_->canonicalize_path(config_path);
-        if (!canonical_config_path) return canonical_config_path.error();
+  boost::leaf::result<canonical_path_result> canonical_config_path =
+      this->fs_->canonicalize_path(config_path);
+  if (!canonical_config_path) return canonical_config_path.error();
 
-        if (loaded_config_file* config_file =
-                this->get_loaded_config(canonical_config_path->canonical())) {
-          return configuration_or_error(&config_file->config);
-        }
-        boost::leaf::result<padded_string> config_json =
-            this->fs_->read_file(canonical_config_path->canonical());
-        if (!config_json) return config_json.error();
-        auto [config_it, inserted] = this->loaded_config_files_.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(canonical_config_path->canonical()),
-            std::forward_as_tuple());
-        QLJS_ASSERT(inserted);
-        loaded_config_file* config_file = &config_it->second;
-        config_file->file_content = std::move(*config_json);
-        config_file->config.set_config_file_path(
-            std::move(*canonical_config_path).canonical());
-        config_file->config.load_from_json(&config_file->file_content);
-        return configuration_or_error(&config_file->config);
-      },
-      make_canonicalize_path_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
-      make_read_file_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
-      []() {
-        QLJS_ASSERT(false);
-        return configuration_or_error("unknown error");
-      });
+  if (loaded_config_file* config_file =
+          this->get_loaded_config(canonical_config_path->canonical())) {
+    return &config_file->config;
+  }
+  boost::leaf::result<padded_string> config_json =
+      this->fs_->read_file(canonical_config_path->canonical());
+  if (!config_json) return config_json.error();
+  auto [config_it, inserted] = this->loaded_config_files_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(canonical_config_path->canonical()),
+      std::forward_as_tuple());
+  QLJS_ASSERT(inserted);
+  loaded_config_file* config_file = &config_it->second;
+  config_file->file_content = std::move(*config_json);
+  config_file->config.set_config_file_path(
+      std::move(*canonical_config_path).canonical());
+  config_file->config.load_from_json(&config_file->file_content);
+  return &config_file->config;
 }
 
 QLJS_WARNING_PUSH

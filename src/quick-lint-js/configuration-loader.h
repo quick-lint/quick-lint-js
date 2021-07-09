@@ -80,7 +80,7 @@ class configuration_loader {
     void* token;
   };
 
-  configuration_or_error load_config_file(const char* config_path);
+  boost::leaf::result<configuration*> load_config_file(const char* config_path);
   configuration_or_error find_and_load_config_file_for_input(
       const char* input_path);
   boost::leaf::result<configuration*>
