@@ -141,6 +141,12 @@ configuration_loader::find_and_load_config_file_for_input(
           [](std::string&& message) -> configuration_or_error {
             return configuration_or_error(std::move(message));
           }),
+      make_read_file_error_handlers([](std::string&& message) {
+        return configuration_or_error(std::move(message));
+      }),
+      [](boost::leaf::e_errno error) {
+        return configuration_or_error(std::strerror(error.value));
+      },
       []() {
         QLJS_ASSERT(false);
         return configuration_or_error("unknown error");
@@ -165,57 +171,50 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
           [](std::string&& message) -> configuration_or_error {
             return configuration_or_error(std::move(message));
           }),
-      []() {
-        QLJS_ASSERT(false);
-        return configuration_or_error("unknown error");
-      });
-}
-
-configuration_or_error
-configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
-    canonical_path&& parent_directory, const char* input_path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        boost::leaf::result<found_config_file> found =
-            this->find_config_file_in_directory_and_ancestors(
-                std::move(parent_directory));
-        if (!found) return found.error();
-        if (!found->path.has_value()) {
-          return configuration_or_error(&this->default_config_);
-        }
-        canonical_path& config_path = *found->path;
-        if (input_path) {
-          for (watched_path& watch : this->watched_paths_) {
-            if (watch.input_path == input_path) {
-              watch.config_path = config_path;
-            }
-          }
-        }
-
-        if (found->already_loaded) {
-          return configuration_or_error(&found->already_loaded->config);
-        }
-
-        auto [config_it, inserted] = this->loaded_config_files_.emplace(
-            std::piecewise_construct, std::forward_as_tuple(config_path),
-            std::forward_as_tuple());
-        QLJS_ASSERT(inserted);
-        loaded_config_file* config_file = &config_it->second;
-        config_file->file_content = std::move(found->file_content);
-        config_file->config.set_config_file_path(std::move(config_path));
-        config_file->config.load_from_json(&config_file->file_content);
-        return configuration_or_error(&config_file->config);
-      },
       make_read_file_error_handlers([](std::string&& message) {
         return configuration_or_error(std::move(message));
       }),
       [](boost::leaf::e_errno error) {
         return configuration_or_error(std::strerror(error.value));
       },
-      [&]() {
+      []() {
         QLJS_ASSERT(false);
         return configuration_or_error("unknown error");
       });
+}
+
+boost::leaf::result<configuration*>
+configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
+    canonical_path&& parent_directory, const char* input_path) {
+  boost::leaf::result<found_config_file> found =
+      this->find_config_file_in_directory_and_ancestors(
+          std::move(parent_directory));
+  if (!found) return found.error();
+  if (!found->path.has_value()) {
+    return &this->default_config_;
+  }
+  canonical_path& config_path = *found->path;
+  if (input_path) {
+    for (watched_path& watch : this->watched_paths_) {
+      if (watch.input_path == input_path) {
+        watch.config_path = config_path;
+      }
+    }
+  }
+
+  if (found->already_loaded) {
+    return &found->already_loaded->config;
+  }
+
+  auto [config_it, inserted] = this->loaded_config_files_.emplace(
+      std::piecewise_construct, std::forward_as_tuple(config_path),
+      std::forward_as_tuple());
+  QLJS_ASSERT(inserted);
+  loaded_config_file* config_file = &config_it->second;
+  config_file->file_content = std::move(found->file_content);
+  config_file->config.set_config_file_path(std::move(config_path));
+  config_file->config.load_from_json(&config_file->file_content);
+  return &config_file->config;
 }
 
 boost::leaf::result<configuration_loader::found_config_file>
