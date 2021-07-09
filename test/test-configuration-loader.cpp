@@ -1,6 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/handle_errors.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <condition_variable>
 #include <cstdint>
@@ -294,18 +297,28 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
     std::string js_file = temp_dir + "/hello.js";
     write_file(js_file, u8""sv);
     configuration_loader loader(basic_configuration_filesystem::instance());
-    // TODO(strager): Call load_for_file instead.
-    sloppy_result<configuration*> config = loader.load_for_file_sloppy(js_file);
 
-    EXPECT_FALSE(config.ok());
-    EXPECT_THAT(config.error(),
-                HasSubstr(canonicalize_path_sloppy(config_file)->c_str()));
-    EXPECT_THAT(
-        config.error(),
-        AnyOf(HasSubstr("Is a directory"),
-              HasSubstr(
-                  "Access is denied")  // TODO(strager): Improve this message.
-              ));
+    boost::leaf::try_handle_all(
+        [&]() -> boost::leaf::result<void> {
+          boost::leaf::result<configuration*> config =
+              loader.load_for_file(js_file);
+          if (!config) return config.error();
+          return {};
+        },
+        [&](e_api_read_file, const boost::leaf::e_file_name& path,
+            boost::leaf::e_errno error) {
+          EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
+          EXPECT_EQ(error.value, EISDIR) << std::strerror(error.value);
+        },
+#if QLJS_HAVE_WINDOWS_H
+        [&](e_api_read_file, const boost::leaf::e_file_name& path,
+            boost::leaf::windows::e_LastError error) {
+          EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
+          EXPECT_EQ(error.value, ERROR_ACCESS_DENIED)
+              << windows_error_message(error.value);
+        },
+#endif
+        []() { ADD_FAILURE() << "unknown error"; });
   }
 }
 
@@ -529,19 +542,31 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
   std::string config_file = temp_dir + "/config.json";
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  // TODO(strager): Call load_for_file instead.
-  sloppy_result<configuration*> config =
-      loader.load_for_file_sloppy(file_to_lint{
-          .path = "hello.js",
-          .config_file = config_file.c_str(),
-      });
 
-  EXPECT_FALSE(config.ok());
-  EXPECT_THAT(config.error(),
-              HasSubstr(temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR +
-                        "config.json"));
-  EXPECT_THAT(config.error(),
-              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
+  boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<void> {
+        boost::leaf::result<configuration*> config =
+            loader.load_for_file(file_to_lint{
+                .path = "hello.js",
+                .config_file = config_file.c_str(),
+            });
+        if (!config) return config.error();
+        return {};
+      },
+      [&](e_api_read_file, const boost::leaf::e_file_name& path,
+          boost::leaf::e_errno error) {
+        EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
+        EXPECT_EQ(error.value, ENOENT) << std::strerror(error.value);
+      },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_read_file, const boost::leaf::e_file_name& path,
+          boost::leaf::windows::e_LastError error) {
+        EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
+        EXPECT_EQ(error.value, ERROR_FILE_NOT_FOUND)
+            << windows_error_message(error.value);
+      },
+#endif
+      []() { ADD_FAILURE() << "unknown error"; });
 }
 
 TEST_F(test_configuration_loader,
