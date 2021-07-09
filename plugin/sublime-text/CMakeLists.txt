@@ -61,7 +61,7 @@ ${SUBLIME_TEXT_PACKAGE_PLATFORM}.sublime-package"
   )
   set(
     SUBLIME_TEXT_PACKAGE_FILES
-    "${CMAKE_BINARY_DIR}/src/libquick-lint-js-lib.so"
+    $<TARGET_FILE:quick-lint-js-lib>
     "${CMAKE_CURRENT_SOURCE_DIR}/c_api_${SUBLIME_TEXT_VERSION_TAG}.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/plugin_${SUBLIME_TEXT_VERSION_TAG}.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION}.python-version"
