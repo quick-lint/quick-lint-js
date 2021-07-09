@@ -55,17 +55,52 @@ configuration_or_error configuration_loader::watch_and_load_for_file(
       .error = std::string(),
       .token = const_cast<void*>(token),
   });
-  configuration_or_error config =
-      this->find_and_load_config_file_for_input(file_path.c_str());
-  if (!config.error.empty()) {
-    watch.error = config.error;
-  }
-  return config;
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<configuration_or_error> {
+        return this->find_and_load_config_file_for_input(file_path.c_str());
+      },
+      make_canonicalize_path_error_handlers(
+          [&](std::string&& message) -> configuration_or_error {
+            watch.error = message;
+            return configuration_or_error(std::move(message));
+          }),
+      make_read_file_error_handlers([&](std::string&& message) {
+        watch.error = message;
+        return configuration_or_error(std::move(message));
+      }),
+      [&](boost::leaf::e_errno error) {
+        const char* message = std::strerror(error.value);
+        watch.error = message;
+        return configuration_or_error(message);
+      },
+      [&]() {
+        QLJS_ASSERT(false);
+        const char* message = "unknown error";
+        watch.error = message;
+        return configuration_or_error(message);
+      });
 }
 
 configuration_or_error configuration_loader::load_for_file(
     const std::string& file_path) {
-  return this->find_and_load_config_file_for_input(file_path.c_str());
+  return boost::leaf::try_handle_all(
+      [&]() -> boost::leaf::result<configuration_or_error> {
+        return this->find_and_load_config_file_for_input(file_path.c_str());
+      },
+      make_canonicalize_path_error_handlers(
+          [](std::string&& message) -> configuration_or_error {
+            return configuration_or_error(std::move(message));
+          }),
+      make_read_file_error_handlers([](std::string&& message) {
+        return configuration_or_error(std::move(message));
+      }),
+      [](boost::leaf::e_errno error) {
+        return configuration_or_error(std::strerror(error.value));
+      },
+      []() {
+        QLJS_ASSERT(false);
+        return configuration_or_error("unknown error");
+      });
 }
 
 configuration_or_error configuration_loader::load_for_file(
@@ -128,32 +163,15 @@ boost::leaf::result<configuration*> configuration_loader::load_config_file(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-configuration_or_error
+boost::leaf::result<configuration*>
 configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        boost::leaf::result<canonical_path_result> parent_directory =
-            this->get_parent_directory(input_path);
-        if (!parent_directory) return parent_directory.error();
-        return this->find_and_load_config_file_in_directory_and_ancestors(
-            std::move(*parent_directory).canonical(),
-            /*input_path=*/input_path);
-      },
-      make_canonicalize_path_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
-      make_read_file_error_handlers([](std::string&& message) {
-        return configuration_or_error(std::move(message));
-      }),
-      [](boost::leaf::e_errno error) {
-        return configuration_or_error(std::strerror(error.value));
-      },
-      []() {
-        QLJS_ASSERT(false);
-        return configuration_or_error("unknown error");
-      });
+  boost::leaf::result<canonical_path_result> parent_directory =
+      this->get_parent_directory(input_path);
+  if (!parent_directory) return parent_directory.error();
+  return this->find_and_load_config_file_in_directory_and_ancestors(
+      std::move(*parent_directory).canonical(),
+      /*input_path=*/input_path);
 }
 
 boost::leaf::result<configuration*>
