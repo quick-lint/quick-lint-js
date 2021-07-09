@@ -27,14 +27,14 @@ endif ()
 if (QUICK_LINT_JS_SUBLIME_TEXT AND
     BUILD_SHARED_LIBS AND
     CMAKE_POSITION_INDEPENDENT_CODE)
-  # 0.2.0 -> 020
+  # 0.2.0 -> 0_2_0
   string(
     REPLACE
-    "." ""
+    "." "_"
     SUBLIME_TEXT_PROJECT_VERSION
     "${PROJECT_VERSION}"
   )
-  # 020 -> v020
+  # 0_2_0 -> v0_2_0
   string(
     PREPEND
     SUBLIME_TEXT_PROJECT_VERSION
