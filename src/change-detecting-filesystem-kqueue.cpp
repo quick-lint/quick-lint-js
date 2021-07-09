@@ -79,7 +79,7 @@ bool change_detecting_filesystem_kqueue::watch_directory(
         /*ident=*/fd.get(),
         /*filter=*/EVFILT_VNODE,
         /*flags=*/EV_ADD | EV_ENABLE,
-        /*fflags=*/NOTE_RENAME | NOTE_WRITE,
+        /*fflags=*/NOTE_ATTRIB | NOTE_RENAME | NOTE_WRITE,
         /*data=*/0,
         /*udata=*/this->udata_);
 
@@ -131,7 +131,7 @@ change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
         /*ident=*/fd.get(),
         /*filter=*/EVFILT_VNODE,
         /*flags=*/EV_ADD | EV_ENABLE,
-        /*fflags=*/NOTE_WRITE,
+        /*fflags=*/NOTE_ATTRIB | NOTE_WRITE,
         /*data=*/0,
         /*udata=*/this->udata_);
 

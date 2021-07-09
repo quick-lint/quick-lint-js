@@ -117,9 +117,10 @@ void change_detecting_filesystem_inotify::read_inotify() {
 
 bool change_detecting_filesystem_inotify::watch_directory(
     const canonical_path& directory) {
-  int watch_descriptor = ::inotify_add_watch(
-      this->inotify_fd_.get(), directory.c_str(),
-      IN_CLOSE_WRITE | IN_CREATE | IN_DELETE | IN_MOVED_TO | IN_MOVE_SELF);
+  int watch_descriptor =
+      ::inotify_add_watch(this->inotify_fd_.get(), directory.c_str(),
+                          IN_ATTRIB | IN_CLOSE_WRITE | IN_CREATE | IN_DELETE |
+                              IN_MOVED_TO | IN_MOVE_SELF);
   if (watch_descriptor == -1) {
     return false;
   }

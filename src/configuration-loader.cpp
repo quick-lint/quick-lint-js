@@ -48,13 +48,19 @@ configuration_loader::configuration_loader(configuration_filesystem* fs)
 
 configuration_or_error configuration_loader::watch_and_load_for_file(
     const std::string& file_path, const void* token) {
-  this->watched_paths_.emplace_back(watched_path{
+  watched_path& watch = this->watched_paths_.emplace_back(watched_path{
       .input_path = std::move(file_path),
       .config_path =
           std::nullopt,  // Updated by find_and_load_config_file_for_input.
+      .error = std::string(),
       .token = const_cast<void*>(token),
   });
-  return this->find_and_load_config_file_for_input(file_path.c_str());
+  configuration_or_error config =
+      this->find_and_load_config_file_for_input(file_path.c_str());
+  if (!config.error.empty()) {
+    watch.error = config.error;
+  }
+  return config;
 }
 
 configuration_or_error configuration_loader::load_for_file(
@@ -252,6 +258,14 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
                     .error = std::move(message),
                 };
               }),
+          [&](boost::leaf::e_errno error) -> std::optional<found_config_file> {
+            return found_config_file{
+                .path = std::move(config_path),
+                .already_loaded = nullptr,
+                .file_content = padded_string(),
+                .error = std::strerror(error.value),
+            };
+          },
           [&]() {
             QLJS_ASSERT(false);
             return found_config_file{
@@ -322,15 +336,48 @@ std::vector<configuration_change> configuration_loader::refresh() {
 
   for (watched_path& watch : this->watched_paths_) {
     const std::string& input_path = watch.input_path;
-    boost::leaf::result<canonical_path_result> parent_directory =
-        this->get_parent_directory(input_path.c_str());
-    if (!parent_directory) {
-      // TODO(strager): Should we report a change?
+    std::optional<canonical_path_result> parent_directory =
+        boost::leaf::try_handle_all(
+            [&]() -> boost::leaf::result<std::optional<canonical_path_result>> {
+              boost::leaf::result<canonical_path_result> parent_dir =
+                  this->get_parent_directory(input_path.c_str());
+              if (!parent_dir) return parent_dir.error();
+              return std::optional<canonical_path_result>(*parent_dir);
+            },
+            make_canonicalize_path_error_handlers(
+                [&](std::string&& message)
+                    -> std::optional<canonical_path_result> {
+                  if (watch.error != message) {
+                    watch.error = std::move(message);
+                    changes.emplace_back(configuration_change{
+                        .watched_path = &input_path,
+                        .config = &this->default_config_,
+                        .token = watch.token,
+                    });
+                  }
+                  return std::nullopt;
+                }),
+            []() -> std::optional<canonical_path_result> {
+              QLJS_ASSERT(false);
+              return std::nullopt;
+            });
+    if (!parent_directory.has_value()) {
       continue;
     }
     found_config_file latest =
         this->find_config_file_in_directory_and_ancestors(
             std::move(*parent_directory).canonical());
+    if (!latest.error.empty()) {
+      if (watch.error != latest.error) {
+        watch.error = std::move(latest.error);
+        changes.emplace_back(configuration_change{
+            .watched_path = &input_path,
+            .config = &this->default_config_,
+            .token = watch.token,
+        });
+      }
+      continue;
+    }
 
     if (latest.path != watch.config_path) {
       configuration* config;

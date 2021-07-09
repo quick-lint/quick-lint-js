@@ -77,6 +77,7 @@ class configuration_loader {
   struct watched_path {
     std::string input_path;
     std::optional<canonical_path> config_path;
+    std::string error;
     void* token;
   };
 
