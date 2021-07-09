@@ -83,7 +83,8 @@ class configuration_loader {
   configuration_or_error load_config_file(const char* config_path);
   configuration_or_error find_and_load_config_file_for_input(
       const char* input_path);
-  configuration_or_error find_and_load_config_file_for_current_directory();
+  boost::leaf::result<configuration*>
+  find_and_load_config_file_for_current_directory();
 
   boost::leaf::result<configuration*>
   find_and_load_config_file_in_directory_and_ancestors(canonical_path&&,

@@ -76,7 +76,24 @@ configuration_or_error configuration_loader::load_for_file(
     if (file.path) {
       return this->find_and_load_config_file_for_input(file.path);
     } else {
-      return this->find_and_load_config_file_for_current_directory();
+      return boost::leaf::try_handle_all(
+          [&]() -> boost::leaf::result<configuration_or_error> {
+            return this->find_and_load_config_file_for_current_directory();
+          },
+          make_canonicalize_path_error_handlers(
+              [](std::string&& message) -> configuration_or_error {
+                return configuration_or_error(std::move(message));
+              }),
+          make_read_file_error_handlers([](std::string&& message) {
+            return configuration_or_error(std::move(message));
+          }),
+          [](boost::leaf::e_errno error) {
+            return configuration_or_error(std::strerror(error.value));
+          },
+          []() {
+            QLJS_ASSERT(false);
+            return configuration_or_error("unknown error");
+          });
     }
   }
 }
@@ -153,34 +170,17 @@ configuration_loader::find_and_load_config_file_for_input(
       });
 }
 
-configuration_or_error
+boost::leaf::result<configuration*>
 configuration_loader::find_and_load_config_file_for_current_directory() {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        boost::leaf::result<canonical_path_result> canonical_cwd =
-            this->fs_->canonicalize_path(".");
-        if (!canonical_cwd) return canonical_cwd.error();
+  boost::leaf::result<canonical_path_result> canonical_cwd =
+      this->fs_->canonicalize_path(".");
+  if (!canonical_cwd) return canonical_cwd.error();
 
-        if (canonical_cwd->have_missing_components()) {
-          canonical_cwd->drop_missing_components();
-        }
-        return this->find_and_load_config_file_in_directory_and_ancestors(
-            std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
-      },
-      make_canonicalize_path_error_handlers(
-          [](std::string&& message) -> configuration_or_error {
-            return configuration_or_error(std::move(message));
-          }),
-      make_read_file_error_handlers([](std::string&& message) {
-        return configuration_or_error(std::move(message));
-      }),
-      [](boost::leaf::e_errno error) {
-        return configuration_or_error(std::strerror(error.value));
-      },
-      []() {
-        QLJS_ASSERT(false);
-        return configuration_or_error("unknown error");
-      });
+  if (canonical_cwd->have_missing_components()) {
+    canonical_cwd->drop_missing_components();
+  }
+  return this->find_and_load_config_file_in_directory_and_ancestors(
+      std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
 }
 
 boost::leaf::result<configuration*>
