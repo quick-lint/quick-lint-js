@@ -439,7 +439,6 @@ class parser {
 
     // class C {}
     case token_type::kw_class: {
-      class_guard g(this, std::exchange(this->in_class_, true));
       this->parse_and_visit_class(
           v,
           /*require_name=*/name_requirement::required_for_statement);
@@ -1456,6 +1455,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class_body(Visitor &v) {
+    class_guard g(this, std::exchange(this->in_class_, true));
     while (this->peek().type != token_type::right_curly) {
       this->parse_and_visit_class_member(v);
     }
