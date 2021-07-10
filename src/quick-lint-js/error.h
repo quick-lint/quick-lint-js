@@ -95,6 +95,13 @@
              expected_last_component))                                         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_access_private_identifier_outside_class, "E208",            \
+      { identifier private_identifier; },                                      \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("cannot access private identifier outside class"), \
+          private_identifier))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_assign_to_variable_named_async_in_for_of_loop, "E082",      \
       { identifier async_identifier; },                                        \
       .error(                                                                  \

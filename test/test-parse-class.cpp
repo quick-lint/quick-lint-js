@@ -381,6 +381,17 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
+    spy_visitor v = parse_and_visit_statement(
+        u8"class C { #prop = init;\nf() {this.#prop;} }");
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"#prop"},
+                    spy_visitor::visited_property_declaration{u8"f"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+  }
+
+  {
     // ASI after field name before private identifier.
     spy_visitor v = parse_and_visit_statement(u8"class C { #first\n#second }");
     EXPECT_THAT(
@@ -759,6 +770,20 @@ TEST(test_parse, class_expression) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
                                       "visit_variable_use",       // C
                                       "visit_exit_class_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"(class C {#x = 10; m() {this.#x;}})"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",
+                                      "visit_variable_declaration",       // C
+                                      "visit_property_declaration",       // x
+                                      "visit_property_declaration",       // m
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 

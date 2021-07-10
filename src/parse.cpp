@@ -76,6 +76,10 @@ parser::loop_guard parser::enter_loop() {
   return loop_guard(this, std::exchange(this->in_loop_statement_, true));
 }
 
+parser::class_guard parser::enter_class() {
+  return class_guard(this, std::exchange(this->in_class_, true));
+}
+
 expression* parser::parse_expression(precedence prec) {
   depth_guard guard(this);
   expression* ast = this->parse_primary_expression(prec);
@@ -906,6 +910,13 @@ next:
     case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
+      if (this->peek().type == token_type::private_identifier &&
+          !this->in_class_) {
+        this->error_reporter_->report(
+            error_cannot_access_private_identifier_outside_class{
+                .private_identifier = this->peek().identifier_name(),
+            });
+      }
       children.back() = this->make_expression<expression::dot>(
           children.back(), this->peek().identifier_name());
       this->skip();
