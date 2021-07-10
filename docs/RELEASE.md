@@ -27,6 +27,7 @@ Follow the following steps to release a new version of quick-lint-js:
    * src/quick-lint-js/version.h
    * website/public/index.ejs.html
    * website/public/install/index.ejs.html
+   * CMakeLists.txt
 
 3. Re-generate man pages to include the updated version number by running
    `./docs/man/generate-man-pages`.
