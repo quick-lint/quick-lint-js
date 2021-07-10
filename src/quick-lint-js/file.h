@@ -38,7 +38,7 @@ struct e_file_too_large {};
 //
 // * e_errno
 // * boost::leaf::e_file_name
-// * boost::leaf::windows::e_LastError
+// * e_LastError
 // * e_api_read_file (always present)
 // * e_file_too_large
 boost::leaf::result<padded_string> read_file(const char *path);
@@ -60,8 +60,7 @@ template <class Func>
 auto make_file_not_found_handler(const Func &handle_error) {
   return std::tuple(
 #if QLJS_HAVE_WINDOWS_H
-      [handle_error](boost::leaf::match_value<boost::leaf::windows::e_LastError,
-                                              ERROR_FILE_NOT_FOUND>) {
+      [handle_error](match_error<e_LastError, ERROR_FILE_NOT_FOUND>) {
         return handle_error();
       }
 #endif
@@ -86,8 +85,7 @@ auto make_read_file_error_handlers(const Func &handle_error) {
                             path.value);
       },
 #if QLJS_HAVE_WINDOWS_H
-      [handle_error](e_api_read_file,
-                     const boost::leaf::windows::e_LastError &error,
+      [handle_error](e_api_read_file, const e_LastError &error,
                      const boost::leaf::e_file_name &path) {
         return handle_error("failed to read from "s + path.value + ": "s +
                             error_message(error));
@@ -104,8 +102,7 @@ auto make_read_file_error_handlers(const Func &handle_error) {
         return handle_error("file too large to read into memory"s);
       },
 #if QLJS_HAVE_WINDOWS_H
-      [handle_error](e_api_read_file,
-                     const boost::leaf::windows::e_LastError &error) {
+      [handle_error](e_api_read_file, const e_LastError &error) {
         return handle_error("failed to read from file: "s +
                             error_message(error));
       },

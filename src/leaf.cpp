@@ -1,45 +1,18 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LEAF_H
-#define QUICK_LINT_JS_LEAF_H
+#include <quick-lint-js/leaf.h>
+#include <type_traits>
 
-#include <quick-lint-js/have.h>
+#if QLJS_HAVE_WINDOWS_H
+#include <Windows.h>
+#endif
 
 namespace quick_lint_js {
-// A POSIX error retrieved from the global errno variable.
-struct e_errno {
-  int error;
-};
-
-// A Windows error returned by GetLastError.
-struct e_LastError {
-  unsigned long error;
-};
-
-// Like boost::leaf::match_value, but for e_errno or e_LastError.
-template <class Error, decltype(Error::error)... Conditions>
-struct match_error {
-  using error_type = Error;
-
-  const Error& matched;
-
-  static constexpr bool evaluate(const Error& error) noexcept {
-    return ((error.error == Conditions) || ...);
-  }
-};
-}
-
-namespace boost::leaf {
-template <class>
-struct is_predicate;
-
-template <class Error, decltype(Error::error)... Conditions>
-struct is_predicate<quick_lint_js::match_error<Error, Conditions...>>
-    : std::true_type {};
-}
-
+#if QLJS_HAVE_WINDOWS_H
+static_assert(std::is_same_v<decltype(e_LastError{0}.error), DWORD>);
 #endif
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

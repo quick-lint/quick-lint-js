@@ -587,7 +587,7 @@ class windows_path_canonicalizer
         return file_type::does_not_exist;
       }
       return boost::leaf::new_error(
-          boost::leaf::windows::e_LastError{error},
+          e_LastError{error},
           e_canonicalizing_path{string_for_error_message(canonical_)});
     }
     if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) {

@@ -93,8 +93,7 @@ boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(
-        boost::leaf::windows::e_LastError{::GetLastError()});
+    return boost::leaf::new_error(e_LastError{::GetLastError()});
   }
 
   return quick_lint_js::read_file(path.c_str());

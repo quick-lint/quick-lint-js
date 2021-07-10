@@ -35,7 +35,7 @@ namespace quick_lint_js {
 // Possible error types:
 //
 // * e_errno
-// * boost::leaf::windows::e_LastError
+// * e_LastError
 struct file_read_result : public boost::leaf::result<std::optional<int>> {
   using boost::leaf::result<std::optional<int>>::result;
 
@@ -67,7 +67,7 @@ std::string windows_error_message(DWORD error);
 std::string error_message(e_errno);
 #endif
 #if QLJS_HAVE_WINDOWS_H
-std::string error_message(boost::leaf::windows::e_LastError);
+std::string error_message(e_LastError);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H

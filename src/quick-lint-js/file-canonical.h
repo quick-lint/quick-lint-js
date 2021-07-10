@@ -107,7 +107,7 @@ struct e_too_many_symlinks {};
 //
 // * e_errno
 // * boost::leaf::e_file_name
-// * boost::leaf::windows::e_LastError
+// * e_LastError
 // * e_api_canonicalize_path (always present)
 // * e_canonicalizing_path
 // * e_invalid_argument_empty_path

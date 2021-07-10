@@ -313,10 +313,10 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
         },
 #if QLJS_HAVE_WINDOWS_H
         [&](e_api_read_file, const boost::leaf::e_file_name& path,
-            boost::leaf::windows::e_LastError error) {
+            e_LastError error) {
           EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
-          EXPECT_EQ(error.value, ERROR_ACCESS_DENIED)
-              << windows_error_message(error.value);
+          EXPECT_EQ(error.error, ERROR_ACCESS_DENIED)
+              << windows_error_message(error.error);
         },
 #endif
         []() { ADD_FAILURE() << "unknown error"; });
@@ -561,10 +561,10 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
       },
 #if QLJS_HAVE_WINDOWS_H
       [&](e_api_read_file, const boost::leaf::e_file_name& path,
-          boost::leaf::windows::e_LastError error) {
+          e_LastError error) {
         EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
-        EXPECT_EQ(error.value, ERROR_FILE_NOT_FOUND)
-            << windows_error_message(error.value);
+        EXPECT_EQ(error.error, ERROR_FILE_NOT_FOUND)
+            << windows_error_message(error.error);
       },
 #endif
       []() { ADD_FAILURE() << "unknown error"; });

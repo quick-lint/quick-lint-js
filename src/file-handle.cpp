@@ -63,7 +63,7 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     case ERROR_NO_DATA:
       return 0;
     default:
-      return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+      return boost::leaf::new_error(e_LastError{error});
     };
   }
   // TODO(strager): Microsoft's documentation for ReadFile claims the following:
@@ -312,8 +312,8 @@ std::string error_message(e_errno error) { return std::strerror(error.error); }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-std::string error_message(boost::leaf::windows::e_LastError error) {
-  return windows_error_message(error.value);
+std::string error_message(e_LastError error) {
+  return windows_error_message(error.error);
 }
 #endif
 }

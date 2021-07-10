@@ -63,8 +63,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
     auto file_it = this->files_.find(path);
     if (file_it == this->files_.end()) {
 #if QLJS_HAVE_WINDOWS_H
-      return boost::leaf::new_error(
-          boost::leaf::windows::e_LastError{ERROR_FILE_NOT_FOUND});
+      return boost::leaf::new_error(e_LastError{ERROR_FILE_NOT_FOUND});
 #endif
 #if QLJS_HAVE_UNISTD_H
       return boost::leaf::new_error(e_errno{ENOENT});

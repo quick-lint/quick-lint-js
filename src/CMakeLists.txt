@@ -59,6 +59,7 @@ quick_lint_js_add_library(
   integer.cpp
   json.cpp
   language.cpp
+  leaf.cpp
   lex-keyword.cpp
   lex-unicode.cpp
   lex.cpp

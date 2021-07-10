@@ -150,7 +150,7 @@ boost::leaf::result<padded_string> read_file(windows_handle_file_ref file) {
   ::LARGE_INTEGER file_size;
   if (!::GetFileSizeEx(file.get(), &file_size)) {
     DWORD error = ::GetLastError();
-    return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+    return boost::leaf::new_error(e_LastError{error});
   }
   if (!in_range<int>(file_size.QuadPart)) {
     return boost::leaf::new_error(e_file_too_large());
@@ -202,7 +202,7 @@ boost::leaf::result<padded_string> read_file(const char *path) {
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
   if (!wpath) {
     DWORD error = ::GetLastError();
-    return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+    return boost::leaf::new_error(e_LastError{error});
   }
   HANDLE handle = ::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
@@ -213,7 +213,7 @@ boost::leaf::result<padded_string> read_file(const char *path) {
       /*hTemplateFile=*/nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
     DWORD error = ::GetLastError();
-    return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+    return boost::leaf::new_error(e_LastError{error});
   }
   windows_handle_file file(handle);
   return read_file(file.ref());
