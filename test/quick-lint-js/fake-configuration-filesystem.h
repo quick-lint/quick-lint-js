@@ -12,6 +12,7 @@
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 #include <unordered_map>
@@ -66,7 +67,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
           boost::leaf::windows::e_LastError{ERROR_FILE_NOT_FOUND});
 #endif
 #if QLJS_HAVE_UNISTD_H
-      return boost::leaf::new_error(boost::leaf::e_errno{ENOENT});
+      return boost::leaf::new_error(e_errno{ENOENT});
 #endif
     }
     return padded_string(string8_view(file_it->second));

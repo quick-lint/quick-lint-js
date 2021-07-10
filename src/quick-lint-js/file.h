@@ -13,6 +13,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/sloppy-result.h>
 #include <string>
@@ -35,7 +36,7 @@ struct e_file_too_large {};
 
 // Possible error types:
 //
-// * boost::leaf::e_errno
+// * e_errno
 // * boost::leaf::e_file_name
 // * boost::leaf::windows::e_LastError
 // * e_api_read_file (always present)
@@ -65,8 +66,7 @@ auto make_file_not_found_handler(const Func &handle_error) {
       }
 #endif
 #if QLJS_HAVE_UNISTD_H
-          [handle_error](
-              boost::leaf::match_value<boost::leaf::e_errno, ENOENT>) {
+          [handle_error](match_error<e_errno, ENOENT>) {
             return handle_error();
           }
 #endif
@@ -94,10 +94,10 @@ auto make_read_file_error_handlers(const Func &handle_error) {
       },
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [handle_error](e_api_read_file, const boost::leaf::e_errno &error,
+      [handle_error](e_api_read_file, const e_errno &error,
                      const boost::leaf::e_file_name &path) {
         return handle_error("failed to read from "s + path.value + ": "s +
-                            std::strerror(error.value));
+                            std::strerror(error.error));
       },
 #endif
       [handle_error](e_api_read_file, e_file_too_large) {
@@ -111,9 +111,9 @@ auto make_read_file_error_handlers(const Func &handle_error) {
       },
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [handle_error](e_api_read_file, const boost::leaf::e_errno &error) {
+      [handle_error](e_api_read_file, const e_errno &error) {
         return handle_error("failed to read from file: "s +
-                            std::strerror(error.value));
+                            std::strerror(error.error));
       },
 #endif
       [handle_error](e_api_read_file) {

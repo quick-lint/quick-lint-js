@@ -14,6 +14,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/string-view.h>
 #include <string>
@@ -180,7 +181,7 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return boost::leaf::new_error(e_errno{errno});
   }
   return read_size == 0 ? file_read_result::end_of_file()
                         : file_read_result(narrow_cast<int>(read_size));
@@ -307,9 +308,7 @@ std::string windows_error_message(DWORD error) {
 #endif
 
 #if QLJS_HAVE_UNISTD_H
-std::string error_message(boost::leaf::e_errno error) {
-  return std::strerror(error.value);
-}
+std::string error_message(e_errno error) { return std::strerror(error.error); }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H

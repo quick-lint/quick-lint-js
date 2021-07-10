@@ -109,7 +109,7 @@ class event_loop_base {
           }
         },
 #if QLJS_HAVE_UNISTD_H
-        [](boost::leaf::match_value<boost::leaf::e_errno, EAGAIN>) -> bool {
+        [](match_error<e_errno, EAGAIN>) -> bool {
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
           return false;
 #else

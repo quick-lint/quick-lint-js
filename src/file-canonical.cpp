@@ -18,6 +18,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/utf-16.h>
@@ -299,7 +300,7 @@ class path_canonicalizer_base {
         // files, FIFOs, etc.
         if (!path_to_process_.empty()) {
           return boost::leaf::new_error(
-              boost::leaf::e_errno{ENOTDIR},
+              e_errno{ENOTDIR},
               e_canonicalizing_path{string_for_error_message(canonical_)});
         }
         break;
@@ -397,7 +398,7 @@ class posix_path_canonicalizer
     // buffer?
     canonical_.resize(PATH_MAX);
     if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
-      return boost::leaf::new_error(boost::leaf::e_errno{errno});
+      return boost::leaf::new_error(e_errno{errno});
     }
     canonical_.resize(std::strlen(canonical_.c_str()));
 
@@ -419,7 +420,7 @@ class posix_path_canonicalizer
         return file_type::does_not_exist;
       }
       return boost::leaf::new_error(
-          boost::leaf::e_errno{errno},
+          e_errno{errno},
           e_canonicalizing_path{string_for_error_message(canonical_)});
     }
     if (S_ISLNK(s.st_mode)) {
@@ -443,7 +444,7 @@ class posix_path_canonicalizer
         read_symbolic_link(canonical_.c_str(), &new_readlink_buffer);
     if (readlink_rc == -1) {
       return boost::leaf::new_error(
-          boost::leaf::e_errno{errno},
+          e_errno{errno},
           e_canonicalizing_path{string_for_error_message(canonical_)});
     }
 

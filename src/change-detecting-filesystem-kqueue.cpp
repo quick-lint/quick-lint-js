@@ -19,6 +19,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -52,13 +53,13 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return boost::leaf::new_error(e_errno{errno});
   }
 
   // TODO(strager): Use openat. watch_directory opened a directory fd.
   posix_fd_file file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return boost::leaf::new_error(e_errno{errno});
   }
 
   auto watch_it = this->watch_file(canonical_path(path), std::move(file));

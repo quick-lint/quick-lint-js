@@ -18,6 +18,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
@@ -180,7 +181,7 @@ boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return boost::leaf::new_error(e_errno{errno});
   }
   auto file_size = s.st_size;
   if (!in_range<int>(file_size)) {
@@ -231,7 +232,7 @@ boost::leaf::result<padded_string> read_file(const char *path) {
   auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return boost::leaf::new_error(e_errno{errno});
   }
   posix_fd_file file(fd);
   return read_file(file.ref());

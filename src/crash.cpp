@@ -12,6 +12,7 @@
 #include <quick-lint-js/crash.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 
 #if QLJS_HAVE_SETRLIMIT
 #include <sys/resource.h>
@@ -64,11 +65,11 @@ core_style linux_detect_core_style() {
           return core_style::file_path;
         }
       },
-      [](boost::leaf::e_errno error) {
+      [](e_errno error) {
         std::fprintf(
             stderr,
             "warning: failed to determine method to disable core dumping: %s\n",
-            std::strerror(error.value));
+            std::strerror(error.error));
         return core_style::unknown;
       },
       []() {

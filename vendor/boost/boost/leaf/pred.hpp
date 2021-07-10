@@ -165,7 +165,7 @@ struct match_value
 
     BOOST_LEAF_CONSTEXPR static bool evaluate(E const & e) noexcept
     {
-        return leaf_detail::cmp_value_pack(e.value, V1, V...);
+        return leaf_detail::cmp_value_pack(e.error, V1, V...);
     }
 };
 

@@ -68,7 +68,7 @@ change_detecting_filesystem_inotify::read_file(const canonical_path& path) {
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return boost::leaf::new_error(e_errno{errno});
   }
 
   return quick_lint_js::read_file(path.c_str());

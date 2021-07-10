@@ -21,6 +21,7 @@
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/warning.h>
@@ -306,9 +307,9 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
           return {};
         },
         [&](e_api_read_file, const boost::leaf::e_file_name& path,
-            boost::leaf::e_errno error) {
+            e_errno error) {
           EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
-          EXPECT_EQ(error.value, EISDIR) << std::strerror(error.value);
+          EXPECT_EQ(error.error, EISDIR) << std::strerror(error.error);
         },
 #if QLJS_HAVE_WINDOWS_H
         [&](e_api_read_file, const boost::leaf::e_file_name& path,
@@ -554,9 +555,9 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
         return {};
       },
       [&](e_api_read_file, const boost::leaf::e_file_name& path,
-          boost::leaf::e_errno error) {
+          e_errno error) {
         EXPECT_EQ(path.value, canonicalize_path_sloppy(config_file)->c_str());
-        EXPECT_EQ(error.value, ENOENT) << std::strerror(error.value);
+        EXPECT_EQ(error.error, ENOENT) << std::strerror(error.error);
       },
 #if QLJS_HAVE_WINDOWS_H
       [&](e_api_read_file, const boost::leaf::e_file_name& path,

@@ -26,7 +26,7 @@ class null_configuration_filesystem : public configuration_filesystem {
   }
 
   boost::leaf::result<padded_string> read_file(const canonical_path&) override {
-    return boost::leaf::new_error(boost::leaf::e_errno{ENOENT});
+    return boost::leaf::new_error(e_errno{ENOENT});
   }
 };
 }

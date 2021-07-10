@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/sloppy-result.h>
 #include <string>
 #include <string_view>
@@ -104,7 +105,7 @@ struct e_too_many_symlinks {};
 
 // Possible error types:
 //
-// * boost::leaf::e_errno
+// * e_errno
 // * boost::leaf::e_file_name
 // * boost::leaf::windows::e_LastError
 // * e_api_canonicalize_path (always present)
@@ -127,18 +128,16 @@ auto make_canonicalize_path_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;
   return std::tuple(
       [handle_error](e_api_canonicalize_path,
-                     const boost::leaf::e_file_name &path,
-                     boost::leaf::e_errno error,
+                     const boost::leaf::e_file_name &path, e_errno error,
                      const e_canonicalizing_path &canonicalizing) {
         return handle_error("failed to canonicalize "s + canonicalizing.path +
                             ": "s + path.value + ": "s +
-                            std::strerror(error.value));
+                            std::strerror(error.error));
       },
       [handle_error](e_api_canonicalize_path,
-                     const boost::leaf::e_file_name &path,
-                     boost::leaf::e_errno error) {
+                     const boost::leaf::e_file_name &path, e_errno error) {
         return handle_error("failed to canonicalize "s + path.value + ": "s +
-                            std::strerror(error.value));
+                            std::strerror(error.error));
       },
       [handle_error](e_api_canonicalize_path,
                      const boost::leaf::e_file_name &path,

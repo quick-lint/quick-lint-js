@@ -9,6 +9,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H
@@ -33,7 +34,7 @@ namespace quick_lint_js {
 //
 // Possible error types:
 //
-// * boost::leaf::e_errno
+// * e_errno
 // * boost::leaf::windows::e_LastError
 struct file_read_result : public boost::leaf::result<std::optional<int>> {
   using boost::leaf::result<std::optional<int>>::result;
@@ -63,7 +64,7 @@ std::string windows_error_message(DWORD error);
 #endif
 
 #if QLJS_HAVE_UNISTD_H
-std::string error_message(boost::leaf::e_errno);
+std::string error_message(e_errno);
 #endif
 #if QLJS_HAVE_WINDOWS_H
 std::string error_message(boost::leaf::windows::e_LastError);

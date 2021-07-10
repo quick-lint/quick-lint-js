@@ -68,8 +68,8 @@ configuration_or_error configuration_loader::watch_and_load_for_file(
         watch.error = message;
         return configuration_or_error(std::move(message));
       }),
-      [&](boost::leaf::e_errno error) {
-        const char* message = std::strerror(error.value);
+      [&](e_errno error) {
+        const char* message = std::strerror(error.error);
         watch.error = message;
         return configuration_or_error(message);
       },
@@ -111,9 +111,9 @@ sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
       make_read_file_error_handlers([](std::string&& message) {
         return sloppy_result<configuration*>::failure(std::move(message));
       }),
-      [](boost::leaf::e_errno error) {
+      [](e_errno error) {
         return sloppy_result<configuration*>::failure(
-            std::strerror(error.value));
+            std::strerror(error.error));
       },
       []() {
         QLJS_ASSERT(false);
@@ -133,9 +133,9 @@ sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
       make_read_file_error_handlers([](std::string&& message) {
         return sloppy_result<configuration*>::failure(std::move(message));
       }),
-      [](boost::leaf::e_errno error) {
+      [](e_errno error) {
         return sloppy_result<configuration*>::failure(
-            std::strerror(error.value));
+            std::strerror(error.error));
       },
       []() {
         QLJS_ASSERT(false);
@@ -382,8 +382,8 @@ std::vector<configuration_change> configuration_loader::refresh() {
               }
               return std::nullopt;
             }),
-        [&](boost::leaf::e_errno error) -> std::optional<found_config_file> {
-          const char* message = std::strerror(error.value);
+        [&](e_errno error) -> std::optional<found_config_file> {
+          const char* message = std::strerror(error.error);
           if (watch.error != message) {
             watch.error = message;
             changes.emplace_back(configuration_change{
