@@ -374,6 +374,7 @@ expression* parser::parse_primary_expression(precedence prec) {
 
   // class {}
   case token_type::kw_class: {
+    class_guard g(this, std::exchange(this->in_class_, true));
     expression* class_expression = this->parse_class_expression();
     return class_expression;
   }
