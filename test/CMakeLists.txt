@@ -48,6 +48,7 @@ quick_lint_js_add_executable(
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-json.cpp
+  test-leaf-saved-error.cpp
   test-lex.cpp
   test-lint-parse.cpp
   test-lint.cpp

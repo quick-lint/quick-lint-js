@@ -110,6 +110,7 @@ quick_lint_js_add_library(
   quick-lint-js/integer.h
   quick-lint-js/json.h
   quick-lint-js/language.h
+  quick-lint-js/leaf-saved-error.h
   quick-lint-js/leaf.h
   quick-lint-js/lex.h
   quick-lint-js/lint.h
