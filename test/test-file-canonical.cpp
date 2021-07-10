@@ -133,8 +133,8 @@ TEST_F(test_file_canonical, canonical_path_of_empty_fails) {
 
   boost::leaf::try_handle_all(
       [] { return canonicalize_expecting_failure(""); },
-      [](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
-         e_invalid_argument_empty_path) { EXPECT_EQ(path.value, ""); },
+      [](e_api_canonicalize_path, const e_file_path& path,
+         e_invalid_argument_empty_path) { EXPECT_EQ(path.path, ""); },
       fail_test_error_handlers());
 }
 
@@ -160,9 +160,9 @@ TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
   std::string input_path = temp_dir + "/file.txt/";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file.txt"));
       },
@@ -214,9 +214,9 @@ TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {
   std::string input_path = temp_dir + "/file/subfile";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file"));
       },
@@ -258,9 +258,9 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/./something";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
@@ -297,9 +297,9 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/../other.text";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
@@ -331,9 +331,9 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
@@ -364,9 +364,9 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/.";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
@@ -723,8 +723,8 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/link1/file.js";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
-          e_too_many_symlinks) { EXPECT_EQ(path.value, input_path); },
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          e_too_many_symlinks) { EXPECT_EQ(path.path, input_path); },
       fail_test_error_handlers());
 }
 
@@ -837,9 +837,9 @@ TEST_F(test_file_canonical, unsearchable_parent_directory) {
   std::string input_path = temp_dir + "/dir/file";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, EACCES) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("dir/file"));
       },
@@ -865,9 +865,9 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
   std::string input_path = temp_dir + "/dir/subdir/file";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const boost::leaf::e_file_name& path,
+      [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.value, input_path);
+        EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, EACCES) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("dir/subdir"));
       },

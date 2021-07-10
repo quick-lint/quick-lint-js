@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_LEAF_H
 
 #include <quick-lint-js/have.h>
+#include <string>
 
 namespace quick_lint_js {
 // A POSIX error retrieved from the global errno variable.
@@ -15,6 +16,11 @@ struct e_errno {
 // A Windows error returned by GetLastError.
 struct e_LastError {
   unsigned long error;
+};
+
+// The filesystem path associated with an error.
+struct e_file_path {
+  std::string path;
 };
 
 // Like boost::leaf::match_value, but for e_errno or e_LastError.

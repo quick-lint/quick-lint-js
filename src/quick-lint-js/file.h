@@ -37,7 +37,7 @@ struct e_file_too_large {};
 // Possible error types:
 //
 // * e_errno
-// * boost::leaf::e_file_name
+// * e_file_path
 // * e_LastError
 // * e_api_read_file (always present)
 // * e_file_too_large
@@ -80,21 +80,21 @@ auto make_read_file_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;
   return std::tuple(
       [handle_error](e_api_read_file, e_file_too_large,
-                     const boost::leaf::e_file_name &path) {
+                     const e_file_path &path) {
         return handle_error("file too large to read into memory: "s +
-                            path.value);
+                            path.path);
       },
 #if QLJS_HAVE_WINDOWS_H
       [handle_error](e_api_read_file, const e_LastError &error,
-                     const boost::leaf::e_file_name &path) {
-        return handle_error("failed to read from "s + path.value + ": "s +
+                     const e_file_path &path) {
+        return handle_error("failed to read from "s + path.path + ": "s +
                             error_message(error));
       },
 #endif
 #if QLJS_HAVE_UNISTD_H
       [handle_error](e_api_read_file, const e_errno &error,
-                     const boost::leaf::e_file_name &path) {
-        return handle_error("failed to read from "s + path.value + ": "s +
+                     const e_file_path &path) {
+        return handle_error("failed to read from "s + path.path + ": "s +
                             std::strerror(error.error));
       },
 #endif

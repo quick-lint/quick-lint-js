@@ -106,7 +106,7 @@ struct e_too_many_symlinks {};
 // Possible error types:
 //
 // * e_errno
-// * boost::leaf::e_file_name
+// * e_file_path
 // * e_LastError
 // * e_api_canonicalize_path (always present)
 // * e_canonicalizing_path
@@ -127,22 +127,21 @@ template <class Func>
 auto make_canonicalize_path_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;
   return std::tuple(
-      [handle_error](e_api_canonicalize_path,
-                     const boost::leaf::e_file_name &path, e_errno error,
+      [handle_error](e_api_canonicalize_path, const e_file_path &path,
+                     e_errno error,
                      const e_canonicalizing_path &canonicalizing) {
         return handle_error("failed to canonicalize "s + canonicalizing.path +
-                            ": "s + path.value + ": "s +
+                            ": "s + path.path + ": "s +
                             std::strerror(error.error));
       },
-      [handle_error](e_api_canonicalize_path,
-                     const boost::leaf::e_file_name &path, e_errno error) {
-        return handle_error("failed to canonicalize "s + path.value + ": "s +
+      [handle_error](e_api_canonicalize_path, const e_file_path &path,
+                     e_errno error) {
+        return handle_error("failed to canonicalize "s + path.path + ": "s +
                             std::strerror(error.error));
       },
-      [handle_error](e_api_canonicalize_path,
-                     const boost::leaf::e_file_name &path,
+      [handle_error](e_api_canonicalize_path, const e_file_path &path,
                      e_too_many_symlinks) {
-        return handle_error("failed to canonicalize "s + path.value +
+        return handle_error("failed to canonicalize "s + path.path +
                             ": Too many levels of symlink"s);
       },
       [handle_error](e_api_canonicalize_path, e_invalid_argument_empty_path) {

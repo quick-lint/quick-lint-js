@@ -198,7 +198,7 @@ boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
 boost::leaf::result<padded_string> read_file(const char *path) {
   auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
-  auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
+  auto path_guard = boost::leaf::on_error(e_file_path{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
   if (!wpath) {
     DWORD error = ::GetLastError();
@@ -229,7 +229,7 @@ boost::leaf::result<padded_string> read_stdin() {
 boost::leaf::result<padded_string> read_file(const char *path) {
   auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
-  auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
+  auto path_guard = boost::leaf::on_error(e_file_path{path});
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
     return boost::leaf::new_error(e_errno{errno});
@@ -263,7 +263,7 @@ sloppy_result<padded_string> read_file_sloppy(const char *path,
   return boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
         // TODO(strager): Avoid copying the path string, especially on success.
-        auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
+        auto path_guard = boost::leaf::on_error(e_file_path{path});
         boost::leaf::result<padded_string> content = read_file(file);
         if (!content) return content.error();
         return sloppy_result<padded_string>(std::move(*content));
