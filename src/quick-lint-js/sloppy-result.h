@@ -52,8 +52,9 @@ class sloppy_result {
     }
   }
 
-  static sloppy_result failure(const std::string& error) {
-    return sloppy_result(error_tag(), error);
+  template <class... ErrorArgs>
+  static sloppy_result failure(ErrorArgs&&... error_args) {
+    return sloppy_result(error_tag(), std::forward<ErrorArgs>(error_args)...);
   }
 
   bool ok() const noexcept { return this->ok_; }
@@ -74,8 +75,9 @@ class sloppy_result {
  private:
   struct error_tag {};
 
-  explicit sloppy_result(error_tag, const std::string& error)
-      : error_(error), ok_(false) {}
+  template <class... ErrorArgs>
+  explicit sloppy_result(error_tag, ErrorArgs&&... error_args)
+      : error_(std::forward<ErrorArgs>(error_args)...), ok_(false) {}
 
   union {
     T value_;
