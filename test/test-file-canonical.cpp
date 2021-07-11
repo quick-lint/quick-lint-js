@@ -21,7 +21,7 @@
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/leaf.h>
-#include <quick-lint-js/sloppy-result.h>
+#include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <string>

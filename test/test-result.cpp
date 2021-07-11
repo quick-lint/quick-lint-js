@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include <quick-lint-js/sloppy-result.h>
+#include <quick-lint-js/result.h>
 
 namespace quick_lint_js {
 namespace {

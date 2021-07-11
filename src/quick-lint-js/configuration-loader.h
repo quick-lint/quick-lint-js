@@ -8,7 +8,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
-#include <quick-lint-js/sloppy-result.h>
+#include <quick-lint-js/result.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

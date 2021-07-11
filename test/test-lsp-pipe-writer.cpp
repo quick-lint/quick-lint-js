@@ -13,7 +13,7 @@
 #include <quick-lint-js/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe.h>
-#include <quick-lint-js/sloppy-result.h>
+#include <quick-lint-js/result.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H

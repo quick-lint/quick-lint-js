@@ -15,7 +15,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/leaf.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/sloppy-result.h>
+#include <quick-lint-js/result.h>
 #include <string>
 #include <tuple>
 
