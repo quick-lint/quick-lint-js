@@ -237,7 +237,7 @@ class debug_visitor {
   void visit_property_declaration(std::optional<identifier> name) {
     std::cerr << "property declaration";
     if (name.has_value()) {
-      std::cerr << out_string8(name->normalized_name());
+      std::cerr << ": " << out_string8(name->normalized_name());
     }
     std::cerr << '\n';
   }
