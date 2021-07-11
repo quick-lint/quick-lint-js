@@ -6,13 +6,83 @@
 
 #include <new>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/unreachable.h>
 #include <string>
+#include <type_traits>
 #include <utility>
+#include <variant>
 
 namespace quick_lint_js {
+// Like std::variant, but more ergonomic.
+//
+// Errors must be unique. For example, result<int, char, char> is illegal.
+template <class T, class... Errors>
+class result {
+ public:
+  template <class... Args>
+  explicit result(Args&&... args)
+      : data_(std::in_place_index<0>, std::forward<Args>(args)...) {}
+
+  // TODO(strager): Allow copying.
+  result(const result&) = delete;
+  result& operator=(const result&) = delete;
+
+  result(result&&) = default;
+  result& operator=(result&&) = default;
+
+  template <class Error>
+  static result failure(Error&& error) {
+    return result(error_tag<Error>(), std::forward<Error>(error));
+  }
+
+  template <class Error, class... ErrorArgs>
+  static result failure(ErrorArgs&&... error_args) {
+    return result(error_tag<Error>(), std::forward<ErrorArgs>(error_args)...);
+  }
+
+  bool ok() const noexcept { return this->data_.index() == 0; }
+
+  T& value() noexcept {
+    QLJS_ASSERT(this->ok());
+    return std::get<0>(this->data_);
+  }
+
+  template <class Error>
+  bool has_error() const noexcept {
+    // TODO(strager): If std::is_same_v<Error, T>, then std::holds_alternative
+    // is incorrect.
+    return std::holds_alternative<Error>(this->data_);
+  }
+
+  template <class Error>
+  const Error& error() const noexcept {
+    QLJS_ASSERT(!this->ok());
+    QLJS_ASSERT(this->has_error<Error>());
+    // TODO(strager): If std::is_same_v<Error, T>, then std::get<Error> is
+    // incorrect.
+    return std::get<Error>(this->data_);
+  }
+
+  T& operator*() noexcept { return this->value(); }
+  T* operator->() noexcept { return &this->value(); }
+
+ private:
+  template <class Error>
+  struct error_tag {};
+
+  template <class Error, class... ErrorArgs>
+  explicit result(error_tag<Error>, ErrorArgs&&... error_args)
+      // TODO(strager): If std::is_same_v<Error, T>, then std::in_place_type is
+      // incorrect.
+      : data_(std::in_place_type<Error>,
+              std::forward<ErrorArgs>(error_args)...) {}
+
+  std::variant<T, Errors...> data_;
+};
+
 // Like std::variant<T, Error>, but more ergonomic.
 template <class T, class Error>
-class result {
+class result<T, Error> {
  public:
   template <class... Args>
   explicit result(Args&&... args)

@@ -80,6 +80,45 @@ TEST(test_sloppy_result, move_assign_value_atop_error) {
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
 }
+
+TEST(test_multi_error_result, store_int) {
+  struct e_a {};
+  struct e_b {};
+  result<int, e_a, e_b> r(42);
+  EXPECT_TRUE(r.ok());
+  EXPECT_FALSE(r.has_error<e_a>());
+  EXPECT_FALSE(r.has_error<e_b>());
+  EXPECT_EQ(*r, 42);
+}
+
+TEST(test_multi_error_result, store_first_error_type) {
+  struct e_a {
+    std::string data;
+  };
+  struct e_b {
+    int data;
+  };
+  result<int, e_a, e_b> r =
+      result<int, e_a, e_b>::failure<e_a>(e_a{"something bad happened"});
+  EXPECT_FALSE(r.ok());
+  EXPECT_TRUE(r.has_error<e_a>());
+  EXPECT_FALSE(r.has_error<e_b>());
+  EXPECT_EQ(r.error<e_a>().data, "something bad happened");
+}
+
+TEST(test_multi_error_result, store_second_error_type) {
+  struct e_a {
+    std::string data;
+  };
+  struct e_b {
+    int data;
+  };
+  result<int, e_a, e_b> r = result<int, e_a, e_b>::failure<e_b>(e_b{42});
+  EXPECT_FALSE(r.ok());
+  EXPECT_FALSE(r.has_error<e_a>());
+  EXPECT_TRUE(r.has_error<e_b>());
+  EXPECT_EQ(r.error<e_b>().data, 42);
+}
 }
 }
 
