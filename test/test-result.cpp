@@ -142,6 +142,26 @@ TEST(test_multi_error_result, store_int) {
   EXPECT_EQ(*r, 42);
 }
 
+TEST(test_multi_error_result, move_construct_void) {
+  struct e_a {};
+  struct e_b {};
+  result<void, e_a, e_b> r;
+  result<void, e_a, e_b> copy = std::move(r);
+  EXPECT_TRUE(copy.ok());
+  EXPECT_FALSE(copy.has_error<e_a>());
+  EXPECT_FALSE(copy.has_error<e_b>());
+}
+
+TEST(test_multi_error_result, move_assign_void) {
+  struct e_a {};
+  struct e_b {};
+  result<void, e_a, e_b> r;
+  r = result<void, e_a, e_b>();
+  EXPECT_TRUE(r.ok());
+  EXPECT_FALSE(r.has_error<e_a>());
+  EXPECT_FALSE(r.has_error<e_b>());
+}
+
 TYPED_TEST(test_result_error, multi_store_first_error_type) {
   struct e_a {
     std::string data;
@@ -171,6 +191,72 @@ TYPED_TEST(test_result_error, multi_store_second_error_type) {
   EXPECT_FALSE(r.template has_error<e_a>());
   EXPECT_TRUE(r.template has_error<e_b>());
   EXPECT_EQ(r.template error<e_b>().data, 42);
+}
+
+TYPED_TEST(test_result_error, multi_move_construct_first_error_type) {
+  result<TypeParam, std::string, char> r =
+      result<TypeParam, std::string, char>::template failure<std::string>(
+          "error");
+  result<TypeParam, std::string, char> copy = std::move(r);
+  EXPECT_FALSE(copy.ok());
+  EXPECT_TRUE(copy.template has_error<std::string>());
+  EXPECT_FALSE(copy.template has_error<char>());
+  EXPECT_EQ(copy.template error<std::string>(), "error");
+}
+
+TYPED_TEST(test_result_error, multi_move_assign_first_error_type) {
+  result<TypeParam, std::string, char> r =
+      result<TypeParam, std::string, char>::template failure<std::string>(
+          "something bad happened");
+  r = result<TypeParam, std::string, char>::template failure<std::string>(
+      "fatal error");
+  EXPECT_FALSE(r.ok());
+  EXPECT_TRUE(r.template has_error<std::string>());
+  EXPECT_FALSE(r.template has_error<char>());
+  EXPECT_EQ(r.template error<std::string>(), "fatal error");
+}
+
+TEST(test_result, multi_move_assign_first_error_type_atop_value) {
+  result<std::shared_ptr<int>, std::string, char> r =
+      result<std::shared_ptr<int>, std::string, char>(
+          std::make_shared<int>(42));
+  r = result<std::shared_ptr<int>, std::string,
+             char>::template failure<std::string>("fatal error");
+  EXPECT_FALSE(r.ok());
+  EXPECT_TRUE(r.template has_error<std::string>());
+  EXPECT_FALSE(r.template has_error<char>());
+  EXPECT_EQ(r.template error<std::string>(), "fatal error");
+}
+
+TEST(test_result, multi_move_assign_first_error_type_atop_void) {
+  result<void, std::string, char> r = result<void, std::string, char>();
+  r = result<void, std::string, char>::template failure<std::string>(
+      "fatal error");
+  EXPECT_FALSE(r.ok());
+  EXPECT_TRUE(r.template has_error<std::string>());
+  EXPECT_FALSE(r.template has_error<char>());
+  EXPECT_EQ(r.template error<std::string>(), "fatal error");
+}
+
+TEST(test_result, multi_move_assign_value_atop_first_error_type) {
+  result<std::shared_ptr<int>, std::string, char> r =
+      result<std::shared_ptr<int>, std::string, char>::failure<std::string>(
+          "fatal error");
+  r = result<std::shared_ptr<int>, std::string, char>(
+      std::make_shared<int>(42));
+  EXPECT_TRUE(r.ok());
+  EXPECT_FALSE(r.template has_error<std::string>());
+  EXPECT_FALSE(r.template has_error<char>());
+  EXPECT_EQ(**r, 42);
+}
+
+TEST(test_result, multi_move_assign_void_atop_first_error_type) {
+  result<void, std::string, char> r =
+      result<void, std::string, char>::failure<std::string>("fatal error");
+  r = result<void, std::string, char>();
+  EXPECT_TRUE(r.ok());
+  EXPECT_FALSE(r.template has_error<std::string>());
+  EXPECT_FALSE(r.template has_error<char>());
 }
 }
 }
