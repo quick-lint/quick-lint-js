@@ -4,9 +4,18 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <quick-lint-js/result.h>
+#include <quick-lint-js/warning.h>
+
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 
 namespace quick_lint_js {
 namespace {
+using test_result_error_types = ::testing::Types<void, int>;
+template <class T>
+class test_result_error : public ::testing::Test {};
+TYPED_TEST_SUITE(test_result_error, test_result_error_types,
+                 ::testing::internal::DefaultNameGenerator);
+
 TEST(test_sloppy_result, store_void) {
   sloppy_result<void> r;
   EXPECT_TRUE(r.ok());
@@ -36,6 +45,12 @@ TEST(test_sloppy_result, store_move_only_type) {
   EXPECT_EQ(**r, 42);
 }
 
+TEST(test_sloppy_result, move_construct_void) {
+  sloppy_result<void> r;
+  sloppy_result<void> copy = std::move(r);
+  EXPECT_TRUE(copy.ok());
+}
+
 TEST(test_sloppy_result, move_construct_of_move_only_type) {
   sloppy_result<std::unique_ptr<int>> r(std::make_unique<int>(42));
   sloppy_result<std::unique_ptr<int>> copy = std::move(r);
@@ -50,22 +65,31 @@ TEST(test_sloppy_result, move_assign_of_move_only_type) {
   EXPECT_EQ(**r, 69);
 }
 
-TEST(test_sloppy_result, store_error) {
-  sloppy_result<int> r = sloppy_result<int>::failure("something bad happened");
+TEST(test_sloppy_result, move_assign_void) {
+  sloppy_result<void> r;
+  r = sloppy_result<void>();
+  EXPECT_TRUE(r.ok());
+}
+
+TYPED_TEST(test_result_error, store_error) {
+  sloppy_result<TypeParam> r =
+      sloppy_result<TypeParam>::failure("something bad happened");
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "something bad happened");
 }
 
-TEST(test_sloppy_result, move_construct_error) {
-  sloppy_result<int> r = sloppy_result<int>::failure("something bad happened");
-  sloppy_result<int> copy = std::move(r);
+TYPED_TEST(test_result_error, move_construct_error) {
+  sloppy_result<TypeParam> r =
+      sloppy_result<TypeParam>::failure("something bad happened");
+  sloppy_result<TypeParam> copy = std::move(r);
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error(), "something bad happened");
 }
 
-TEST(test_sloppy_result, move_assign_error) {
-  sloppy_result<int> r = sloppy_result<int>::failure("something bad happened");
-  r = sloppy_result<int>::failure("fatal error");
+TYPED_TEST(test_result_error, move_assign_error) {
+  sloppy_result<TypeParam> r =
+      sloppy_result<TypeParam>::failure("something bad happened");
+  r = sloppy_result<TypeParam>::failure("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
@@ -78,12 +102,25 @@ TEST(test_sloppy_result, move_assign_error_atop_value) {
   EXPECT_EQ(r.error(), "fatal error");
 }
 
+TEST(test_sloppy_result, move_assign_error_atop_void) {
+  sloppy_result<void> r;
+  r = sloppy_result<void>::failure("fatal error");
+  EXPECT_FALSE(r.ok());
+  EXPECT_EQ(r.error(), "fatal error");
+}
+
 TEST(test_sloppy_result, move_assign_value_atop_error) {
   sloppy_result<std::shared_ptr<int>> r =
       sloppy_result<std::shared_ptr<int>>::failure("fatal error");
   r = sloppy_result<std::shared_ptr<int>>(std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
+}
+
+TEST(test_sloppy_result, move_assign_void_atop_error) {
+  sloppy_result<void> r = sloppy_result<void>::failure("fatal error");
+  r = sloppy_result<void>();
+  EXPECT_TRUE(r.ok());
 }
 
 TEST(test_multi_error_result, store_void) {
@@ -105,33 +142,35 @@ TEST(test_multi_error_result, store_int) {
   EXPECT_EQ(*r, 42);
 }
 
-TEST(test_multi_error_result, store_first_error_type) {
+TYPED_TEST(test_result_error, multi_store_first_error_type) {
   struct e_a {
     std::string data;
   };
   struct e_b {
     int data;
   };
-  result<int, e_a, e_b> r =
-      result<int, e_a, e_b>::failure<e_a>(e_a{"something bad happened"});
+  result<TypeParam, e_a, e_b> r =
+      result<TypeParam, e_a, e_b>::template failure<e_a>(
+          e_a{"something bad happened"});
   EXPECT_FALSE(r.ok());
-  EXPECT_TRUE(r.has_error<e_a>());
-  EXPECT_FALSE(r.has_error<e_b>());
-  EXPECT_EQ(r.error<e_a>().data, "something bad happened");
+  EXPECT_TRUE(r.template has_error<e_a>());
+  EXPECT_FALSE(r.template has_error<e_b>());
+  EXPECT_EQ(r.template error<e_a>().data, "something bad happened");
 }
 
-TEST(test_multi_error_result, store_second_error_type) {
+TYPED_TEST(test_result_error, multi_store_second_error_type) {
   struct e_a {
     std::string data;
   };
   struct e_b {
     int data;
   };
-  result<int, e_a, e_b> r = result<int, e_a, e_b>::failure<e_b>(e_b{42});
+  result<TypeParam, e_a, e_b> r =
+      result<TypeParam, e_a, e_b>::template failure<e_b>(e_b{42});
   EXPECT_FALSE(r.ok());
-  EXPECT_FALSE(r.has_error<e_a>());
-  EXPECT_TRUE(r.has_error<e_b>());
-  EXPECT_EQ(r.error<e_b>().data, 42);
+  EXPECT_FALSE(r.template has_error<e_a>());
+  EXPECT_TRUE(r.template has_error<e_b>());
+  EXPECT_EQ(r.template error<e_b>().data, 42);
 }
 }
 }
