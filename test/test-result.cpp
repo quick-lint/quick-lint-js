@@ -291,6 +291,77 @@ TYPED_TEST(test_result_error, swap_error_types) {
   EXPECT_TRUE(copy.template has_error<e_a>());
   EXPECT_FALSE(copy.template has_error<e_b>());
 }
+
+TYPED_TEST(test_result_error, propagate_error_with_same_value_type) {
+  struct e_a {
+    int data;
+  };
+  result<TypeParam, e_a> original =
+      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  ASSERT_FALSE(original.ok());
+
+  result<TypeParam, e_a> copy = original.propagate();
+  EXPECT_FALSE(copy.ok());
+  EXPECT_EQ(copy.error().data, 42);
+}
+
+TYPED_TEST(test_result_error, propagate_error_to_different_value_type) {
+  struct e_a {
+    int data;
+  };
+  result<TypeParam, e_a> original =
+      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  ASSERT_FALSE(original.ok());
+
+  result<std::string, e_a> copy = original.propagate();
+  EXPECT_FALSE(copy.ok());
+  EXPECT_EQ(copy.error().data, 42);
+}
+
+TYPED_TEST(test_result_error, propagate_error_to_void_value_type) {
+  struct e_a {
+    int data;
+  };
+  result<TypeParam, e_a> original =
+      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  ASSERT_FALSE(original.ok());
+
+  result<void, e_a> copy = original.propagate();
+  EXPECT_FALSE(copy.ok());
+  EXPECT_EQ(copy.error().data, 42);
+}
+
+TYPED_TEST(test_result_error, propagate_error_with_extra_second_error_type) {
+  struct e_a {
+    int data;
+  };
+  struct e_b {};
+  result<TypeParam, e_a> original =
+      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  ASSERT_FALSE(original.ok());
+
+  result<TypeParam, e_a, e_b> copy = original.propagate();
+  EXPECT_FALSE(copy.ok());
+  EXPECT_TRUE(copy.template has_error<e_a>());
+  EXPECT_FALSE(copy.template has_error<e_b>());
+  EXPECT_EQ(copy.template error<e_a>().data, 42);
+}
+
+TYPED_TEST(test_result_error, propagate_error_with_extra_first_error_type) {
+  struct e_a {
+    int data;
+  };
+  struct e_b {};
+  result<TypeParam, e_a> original =
+      result<TypeParam, e_a>::failure(e_a{.data = 42});
+  ASSERT_FALSE(original.ok());
+
+  result<TypeParam, e_b, e_a> copy = original.propagate();
+  EXPECT_FALSE(copy.ok());
+  EXPECT_TRUE(copy.template has_error<e_a>());
+  EXPECT_FALSE(copy.template has_error<e_b>());
+  EXPECT_EQ(copy.template error<e_a>().data, 42);
+}
 }
 }
 

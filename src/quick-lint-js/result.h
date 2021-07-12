@@ -15,6 +15,14 @@
 namespace quick_lint_js {
 template <class T, class... Errors>
 class result;
+template <class T, class... Errors>
+class result_base;
+
+// Do not use result_propagation directly. Call result<>::propagate instead.
+template <class T, class... Errors>
+struct result_propagation {
+  result_base<T, Errors...>& to_propagate;
+};
 
 // Do not use result_error_tag directly. Call result<>::failure instead.
 template <class Error>
@@ -24,9 +32,12 @@ struct result_error_tag {};
 template <class T, class... Errors>
 class result_base {
  private:
+  template <class U>
+  using to_value_type =
+      std::conditional_t<std::is_same_v<U, void>, std::monostate, U>;
+
   using result = quick_lint_js::result<T, Errors...>;
-  using value_type =
-      std::conditional_t<std::is_same_v<T, void>, std::monostate, T>;
+  using value_type = to_value_type<T>;
 
  public:
   template <class... Args>
@@ -40,6 +51,16 @@ class result_base {
       // std::in_place_type is incorrect.
       : data_(std::in_place_type<Error>,
               std::forward<ErrorArgs>(error_args)...) {}
+
+  // Private constructor used by propagate. Do not call directly.
+  /*implicit*/ result_base(result_propagation<T, Errors...>&& propagation)
+      : data_(std::move(propagation.to_propagate).data_) {}
+
+  // Private constructor used by propagate. Do not call directly.
+  template <class U, class... OtherErrors>
+  /*implicit*/ result_base(result_propagation<U, OtherErrors...>&& propagation)
+      : data_(std::visit(propagate_visitor<U>(),
+                         std::move(propagation.to_propagate).data_)) {}
 
   // TODO(strager): Allow copying.
   result_base(const result_base&) = delete;
@@ -94,10 +115,32 @@ class result_base {
     return std::get<Error>(this->data_);
   }
 
+  result_propagation<T, Errors...> propagate() & {
+    QLJS_ASSERT(!this->ok());
+    return result_propagation<T, Errors...>{*this};
+  }
+
+  result_propagation<T, Errors...> propagate() && = delete;
+
   value_type& operator*() noexcept { return this->value(); }
   value_type* operator->() noexcept { return &this->value(); }
 
  private:
+  template <class U>
+  struct propagate_visitor {
+    std::variant<value_type, Errors...> operator()(to_value_type<U>&&) {
+      QLJS_UNREACHABLE();
+    }
+
+    template <class Error>
+    std::variant<value_type, Errors...> operator()(Error&& error) {
+      // TODO(strager): If (std::is_same_v<Errors, value_type> || ...), then
+      // std::in_place_type is incorrect.
+      return std::variant<value_type, Errors...>(
+          std::in_place_type<std::decay_t<Error>>, std::move(error));
+    }
+  };
+
   std::variant<value_type, Errors...> data_;
 
   template <class, class...>
@@ -121,6 +164,7 @@ class result : private result_base<T, Errors...> {
   using base::operator*;
   using base::operator->;
   using base::operator=;
+  using base::propagate;
   using base::value;
 
   template <class, class...>
@@ -138,10 +182,11 @@ class result<void, Errors...> : private result_base<void, Errors...> {
  public:
   using base::base;
   using base::error;
+  using base::failure;
   using base::has_error;
   using base::ok;
   using base::operator=;
-  using base::failure;
+  using base::propagate;
 
   template <class, class...>
   friend class result_base;
@@ -159,6 +204,7 @@ class result<T, Error> : private result_base<T, Error> {
   using base::operator*;
   using base::operator->;
   using base::operator=;
+  using base::propagate;
   using base::value;
 
   template <class... ErrorArgs>
@@ -183,6 +229,7 @@ class result<void, Error> : private result_base<void, Error> {
   using base::base;
   using base::operator=;
   using base::ok;
+  using base::propagate;
 
   template <class... ErrorArgs>
   static result failure(ErrorArgs&&... error_args) {
