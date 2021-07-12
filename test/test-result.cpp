@@ -258,6 +258,39 @@ TEST(test_result, multi_move_assign_void_atop_first_error_type) {
   EXPECT_FALSE(r.template has_error<std::string>());
   EXPECT_FALSE(r.template has_error<char>());
 }
+
+TYPED_TEST(test_result_error, widen_error_to_first_error_type) {
+  struct e_a {};
+  struct e_b {};
+  result<TypeParam, e_a> original =
+      result<TypeParam, e_a>::template failure(e_a{});
+  result<TypeParam, e_a, e_b> copy = std::move(original);
+  EXPECT_FALSE(copy.ok());
+  EXPECT_TRUE(copy.template has_error<e_a>());
+  EXPECT_FALSE(copy.template has_error<e_b>());
+}
+
+TYPED_TEST(test_result_error, widen_error_to_second_error_type) {
+  struct e_a {};
+  struct e_b {};
+  result<TypeParam, e_b> original =
+      result<TypeParam, e_b>::template failure(e_b{});
+  result<TypeParam, e_a, e_b> copy = std::move(original);
+  EXPECT_FALSE(copy.ok());
+  EXPECT_FALSE(copy.template has_error<e_a>());
+  EXPECT_TRUE(copy.template has_error<e_b>());
+}
+
+TYPED_TEST(test_result_error, swap_error_types) {
+  struct e_a {};
+  struct e_b {};
+  result<TypeParam, e_a, e_b> original =
+      result<TypeParam, e_a>::template failure(e_a{});
+  result<TypeParam, e_b, e_a> copy = std::move(original);
+  EXPECT_FALSE(copy.ok());
+  EXPECT_TRUE(copy.template has_error<e_a>());
+  EXPECT_FALSE(copy.template has_error<e_b>());
+}
 }
 }
 

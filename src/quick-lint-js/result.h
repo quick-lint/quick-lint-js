@@ -48,6 +48,18 @@ class result_base {
   result_base(result_base&&) = default;
   result_base& operator=(result_base&&) = default;
 
+  template <class... OtherErrors>
+  /*implicit*/ result_base(quick_lint_js::result<T, OtherErrors...>&& other)
+      : data_(std::visit(
+            [&](auto&& datum) {
+              // TODO(strager): If (std::is_same_v<Errors, value_type> || ...),
+              // then std::in_place_type is incorrect.
+              return std::variant<value_type, Errors...>(
+                  std::in_place_type<std::decay_t<decltype(datum)>>,
+                  std::move(datum));
+            },
+            std::move(other).data_)) {}
+
   template <class Error>
   static result failure(Error&& error) {
     return result(result_error_tag<Error>(), std::forward<Error>(error));
@@ -87,6 +99,9 @@ class result_base {
 
  private:
   std::variant<value_type, Errors...> data_;
+
+  template <class, class...>
+  friend class result_base;
 };
 
 // Like std::variant<T, Errors...>, but more ergonomic.
@@ -107,6 +122,9 @@ class result : private result_base<T, Errors...> {
   using base::operator->;
   using base::operator=;
   using base::value;
+
+  template <class, class...>
+  friend class result_base;
 };
 
 // Like std::variant<std::monostate, Errors...>, but more ergonomic.
@@ -124,6 +142,9 @@ class result<void, Errors...> : private result_base<void, Errors...> {
   using base::ok;
   using base::operator=;
   using base::failure;
+
+  template <class, class...>
+  friend class result_base;
 };
 
 // Like std::variant<T, Error>, but more ergonomic.
@@ -147,6 +168,9 @@ class result<T, Error> : private result_base<T, Error> {
   }
 
   const Error& error() const noexcept { return base::template error<Error>(); }
+
+  template <class, class...>
+  friend class result_base;
 };
 
 // Like std::optional<Error>, but with a similar interface to result<T, Error>.
@@ -167,6 +191,9 @@ class result<void, Error> : private result_base<void, Error> {
   }
 
   const Error& error() const noexcept { return base::template error<Error>(); }
+
+  template <class, class...>
+  friend class result_base;
 };
 
 // Like std::variant<T, std::string>, but more ergonomic.
