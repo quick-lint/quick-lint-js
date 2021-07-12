@@ -7,6 +7,11 @@
 
 namespace quick_lint_js {
 namespace {
+TEST(test_sloppy_result, store_void) {
+  sloppy_result<void> r;
+  EXPECT_TRUE(r.ok());
+}
+
 TEST(test_sloppy_result, store_int) {
   sloppy_result<int> r(42);
   EXPECT_TRUE(r.ok());
@@ -79,6 +84,15 @@ TEST(test_sloppy_result, move_assign_value_atop_error) {
   r = sloppy_result<std::shared_ptr<int>>(std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
+}
+
+TEST(test_multi_error_result, store_void) {
+  struct e_a {};
+  struct e_b {};
+  result<void, e_a, e_b> r;
+  EXPECT_TRUE(r.ok());
+  EXPECT_FALSE(r.has_error<e_a>());
+  EXPECT_FALSE(r.has_error<e_b>());
 }
 
 TEST(test_multi_error_result, store_int) {
