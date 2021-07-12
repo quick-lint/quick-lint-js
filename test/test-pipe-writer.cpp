@@ -83,7 +83,7 @@ class pipe_reader_thread {
             std::array<char8, (1 << 16)> buffer;
             file_read_result read_result =
                 pipe.read(buffer.data(), buffer.size());
-            if (!read_result) QLJS_UNIMPLEMENTED();
+            if (!read_result.ok()) QLJS_UNIMPLEMENTED();
             if (read_result.at_end_of_file()) {
               return;
             } else {

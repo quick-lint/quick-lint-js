@@ -39,6 +39,18 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
+boost::leaf::error_id windows_file_io_error::make_leaf_error() const {
+  return boost::leaf::new_error(e_LastError{this->error});
+}
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+boost::leaf::error_id posix_file_io_error::make_leaf_error() const {
+  return boost::leaf::new_error(e_errno{this->error});
+}
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
 windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
     : handle_(handle) {}
 
@@ -63,7 +75,7 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     case ERROR_NO_DATA:
       return 0;
     default:
-      return boost::leaf::new_error(e_LastError{error});
+      return file_read_result::failure(windows_file_io_error{error});
     };
   }
   // TODO(strager): Microsoft's documentation for ReadFile claims the following:
@@ -181,7 +193,7 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return boost::leaf::new_error(e_errno{errno});
+    return file_read_result::failure(posix_file_io_error{errno});
   }
   return read_size == 0 ? file_read_result::end_of_file()
                         : file_read_result(narrow_cast<int>(read_size));

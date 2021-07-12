@@ -83,7 +83,7 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
 
     file_read_result read_result =
         file.read(&out_content->data()[size_before], buffer_size);
-    if (!read_result) return read_result.error();
+    if (!read_result.ok()) return read_result.error().make_leaf_error();
     if (read_result.at_end_of_file()) {
       // We read the entire file.
       out_content->resize(size_before);
@@ -107,7 +107,7 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
   content.resize_grow_uninitialized(*size_to_read);
 
   file_read_result read_result = file.read(content.data(), *size_to_read);
-  if (!read_result) return read_result.error();
+  if (!read_result.ok()) return read_result.error().make_leaf_error();
   if (read_result.at_end_of_file()) {
     // The file was empty.
     content.resize(0);
@@ -118,7 +118,8 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
     // byte.
     file_read_result extra_read_result =
         file.read(content.data() + file_size, 1);
-    if (!extra_read_result) return extra_read_result.error();
+    if (!extra_read_result.ok())
+      return extra_read_result.error().make_leaf_error();
     if (extra_read_result.at_end_of_file()) {
       // We definitely read the entire file.
       content.resize(read_result.bytes_read());

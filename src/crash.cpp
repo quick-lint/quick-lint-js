@@ -54,7 +54,7 @@ core_style linux_detect_core_style() {
         std::array<char, 1> core_pattern;
         file_read_result read_result =
             file.read(core_pattern.data(), core_pattern.size());
-        if (!read_result) return read_result.error();
+        if (!read_result.ok()) return read_result.error().make_leaf_error();
         if (read_result.at_end_of_file() || *read_result == 0) {
           // kernel.core_pattern is empty. The file name is 'core' or
           // 'core.PID'.

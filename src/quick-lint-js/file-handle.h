@@ -10,6 +10,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/leaf.h>
+#include <quick-lint-js/result.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H
@@ -21,6 +22,32 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_WINDOWS_H
+struct windows_file_io_error {
+  // Error code returned by Win32's GetLastError().
+  DWORD error;
+
+  boost::leaf::error_id make_leaf_error() const;
+};
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+struct posix_file_io_error {
+  // Error code stored in POSIX' errno variable.
+  int error;
+
+  boost::leaf::error_id make_leaf_error() const;
+};
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+using platform_file_io_error = windows_file_io_error;
+#elif QLJS_HAVE_UNISTD_H
+using platform_file_io_error = posix_file_io_error;
+#else
+#error "Unknown platform"
+#endif
+
 // A file_read_result represents the effect of a call to
 // platform_file_ref::read.
 //
@@ -31,13 +58,13 @@ namespace quick_lint_js {
 //   end of file | false         | true
 //   error       | false         | false
 //   success     | true          | true
-//
-// Possible error types:
-//
-// * e_errno
-// * e_LastError
-struct file_read_result : public boost::leaf::result<std::optional<int>> {
-  using boost::leaf::result<std::optional<int>>::result;
+struct file_read_result
+    : public result<std::optional<int>, platform_file_io_error> {
+  using base = result<std::optional<int>, platform_file_io_error>;
+
+  using base::result;
+
+  /*implicit*/ file_read_result(base &&r) : base(std::move(r)) {}
 
   /*implicit*/ file_read_result(int bytes_read)
       : file_read_result(std::optional<int>(bytes_read)) {}
@@ -45,8 +72,6 @@ struct file_read_result : public boost::leaf::result<std::optional<int>> {
   static file_read_result end_of_file() noexcept {
     return file_read_result(std::optional<int>());
   }
-
-  bool ok() const noexcept { return bool(*this); }
 
   bool at_end_of_file() const noexcept {
     return this->ok() && !this->value().has_value();

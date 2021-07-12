@@ -99,6 +99,11 @@ class result_base {
     return std::get<0>(this->data_);
   }
 
+  const value_type& value() const noexcept {
+    QLJS_ASSERT(this->ok());
+    return std::get<0>(this->data_);
+  }
+
   template <class Error>
   bool has_error() const noexcept {
     // TODO(strager): If std::is_same_v<Error, value_type>, then
@@ -123,7 +128,10 @@ class result_base {
   result_propagation<T, Errors...> propagate() && = delete;
 
   value_type& operator*() noexcept { return this->value(); }
+  const value_type& operator*() const noexcept { return this->value(); }
+
   value_type* operator->() noexcept { return &this->value(); }
+  const value_type* operator->() const noexcept { return &this->value(); }
 
  private:
   template <class U>

@@ -96,7 +96,7 @@ class event_loop_base {
 #endif
           file_read_result read_result =
               pipe.read(buffer.data(), buffer.size());
-          if (!read_result) return read_result.error();
+          if (!read_result.ok()) return read_result.error().make_leaf_error();
           if (read_result.at_end_of_file()) {
             return true;
           } else {
