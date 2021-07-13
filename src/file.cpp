@@ -51,19 +51,6 @@
 #endif
 
 namespace quick_lint_js {
-void read_file_result::exit_if_not_ok() const {
-  if (!this->ok()) {
-    std::fprintf(stderr, "error: %s\n", this->error.c_str());
-    std::exit(1);
-  }
-}
-
-read_file_result read_file_result::failure(const std::string &error) {
-  read_file_result result;
-  result.error = error;
-  return result;
-}
-
 namespace {
 struct read_file_io_error {
   std::string path;
