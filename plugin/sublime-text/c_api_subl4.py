@@ -5,7 +5,6 @@
 
 import ctypes
 import os
-import zipfile
 
 import sublime
 
@@ -54,38 +53,10 @@ def get_script_path_directory():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def get_parent_directory(path, level=1):
-    return os.path.normpath(os.path.join(path, *([".."] * level)))
-
-
 def load_library():
-    # If the plugin is inside a package you will need to unzip the
-    # shared library from inside the package before continuing.
-    #
-    # From:
-    # |-- quick-lint-js-v020-linux_x86_64.sublime-package
-    #
-    # To:
-    # |-- quick-lint-js-v020-linux_x86_64.sublime-package
-    # |-- quick-lint-js
-    #     |-- libquick-lint-js-lib.so
-    #
     script_path_directory = get_script_path_directory()
-    if script_path_directory.endswith(".sublime-package"):
-        with zipfile.ZipFile(script_path_directory, mode="r") as package_file:
-            lib_path_directory = get_parent_directory(script_path_directory)
-            lib_path_directory += "/quick-lint-js"
-            package_file.extract(
-                "libquick-lint-js-lib.so",
-                path=lib_path_directory,
-            )
-    else:
-        lib_path_directory = script_path_directory
-
-    # Load the shared library.
-    lib_path = lib_path_directory + "/libquick-lint-js-lib.so"
-    lib = ctypes.CDLL(lib_path)
-    return lib
+    lib_path = script_path_directory + "/libquick-lint-js-lib.so"
+    return ctypes.CDLL(lib_path)
 
 
 def set_argtypes_and_restype(func, argtypes, restype):

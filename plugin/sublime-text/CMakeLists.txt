@@ -57,7 +57,7 @@ if (QUICK_LINT_JS_SUBLIME_TEXT AND
     SUBLIME_TEXT_PACKAGE_PATH
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-\
 ${SUBLIME_TEXT_PROJECT_VERSION}-${SUBLIME_TEXT_VERSION_TAG}-\
-${SUBLIME_TEXT_PACKAGE_PLATFORM}.sublime-package"
+${SUBLIME_TEXT_PACKAGE_PLATFORM}"
   )
   set(
     SUBLIME_TEXT_PACKAGE_FILES
@@ -65,55 +65,48 @@ ${SUBLIME_TEXT_PACKAGE_PLATFORM}.sublime-package"
     "${CMAKE_CURRENT_SOURCE_DIR}/c_api_${SUBLIME_TEXT_VERSION_TAG}.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/plugin_${SUBLIME_TEXT_VERSION_TAG}.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION}.python-version"
+    "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
   )
 
   add_custom_target(
     quick-lint-js-sublime-text
     COMMAND "${CMAKE_COMMAND}" -E make_directory
-    sublime-text-package-files
+    "${SUBLIME_TEXT_PACKAGE_PATH}"
     COMMAND "${CMAKE_COMMAND}" -E copy
     ${SUBLIME_TEXT_PACKAGE_FILES}
-    sublime-text-package-files
+    "${SUBLIME_TEXT_PACKAGE_PATH}"
     COMMAND "${CMAKE_COMMAND}" -E rename
-    "sublime-text-package-files/c_api_${SUBLIME_TEXT_VERSION_TAG}.py"
-    "sublime-text-package-files/c_api.py"
+    "${SUBLIME_TEXT_PACKAGE_PATH}/c_api_${SUBLIME_TEXT_VERSION_TAG}.py"
+    "${SUBLIME_TEXT_PACKAGE_PATH}/c_api.py"
     COMMAND "${CMAKE_COMMAND}" -E rename
-    "sublime-text-package-files/plugin_${SUBLIME_TEXT_VERSION_TAG}.py"
-    "sublime-text-package-files/plugin.py"
+    "${SUBLIME_TEXT_PACKAGE_PATH}/plugin_${SUBLIME_TEXT_VERSION_TAG}.py"
+    "${SUBLIME_TEXT_PACKAGE_PATH}/plugin.py"
     COMMAND "${CMAKE_COMMAND}" -E rename
-    "sublime-text-package-files/${SUBLIME_TEXT_VERSION}.python-version"
-    "sublime-text-package-files/.python-version"
-
-    # Change the current working directory and
-    # run the `cmake -E tar ...` command.
-    COMMAND "${CMAKE_COMMAND}" -E chdir
-    sublime-text-package-files
-    "${CMAKE_COMMAND}" -E tar cf
-    "${SUBLIME_TEXT_PACKAGE_PATH}" .
-    --format=zip
+    "${SUBLIME_TEXT_PACKAGE_PATH}/${SUBLIME_TEXT_VERSION}.python-version"
+    "${SUBLIME_TEXT_PACKAGE_PATH}/.python-version"
   )
   add_dependencies(quick-lint-js-sublime-text quick-lint-js-lib)
 
   if (QUICK_LINT_JS_SUBLIME_TEXT_3)
     set(
       SUBLIME_TEXT_PACKAGE_DESTINATION
-      "$ENV{HOME}/.config/sublime-text-3/Installed Packages"
+      "$ENV{HOME}/.config/sublime-text-3/Packages"
     )
   elseif (QUICK_LINT_JS_SUBLIME_TEXT_4)
-    if (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text/Installed Packages")
+    if (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text/Packages")
       set(
         SUBLIME_TEXT_PACKAGE_DESTINATION
-        "$ENV{HOME}/.config/sublime-text/Installed Packages"
+        "$ENV{HOME}/.config/sublime-text/Packages"
       )
-    elseif (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text-3/Installed Packages")
+    elseif (IS_DIRECTORY "$ENV{HOME}/.config/sublime-text-3/Packages")
       set(
         SUBLIME_TEXT_PACKAGE_DESTINATION
-        "$ENV{HOME}/.config/sublime-text-3/Installed Packages"
+        "$ENV{HOME}/.config/sublime-text-3/Packages"
       )
     else ()
       set(
         SUBLIME_TEXT_PACKAGE_DESTINATION
-        "$ENV{HOME}/.config/sublime-text/Installed Packages"
+        "$ENV{HOME}/.config/sublime-text/Packages"
       )
     endif ()
   endif ()
