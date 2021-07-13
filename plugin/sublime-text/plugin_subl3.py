@@ -38,16 +38,13 @@ class BuffersManager:
             self.buffers[id_] = Buffer(view)
         else:
             self.buffers[id_].views.append(view)
+        return self.buffers[id_]
 
     def remove_view(self, view):
         id_ = view.buffer_id()
         self.buffers[id_].views.remove(view)
         if not self.buffers[id_].views:
             del self.buffers[id_]
-
-    def get_buffer(self, view):
-        id_ = view.buffer_id()
-        return self.buffers[id_]
 
 
 class QuickLintJsListener(sublime_plugin.ViewEventListener):
@@ -74,8 +71,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def __init__(self, view):
         super().__init__(view)
-        self.buffers_manager.add_view(self.view)
-        self.buffer = self.buffers_manager.get_buffer(self.view)
+        self.buffer = self.buffers_manager.add_view(self.view)
         self.on_modified()
 
     def __del__(self):

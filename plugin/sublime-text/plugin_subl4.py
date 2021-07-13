@@ -34,13 +34,16 @@ class PluginBuffersManager:
     def __init__(self):
         self.plugin_buffers = {}
 
-    def add_view(self, view, id_):
+    def add_view(self, view):
+        id_ = view.buffer_id()
         if id_ not in self.plugin_buffers:
             self.plugin_buffers[id_] = PluginBuffer(view)
         else:
             self.plugin_buffers[id_].views.add(view)
+        return self.plugin_buffers[id_]
 
-    def remove_view(self, view, id_):
+    def remove_view(self, view):
+        id_ = view.buffer_id()
         if id_ not in self.plugin_buffers:
             return
         self.plugin_buffers[id_].views.discard(view)
@@ -69,15 +72,11 @@ class QuickLintJsListener:
         if not view:
             return
         self.view = view
-        self.buffer_id = view.buffer_id()
-        self.plugin_buffers_manager.add_view(self.view, self.buffer_id)
-        self.plugin_buffer = self.plugin_buffers_manager.get_plugin_buffer(
-            self.buffer_id
-        )
+        self.plugin_buffer = self.plugin_buffers_manager.add_view(self.view)
 
     def __del__(self):
-        if hasattr(self, "view") and hasattr(self, "buffer_id"):
-            self.plugin_buffers_manager.remove_view(self.view, self.buffer_id)
+        if hasattr(self, "view"):
+            self.plugin_buffers_manager.remove_view(self.view)
 
     def add_squiggly_underlines(self):
         warning_regions, error_regions = self.get_severity_regions()
