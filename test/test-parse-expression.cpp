@@ -189,6 +189,19 @@ TEST_F(test_parse_expression, private_identifiers_are_not_valid_expressions) {
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"#myPrivateField"));
   }
+
+  {
+    test_parser p(u8"#myPrivateField = 10"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::assignment);
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_refer_to_private_variable_without_object,
+                    private_identifier,
+                    offsets_matcher(p.code(), 0, u8"#myPrivateField"))));
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"#myPrivateField = 10"));
+  }
 }
 
 TEST_F(test_parse_expression, parse_regular_expression) {
@@ -676,7 +689,11 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
   }
 
   {
-    expression* ast = this->parse_expression(u8"x.#private"_sv);
+    spy_visitor v;
+    padded_string code(u8"x.#private"_sv);
+    parser p(&code, &v);
+    auto class_guard = p.enter_class();  // Allow to call private identifiers.
+    expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, #private)");
   }
 }
@@ -3235,6 +3252,13 @@ TEST_F(test_parse_expression,
                       error_methods_should_not_use_function_keyword>(_)));
     }
   }
+}
+
+TEST_F(test_parse_expression, generator_misplaced_star) {
+  test_parser p(u8"(*function f(){})"_sv);
+  expression* ast = p.parse_expression();
+  EXPECT_EQ(p.range(ast).begin_offset(), 1);
+  EXPECT_EQ(p.range(ast).end_offset(), 16);
 }
 
 std::string summarize(const expression& expression) {

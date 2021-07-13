@@ -52,7 +52,12 @@ struct null_memory_resource_imp
    void* do_allocate(std::size_t bytes, std::size_t alignment) BOOST_OVERRIDE
    {
       (void)bytes; (void)alignment;
+      #if defined(BOOST_CONTAINER_USER_DEFINED_THROW_CALLBACKS) || defined(BOOST_NO_EXCEPTIONS)
       throw_bad_alloc();
+      #else
+      throw std::bad_alloc();
+      #endif
+
       return 0;
    }
 

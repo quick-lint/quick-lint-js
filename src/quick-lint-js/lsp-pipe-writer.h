@@ -26,7 +26,7 @@ class lsp_pipe_writer : private pipe_writer {
 
   using pipe_writer::flush;
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
-  using pipe_writer::get_pollfd;
+  using pipe_writer::get_event_fd;
   using pipe_writer::on_poll_event;
 #endif
 };

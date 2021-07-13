@@ -2,6 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/error.hpp>
+#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -11,6 +14,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/string-view.h>
 #include <string>
@@ -35,6 +39,26 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
+std::string windows_file_io_error::to_string() const {
+  return windows_error_message(this->error);
+}
+
+boost::leaf::error_id windows_file_io_error::make_leaf_error() const {
+  return boost::leaf::new_error(e_LastError{this->error});
+}
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+std::string posix_file_io_error::to_string() const {
+  return std::strerror(this->error);
+}
+
+boost::leaf::error_id posix_file_io_error::make_leaf_error() const {
+  return boost::leaf::new_error(e_errno{this->error});
+}
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
 windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
     : handle_(handle) {}
 
@@ -53,31 +77,28 @@ file_read_result windows_handle_file_ref::read(void *buffer,
                   &read_size,
                   /*lpOverlapped=*/nullptr)) {
     DWORD error = ::GetLastError();
-    return file_read_result{
-        .at_end_of_file = error == ERROR_BROKEN_PIPE,
-        .bytes_read = 0,
-        .error_message = error == ERROR_NO_DATA
-                             ? std::nullopt
-                             : std::optional(windows_error_message(error)),
+    switch (error) {
+    case ERROR_BROKEN_PIPE:
+      return file_read_result::end_of_file();
+    case ERROR_NO_DATA:
+      return 0;
+    default:
+      return file_read_result::failure(windows_file_io_error{error});
     };
   }
-  return file_read_result{
-      // TODO(strager): Microsoft's documentation for ReadFile claims the
-      // following:
-      //
-      // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns
-      // > TRUE on a pipe, the other end of the pipe called the WriteFile
-      // > function with nNumberOfBytesToWrite set to zero.
-      //
-      // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
-      //
-      // In my experiments, I haven't been able to make ReadFile give
-      // 0-bytes-read in this case. However, given the documentation, when we
-      // get 0 bytes read, we should ask the pipe if we reached EOF.
-      .at_end_of_file = read_size == 0,
-      .bytes_read = narrow_cast<int>(read_size),
-      .error_message = std::nullopt,
-  };
+  // TODO(strager): Microsoft's documentation for ReadFile claims the following:
+  //
+  // > If the lpNumberOfBytesRead parameter is zero when ReadFile returns TRUE
+  // > on a pipe, the other end of the pipe called the WriteFile function with
+  // > nNumberOfBytesToWrite set to zero.
+  //
+  // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+  //
+  // In my experiments, I haven't been able to make ReadFile give 0-bytes-read
+  // in this case. However, given the documentation, when we get 0 bytes read,
+  // we should ask the pipe if we reached EOF.
+  return read_size == 0 ? file_read_result::end_of_file()
+                        : file_read_result(narrow_cast<int>(read_size));
 }
 
 std::optional<int> windows_handle_file_ref::write(const void *buffer,
@@ -180,17 +201,10 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return file_read_result{
-        .at_end_of_file = false,
-        .bytes_read = 0,
-        .error_message = this->get_last_error_message(),
-    };
+    return file_read_result::failure(posix_file_io_error{errno});
   }
-  return file_read_result{
-      .at_end_of_file = read_size == 0,
-      .bytes_read = narrow_cast<int>(read_size),
-      .error_message = std::nullopt,
-  };
+  return read_size == 0 ? file_read_result::end_of_file()
+                        : file_read_result(narrow_cast<int>(read_size));
 }
 
 std::optional<int> posix_fd_file_ref::write(const void *buffer,
@@ -256,6 +270,16 @@ posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {}
 posix_fd_file::posix_fd_file(posix_fd_file &&other) noexcept
     : posix_fd_file_ref(std::exchange(other.fd_, this->invalid_fd)) {}
 
+posix_fd_file &posix_fd_file::operator=(posix_fd_file &&other) noexcept {
+  if (this != &other) {
+    std::swap(this->fd_, other.fd_);
+    if (other.valid()) {
+      other.close();
+    }
+  }
+  return *this;
+}
+
 posix_fd_file::~posix_fd_file() {
   if (this->valid()) {
     this->close();
@@ -283,7 +307,7 @@ std::string windows_error_message(DWORD error) {
       /*dwFlags=*/FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
           FORMAT_MESSAGE_IGNORE_INSERTS,
       /*lpSource=*/nullptr,
-      /*dwMessageId=*/::GetLastError(),
+      /*dwMessageId=*/error,
       /*dwLanguageId=*/0,
       /*lpBuffer=*/reinterpret_cast<LPSTR>(&get_last_error_message),
       /*nSize=*/(std::numeric_limits<DWORD>::max)(),
@@ -300,6 +324,16 @@ std::string windows_error_message(DWORD error) {
   std::string message_copy(message);
   static_cast<void>(::LocalFree(get_last_error_message));
   return message_copy;
+}
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+std::string error_message(e_errno error) { return std::strerror(error.error); }
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+std::string error_message(e_LastError error) {
+  return windows_error_message(error.error);
 }
 #endif
 }

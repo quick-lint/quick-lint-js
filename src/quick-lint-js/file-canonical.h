@@ -4,11 +4,16 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <quick-lint-js/leaf.h>
+#include <quick-lint-js/result.h>
 #include <string>
 #include <string_view>
+#include <tuple>
 
 namespace quick_lint_js {
 class canonical_path_result;
@@ -81,25 +86,74 @@ class canonical_path_result {
   const canonical_path &canonical() const &noexcept;
   canonical_path &&canonical() && noexcept;
 
-  std::string &&error() && noexcept;
-
-  bool ok() const noexcept { return this->error_.empty(); }
-
   bool have_missing_components() const noexcept;
   void drop_missing_components();
-
-  static canonical_path_result failure(std::string &&error);
 
  private:
   explicit canonical_path_result();
 
   std::optional<canonical_path> path_;
-  std::string error_;
   std::size_t existing_path_length_;
 };
 
-canonical_path_result canonicalize_path(const char *path);
-canonical_path_result canonicalize_path(const std::string &path);
+struct e_api_canonicalize_path {};
+struct e_canonicalizing_path {
+  std::string path;
+};
+struct e_invalid_argument_empty_path {};
+struct e_too_many_symlinks {};
+
+// Possible error types:
+//
+// * e_errno
+// * e_file_path
+// * e_LastError
+// * e_api_canonicalize_path (always present)
+// * e_canonicalizing_path
+// * e_invalid_argument_empty_path
+// * e_too_many_symlinks
+boost::leaf::result<canonical_path_result> canonicalize_path(const char *path);
+boost::leaf::result<canonical_path_result> canonicalize_path(
+    const std::string &path);
+
+sloppy_result<canonical_path_result> canonicalize_path_sloppy(const char *path);
+sloppy_result<canonical_path_result> canonicalize_path_sloppy(
+    const std::string &path);
+
+// Valid signatures for handle_error:
+// <<any rvalue result type>> handle_error(const std::string &message);
+// <<any rvalue result type>> handle_error(std::string &&message);
+template <class Func>
+auto make_canonicalize_path_error_handlers(const Func &handle_error) {
+  using namespace std::literals::string_literals;
+  return std::tuple(
+      [handle_error](e_api_canonicalize_path, const e_file_path &path,
+                     e_errno error,
+                     const e_canonicalizing_path &canonicalizing) {
+        return handle_error("failed to canonicalize "s + canonicalizing.path +
+                            ": "s + path.path + ": "s +
+                            std::strerror(error.error));
+      },
+      [handle_error](e_api_canonicalize_path, const e_file_path &path,
+                     e_errno error) {
+        return handle_error("failed to canonicalize "s + path.path + ": "s +
+                            std::strerror(error.error));
+      },
+      [handle_error](e_api_canonicalize_path, const e_file_path &path,
+                     e_too_many_symlinks) {
+        return handle_error("failed to canonicalize "s + path.path +
+                            ": Too many levels of symlink"s);
+      },
+      [handle_error](e_api_canonicalize_path, e_invalid_argument_empty_path) {
+        return handle_error("failed to canonicalize empty path: "s +
+                            std::strerror(EINVAL));
+      },
+      [handle_error](e_api_canonicalize_path) {
+        QLJS_ASSERT(false);  // One of the above handlers should have handled
+                             // the error already.
+        return handle_error("failed to canonicalize path"s);
+      });
+}
 }
 
 namespace std {

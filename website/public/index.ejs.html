@@ -147,33 +147,11 @@
 
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: 0.2.0 (beta) (released
-        <time datetime="2021-04-05">April 5, 2021</time>)
+        Latest version: 0.3.0 (beta) (released
+        <time datetime="2021-07-02">July 2, 2021</time>)
       </p>
 
       <ul class="install-options">
-        <li>
-          <a href="install/#install-cli"
-            ><img
-              class="install-logo"
-              src="gnome-terminal.svg"
-              alt=""
-              aria-labelledby="install-cli"
-            />
-            <span id="install-cli">install CLI</span></a
-          >
-        </li>
-        <li>
-          <a href="https://www.npmjs.com/package/quick-lint-js"
-            ><img
-              class="install-logo"
-              src="npm.svg"
-              alt=""
-              aria-labelledby="install-npm"
-            />
-            <span id="install-npm">install CLI on npm</span></a
-          >
-        </li>
         <li>
           <a href="install/#install-vim"
             ><img
@@ -195,6 +173,28 @@
               aria-labelledby="install-vs-code"
             />
             <span id="install-vs-code">install VS Code plugin</span></a
+          >
+        </li>
+        <li>
+          <a href="install/#install-cli"
+            ><img
+              class="install-logo"
+              src="gnome-terminal.svg"
+              alt=""
+              aria-labelledby="install-cli"
+            />
+            <span id="install-cli">install CLI</span></a
+          >
+        </li>
+        <li>
+          <a href="https://www.npmjs.com/package/quick-lint-js"
+            ><img
+              class="install-logo"
+              src="npm.svg"
+              alt=""
+              aria-labelledby="install-npm"
+            />
+            <span id="install-npm">install CLI on npm</span></a
           >
         </li>
       </ul>
@@ -363,7 +363,7 @@
 
             <tr>
               <th colspan="2">lint rules</th>
-              <td class="meh quick-lint-js">minimal</td>
+              <td class="meh quick-lint-js"><a href="errors/">minimal</a></td>
               <td class="good">
                 <a href="https://eslint.org/docs/rules/">zillions</a>
               </td>
@@ -371,10 +371,7 @@
                 <a href="https://jshint.com/docs/options/">some</a>
               </td>
               <td class="meh">
-                <a
-                  href="https://rslint.org/rules/"
-                  >some</a
-                >
+                <a href="https://rslint.org/rules/">some</a>
               </td>
               <td class="meh"><a href="https://lint.deno.land/">some</a></td>
               <td class="meh">
@@ -425,8 +422,8 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
               <th>WebStorm</th>
@@ -441,7 +438,15 @@
             <tr>
               <th>Sublime Text</th>
               <th><img class="plugin-logo" src="sublime-text.svg" alt="" /></th>
-              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="bad quick-lint-js">
+                <span aria-label="no">❌</span
+                ><span
+                  aria-label="planned"
+                  title="planned"
+                  class="footnote-marker"
+                  >&nbsp;*</span
+                >
+              </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
@@ -474,11 +479,13 @@
             <tr>
               <th>Emacs</th>
               <th><img class="plugin-logo" src="emacs.svg" alt="" /></th>
-              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
+              </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
@@ -506,22 +513,7 @@
       </figure>
     </main>
 
-    <footer>
-      <nav>
-        <ul>
-          <li><a href="demo/">try quick-lint-js in your browser</a></li>
-          <li><a href="hiring/">we're hiring! get paid to code</a></li>
-          <li><a href="benchmarks/">benchmarks vs other linters</a></li>
-          <li><a href="cli/">CLI documentation</a></li>
-          <li>
-            <a href="https://github.com/quick-lint/quick-lint-js"
-              >source code on GitHub</a
-            >
-          </li>
-          <li><a href="license/">copyright and license information</a></li>
-        </ul>
-      </nav>
-    </footer>
+    <footer><%- await include("./common-footer-nav.ejs.html") %></footer>
   </body>
 </html>
 

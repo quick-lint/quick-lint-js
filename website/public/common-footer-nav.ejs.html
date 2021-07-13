@@ -1,0 +1,69 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<script>
+  //<%
+  let ejs = await import("ejs");
+  let path = await import("path");
+  let url = await import("url");
+  let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
+
+  function makeRelativeURI(uri) {
+    if (/^\w+:/.test(uri)) {
+      return uri;
+    }
+    return path.posix.relative(currentURI, uri) + "/";
+  }
+
+  let navigationPages = [
+    { uri: "/", title: "quick-lint-js home page" },
+    { uri: "/demo/", title: "try quick-lint-js in your browser" },
+    { uri: "/hiring/", title: "we're hiring! get paid to code" },
+    { uri: "/benchmarks/", title: "benchmarks vs other linters" },
+    {
+      uri: "https://github.com/quick-lint/quick-lint-js",
+      title: "source code on GitHub",
+    },
+    { uri: "/license/", title: "copyright and license information" },
+  ];
+
+  function pageLinkHTML(page) {
+    return html`<li>
+      <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}"
+        >${ejs.escapeXML(page.title)}</a
+      >
+    </li>`;
+  }
+  //%>
+</script>
+
+<nav>
+  <ul>
+    <% for (let page of navigationPages) { %> <% if (page.uri !== currentURI) {
+    %> <%- pageLinkHTML(page) %> <% } %> <% } %>
+  </ul>
+</nav>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>

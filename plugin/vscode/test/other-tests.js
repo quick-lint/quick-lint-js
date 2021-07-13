@@ -378,7 +378,7 @@ let tests = {
         );
 
         try {
-          let document = new MockDocument("hello.js", "const x;");
+          let document = new MockDocument("hello.js", "const x = 10;");
           let linter = linters.getLinter(document);
           let shouldOpenEditorBeforeChanges = rng.nextCoinFlip();
           if (shouldOpenEditorBeforeChanges) {
@@ -387,7 +387,7 @@ let tests = {
 
           qljs.maybeInjectFault = maybeInjectFaultWithExhaustiveRNG;
           let promises = [];
-          for (let charactersToType of ["const ", "x;"]) {
+          for (let charactersToType of ["const ", "x = 10;"]) {
             let changes = [
               {
                 range: new vscode.Range(
@@ -411,15 +411,15 @@ let tests = {
             diagnosticCollection.get(document.uri)
           );
           if (firstChangeFailed && lastChangeFailed) {
-            // No changes were applied. The linted document was "const x;".
+            // No changes were applied. The linted document was "const x = 10;".
             assert.deepStrictEqual(
               diags.map((diag) => diag.message),
               []
             );
           } else if (!firstChangeFailed && lastChangeFailed) {
             // Partial changes were applied. The linted document was either
-            // "const x;const " (if the first change finished before the second
-            // change started) or "const x; const x;" (if the second change failed
+            // "const x = 10;const " (if the first change finished before the second
+            // change started) or "const x = 10; const x = 10;" (if the second change failed
             // before the first change started).
             let messages = diags.map((diag) => diag.message);
             assert.strictEqual(messages.length, 1, messages);
@@ -432,7 +432,7 @@ let tests = {
             );
           } else {
             // Because the last call to textChangedAsync succeeded, all changes
-            // were applied. The linted document was "const x;const x;".
+            // were applied. The linted document was "const x = 10;const x = 10;".
             assert.deepStrictEqual(
               diags.map((diag) => diag.message),
               ["redeclaration of variable: x"]

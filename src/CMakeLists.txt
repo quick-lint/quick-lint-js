@@ -33,10 +33,14 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
+  boost.cpp
   buffering-error-reporter.cpp
   byte-buffer.cpp
   c-api-error-reporter.cpp
   c-api.cpp
+  change-detecting-filesystem-inotify.cpp
+  change-detecting-filesystem-kqueue.cpp
+  change-detecting-filesystem-win32.cpp
   char8.cpp
   cli-location.cpp
   configuration-loader.cpp
@@ -50,10 +54,12 @@ quick_lint_js_add_library(
   file-handle.cpp
   file-path.cpp
   file.cpp
+  global-variables-browser.cpp
   gmo.cpp
   integer.cpp
   json.cpp
   language.cpp
+  leaf.cpp
   lex-keyword.cpp
   lex-unicode.cpp
   lex.cpp
@@ -76,6 +82,7 @@ quick_lint_js_add_library(
   quick-lint-js/byte-buffer.h
   quick-lint-js/c-api-error-reporter.h
   quick-lint-js/c-api.h
+  quick-lint-js/change-detecting-filesystem.h
   quick-lint-js/char8.h
   quick-lint-js/cli-location.h
   quick-lint-js/configuration-loader.h
@@ -97,11 +104,13 @@ quick_lint_js_add_library(
   quick-lint-js/file-path.h
   quick-lint-js/file.h
   quick-lint-js/force-inline.h
+  quick-lint-js/global-variables.h
   quick-lint-js/gmo.h
   quick-lint-js/have.h
   quick-lint-js/integer.h
   quick-lint-js/json.h
   quick-lint-js/language.h
+  quick-lint-js/leaf.h
   quick-lint-js/lex.h
   quick-lint-js/lint.h
   quick-lint-js/locale.h
@@ -121,6 +130,7 @@ quick_lint_js_add_library(
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
+  quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
@@ -149,11 +159,11 @@ quick_lint_js_add_library(
   web-demo-location.cpp
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
-target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+target_link_libraries(quick-lint-js-lib PUBLIC boost simdjson)
 if (WIN32)
   target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
 endif ()
-target_link_libraries(quick-lint-js-lib PUBLIC boost_container simdjson)
+target_link_libraries(quick-lint-js-lib PUBLIC boost simdjson)
 if (NEED_THREADS)
   target_link_libraries(quick-lint-js-lib PRIVATE Threads::Threads)
 endif ()

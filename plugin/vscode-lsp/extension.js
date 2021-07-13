@@ -21,7 +21,7 @@ async function startOrRestartServerAsync() {
       args: ["--lsp-server"],
     },
     {
-      documentSelector: [{ language: "javascript" }],
+      documentSelector: [{ language: "javascript" }, { language: "json" }],
     }
   );
   client.start();

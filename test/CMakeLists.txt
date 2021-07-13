@@ -73,6 +73,7 @@ quick_lint_js_add_executable(
   test-parse-var.cpp
   test-parse.cpp
   test-pipe-writer.cpp
+  test-result.cpp
   test-string-view.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
@@ -89,6 +90,7 @@ target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(
   quick-lint-js-test
   PRIVATE
+  boost
   gmock
   gmock_main
   gtest

@@ -18,7 +18,7 @@ class configuration {
  public:
   const global_declared_variable_set& globals() noexcept;
 
-  std::optional<canonical_path> config_file_path() const;
+  const std::optional<canonical_path>& config_file_path() const;
 
   void reset_global_groups();
   bool add_global_group(string8_view group_name);
@@ -27,7 +27,10 @@ class configuration {
   void remove_global_variable(string8_view name);
 
   void load_from_json(padded_string_view);
+  void set_config_file_path(const canonical_path&);
   void set_config_file_path(canonical_path&&);
+
+  void reset();
 
  private:
   void load_global_groups_from_json(simdjson::ondemand::value&);
@@ -38,6 +41,7 @@ class configuration {
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
   std::optional<canonical_path> config_file_path_;
+  bool add_global_group_browser_ = true;
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;

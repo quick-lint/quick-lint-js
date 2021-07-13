@@ -77,7 +77,7 @@ TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
 
 TEST(test_lint,
      function_statement_inside_if_does_not_conflict_with_let_variable) {
-  padded_string input(u8"const f;\nif (true)\n  function f() {}"_sv);
+  padded_string input(u8"let f;\nif (true)\n  function f() {}"_sv);
 
   error_collector v;
   linter l(&v, &default_globals);

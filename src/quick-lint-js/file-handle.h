@@ -4,8 +4,13 @@
 #ifndef QUICK_LINT_JS_FILE_HANDLE_H
 #define QUICK_LINT_JS_FILE_HANDLE_H
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/result.hpp>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/leaf.h>
+#include <quick-lint-js/result.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H
@@ -17,30 +22,81 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_WINDOWS_H
+struct windows_file_io_error {
+  // Error code returned by Win32's GetLastError().
+  DWORD error;
+
+  std::string to_string() const;
+
+  boost::leaf::error_id make_leaf_error() const;
+};
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+struct posix_file_io_error {
+  // Error code stored in POSIX' errno variable.
+  int error;
+
+  std::string to_string() const;
+
+  boost::leaf::error_id make_leaf_error() const;
+};
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+using platform_file_io_error = windows_file_io_error;
+#elif QLJS_HAVE_UNISTD_H
+using platform_file_io_error = posix_file_io_error;
+#else
+#error "Unknown platform"
+#endif
+
 // A file_read_result represents the effect of a call to
 // platform_file_ref::read.
 //
 // A file_read_result is in exactly one of three states:
 //
-// * end of file (at_end_of_file is true)
-// * error (at_end_of_file is false and error_message.has_value() is true)
-// * success (at_end_of_file is false and error_message.has_value() is false)
-struct file_read_result {
-  // If at_end_of_file is true, then the value of bytes_read is
-  // platform-specific, and whether error_message holds a value is
-  // platform-specific.
-  bool at_end_of_file;
+//   state       | ->has_value() | .ok()
+// --------------+---------------+----------------------------
+//   end of file | false         | true
+//   error       | false         | false
+//   success     | true          | true
+struct file_read_result
+    : public result<std::optional<int>, platform_file_io_error> {
+  using base = result<std::optional<int>, platform_file_io_error>;
 
-  // If at_end_of_file is true, then bytes_read equals 0.
-  //
-  // If error_message holds a value, then bytes_read's value is indeterminate.
-  int bytes_read;
+  using base::result;
 
-  std::optional<std::string> error_message;
+  /*implicit*/ file_read_result(base &&r) : base(std::move(r)) {}
+
+  /*implicit*/ file_read_result(int bytes_read)
+      : file_read_result(std::optional<int>(bytes_read)) {}
+
+  static file_read_result end_of_file() noexcept {
+    return file_read_result(std::optional<int>());
+  }
+
+  bool at_end_of_file() const noexcept {
+    return this->ok() && !this->value().has_value();
+  }
+
+  int bytes_read() const noexcept {
+    QLJS_ASSERT(this->ok());
+    QLJS_ASSERT(!this->at_end_of_file());
+    return ***this;
+  }
 };
 
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+std::string error_message(e_errno);
+#endif
+#if QLJS_HAVE_WINDOWS_H
+std::string error_message(e_LastError);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
@@ -142,6 +198,7 @@ class posix_fd_file : private posix_fd_file_ref {
   posix_fd_file &operator=(const posix_fd_file &) = delete;
 
   posix_fd_file(posix_fd_file &&) noexcept;
+  posix_fd_file &operator=(posix_fd_file &&) noexcept;
 
   ~posix_fd_file();
 
@@ -155,6 +212,7 @@ class posix_fd_file : private posix_fd_file_ref {
   using posix_fd_file_ref::is_pipe_non_blocking;
   using posix_fd_file_ref::read;
   using posix_fd_file_ref::set_pipe_non_blocking;
+  using posix_fd_file_ref::valid;
   using posix_fd_file_ref::write;
 };
 #endif

@@ -795,6 +795,23 @@ TEST(test_parse, expression_statement) {
   }
 }
 
+TEST(test_parse, cannot_reference_private_identifier_outside_class) {
+  {
+    padded_string code(u8"this.#x = 10;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+    EXPECT_THAT(v.visits, IsEmpty());
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_access_private_identifier_outside_class,
+                    private_identifier,
+                    offsets_matcher(&code, strlen(u8"this."), u8"#x"))));
+  }
+}
+
 TEST(test_parse, asi_plusplus_minusminus) {
   {
     spy_visitor v;
@@ -1367,6 +1384,64 @@ TEST(test_parse, let_as_statement_body_allows_asi) {
                             spy_visitor::visited_variable_use{u8"y"}));
     EXPECT_THAT(v.variable_assignments,
                 ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+  }
+}
+
+TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
+  {
+    spy_visitor v;
+    padded_string code(u8"(async (await) => null)"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_variable_declaration",
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_await_in_async_function, name,
+                    offsets_matcher(&code, strlen(u8"(async ("), u8"await"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"(async await => null)"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_variable_declaration",
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_await_in_async_function, name,
+                    offsets_matcher(&code, strlen(u8"(async "), u8"await"))));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"async(await)"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use", "visit_variable_use"));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"(async (await, await, await) => {})"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(
+                error_cannot_declare_await_in_async_function, name,
+                offsets_matcher(&code, strlen(u8"(async ("), u8"await")),
+            ERROR_TYPE_FIELD(
+                error_cannot_declare_await_in_async_function, name,
+                offsets_matcher(&code, strlen(u8"(async (await, "), u8"await")),
+            ERROR_TYPE_FIELD(
+                error_cannot_declare_await_in_async_function, name,
+                offsets_matcher(&code, strlen(u8"(async (await, await, "),
+                                u8"await"))));
   }
 }
 }

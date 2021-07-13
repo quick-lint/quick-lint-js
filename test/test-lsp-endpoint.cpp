@@ -47,7 +47,8 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_notification(::simdjson::ondemand::object&,
+                             std::vector<byte_buffer>&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
@@ -81,12 +82,14 @@ TEST(test_lsp_endpoint, batched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_notification(::simdjson::ondemand::object&,
+                             std::vector<byte_buffer>&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
+  remote.allow_batch_messages = true;
 
   server.append(
       make_message(u8R"([
@@ -119,7 +122,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             byte_buffer&) {
+                             std::vector<byte_buffer>&) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
     }
@@ -145,14 +148,15 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             byte_buffer& reply_json) {
+                             std::vector<byte_buffer>& notification_jsons) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
       ::Json::Value reply;
       reply["jsonrpc"] = "2.0";
       reply["method"] = "testreply";
       reply["params"] = "testparams";
-      reply_json.append_copy(json_to_string(reply));
+      byte_buffer& notification_json = notification_jsons.emplace_back();
+      notification_json.append_copy(json_to_string(reply));
     }
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
@@ -180,13 +184,14 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             byte_buffer&) {
+                             std::vector<byte_buffer>&) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
     }
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
+  remote.allow_batch_messages = true;
 
   server.append(
       make_message(u8R"([{
@@ -207,18 +212,20 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             byte_buffer& reply_json) {
+                             std::vector<byte_buffer>& notification_jsons) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
       ::Json::Value reply;
       reply["jsonrpc"] = "2.0";
       reply["method"] = "testreply";
       reply["params"] = "testparams";
-      reply_json.append_copy(json_to_string(reply));
+      byte_buffer& notification_json = notification_jsons.emplace_back();
+      notification_json.append_copy(json_to_string(reply));
     }
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
+  remote.allow_batch_messages = true;
 
   server.append(
       make_message(u8R"([{
@@ -240,7 +247,8 @@ TEST(test_lsp_endpoint, malformed_json) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_notification(::simdjson::ondemand::object&,
+                             std::vector<byte_buffer>&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
   };

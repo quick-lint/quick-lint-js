@@ -8,12 +8,12 @@
 '\" t
 .\"     Title: quick-lint-js
 .\"    Author: [see the "AUTHOR(S)" section]
-.\" Generator: Asciidoctor 2.0.12
+.\" Generator: Asciidoctor 2.0.10
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version 0.2.0
+.\"    Source: quick-lint-js version 0.3.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version 0.2.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version 0.3.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -115,7 +115,7 @@ Incompatible with \fB\-\-lsp\-server\fP.
 .RS 4
 Cause \fBquick\-lint\-js\fP to exit with a non\-zero exit code if any of the discovered errors is listed in \fIerrors\fP.
 .sp
-See the [error\-lists] section for a description of the format for \fIerrors\fP.
+See the Error lists section for a description of the format for \fIerrors\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -244,14 +244,12 @@ To lint a file called \fIlib/index.js\fP, writing error messages to the terminal
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP lib/index.js
 lib/index.js:1:20: error: variable used before declaration: language [E058]
 lib/index.js:2:7: note: variable declared here [E058]
 lib/index.js:3:1: error: assignment to const variable [E003]
 lib/index.js:1:7: note: const variable declared here [E003]
 lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
-.fam
 .fi
 .if n .RE
 .br
@@ -264,13 +262,11 @@ To lint three files, writing machine\-readable messages to \fI/tmp/vim\-qflist.j
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP \-\-output\-format=vim\-qflist\-json \(rs
     \-\-vim\-bufnr=3 lib/pizza\-dough.js \(rs
     \-\-vim\-bufnr=4 lib/pizza\-sauce.js \(rs
     \-\-vim\-bufnr=6 lib/pineapple.js \(rs
     >/tmp/vim\-qflist.json
-.fam
 .fi
 .if n .RE
 .br
@@ -285,12 +281,10 @@ To lint a file called \fIbad.js\fP, but don\(cqt fail on use\-of\-undeclared\-va
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E057 bad.js
 bad.js:5:25: warning: use of undeclared variable: $ [E057]
 $ echo $?
 0
-.fam
 .fi
 .if n .RE
 .br
@@ -303,11 +297,9 @@ To lint source files with a strict configuration file and lint test files with a
 .sp
 .if n .RS 4
 .nf
-.fam C
 $ \fBquick\-lint\-js\fP \(rs
     \-\-config\-file strict\-quick\-lint\-js.config src/index.js src/helpers.js \(rs
     \-\-config\-file lax\-quick\-lint\-js.config test/test\-app.js
-.fam
 .fi
 .if n .RE
 .br

@@ -39,6 +39,7 @@ body.javascript .javascript-only {
 .chart {
   --x-axis-label-line-height: 1.4em;
   overflow: hidden;
+  padding-top: 0.25em;
   position: relative;
 
   /* Make space for the "0 ms" and "1000 ms" labels. */
@@ -47,18 +48,16 @@ body.javascript .javascript-only {
   padding-left: var(--chart-padding-left);
   padding-right: var(--chart-padding-right);
 
-  /* Force bottom and top margins of .series to show by setting a non-zero
-     padding-bottom and padding-top. */
-  padding-top: 0.1px;
-
   /* Make room for X-axis labels. */
-  padding-bottom: calc(var(--x-axis-label-line-height) * 3);
+  padding-bottom: calc(var(--x-axis-label-line-height) * 3 + 0.25em);
 }
 
 .chart .series {
-  height: 1.75em;
-  line-height: 1.75em;
-  margin: 0.25em 0;
+  --series-vertical-padding: 0.125em;
+
+  height: 1.625em;
+  line-height: 1.625em;
+  padding: var(--series-vertical-padding) 0;
   position: relative;
   width: 100%;
 
@@ -67,9 +66,9 @@ body.javascript .javascript-only {
 }
 
 .chart .series .label {
-  bottom: 0;
+  bottom: var(--series-vertical-padding);
   position: absolute;
-  top: 0;
+  top: var(--series-vertical-padding);
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
@@ -108,10 +107,10 @@ body.javascript .javascript-only {
 }
 
 .chart .series .bar {
-  bottom: 0;
+  bottom: var(--series-vertical-padding);
   left: 0;
   position: absolute;
-  top: 0;
+  top: var(--series-vertical-padding);
   width: calc(
     100% * (var(--average-x) / var(--chart-max-x)) - var(--border-width)
   );
@@ -274,20 +273,23 @@ body.javascript .javascript-only {
 .chart .tick .marker {
   z-index: 1;
 }
-.chart .series .bar {
-  z-index: 2;
+.chart .series {
+  z-index: 2; /* For mouse events, not visuals. */
 }
-.chart .series .error-bars {
+.chart .series .bar {
   z-index: 3;
 }
-.chart .tick .label {
+.chart .series .error-bars {
   z-index: 4;
 }
-.chart .series .label {
+.chart .tick .label {
   z-index: 5;
 }
-.chart .log-scale {
+.chart .series .label {
   z-index: 6;
+}
+.chart .log-scale {
+  z-index: 7;
 }
 
 .benchmark-table {
@@ -319,33 +321,17 @@ body.javascript .javascript-only {
   }
 }
 
-/* Create a border around each row which is visible if a row is selected. (Only
-   one row can be selected at a time.) */
-.benchmark-table tbody tr td,
-.benchmark-table tbody tr th {
-  border: 2px solid transparent;
-}
-.benchmark-table tbody tr:not(:last-child) td,
-.benchmark-table tbody tr:not(:last-child) th {
-  border-bottom-width: 0;
-}
-.benchmark-table tbody tr td:not(:first-child),
-.benchmark-table tbody tr th:not(:first-child) {
-  border-left-width: 0;
-}
-.benchmark-table tbody tr td:not(:last-child),
-.benchmark-table tbody tr th:not(:last-child) {
-  border-right-width: 0;
-}
-.benchmark-table tbody tr.selected td,
-.benchmark-table tbody tr.selected th {
-  border-bottom-width: 2px;
-  border-color: hsla(var(--hue), 70%, 50%);
+/* Deemphasize unselected rows. */
+.benchmark-table.have-selection tbody tr:not(.selected) td,
+.benchmark-table.have-selection tbody tr:not(.selected) th {
+  background-color: hsla(var(--hue), 70%, 90%);
+  color: rgba(0, 0, 0, 0.4);
 }
 @media (prefers-color-scheme: dark) {
-  .benchmark-table tbody tr.selected td,
-  .benchmark-table tbody tr.selected th {
-    border-color: hsla(var(--hue), 70%, 40%);
+  .benchmark-table.have-selection tbody tr:not(.selected) td,
+  .benchmark-table.have-selection tbody tr:not(.selected) th {
+    background-color: hsla(var(--hue), 70%, 10%);
+    color: rgba(255, 255, 255, 0.4);
   }
 }
 

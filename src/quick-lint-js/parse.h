@@ -343,10 +343,26 @@ class parser {
     case token_type::slash:
     case token_type::slash_equal:
     case token_type::string:
-    case token_type::tilde:
+    case token_type::tilde: {
+      if (this->peek().type == token_type::star) {
+        // * 42; // Invalid (missing operand).
+        // *function f() {} // Invalid (misplaced '*').
+        token star_token = this->peek();
+        std::optional<function_attributes> attrb =
+            this->try_parse_function_with_leading_star();
+        if (attrb.has_value()) {
+          this->parse_and_visit_function_declaration(
+              v, attrb.value(),
+              /*begin=*/star_token.begin,
+              /*require_name=*/
+              name_requirement::required_for_statement);
+          break;
+        }
+      }
       this->parse_and_visit_expression(v);
       parse_expression_end();
       break;
+    }
 
     // await settings.save();
     // await = value;
@@ -356,6 +372,11 @@ class parser {
       this->skip();
       if (this->peek().type == token_type::colon) {
         // Labelled statement.
+        if (this->in_async_function_) {
+          this->error_reporter_->report(
+              error_label_named_await_not_allowed_in_async_function{
+                  .await = await_token.span(), .colon = this->peek().span()});
+        }
         this->skip();
         goto parse_statement;
       } else {
@@ -417,11 +438,12 @@ class parser {
       goto parse_loop_label_or_expression_starting_with_identifier;
 
     // class C {}
-    case token_type::kw_class:
+    case token_type::kw_class: {
       this->parse_and_visit_class(
           v,
           /*require_name=*/name_requirement::required_for_statement);
       break;
+    }
 
     // switch (x) { default: ; }
     case token_type::kw_switch: {
@@ -1433,6 +1455,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class_body(Visitor &v) {
+    class_guard g(this, std::exchange(this->in_class_, true));
     while (this->peek().type != token_type::right_curly) {
       this->parse_and_visit_class_member(v);
     }
@@ -1517,9 +1540,18 @@ class parser {
           // }
           v.visit_property_declaration(property_name);
         } else {
-          this->error_reporter_->report(error_unexpected_token{
-              .token = property_name_span,
-          });
+          // class C {
+          //   const field
+          // }
+          if (u8"const" == property_name_span.string_view()) {
+            this->error_reporter_->report(error_typescript_style_const_field{
+                .const_token = property_name_span,
+            });
+          } else {
+            this->error_reporter_->report(error_unexpected_token{
+                .token = property_name_span,
+            });
+          }
         }
         break;
 
@@ -2169,7 +2201,8 @@ class parser {
       buffering_visitor lhs(this->buffering_visitor_memory());
       if (declaring_token.type == token_type::kw_let &&
           this->is_let_token_a_variable_reference(
-              this->peek(), /*allow_declarations=*/true)) {
+              this->peek(),
+              /*allow_declarations=*/true)) {
         // for (let = expression; cond; up) {}
         // for (let(); cond; up) {}
         // for (let; cond; up) {}
@@ -2493,6 +2526,57 @@ class parser {
     default:
       return std::nullopt;
     }
+  }
+
+  // If the function returns nullopt, no tokens are consumed.
+  //
+  // If the function returns a function_attributes, tokens are consumed until
+  // the kw_function (i.e. the * and possibly a following async are skipped)
+  // E.g. *async function f() {}
+  // In this case `*async` is consumed.
+  std::optional<function_attributes> try_parse_function_with_leading_star() {
+    QLJS_ASSERT(this->peek().type == token_type::star);
+    token star_token = this->peek();
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (this->peek().has_leading_newline) {
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return std::nullopt;
+    }
+
+    function_attributes attrb = function_attributes::generator;
+    bool has_leading_async = this->peek().type == token_type::kw_async;
+    // *async
+    if (has_leading_async) {
+      attrb = function_attributes::async_generator;
+      this->skip();
+    }
+
+    if (this->peek().type != token_type::kw_function) {
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return std::nullopt;
+    }
+
+    // *function f() {}
+    this->skip();
+    if (this->peek().type == token_type::identifier) {
+      this->error_reporter_->report(
+          error_generator_function_star_belongs_before_name{
+              .function_name = this->peek().span(),
+              .star = star_token.span(),
+          });
+    } else {
+      this->error_reporter_->report(
+          error_generator_function_star_belongs_after_keyword_function{
+              .star = star_token.span()});
+    }
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    this->skip();
+    // *async function f() {}
+    if (has_leading_async) {
+      this->skip();
+    }
+    return attrb;
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -3108,6 +3192,11 @@ class parser {
         // let x;
         // let x, y;
         default:
+          if (declaration_kind == variable_kind::_const) {
+            this->error_reporter_->report(
+                error_missing_initializer_in_const_declaration{
+                    .variable_name = variable->span()});
+          }
           this->visit_binding_element(variable, v, declaration_kind);
           break;
         }
@@ -3490,6 +3579,7 @@ class parser {
   bool in_generator_function_ = false;
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
+  bool in_class_ = false;
 
 #if QLJS_HAVE_SETJMP
   bool have_fatal_parse_error_jmp_buf_ = false;
@@ -3500,11 +3590,13 @@ class parser {
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
+  using class_guard = bool_guard<&parser::in_class_>;
 
  public:
   static constexpr const int stack_limit = 150;
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
+  [[nodiscard]] class_guard enter_class();
 };
 }
 

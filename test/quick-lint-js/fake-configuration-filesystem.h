@@ -4,11 +4,15 @@
 #ifndef QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 #define QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 
+#include <boost/leaf/common.hpp>
+#include <boost/leaf/error.hpp>
+#include <boost/leaf/result.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 #include <unordered_map>
@@ -17,9 +21,9 @@
 namespace quick_lint_js {
 class fake_configuration_filesystem : public configuration_filesystem {
  public:
+  // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content) {
-    auto [_file_it, inserted] = this->files_.try_emplace(path, content);
-    QLJS_ASSERT(inserted);
+    this->files_.insert_or_assign(path, content);
   }
 
   canonical_path rooted(const char* path) const {
@@ -48,22 +52,24 @@ class fake_configuration_filesystem : public configuration_filesystem {
 #endif
   }
 
-  canonical_path_result canonicalize_path(const std::string& path) override {
+  boost::leaf::result<canonical_path_result> canonicalize_path(
+      const std::string& path) override {
     // TODO(strager): Check if path components exist.
     return canonical_path_result(std::string(path), path.size());
   }
 
-  read_file_result read_file(const canonical_path& path) override {
+  boost::leaf::result<padded_string> read_file(
+      const canonical_path& path) override {
     auto file_it = this->files_.find(path);
     if (file_it == this->files_.end()) {
-      read_file_result result =
-          read_file_result::failure("file does not exist");
-      result.is_not_found_error = true;
-      return result;
+#if QLJS_HAVE_WINDOWS_H
+      return boost::leaf::new_error(e_LastError{ERROR_FILE_NOT_FOUND});
+#endif
+#if QLJS_HAVE_UNISTD_H
+      return boost::leaf::new_error(e_errno{ENOENT});
+#endif
     }
-    read_file_result result;
-    result.content = padded_string(string8_view(file_it->second));
-    return result;
+    return padded_string(string8_view(file_it->second));
   }
 
  private:

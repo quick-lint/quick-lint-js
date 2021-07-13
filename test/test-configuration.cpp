@@ -20,6 +20,42 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+TEST(test_configuration, browser_globals_are_present_by_default) {
+  configuration c;
+
+  constexpr const char8* global_variables[] = {
+      // Variables:
+      u8"document",
+      u8"frames",
+      u8"length",
+      u8"name",
+      u8"window",
+
+      // Functions:
+      u8"alert",
+      u8"btoa",
+      u8"close",
+      u8"console",
+      u8"postMessage",
+      u8"setTimeout",
+
+      // Event handlers:
+      u8"onabort",
+      u8"onmouseenter",
+      u8"onunload",
+
+      // Classes:
+      u8"Image",
+      u8"MessageEvent",
+      u8"SVGAnimatedRect",
+  };
+  for (string8_view variable_name : global_variables) {
+    SCOPED_TRACE(out_string8(variable_name));
+    const global_declared_variable* var = c.globals().find(variable_name);
+    ASSERT_TRUE(var);
+  }
+}
+
 TEST(test_configuration, ecmascript_globals_are_present_by_default) {
   configuration c;
 

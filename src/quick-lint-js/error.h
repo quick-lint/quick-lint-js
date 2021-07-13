@@ -95,6 +95,13 @@
              expected_last_component))                                         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_access_private_identifier_outside_class, "E208",            \
+      { identifier private_identifier; },                                      \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("cannot access private identifier outside class"), \
+          private_identifier))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_assign_to_variable_named_async_in_for_of_loop, "E082",      \
       { identifier async_identifier; },                                        \
       .error(                                                                  \
@@ -236,6 +243,13 @@
       error_escaped_code_point_in_identifier_out_of_range, "E013",             \
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATABLE("code point out of range"), escape_sequence))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_escaped_code_point_in_unicode_out_of_range, "E207",                \
+      { source_code_span escape_sequence; },                                   \
+      .error(QLJS_TRANSLATABLE("code point in Unicode escape sequence must "   \
+                               "not be greater than U+10FFFF"),                \
+             escape_sequence))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_extra_comma_not_allowed_between_arguments, "E068",                 \
@@ -438,6 +452,13 @@
               function_keywords, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_generator_function_star_belongs_after_keyword_function, "E204",    \
+      { source_code_span star; },                                              \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "generator function '*' belongs after keyword function"),     \
+             star))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_generator_function_star_belongs_before_name, "E133",               \
       {                                                                        \
         source_code_span function_name;                                        \
@@ -502,6 +523,16 @@
       { source_code_span escape_sequence; },                                   \
       .error(QLJS_TRANSLATABLE("keywords cannot contain escape sequences"),    \
              escape_sequence))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_label_named_await_not_allowed_in_async_function, "E206",           \
+      {                                                                        \
+        source_code_span await;                                                \
+        source_code_span colon;                                                \
+      },                                                                       \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "label named 'await' not allowed in async function"),         \
+             await))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_legacy_octal_literal_may_not_be_big_int, "E032",                   \
@@ -726,6 +757,12 @@
       .error(QLJS_TRANSLATABLE("missing for loop header"), where))             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_initializer_in_const_declaration, "E205",                  \
+      { source_code_span variable_name; },                                     \
+      .error(QLJS_TRANSLATABLE("missing initializer in const declaration"),    \
+             variable_name))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_key_for_object_entry, "E154",                              \
       { source_code_span expression; },                                        \
       .error(QLJS_TRANSLATABLE(                                                \
@@ -914,6 +951,13 @@
       .error(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "       \
                                "implemented by quick-lint-js"),                \
              enum_keyword))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_typescript_style_const_field, "E165",                              \
+      { source_code_span const_token; },                                       \
+      .error(QLJS_TRANSLATABLE("const fields within classes are only "         \
+                               "allowed in TypeScript, not JavaScript"),       \
+             const_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unclosed_block_comment, "E037",                                    \

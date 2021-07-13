@@ -42,3 +42,7 @@ adding to the complexity of the release processing.
 
 Not writing all of quick-lint-js in Vimscript makes it more difficult to install
 quick-lint-js in Vim.
+
+C++' template feature makes it possible to mock with zero run-time overhead.
+This makes fine-grained testing a lot easier. This is the primary reason
+quick-lint-js was not originally written in C.

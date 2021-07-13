@@ -103,6 +103,14 @@ void padded_string::free_and_set_storage(
   this->size_excluding_padding_bytes_ = new_size_excluding_padding_bytes;
 }
 
+bool operator==(const padded_string& x, const padded_string& y) noexcept {
+  return x.string_view() == y.string_view();
+}
+
+bool operator!=(const padded_string& x, const padded_string& y) noexcept {
+  return !(x == y);
+}
+
 bool operator==(string8_view x, const padded_string& y) noexcept {
   return y == x;
 }

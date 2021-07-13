@@ -76,6 +76,10 @@ parser::loop_guard parser::enter_loop() {
   return loop_guard(this, std::exchange(this->in_loop_statement_, true));
 }
 
+parser::class_guard parser::enter_class() {
+  return class_guard(this, std::exchange(this->in_class_, true));
+}
+
 expression* parser::parse_expression(precedence prec) {
   depth_guard guard(this);
   expression* ast = this->parse_primary_expression(prec);
@@ -431,6 +435,16 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::equal:
   case token_type::kw_in:
   case token_type::question: {
+    if (this->peek().type == token_type::star) {
+      token star_token = this->peek();
+      std::optional<function_attributes> attrb =
+          this->try_parse_function_with_leading_star();
+      if (attrb.has_value()) {
+        expression* function =
+            this->parse_function_expression(attrb.value(), star_token.begin);
+        return function;
+      }
+    }
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (prec.binary_operators) {
@@ -560,6 +574,17 @@ expression* parser::parse_async_expression_only(token async_token) {
                 .arrow = this->peek().span(),
             });
       }
+      for (auto parameter : parameters) {
+        if (parameter->kind() == expression_kind::variable &&
+            parameter->variable_identifier_token_type() ==
+                token_type::kw_await) {
+          // async (await) => {}  // Invalid
+          this->error_reporter_->report(
+              error_cannot_declare_await_in_async_function{
+                  .name = parameter->variable_identifier(),
+              });
+        }
+      }
       // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
       return parse_arrow_function_arrow_and_body(std::move(parameters));
     } else {
@@ -596,6 +621,13 @@ expression* parser::parse_async_expression_only(token async_token) {
       goto variable_reference;
     }
 
+    if (this->peek().type == token_type::kw_await) {
+      // async await => {}  // Invalid
+      this->error_reporter_->report(
+          error_cannot_declare_await_in_async_function{
+              .name = this->peek().identifier_name(),
+          });
+    }
     std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
             identifier(this->peek().span()), this->peek().type)};
@@ -853,6 +885,7 @@ next:
     case expression_kind::index:
     case expression_kind::object:
     case expression_kind::variable:
+    case expression_kind::private_variable:
       break;
     }
     expression* rhs = this->parse_expression(
@@ -877,6 +910,13 @@ next:
     case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
+      if (this->peek().type == token_type::private_identifier &&
+          !this->in_class_) {
+        this->error_reporter_->report(
+            error_cannot_access_private_identifier_outside_class{
+                .private_identifier = this->peek().identifier_name(),
+            });
+      }
       children.back() = this->make_expression<expression::dot>(
           children.back(), this->peek().identifier_name());
       this->skip();
