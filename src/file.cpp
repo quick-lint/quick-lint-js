@@ -153,6 +153,7 @@ std::string read_file_io_error::to_string() const {
 }
 
 boost::leaf::error_id read_file_io_error::make_leaf_error() const {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
   auto path_guard = boost::leaf::on_error(e_file_path{this->path});
   return this->io_error.make_leaf_error();
 }
@@ -212,13 +213,6 @@ result<padded_string, platform_file_io_error> read_file_2(
 }
 #endif
 
-boost::leaf::result<padded_string> read_file(platform_file_ref file) {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
-  result<padded_string, platform_file_io_error> r = read_file_2(file);
-  if (!r.ok()) return r.error().make_leaf_error();
-  return *std::move(r);
-}
-
 result<padded_string, read_file_io_error> read_file_2(const char *path,
                                                       platform_file_ref file) {
   result<padded_string, platform_file_io_error> r = read_file_2(file);
@@ -231,7 +225,6 @@ result<padded_string, read_file_io_error> read_file_2(const char *path,
 
 #if defined(QLJS_FILE_WINDOWS)
 result<padded_string, read_file_io_error> read_file_2(const char *path) {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(e_file_path{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
@@ -279,13 +272,6 @@ result<padded_string, read_file_io_error> read_stdin_2() {
   return read_file_2("<stdin>", file);
 }
 #endif
-
-boost::leaf::result<padded_string> read_file(const char *path) {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
-  result<padded_string, read_file_io_error> r = read_file_2(path);
-  if (!r.ok()) return r.error().make_leaf_error();
-  return *std::move(r);
-}
 
 padded_string read_file_or_exit(const char *path) {
   result<padded_string, read_file_io_error> r = read_file_2(path);

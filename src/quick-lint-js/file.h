@@ -32,15 +32,6 @@ struct read_file_io_error {
 
 struct e_api_read_file {};
 
-// Possible error types:
-//
-// * e_errno
-// * e_file_path
-// * e_LastError
-// * e_api_read_file (always present)
-boost::leaf::result<padded_string> read_file(const char *path);
-boost::leaf::result<padded_string> read_file(platform_file_ref);
-
 result<padded_string, read_file_io_error> read_file_2(const char *path);
 result<padded_string, read_file_io_error> read_file_2(const char *path,
                                                       platform_file_ref);
