@@ -51,9 +51,9 @@ TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
   this->writer.flush();
   this->pipe.writer.close();
 
-  sloppy_result<padded_string> data =
-      read_file_sloppy("<pipe>", this->pipe.reader.ref());
-  ASSERT_TRUE(data.ok()) << data.error();
+  result<padded_string, read_file_io_error> data =
+      read_file_2("<pipe>", this->pipe.reader.ref());
+  ASSERT_TRUE(data.ok()) << data.error().to_string();
   EXPECT_EQ(*data, u8"Content-Length: 2\r\n\r\nhi");
 }
 }

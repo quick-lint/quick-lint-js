@@ -39,12 +39,20 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
+std::string windows_file_io_error::to_string() const {
+  return windows_error_message(this->error);
+}
+
 boost::leaf::error_id windows_file_io_error::make_leaf_error() const {
   return boost::leaf::new_error(e_LastError{this->error});
 }
 #endif
 
 #if QLJS_HAVE_UNISTD_H
+std::string posix_file_io_error::to_string() const {
+  return std::strerror(this->error);
+}
+
 boost::leaf::error_id posix_file_io_error::make_leaf_error() const {
   return boost::leaf::new_error(e_errno{this->error});
 }

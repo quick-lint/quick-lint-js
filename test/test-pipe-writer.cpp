@@ -56,9 +56,10 @@ byte_buffer byte_buffer_of(string8_view data) {
 }
 
 TEST_F(test_pipe_writer, large_write_sends_fully) {
-  std::future<sloppy_result<padded_string>> data_future = std::async(
-      std::launch::async,
-      [this] { return read_file_sloppy("<pipe>", this->pipe.reader.ref()); });
+  std::future<result<padded_string, read_file_io_error>> data_future =
+      std::async(std::launch::async, [this] {
+        return read_file_2("<pipe>", this->pipe.reader.ref());
+      });
 
   string8 to_write =
       u8"[" + string8(this->pipe.writer.get_pipe_buffer_size() * 3, u8'x') +
@@ -67,8 +68,8 @@ TEST_F(test_pipe_writer, large_write_sends_fully) {
   this->writer.flush();
   this->pipe.writer.close();
 
-  sloppy_result<padded_string> data = data_future.get();
-  ASSERT_TRUE(data.ok()) << data.error();
+  result<padded_string, read_file_io_error> data = data_future.get();
+  ASSERT_TRUE(data.ok()) << data.error().to_string();
   EXPECT_EQ(*data, to_write);
 }
 

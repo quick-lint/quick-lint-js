@@ -20,6 +20,15 @@
 #include <tuple>
 
 namespace quick_lint_js {
+struct read_file_io_error {
+  std::string path;
+  platform_file_io_error io_error;
+
+  std::string to_string() const;
+
+  boost::leaf::error_id make_leaf_error() const;
+};
+
 struct e_api_read_file {};
 
 // Possible error types:
@@ -32,9 +41,10 @@ boost::leaf::result<padded_string> read_file(const char *path);
 boost::leaf::result<padded_string> read_file(platform_file_ref);
 boost::leaf::result<padded_string> read_stdin(void);
 
-sloppy_result<padded_string> read_file_sloppy(const char *path);
-sloppy_result<padded_string> read_file_sloppy(const char *path,
-                                              platform_file_ref);
+result<padded_string, read_file_io_error> read_file_2(const char *path);
+result<padded_string, read_file_io_error> read_file_2(const char *path,
+                                                      platform_file_ref);
+result<padded_string, platform_file_io_error> read_file_2(platform_file_ref);
 
 padded_string read_file_or_exit(const char *path);
 

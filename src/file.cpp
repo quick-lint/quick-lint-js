@@ -50,18 +50,10 @@
 #error "Unsupported platform"
 #endif
 
+using namespace std::literals::string_literals;
+
 namespace quick_lint_js {
 namespace {
-struct read_file_io_error {
-  std::string path;
-  platform_file_io_error io_error;
-
-  boost::leaf::error_id make_leaf_error() const {
-    auto path_guard = boost::leaf::on_error(e_file_path{this->path});
-    return this->io_error.make_leaf_error();
-  }
-};
-
 platform_file_io_error file_too_large_error() {
 #if QLJS_HAVE_WINDOWS_H
   return windows_file_io_error{ERROR_FILE_TOO_LARGE};
@@ -150,8 +142,17 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
 }
 }
 
+std::string read_file_io_error::to_string() const {
+  return "failed to read from "s + this->path + ": "s +
+         this->io_error.to_string();
+}
+
+boost::leaf::error_id read_file_io_error::make_leaf_error() const {
+  auto path_guard = boost::leaf::on_error(e_file_path{this->path});
+  return this->io_error.make_leaf_error();
+}
+
 #if defined(QLJS_FILE_WINDOWS)
-namespace {
 result<padded_string, platform_file_io_error> read_file_2(
     windows_handle_file_ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
@@ -171,7 +172,6 @@ result<padded_string, platform_file_io_error> read_file_2(
       /*file_size=*/narrow_cast<int>(file_size.QuadPart),
       /*buffer_size=*/buffer_size);
 }
-}
 #endif
 
 #if defined(QLJS_FILE_POSIX)
@@ -184,6 +184,7 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
   // (size_t)-1).
   return narrow_cast<int>(
       std::clamp(s.st_blksize, /*lo=*/minimum_buffer_size, /*hi=*/megabyte));
+}
 }
 
 result<padded_string, platform_file_io_error> read_file_2(
@@ -204,7 +205,6 @@ result<padded_string, platform_file_io_error> read_file_2(
       /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
       /*buffer_size=*/reasonable_buffer_size(s));
 }
-}
 #endif
 
 boost::leaf::result<padded_string> read_file(platform_file_ref file) {
@@ -214,7 +214,6 @@ boost::leaf::result<padded_string> read_file(platform_file_ref file) {
   return *std::move(r);
 }
 
-namespace {
 result<padded_string, read_file_io_error> read_file_2(const char *path,
                                                       platform_file_ref file) {
   result<padded_string, platform_file_io_error> r = read_file_2(file);
@@ -224,10 +223,8 @@ result<padded_string, read_file_io_error> read_file_2(const char *path,
   }
   return *std::move(r);
 }
-}
 
 #if defined(QLJS_FILE_WINDOWS)
-namespace {
 result<padded_string, read_file_io_error> read_file_2(const char *path) {
   auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
@@ -253,7 +250,6 @@ result<padded_string, read_file_io_error> read_file_2(const char *path) {
   windows_handle_file file(handle);
   return read_file_2(path, file.ref());
 }
-}
 
 boost::leaf::result<padded_string> read_stdin() {
   windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
@@ -262,7 +258,6 @@ boost::leaf::result<padded_string> read_stdin() {
 #endif
 
 #if defined(QLJS_FILE_POSIX)
-namespace {
 result<padded_string, read_file_io_error> read_file_2(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
@@ -272,7 +267,6 @@ result<padded_string, read_file_io_error> read_file_2(const char *path) {
   }
   posix_fd_file file(fd);
   return read_file_2(path, file.ref());
-}
 }
 
 boost::leaf::result<padded_string> read_stdin() {
@@ -286,37 +280,6 @@ boost::leaf::result<padded_string> read_file(const char *path) {
   result<padded_string, read_file_io_error> r = read_file_2(path);
   if (!r.ok()) return r.error().make_leaf_error();
   return *std::move(r);
-}
-
-sloppy_result<padded_string> read_file_sloppy(const char *path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
-        boost::leaf::result<padded_string> content = read_file(path);
-        if (!content) return content.error();
-        return sloppy_result<padded_string>(std::move(*content));
-      },
-      make_read_file_error_handlers(
-          [](const std::string &message) -> sloppy_result<padded_string> {
-            return sloppy_result<padded_string>::failure(message);
-          }),
-      []() -> sloppy_result<padded_string> { QLJS_UNREACHABLE(); });
-}
-
-sloppy_result<padded_string> read_file_sloppy(const char *path,
-                                              platform_file_ref file) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<sloppy_result<padded_string>> {
-        // TODO(strager): Avoid copying the path string, especially on success.
-        auto path_guard = boost::leaf::on_error(e_file_path{path});
-        boost::leaf::result<padded_string> content = read_file(file);
-        if (!content) return content.error();
-        return sloppy_result<padded_string>(std::move(*content));
-      },
-      make_read_file_error_handlers(
-          [](const std::string &message) -> sloppy_result<padded_string> {
-            return sloppy_result<padded_string>::failure(message);
-          }),
-      []() -> sloppy_result<padded_string> { QLJS_UNREACHABLE(); });
 }
 
 padded_string read_file_or_exit(const char *path) {
