@@ -7,6 +7,8 @@
 # memory that contains the file's text and a view as a tab in the
 # sublime text.
 
+import html
+
 import sublime
 from sublime_plugin import ViewEventListener, TextChangeListener
 
@@ -150,7 +152,11 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
         </span>
         """
         color = self.view.style_for_scope("comment.line")["foreground"]
-        content = minihtml % (diagnostic.message, color, diagnostic.code)
+        content = minihtml % (
+            html.escape(diagnostic.message),
+            html.escape(color),
+            html.escape(diagnostic.code),
+        )
 
         flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
         location = diagnostic.region.begin()

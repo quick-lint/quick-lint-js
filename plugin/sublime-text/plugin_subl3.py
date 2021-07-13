@@ -7,6 +7,8 @@
 # memory that contains the file's text and a view as a tab in the
 # sublime text.
 
+import html
+
 import sublime
 import sublime_plugin
 
@@ -123,7 +125,16 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         </span>
         """
         color = self.view.style_for_scope("comment.line")["foreground"]
-        content = minihtml % (diagnostic.message, color, diagnostic.code)
+
+        # Sublime Text 3 parser cannot interpret escaped quotes.
+        #
+        #   Parse Error: quot; code: Unknown entity
+        #
+        content = minihtml % (
+            html.escape(diagnostic.message, quote=False),
+            html.escape(color, quote=False),
+            html.escape(diagnostic.code, quote=False),
+        )
 
         flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
         location = diagnostic.region.begin()
