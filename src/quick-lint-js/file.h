@@ -32,7 +32,6 @@ struct read_file_result {
 };
 
 struct e_api_read_file {};
-struct e_file_too_large {};
 
 // Possible error types:
 //
@@ -40,7 +39,6 @@ struct e_file_too_large {};
 // * e_file_path
 // * e_LastError
 // * e_api_read_file (always present)
-// * e_file_too_large
 boost::leaf::result<padded_string> read_file(const char *path);
 boost::leaf::result<padded_string> read_file(platform_file_ref);
 boost::leaf::result<padded_string> read_stdin(void);
@@ -79,11 +77,6 @@ template <class Func>
 auto make_read_file_error_handlers(const Func &handle_error) {
   using namespace std::literals::string_literals;
   return std::tuple(
-      [handle_error](e_api_read_file, e_file_too_large,
-                     const e_file_path &path) {
-        return handle_error("file too large to read into memory: "s +
-                            path.path);
-      },
 #if QLJS_HAVE_WINDOWS_H
       [handle_error](e_api_read_file, const e_LastError &error,
                      const e_file_path &path) {
@@ -98,9 +91,6 @@ auto make_read_file_error_handlers(const Func &handle_error) {
                             std::strerror(error.error));
       },
 #endif
-      [handle_error](e_api_read_file, e_file_too_large) {
-        return handle_error("file too large to read into memory"s);
-      },
 #if QLJS_HAVE_WINDOWS_H
       [handle_error](e_api_read_file, const e_LastError &error) {
         return handle_error("failed to read from file: "s +

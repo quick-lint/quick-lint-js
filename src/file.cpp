@@ -65,6 +65,16 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
+boost::leaf::error_id new_file_too_large_error() {
+#if QLJS_HAVE_WINDOWS_H
+  return boost::leaf::new_error(e_LastError{ERROR_FILE_TOO_LARGE});
+#elif QLJS_HAVE_UNISTD_H
+  return boost::leaf::new_error(e_errno{EFBIG});
+#else
+#error "Unknown platform"
+#endif
+}
+
 boost::leaf::result<void> read_file_buffered(platform_file_ref file,
                                              int buffer_size,
                                              padded_string *out_content) {
@@ -76,7 +86,7 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
       std::optional<int> new_size = checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
-        return boost::leaf::new_error(e_file_too_large());
+        return new_file_too_large_error();
       }
       out_content->resize_grow_uninitialized(size_before + buffer_size);
     }
@@ -102,7 +112,7 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
 
   std::optional<int> size_to_read = checked_add(file_size, 1);
   if (!size_to_read.has_value()) {
-    return boost::leaf::new_error(e_file_too_large());
+    return new_file_too_large_error();
   }
   content.resize_grow_uninitialized(*size_to_read);
 
@@ -154,7 +164,7 @@ boost::leaf::result<padded_string> read_file(windows_handle_file_ref file) {
     return boost::leaf::new_error(e_LastError{error});
   }
   if (!in_range<int>(file_size.QuadPart)) {
-    return boost::leaf::new_error(e_file_too_large());
+    return new_file_too_large_error();
   }
 
   return read_file_with_expected_size(
@@ -186,7 +196,7 @@ boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
   }
   auto file_size = s.st_size;
   if (!in_range<int>(file_size)) {
-    return boost::leaf::new_error(e_file_too_large());
+    return new_file_too_large_error();
   }
 
   return read_file_with_expected_size(
