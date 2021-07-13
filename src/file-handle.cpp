@@ -299,7 +299,7 @@ std::string windows_error_message(DWORD error) {
       /*dwFlags=*/FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
           FORMAT_MESSAGE_IGNORE_INSERTS,
       /*lpSource=*/nullptr,
-      /*dwMessageId=*/::GetLastError(),
+      /*dwMessageId=*/error,
       /*dwLanguageId=*/0,
       /*lpBuffer=*/reinterpret_cast<LPSTR>(&get_last_error_message),
       /*nSize=*/(std::numeric_limits<DWORD>::max)(),
