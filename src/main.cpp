@@ -176,8 +176,8 @@ void handle_options(quick_lint_js::options o) {
       std::exit(1);
     }
     result<padded_string, read_file_io_error> source =
-        file.is_stdin ? quick_lint_js::read_stdin_2()
-                      : quick_lint_js::read_file_2(file.path);
+        file.is_stdin ? quick_lint_js::read_stdin()
+                      : quick_lint_js::read_file(file.path);
     if (!source.ok()) {
       source.error().print_and_exit();
     }

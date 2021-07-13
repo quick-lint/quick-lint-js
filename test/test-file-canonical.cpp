@@ -109,7 +109,7 @@ TEST_F(test_file_canonical, canonical_path_to_regular_file) {
   EXPECT_FALSE(canonical->have_missing_components());
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(canonical->c_str());
+      read_file(canonical->c_str());
   ASSERT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8"hello\nworld!\n"));
 }

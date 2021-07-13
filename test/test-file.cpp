@@ -79,7 +79,7 @@ TEST_F(test_file, read_regular_file) {
   write_file(temp_file_path, u8"hello\nworld!\n");
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8"hello\nworld!\n"));
 }
@@ -89,7 +89,7 @@ TEST_F(test_file, read_empty_regular_file) {
   write_file(temp_file_path, u8"");
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8""));
 }
@@ -101,7 +101,7 @@ TEST_F(test_file, read_non_existing_file) {
   boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<void> {
         result<padded_string, read_file_io_error> file_content =
-            read_file_2(temp_file_path.c_str());
+            read_file(temp_file_path.c_str());
         if (!file_content.ok()) return file_content.error().make_leaf_error();
         ADD_FAILURE() << "read_file should have failed";
         return {};
@@ -120,7 +120,7 @@ TEST_F(test_file, read_non_existing_file_sloppy_message) {
       this->make_temporary_directory() + "/does-not-exist.js";
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr("does-not-exist.js"));
   EXPECT_THAT(file_content.error().to_string(),
@@ -133,7 +133,7 @@ TEST_F(test_file, read_directory) {
   boost::leaf::try_handle_all(
       [&]() -> boost::leaf::result<void> {
         result<padded_string, read_file_io_error> file_content =
-            read_file_2(temp_file_path.c_str());
+            read_file(temp_file_path.c_str());
         if (!file_content.ok()) return file_content.error().make_leaf_error();
         ADD_FAILURE() << "read_file should have failed";
         return {};
@@ -150,7 +150,7 @@ TEST_F(test_file, read_directory_sloppy_message) {
   std::string temp_file_path = this->make_temporary_directory();
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr(temp_file_path));
   EXPECT_THAT(
@@ -170,7 +170,7 @@ TEST_F(test_file, read_fifo) {
       [&]() { write_file(temp_file_path, u8"hello from fifo"); });
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
 
@@ -184,7 +184,7 @@ TEST_F(test_file, read_empty_fifo) {
   std::thread writer_thread([&]() { write_file(temp_file_path, u8""); });
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8""));
 
@@ -217,7 +217,7 @@ TEST_F(test_file, read_fifo_multiple_writes) {
   });
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2(temp_file_path.c_str());
+      read_file(temp_file_path.c_str());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
 
@@ -247,7 +247,7 @@ TEST_F(test_file, read_pipe_multiple_writes) {
   });
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2("<pipe>", pipe.reader.ref());
+      read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8"hello from fifo"));
 
@@ -281,7 +281,7 @@ TEST_F(test_file, read_pipe_empty_writes) {
   });
 
   result<padded_string, read_file_io_error> file_content =
-      read_file_2("<pipe>", pipe.reader.ref());
+      read_file("<pipe>", pipe.reader.ref());
   EXPECT_TRUE(file_content.ok()) << file_content.error().to_string();
   EXPECT_EQ(*file_content, string8_view(u8"helloworld"));
 

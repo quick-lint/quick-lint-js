@@ -58,7 +58,7 @@ byte_buffer byte_buffer_of(string8_view data) {
 TEST_F(test_pipe_writer, large_write_sends_fully) {
   std::future<result<padded_string, read_file_io_error>> data_future =
       std::async(std::launch::async, [this] {
-        return read_file_2("<pipe>", this->pipe.reader.ref());
+        return read_file("<pipe>", this->pipe.reader.ref());
       });
 
   string8 to_write =

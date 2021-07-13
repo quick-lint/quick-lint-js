@@ -485,7 +485,7 @@ basic_configuration_filesystem::canonicalize_path(const std::string& path) {
 boost::leaf::result<padded_string> basic_configuration_filesystem::read_file(
     const canonical_path& path) {
   result<padded_string, read_file_io_error> r =
-      quick_lint_js::read_file_2(path.c_str());
+      quick_lint_js::read_file(path.c_str());
   if (!r.ok()) return r.error().make_leaf_error();
   return *std::move(r);
 }

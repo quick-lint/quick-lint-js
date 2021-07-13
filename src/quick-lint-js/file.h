@@ -32,11 +32,11 @@ struct read_file_io_error {
 
 struct e_api_read_file {};
 
-result<padded_string, read_file_io_error> read_file_2(const char *path);
-result<padded_string, read_file_io_error> read_file_2(const char *path,
-                                                      platform_file_ref);
-result<padded_string, platform_file_io_error> read_file_2(platform_file_ref);
-result<padded_string, read_file_io_error> read_stdin_2(void);
+result<padded_string, read_file_io_error> read_file(const char *path);
+result<padded_string, read_file_io_error> read_file(const char *path,
+                                                    platform_file_ref);
+result<padded_string, platform_file_io_error> read_file(platform_file_ref);
+result<padded_string, read_file_io_error> read_stdin(void);
 
 padded_string read_file_or_exit(const char *path);
 

@@ -159,7 +159,7 @@ boost::leaf::error_id read_file_io_error::make_leaf_error() const {
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-result<padded_string, platform_file_io_error> read_file_2(
+result<padded_string, platform_file_io_error> read_file(
     windows_handle_file_ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
@@ -193,7 +193,7 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
 }
 }
 
-result<padded_string, platform_file_io_error> read_file_2(
+result<padded_string, platform_file_io_error> read_file(
     posix_fd_file_ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
@@ -213,9 +213,9 @@ result<padded_string, platform_file_io_error> read_file_2(
 }
 #endif
 
-result<padded_string, read_file_io_error> read_file_2(const char *path,
-                                                      platform_file_ref file) {
-  result<padded_string, platform_file_io_error> r = read_file_2(file);
+result<padded_string, read_file_io_error> read_file(const char *path,
+                                                    platform_file_ref file) {
+  result<padded_string, platform_file_io_error> r = read_file(file);
   if (!r.ok()) {
     return result<padded_string, read_file_io_error>::failure(
         read_file_io_error{.path = path, .io_error = r.error()});
@@ -224,7 +224,7 @@ result<padded_string, read_file_io_error> read_file_2(const char *path,
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-result<padded_string, read_file_io_error> read_file_2(const char *path) {
+result<padded_string, read_file_io_error> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(e_file_path{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
@@ -246,17 +246,17 @@ result<padded_string, read_file_io_error> read_file_2(const char *path) {
             .path = path, .io_error = windows_file_io_error{::GetLastError()}});
   }
   windows_handle_file file(handle);
-  return read_file_2(path, file.ref());
+  return read_file(path, file.ref());
 }
 
-result<padded_string, read_file_io_error> read_stdin_2() {
+result<padded_string, read_file_io_error> read_stdin() {
   windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
-  return read_file_2("<stdin>", file);
+  return read_file("<stdin>", file);
 }
 #endif
 
 #if defined(QLJS_FILE_POSIX)
-result<padded_string, read_file_io_error> read_file_2(const char *path) {
+result<padded_string, read_file_io_error> read_file(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
     return result<padded_string, read_file_io_error>::failure(
@@ -264,17 +264,17 @@ result<padded_string, read_file_io_error> read_file_2(const char *path) {
                            .io_error = posix_file_io_error{errno}});
   }
   posix_fd_file file(fd);
-  return read_file_2(path, file.ref());
+  return read_file(path, file.ref());
 }
 
-result<padded_string, read_file_io_error> read_stdin_2() {
+result<padded_string, read_file_io_error> read_stdin() {
   posix_fd_file_ref file(STDIN_FILENO);
-  return read_file_2("<stdin>", file);
+  return read_file("<stdin>", file);
 }
 #endif
 
 padded_string read_file_or_exit(const char *path) {
-  result<padded_string, read_file_io_error> r = read_file_2(path);
+  result<padded_string, read_file_io_error> r = read_file(path);
   if (!r.ok()) {
     r.error().print_and_exit();
   }
