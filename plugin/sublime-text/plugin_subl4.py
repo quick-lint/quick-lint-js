@@ -105,9 +105,7 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
     @classmethod
     def is_applicable(cls, settings):
         syntax = settings.get("syntax", "")
-        if "JavaScript" in syntax:
-            return True
-        return False
+        return "JavaScript" in syntax
 
     @classmethod
     def applies_to_primary_view_only(cls):
@@ -167,9 +165,7 @@ class QuickLintJsTextChangeListener(TextChangeListener, QuickLintJsListener):
     def is_applicable(cls, buffer):
         settings = buffer.primary_view().settings()
         syntax = settings.get("syntax", "")
-        if "JavaScript" in syntax:
-            return True
-        return False
+        return "JavaScript" in syntax
 
     def __init__(self):
         TextChangeListener.__init__(self)
