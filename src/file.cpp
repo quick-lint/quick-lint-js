@@ -147,6 +147,11 @@ std::string read_file_io_error::to_string() const {
          this->io_error.to_string();
 }
 
+[[noreturn]] void read_file_io_error::print_and_exit() const {
+  std::fprintf(stderr, "error: %s\n", this->to_string().c_str());
+  std::exit(1);
+}
+
 boost::leaf::error_id read_file_io_error::make_leaf_error() const {
   auto path_guard = boost::leaf::on_error(e_file_path{this->path});
   return this->io_error.make_leaf_error();
@@ -251,9 +256,9 @@ result<padded_string, read_file_io_error> read_file_2(const char *path) {
   return read_file_2(path, file.ref());
 }
 
-boost::leaf::result<padded_string> read_stdin() {
+result<padded_string, read_file_io_error> read_stdin_2() {
   windows_handle_file_ref file(::GetStdHandle(STD_INPUT_HANDLE));
-  return read_file(file);
+  return read_file_2("<stdin>", file);
 }
 #endif
 
@@ -269,9 +274,9 @@ result<padded_string, read_file_io_error> read_file_2(const char *path) {
   return read_file_2(path, file.ref());
 }
 
-boost::leaf::result<padded_string> read_stdin() {
+result<padded_string, read_file_io_error> read_stdin_2() {
   posix_fd_file_ref file(STDIN_FILENO);
-  return read_file(file);
+  return read_file_2("<stdin>", file);
 }
 #endif
 

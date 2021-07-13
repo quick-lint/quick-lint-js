@@ -25,6 +25,7 @@ struct read_file_io_error {
   platform_file_io_error io_error;
 
   std::string to_string() const;
+  [[noreturn]] void print_and_exit() const;
 
   boost::leaf::error_id make_leaf_error() const;
 };
@@ -39,12 +40,12 @@ struct e_api_read_file {};
 // * e_api_read_file (always present)
 boost::leaf::result<padded_string> read_file(const char *path);
 boost::leaf::result<padded_string> read_file(platform_file_ref);
-boost::leaf::result<padded_string> read_stdin(void);
 
 result<padded_string, read_file_io_error> read_file_2(const char *path);
 result<padded_string, read_file_io_error> read_file_2(const char *path,
                                                       platform_file_ref);
 result<padded_string, platform_file_io_error> read_file_2(platform_file_ref);
+result<padded_string, read_file_io_error> read_stdin_2(void);
 
 padded_string read_file_or_exit(const char *path);
 

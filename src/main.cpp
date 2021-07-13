@@ -175,23 +175,15 @@ void handle_options(quick_lint_js::options o) {
       std::fprintf(stderr, "error: %s\n", config.error().c_str());
       std::exit(1);
     }
-    boost::leaf::try_handle_all(
-        [&]() -> boost::leaf::result<void> {
-          boost::leaf::result<padded_string> source =
-              file.is_stdin ? quick_lint_js::read_stdin()
-                            : quick_lint_js::read_file(file.path);
-          if (!source) return source.error();
-          reporter.set_source(&*source, file);
-          quick_lint_js::process_file(&*source, **config, reporter.get(),
-                                      o.print_parser_visits);
-          return {};
-        },
-        exit_on_read_file_error_handlers<void>(),
-        []() {
-          QLJS_ASSERT(false);
-          std::fprintf(stderr, "error: unknown error\n");
-          std::exit(1);
-        });
+    result<padded_string, read_file_io_error> source =
+        file.is_stdin ? quick_lint_js::read_stdin_2()
+                      : quick_lint_js::read_file_2(file.path);
+    if (!source.ok()) {
+      source.error().print_and_exit();
+    }
+    reporter.set_source(&*source, file);
+    quick_lint_js::process_file(&*source, **config, reporter.get(),
+                                o.print_parser_visits);
   }
   reporter.finish();
 
