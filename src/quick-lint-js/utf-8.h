@@ -21,9 +21,10 @@ decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
 
 const char8* advance_lsp_characters_in_utf_8(string8_view,
                                              int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(
-    padded_string_view, int offset,
-    bool count_utf_16_code_units_in_offset = true) noexcept;
+std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
+                                             int offset) noexcept;
+std::ptrdiff_t count_code_points_in_utf_8(padded_string_view utf_8,
+                                          int offset) noexcept;
 }
 
 #endif

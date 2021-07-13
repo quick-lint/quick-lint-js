@@ -23,20 +23,8 @@ sublime_text_3_source_range sublime_text_3_locator::range(
 sublime_text_3_source_offset sublime_text_3_locator::position(
     const char8* c) const noexcept {
   int byte_offset = narrow_cast<int>(c - this->input_.data());
-
-  // The count_utf_16_code_units_in_offset value is set to false because of a
-  // bug where squiggly underlines in Sublime Text were misplaced:
-  //
-  // /*🎸*/ asdf;
-  //         ^^^^ -- your plugin highlights these characters
-  //        ^^^^ -- it's supposed to highlights these characters
-  //
-  // https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-855188012
-  //
   return narrow_cast<sublime_text_3_source_offset>(
-      count_lsp_characters_in_utf_8(
-          this->input_, byte_offset,
-          /*count_utf_16_code_units_in_offset=*/false));
+      count_code_points_in_utf_8(this->input_, byte_offset));
 }
 }  // namespace quick_lint_js
 
