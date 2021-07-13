@@ -24,6 +24,8 @@ struct read_file_io_error {
   std::string path;
   platform_file_io_error io_error;
 
+  bool is_file_not_found_error() const noexcept;
+
   std::string to_string() const;
   [[noreturn]] void print_and_exit() const;
 

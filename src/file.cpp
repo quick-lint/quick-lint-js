@@ -142,6 +142,10 @@ result<padded_string, platform_file_io_error> read_file_with_expected_size(
 }
 }
 
+bool read_file_io_error::is_file_not_found_error() const noexcept {
+  return this->io_error.is_file_not_found_error();
+}
+
 std::string read_file_io_error::to_string() const {
   return "failed to read from "s + this->path + ": "s +
          this->io_error.to_string();

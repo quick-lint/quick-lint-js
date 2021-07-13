@@ -39,6 +39,10 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
+bool windows_file_io_error::is_file_not_found_error() const noexcept {
+  return this->error == ERROR_FILE_NOT_FOUND;
+}
+
 std::string windows_file_io_error::to_string() const {
   return windows_error_message(this->error);
 }
@@ -49,6 +53,10 @@ boost::leaf::error_id windows_file_io_error::make_leaf_error() const {
 #endif
 
 #if QLJS_HAVE_UNISTD_H
+bool posix_file_io_error::is_file_not_found_error() const noexcept {
+  return this->error == ENOENT;
+}
+
 std::string posix_file_io_error::to_string() const {
   return std::strerror(this->error);
 }

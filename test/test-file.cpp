@@ -122,6 +122,7 @@ TEST_F(test_file, read_non_existing_file_sloppy_message) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
+  EXPECT_TRUE(file_content.error().is_file_not_found_error());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr("does-not-exist.js"));
   EXPECT_THAT(file_content.error().to_string(),
               AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
@@ -152,6 +153,7 @@ TEST_F(test_file, read_directory_sloppy_message) {
   result<padded_string, read_file_io_error> file_content =
       read_file(temp_file_path.c_str());
   EXPECT_FALSE(file_content.ok());
+  EXPECT_FALSE(file_content.error().is_file_not_found_error());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr(temp_file_path));
   EXPECT_THAT(
       file_content.error().to_string(),

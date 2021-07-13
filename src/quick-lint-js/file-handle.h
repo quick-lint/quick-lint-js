@@ -27,6 +27,8 @@ struct windows_file_io_error {
   // Error code returned by Win32's GetLastError().
   DWORD error;
 
+  bool is_file_not_found_error() const noexcept;
+
   std::string to_string() const;
 
   boost::leaf::error_id make_leaf_error() const;
@@ -37,6 +39,8 @@ struct windows_file_io_error {
 struct posix_file_io_error {
   // Error code stored in POSIX' errno variable.
   int error;
+
+  bool is_file_not_found_error() const noexcept;
 
   std::string to_string() const;
 
