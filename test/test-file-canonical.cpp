@@ -103,9 +103,9 @@ TEST_F(test_file_canonical, canonical_path_to_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
   write_file(temp_file_path, u8"hello\nworld!\n");
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_file_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_file_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
   EXPECT_FALSE(canonical->have_missing_components());
 
   result<padded_string, read_file_io_error> file_content =
@@ -119,9 +119,9 @@ TEST_F(test_file_canonical, canonical_path_to_directory) {
   std::string input_path = temp_dir + "/dir";
   create_directory(input_path);
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_SAME_FILE(canonical->path(), input_path);
   EXPECT_FALSE(canonical->have_missing_components());
@@ -154,9 +154,9 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/dir/";
   create_directory(input_path);
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_SAME_FILE(canonical->path(), input_path);
   EXPECT_FALSE(ends_with(canonical->path(), "/"));
@@ -192,13 +192,14 @@ TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
 
 TEST_F(test_file_canonical, canonical_path_to_non_existing_file_succeeds) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_dir + "/does-not-exist.js");
-  EXPECT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_dir + "/does-not-exist.js");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
   EXPECT_EQ(canonical->path(), std::string(temp_dir_canonical->path()) +
                                    QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR +
                                    "does-not-exist.js");
@@ -211,13 +212,14 @@ TEST_F(test_file_canonical, canonical_path_to_non_existing_file_succeeds) {
 TEST_F(test_file_canonical,
        canonical_path_to_non_existing_parent_directory_succeeds) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_dir + "/does-not-exist/file.js");
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_dir + "/does-not-exist/file.js");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
   EXPECT_EQ(canonical->path(),
             std::string(temp_dir_canonical->path()) +
                 QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR + "does-not-exist" +
@@ -260,9 +262,9 @@ TEST_F(test_file_canonical, canonical_path_removes_dot_components) {
   write_file(temp_dir + "/temp.js", u8"");
 
   std::string input_path = temp_dir + "/./temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/./")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\.\\")));
@@ -273,9 +275,9 @@ TEST_F(test_file_canonical, canonical_path_removes_trailing_dot_component) {
   std::string temp_dir = this->make_temporary_directory();
 
   std::string input_path = temp_dir + "/.";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_FALSE(ends_with(canonical->path(), "/.")) << canonical->path();
   EXPECT_FALSE(ends_with(canonical->path(), "\\.")) << canonical->path();
@@ -313,13 +315,14 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_removes_dot_components_after_missing_path) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_dir + "/does-not-exist/./file.js");
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_dir + "/does-not-exist/./file.js");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_EQ(canonical->path(),
             std::string(temp_dir_canonical->path()) +
@@ -367,9 +370,9 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_FALSE(ends_with(canonical->path(), "/..")) << canonical.path();
   EXPECT_FALSE(ends_with(canonical->path(), "\\..")) << canonical.path();
@@ -412,9 +415,9 @@ TEST_F(test_file_canonical, canonical_path_with_dot_after_regular_file) {
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/.";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_FALSE(ends_with(canonical->path(), "/.")) << canonical.path();
   EXPECT_FALSE(ends_with(canonical->path(), "\\.")) << canonical.path();
@@ -472,9 +475,9 @@ TEST_F(test_file_canonical, canonical_path_removes_redundant_slashes) {
     input_path.push_back(c);
   }
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   // TODO(strager): Don't fail if // or \\ is at the beginning of a path.
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("//")));
@@ -485,13 +488,14 @@ TEST_F(test_file_canonical, canonical_path_removes_redundant_slashes) {
 TEST_F(test_file_canonical,
        canonical_path_removes_redundant_slashes_after_missing_path) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_dir + "/does-not-exist///file.js");
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_dir + "/does-not-exist///file.js");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_EQ(canonical->path(),
             std::string(temp_dir_canonical->path()) +
@@ -505,13 +509,14 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_removes_trailing_slash_after_missing_path) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_dir + "/does-not-exist/");
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_dir + "/does-not-exist/");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_EQ(canonical->path(), std::string(temp_dir_canonical->path()) +
                                    QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR +
@@ -524,9 +529,9 @@ TEST_F(test_file_canonical, canonical_path_removes_dot_dot_components) {
   write_file(temp_dir + "/temp.js", u8"");
 
   std::string input_path = temp_dir + "/dir/../temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/../")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\..\\")));
@@ -556,9 +561,9 @@ TEST_F(test_file_canonical,
     input_path.replace(input_path.find_first_of("/\\") + 1, 0, component + "/");
     SCOPED_TRACE(input_path);
 
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy(input_path);
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2(input_path);
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
     EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/./")));
     EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\.\\")));
@@ -571,14 +576,15 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_keeps_dot_dot_components_after_missing_path) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
   write_file(temp_dir + "/real.js", u8"");
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(temp_dir + "/does-not-exist/../real.js");
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(temp_dir + "/does-not-exist/../real.js");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_EQ(canonical->path(),
             std::string(temp_dir_canonical->path()) +
@@ -594,9 +600,9 @@ TEST_F(test_file_canonical, canonical_path_makes_relative_paths_absolute) {
   this->set_current_working_directory(temp_dir);
 
   std::string input_path = "temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_NE(std::string(canonical->path()), "temp.js");
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("./")));
@@ -612,9 +618,9 @@ TEST_F(test_file_canonical,
   this->set_current_working_directory(temp_dir + "/dir");
 
   std::string input_path = "../temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("../")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("..\\")));
@@ -626,9 +632,9 @@ TEST_F(test_file_canonical,
   std::string temp_dir = this->make_temporary_directory();
   this->set_current_working_directory(temp_dir);
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(".");
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(".");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("./")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr(".\\")));
@@ -655,9 +661,9 @@ TEST_F(test_file_canonical, canonical_path_with_root_as_cwd) {
   std::string input_path = temp_dir.substr(1) + "/temp.js";
 #endif
 
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_SAME_FILE(canonical->path(), temp_dir + "/temp.js");
   EXPECT_SAME_FILE(canonical->path(), input_path);
@@ -674,9 +680,9 @@ TEST_F(test_file_canonical, canonical_path_resolves_file_absolute_symlinks) {
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/linkfile";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()),
               AnyOf(HasSubstr("/realfile"), HasSubstr("\\realfile")));
@@ -692,9 +698,9 @@ TEST_F(test_file_canonical, canonical_path_resolves_file_relative_symlinks) {
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/linkfile";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()),
               AnyOf(HasSubstr("/realfile"), HasSubstr("\\realfile")));
@@ -714,9 +720,9 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/realdir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()),
               AnyOf(HasSubstr("/realdir/"), HasSubstr("\\realdir\\")));
@@ -735,9 +741,9 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/realdir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()),
               AnyOf(HasSubstr("/realdir/"), HasSubstr("\\realdir\\")));
@@ -759,9 +765,9 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/dir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/../temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/linkdir/")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\linkdir\\")));
@@ -778,9 +784,9 @@ TEST_F(test_file_canonical, canonical_path_resolves_dot_dot_inside_symlinks) {
   write_file(temp_dir + "/otherdir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/dir/linkdir/temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/linkdir/")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\linkdir\\")));
@@ -817,16 +823,17 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_with_broken_symlink_directory_succeeds) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
   ASSERT_EQ(::symlink("does-not-exist", (temp_dir + "/testlink").c_str()), 0)
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/testlink/file.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_EQ(canonical->path(),
             std::string(temp_dir_canonical->path()) +
@@ -841,16 +848,17 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_with_broken_symlink_file_fails) {
   std::string temp_dir = this->make_temporary_directory();
-  sloppy_result<canonical_path_result> temp_dir_canonical =
-      canonicalize_path_sloppy(temp_dir);
-  ASSERT_TRUE(temp_dir_canonical.ok()) << temp_dir_canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path_2(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
   ASSERT_EQ(::symlink("does-not-exist", (temp_dir + "/testlink").c_str()), 0)
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/testlink";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_EQ(canonical->path(), std::string(temp_dir_canonical->path()) +
                                    QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR +
@@ -871,9 +879,9 @@ TEST_F(test_file_canonical, canonical_path_resolves_symlinks_in_cwd) {
   this->set_current_working_directory(temp_dir + "/linkdir");
 
   std::string input_path = "temp.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/linkdir/")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\linkdir\\")));
@@ -894,9 +902,9 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/realdir/subdir/hello.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/hello.js";
-  sloppy_result<canonical_path_result> canonical =
-      canonicalize_path_sloppy(input_path);
-  ASSERT_TRUE(canonical.ok()) << canonical.error();
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/linkdir/")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\linkdir\\")));
@@ -968,30 +976,30 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
 #if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
 TEST_F(test_file_canonical, canonical_path_posix_root) {
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("/");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("/");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "/");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("/.");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("/.");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "/");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("/..");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("/..");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "/");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("/../../../../..");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("/../../../../..");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "/");
   }
 }
@@ -1002,44 +1010,44 @@ TEST_F(test_file_canonical, canonical_path_win32_root) {
   // NOTE(strager): These tests assume that a drive named 'C' exists.
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("c:/");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("c:/");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "c:\\");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("c:/.");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("c:/.");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "c:\\");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("c:/..");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("c:/..");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "c:\\");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy("c:/../../../../..");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2("c:/../../../../..");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "c:\\");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy(R"(c:\\\\\\\\\\\\)");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2(R"(c:\\\\\\\\\\\\)");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), "c:\\");
   }
 
   {
-    sloppy_result<canonical_path_result> canonical =
-        canonicalize_path_sloppy(R"(\\?\C:\)");
-    ASSERT_TRUE(canonical.ok()) << canonical.error();
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path_2(R"(\\?\C:\)");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
     EXPECT_EQ(canonical->path(), R"(\\?\C:\)");
   }
 }

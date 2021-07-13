@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/leaf.h>
 #include <quick-lint-js/result.h>
 #include <string>
@@ -94,6 +95,16 @@ class canonical_path_result {
   std::size_t existing_path_length_;
 };
 
+struct canonicalize_path_io_error {
+  std::string input_path;
+  std::string canonicalizing_path;
+  platform_file_io_error io_error;
+
+  boost::leaf::error_id make_leaf_error() const;
+
+  std::string to_string() const;
+};
+
 struct e_api_canonicalize_path {};
 struct e_canonicalizing_path {
   std::string path;
@@ -110,8 +121,9 @@ boost::leaf::result<canonical_path_result> canonicalize_path(const char *path);
 boost::leaf::result<canonical_path_result> canonicalize_path(
     const std::string &path);
 
-sloppy_result<canonical_path_result> canonicalize_path_sloppy(const char *path);
-sloppy_result<canonical_path_result> canonicalize_path_sloppy(
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
+    const char *path);
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
     const std::string &path);
 
 // Valid signatures for handle_error:

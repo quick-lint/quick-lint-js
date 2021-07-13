@@ -93,25 +93,6 @@ const std::string &string_for_error_message(const std::string &);
 std::string string_for_error_message(std::wstring_view);
 #endif
 
-struct canonicalize_path_io_error {
-  std::string input_path;
-  std::string canonicalizing_path;
-  platform_file_io_error io_error;
-
-  boost::leaf::error_id make_leaf_error() const {
-    auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());
-    auto path_guard = boost::leaf::on_error(e_file_path{this->input_path});
-    auto canonicalizing_guard =
-        boost::leaf::on_error(e_canonicalizing_path{this->canonicalizing_path});
-    return this->io_error.make_leaf_error();
-  }
-
-  std::string to_string() const {
-    return "failed to canonicalize "s + this->input_path + ": "s +
-           this->canonicalizing_path + ": "s + this->io_error.to_string();
-  }
-};
-
 struct canonicalizing_path_io_error {
   path_string canonicalizing_path;
   platform_file_io_error io_error;
@@ -230,6 +211,19 @@ bool canonical_path_result::have_missing_components() const noexcept {
 
 void canonical_path_result::drop_missing_components() {
   this->path_.path_.resize(this->existing_path_length_);
+}
+
+boost::leaf::error_id canonicalize_path_io_error::make_leaf_error() const {
+  auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());
+  auto path_guard = boost::leaf::on_error(e_file_path{this->input_path});
+  auto canonicalizing_guard =
+      boost::leaf::on_error(e_canonicalizing_path{this->canonicalizing_path});
+  return this->io_error.make_leaf_error();
+}
+
+std::string canonicalize_path_io_error::to_string() const {
+  return "failed to canonicalize "s + this->input_path + ": "s +
+         this->canonicalizing_path + ": "s + this->io_error.to_string();
 }
 
 namespace {
@@ -687,7 +681,6 @@ class windows_path_canonicalizer
 #endif
 }
 
-namespace {
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
     const char *path) {
 #if defined(_WIN32)
@@ -716,7 +709,6 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
     const std::string &path) {
   return canonicalize_path_2(path.c_str());
 }
-}
 
 boost::leaf::result<canonical_path_result> canonicalize_path(const char *path) {
   result<canonical_path_result, canonicalize_path_io_error> r =
@@ -731,21 +723,6 @@ boost::leaf::result<canonical_path_result> canonicalize_path(
       canonicalize_path_2(path);
   if (!r.ok()) return r.error().make_leaf_error();
   return *std::move(r);
-}
-
-sloppy_result<canonical_path_result> canonicalize_path_sloppy(
-    const char *path) {
-  result<canonical_path_result, canonicalize_path_io_error> r =
-      canonicalize_path_2(path);
-  if (!r.ok()) {
-    return sloppy_result<canonical_path_result>::failure(r.error().to_string());
-  }
-  return *std::move(r);
-}
-
-sloppy_result<canonical_path_result> canonicalize_path_sloppy(
-    const std::string &path) {
-  return canonicalize_path_sloppy(path.c_str());
 }
 
 namespace {
