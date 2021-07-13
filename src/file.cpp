@@ -288,14 +288,11 @@ boost::leaf::result<padded_string> read_file(const char *path) {
 }
 
 padded_string read_file_or_exit(const char *path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<padded_string> { return read_file(path); },
-      exit_on_read_file_error_handlers<padded_string>(),
-      []() -> padded_string {
-        QLJS_ASSERT(false);
-        std::fprintf(stderr, "error: unknown error\n");
-        std::exit(1);
-      });
+  result<padded_string, read_file_io_error> r = read_file_2(path);
+  if (!r.ok()) {
+    r.error().print_and_exit();
+  }
+  return *std::move(r);
 }
 
 void write_file(const std::string &path, string8_view content) {
