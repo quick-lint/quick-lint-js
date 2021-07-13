@@ -40,8 +40,10 @@ class result_base {
   using value_type = to_value_type<T>;
 
  public:
-  template <class... Args>
-  explicit result_base(Args&&... args)
+  // TODO(strager): Make explicit iff T(Args...) is explicit.
+  template <class... Args,
+            class = decltype(value_type(std::declval<Args>()...))>
+  /*implicit*/ result_base(Args&&... args)
       : data_(std::in_place_index<0>, std::forward<Args>(args)...) {}
 
   // Private constructor used by failure. Do not call directly.
@@ -94,12 +96,17 @@ class result_base {
 
   bool ok() const noexcept { return this->data_.index() == 0; }
 
-  value_type& value() noexcept {
+  value_type& value() & noexcept {
     QLJS_ASSERT(this->ok());
     return std::get<0>(this->data_);
   }
 
-  const value_type& value() const noexcept {
+  value_type&& value() && noexcept {
+    QLJS_ASSERT(this->ok());
+    return std::get<0>(std::move(this->data_));
+  }
+
+  const value_type& value() const& noexcept {
     QLJS_ASSERT(this->ok());
     return std::get<0>(this->data_);
   }
@@ -127,8 +134,9 @@ class result_base {
 
   result_propagation<T, Errors...> propagate() && = delete;
 
-  value_type& operator*() noexcept { return this->value(); }
-  const value_type& operator*() const noexcept { return this->value(); }
+  value_type& operator*() & noexcept { return this->value(); }
+  value_type&& operator*() && noexcept { return std::move(*this).value(); }
+  const value_type& operator*() const& noexcept { return this->value(); }
 
   value_type* operator->() noexcept { return &this->value(); }
   const value_type* operator->() const noexcept { return &this->value(); }

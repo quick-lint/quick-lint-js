@@ -65,19 +65,28 @@ read_file_result read_file_result::failure(const std::string &error) {
 }
 
 namespace {
-boost::leaf::error_id new_file_too_large_error() {
+struct read_file_io_error {
+  std::string path;
+  platform_file_io_error io_error;
+
+  boost::leaf::error_id make_leaf_error() const {
+    auto path_guard = boost::leaf::on_error(e_file_path{this->path});
+    return this->io_error.make_leaf_error();
+  }
+};
+
+platform_file_io_error file_too_large_error() {
 #if QLJS_HAVE_WINDOWS_H
-  return boost::leaf::new_error(e_LastError{ERROR_FILE_TOO_LARGE});
+  return windows_file_io_error{ERROR_FILE_TOO_LARGE};
 #elif QLJS_HAVE_UNISTD_H
-  return boost::leaf::new_error(e_errno{EFBIG});
+  return posix_file_io_error{EFBIG};
 #else
 #error "Unknown platform"
 #endif
 }
 
-boost::leaf::result<void> read_file_buffered(platform_file_ref file,
-                                             int buffer_size,
-                                             padded_string *out_content) {
+result<void, platform_file_io_error> read_file_buffered(
+    platform_file_ref file, int buffer_size, padded_string *out_content) {
   // TODO(strager): Use byte_buffer to avoid copying the file content every
   // iteration.
   for (;;) {
@@ -86,14 +95,15 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
       std::optional<int> new_size = checked_add(size_before, buffer_size);
       if (!new_size.has_value()) {
         // TODO(strager): Should we try a small buffer size?
-        return new_file_too_large_error();
+        return result<void, platform_file_io_error>::failure(
+            file_too_large_error());
       }
       out_content->resize_grow_uninitialized(size_before + buffer_size);
     }
 
     file_read_result read_result =
         file.read(&out_content->data()[size_before], buffer_size);
-    if (!read_result.ok()) return read_result.error().make_leaf_error();
+    if (!read_result.ok()) return read_result.propagate();
     if (read_result.at_end_of_file()) {
       // We read the entire file.
       out_content->resize(size_before);
@@ -106,18 +116,19 @@ boost::leaf::result<void> read_file_buffered(platform_file_ref file,
   }
 }
 
-boost::leaf::result<padded_string> read_file_with_expected_size(
+result<padded_string, platform_file_io_error> read_file_with_expected_size(
     platform_file_ref file, int file_size, int buffer_size) {
   padded_string content;
 
   std::optional<int> size_to_read = checked_add(file_size, 1);
   if (!size_to_read.has_value()) {
-    return new_file_too_large_error();
+    return result<padded_string, platform_file_io_error>::failure(
+        file_too_large_error());
   }
   content.resize_grow_uninitialized(*size_to_read);
 
   file_read_result read_result = file.read(content.data(), *size_to_read);
-  if (!read_result.ok()) return read_result.error().make_leaf_error();
+  if (!read_result.ok()) return read_result.propagate();
   if (read_result.at_end_of_file()) {
     // The file was empty.
     content.resize(0);
@@ -128,8 +139,7 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
     // byte.
     file_read_result extra_read_result =
         file.read(content.data() + file_size, 1);
-    if (!extra_read_result.ok())
-      return extra_read_result.error().make_leaf_error();
+    if (!extra_read_result.ok()) return extra_read_result.propagate();
     if (extra_read_result.at_end_of_file()) {
       // We definitely read the entire file.
       content.resize(read_result.bytes_read());
@@ -137,40 +147,43 @@ boost::leaf::result<padded_string> read_file_with_expected_size(
     } else {
       // We didn't read the entire file the first time. Keep reading.
       content.resize(read_result.bytes_read() + extra_read_result.bytes_read());
-      boost::leaf::result<void> r =
+      result<void, platform_file_io_error> r =
           read_file_buffered(file, buffer_size, &content);
-      if (!r) return r.error();
+      if (!r.ok()) return r.propagate();
       return content;
     }
   } else {
     content.resize(read_result.bytes_read());
     // We did not read the entire file. There is more data to read.
-    boost::leaf::result<void> r =
+    result<void, platform_file_io_error> r =
         read_file_buffered(file, buffer_size, &content);
-    if (!r) return r.error();
+    if (!r.ok()) return r.propagate();
     return content;
   }
 }
 }
 
 #if defined(QLJS_FILE_WINDOWS)
-boost::leaf::result<padded_string> read_file(windows_handle_file_ref file) {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
+namespace {
+result<padded_string, platform_file_io_error> read_file_2(
+    windows_handle_file_ref file) {
   int buffer_size = 1024;  // TODO(strager): Compute a good buffer size.
 
   ::LARGE_INTEGER file_size;
   if (!::GetFileSizeEx(file.get(), &file_size)) {
-    DWORD error = ::GetLastError();
-    return boost::leaf::new_error(e_LastError{error});
+    return result<padded_string, windows_file_io_error>::failure<
+        windows_file_io_error>(windows_file_io_error{::GetLastError()});
   }
   if (!in_range<int>(file_size.QuadPart)) {
-    return new_file_too_large_error();
+    return result<padded_string, platform_file_io_error>::failure(
+        file_too_large_error());
   }
 
   return read_file_with_expected_size(
       /*file=*/file,
       /*file_size=*/narrow_cast<int>(file_size.QuadPart),
       /*buffer_size=*/buffer_size);
+}
 }
 #endif
 
@@ -185,35 +198,58 @@ int reasonable_buffer_size(const struct stat &s) noexcept {
   return narrow_cast<int>(
       std::clamp(s.st_blksize, /*lo=*/minimum_buffer_size, /*hi=*/megabyte));
 }
-}
 
-boost::leaf::result<padded_string> read_file(posix_fd_file_ref file) {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
+result<padded_string, platform_file_io_error> read_file_2(
+    posix_fd_file_ref file) {
   struct stat s;
   int rc = ::fstat(file.get(), &s);
   if (rc == -1) {
-    return boost::leaf::new_error(e_errno{errno});
+    return result<padded_string, posix_file_io_error>::failure(
+        posix_file_io_error{errno});
   }
   auto file_size = s.st_size;
   if (!in_range<int>(file_size)) {
-    return new_file_too_large_error();
+    return result<padded_string, platform_file_io_error>::failure(
+        file_too_large_error());
   }
 
   return read_file_with_expected_size(
       /*file=*/file, /*file_size=*/narrow_cast<int>(file_size),
       /*buffer_size=*/reasonable_buffer_size(s));
 }
+}
 #endif
 
+boost::leaf::result<padded_string> read_file(platform_file_ref file) {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
+  result<padded_string, platform_file_io_error> r = read_file_2(file);
+  if (!r.ok()) return r.error().make_leaf_error();
+  return *std::move(r);
+}
+
+namespace {
+result<padded_string, read_file_io_error> read_file_2(const char *path,
+                                                      platform_file_ref file) {
+  result<padded_string, platform_file_io_error> r = read_file_2(file);
+  if (!r.ok()) {
+    return result<padded_string, read_file_io_error>::failure(
+        read_file_io_error{.path = path, .io_error = r.error()});
+  }
+  return *std::move(r);
+}
+}
+
 #if defined(QLJS_FILE_WINDOWS)
-boost::leaf::result<padded_string> read_file(const char *path) {
+namespace {
+result<padded_string, read_file_io_error> read_file_2(const char *path) {
   auto api_guard = boost::leaf::on_error(e_api_read_file());
   // TODO(strager): Avoid copying the path string, especially on success.
   auto path_guard = boost::leaf::on_error(e_file_path{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
   if (!wpath) {
-    DWORD error = ::GetLastError();
-    return boost::leaf::new_error(e_LastError{error});
+    return result<padded_string, read_file_io_error>::failure(
+        read_file_io_error{
+            .path = path, .io_error = windows_file_io_error{::GetLastError()}});
   }
   HANDLE handle = ::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
@@ -223,11 +259,13 @@ boost::leaf::result<padded_string> read_file(const char *path) {
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
-    DWORD error = ::GetLastError();
-    return boost::leaf::new_error(e_LastError{error});
+    return result<padded_string, read_file_io_error>::failure(
+        read_file_io_error{
+            .path = path, .io_error = windows_file_io_error{::GetLastError()}});
   }
   windows_handle_file file(handle);
-  return read_file(file.ref());
+  return read_file_2(path, file.ref());
+}
 }
 
 boost::leaf::result<padded_string> read_stdin() {
@@ -237,16 +275,17 @@ boost::leaf::result<padded_string> read_stdin() {
 #endif
 
 #if defined(QLJS_FILE_POSIX)
-boost::leaf::result<padded_string> read_file(const char *path) {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
-  // TODO(strager): Avoid copying the path string, especially on success.
-  auto path_guard = boost::leaf::on_error(e_file_path{path});
+namespace {
+result<padded_string, read_file_io_error> read_file_2(const char *path) {
   int fd = ::open(path, O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
-    return boost::leaf::new_error(e_errno{errno});
+    return result<padded_string, read_file_io_error>::failure(
+        read_file_io_error{.path = path,
+                           .io_error = posix_file_io_error{errno}});
   }
   posix_fd_file file(fd);
-  return read_file(file.ref());
+  return read_file_2(path, file.ref());
+}
 }
 
 boost::leaf::result<padded_string> read_stdin() {
@@ -254,6 +293,13 @@ boost::leaf::result<padded_string> read_stdin() {
   return read_file(file);
 }
 #endif
+
+boost::leaf::result<padded_string> read_file(const char *path) {
+  auto api_guard = boost::leaf::on_error(e_api_read_file());
+  result<padded_string, read_file_io_error> r = read_file_2(path);
+  if (!r.ok()) return r.error().make_leaf_error();
+  return *std::move(r);
+}
 
 sloppy_result<padded_string> read_file_sloppy(const char *path) {
   return boost::leaf::try_handle_all(
