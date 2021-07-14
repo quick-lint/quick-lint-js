@@ -39,7 +39,7 @@ class change_detecting_filesystem_inotify : public configuration_filesystem {
   explicit change_detecting_filesystem_inotify();
   ~change_detecting_filesystem_inotify() override;
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
@@ -65,7 +65,7 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem {
                                               void* udata);
   ~change_detecting_filesystem_kqueue() override;
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 
@@ -111,7 +111,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
       windows_handle_file_ref io_completion_port, ::ULONG_PTR completion_key);
   ~change_detecting_filesystem_win32() override;
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
   boost::leaf::result<padded_string> read_file(const canonical_path&) override;
 

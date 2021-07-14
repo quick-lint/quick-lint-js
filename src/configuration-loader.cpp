@@ -145,9 +145,10 @@ sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
 
 boost::leaf::result<configuration*> configuration_loader::load_config_file(
     const char* config_path) {
-  boost::leaf::result<canonical_path_result> canonical_config_path =
-      this->fs_->canonicalize_path(config_path);
-  if (!canonical_config_path) return canonical_config_path.error();
+  result<canonical_path_result, canonicalize_path_io_error>
+      canonical_config_path = this->fs_->canonicalize_path(config_path);
+  if (!canonical_config_path.ok())
+    return canonical_config_path.error().make_leaf_error();
 
   if (loaded_config_file* config_file =
           this->get_loaded_config(canonical_config_path->canonical())) {
@@ -175,9 +176,9 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 boost::leaf::result<configuration*>
 configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
-  boost::leaf::result<canonical_path_result> parent_directory =
+  result<canonical_path_result, canonicalize_path_io_error> parent_directory =
       this->get_parent_directory(input_path);
-  if (!parent_directory) return parent_directory.error();
+  if (!parent_directory.ok()) return parent_directory.error().make_leaf_error();
   return this->find_and_load_config_file_in_directory_and_ancestors(
       std::move(*parent_directory).canonical(),
       /*input_path=*/input_path);
@@ -185,9 +186,9 @@ configuration_loader::find_and_load_config_file_for_input(
 
 boost::leaf::result<configuration*>
 configuration_loader::find_and_load_config_file_for_current_directory() {
-  boost::leaf::result<canonical_path_result> canonical_cwd =
+  result<canonical_path_result, canonicalize_path_io_error> canonical_cwd =
       this->fs_->canonicalize_path(".");
-  if (!canonical_cwd) return canonical_cwd.error();
+  if (!canonical_cwd.ok()) return canonical_cwd.error().make_leaf_error();
 
   if (canonical_cwd->have_missing_components()) {
     canonical_cwd->drop_missing_components();
@@ -297,11 +298,11 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
 
 QLJS_WARNING_POP
 
-boost::leaf::result<canonical_path_result>
+result<canonical_path_result, canonicalize_path_io_error>
 configuration_loader::get_parent_directory(const char* input_path) {
-  boost::leaf::result<canonical_path_result> canonical_input_path =
-      this->fs_->canonicalize_path(input_path);
-  if (!canonical_input_path) return canonical_input_path.error();
+  result<canonical_path_result, canonicalize_path_io_error>
+      canonical_input_path = this->fs_->canonicalize_path(input_path);
+  if (!canonical_input_path.ok()) return canonical_input_path.propagate();
 
   bool should_drop_file_name = true;
   if (canonical_input_path->have_missing_components()) {
@@ -337,9 +338,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
     std::optional<canonical_path_result> parent_directory =
         boost::leaf::try_handle_all(
             [&]() -> boost::leaf::result<std::optional<canonical_path_result>> {
-              boost::leaf::result<canonical_path_result> parent_dir =
-                  this->get_parent_directory(input_path.c_str());
-              if (!parent_dir) return parent_dir.error();
+              result<canonical_path_result, canonicalize_path_io_error>
+                  parent_dir = this->get_parent_directory(input_path.c_str());
+              if (!parent_dir.ok()) return parent_dir.error().make_leaf_error();
               return std::optional<canonical_path_result>(*parent_dir);
             },
             make_canonicalize_path_error_handlers(
@@ -477,9 +478,9 @@ basic_configuration_filesystem::instance() noexcept {
   return &fs;
 }
 
-boost::leaf::result<canonical_path_result>
+result<canonical_path_result, canonicalize_path_io_error>
 basic_configuration_filesystem::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
+  return quick_lint_js::canonicalize_path_2(path);
 }
 
 boost::leaf::result<padded_string> basic_configuration_filesystem::read_file(

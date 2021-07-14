@@ -52,7 +52,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
 #endif
   }
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string& path) override {
     // TODO(strager): Check if path components exist.
     return canonical_path_result(std::string(path), path.size());

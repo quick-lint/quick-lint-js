@@ -110,17 +110,6 @@ struct e_canonicalizing_path {
   std::string path;
 };
 
-// Possible error types:
-//
-// * e_errno
-// * e_file_path
-// * e_LastError
-// * e_api_canonicalize_path (always present)
-// * e_canonicalizing_path
-boost::leaf::result<canonical_path_result> canonicalize_path(const char *path);
-boost::leaf::result<canonical_path_result> canonicalize_path(
-    const std::string &path);
-
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
     const char *path);
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(

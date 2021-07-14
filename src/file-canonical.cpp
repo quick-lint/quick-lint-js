@@ -710,21 +710,6 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
   return canonicalize_path_2(path.c_str());
 }
 
-boost::leaf::result<canonical_path_result> canonicalize_path(const char *path) {
-  result<canonical_path_result, canonicalize_path_io_error> r =
-      canonicalize_path_2(path);
-  if (!r.ok()) return r.error().make_leaf_error();
-  return *std::move(r);
-}
-
-boost::leaf::result<canonical_path_result> canonicalize_path(
-    const std::string &path) {
-  result<canonical_path_result, canonicalize_path_io_error> r =
-      canonicalize_path_2(path);
-  if (!r.ok()) return r.error().make_leaf_error();
-  return *std::move(r);
-}
-
 namespace {
 #if QLJS_HAVE_UNISTD_H
 int read_symbolic_link(const char *symlink_path, std::string *out) {

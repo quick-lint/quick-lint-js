@@ -82,9 +82,9 @@ change_detecting_filesystem_win32::~change_detecting_filesystem_win32() {
   // calling ExitProcess thus shouldn't call this destructor anyway.
 }
 
-boost::leaf::result<canonical_path_result>
+result<canonical_path_result, canonicalize_path_io_error>
 change_detecting_filesystem_win32::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
+  return quick_lint_js::canonicalize_path_2(path);
 }
 
 boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(
