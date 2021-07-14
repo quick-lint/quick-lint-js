@@ -110,9 +110,9 @@ struct e_canonicalizing_path {
   std::string path;
 };
 
-result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path);
-result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const std::string &path);
 
 // Valid signatures for handle_error:

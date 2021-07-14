@@ -480,7 +480,7 @@ basic_configuration_filesystem::instance() noexcept {
 
 result<canonical_path_result, canonicalize_path_io_error>
 basic_configuration_filesystem::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path_2(path);
+  return quick_lint_js::canonicalize_path(path);
 }
 
 boost::leaf::result<padded_string> basic_configuration_filesystem::read_file(

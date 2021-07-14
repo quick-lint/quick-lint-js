@@ -681,7 +681,7 @@ class windows_path_canonicalizer
 #endif
 }
 
-result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path) {
 #if defined(_WIN32)
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
@@ -705,9 +705,9 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
   return canonicalizer.result();
 }
 
-result<canonical_path_result, canonicalize_path_io_error> canonicalize_path_2(
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const std::string &path) {
-  return canonicalize_path_2(path.c_str());
+  return canonicalize_path(path.c_str());
 }
 
 namespace {

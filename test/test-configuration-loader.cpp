@@ -307,12 +307,12 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
           return {};
         },
         [&](e_api_read_file, const e_file_path& path, e_errno error) {
-          EXPECT_EQ(path.path, canonicalize_path_2(config_file)->c_str());
+          EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
           EXPECT_EQ(error.error, EISDIR) << std::strerror(error.error);
         },
 #if QLJS_HAVE_WINDOWS_H
         [&](e_api_read_file, const e_file_path& path, e_LastError error) {
-          EXPECT_EQ(path.path, canonicalize_path_2(config_file)->c_str());
+          EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
           EXPECT_EQ(error.error, ERROR_ACCESS_DENIED)
               << windows_error_message(error.error);
         },
@@ -553,12 +553,12 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
         return {};
       },
       [&](e_api_read_file, const e_file_path& path, e_errno error) {
-        EXPECT_EQ(path.path, canonicalize_path_2(config_file)->c_str());
+        EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
         EXPECT_EQ(error.error, ENOENT) << std::strerror(error.error);
       },
 #if QLJS_HAVE_WINDOWS_H
       [&](e_api_read_file, const e_file_path& path, e_LastError error) {
-        EXPECT_EQ(path.path, canonicalize_path_2(config_file)->c_str());
+        EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
         EXPECT_EQ(error.error, ERROR_FILE_NOT_FOUND)
             << windows_error_message(error.error);
       },

@@ -44,7 +44,7 @@ change_detecting_filesystem_kqueue::~change_detecting_filesystem_kqueue() {
 
 result<canonical_path_result, canonicalize_path_io_error>
 change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path_2(path);
+  return quick_lint_js::canonicalize_path(path);
 }
 
 boost::leaf::result<padded_string>
