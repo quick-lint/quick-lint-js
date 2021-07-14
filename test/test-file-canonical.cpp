@@ -733,8 +733,18 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/link1/file.js";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          e_too_many_symlinks) { EXPECT_EQ(path.path, input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_CANT_RESOLVE_FILENAME);
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
+      [&](e_api_canonicalize_path, const e_file_path& path, e_errno error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ELOOP);
+      },
+#endif
       fail_test_error_handlers());
 }
 

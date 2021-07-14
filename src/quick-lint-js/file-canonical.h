@@ -98,7 +98,6 @@ struct e_api_canonicalize_path {};
 struct e_canonicalizing_path {
   std::string path;
 };
-struct e_too_many_symlinks {};
 
 // Possible error types:
 //
@@ -107,7 +106,6 @@ struct e_too_many_symlinks {};
 // * e_LastError
 // * e_api_canonicalize_path (always present)
 // * e_canonicalizing_path
-// * e_too_many_symlinks
 boost::leaf::result<canonical_path_result> canonicalize_path(const char *path);
 boost::leaf::result<canonical_path_result> canonicalize_path(
     const std::string &path);
@@ -134,11 +132,6 @@ auto make_canonicalize_path_error_handlers(const Func &handle_error) {
                      e_errno error) {
         return handle_error("failed to canonicalize "s + path.path + ": "s +
                             std::strerror(error.error));
-      },
-      [handle_error](e_api_canonicalize_path, const e_file_path &path,
-                     e_too_many_symlinks) {
-        return handle_error("failed to canonicalize "s + path.path +
-                            ": Too many levels of symlink"s);
       },
       [handle_error](e_api_canonicalize_path) {
         QLJS_ASSERT(false);  // One of the above handlers should have handled

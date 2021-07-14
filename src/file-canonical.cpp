@@ -439,7 +439,7 @@ class posix_path_canonicalizer
   boost::leaf::result<void> resolve_symlink() {
     symlink_depth_ += 1;
     if (symlink_depth_ >= symlink_depth_limit_) {
-      return boost::leaf::new_error(e_too_many_symlinks());
+      return boost::leaf::new_error(e_errno{ELOOP});
     }
 
     std::string &new_readlink_buffer =
