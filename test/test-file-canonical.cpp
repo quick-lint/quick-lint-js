@@ -133,8 +133,18 @@ TEST_F(test_file_canonical, canonical_path_of_empty_fails) {
 
   boost::leaf::try_handle_all(
       [] { return canonicalize_expecting_failure(""); },
-      [](e_api_canonicalize_path, const e_file_path& path,
-         e_invalid_argument_empty_path) { EXPECT_EQ(path.path, ""); },
+#if QLJS_HAVE_WINDOWS_H
+      [](e_api_canonicalize_path, const e_file_path& path, e_LastError error) {
+        EXPECT_EQ(path.path, "");
+        EXPECT_EQ(error.error, ERROR_INVALID_PARAMETER);
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
+      [](e_api_canonicalize_path, const e_file_path& path, e_errno error) {
+        EXPECT_EQ(path.path, "");
+        EXPECT_EQ(error.error, EINVAL);
+      },
+#endif
       fail_test_error_handlers());
 }
 

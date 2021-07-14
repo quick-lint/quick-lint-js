@@ -216,7 +216,13 @@ class path_canonicalizer_base {
 
   boost::leaf::result<void> canonicalize() {
     if (original_path_.empty()) {
-      return boost::leaf::new_error(e_invalid_argument_empty_path());
+#if QLJS_HAVE_WINDOWS_H
+      return boost::leaf::new_error(e_LastError{ERROR_INVALID_PARAMETER});
+#elif QLJS_HAVE_UNISTD_H
+      return boost::leaf::new_error(e_errno{EINVAL});
+#else
+#error "Unsupported platform"
+#endif
     }
 
     boost::leaf::result<void> ok = this->derived().process_start_of_path();
