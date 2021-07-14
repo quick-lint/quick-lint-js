@@ -74,23 +74,6 @@ class test_file_canonical : public ::testing::Test {
   }
 };
 
-template <class Path>
-boost::leaf::result<void> canonicalize_expecting_failure(const Path& path) {
-  boost::leaf::result<canonical_path_result> canonical =
-      canonicalize_path(path);
-  if (!canonical) return canonical.error();
-  ADD_FAILURE() << "canonicalize_path should have failed";
-  return {};
-}
-
-auto fail_test_error_handlers() {
-  return std::tuple(
-      make_canonicalize_path_error_handlers([](const std::string& message) {
-        ADD_FAILURE() << "error: " << message;
-      }),
-      []() { ADD_FAILURE() << "unknown error"; });
-}
-
 bool process_ignores_filesystem_permissions() noexcept {
 #if QLJS_HAVE_UNISTD_H
   return ::geteuid() == 0;
@@ -131,21 +114,17 @@ TEST_F(test_file_canonical, canonical_path_of_empty_fails) {
   std::string temp_dir = this->make_temporary_directory();
   this->set_current_working_directory(temp_dir);
 
-  boost::leaf::try_handle_all(
-      [] { return canonicalize_expecting_failure(""); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2("");
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, "");
+  EXPECT_EQ(canonical.error().canonicalizing_path, "");
 #if QLJS_HAVE_WINDOWS_H
-      [](e_api_canonicalize_path, const e_file_path& path, e_LastError error) {
-        EXPECT_EQ(path.path, "");
-        EXPECT_EQ(error.error, ERROR_INVALID_PARAMETER);
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_INVALID_PARAMETER);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [](e_api_canonicalize_path, const e_file_path& path, e_errno error) {
-        EXPECT_EQ(path.path, "");
-        EXPECT_EQ(error.error, EINVAL);
-      },
+  EXPECT_EQ(canonical.error().io_error.error, EINVAL);
 #endif
-      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical,
@@ -168,26 +147,18 @@ TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
   write_file(temp_dir + "/file.txt", u8"");
 
   std::string input_path = temp_dir + "/file.txt/";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("file.txt"));
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_DIRECTORY)
-            << windows_error_message(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file.txt"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file.txt"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
-      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical, canonical_path_to_non_existing_file_succeeds) {
@@ -235,26 +206,18 @@ TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {
   write_file(temp_dir + "/file", u8"");
 
   std::string input_path = temp_dir + "/file/subfile";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("file"));
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_DIRECTORY)
-            << windows_error_message(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
-      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical, canonical_path_removes_dot_components) {
@@ -290,26 +253,18 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/./something";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("just-a-file"));
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_DIRECTORY)
-            << windows_error_message(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
-      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical,
@@ -341,26 +296,18 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/other.txt", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/../other.text";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("just-a-file"));
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_DIRECTORY)
-            << windows_error_message(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
-      fail_test_error_handlers());
 }
 
 #if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
@@ -386,26 +333,18 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("just-a-file"));
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_DIRECTORY)
-            << windows_error_message(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
-      fail_test_error_handlers());
 }
 #endif
 
@@ -430,26 +369,18 @@ TEST_F(test_file_canonical,
   write_file(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/.";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("just-a-file"));
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_DIRECTORY)
-            << windows_error_message(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
-      fail_test_error_handlers());
 }
 #endif
 
@@ -803,21 +734,16 @@ TEST_F(test_file_canonical,
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/link1/file.js";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_canonicalize_path, const e_file_path& path, e_LastError error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ERROR_CANT_RESOLVE_FILENAME);
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ERROR_CANT_RESOLVE_FILENAME);
 #endif
 #if QLJS_HAVE_UNISTD_H
-      [&](e_api_canonicalize_path, const e_file_path& path, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, ELOOP);
-      },
+  EXPECT_EQ(canonical.error().io_error.error, ELOOP);
 #endif
-      fail_test_error_handlers());
 }
 
 TEST_F(test_file_canonical,
@@ -929,15 +855,13 @@ TEST_F(test_file_canonical, unsearchable_parent_directory) {
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/dir/file";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, EACCES) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("dir/file"));
-      },
-      fail_test_error_handlers());
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("dir/file"));
+  EXPECT_EQ(canonical.error().io_error.error, EACCES);
 
   // Allow test cleanup to delete the directory.
   EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
@@ -957,15 +881,13 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
       << std::strerror(errno);
 
   std::string input_path = temp_dir + "/dir/subdir/file";
-  boost::leaf::try_handle_all(
-      [&] { return canonicalize_expecting_failure(input_path); },
-      [&](e_api_canonicalize_path, const e_file_path& path,
-          const e_canonicalizing_path& canonicalizing, e_errno error) {
-        EXPECT_EQ(path.path, input_path);
-        EXPECT_EQ(error.error, EACCES) << std::strerror(error.error);
-        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("dir/subdir"));
-      },
-      fail_test_error_handlers());
+  result<canonical_path_result, canonicalize_path_io_error> canonical =
+      canonicalize_path_2(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("dir/subdir"));
+  EXPECT_EQ(canonical.error().io_error.error, EACCES);
 
   // Allow test cleanup to delete the directory.
   EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
