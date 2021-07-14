@@ -303,9 +303,17 @@ class path_canonicalizer_base {
         // Extra components and trailing slashes are not allowed for regular
         // files, FIFOs, etc.
         if (!path_to_process_.empty()) {
+#if QLJS_HAVE_WINDOWS_H
+          return boost::leaf::new_error(
+              e_LastError{ERROR_DIRECTORY},
+              e_canonicalizing_path{string_for_error_message(canonical_)});
+#elif QLJS_HAVE_UNISTD_H
           return boost::leaf::new_error(
               e_errno{ENOTDIR},
               e_canonicalizing_path{string_for_error_message(canonical_)});
+#else
+#error "Unknown platform"
+#endif
         }
         break;
 

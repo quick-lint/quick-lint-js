@@ -170,12 +170,23 @@ TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
   std::string input_path = temp_dir + "/file.txt/";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          const e_canonicalizing_path& canonicalizing, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_DIRECTORY)
+            << windows_error_message(error.error);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file.txt"));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
       [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
         EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file.txt"));
       },
+#endif
       fail_test_error_handlers());
 }
 
@@ -224,12 +235,23 @@ TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {
   std::string input_path = temp_dir + "/file/subfile";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          const e_canonicalizing_path& canonicalizing, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_DIRECTORY)
+            << windows_error_message(error.error);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file"));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
       [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
         EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("file"));
       },
+#endif
       fail_test_error_handlers());
 }
 
@@ -268,12 +290,23 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/./something";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          const e_canonicalizing_path& canonicalizing, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_DIRECTORY)
+            << windows_error_message(error.error);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
       [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
         EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
+#endif
       fail_test_error_handlers());
 }
 
@@ -307,12 +340,23 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/../other.text";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          const e_canonicalizing_path& canonicalizing, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_DIRECTORY)
+            << windows_error_message(error.error);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
       [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
         EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
+#endif
       fail_test_error_handlers());
 }
 
@@ -341,12 +385,23 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          const e_canonicalizing_path& canonicalizing, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_DIRECTORY)
+            << windows_error_message(error.error);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
       [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
         EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
+#endif
       fail_test_error_handlers());
 }
 #endif
@@ -374,12 +429,23 @@ TEST_F(test_file_canonical,
   std::string input_path = temp_dir + "/just-a-file/.";
   boost::leaf::try_handle_all(
       [&] { return canonicalize_expecting_failure(input_path); },
+#if QLJS_HAVE_WINDOWS_H
+      [&](e_api_canonicalize_path, const e_file_path& path,
+          const e_canonicalizing_path& canonicalizing, e_LastError error) {
+        EXPECT_EQ(path.path, input_path);
+        EXPECT_EQ(error.error, ERROR_DIRECTORY)
+            << windows_error_message(error.error);
+        EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
+      },
+#endif
+#if QLJS_HAVE_UNISTD_H
       [&](e_api_canonicalize_path, const e_file_path& path,
           const e_canonicalizing_path& canonicalizing, e_errno error) {
         EXPECT_EQ(path.path, input_path);
         EXPECT_EQ(error.error, ENOTDIR) << std::strerror(error.error);
         EXPECT_THAT(canonicalizing.path, ::testing::EndsWith("just-a-file"));
       },
+#endif
       fail_test_error_handlers());
 }
 #endif
