@@ -467,7 +467,8 @@ class posix_path_canonicalizer
     // readlink_buffers_[used_readlink_buffer_] is no longer in use.
     swap_readlink_buffers();
 
-    process_start_of_path();
+    boost::leaf::result<void> ok = process_start_of_path();
+    if (!ok) return ok.error();
 
     return {};
   }
