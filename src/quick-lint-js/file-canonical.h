@@ -90,9 +90,7 @@ class canonical_path_result {
   void drop_missing_components();
 
  private:
-  explicit canonical_path_result();
-
-  std::optional<canonical_path> path_;
+  canonical_path path_;
   std::size_t existing_path_length_;
 };
 

@@ -175,38 +175,36 @@ bool canonical_path::parent() {
 #endif
 }
 
-canonical_path_result::canonical_path_result() {}
-
 canonical_path_result::canonical_path_result(std::string &&path,
                                              std::size_t existing_path_length)
     : path_(std::move(path)), existing_path_length_(existing_path_length) {}
 
 std::string_view canonical_path_result::path() const &noexcept {
-  return this->path_->path();
+  return this->path_.path();
 }
 
 std::string &&canonical_path_result::path() && noexcept {
-  return std::move(*this->path_).path();
+  return std::move(this->path_).path();
 }
 
 const char *canonical_path_result::c_str() const noexcept {
-  return this->path_->c_str();
+  return this->path_.c_str();
 }
 
 const canonical_path &canonical_path_result::canonical() const &noexcept {
-  return *this->path_;
+  return this->path_;
 }
 
 canonical_path &&canonical_path_result::canonical() && noexcept {
-  return std::move(*this->path_);
+  return std::move(this->path_);
 }
 
 bool canonical_path_result::have_missing_components() const noexcept {
-  return this->existing_path_length_ != this->path_->path_.size();
+  return this->existing_path_length_ != this->path_.path_.size();
 }
 
 void canonical_path_result::drop_missing_components() {
-  this->path_->path_.resize(this->existing_path_length_);
+  this->path_.path_.resize(this->existing_path_length_);
 }
 
 namespace {
