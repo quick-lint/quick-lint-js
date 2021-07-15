@@ -303,50 +303,19 @@ std::vector<configuration_change> configuration_loader::refresh() {
       continue;
     }
 
-    std::optional<found_config_file> latest = boost::leaf::try_handle_all(
-        [&]() -> boost::leaf::result<std::optional<found_config_file>> {
-          result<found_config_file, read_file_io_error, platform_file_io_error>
-              found = this->find_config_file_in_directory_and_ancestors(
-                  std::move(*parent_directory).canonical());
-          if (!found.ok()) {
-            if (found.has_error<read_file_io_error>()) {
-              return found.error<read_file_io_error>().make_leaf_error();
-            } else {
-              QLJS_ASSERT(found.has_error<platform_file_io_error>());
-              return found.error<platform_file_io_error>().make_leaf_error();
-            }
-          }
-          return std::optional<found_config_file>(std::move(*found));
-        },
-        make_read_file_error_handlers(
-            [&](std::string&& message) -> std::optional<found_config_file> {
-              if (watch.error != message) {
-                watch.error = std::move(message);
-                changes.emplace_back(configuration_change{
-                    .watched_path = &input_path,
-                    .config = &this->default_config_,
-                    .token = watch.token,
-                });
-              }
-              return std::nullopt;
-            }),
-        [&](e_errno error) -> std::optional<found_config_file> {
-          const char* message = std::strerror(error.error);
-          if (watch.error != message) {
-            watch.error = message;
-            changes.emplace_back(configuration_change{
-                .watched_path = &input_path,
-                .config = &this->default_config_,
-                .token = watch.token,
-            });
-          }
-          return std::nullopt;
-        },
-        []() -> std::optional<found_config_file> {
-          QLJS_ASSERT(false);
-          return std::nullopt;
+    result<found_config_file, read_file_io_error, platform_file_io_error>
+        latest = this->find_config_file_in_directory_and_ancestors(
+            std::move(*parent_directory).canonical());
+    if (!latest.ok()) {
+      std::string message = latest.error_to_string();
+      if (watch.error != message) {
+        watch.error = std::move(message);
+        changes.emplace_back(configuration_change{
+            .watched_path = &input_path,
+            .config = &this->default_config_,
+            .token = watch.token,
         });
-    if (!latest.has_value()) {
+      }
       continue;
     }
 
