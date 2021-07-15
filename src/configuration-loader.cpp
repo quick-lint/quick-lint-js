@@ -78,7 +78,7 @@ boost::leaf::result<configuration*> configuration_loader::load_for_file(
     const std::string& file_path) {
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
-      r = this->find_and_load_config_file_for_input(file_path.c_str());
+      r = this->load_for_file_2(file_path);
   if (!r.ok()) {
     if (r.has_error<canonicalize_path_io_error>()) {
       return r.error<canonicalize_path_io_error>().make_leaf_error();
@@ -94,52 +94,38 @@ boost::leaf::result<configuration*> configuration_loader::load_for_file(
 
 boost::leaf::result<configuration*> configuration_loader::load_for_file(
     const file_to_lint& file) {
-  if (file.config_file) {
-    result<configuration*, canonicalize_path_io_error, read_file_io_error,
-           platform_file_io_error>
-        r = this->load_config_file(file.config_file);
-    if (!r.ok()) {
-      if (r.has_error<canonicalize_path_io_error>()) {
-        return r.error<canonicalize_path_io_error>().make_leaf_error();
-      } else if (r.has_error<read_file_io_error>()) {
-        return r.error<read_file_io_error>().make_leaf_error();
-      } else {
-        QLJS_ASSERT(r.has_error<platform_file_io_error>());
-        return r.error<platform_file_io_error>().make_leaf_error();
-      }
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+      r = this->load_for_file_2(file);
+  if (!r.ok()) {
+    if (r.has_error<canonicalize_path_io_error>()) {
+      return r.error<canonicalize_path_io_error>().make_leaf_error();
+    } else if (r.has_error<read_file_io_error>()) {
+      return r.error<read_file_io_error>().make_leaf_error();
+    } else {
+      QLJS_ASSERT(r.has_error<platform_file_io_error>());
+      return r.error<platform_file_io_error>().make_leaf_error();
     }
-    return *r;
+  }
+  return *r;
+}
+
+result<configuration*, canonicalize_path_io_error, read_file_io_error,
+       platform_file_io_error>
+configuration_loader::load_for_file_2(const std::string& file_path) {
+  return this->find_and_load_config_file_for_input(file_path.c_str());
+}
+
+result<configuration*, canonicalize_path_io_error, read_file_io_error,
+       platform_file_io_error>
+configuration_loader::load_for_file_2(const file_to_lint& file) {
+  if (file.config_file) {
+    return this->load_config_file(file.config_file);
   } else {
     if (file.path) {
-      result<configuration*, canonicalize_path_io_error, read_file_io_error,
-             platform_file_io_error>
-          r = this->find_and_load_config_file_for_input(file.path);
-      if (!r.ok()) {
-        if (r.has_error<canonicalize_path_io_error>()) {
-          return r.error<canonicalize_path_io_error>().make_leaf_error();
-        } else if (r.has_error<read_file_io_error>()) {
-          return r.error<read_file_io_error>().make_leaf_error();
-        } else {
-          QLJS_ASSERT(r.has_error<platform_file_io_error>());
-          return r.error<platform_file_io_error>().make_leaf_error();
-        }
-      }
-      return *r;
+      return this->find_and_load_config_file_for_input(file.path);
     } else {
-      result<configuration*, canonicalize_path_io_error, read_file_io_error,
-             platform_file_io_error>
-          r = this->find_and_load_config_file_for_current_directory();
-      if (!r.ok()) {
-        if (r.has_error<canonicalize_path_io_error>()) {
-          return r.error<canonicalize_path_io_error>().make_leaf_error();
-        } else if (r.has_error<read_file_io_error>()) {
-          return r.error<read_file_io_error>().make_leaf_error();
-        } else {
-          QLJS_ASSERT(r.has_error<platform_file_io_error>());
-          return r.error<platform_file_io_error>().make_leaf_error();
-        }
-      }
-      return *r;
+      return this->find_and_load_config_file_for_current_directory();
     }
   }
 }

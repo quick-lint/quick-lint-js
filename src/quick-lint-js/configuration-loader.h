@@ -60,6 +60,12 @@ class configuration_loader {
   boost::leaf::result<configuration*> load_for_file(
       const std::string& file_path);
   boost::leaf::result<configuration*> load_for_file(const file_to_lint&);
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+  load_for_file_2(const std::string& file_path);
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+  load_for_file_2(const file_to_lint&);
   sloppy_result<configuration*> load_for_file_sloppy(
       const std::string& file_path);
   sloppy_result<configuration*> load_for_file_sloppy(const file_to_lint&);
