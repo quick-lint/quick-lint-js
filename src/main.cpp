@@ -169,10 +169,9 @@ void handle_options(quick_lint_js::options o) {
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    sloppy_result<configuration *> config =
-        config_loader.load_for_file_sloppy(file);
+    auto config = config_loader.load_for_file_2(file);
     if (!config.ok()) {
-      std::fprintf(stderr, "error: %s\n", config.error().c_str());
+      std::fprintf(stderr, "error: %s\n", config.error_to_string().c_str());
       std::exit(1);
     }
     result<padded_string, read_file_io_error> source =

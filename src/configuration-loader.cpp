@@ -122,29 +122,6 @@ configuration_loader::load_for_file_2(const file_to_lint& file) {
   }
 }
 
-sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
-    const std::string& file_path) {
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
-      r = this->load_for_file_2(file_path);
-  if (!r.ok()) {
-    std::string message = r.error_to_string();
-    return sloppy_result<configuration*>::failure(std::move(message));
-  }
-  return *r;
-}
-
-sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
-    const file_to_lint& file) {
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
-      r = this->load_for_file_2(file);
-  if (!r.ok()) {
-    return sloppy_result<configuration*>::failure(r.error_to_string());
-  }
-  return *r;
-}
-
 result<configuration*, canonicalize_path_io_error, read_file_io_error,
        platform_file_io_error>
 configuration_loader::load_config_file(const char* config_path) {

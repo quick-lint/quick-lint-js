@@ -66,9 +66,6 @@ class configuration_loader {
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
   load_for_file_2(const file_to_lint&);
-  sloppy_result<configuration*> load_for_file_sloppy(
-      const std::string& file_path);
-  sloppy_result<configuration*> load_for_file_sloppy(const file_to_lint&);
 
   std::vector<configuration_change> refresh();
 
