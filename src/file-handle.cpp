@@ -323,16 +323,6 @@ std::string windows_error_message(DWORD error) {
   return message_copy;
 }
 #endif
-
-#if QLJS_HAVE_UNISTD_H
-std::string error_message(e_errno error) { return std::strerror(error.error); }
-#endif
-
-#if QLJS_HAVE_WINDOWS_H
-std::string error_message(e_LastError error) {
-  return windows_error_message(error.error);
-}
-#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

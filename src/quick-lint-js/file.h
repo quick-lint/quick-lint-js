@@ -40,64 +40,6 @@ padded_string read_file_or_exit(const char *path);
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
 
-// Valid signatures for handle_error:
-// <<any rvalue result type>> handle_error();
-template <class Func>
-auto make_file_not_found_handler(const Func &handle_error) {
-  return std::tuple(
-#if QLJS_HAVE_WINDOWS_H
-      [handle_error](match_error<e_LastError, ERROR_FILE_NOT_FOUND>) {
-        return handle_error();
-      }
-#endif
-#if QLJS_HAVE_UNISTD_H
-          [handle_error](match_error<e_errno, ENOENT>) {
-            return handle_error();
-          }
-#endif
-  );
-}
-
-// Valid signatures for handle_error:
-// <<any rvalue result type>> handle_error(const std::string &message);
-// <<any rvalue result type>> handle_error(std::string &&message);
-template <class Func>
-auto make_read_file_error_handlers(const Func &handle_error) {
-  using namespace std::literals::string_literals;
-  return std::tuple(
-#if QLJS_HAVE_WINDOWS_H
-      [handle_error](e_api_read_file, const e_LastError &error,
-                     const e_file_path &path) {
-        return handle_error("failed to read from "s + path.path + ": "s +
-                            error_message(error));
-      },
-#endif
-#if QLJS_HAVE_UNISTD_H
-      [handle_error](e_api_read_file, const e_errno &error,
-                     const e_file_path &path) {
-        return handle_error("failed to read from "s + path.path + ": "s +
-                            std::strerror(error.error));
-      },
-#endif
-#if QLJS_HAVE_WINDOWS_H
-      [handle_error](e_api_read_file, const e_LastError &error) {
-        return handle_error("failed to read from file: "s +
-                            error_message(error));
-      },
-#endif
-#if QLJS_HAVE_UNISTD_H
-      [handle_error](e_api_read_file, const e_errno &error) {
-        return handle_error("failed to read from file: "s +
-                            std::strerror(error.error));
-      },
-#endif
-      [handle_error](e_api_read_file) {
-        QLJS_ASSERT(
-            false);  // Other catch clauses should have happened instead.
-        return handle_error("failed to read from file"s);
-      });
-}
-
 template <class Result>
 auto exit_on_read_file_error_handlers() {
   return make_read_file_error_handlers(
