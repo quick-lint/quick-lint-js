@@ -207,10 +207,17 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
 boost::leaf::result<configuration*>
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory, const char* input_path) {
-  boost::leaf::result<found_config_file> found =
+  result<found_config_file, read_file_io_error, platform_file_io_error> found =
       this->find_config_file_in_directory_and_ancestors(
           std::move(parent_directory));
-  if (!found) return found.error();
+  if (!found.ok()) {
+    if (found.has_error<read_file_io_error>()) {
+      return found.error<read_file_io_error>().make_leaf_error();
+    } else {
+      QLJS_ASSERT(found.has_error<platform_file_io_error>());
+      return found.error<platform_file_io_error>().make_leaf_error();
+    }
+  }
   if (!found->path.has_value()) {
     return &this->default_config_;
   }
@@ -238,7 +245,8 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   return &config_file->config;
 }
 
-boost::leaf::result<configuration_loader::found_config_file>
+result<configuration_loader::found_config_file, read_file_io_error,
+       platform_file_io_error>
 configuration_loader::find_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory) {
   // TODO(strager): Cache directory->config to reduce lookups in cases like the
@@ -264,40 +272,30 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
         };
       }
 
-      boost::leaf::result<std::optional<found_config_file>> found =
-          boost::leaf::try_handle_some(
-              [&]() -> boost::leaf::result<std::optional<found_config_file>> {
-                result<padded_string, read_file_io_error,
-                       platform_file_io_error>
-                    config_json = this->fs_->read_file(config_path);
-                if (!config_json.ok()) {
-                  if (config_json.has_error<read_file_io_error>()) {
-                    return config_json.error<read_file_io_error>()
-                        .make_leaf_error();
-                  } else {
-                    QLJS_ASSERT(
-                        config_json.has_error<platform_file_io_error>());
-                    return config_json.error<platform_file_io_error>()
-                        .make_leaf_error();
-                  }
-                }
-                return std::optional<found_config_file>(found_config_file{
-                    .path = std::move(config_path),
-                    .already_loaded = nullptr,
-                    .file_content = std::move(*config_json),
-                });
-              },
-              make_file_not_found_handler(
-                  []() -> std::optional<found_config_file> {
-                    // Loop, looking for a different file.
-                    return std::nullopt;
-                  }));
-      if (!found) return found.error();
-      if (found->has_value()) {
-        return std::move(**found);
+      result<padded_string, read_file_io_error, platform_file_io_error>
+          config_json = this->fs_->read_file(config_path);
+      if (!config_json.ok()) {
+        if (config_json.has_error<read_file_io_error>()) {
+          if (config_json.error<read_file_io_error>()
+                  .io_error.is_file_not_found_error()) {
+            // Loop, looking for a different file.
+            continue;
+          }
+        } else {
+          QLJS_ASSERT(config_json.has_error<platform_file_io_error>());
+          if (config_json.error<platform_file_io_error>()
+                  .is_file_not_found_error()) {
+            // Loop, looking for a different file.
+            continue;
+          }
+        }
+        return config_json.propagate();
       }
-
-      // Loop, looking for a different file.
+      return found_config_file{
+          .path = std::move(config_path),
+          .already_loaded = nullptr,
+          .file_content = std::move(*config_json),
+      };
     }
 
     // Loop, looking in parent directories.
@@ -383,10 +381,17 @@ std::vector<configuration_change> configuration_loader::refresh() {
     }
     std::optional<found_config_file> latest = boost::leaf::try_handle_all(
         [&]() -> boost::leaf::result<std::optional<found_config_file>> {
-          boost::leaf::result<found_config_file> found =
-              this->find_config_file_in_directory_and_ancestors(
+          result<found_config_file, read_file_io_error, platform_file_io_error>
+              found = this->find_config_file_in_directory_and_ancestors(
                   std::move(*parent_directory).canonical());
-          if (!found) return found.error();
+          if (!found.ok()) {
+            if (found.has_error<read_file_io_error>()) {
+              return found.error<read_file_io_error>().make_leaf_error();
+            } else {
+              QLJS_ASSERT(found.has_error<platform_file_io_error>());
+              return found.error<platform_file_io_error>().make_leaf_error();
+            }
+          }
           return std::optional<found_config_file>(std::move(*found));
         },
         make_read_file_error_handlers(
