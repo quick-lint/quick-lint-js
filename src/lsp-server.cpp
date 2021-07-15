@@ -57,7 +57,7 @@ lsp_overlay_configuration_filesystem::canonicalize_path(
   return this->underlying_fs_->canonicalize_path(path);
 }
 
-boost::leaf::result<padded_string>
+result<padded_string, read_file_io_error, platform_file_io_error>
 lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
   std::string_view key = path.path();

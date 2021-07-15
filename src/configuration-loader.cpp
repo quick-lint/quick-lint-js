@@ -154,9 +154,16 @@ boost::leaf::result<configuration*> configuration_loader::load_config_file(
           this->get_loaded_config(canonical_config_path->canonical())) {
     return &config_file->config;
   }
-  boost::leaf::result<padded_string> config_json =
-      this->fs_->read_file(canonical_config_path->canonical());
-  if (!config_json) return config_json.error();
+  result<padded_string, read_file_io_error, platform_file_io_error>
+      config_json = this->fs_->read_file(canonical_config_path->canonical());
+  if (!config_json.ok()) {
+    if (config_json.has_error<read_file_io_error>()) {
+      return config_json.error<read_file_io_error>().make_leaf_error();
+    } else {
+      QLJS_ASSERT(config_json.has_error<platform_file_io_error>());
+      return config_json.error<platform_file_io_error>().make_leaf_error();
+    }
+  }
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(canonical_config_path->canonical()),
@@ -260,9 +267,20 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
       boost::leaf::result<std::optional<found_config_file>> found =
           boost::leaf::try_handle_some(
               [&]() -> boost::leaf::result<std::optional<found_config_file>> {
-                boost::leaf::result<padded_string> config_json =
-                    this->fs_->read_file(config_path);
-                if (!config_json) return config_json.error();
+                result<padded_string, read_file_io_error,
+                       platform_file_io_error>
+                    config_json = this->fs_->read_file(config_path);
+                if (!config_json.ok()) {
+                  if (config_json.has_error<read_file_io_error>()) {
+                    return config_json.error<read_file_io_error>()
+                        .make_leaf_error();
+                  } else {
+                    QLJS_ASSERT(
+                        config_json.has_error<platform_file_io_error>());
+                    return config_json.error<platform_file_io_error>()
+                        .make_leaf_error();
+                  }
+                }
                 return std::optional<found_config_file>(found_config_file{
                     .path = std::move(config_path),
                     .already_loaded = nullptr,
@@ -436,9 +454,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
     // TODO(strager): Avoid reading config files again.
     // (find_config_file_in_directory_and_ancestors in the loop above already
     // read the config file.)
-    boost::leaf::result<padded_string> config_json =
-        this->fs_->read_file(config_path);
-    if (!config_json) {
+    result<padded_string, read_file_io_error, platform_file_io_error>
+        config_json = this->fs_->read_file(config_path);
+    if (!config_json.ok()) {
       continue;
     }
 
@@ -483,12 +501,9 @@ basic_configuration_filesystem::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path);
 }
 
-boost::leaf::result<padded_string> basic_configuration_filesystem::read_file(
-    const canonical_path& path) {
-  result<padded_string, read_file_io_error> r =
-      quick_lint_js::read_file(path.c_str());
-  if (!r.ok()) return r.error().make_leaf_error();
-  return *std::move(r);
+result<padded_string, read_file_io_error, platform_file_io_error>
+basic_configuration_filesystem::read_file(const canonical_path& path) {
+  return quick_lint_js::read_file(path.c_str());
 }
 }
 

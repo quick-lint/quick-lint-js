@@ -25,8 +25,16 @@ class null_configuration_filesystem : public configuration_filesystem {
     return canonical_path_result(std::string(path), /*existing_path_length=*/0);
   }
 
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override {
-    return boost::leaf::new_error(e_errno{ENOENT});
+  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+      const canonical_path&) override {
+#if QLJS_HAVE_WINDOWS_H
+    windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
+#endif
+#if QLJS_HAVE_UNISTD_H
+    posix_file_io_error io_error = {ENOENT};
+#endif
+    return result<padded_string, read_file_io_error, platform_file_io_error>::
+        failure<platform_file_io_error>(io_error);
   }
 };
 }

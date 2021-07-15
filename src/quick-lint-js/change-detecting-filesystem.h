@@ -41,7 +41,8 @@ class change_detecting_filesystem_inotify : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+      const canonical_path&) override;
 
   posix_fd_file_ref get_inotify_fd() noexcept;
   void handle_poll_event(const ::pollfd& event);
@@ -67,7 +68,8 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+      const canonical_path&) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
 
@@ -113,7 +115,8 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+      const canonical_path&) override;
 
   windows_handle_file_ref io_completion_port() const noexcept {
     return this->io_completion_port_;

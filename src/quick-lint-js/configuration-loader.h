@@ -23,8 +23,8 @@ class configuration_filesystem {
 
   virtual result<canonical_path_result, canonicalize_path_io_error>
   canonicalize_path(const std::string&) = 0;
-  virtual boost::leaf::result<padded_string> read_file(
-      const canonical_path&) = 0;
+  virtual result<padded_string, read_file_io_error, platform_file_io_error>
+  read_file(const canonical_path&) = 0;
 };
 
 struct configuration_change {
@@ -118,7 +118,8 @@ class basic_configuration_filesystem : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+      const canonical_path&) override;
 };
 }
 

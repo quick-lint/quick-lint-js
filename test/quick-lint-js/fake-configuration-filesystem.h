@@ -58,16 +58,18 @@ class fake_configuration_filesystem : public configuration_filesystem {
     return canonical_path_result(std::string(path), path.size());
   }
 
-  boost::leaf::result<padded_string> read_file(
+  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
       const canonical_path& path) override {
     auto file_it = this->files_.find(path);
     if (file_it == this->files_.end()) {
 #if QLJS_HAVE_WINDOWS_H
-      return boost::leaf::new_error(e_LastError{ERROR_FILE_NOT_FOUND});
+      windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
 #endif
 #if QLJS_HAVE_UNISTD_H
-      return boost::leaf::new_error(e_errno{ENOENT});
+      posix_file_io_error io_error = {ENOENT};
 #endif
+      return result<padded_string, read_file_io_error, platform_file_io_error>::
+          failure<platform_file_io_error>(io_error);
     }
     return padded_string(string8_view(file_it->second));
   }

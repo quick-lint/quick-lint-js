@@ -47,25 +47,27 @@ change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path);
 }
 
-boost::leaf::result<padded_string>
+result<padded_string, read_file_io_error, platform_file_io_error>
 change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(e_errno{errno});
+    return result<padded_string, read_file_io_error, platform_file_io_error>::
+        failure<posix_file_io_error>(posix_file_io_error{errno});
   }
 
   // TODO(strager): Use openat. watch_directory opened a directory fd.
   posix_fd_file file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    return boost::leaf::new_error(e_errno{errno});
+    return result<padded_string, read_file_io_error, platform_file_io_error>::
+        failure<posix_file_io_error>(posix_file_io_error{errno});
   }
 
   auto watch_it = this->watch_file(canonical_path(path), std::move(file));
   result<padded_string, read_file_io_error> r =
       quick_lint_js::read_file(path.c_str(), watch_it->second.fd.ref());
-  if (!r.ok()) return r.error().make_leaf_error();
+  if (!r.ok()) return r.propagate();
   return *std::move(r);
 }
 

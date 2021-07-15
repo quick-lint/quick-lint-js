@@ -87,18 +87,19 @@ change_detecting_filesystem_win32::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path);
 }
 
-boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(
-    const canonical_path& path) {
+result<padded_string, read_file_io_error, platform_file_io_error>
+change_detecting_filesystem_win32::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(e_LastError{::GetLastError()});
+    return result<padded_string, read_file_io_error, platform_file_io_error>::
+        failure<windows_file_io_error>(windows_file_io_error{::GetLastError()});
   }
 
   result<padded_string, read_file_io_error> r =
       quick_lint_js::read_file(path.c_str());
-  if (!r.ok()) return r.error().make_leaf_error();
+  if (!r.ok()) return r.propagate();
   return *std::move(r);
 }
 
