@@ -7,7 +7,6 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/result.h>
 #include <string>
 
