@@ -55,43 +55,23 @@ configuration_or_error configuration_loader::watch_and_load_for_file(
       .error = std::string(),
       .token = const_cast<void*>(token),
   });
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<configuration_or_error> {
-        result<configuration*, canonicalize_path_io_error, read_file_io_error,
-               platform_file_io_error>
-            r = this->find_and_load_config_file_for_input(file_path.c_str());
-        if (!r.ok()) {
-          if (r.has_error<canonicalize_path_io_error>()) {
-            return r.error<canonicalize_path_io_error>().make_leaf_error();
-          } else if (r.has_error<read_file_io_error>()) {
-            return r.error<read_file_io_error>().make_leaf_error();
-          } else {
-            QLJS_ASSERT(r.has_error<platform_file_io_error>());
-            return r.error<platform_file_io_error>().make_leaf_error();
-          }
-        }
-        return configuration_or_error(*r);
-      },
-      make_canonicalize_path_error_handlers(
-          [&](std::string&& message) -> configuration_or_error {
-            watch.error = message;
-            return configuration_or_error(std::move(message));
-          }),
-      make_read_file_error_handlers([&](std::string&& message) {
-        watch.error = message;
-        return configuration_or_error(std::move(message));
-      }),
-      [&](e_errno error) {
-        const char* message = std::strerror(error.error);
-        watch.error = message;
-        return configuration_or_error(message);
-      },
-      [&]() {
-        QLJS_ASSERT(false);
-        const char* message = "unknown error";
-        watch.error = message;
-        return configuration_or_error(message);
-      });
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+      r = this->find_and_load_config_file_for_input(file_path.c_str());
+  if (!r.ok()) {
+    std::string message;
+    if (r.has_error<canonicalize_path_io_error>()) {
+      message = r.error<canonicalize_path_io_error>().to_string();
+    } else if (r.has_error<read_file_io_error>()) {
+      message = r.error<read_file_io_error>().to_string();
+    } else {
+      QLJS_ASSERT(r.has_error<platform_file_io_error>());
+      message = r.error<platform_file_io_error>().to_string();
+    }
+    watch.error = message;
+    return configuration_or_error(std::move(message));
+  }
+  return configuration_or_error(*r);
 }
 
 boost::leaf::result<configuration*> configuration_loader::load_for_file(
@@ -397,34 +377,21 @@ std::vector<configuration_change> configuration_loader::refresh() {
 
   for (watched_path& watch : this->watched_paths_) {
     const std::string& input_path = watch.input_path;
-    std::optional<canonical_path_result> parent_directory =
-        boost::leaf::try_handle_all(
-            [&]() -> boost::leaf::result<std::optional<canonical_path_result>> {
-              result<canonical_path_result, canonicalize_path_io_error>
-                  parent_dir = this->get_parent_directory(input_path.c_str());
-              if (!parent_dir.ok()) return parent_dir.error().make_leaf_error();
-              return std::optional<canonical_path_result>(*parent_dir);
-            },
-            make_canonicalize_path_error_handlers(
-                [&](std::string&& message)
-                    -> std::optional<canonical_path_result> {
-                  if (watch.error != message) {
-                    watch.error = std::move(message);
-                    changes.emplace_back(configuration_change{
-                        .watched_path = &input_path,
-                        .config = &this->default_config_,
-                        .token = watch.token,
-                    });
-                  }
-                  return std::nullopt;
-                }),
-            []() -> std::optional<canonical_path_result> {
-              QLJS_ASSERT(false);
-              return std::nullopt;
-            });
-    if (!parent_directory.has_value()) {
+    result<canonical_path_result, canonicalize_path_io_error> parent_directory =
+        this->get_parent_directory(input_path.c_str());
+    if (!parent_directory.ok()) {
+      std::string message = parent_directory.error().to_string();
+      if (watch.error != message) {
+        watch.error = std::move(message);
+        changes.emplace_back(configuration_change{
+            .watched_path = &input_path,
+            .config = &this->default_config_,
+            .token = watch.token,
+        });
+      }
       continue;
     }
+
     std::optional<found_config_file> latest = boost::leaf::try_handle_all(
         [&]() -> boost::leaf::result<std::optional<found_config_file>> {
           result<found_config_file, read_file_io_error, platform_file_io_error>
