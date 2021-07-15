@@ -5,8 +5,6 @@
 #define QUICK_LINT_JS_EVENT_LOOP_H
 
 #include <array>
-#include <boost/leaf/handle_errors.hpp>
-#include <boost/leaf/pred.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <optional>

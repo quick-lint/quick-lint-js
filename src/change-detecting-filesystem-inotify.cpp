@@ -5,7 +5,6 @@
 
 #if QLJS_HAVE_INOTIFY
 
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>

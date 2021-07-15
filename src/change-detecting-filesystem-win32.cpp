@@ -4,7 +4,6 @@
 #if defined(_WIN32)
 
 #include <Windows.h>
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>

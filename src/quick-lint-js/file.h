@@ -4,9 +4,6 @@
 #ifndef QUICK_LINT_JS_FILE_H
 #define QUICK_LINT_JS_FILE_H
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/pred.hpp>
-#include <boost/leaf/result.hpp>
 #include <cstdio>
 #include <cstring>
 #include <quick-lint-js/assert.h>

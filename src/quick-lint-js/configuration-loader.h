@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
-#include <boost/leaf/result.hpp>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>

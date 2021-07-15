@@ -1,8 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/leaf/handle_errors.hpp>
-#include <boost/leaf/result.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <quick-lint-js/file.h>

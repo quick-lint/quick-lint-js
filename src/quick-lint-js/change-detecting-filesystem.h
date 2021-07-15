@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 #define QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 
-#include <boost/leaf/result.hpp>
 #include <memory>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>

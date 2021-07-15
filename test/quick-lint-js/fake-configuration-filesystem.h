@@ -4,9 +4,6 @@
 #ifndef QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 #define QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/error.hpp>
-#include <boost/leaf/result.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
