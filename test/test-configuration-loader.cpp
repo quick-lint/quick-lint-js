@@ -302,25 +302,18 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
     write_file(js_file, u8""sv);
     configuration_loader loader(basic_configuration_filesystem::instance());
 
-    boost::leaf::try_handle_all(
-        [&]() -> boost::leaf::result<void> {
-          boost::leaf::result<configuration*> config =
-              loader.load_for_file(js_file);
-          if (!config) return config.error();
-          return {};
-        },
-        [&](e_api_read_file, const e_file_path& path, e_errno error) {
-          EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
-          EXPECT_EQ(error.error, EISDIR) << std::strerror(error.error);
-        },
+    auto config = loader.load_for_file_2(js_file);
+    ASSERT_FALSE(config.ok());
+    ASSERT_TRUE(config.has_error<read_file_io_error>());
+    read_file_io_error e = config.error<read_file_io_error>();
+    EXPECT_EQ(e.path, canonicalize_path(config_file)->c_str());
 #if QLJS_HAVE_WINDOWS_H
-        [&](e_api_read_file, const e_file_path& path, e_LastError error) {
-          EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
-          EXPECT_EQ(error.error, ERROR_ACCESS_DENIED)
-              << windows_error_message(error.error);
-        },
+    EXPECT_EQ(e.io_error.error, ERROR_ACCESS_DENIED)
+        << windows_error_message(e.io_error.error);
 #endif
-        []() { ADD_FAILURE() << "unknown error"; });
+#if QLJS_HAVE_UNISTD_H
+    EXPECT_EQ(e.io_error.error, EISDIR) << std::strerror(e.io_error.error);
+#endif
   }
 }
 
@@ -546,28 +539,21 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
 
   configuration_loader loader(basic_configuration_filesystem::instance());
 
-  boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<void> {
-        boost::leaf::result<configuration*> config =
-            loader.load_for_file(file_to_lint{
-                .path = "hello.js",
-                .config_file = config_file.c_str(),
-            });
-        if (!config) return config.error();
-        return {};
-      },
-      [&](e_api_read_file, const e_file_path& path, e_errno error) {
-        EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
-        EXPECT_EQ(error.error, ENOENT) << std::strerror(error.error);
-      },
+  auto config = loader.load_for_file_2(file_to_lint{
+      .path = "hello.js",
+      .config_file = config_file.c_str(),
+  });
+  ASSERT_FALSE(config.ok());
+  ASSERT_TRUE(config.has_error<read_file_io_error>());
+  read_file_io_error e = config.error<read_file_io_error>();
+  EXPECT_EQ(e.path, canonicalize_path(config_file)->c_str());
 #if QLJS_HAVE_WINDOWS_H
-      [&](e_api_read_file, const e_file_path& path, e_LastError error) {
-        EXPECT_EQ(path.path, canonicalize_path(config_file)->c_str());
-        EXPECT_EQ(error.error, ERROR_FILE_NOT_FOUND)
-            << windows_error_message(error.error);
-      },
+  EXPECT_EQ(e.io_error.error, ERROR_FILE_NOT_FOUND)
+      << windows_error_message(e.io_error.error);
 #endif
-      []() { ADD_FAILURE() << "unknown error"; });
+#if QLJS_HAVE_UNISTD_H
+  EXPECT_EQ(e.io_error.error, ENOENT) << std::strerror(e.io_error.error);
+#endif
 }
 
 TEST_F(test_configuration_loader,
