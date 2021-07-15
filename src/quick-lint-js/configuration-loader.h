@@ -57,9 +57,6 @@ class configuration_loader {
 
   configuration_or_error watch_and_load_for_file(const std::string& file_path,
                                                  const void* token);
-  boost::leaf::result<configuration*> load_for_file(
-      const std::string& file_path);
-  boost::leaf::result<configuration*> load_for_file(const file_to_lint&);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
   load_for_file_2(const std::string& file_path);
