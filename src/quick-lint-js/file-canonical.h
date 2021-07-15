@@ -110,32 +110,6 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path);
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const std::string &path);
-
-// Valid signatures for handle_error:
-// <<any rvalue result type>> handle_error(const std::string &message);
-// <<any rvalue result type>> handle_error(std::string &&message);
-template <class Func>
-auto make_canonicalize_path_error_handlers(const Func &handle_error) {
-  using namespace std::literals::string_literals;
-  return std::tuple(
-      [handle_error](e_api_canonicalize_path, const e_file_path &path,
-                     e_errno error,
-                     const e_canonicalizing_path &canonicalizing) {
-        return handle_error("failed to canonicalize "s + canonicalizing.path +
-                            ": "s + path.path + ": "s +
-                            std::strerror(error.error));
-      },
-      [handle_error](e_api_canonicalize_path, const e_file_path &path,
-                     e_errno error) {
-        return handle_error("failed to canonicalize "s + path.path + ": "s +
-                            std::strerror(error.error));
-      },
-      [handle_error](e_api_canonicalize_path) {
-        QLJS_ASSERT(false);  // One of the above handlers should have handled
-                             // the error already.
-        return handle_error("failed to canonicalize path"s);
-      });
-}
 }
 
 namespace std {
