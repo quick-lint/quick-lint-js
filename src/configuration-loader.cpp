@@ -95,7 +95,20 @@ boost::leaf::result<configuration*> configuration_loader::load_for_file(
 boost::leaf::result<configuration*> configuration_loader::load_for_file(
     const file_to_lint& file) {
   if (file.config_file) {
-    return this->load_config_file(file.config_file);
+    result<configuration*, canonicalize_path_io_error, read_file_io_error,
+           platform_file_io_error>
+        r = this->load_config_file(file.config_file);
+    if (!r.ok()) {
+      if (r.has_error<canonicalize_path_io_error>()) {
+        return r.error<canonicalize_path_io_error>().make_leaf_error();
+      } else if (r.has_error<read_file_io_error>()) {
+        return r.error<read_file_io_error>().make_leaf_error();
+      } else {
+        QLJS_ASSERT(r.has_error<platform_file_io_error>());
+        return r.error<platform_file_io_error>().make_leaf_error();
+      }
+    }
+    return *r;
   } else {
     if (file.path) {
       result<configuration*, canonicalize_path_io_error, read_file_io_error,
@@ -162,12 +175,12 @@ sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
       });
 }
 
-boost::leaf::result<configuration*> configuration_loader::load_config_file(
-    const char* config_path) {
+result<configuration*, canonicalize_path_io_error, read_file_io_error,
+       platform_file_io_error>
+configuration_loader::load_config_file(const char* config_path) {
   result<canonical_path_result, canonicalize_path_io_error>
       canonical_config_path = this->fs_->canonicalize_path(config_path);
-  if (!canonical_config_path.ok())
-    return canonical_config_path.error().make_leaf_error();
+  if (!canonical_config_path.ok()) return canonical_config_path.propagate();
 
   if (loaded_config_file* config_file =
           this->get_loaded_config(canonical_config_path->canonical())) {
@@ -175,14 +188,7 @@ boost::leaf::result<configuration*> configuration_loader::load_config_file(
   }
   result<padded_string, read_file_io_error, platform_file_io_error>
       config_json = this->fs_->read_file(canonical_config_path->canonical());
-  if (!config_json.ok()) {
-    if (config_json.has_error<read_file_io_error>()) {
-      return config_json.error<read_file_io_error>().make_leaf_error();
-    } else {
-      QLJS_ASSERT(config_json.has_error<platform_file_io_error>());
-      return config_json.error<platform_file_io_error>().make_leaf_error();
-    }
-  }
+  if (!config_json.ok()) return config_json.propagate();
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(canonical_config_path->canonical()),
