@@ -280,17 +280,6 @@ class result<void, Error> : private result_base<void, Error> {
   template <class, class...>
   friend class result_base;
 };
-
-// Like std::variant<T, std::string>, but more ergonomic.
-//
-// The stored std::string represents an error message.
-//
-// sloppy_result is named "sloppy" because strings are a poor way to communicate
-// errors in general. sloppy_result is mostly intended for tests or for places
-// where an error can't be recovered from, not for most production code. If you
-// want more type-safe error handling, use boost::leaf::result instead.
-template <class T>
-using sloppy_result = result<T, std::string>;
 }
 
 #endif

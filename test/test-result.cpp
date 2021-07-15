@@ -16,110 +16,111 @@ class test_result_error : public ::testing::Test {};
 TYPED_TEST_SUITE(test_result_error, test_result_error_types,
                  ::testing::internal::DefaultNameGenerator);
 
-TEST(test_sloppy_result, store_void) {
-  sloppy_result<void> r;
+TEST(test_result, store_void) {
+  result<void, std::string> r;
   EXPECT_TRUE(r.ok());
 }
 
-TEST(test_sloppy_result, store_int) {
-  sloppy_result<int> r(42);
+TEST(test_result, store_int) {
+  result<int, std::string> r(42);
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(*r, 42);
 }
 
-TEST(test_sloppy_result, default_construct_int) {
-  sloppy_result<int> r;
+TEST(test_result, default_construct_int) {
+  result<int, std::string> r;
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(*r, 0);
 }
 
-TEST(test_sloppy_result, default_construct_non_trivial) {
-  sloppy_result<std::unique_ptr<int>> r;
+TEST(test_result, default_construct_non_trivial) {
+  result<std::unique_ptr<int>, std::string> r;
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(*r, nullptr);
 }
 
-TEST(test_sloppy_result, store_move_only_type) {
-  sloppy_result<std::unique_ptr<int>> r(std::make_unique<int>(42));
+TEST(test_result, store_move_only_type) {
+  result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
 }
 
-TEST(test_sloppy_result, move_construct_void) {
-  sloppy_result<void> r;
-  sloppy_result<void> copy = std::move(r);
+TEST(test_result, move_construct_void) {
+  result<void, std::string> r;
+  result<void, std::string> copy = std::move(r);
   EXPECT_TRUE(copy.ok());
 }
 
-TEST(test_sloppy_result, move_construct_of_move_only_type) {
-  sloppy_result<std::unique_ptr<int>> r(std::make_unique<int>(42));
-  sloppy_result<std::unique_ptr<int>> copy = std::move(r);
+TEST(test_result, move_construct_of_move_only_type) {
+  result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
+  result<std::unique_ptr<int>, std::string> copy = std::move(r);
   EXPECT_TRUE(copy.ok());
   EXPECT_EQ(**copy, 42);
 }
 
-TEST(test_sloppy_result, move_assign_of_move_only_type) {
-  sloppy_result<std::unique_ptr<int>> r(std::make_unique<int>(42));
-  r = sloppy_result<std::unique_ptr<int>>(std::make_unique<int>(69));
+TEST(test_result, move_assign_of_move_only_type) {
+  result<std::unique_ptr<int>, std::string> r(std::make_unique<int>(42));
+  r = result<std::unique_ptr<int>, std::string>(std::make_unique<int>(69));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 69);
 }
 
-TEST(test_sloppy_result, move_assign_void) {
-  sloppy_result<void> r;
-  r = sloppy_result<void>();
+TEST(test_result, move_assign_void) {
+  result<void, std::string> r;
+  r = result<void, std::string>();
   EXPECT_TRUE(r.ok());
 }
 
 TYPED_TEST(test_result_error, store_error) {
-  sloppy_result<TypeParam> r =
-      sloppy_result<TypeParam>::failure("something bad happened");
+  result<TypeParam, std::string> r =
+      result<TypeParam, std::string>::failure("something bad happened");
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "something bad happened");
 }
 
 TYPED_TEST(test_result_error, move_construct_error) {
-  sloppy_result<TypeParam> r =
-      sloppy_result<TypeParam>::failure("something bad happened");
-  sloppy_result<TypeParam> copy = std::move(r);
+  result<TypeParam, std::string> r =
+      result<TypeParam, std::string>::failure("something bad happened");
+  result<TypeParam, std::string> copy = std::move(r);
   EXPECT_FALSE(copy.ok());
   EXPECT_EQ(copy.error(), "something bad happened");
 }
 
 TYPED_TEST(test_result_error, move_assign_error) {
-  sloppy_result<TypeParam> r =
-      sloppy_result<TypeParam>::failure("something bad happened");
-  r = sloppy_result<TypeParam>::failure("fatal error");
+  result<TypeParam, std::string> r =
+      result<TypeParam, std::string>::failure("something bad happened");
+  r = result<TypeParam, std::string>::failure("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
-TEST(test_sloppy_result, move_assign_error_atop_value) {
-  sloppy_result<std::shared_ptr<int>> r =
-      sloppy_result<std::shared_ptr<int>>(std::make_shared<int>(42));
-  r = sloppy_result<std::shared_ptr<int>>::failure("fatal error");
+TEST(test_result, move_assign_error_atop_value) {
+  result<std::shared_ptr<int>, std::string> r =
+      result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
+  r = result<std::shared_ptr<int>, std::string>::failure("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
-TEST(test_sloppy_result, move_assign_error_atop_void) {
-  sloppy_result<void> r;
-  r = sloppy_result<void>::failure("fatal error");
+TEST(test_result, move_assign_error_atop_void) {
+  result<void, std::string> r;
+  r = result<void, std::string>::failure("fatal error");
   EXPECT_FALSE(r.ok());
   EXPECT_EQ(r.error(), "fatal error");
 }
 
-TEST(test_sloppy_result, move_assign_value_atop_error) {
-  sloppy_result<std::shared_ptr<int>> r =
-      sloppy_result<std::shared_ptr<int>>::failure("fatal error");
-  r = sloppy_result<std::shared_ptr<int>>(std::make_shared<int>(42));
+TEST(test_result, move_assign_value_atop_error) {
+  result<std::shared_ptr<int>, std::string> r =
+      result<std::shared_ptr<int>, std::string>::failure("fatal error");
+  r = result<std::shared_ptr<int>, std::string>(std::make_shared<int>(42));
   EXPECT_TRUE(r.ok());
   EXPECT_EQ(**r, 42);
 }
 
-TEST(test_sloppy_result, move_assign_void_atop_error) {
-  sloppy_result<void> r = sloppy_result<void>::failure("fatal error");
-  r = sloppy_result<void>();
+TEST(test_result, move_assign_void_atop_error) {
+  result<void, std::string> r =
+      result<void, std::string>::failure("fatal error");
+  r = result<void, std::string>();
   EXPECT_TRUE(r.ok());
 }
 
