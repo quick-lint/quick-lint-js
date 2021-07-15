@@ -43,10 +43,8 @@ if (QUICK_LINT_JS_SUBLIME_TEXT AND
 
   if (QUICK_LINT_JS_SUBLIME_TEXT_3)
     set(SUBLIME_TEXT_VERSION_TAG "subl3")
-    set(SUBLIME_TEXT_VERSION "sublime-text-3")
   elseif (QUICK_LINT_JS_SUBLIME_TEXT_4)
     set(SUBLIME_TEXT_VERSION_TAG "subl4")
-    set(SUBLIME_TEXT_VERSION "sublime-text-4")
   endif ()
 
   set(
@@ -62,9 +60,9 @@ ${SUBLIME_TEXT_PACKAGE_PLATFORM}"
   set(
     SUBLIME_TEXT_PACKAGE_FILES
     $<TARGET_FILE:quick-lint-js-lib>
-    "${CMAKE_CURRENT_SOURCE_DIR}/c_api_${SUBLIME_TEXT_VERSION_TAG}.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/plugin_${SUBLIME_TEXT_VERSION_TAG}.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION}.python-version"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION_TAG}/c_api.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION_TAG}/plugin.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION_TAG}/.python-version"
     "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
   )
 
@@ -75,15 +73,6 @@ ${SUBLIME_TEXT_PACKAGE_PLATFORM}"
     COMMAND "${CMAKE_COMMAND}" -E copy
     ${SUBLIME_TEXT_PACKAGE_FILES}
     "${SUBLIME_TEXT_PACKAGE_PATH}"
-    COMMAND "${CMAKE_COMMAND}" -E rename
-    "${SUBLIME_TEXT_PACKAGE_PATH}/c_api_${SUBLIME_TEXT_VERSION_TAG}.py"
-    "${SUBLIME_TEXT_PACKAGE_PATH}/c_api.py"
-    COMMAND "${CMAKE_COMMAND}" -E rename
-    "${SUBLIME_TEXT_PACKAGE_PATH}/plugin_${SUBLIME_TEXT_VERSION_TAG}.py"
-    "${SUBLIME_TEXT_PACKAGE_PATH}/plugin.py"
-    COMMAND "${CMAKE_COMMAND}" -E rename
-    "${SUBLIME_TEXT_PACKAGE_PATH}/${SUBLIME_TEXT_VERSION}.python-version"
-    "${SUBLIME_TEXT_PACKAGE_PATH}/.python-version"
   )
   add_dependencies(quick-lint-js-sublime-text quick-lint-js-lib)
 
