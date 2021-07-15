@@ -35,27 +35,15 @@ struct configuration_change {
   void* token;
 };
 
-struct configuration_or_error {
-  explicit configuration_or_error(configuration* config);
-  explicit configuration_or_error(std::string&& error);
-
-  bool ok() const noexcept;
-
-  configuration& operator*();
-  configuration* operator->();
-
-  configuration* config = nullptr;
-  std::string error;
-};
-
 class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
 
   configuration_filesystem* fs() noexcept { return this->fs_; }
 
-  configuration_or_error watch_and_load_for_file(const std::string& file_path,
-                                                 const void* token);
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+  watch_and_load_for_file(const std::string& file_path, const void* token);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
   load_for_file_2(const std::string& file_path);

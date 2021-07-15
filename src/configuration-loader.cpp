@@ -18,33 +18,13 @@ QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-configuration_or_error::configuration_or_error(configuration* config)
-    : config(config) {
-  QLJS_ASSERT(this->config);
-}
-
-configuration_or_error::configuration_or_error(std::string&& error)
-    : error(std::move(error)) {}
-
-bool configuration_or_error::ok() const noexcept {
-  return this->config != nullptr;
-}
-
-configuration& configuration_or_error::operator*() {
-  QLJS_ASSERT(this->ok());
-  return *this->config;
-}
-
-configuration* configuration_or_error::operator->() {
-  QLJS_ASSERT(this->ok());
-  return this->config;
-}
-
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
-configuration_or_error configuration_loader::watch_and_load_for_file(
-    const std::string& file_path, const void* token) {
+result<configuration*, canonicalize_path_io_error, read_file_io_error,
+       platform_file_io_error>
+configuration_loader::watch_and_load_for_file(const std::string& file_path,
+                                              const void* token) {
   watched_path& watch = this->watched_paths_.emplace_back(watched_path{
       .input_path = std::move(file_path),
       .config_path =
@@ -58,9 +38,9 @@ configuration_or_error configuration_loader::watch_and_load_for_file(
   if (!r.ok()) {
     std::string message = r.error_to_string();
     watch.error = message;
-    return configuration_or_error(std::move(message));
+    return r.propagate();
   }
-  return configuration_or_error(*r);
+  return *r;
 }
 
 result<configuration*, canonicalize_path_io_error, read_file_io_error,

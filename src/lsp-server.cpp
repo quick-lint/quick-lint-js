@@ -295,16 +295,15 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
-    configuration_or_error config =
-        this->config_loader_.watch_and_load_for_file(document_path,
-                                                     /*token=*/&doc);
+    auto config = this->config_loader_.watch_and_load_for_file(document_path,
+                                                               /*token=*/&doc);
     if (!config.ok()) {
       QLJS_UNIMPLEMENTED();
     }
-    doc.config = config.config;
+    doc.config = *config;
     byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        **config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
   } else {
     doc.type = document_type::config;

@@ -1520,10 +1520,9 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
-  configuration_or_error config =
-      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_TRUE(config.ok()) << config.error;
-  EXPECT_TRUE(config->globals().find(u8"testGlobalVariable"sv));
+  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_TRUE(config.ok()) << config.error_to_string();
+  EXPECT_TRUE((*config)->globals().find(u8"testGlobalVariable"sv));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
@@ -1560,8 +1559,7 @@ TEST_F(test_configuration_loader,
       << " unreadable: " << std::strerror(errno);
 
   change_detecting_configuration_loader loader;
-  configuration_or_error config =
-      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
   // TODO(strager): Check the error message.
 
@@ -1594,8 +1592,7 @@ TEST_F(test_configuration_loader,
       << " unreadable: " << std::strerror(errno);
 
   change_detecting_configuration_loader loader;
-  configuration_or_error config =
-      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
   // TODO(strager): Check the error message.
 
@@ -1626,8 +1623,7 @@ TEST_F(test_configuration_loader,
 #else
   change_detecting_configuration_loader loader;
 #endif
-  configuration_or_error config =
-      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
   // TODO(strager): Check the error message.
 
@@ -1662,10 +1658,9 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
-  configuration_or_error config =
-      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_TRUE(config.ok()) << config.error;
-  EXPECT_TRUE(config->globals().find(u8"testGlobalVariable"sv));
+  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_TRUE(config.ok()) << config.error_to_string();
+  EXPECT_TRUE((*config)->globals().find(u8"testGlobalVariable"sv));
 
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
@@ -1696,8 +1691,7 @@ TEST_F(test_configuration_loader,
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
   change_detecting_configuration_loader loader;
-  configuration_or_error config =
-      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
   // TODO(strager): Check the error message.
 
