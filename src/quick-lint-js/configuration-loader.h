@@ -91,7 +91,7 @@ class configuration_loader {
   boost::leaf::result<configuration*>
   find_and_load_config_file_for_current_directory();
 
-  boost::leaf::result<configuration*>
+  result<configuration*, read_file_io_error, platform_file_io_error>
   find_and_load_config_file_in_directory_and_ancestors(canonical_path&&,
                                                        const char* input_path);
   result<found_config_file, read_file_io_error, platform_file_io_error>

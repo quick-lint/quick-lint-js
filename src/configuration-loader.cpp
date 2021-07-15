@@ -186,9 +186,19 @@ configuration_loader::find_and_load_config_file_for_input(
   result<canonical_path_result, canonicalize_path_io_error> parent_directory =
       this->get_parent_directory(input_path);
   if (!parent_directory.ok()) return parent_directory.error().make_leaf_error();
-  return this->find_and_load_config_file_in_directory_and_ancestors(
-      std::move(*parent_directory).canonical(),
-      /*input_path=*/input_path);
+  result<configuration*, read_file_io_error, platform_file_io_error> r =
+      this->find_and_load_config_file_in_directory_and_ancestors(
+          std::move(*parent_directory).canonical(),
+          /*input_path=*/input_path);
+  if (!r.ok()) {
+    if (r.has_error<read_file_io_error>()) {
+      return r.error<read_file_io_error>().make_leaf_error();
+    } else {
+      QLJS_ASSERT(r.has_error<platform_file_io_error>());
+      return r.error<platform_file_io_error>().make_leaf_error();
+    }
+  }
+  return *r;
 }
 
 boost::leaf::result<configuration*>
@@ -200,24 +210,27 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
   if (canonical_cwd->have_missing_components()) {
     canonical_cwd->drop_missing_components();
   }
-  return this->find_and_load_config_file_in_directory_and_ancestors(
-      std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
+  result<configuration*, read_file_io_error, platform_file_io_error> r =
+      this->find_and_load_config_file_in_directory_and_ancestors(
+          std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
+  if (!r.ok()) {
+    if (r.has_error<read_file_io_error>()) {
+      return r.error<read_file_io_error>().make_leaf_error();
+    } else {
+      QLJS_ASSERT(r.has_error<platform_file_io_error>());
+      return r.error<platform_file_io_error>().make_leaf_error();
+    }
+  }
+  return *r;
 }
 
-boost::leaf::result<configuration*>
+result<configuration*, read_file_io_error, platform_file_io_error>
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory, const char* input_path) {
   result<found_config_file, read_file_io_error, platform_file_io_error> found =
       this->find_config_file_in_directory_and_ancestors(
           std::move(parent_directory));
-  if (!found.ok()) {
-    if (found.has_error<read_file_io_error>()) {
-      return found.error<read_file_io_error>().make_leaf_error();
-    } else {
-      QLJS_ASSERT(found.has_error<platform_file_io_error>());
-      return found.error<platform_file_io_error>().make_leaf_error();
-    }
-  }
+  if (!found.ok()) return found.propagate();
   if (!found->path.has_value()) {
     return &this->default_config_;
   }
