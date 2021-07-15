@@ -4,8 +4,6 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
 #include <optional>

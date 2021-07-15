@@ -5,9 +5,6 @@
 
 #if QLJS_HAVE_KQUEUE
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/error.hpp>
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>

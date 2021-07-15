@@ -2,10 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <array>
-#include <boost/leaf/capture.hpp>
-#include <boost/leaf/context.hpp>
-#include <boost/leaf/handle_errors.hpp>
-#include <boost/leaf/result.hpp>
 #include <condition_variable>
 #include <cstddef>
 #include <cstring>

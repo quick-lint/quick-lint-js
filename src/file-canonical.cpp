@@ -2,10 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/handle_errors.hpp>
-#include <boost/leaf/on_error.hpp>
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <climits>
 #include <cstddef>

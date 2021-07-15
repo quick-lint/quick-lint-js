@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_H
 #define QUICK_LINT_JS_LSP_SERVER_H
 
-#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <functional>
 #include <quick-lint-js/assert.h>
