@@ -73,15 +73,7 @@ class result_base {
 
   template <class... OtherErrors>
   /*implicit*/ result_base(quick_lint_js::result<T, OtherErrors...>&& other)
-      : data_(std::visit(
-            [&](auto&& datum) {
-              // TODO(strager): If (std::is_same_v<Errors, value_type> || ...),
-              // then std::in_place_type is incorrect.
-              return std::variant<value_type, Errors...>(
-                  std::in_place_type<std::decay_t<decltype(datum)>>,
-                  std::move(datum));
-            },
-            std::move(other).data_)) {}
+      : data_(std::visit(move_data_visitor(), std::move(other).data_)) {}
 
   template <class Error>
   static result failure(Error&& error) {
@@ -142,6 +134,16 @@ class result_base {
   const value_type* operator->() const noexcept { return &this->value(); }
 
  private:
+  struct move_data_visitor {
+    template <class TOrError>
+    auto operator()(TOrError&& datum) {
+      // TODO(strager): If (std::is_same_v<Errors, value_type> || ...),
+      // then std::in_place_type is incorrect.
+      return std::variant<value_type, Errors...>(
+          std::in_place_type<std::decay_t<TOrError>>, std::move(datum));
+    }
+  };
+
   template <class U>
   struct propagate_visitor {
     std::variant<value_type, Errors...> operator()(to_value_type<U>&&) {
