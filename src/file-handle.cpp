@@ -42,6 +42,14 @@ bool windows_file_io_error::is_file_not_found_error() const noexcept {
 std::string windows_file_io_error::to_string() const {
   return windows_error_message(this->error);
 }
+
+bool operator==(windows_file_io_error lhs, windows_file_io_error rhs) noexcept {
+  return lhs.error == rhs.error;
+}
+
+bool operator!=(windows_file_io_error lhs, windows_file_io_error rhs) noexcept {
+  return !(lhs == rhs);
+}
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -51,6 +59,14 @@ bool posix_file_io_error::is_file_not_found_error() const noexcept {
 
 std::string posix_file_io_error::to_string() const {
   return std::strerror(this->error);
+}
+
+bool operator==(posix_file_io_error lhs, posix_file_io_error rhs) noexcept {
+  return lhs.error == rhs.error;
+}
+
+bool operator!=(posix_file_io_error lhs, posix_file_io_error rhs) noexcept {
+  return !(lhs == rhs);
 }
 #endif
 

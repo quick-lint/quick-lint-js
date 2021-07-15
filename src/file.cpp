@@ -150,6 +150,16 @@ std::string read_file_io_error::to_string() const {
   std::exit(1);
 }
 
+bool operator==(const read_file_io_error &lhs,
+                const read_file_io_error &rhs) noexcept {
+  return lhs.path == rhs.path && lhs.io_error == rhs.io_error;
+}
+
+bool operator!=(const read_file_io_error &lhs,
+                const read_file_io_error &rhs) noexcept {
+  return !(lhs == rhs);
+}
+
 #if defined(QLJS_FILE_WINDOWS)
 result<padded_string, platform_file_io_error> read_file(
     windows_handle_file_ref file) {

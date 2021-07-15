@@ -387,6 +387,56 @@ TYPED_TEST(test_result_error, error_to_string_with_first_error_type) {
       result<TypeParam, e_a, e_b>::failure(e_a{.data = "hello"});
   EXPECT_EQ(error.error_to_string(), "e_a data = hello");
 }
+
+TYPED_TEST(test_result_error, error_to_variant_with_single_error) {
+  struct e_a {
+    std::string data;
+  };
+  result<TypeParam, e_a> r =
+      result<TypeParam, e_a>::failure(e_a{.data = "hello"});
+  std::variant<e_a> v = r.error_to_variant();
+  EXPECT_EQ(v.index(), 0);
+  EXPECT_EQ(std::get<e_a>(v).data, "hello");
+}
+
+TYPED_TEST(test_result_error, error_to_variant_with_first_error) {
+  struct e_a {
+    std::string data;
+  };
+  struct e_b {
+    int data;
+  };
+  result<TypeParam, e_a, e_b> r =
+      result<TypeParam, e_a, e_b>::failure(e_a{.data = "hello"});
+  std::variant<e_a, e_b> v = r.error_to_variant();
+  EXPECT_EQ(v.index(), 0);
+  EXPECT_EQ(std::get<e_a>(v).data, "hello");
+}
+
+TYPED_TEST(test_result_error, error_to_variant_with_second_error) {
+  struct e_a {
+    std::string data;
+  };
+  struct e_b {
+    int data;
+  };
+  result<TypeParam, e_a, e_b> r =
+      result<TypeParam, e_a, e_b>::failure(e_b{.data = 42});
+  std::variant<e_a, e_b> v = r.error_to_variant();
+  EXPECT_EQ(v.index(), 1);
+  EXPECT_EQ(std::get<e_b>(v).data, 42);
+}
+
+TYPED_TEST(test_result_error,
+           error_to_variant_with_single_error_adding_error_types) {
+  struct e_a {};
+  struct e_b {};
+  struct e_c {};
+  result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+  std::variant<e_a, e_b, e_c> v = r.template error_to_variant<e_a, e_b, e_c>();
+  EXPECT_EQ(v.index(), 1);
+  EXPECT_TRUE(std::holds_alternative<e_b>(v));
+}
 }
 }
 

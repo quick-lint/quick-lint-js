@@ -97,6 +97,11 @@ struct canonicalize_path_io_error {
   platform_file_io_error io_error;
 
   std::string to_string() const;
+
+  friend bool operator==(const canonicalize_path_io_error &,
+                         const canonicalize_path_io_error &) noexcept;
+  friend bool operator!=(const canonicalize_path_io_error &,
+                         const canonicalize_path_io_error &) noexcept;
 };
 
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(

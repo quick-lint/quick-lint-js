@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
+#include <optional>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
@@ -11,6 +12,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace quick_lint_js {
@@ -68,7 +70,9 @@ class configuration_loader {
   struct watched_path {
     std::string input_path;
     std::optional<canonical_path> config_path;
-    std::string error;
+    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
+                               platform_file_io_error>>
+        error;
     void* token;
   };
 

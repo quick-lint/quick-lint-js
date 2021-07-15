@@ -23,6 +23,11 @@ struct read_file_io_error {
 
   std::string to_string() const;
   [[noreturn]] void print_and_exit() const;
+
+  friend bool operator==(const read_file_io_error &,
+                         const read_file_io_error &) noexcept;
+  friend bool operator!=(const read_file_io_error &,
+                         const read_file_io_error &) noexcept;
 };
 
 result<padded_string, read_file_io_error> read_file(const char *path);

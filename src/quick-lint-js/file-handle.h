@@ -27,6 +27,9 @@ struct windows_file_io_error {
   bool is_file_not_found_error() const noexcept;
 
   std::string to_string() const;
+
+  friend bool operator==(windows_file_io_error, windows_file_io_error) noexcept;
+  friend bool operator!=(windows_file_io_error, windows_file_io_error) noexcept;
 };
 #endif
 
@@ -38,6 +41,9 @@ struct posix_file_io_error {
   bool is_file_not_found_error() const noexcept;
 
   std::string to_string() const;
+
+  friend bool operator==(posix_file_io_error, posix_file_io_error) noexcept;
+  friend bool operator!=(posix_file_io_error, posix_file_io_error) noexcept;
 };
 #endif
 

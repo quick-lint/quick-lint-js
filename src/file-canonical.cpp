@@ -213,6 +213,18 @@ std::string canonicalize_path_io_error::to_string() const {
          this->canonicalizing_path + ": "s + this->io_error.to_string();
 }
 
+bool operator==(const canonicalize_path_io_error &lhs,
+                const canonicalize_path_io_error &rhs) noexcept {
+  return lhs.input_path == rhs.input_path &&
+         lhs.canonicalizing_path == rhs.canonicalizing_path &&
+         lhs.io_error == rhs.io_error;
+}
+
+bool operator!=(const canonicalize_path_io_error &lhs,
+                const canonicalize_path_io_error &rhs) noexcept {
+  return !(lhs == rhs);
+}
+
 namespace {
 template <class Derived>
 class path_canonicalizer_base {

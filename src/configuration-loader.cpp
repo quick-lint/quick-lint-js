@@ -29,15 +29,16 @@ configuration_loader::watch_and_load_for_file(const std::string& file_path,
       .input_path = std::move(file_path),
       .config_path =
           std::nullopt,  // Updated by find_and_load_config_file_for_input.
-      .error = std::string(),
+      .error = std::nullopt,
       .token = const_cast<void*>(token),
   });
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
       r = this->find_and_load_config_file_for_input(file_path.c_str());
   if (!r.ok()) {
-    std::string message = r.error_to_string();
-    watch.error = message;
+    watch.error =
+        r.error_to_variant<canonicalize_path_io_error, read_file_io_error,
+                           platform_file_io_error>();
     return r.propagate();
   }
   return *r;
@@ -268,9 +269,12 @@ std::vector<configuration_change> configuration_loader::refresh() {
     result<canonical_path_result, canonicalize_path_io_error> parent_directory =
         this->get_parent_directory(input_path.c_str());
     if (!parent_directory.ok()) {
-      std::string message = parent_directory.error().to_string();
-      if (watch.error != message) {
-        watch.error = std::move(message);
+      auto new_error =
+          parent_directory
+              .error_to_variant<canonicalize_path_io_error, read_file_io_error,
+                                platform_file_io_error>();
+      if (watch.error != new_error) {
+        watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
             .config = &this->default_config_,
@@ -284,9 +288,11 @@ std::vector<configuration_change> configuration_loader::refresh() {
         latest = this->find_config_file_in_directory_and_ancestors(
             std::move(*parent_directory).canonical());
     if (!latest.ok()) {
-      std::string message = latest.error_to_string();
-      if (watch.error != message) {
-        watch.error = std::move(message);
+      auto new_error =
+          latest.error_to_variant<canonicalize_path_io_error,
+                                  read_file_io_error, platform_file_io_error>();
+      if (watch.error != new_error) {
+        watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
             .config = &this->default_config_,
