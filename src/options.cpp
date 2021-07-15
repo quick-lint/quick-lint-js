@@ -185,6 +185,8 @@ options parse_options(int argc, char** argv) {
         o.output_format = quick_lint_js::output_format::gnu_like;
       } else if (arg_value == "vim-qflist-json"sv) {
         o.output_format = quick_lint_js::output_format::vim_qflist_json;
+      } else if (arg_value == "emacs-lisp"sv) {
+        o.output_format = quick_lint_js::output_format::emacs_lisp;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }

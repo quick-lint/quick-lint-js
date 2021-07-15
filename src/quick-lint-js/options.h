@@ -14,6 +14,7 @@ enum class output_format {
   default_format,
   gnu_like,
   vim_qflist_json,
+  emacs_lisp,
 };
 
 struct file_to_lint {

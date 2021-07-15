@@ -609,6 +609,63 @@ TEST(test_count_lsp_characters_in_utf_8,
   EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90"_padded, 1), 1);
   EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90??"_padded, 1), 1);
 }
+
+namespace {
+std::size_t count_utf_8_characters(padded_string_view utf_8) noexcept {
+  return quick_lint_js::count_utf_8_characters(
+      utf_8, static_cast<std::size_t>(utf_8.size()));
+}
+
+std::size_t count_utf_8_characters(const padded_string& utf_8) noexcept {
+  return count_utf_8_characters(&utf_8);
+}
+
+std::size_t count_utf_8_characters(const padded_string& utf_8,
+                                   std::size_t offset) noexcept {
+  return count_utf_8_characters(&utf_8, offset);
+}
+}
+
+TEST(test_count_utf_8_characters, empty_string) {
+  std::size_t n = count_utf_8_characters(u8""_padded);
+  EXPECT_EQ(n, 0);
+}
+
+TEST(test_count_utf_8_characters, ascii) {
+  std::size_t n = count_utf_8_characters(u8"foobar"_padded);
+  EXPECT_EQ(n, 6);
+}
+
+TEST(test_count_utf_8_characters, ascii_num) {
+  std::size_t n = count_utf_8_characters(u8"1,2,3,4"_padded);
+  EXPECT_EQ(n, 7);
+}
+
+TEST(test_count_utf_8_characters, multi_byte) {
+  std::size_t n = count_utf_8_characters(u8"\u263a\u263b\u2639"_padded);
+  EXPECT_EQ(n, 3);
+}
+
+TEST(test_count_utf_8_characters, multi_byte_offset) {
+  std::size_t n = count_utf_8_characters(u8"\u263a\u263b\u2639"_padded, 6);
+  EXPECT_EQ(n, 2);
+}
+
+TEST(test_count_utf_8_characters, invalid_counts_as_one) {
+  std::size_t n = count_utf_8_characters(u8"\xe2\x80"_padded);
+  EXPECT_EQ(n, 2);
+}
+
+TEST(test_count_utf_8_characters, invalid_conuts_as_one_with_null) {
+  std::size_t n = count_utf_8_characters(u8"\xe2\x00"_padded);
+  EXPECT_EQ(n, 2);
+}
+
+TEST(test_count_utf_8_characters, mixed_ascii_with_invalid) {
+  std::size_t n = count_utf_8_characters(u8"a\xe2\x80"_padded);
+  EXPECT_EQ(n, 3);
+}
+
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

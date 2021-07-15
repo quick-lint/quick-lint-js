@@ -203,6 +203,31 @@ std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view utf_8,
   }
   return count;
 }
+
+std::size_t count_utf_8_characters(padded_string_view utf_8,
+                                   std::size_t offset) noexcept {
+  const char8* c = utf_8.data();
+  const char8* end = utf_8.null_terminator();
+  const char8* stop = c + offset;
+  std::size_t count = 0;
+
+  while (c < stop) {
+    auto result = decode_utf_8(padded_string_view(c, end));
+    if (!result.ok) {
+      c++;
+      count += 1;
+      continue;
+    }
+
+    if (c + result.size > stop) {
+      break;
+    }
+    c += result.size;
+    count += 1;
+  }
+
+  return count;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

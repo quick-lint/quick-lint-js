@@ -11,6 +11,8 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/emacs-lisp-error-reporter.h>
+#include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
 #include <quick-lint-js/event-loop.h>
@@ -60,6 +62,9 @@ class any_error_reporter {
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
           vim_qflist_json_error_reporter(std::cout), exit_fail_on));
+    case output_format::emacs_lisp:
+      return any_error_reporter(error_tape<emacs_lisp_error_reporter>(
+          emacs_lisp_error_reporter(std::cout), exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
@@ -72,6 +77,10 @@ class any_error_reporter {
                             error_tape<vim_qflist_json_error_reporter>,
                             reporter_type>) {
             r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
+          } else if constexpr (std::is_base_of_v<
+                                   error_tape<emacs_lisp_error_reporter>,
+                                   reporter_type>) {
+            r.get_reporter()->set_source(input);
           } else {
             r.get_reporter()->set_source(input, file.path);
           }
@@ -96,6 +105,10 @@ class any_error_reporter {
                             error_tape<vim_qflist_json_error_reporter>,
                             reporter_type>) {
             r.get_reporter()->finish();
+          } else if constexpr (std::is_base_of_v<
+                                   error_tape<emacs_lisp_error_reporter>,
+                                   reporter_type>) {
+            r.get_reporter()->finish();
           }
         },
         this->tape_);
@@ -103,7 +116,8 @@ class any_error_reporter {
 
  private:
   using tape_variant = std::variant<error_tape<text_error_reporter>,
-                                    error_tape<vim_qflist_json_error_reporter>>;
+                                    error_tape<vim_qflist_json_error_reporter>,
+                                    error_tape<emacs_lisp_error_reporter>>;
 
   explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
 
@@ -186,7 +200,8 @@ void handle_options(quick_lint_js::options o) {
   }
   reporter.finish();
 
-  if (reporter.get_error() == true) {
+  if (reporter.get_error() == true &&
+      o.output_format != output_format::emacs_lisp) {
     std::exit(EXIT_FAILURE);
   }
 
@@ -509,7 +524,8 @@ void print_help_message() {
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
-  print_option("", "gnu-like (default if omitted), vim-qflist-json");
+  print_option("",
+               "gnu-like (default if omitted), vim-qflist-json, emacs-lisp");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");

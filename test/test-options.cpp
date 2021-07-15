@@ -101,6 +101,12 @@ TEST(test_options, output_format) {
     EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
     EXPECT_EQ(o.output_format, output_format::vim_qflist_json);
   }
+
+  {
+    options o = parse_options({"--output-format=emacs-lisp"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    EXPECT_EQ(o.output_format, output_format::emacs_lisp);
+  }
 }
 
 TEST(test_options, invalid_output_format) {

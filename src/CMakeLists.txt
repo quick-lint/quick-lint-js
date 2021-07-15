@@ -46,6 +46,8 @@ quick_lint_js_add_library(
   configuration.cpp
   crash.cpp
   document.cpp
+  emacs-lisp-error-reporter.cpp
+  emacs-location.cpp
   error-collector.cpp
   error-formatter.cpp
   error-list.cpp
@@ -89,6 +91,8 @@ quick_lint_js_add_library(
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
   quick-lint-js/document.h
+  quick-lint-js/emacs-lisp-error-reporter.h
+  quick-lint-js/emacs-location.h
   quick-lint-js/error-collector.h
   quick-lint-js/error-formatter.h
   quick-lint-js/error-list.h

@@ -42,6 +42,7 @@ This command has two modes:
 --
 - *gnu-like* (default): a human-readable format similar to GCC.
 - *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
+- *emacs-lisp*: Emacs Lisp association list format.
 
 Incompatible with *--lsp-server*.
 --
