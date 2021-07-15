@@ -362,6 +362,30 @@ TYPED_TEST(test_result_error, propagate_error_with_extra_first_error_type) {
   EXPECT_FALSE(copy.template has_error<e_b>());
   EXPECT_EQ(copy.template error<e_a>().data, 42);
 }
+
+TYPED_TEST(test_result_error, error_to_string_with_single_error_type) {
+  struct e_a {
+    std::string data;
+    std::string to_string() const { return "data = " + data; }
+  };
+  result<TypeParam, e_a> error =
+      result<TypeParam, e_a>::failure(e_a{.data = "hello"});
+  EXPECT_EQ(error.error_to_string(), "data = hello");
+}
+
+TYPED_TEST(test_result_error, error_to_string_with_first_error_type) {
+  struct e_a {
+    std::string data;
+    std::string to_string() const { return "e_a data = " + data; }
+  };
+  struct e_b {
+    std::string data;
+    std::string to_string() const { return "e_b data = " + data; }
+  };
+  result<TypeParam, e_a, e_b> error =
+      result<TypeParam, e_a, e_b>::failure(e_a{.data = "hello"});
+  EXPECT_EQ(error.error_to_string(), "e_a data = hello");
+}
 }
 }
 

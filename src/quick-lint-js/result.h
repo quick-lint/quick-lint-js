@@ -119,6 +119,13 @@ class result_base {
     return std::get<Error>(this->data_);
   }
 
+  std::string error_to_string() const {
+    QLJS_ASSERT(!this->ok());
+    // TODO(strager): If std::is_same_v<Error, value_type>, then std::visit is
+    // incorrect.
+    return std::visit(to_string_visitor(), this->data_);
+  }
+
   result_propagation<T, Errors...> propagate() & {
     QLJS_ASSERT(!this->ok());
     return result_propagation<T, Errors...>{*this};
@@ -159,6 +166,15 @@ class result_base {
     }
   };
 
+  struct to_string_visitor {
+    std::string operator()(const value_type&) { QLJS_UNREACHABLE(); }
+
+    template <class Error>
+    std::string operator()(const Error& error) {
+      return error.to_string();
+    }
+  };
+
   std::variant<value_type, Errors...> data_;
 
   template <class, class...>
@@ -176,6 +192,7 @@ class result : private result_base<T, Errors...> {
  public:
   using base::base;
   using base::error;
+  using base::error_to_string;
   using base::failure;
   using base::has_error;
   using base::ok;
@@ -200,6 +217,7 @@ class result<void, Errors...> : private result_base<void, Errors...> {
  public:
   using base::base;
   using base::error;
+  using base::error_to_string;
   using base::failure;
   using base::has_error;
   using base::ok;
@@ -218,6 +236,7 @@ class result<T, Error> : private result_base<T, Error> {
 
  public:
   using base::base;
+  using base::error_to_string;
   using base::ok;
   using base::operator*;
   using base::operator->;
@@ -245,6 +264,7 @@ class result<void, Error> : private result_base<void, Error> {
 
  public:
   using base::base;
+  using base::error_to_string;
   using base::operator=;
   using base::ok;
   using base::propagate;
