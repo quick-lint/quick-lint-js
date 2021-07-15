@@ -26,8 +26,6 @@ struct read_file_io_error {
   [[noreturn]] void print_and_exit() const;
 };
 
-struct e_api_read_file {};
-
 result<padded_string, read_file_io_error> read_file(const char *path);
 result<padded_string, read_file_io_error> read_file(const char *path,
                                                     platform_file_ref);

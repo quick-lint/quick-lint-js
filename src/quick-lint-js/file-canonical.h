@@ -100,11 +100,6 @@ struct canonicalize_path_io_error {
   std::string to_string() const;
 };
 
-struct e_api_canonicalize_path {};
-struct e_canonicalizing_path {
-  std::string path;
-};
-
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path);
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
