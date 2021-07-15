@@ -91,7 +91,8 @@ class configuration_loader {
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
   find_and_load_config_file_for_input(const char* input_path);
-  boost::leaf::result<configuration*>
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
   find_and_load_config_file_for_current_directory();
 
   result<configuration*, read_file_io_error, platform_file_io_error>

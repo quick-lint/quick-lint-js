@@ -126,7 +126,20 @@ boost::leaf::result<configuration*> configuration_loader::load_for_file(
       }
       return *r;
     } else {
-      return this->find_and_load_config_file_for_current_directory();
+      result<configuration*, canonicalize_path_io_error, read_file_io_error,
+             platform_file_io_error>
+          r = this->find_and_load_config_file_for_current_directory();
+      if (!r.ok()) {
+        if (r.has_error<canonicalize_path_io_error>()) {
+          return r.error<canonicalize_path_io_error>().make_leaf_error();
+        } else if (r.has_error<read_file_io_error>()) {
+          return r.error<read_file_io_error>().make_leaf_error();
+        } else {
+          QLJS_ASSERT(r.has_error<platform_file_io_error>());
+          return r.error<platform_file_io_error>().make_leaf_error();
+        }
+      }
+      return *r;
     }
   }
 }
@@ -220,11 +233,12 @@ configuration_loader::find_and_load_config_file_for_input(
   return *r;
 }
 
-boost::leaf::result<configuration*>
+result<configuration*, canonicalize_path_io_error, read_file_io_error,
+       platform_file_io_error>
 configuration_loader::find_and_load_config_file_for_current_directory() {
   result<canonical_path_result, canonicalize_path_io_error> canonical_cwd =
       this->fs_->canonicalize_path(".");
-  if (!canonical_cwd.ok()) return canonical_cwd.error().make_leaf_error();
+  if (!canonical_cwd.ok()) return canonical_cwd.propagate();
 
   if (canonical_cwd->have_missing_components()) {
     canonical_cwd->drop_missing_components();
@@ -232,14 +246,7 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
   result<configuration*, read_file_io_error, platform_file_io_error> r =
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
-  if (!r.ok()) {
-    if (r.has_error<read_file_io_error>()) {
-      return r.error<read_file_io_error>().make_leaf_error();
-    } else {
-      QLJS_ASSERT(r.has_error<platform_file_io_error>());
-      return r.error<platform_file_io_error>().make_leaf_error();
-    }
-  }
+  if (!r.ok()) return r.propagate();
   return *r;
 }
 
