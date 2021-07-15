@@ -224,7 +224,6 @@ result<padded_string, read_file_io_error> read_file(const char *path,
 #if defined(QLJS_FILE_WINDOWS)
 result<padded_string, read_file_io_error> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
-  auto path_guard = boost::leaf::on_error(e_file_path{path});
   std::optional<std::wstring> wpath = quick_lint_js::mbstring_to_wstring(path);
   if (!wpath) {
     return result<padded_string, read_file_io_error>::failure(
