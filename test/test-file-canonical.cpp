@@ -21,7 +21,6 @@
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <string>
-#include <tuple>
 
 #if defined(_WIN32)
 // TODO(strager): This should be 1, not 0. Windows allows you to access

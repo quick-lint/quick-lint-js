@@ -11,7 +11,6 @@
 #include <quick-lint-js/result.h>
 #include <string>
 #include <string_view>
-#include <tuple>
 
 namespace quick_lint_js {
 class canonical_path_result;

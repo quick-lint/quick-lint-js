@@ -13,7 +13,6 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/result.h>
 #include <string>
-#include <tuple>
 
 namespace quick_lint_js {
 struct read_file_io_error {
