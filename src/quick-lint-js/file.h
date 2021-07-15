@@ -28,8 +28,6 @@ struct read_file_io_error {
 
   std::string to_string() const;
   [[noreturn]] void print_and_exit() const;
-
-  boost::leaf::error_id make_leaf_error() const;
 };
 
 struct e_api_read_file {};

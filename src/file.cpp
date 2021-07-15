@@ -156,12 +156,6 @@ std::string read_file_io_error::to_string() const {
   std::exit(1);
 }
 
-boost::leaf::error_id read_file_io_error::make_leaf_error() const {
-  auto api_guard = boost::leaf::on_error(e_api_read_file());
-  auto path_guard = boost::leaf::on_error(e_file_path{this->path});
-  return this->io_error.make_leaf_error();
-}
-
 #if defined(QLJS_FILE_WINDOWS)
 result<padded_string, platform_file_io_error> read_file(
     windows_handle_file_ref file) {

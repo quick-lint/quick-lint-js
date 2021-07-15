@@ -46,10 +46,6 @@ bool windows_file_io_error::is_file_not_found_error() const noexcept {
 std::string windows_file_io_error::to_string() const {
   return windows_error_message(this->error);
 }
-
-boost::leaf::error_id windows_file_io_error::make_leaf_error() const {
-  return boost::leaf::new_error(e_LastError{this->error});
-}
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -59,10 +55,6 @@ bool posix_file_io_error::is_file_not_found_error() const noexcept {
 
 std::string posix_file_io_error::to_string() const {
   return std::strerror(this->error);
-}
-
-boost::leaf::error_id posix_file_io_error::make_leaf_error() const {
-  return boost::leaf::new_error(e_errno{this->error});
 }
 #endif
 

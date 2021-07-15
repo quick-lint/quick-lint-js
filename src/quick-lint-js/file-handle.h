@@ -30,8 +30,6 @@ struct windows_file_io_error {
   bool is_file_not_found_error() const noexcept;
 
   std::string to_string() const;
-
-  boost::leaf::error_id make_leaf_error() const;
 };
 #endif
 
@@ -43,8 +41,6 @@ struct posix_file_io_error {
   bool is_file_not_found_error() const noexcept;
 
   std::string to_string() const;
-
-  boost::leaf::error_id make_leaf_error() const;
 };
 #endif
 

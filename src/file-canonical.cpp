@@ -213,14 +213,6 @@ void canonical_path_result::drop_missing_components() {
   this->path_.path_.resize(this->existing_path_length_);
 }
 
-boost::leaf::error_id canonicalize_path_io_error::make_leaf_error() const {
-  auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());
-  auto path_guard = boost::leaf::on_error(e_file_path{this->input_path});
-  auto canonicalizing_guard =
-      boost::leaf::on_error(e_canonicalizing_path{this->canonicalizing_path});
-  return this->io_error.make_leaf_error();
-}
-
 std::string canonicalize_path_io_error::to_string() const {
   return "failed to canonicalize "s + this->input_path + ": "s +
          this->canonicalizing_path + ": "s + this->io_error.to_string();

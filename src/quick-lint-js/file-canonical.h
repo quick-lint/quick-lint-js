@@ -100,8 +100,6 @@ struct canonicalize_path_io_error {
   std::string canonicalizing_path;
   platform_file_io_error io_error;
 
-  boost::leaf::error_id make_leaf_error() const;
-
   std::string to_string() const;
 };
 
