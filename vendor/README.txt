@@ -31,18 +31,19 @@ tool](https://www.boost.org/doc/libs/1_76_0/tools/bcp/doc/html/index.html). To
 regenerate the boost directory, run the following commands inside a Boost
 release archive:
 
+    $ qljs_vendor=/PATH/TO/quick-lint-js/vendor/
     $ cd /PATH/TO/BOOST/
     $ ./bootstrap.sh
     $ cd tools/bcp/
     $ ../../b2
     $ cd ../../
-    $ rm -r /PATH/TO/quick-lint-js/vendor/boost/
-    $ mkdir /PATH/TO/quick-lint-js/vendor/boost/
-    $ boost_libs="boost/container/pmr/global_resource.hpp boost/leaf.hpp boost/container/pmr/memory_resource.hpp boost/container/pmr/monotonic_buffer_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/container/small_vector.hpp"
-    $ eval ./dist/bin/bcp ${boost_libs} /PATH/TO/quick-lint-js/vendor/boost/
-    $ eval ./dist/bin/bcp --report ${boost_libs} /PATH/TO/quick-lint-js/vendor/boost/report.html
-    $ cp LICENSE_1_0.txt /PATH/TO/quick-lint-js/vendor/boost/
-    $ rm -r /PATH/TO/quick-lint-js/vendor/boost/usr/
+    $ rm -r "${qljs_vendor}/boost/"
+    $ mkdir "${qljs_vendor}/boost/"
+    $ boost_libs="boost/container/pmr/global_resource.hpp boost/container/pmr/memory_resource.hpp boost/container/pmr/monotonic_buffer_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/container/small_vector.hpp"
+    $ eval ./dist/bin/bcp ${boost_libs} "${qljs_vendor}/boost/"
+    $ eval ./dist/bin/bcp --report ${boost_libs} "${qljs_vendor}/boost/report.html"
+    $ cp LICENSE_1_0.txt "${qljs_vendor}/boost/"
+    $ rm -r "${qljs_vendor}/boost/usr/"
 
 Additionally, the following patches have been manually applied:
 
