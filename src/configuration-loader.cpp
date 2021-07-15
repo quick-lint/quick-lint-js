@@ -132,46 +132,42 @@ configuration_loader::load_for_file_2(const file_to_lint& file) {
 
 sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
     const std::string& file_path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<sloppy_result<configuration*>> {
-        return this->load_for_file(file_path);
-      },
-      make_canonicalize_path_error_handlers([](std::string&& message) {
-        return sloppy_result<configuration*>::failure(std::move(message));
-      }),
-      make_read_file_error_handlers([](std::string&& message) {
-        return sloppy_result<configuration*>::failure(std::move(message));
-      }),
-      [](e_errno error) {
-        return sloppy_result<configuration*>::failure(
-            std::strerror(error.error));
-      },
-      []() {
-        QLJS_ASSERT(false);
-        return sloppy_result<configuration*>::failure("unknown error");
-      });
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+      r = this->load_for_file_2(file_path);
+  if (!r.ok()) {
+    std::string message;
+    if (r.has_error<canonicalize_path_io_error>()) {
+      message = r.error<canonicalize_path_io_error>().to_string();
+    } else if (r.has_error<read_file_io_error>()) {
+      message = r.error<read_file_io_error>().to_string();
+    } else {
+      QLJS_ASSERT(r.has_error<platform_file_io_error>());
+      message = r.error<platform_file_io_error>().to_string();
+    }
+    return sloppy_result<configuration*>::failure(std::move(message));
+  }
+  return *r;
 }
 
 sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
     const file_to_lint& file) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<sloppy_result<configuration*>> {
-        return this->load_for_file(file);
-      },
-      make_canonicalize_path_error_handlers([](std::string&& message) {
-        return sloppy_result<configuration*>::failure(std::move(message));
-      }),
-      make_read_file_error_handlers([](std::string&& message) {
-        return sloppy_result<configuration*>::failure(std::move(message));
-      }),
-      [](e_errno error) {
-        return sloppy_result<configuration*>::failure(
-            std::strerror(error.error));
-      },
-      []() {
-        QLJS_ASSERT(false);
-        return sloppy_result<configuration*>::failure("unknown error");
-      });
+  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+         platform_file_io_error>
+      r = this->load_for_file_2(file);
+  if (!r.ok()) {
+    std::string message;
+    if (r.has_error<canonicalize_path_io_error>()) {
+      message = r.error<canonicalize_path_io_error>().to_string();
+    } else if (r.has_error<read_file_io_error>()) {
+      message = r.error<read_file_io_error>().to_string();
+    } else {
+      QLJS_ASSERT(r.has_error<platform_file_io_error>());
+      message = r.error<platform_file_io_error>().to_string();
+    }
+    return sloppy_result<configuration*>::failure(std::move(message));
+  }
+  return *r;
 }
 
 result<configuration*, canonicalize_path_io_error, read_file_io_error,
