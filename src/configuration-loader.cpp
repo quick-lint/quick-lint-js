@@ -21,6 +21,22 @@ QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
+namespace {
+template <class T>
+std::string error_to_string(
+    const result<T, canonicalize_path_io_error, read_file_io_error,
+                 platform_file_io_error>& error) {
+  if (error.template has_error<canonicalize_path_io_error>()) {
+    return error.template error<canonicalize_path_io_error>().to_string();
+  } else if (error.template has_error<read_file_io_error>()) {
+    return error.template error<read_file_io_error>().to_string();
+  } else {
+    QLJS_ASSERT(error.template has_error<platform_file_io_error>());
+    return error.template error<platform_file_io_error>().to_string();
+  }
+}
+}
+
 configuration_or_error::configuration_or_error(configuration* config)
     : config(config) {
   QLJS_ASSERT(this->config);
@@ -59,15 +75,7 @@ configuration_or_error configuration_loader::watch_and_load_for_file(
          platform_file_io_error>
       r = this->find_and_load_config_file_for_input(file_path.c_str());
   if (!r.ok()) {
-    std::string message;
-    if (r.has_error<canonicalize_path_io_error>()) {
-      message = r.error<canonicalize_path_io_error>().to_string();
-    } else if (r.has_error<read_file_io_error>()) {
-      message = r.error<read_file_io_error>().to_string();
-    } else {
-      QLJS_ASSERT(r.has_error<platform_file_io_error>());
-      message = r.error<platform_file_io_error>().to_string();
-    }
+    std::string message = error_to_string(r);
     watch.error = message;
     return configuration_or_error(std::move(message));
   }
@@ -136,15 +144,7 @@ sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
          platform_file_io_error>
       r = this->load_for_file_2(file_path);
   if (!r.ok()) {
-    std::string message;
-    if (r.has_error<canonicalize_path_io_error>()) {
-      message = r.error<canonicalize_path_io_error>().to_string();
-    } else if (r.has_error<read_file_io_error>()) {
-      message = r.error<read_file_io_error>().to_string();
-    } else {
-      QLJS_ASSERT(r.has_error<platform_file_io_error>());
-      message = r.error<platform_file_io_error>().to_string();
-    }
+    std::string message = error_to_string(r);
     return sloppy_result<configuration*>::failure(std::move(message));
   }
   return *r;
@@ -156,16 +156,7 @@ sloppy_result<configuration*> configuration_loader::load_for_file_sloppy(
          platform_file_io_error>
       r = this->load_for_file_2(file);
   if (!r.ok()) {
-    std::string message;
-    if (r.has_error<canonicalize_path_io_error>()) {
-      message = r.error<canonicalize_path_io_error>().to_string();
-    } else if (r.has_error<read_file_io_error>()) {
-      message = r.error<read_file_io_error>().to_string();
-    } else {
-      QLJS_ASSERT(r.has_error<platform_file_io_error>());
-      message = r.error<platform_file_io_error>().to_string();
-    }
-    return sloppy_result<configuration*>::failure(std::move(message));
+    return sloppy_result<configuration*>::failure(error_to_string(r));
   }
   return *r;
 }
