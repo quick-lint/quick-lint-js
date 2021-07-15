@@ -9,7 +9,6 @@
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
-#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 #include <unordered_map>

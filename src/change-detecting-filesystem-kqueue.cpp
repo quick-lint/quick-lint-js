@@ -16,7 +16,6 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
-#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>

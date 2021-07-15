@@ -14,7 +14,6 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>

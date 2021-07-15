@@ -10,7 +10,6 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/result.h>
 #include <string>

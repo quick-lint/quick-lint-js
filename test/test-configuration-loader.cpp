@@ -18,7 +18,6 @@
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
-#include <quick-lint-js/leaf.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/warning.h>

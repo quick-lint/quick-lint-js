@@ -9,7 +9,6 @@
 #include <quick-lint-js/crash.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/leaf.h>
 
 #if QLJS_HAVE_SETRLIMIT
 #include <sys/resource.h>

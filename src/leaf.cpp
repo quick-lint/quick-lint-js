@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/leaf.h>
 #include <type_traits>
 
 #if QLJS_HAVE_WINDOWS_H
