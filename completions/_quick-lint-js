@@ -21,14 +21,14 @@ function _quick-lint-js() {
         '(--lsp-server)--config-file=[Read configuration from a JSON file for later input files]:file:_files'
         '(--lsp-server)--stdin[Read standard input as a JavaScript file]'
         '(--lsp-server)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: "all")]'
-        '(--lsp-server)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json]:format:->format'
+        '(--lsp-server)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json, emacs-lisp]:format:->format'
         '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
 
         _arguments -C -S "${args[@]}" && ret=0
 
         case "$state" in
                 format)
-                        formats=( 'vim-qflist-json' 'gnu-like' )
+                        formats=( 'vim-qflist-json' 'gnu-like' 'emacs-lisp')
                         _describe 'format' formats && ret=0
                         ;;
         esac
