@@ -61,14 +61,17 @@ change_detecting_filesystem_inotify::canonicalize_path(
   return quick_lint_js::canonicalize_path(path);
 }
 
-result<padded_string, read_file_io_error, platform_file_io_error>
+result<padded_string, read_file_io_error, watch_io_error>
 change_detecting_filesystem_inotify::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return result<padded_string, read_file_io_error, platform_file_io_error>::
-        failure<posix_file_io_error>(posix_file_io_error{errno});
+    return result<padded_string, read_file_io_error,
+                  watch_io_error>::failure<watch_io_error>(watch_io_error{
+        .path = std::move(directory).path(),
+        .io_error = posix_file_io_error{errno},
+    });
   }
 
   result<padded_string, read_file_io_error> r =

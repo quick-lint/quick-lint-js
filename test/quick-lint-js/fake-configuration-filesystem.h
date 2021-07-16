@@ -54,7 +54,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
     return canonical_path_result(std::string(path), path.size());
   }
 
-  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+  result<padded_string, read_file_io_error, watch_io_error> read_file(
       const canonical_path& path) override {
     auto file_it = this->files_.find(path);
     if (file_it == this->files_.end()) {
@@ -64,8 +64,11 @@ class fake_configuration_filesystem : public configuration_filesystem {
 #if QLJS_HAVE_UNISTD_H
       posix_file_io_error io_error = {ENOENT};
 #endif
-      return result<padded_string, read_file_io_error, platform_file_io_error>::
-          failure<platform_file_io_error>(io_error);
+      return result<padded_string, read_file_io_error, watch_io_error>::failure<
+          read_file_io_error>(read_file_io_error{
+          .path = std::string(path.path()),
+          .io_error = io_error,
+      });
     }
     return padded_string(string8_view(file_it->second));
   }

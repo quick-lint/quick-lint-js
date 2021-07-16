@@ -18,14 +18,24 @@
 namespace quick_lint_js {
 struct file_to_lint;
 
+struct watch_io_error {
+  std::string path;
+  platform_file_io_error io_error;
+
+  std::string to_string() const;
+
+  friend bool operator==(const watch_io_error&, const watch_io_error&) noexcept;
+  friend bool operator!=(const watch_io_error&, const watch_io_error&) noexcept;
+};
+
 class configuration_filesystem {
  public:
   virtual ~configuration_filesystem() = default;
 
   virtual result<canonical_path_result, canonicalize_path_io_error>
   canonicalize_path(const std::string&) = 0;
-  virtual result<padded_string, read_file_io_error, platform_file_io_error>
-  read_file(const canonical_path&) = 0;
+  virtual result<padded_string, read_file_io_error, watch_io_error> read_file(
+      const canonical_path&) = 0;
 };
 
 struct configuration_change {
@@ -46,13 +56,13 @@ class configuration_loader {
   configuration* get_default_config() { return &this->default_config_; }
 
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
+         watch_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
+         watch_io_error>
   load_for_file(const std::string& file_path);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
+         watch_io_error>
   load_for_file(const file_to_lint&);
 
   std::vector<configuration_change> refresh();
@@ -73,25 +83,25 @@ class configuration_loader {
     std::string input_path;
     std::optional<canonical_path> config_path;
     std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
-                               platform_file_io_error>>
+                               watch_io_error>>
         error;
     void* token;
   };
 
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
+         watch_io_error>
   load_config_file(const char* config_path);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
+         watch_io_error>
   find_and_load_config_file_for_input(const char* input_path);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
-         platform_file_io_error>
+         watch_io_error>
   find_and_load_config_file_for_current_directory();
 
-  result<configuration*, read_file_io_error, platform_file_io_error>
+  result<configuration*, read_file_io_error, watch_io_error>
   find_and_load_config_file_in_directory_and_ancestors(canonical_path&&,
                                                        const char* input_path);
-  result<found_config_file, read_file_io_error, platform_file_io_error>
+  result<found_config_file, read_file_io_error, watch_io_error>
   find_config_file_in_directory_and_ancestors(canonical_path&&);
 
   result<canonical_path_result, canonicalize_path_io_error>
@@ -115,7 +125,7 @@ class basic_configuration_filesystem : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, platform_file_io_error> read_file(
+  result<padded_string, read_file_io_error, watch_io_error> read_file(
       const canonical_path&) override;
 };
 }
