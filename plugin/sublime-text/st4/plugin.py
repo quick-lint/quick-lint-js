@@ -63,7 +63,7 @@ class QuickLintJsListener:
     # they will all apply the same changes (have squiggly underlines
     # and pop-ups available):
     #
-    # Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    # Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
     # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     plugin_buffers_manager = PluginBuffersManager()
@@ -116,7 +116,7 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
     # in __init__?
     #
     # Answer:
-    #   Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    #   Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
     #   https://github.com/quick-lint/quick-lint-js/pull/328#discussion_r670077226
 
     def __init__(self, view):

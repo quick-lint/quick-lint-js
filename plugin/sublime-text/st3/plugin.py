@@ -56,7 +56,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     # they will all apply the same changes (have squiggly underlines
     # and pop-ups available):
     #
-    # Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    # Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
     # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     buffers_manager = BuffersManager()
@@ -74,7 +74,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     # in __init__?
     #
     # Answer:
-    #   Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    #   Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
     #   https://github.com/quick-lint/quick-lint-js/pull/328#discussion_r670077226
 
     def __init__(self, view):
