@@ -43,6 +43,8 @@ class configuration_loader {
 
   configuration_filesystem* fs() noexcept { return this->fs_; }
 
+  configuration* get_default_config() { return &this->default_config_; }
+
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);

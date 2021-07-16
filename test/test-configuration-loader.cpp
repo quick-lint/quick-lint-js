@@ -60,13 +60,6 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 #define BUGGY 1
 #endif
 
-#define EXPECT_DEFAULT_CONFIG(config)                                  \
-  do {                                                                 \
-    EXPECT_TRUE((config).globals().find(u8"Array"sv));                 \
-    EXPECT_TRUE((config).globals().find(u8"console"sv));               \
-    EXPECT_FALSE((config).globals().find(u8"variableDoesNotExist"sv)); \
-  } while (false)
-
 using ::testing::AnyOf;
 using ::testing::ElementsAre;
 using ::testing::HasSubstr;
@@ -223,7 +216,7 @@ TEST_F(test_configuration_loader,
       .config_file = nullptr,
   });
   EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_DEFAULT_CONFIG(**config);
+  EXPECT_EQ(*config, loader.get_default_config());
 }
 
 TEST_F(test_configuration_loader, find_quick_lint_js_config_in_same_directory) {
@@ -1712,7 +1705,7 @@ TEST(test_configuration_loader_fake,
       .config_file = nullptr,
   });
   ASSERT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_DEFAULT_CONFIG(**config);
+  EXPECT_EQ(*config, loader.get_default_config());
 }
 
 TEST(test_configuration_loader_fake,
