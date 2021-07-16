@@ -54,17 +54,17 @@ class PluginBuffersManager:
         return self.plugin_buffers[id_]
 
 
-# The internal strategy used is to share information between
-# all views that belong to the same buffer. Because that way,
-# if there are multiple views (tabs) of the same buffer (file),
-# they will all apply the same changes (have squiggly underlines
-# and pop-ups available):
-#
-# https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
-
-
 class QuickLintJsListener:
     """Base for the listeners present in this plugin."""
+
+    # The internal strategy used is to share information between
+    # all views that belong to the same buffer. Because that way,
+    # if there are multiple views (tabs) of the same buffer (file),
+    # they will all apply the same changes (have squiggly underlines
+    # and pop-ups available):
+    #
+    # Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     plugin_buffers_manager = PluginBuffersManager()
 
@@ -112,28 +112,39 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
     def applies_to_primary_view_only(cls):
         return False
 
+    # Won't on_load get called anyway? Why do we need to explicitly lint
+    # in __init__?
+    #
+    # Answer:
+    #   Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    #   https://github.com/quick-lint/quick-lint-js/pull/328#discussion_r670077226
+
     def __init__(self, view):
+        """Called when the view is finished loading."""
         ViewEventListener.__init__(self, view)
         QuickLintJsListener.__init__(self, view)
         self.on_load()
 
     def on_load(self):
+        """Called when the file is finished loading."""
         self.plugin_buffer.parser.set_text()
         self.plugin_buffer.parser.lint()
         self.add_squiggly_underlines()
 
     def on_reload(self):
-        # This function is called, for example, when a file is changed
-        # outside of the editor:
-        #
-        # https://github.com/sublimehq/sublime_text/issues/9#issuecomment-16922940
+        """Called, for example, when a file is changed outside of the editor.
+
+        For more information:
+          https://github.com/sublimehq/sublime_text/issues/9#issuecomment-16922940
+        """
         self.on_load()
 
     def on_revert(self):
-        # This function is called, for example, when the user clicks
-        # the menu entry under `File | Revert file`
-        #
-        # https://superuser.com/q/815045
+        """Called, for example, through menu entry under `File | Revert file`.
+
+        For more information:
+          https://superuser.com/q/815045
+        """
         self.on_load()
 
     def on_hover(self, point, hover_zone):

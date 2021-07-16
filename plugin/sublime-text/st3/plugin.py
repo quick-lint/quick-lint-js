@@ -56,6 +56,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     # they will all apply the same changes (have squiggly underlines
     # and pop-ups available):
     #
+    # Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
     # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     buffers_manager = BuffersManager()
@@ -69,7 +70,15 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def applies_to_primary_view_only(cls):
         return False
 
+    # Won't on_load get called anyway? Why do we need to explicitly lint
+    # in __init__?
+    #
+    # Answer:
+    #   Inside the quick-lint-js/docs/SUBLIME-TEXT.md or
+    #   https://github.com/quick-lint/quick-lint-js/pull/328#discussion_r670077226
+
     def __init__(self, view):
+        """Called when the view is finished loading."""
         super().__init__(view)
         self.buffer = self.buffers_manager.add_view(self.view)
         self.on_modified()
@@ -78,6 +87,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         self.buffers_manager.remove_view(self.view)
 
     def on_load(self):
+        """Called when the file is finished loading."""
         self.on_modified()
 
     def on_modified(self):
