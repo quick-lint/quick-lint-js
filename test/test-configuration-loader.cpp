@@ -1641,6 +1641,92 @@ TEST_F(test_configuration_loader,
 }
 
 TEST_F(test_configuration_loader,
+       making_config_file_unreadable_then_readable_is_detected_as_change) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+
+  std::string js_file = project_dir + "/test.js";
+  write_file(js_file, u8"");
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  [[maybe_unused]] std::vector<configuration_change> changes_1 =
+      loader.detect_changes_and_refresh();
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0644), 0)
+      << "failed to make " << config_file
+      << " readable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes_2 =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  EXPECT_EQ(changes_2[0].token, &js_file);
+  EXPECT_TRUE(changes_2[0].config->globals().find(u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes_2[0].error, nullptr);
+}
+
+#if defined(__APPLE__)
+// TODO(strager): Fix on macOS+kqueue.
+TEST_F(
+    test_configuration_loader,
+    DISABLED_making_unreadable_config_file_readable_then_unreadable_is_detected_as_change)
+#else
+TEST_F(
+    test_configuration_loader,
+    making_unreadable_config_file_readable_then_unreadable_is_detected_as_change)
+#endif
+{
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+
+  std::string js_file = project_dir + "/test.js";
+  write_file(js_file, u8"");
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  std::string config_file_canonical_path(
+      canonicalize_path(config_file)->path());
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0644), 0)
+      << "failed to make " << config_file
+      << " readable: " << std::strerror(errno);
+
+  [[maybe_unused]] std::vector<configuration_change> changes_1 =
+      loader.detect_changes_and_refresh();
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes_2 =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  EXPECT_EQ(changes_2[0].token, &js_file);
+  EXPECT_FALSE(changes_2[0].config->globals().find(u8"testGlobalVariable"sv));
+  EXPECT_THAT(changes_2[0].error, IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
+                                      config_file_canonical_path, EACCES));
+}
+
+TEST_F(test_configuration_loader,
        making_unreadable_parent_dir_readable_is_detected_as_change) {
   if (process_ignores_filesystem_permissions()) {
     GTEST_SKIP() << "cannot run test as root";

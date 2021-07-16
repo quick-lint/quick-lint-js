@@ -315,7 +315,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
       continue;
     }
 
-    if (latest->path != watch.config_path) {
+    if (latest->path != watch.config_path || watch.error.has_value()) {
       configuration* config;
       if (latest->path.has_value()) {
         auto loaded_config_it = loaded_config_files.find(*latest->path);
@@ -340,6 +340,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
           .token = watch.token,
       });
       watch.config_path = latest->path;
+      watch.error = std::nullopt;
     }
   }
 
