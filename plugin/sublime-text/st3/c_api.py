@@ -55,33 +55,25 @@ def load_library():
     return ctypes.CDLL(lib_path)
 
 
-def set_argtypes_and_restype(func, argtypes, restype):
-    func.argtypes = argtypes
-    func.restype = restype
-
-
 def create_library():
     lib = load_library()
-    set_argtypes_and_restype(
-        lib.qljs_sublime_text_3_create_parser,
-        argtypes=[],
-        restype=ParserStructurePointer,
-    )
-    set_argtypes_and_restype(
-        lib.qljs_sublime_text_3_destroy_parser,
-        argtypes=[ParserStructurePointer],
-        restype=None,
-    )
-    set_argtypes_and_restype(
-        lib.qljs_sublime_text_3_set_text,
-        argtypes=[ParserStructurePointer, ctypes.c_void_p, ctypes.c_size_t],
-        restype=None,
-    )
-    set_argtypes_and_restype(
-        lib.qljs_sublime_text_3_lint,
-        argtypes=[ParserStructurePointer],
-        restype=DiagnosticStructurePointer,
-    )
+
+    lib.qljs_sublime_text_3_create_parser.argtypes = []
+    lib.qljs_sublime_text_3_create_parser.restype = ParserStructurePointer
+
+    lib.qljs_sublime_text_3_destroy_parser.argtypes = [ParserStructurePointer]
+    lib.qljs_sublime_text_3_destroy_parser.restype = None
+
+    lib.qljs_sublime_text_3_set_text.argtypes = [
+        ParserStructurePointer,
+        ctypes.c_void_p,
+        ctypes.c_size_t,
+    ]
+    lib.qljs_sublime_text_3_set_text.restype = None
+
+    lib.qljs_sublime_text_3_lint.argtypes = [ParserStructurePointer]
+    lib.qljs_sublime_text_3_lint.restype = DiagnosticStructurePointer
+
     return lib
 
 
