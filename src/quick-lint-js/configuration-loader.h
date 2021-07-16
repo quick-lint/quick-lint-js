@@ -48,10 +48,10 @@ class configuration_loader {
   watch_and_load_for_file(const std::string& file_path, const void* token);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
-  load_for_file_2(const std::string& file_path);
+  load_for_file(const std::string& file_path);
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          platform_file_io_error>
-  load_for_file_2(const file_to_lint&);
+  load_for_file(const file_to_lint&);
 
   std::vector<configuration_change> refresh();
 

@@ -46,13 +46,13 @@ configuration_loader::watch_and_load_for_file(const std::string& file_path,
 
 result<configuration*, canonicalize_path_io_error, read_file_io_error,
        platform_file_io_error>
-configuration_loader::load_for_file_2(const std::string& file_path) {
+configuration_loader::load_for_file(const std::string& file_path) {
   return this->find_and_load_config_file_for_input(file_path.c_str());
 }
 
 result<configuration*, canonicalize_path_io_error, read_file_io_error,
        platform_file_io_error>
-configuration_loader::load_for_file_2(const file_to_lint& file) {
+configuration_loader::load_for_file(const file_to_lint& file) {
   if (file.config_file) {
     return this->load_config_file(file.config_file);
   } else {
