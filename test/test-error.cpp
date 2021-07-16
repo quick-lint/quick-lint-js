@@ -20,6 +20,22 @@ static constexpr error_name_and_code all_errors[] = {
 #undef QLJS_ERROR_TYPE
 };
 
+std::string next_unused_error_code() {
+  for (int i = 1; i <= 999; ++i) {
+    char code[6];
+    std::snprintf(code, sizeof(code), "E%03d", i);
+    auto existing_it =
+        std::find_if(std::begin(all_errors), std::end(all_errors),
+                     [&](const error_name_and_code& error) {
+                       return std::string_view(error.code) == code;
+                     });
+    if (existing_it == std::end(all_errors)) {
+      return std::string(code);
+    }
+  }
+  QLJS_UNIMPLEMENTED();
+}
+
 TEST(test_error, error_codes_are_unique) {
   std::unordered_map<std::string, const char*> code_to_error_name;
   for (const error_name_and_code& error : all_errors) {
@@ -29,7 +45,8 @@ TEST(test_error, error_codes_are_unique) {
     } else {
       ADD_FAILURE() << "error code " << error.code
                     << " used for multiple errors: " << error.name << ", "
-                    << existing_it->second;
+                    << existing_it->second << "\ntry this unused error code: "
+                    << next_unused_error_code();
     }
   }
 }
@@ -43,7 +60,8 @@ TEST(test_error, error_codes_are_well_formed) {
 #endif
     // Wrapping the code in std::string improves gtest diagnostics.
     EXPECT_THAT(std::string(error.code), ::testing::MatchesRegex(error_pattern))
-        << "error " << error.name << " should have a code like E123";
+        << "error " << error.name << " should have a code like E123"
+        << "\ntry this unused error code: " << next_unused_error_code();
   }
 }
 }
