@@ -8,6 +8,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
+#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/padded-string.h>
@@ -22,11 +23,19 @@ QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
 constexpr int lsp_error_severity = 1;
+
+#if QLJS_HAVE_WINDOWS_H
+windows_file_io_error generic_file_io_error = {ERROR_READ_FAULT};
+#endif
+#if QLJS_HAVE_UNISTD_H
+posix_file_io_error generic_file_io_error = {EIO};
+#endif
 
 string8 make_message(string8_view content) {
   return string8(u8"Content-Length: ") +
@@ -1296,6 +1305,113 @@ TEST_F(test_linting_lsp_server,
       })"));
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
+TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
+  this->fs.create_file(
+      this->fs.rooted("quick-lint-js.config"),
+      [this]() -> fake_configuration_filesystem::read_file_result {
+        return fake_configuration_filesystem::read_file_result::failure<
+            read_file_io_error>(read_file_io_error{
+            .path = this->fs.rooted("quick-lint-js.config").path(),
+            .io_error = generic_file_io_error,
+        });
+      });
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer& notification_json) {
+    EXPECT_TRUE(config.globals().find(u8"Array"sv))
+        << "config should be default";
+    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"sv))
+        << "config should be default";
+    notification_json.append_copy(
+        u8R"({
+          "method": "textDocument/publishDiagnostics",
+          "params": {
+            "uri": )" +
+        string8(uri_json) +
+        u8R"(,
+            "version": )" +
+        string8(version_json) +
+        u8R"(,
+            "diagnostics": []
+          },
+          "jsonrpc": "2.0"
+        })");
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "testjs"
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
+      << "should have linted despite config file being unloadable";
+}
+
+TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"configFromFilesystem": true}})");
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "testjs"
+          }
+        }
+      })"));
+
+  this->fs.create_file(
+      this->fs.rooted("quick-lint-js.config"),
+      [this]() -> fake_configuration_filesystem::read_file_result {
+        return fake_configuration_filesystem::read_file_result::failure<
+            read_file_io_error>(read_file_io_error{
+            .path = this->fs.rooted("quick-lint-js.config").path(),
+            .io_error = generic_file_io_error,
+        });
+      });
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer& notification_json) {
+    EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"sv))
+        << "config should be default";
+    notification_json.append_copy(
+        u8R"({
+          "method": "textDocument/publishDiagnostics",
+          "params": {
+            "uri": )" +
+        string8(uri_json) +
+        u8R"(,
+            "version": )" +
+        string8(version_json) +
+        u8R"(,
+            "diagnostics": []
+          },
+          "jsonrpc": "2.0"
+        })");
+  };
+  this->server.filesystem_changed();
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
+      << "should have linted twice: once on open, and once after config file "
+         "changed";
 }
 
 TEST_F(test_linting_lsp_server,

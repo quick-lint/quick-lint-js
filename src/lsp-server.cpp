@@ -297,13 +297,14 @@ void linting_lsp_server_handler<Linter>::
     doc.type = document_type::lintable;
     auto config = this->config_loader_.watch_and_load_for_file(document_path,
                                                                /*token=*/&doc);
-    if (!config.ok()) {
-      QLJS_UNIMPLEMENTED();
+    if (config.ok()) {
+      doc.config = *config;
+    } else {
+      doc.config = this->config_loader_.get_default_config();
     }
-    doc.config = *config;
     byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        **config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
   } else {
     doc.type = document_type::config;

@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 #define QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 
+#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
@@ -17,9 +18,20 @@
 namespace quick_lint_js {
 class fake_configuration_filesystem : public configuration_filesystem {
  public:
+  using read_file_result =
+      result<padded_string, read_file_io_error, watch_io_error>;
+
   // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content) {
-    this->files_.insert_or_assign(path, content);
+    this->files_.insert_or_assign(
+        path, [content_string = string8(content)]() -> read_file_result {
+          return padded_string(string8_view(content_string));
+        });
+  }
+
+  void create_file(const canonical_path& path,
+                   std::function<read_file_result()> callback) {
+    this->files_.insert_or_assign(path, std::move(callback));
   }
 
   canonical_path rooted(const char* path) const {
@@ -64,17 +76,16 @@ class fake_configuration_filesystem : public configuration_filesystem {
 #if QLJS_HAVE_UNISTD_H
       posix_file_io_error io_error = {ENOENT};
 #endif
-      return result<padded_string, read_file_io_error, watch_io_error>::failure<
-          read_file_io_error>(read_file_io_error{
+      return read_file_result::failure<read_file_io_error>(read_file_io_error{
           .path = std::string(path.path()),
           .io_error = io_error,
       });
     }
-    return padded_string(string8_view(file_it->second));
+    return file_it->second();
   }
 
  private:
-  std::unordered_map<canonical_path, string8> files_;
+  std::unordered_map<canonical_path, std::function<read_file_result()>> files_;
 };
 }
 
