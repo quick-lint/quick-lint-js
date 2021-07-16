@@ -289,6 +289,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
             .config = &this->default_config_,
+            .error = &*watch.error,
             .token = watch.token,
         });
       }
@@ -307,6 +308,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
             .config = &this->default_config_,
+            .error = &*watch.error,
             .token = watch.token,
         });
       }
@@ -334,6 +336,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
       changes.emplace_back(configuration_change{
           .watched_path = &input_path,
           .config = config,
+          .error = nullptr,
           .token = watch.token,
       });
       watch.config_path = latest->path;
@@ -371,6 +374,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
             changes.emplace_back(configuration_change{
                 .watched_path = &watch.input_path,
                 .config = &loaded_config.config,
+                .error = nullptr,
                 .token = watch.token,
             });
           }

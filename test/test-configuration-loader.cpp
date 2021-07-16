@@ -60,6 +60,46 @@ QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 #define BUGGY 1
 #endif
 
+#define IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(expected_path,        \
+                                               expected_posix_error) \
+  ::testing::Pointee(                                                \
+      IS_POSIX_READ_FILE_IO_ERROR(expected_path, expected_posix_error))
+
+#define IS_POSIX_READ_FILE_IO_ERROR(expected_path, expected_posix_error)       \
+  ::testing::VariantWith<::quick_lint_js::read_file_io_error>(                 \
+      ::testing::AllOf(                                                        \
+          ::testing::Field("path", &::quick_lint_js::read_file_io_error::path, \
+                           expected_path),                                     \
+          ::testing::Field(                                                    \
+              "io_error", &::quick_lint_js::read_file_io_error::io_error,      \
+              ::testing::Field("error",                                        \
+                               &::quick_lint_js::posix_file_io_error::error,   \
+                               expected_posix_error))))
+
+#define IS_POINTER_TO_POSIX_CANONICALIZE_PATH_IO_ERROR(                      \
+    expected_input_path, expected_canonicalizing_path, expected_posix_error) \
+  ::testing::Pointee(IS_POSIX_CANONICALIZE_PATH_IO_ERROR(                    \
+      expected_input_path, expected_canonicalizing_path,                     \
+      expected_posix_error))
+
+#define IS_POSIX_CANONICALIZE_PATH_IO_ERROR(                                  \
+    expected_input_path, expected_canonicalizing_path, expected_posix_error)  \
+  ::testing::VariantWith<                                                     \
+      ::quick_lint_js::canonicalize_path_io_error>(::testing::AllOf(          \
+      ::testing::Field(                                                       \
+          "input_path",                                                       \
+          &::quick_lint_js::canonicalize_path_io_error::input_path,           \
+          expected_input_path),                                               \
+      ::testing::Field(                                                       \
+          "canonicalizing_path",                                              \
+          &::quick_lint_js::canonicalize_path_io_error::canonicalizing_path,  \
+          expected_canonicalizing_path),                                      \
+      ::testing::Field(                                                       \
+          "io_error", &::quick_lint_js::canonicalize_path_io_error::io_error, \
+          ::testing::Field("error",                                           \
+                           &::quick_lint_js::posix_file_io_error::error,      \
+                           expected_posix_error))))
+
 using ::testing::AnyOf;
 using ::testing::ElementsAre;
 using ::testing::HasSubstr;
@@ -1526,7 +1566,9 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_FALSE(changes[0].config->globals().find(u8"testGlobalVariable"sv));
-  // TODO(strager): Check the error message.
+  EXPECT_THAT(changes[0].error,
+              IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 }
 
 #if defined(__APPLE__)
@@ -1554,7 +1596,9 @@ TEST_F(test_configuration_loader,
   change_detecting_configuration_loader loader;
   auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
-  // TODO(strager): Check the error message.
+  EXPECT_THAT(config.error_to_variant(),
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0600), 0)
       << "failed to make " << config_file
@@ -1565,7 +1609,7 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(changes[0].config->globals().find(u8"testGlobalVariable"sv));
-  // TODO(strager): Assert that there was no error.
+  EXPECT_EQ(changes[0].error, nullptr);
 }
 
 TEST_F(test_configuration_loader,
@@ -1587,7 +1631,9 @@ TEST_F(test_configuration_loader,
   change_detecting_configuration_loader loader;
   auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
-  // TODO(strager): Check the error message.
+  EXPECT_THAT(config.error_to_variant(),
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1606,6 +1652,7 @@ TEST_F(test_configuration_loader,
   create_directory(dir);
   std::string js_file = dir + "/test.js";
   write_file(js_file, u8"");
+  std::string js_file_canonical_path(canonicalize_path(js_file)->path());
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
@@ -1618,7 +1665,10 @@ TEST_F(test_configuration_loader,
 #endif
   auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
-  // TODO(strager): Check the error message.
+  EXPECT_THAT(config.error_to_variant(),
+              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  js_file, js_file_canonical_path, EACCES))
+      << config.error_to_string();
 
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
       << "failed to make " << dir << " readable: " << std::strerror(errno);
@@ -1632,7 +1682,7 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(changes[0].config->globals().find(u8"testGlobalVariable"sv));
-  // TODO(strager): Assert that there was no error.
+  EXPECT_EQ(changes[0].error, nullptr);
 }
 
 TEST_F(test_configuration_loader,
@@ -1647,6 +1697,7 @@ TEST_F(test_configuration_loader,
   create_directory(dir);
   std::string js_file = dir + "/test.js";
   write_file(js_file, u8"");
+  std::string js_file_canonical_path(canonicalize_path(js_file)->path());
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
 
@@ -1663,7 +1714,8 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_FALSE(changes[0].config->globals().find(u8"testGlobalVariable"sv));
-  // TODO(strager): Check the error message.
+  EXPECT_THAT(changes[0].error, IS_POINTER_TO_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                                    js_file, js_file_canonical_path, EACCES));
 }
 
 TEST_F(test_configuration_loader,
@@ -1678,6 +1730,7 @@ TEST_F(test_configuration_loader,
   create_directory(dir);
   std::string js_file = dir + "/test.js";
   write_file(js_file, u8"");
+  std::string js_file_canonical_path(canonicalize_path(js_file)->path());
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
@@ -1686,7 +1739,10 @@ TEST_F(test_configuration_loader,
   change_detecting_configuration_loader loader;
   auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(config.ok());
-  // TODO(strager): Check the error message.
+  EXPECT_THAT(config.error_to_variant(),
+              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  js_file, js_file_canonical_path, EACCES))
+      << config.error_to_string();
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();

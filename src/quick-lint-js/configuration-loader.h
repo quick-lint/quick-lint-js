@@ -42,6 +42,9 @@ struct configuration_change {
   const std::string* watched_path;  // Never nullptr.
   configuration* config;            // Never nullptr.
 
+  std::variant<canonicalize_path_io_error, read_file_io_error,
+               watch_io_error>* error;  // Sometimes nullptr.
+
   // token is the pointer given to
   // configuration_loader::watch_and_load_for_file.
   void* token;
