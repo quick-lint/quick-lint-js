@@ -301,6 +301,9 @@ void linting_lsp_server_handler<Linter>::
       doc.config = *config;
     } else {
       doc.config = this->config_loader_.get_default_config();
+      byte_buffer& message_json = notification_jsons.emplace_back();
+      this->write_configuration_loader_error_notification(
+          document_path, config.error_to_string(), message_json);
     }
     byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
@@ -336,6 +339,14 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
         // TODO(strager): Report a warning and use a default configuration.
         QLJS_UNIMPLEMENTED();
       }
+      if (change_it->error) {
+        byte_buffer& message_json = notification_jsons.emplace_back();
+        this->write_configuration_loader_error_notification(
+            document_path,
+            std::visit([](const auto& error) { return error.to_string(); },
+                       *change_it->error),
+            message_json);
+      }
       configuration* config = change_it->config;
       doc.config = config;
       byte_buffer& notification_json = notification_jsons.emplace_back();
@@ -348,6 +359,25 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
           notification_json);
     }
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    write_configuration_loader_error_notification(
+        std::string_view document_path, std::string_view error_details,
+        byte_buffer& out_json) {
+  // clang-format off
+  out_json.append_copy(u8R"--({)--"
+    u8R"--("jsonrpc":"2.0",)--"
+    u8R"--("method":"window/showMessage",)--"
+    u8R"--("params":{)--"
+      u8R"--("type":2,)--"
+      u8R"--("message":"Failed to load configuration file for )--");
+  // clang-format on
+  write_json_escaped_string(out_json, to_string8_view(document_path));
+  out_json.append_copy(u8". Using default configuration.\\nError details: ");
+  write_json_escaped_string(out_json, to_string8_view(error_details));
+  out_json.append_copy(u8"\"}}");
 }
 
 template <QLJS_LSP_LINTER Linter>

@@ -30,6 +30,8 @@ namespace quick_lint_js {
 namespace {
 constexpr int lsp_error_severity = 1;
 
+constexpr int lsp_warning_message_type = 2;
+
 #if QLJS_HAVE_WINDOWS_H
 windows_file_io_error generic_file_io_error = {ERROR_READ_FAULT};
 #endif
@@ -80,6 +82,17 @@ class test_linting_lsp_server : public ::testing::Test {
         }
       });
   spy_lsp_endpoint_remote& client = server.remote();
+
+  std::string config_file_load_error_message(const char* js_path,
+                                             const char* error_path) {
+    return "Failed to load configuration file for "s +
+           this->fs.rooted(js_path).path() +
+           ". "s
+           "Using default configuration.\n"s
+           "Error details: failed to read from "s +
+           this->fs.rooted(error_path).path() + ": "s +
+           generic_file_io_error.to_string();
+  }
 };
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize
@@ -1357,6 +1370,16 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
+
+  ASSERT_EQ(this->client.messages.size(), 2);
+  std::size_t showMessageIndex =
+      this->client.messages[0]["method"] == "window/showMessage" ? 0 : 1;
+  ::Json::Value& showMessageMessage = this->client.messages[showMessageIndex];
+  EXPECT_EQ(showMessageMessage["method"], "window/showMessage");
+  EXPECT_EQ(showMessageMessage["params"]["type"], lsp_warning_message_type);
+  EXPECT_EQ(
+      showMessageMessage["params"]["message"],
+      this->config_file_load_error_message("test.js", "quick-lint-js.config"));
 }
 
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
@@ -1407,11 +1430,22 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
           "jsonrpc": "2.0"
         })");
   };
+  this->client.messages.clear();
   this->server.filesystem_changed();
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
       << "should have linted twice: once on open, and once after config file "
          "changed";
+
+  ASSERT_EQ(this->client.messages.size(), 2);
+  std::size_t showMessageIndex =
+      this->client.messages[0]["method"] == "window/showMessage" ? 0 : 1;
+  ::Json::Value& showMessageMessage = this->client.messages[showMessageIndex];
+  EXPECT_EQ(showMessageMessage["method"], "window/showMessage");
+  EXPECT_EQ(showMessageMessage["params"]["type"], lsp_warning_message_type);
+  EXPECT_EQ(
+      showMessageMessage["params"]["message"],
+      this->config_file_load_error_message("test.js", "quick-lint-js.config"));
 }
 
 TEST_F(test_linting_lsp_server,
