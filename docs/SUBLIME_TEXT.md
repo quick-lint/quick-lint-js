@@ -2,12 +2,13 @@
 
 > The internal strategy used is to share information between all views that belong to the same buffer. Because that way, if there are multiple views (tabs) of the same buffer (file), they will all apply the same changes (have squiggly underlines and pop-ups available).
 
-Before the commit a28ae0ef18185fc9bed853c9724e3fa82f16bafe, when we had multiple views/tabs for the same buffer/file, only the first view (primary view) would have squiggly underlines and pop-ups available. Now all views/tabs have.
+Before the commit <code>[a28ae0e]</code>, when we had multiple views/tabs for the same buffer/file, only the first view (primary view) would have squiggly underlines and pop-ups available. Now all views/tabs have.
 
 | BEFORE THE COMMIT | AFTER THE COMMIT |
 | ----------------- | ---------------- |
 | ![out1][out01]    | ![out2][out02]   |
 
+[a28ae0e]: https://github.com/quick-lint/quick-lint-js/pull/328/commits/a28ae0ef18185fc9bed853c9724e3fa82f16bafe
 [out01]: images/out01.png
 [out02]: images/out02.png
 
