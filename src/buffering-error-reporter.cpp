@@ -55,7 +55,7 @@ buffering_error_reporter::~buffering_error_reporter() = default;
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
-void buffering_error_reporter::move_into(error_reporter *other) {
+void buffering_error_reporter::copy_into(error_reporter *other) const {
   for (impl::any_error &error : this->impl_->errors_) {
     switch (error.kind) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
@@ -66,6 +66,10 @@ void buffering_error_reporter::move_into(error_reporter *other) {
 #undef QLJS_ERROR_TYPE
     }
   }
+}
+
+void buffering_error_reporter::move_into(error_reporter *other) {
+  this->copy_into(other);
 }
 
 bool buffering_error_reporter::empty() const noexcept {

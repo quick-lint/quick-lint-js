@@ -1,41 +1,23 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_BUFFERING_ERROR_REPORTER_H
-#define QUICK_LINT_JS_BUFFERING_ERROR_REPORTER_H
+#include <cstddef>
+#include <cstdint>
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/padded-string.h>
 
-#include <memory>
-#include <quick-lint-js/error.h>
-#include <quick-lint-js/token.h>
+extern "C" {
+int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
+  using namespace quick_lint_js;
 
-namespace quick_lint_js {
-class buffering_error_reporter final : public error_reporter {
- public:
-  explicit buffering_error_reporter();
+  padded_string json(string8(reinterpret_cast<const char8 *>(data), size));
+  configuration c;
+  c.load_from_json(&json);
 
-  buffering_error_reporter(buffering_error_reporter &&);
-  buffering_error_reporter &operator=(buffering_error_reporter &&);
-
-  ~buffering_error_reporter() override;
-
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name error) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-  void copy_into(error_reporter *other) const;
-  void move_into(error_reporter *other);
-
-  bool empty() const noexcept;
-
- private:
-  struct impl;
-
-  std::unique_ptr<impl> impl_;
-};
+  return 0;
 }
-
-#endif
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

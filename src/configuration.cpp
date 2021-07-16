@@ -191,35 +191,42 @@ void configuration::load_from_json(padded_string_view json) {
                    narrow_cast<std::size_t>(json.padded_size()))
           .get(document);
   if (parse_error != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    this->report_json_error(json);
+    return;
   }
 
   ::simdjson::ondemand::value global_groups_value;
   switch (document["global-groups"].get(global_groups_value)) {
   case ::simdjson::error_code::SUCCESS:
-    this->load_global_groups_from_json(global_groups_value);
+    if (!this->load_global_groups_from_json(global_groups_value)) {
+      this->report_json_error(json);
+      return;
+    }
     break;
 
   case ::simdjson::error_code::NO_SUCH_FIELD:
     break;
 
   default:
-    QLJS_UNIMPLEMENTED();
-    break;
+    this->report_json_error(json);
+    return;
   }
 
   ::simdjson::ondemand::object globals_value;
   switch (document["globals"].get(globals_value)) {
   case ::simdjson::error_code::SUCCESS:
-    this->load_globals_from_json(globals_value);
+    if (!this->load_globals_from_json(globals_value)) {
+      this->report_json_error(json);
+      return;
+    }
     break;
 
   case ::simdjson::error_code::NO_SUCH_FIELD:
     break;
 
   default:
-    QLJS_UNIMPLEMENTED();
-    break;
+    this->report_json_error(json);
+    return;
   }
 }
 
@@ -231,6 +238,10 @@ void configuration::set_config_file_path(const canonical_path& path) {
   this->config_file_path_ = path;
 }
 
+void configuration::report_errors(error_reporter* reporter) {
+  this->errors_.copy_into(reporter);
+}
+
 void configuration::reset() {
   // TODO(strager): Make this more efficient by avoiding reallocations.
   this->globals_ = global_declared_variable_set();
@@ -240,19 +251,19 @@ void configuration::reset() {
   this->string_allocator_.memory_resource()->release();
 }
 
-void configuration::load_global_groups_from_json(
+bool configuration::load_global_groups_from_json(
     ::simdjson::ondemand::value& global_groups_value) {
   ::simdjson::fallback::ondemand::json_type global_groups_value_type;
   if (global_groups_value.type().get(global_groups_value_type) !=
       ::simdjson::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    return false;
   }
   switch (global_groups_value_type) {
   case ::simdjson::fallback::ondemand::json_type::boolean: {
     bool global_groups_bool_value;
     if (global_groups_value.get_bool().get(global_groups_bool_value) !=
         ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
+      return false;
     }
     if (global_groups_bool_value) {
       // Do nothing.
@@ -275,7 +286,8 @@ void configuration::load_global_groups_from_json(
       std::string_view global_group_string_value;
       if (global_group_value.get(global_group_string_value) !=
           ::simdjson::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
+        // TODO(strager): Report a schema error instead.
+        return false;
       }
       this->add_global_group(to_string8_view(global_group_string_value));
     }
@@ -283,18 +295,19 @@ void configuration::load_global_groups_from_json(
   }
 
   default:
-    QLJS_UNIMPLEMENTED();
-    break;
+    // TODO(strager): Report a schema error instead.
+    return false;
   }
+  return true;
 }
 
-void configuration::load_globals_from_json(
+bool configuration::load_globals_from_json(
     ::simdjson::ondemand::object& globals_value) {
   for (simdjson::simdjson_result<::simdjson::fallback::ondemand::field>
            global_field : globals_value) {
     std::string_view key;
     if (global_field.unescaped_key().get(key) != ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
+      return false;
     }
     string8_view global_name = this->save_string(key);
 
@@ -304,13 +317,13 @@ void configuration::load_globals_from_json(
     }
     ::simdjson::fallback::ondemand::json_type descriptor_type;
     if (descriptor.type().get(descriptor_type) != ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
+      return false;
     }
     switch (descriptor_type) {
     case ::simdjson::fallback::ondemand::json_type::boolean: {
       bool descriptor_bool;
       if (descriptor.get(descriptor_bool) != ::simdjson::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
+        return false;
       }
       if (descriptor_bool) {
         add_global_variable(global_name);
@@ -330,21 +343,24 @@ void configuration::load_globals_from_json(
       if (get_bool_or_default(descriptor_object["shadowable"],
                               &var->is_shadowable,
                               true) != ::simdjson::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
+        // TODO(strager): Report a schema error instead.
+        return false;
       }
       if (get_bool_or_default(descriptor_object["writable"], &var->is_writable,
                               true) != ::simdjson::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
+        // TODO(strager): Report a schema error instead.
+        return false;
       }
 
       break;
     }
 
     default:
-      QLJS_UNIMPLEMENTED();
-      break;
+      // TODO(strager): Report a schema error instead.
+      return false;
     }
   }
+  return true;
 }
 
 string8_view configuration::save_string(std::string_view s) {
@@ -359,6 +375,15 @@ bool configuration::should_remove_global_variable(string8_view name) {
   return std::find(this->globals_to_remove_.begin(),
                    this->globals_to_remove_.end(),
                    name) != this->globals_to_remove_.end();
+}
+
+void configuration::report_json_error(padded_string_view json) {
+  // TODO(strager): Produce better error messages. simdjson provides no location
+  // information for errors:
+  // https://github.com/simdjson/simdjson/issues/237
+  this->errors_.report(error_config_json_syntax_error{
+      .where = source_code_span(json.data(), json.data()),
+  });
 }
 
 namespace {

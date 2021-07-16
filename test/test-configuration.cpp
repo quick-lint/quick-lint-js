@@ -4,6 +4,9 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/error-matcher.h>
+#include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lint.h>
 #include <string_view>
@@ -377,6 +380,60 @@ TEST(test_configuration_json, false_global_overrides_global_group) {
       << "node.js group should take effect";
   EXPECT_FALSE(c.globals().find(u8"console"_sv))
       << "'console' from node.js group should overwritten";
+}
+
+TEST(test_configuration_json, invalid_json_reports_error) {
+  for (string8_view json_string : {
+           u8R"({)"sv,
+           u8R"({"globals)"sv,
+           u8R"({"globals": {42}})"sv,
+           u8"{\"globals\":{\"globals\":\u0000{}}}}"sv,
+           u8R"({"globals":{"G":{":"}}})"sv,
+           u8R"({"globals":}})"sv,
+           u8R"({"global-groups":=)"sv,
+           u8R"({"global-groups": {42}})"sv,
+           u8R"({"globals":{"g":f}})"sv,
+           u8R"({"global-groups":[)"sv,
+           u8R"({"global-groups":t)"sv,
+       }) {
+    SCOPED_TRACE(out_string8(json_string));
+    configuration c;
+
+    padded_string json(json_string);
+    c.load_from_json(&json);
+
+    error_collector errors;
+    c.report_errors(&errors);
+
+    // TODO(strager): Check error_config_json_syntax_error::where.
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(::testing::VariantWith<error_config_json_syntax_error>(
+            ::testing::_)));
+  }
+}
+
+TEST(test_configuration_json, bad_schema_reports_error) {
+  for (string8_view json_string : {
+           u8R"({"globals":{"a":"b"}})"sv,
+           u8R"({"globals":{"x":{"writable":{}}}})"sv,
+       }) {
+    SCOPED_TRACE(out_string8(json_string));
+    configuration c;
+
+    padded_string json(json_string);
+    c.load_from_json(&json);
+
+    error_collector errors;
+    c.report_errors(&errors);
+
+    // TODO(strager): Report more helpful schema errors instead of reporting a
+    // JSON syntax error.
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(::testing::VariantWith<error_config_json_syntax_error>(
+            ::testing::_)));
+  }
 }
 }
 }

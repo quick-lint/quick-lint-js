@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_CONFIGURATION_H
 
 #include <optional>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/lint.h>
@@ -14,6 +15,8 @@
 #include <vector>
 
 namespace quick_lint_js {
+class error_reporter;
+
 class configuration {
  public:
   const global_declared_variable_set& globals() noexcept;
@@ -30,13 +33,17 @@ class configuration {
   void set_config_file_path(const canonical_path&);
   void set_config_file_path(canonical_path&&);
 
+  void report_errors(error_reporter*);
+
   void reset();
 
  private:
-  void load_global_groups_from_json(simdjson::ondemand::value&);
-  void load_globals_from_json(simdjson::ondemand::object&);
+  bool load_global_groups_from_json(simdjson::ondemand::value&);
+  bool load_globals_from_json(simdjson::ondemand::object&);
 
   bool should_remove_global_variable(string8_view name);
+
+  void report_json_error(padded_string_view json);
 
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
@@ -45,6 +52,8 @@ class configuration {
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;
+  buffering_error_reporter errors_;
+
   string8_view save_string(std::string_view s);
 };
 }

@@ -224,6 +224,10 @@
           comma))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_config_json_syntax_error, "E164", { source_code_span where; },     \
+      .error(QLJS_TRANSLATABLE("JSON syntax error"), where))                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_depth_limit_exceeded, "E203", { source_code_span token; },         \
       .error(QLJS_TRANSLATABLE("depth limit exceeded"), token))                \
                                                                                \
