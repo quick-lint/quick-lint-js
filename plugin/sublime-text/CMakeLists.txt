@@ -8,9 +8,12 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR
   set(QUICK_LINT_JS_SUBLIME_TEXT TRUE)
 endif ()
 
-# This code snippet is responsible for allowing CMake to **run again**
-# without errors if you don't declare `BUILD_SHARED_LIBS=ON` or
-# `CMAKE_POSITION_INDEPENDENT_CODE=ON` on the command line.
+# This code part is responsible for allowing CMake to RUN AGAIN
+# without errors if you don't declare BUILD_SHARED_LIBS=ON or
+# CMAKE_POSITION_INDEPENDENT_CODE=ON on the command line.
+#
+# For example, it allows the Ninja build system to re-run this
+# CMake file without problems.
 if (CACHED_BUILD_SHARED_LIBS)
   set(BUILD_SHARED_LIBS ON)
 endif ()
