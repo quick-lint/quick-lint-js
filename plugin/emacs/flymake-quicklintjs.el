@@ -39,43 +39,19 @@
   :group 'flymake-quicklintjs
   :type '(repeat 'string))
 
-(defconst flymake-quicklintjs--regexp (concat
-                                       "^<stdin>:\\([0-9]+\\):\\([0-9]+\\): "
-                                       "\\(warning\\|error\\): "
-                                       "\\(.+\\) \\(\\[E[0-9]+\\]\\)$")
-  "Regular expression to match quick-lint-js gnu-like output format.")
-
 (defvar-local flymake-quicklintjs--proc nil
   "Internal variable for `flymake-quicklintjs'")
 
-(defun flymake-quicklintjs--error-region (src-buf line col)
-  "Compute SRC-BUF region  (BEG . END) corresponding to LINE and COL."
-  (with-current-buffer src-buf
-    (save-excursion
-      (goto-char (point-min))
-      (forward-line (1- line))
-      (goto-char (min (+ (line-beginning-position) col) (line-end-position)))
-      (or (bounds-of-thing-at-point 'word) (cons (point) (point))))))
-
-(defun flymake-quicklintjs--make-diagnostics (src-buf)
-  "Parse gnu-like compilation messages in current buffer.
-Return a list of Flymake diagnostic objects for the source buffer
-SRC-BUF."
-  (let (diag-accum)
-    (while (not (eobp))
-      (when (looking-at flymake-quicklintjs--regexp)
-        (let* ((line (string-to-number (match-string 1)))
-               (col (string-to-number (match-string 2)))
-               (type (match-string 3))
-               (msg (match-string 4))
-               (type-sym (if (string= "error" type) :error :warning)))
-          (let* ((diag-region (flymake-quicklintjs--error-region src-buf line col))
-                 (beg (car diag-region))
-                 (end (min (buffer-size src-buf) (cdr diag-region))))
-            (push (flymake-make-diagnostic src-buf beg end type-sym msg)
-                  diag-accum))))
-      (forward-line 1))
-    diag-accum))
+(defun flymake-quicklintjs--make-diagnostics (src-buf quicklintjs-output-alist)
+  "Convert QUICKLINTJS-OUTPUT-ALIST to Flymake diagnostic objects.
+Return a list of Flymake diagnostic objects in source buffer SRC-BUF."
+  (mapcar (lambda (l)
+            (let ((region (nth 0 l))
+                  (sev (nth 1 l))
+                  (msg (nth 3 l)))
+              (flymake-make-diagnostic src-buf (car region) (cdr region)
+                                       (if (= sev 0) :error :warning) msg)))
+          quicklintjs-output-alist))
 
 ;;;###autoload
 (defun flymake-quicklintjs (report-fn &rest _args)
@@ -91,27 +67,29 @@ REPORT-FN is Flymake's callback."
            :name "flymake-quicklintjs"
            :connection-type 'pipe
            :noquery t
-           :buffer (generate-new-buffer " *flymake-quicklintjs*")
+           :buffer (get-buffer-create " *flymake-quicklintjs*")
            :command `(,flymake-quicklintjs-program
-                      "--stdin" "--output-format=gnu-like"
+                      "--stdin" "--output-format=emacs-lisp"
                       ,@flymake-quicklintjs-args)
            :sentinel
            (lambda (p _ev)
              (unwind-protect
-                 (when (eq 'exit (process-status p))
-                   (when (with-current-buffer src-buf (eq p flymake-quicklintjs--proc))
-                     (with-current-buffer (process-buffer p)
-                       (goto-char (point-min))
-                       (let ((diags
-                              (flymake-quicklintjs--make-diagnostics src-buf)))
-                         (if (or diags (zerop (process-exit-status p)))
-                             (funcall report-fn diags
-                                      :region (cons (point-min) (point-max)))
-                           (funcall report-fn
-                                    :panic :explanation
-                                    (buffer-substring
-                                     (point-min) (progn (goto-char (point-min))
-                                                        (line-end-position)))))))))
+                 (when (and (eq 'exit (process-status p))
+                            (eq p flymake-quicklintjs--proc))
+                   (with-current-buffer (process-buffer p)
+                     (let ((diags (flymake-quicklintjs--make-diagnostics
+                                  src-buf
+                                  (car (read-from-string
+                                        (buffer-substring-no-properties
+                                         (point-min) (point-max)))))))
+                       (if (or diags (zerop (process-exit-status p)))
+                           (funcall report-fn diags
+                                    :region (cons (point-min) (point-max)))
+                         (funcall report-fn
+                                  :panic :explanation
+                                  (buffer-substring
+                                   (point-min) (progn (goto-char (point-min))
+                                                      (line-end-position))))))))
                (unless (process-live-p p)
                  (kill-buffer (process-buffer p)))))))
     (process-send-region flymake-quicklintjs--proc (point-min) (point-max))
