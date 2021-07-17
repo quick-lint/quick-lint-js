@@ -43,6 +43,12 @@ class configuration {
 
   bool should_remove_global_variable(string8_view name);
 
+  // Returns false on parse error, and true otherwise.
+  template <class Error>
+  bool get_bool_or_default(
+      ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
+      bool* out, bool default_value);
+
   void report_json_error(padded_string_view json);
 
   global_declared_variable_set globals_;

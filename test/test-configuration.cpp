@@ -23,6 +23,8 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+error_collector load_from_json(configuration&, padded_string_view json);
+
 TEST(test_configuration, browser_globals_are_present_by_default) {
   configuration c;
 
@@ -413,27 +415,118 @@ TEST(test_configuration_json, invalid_json_reports_error) {
   }
 }
 
-TEST(test_configuration_json, bad_schema_reports_error) {
-  for (string8_view json_string : {
-           u8R"({"globals":{"a":"b"}})"sv,
-           u8R"({"globals":{"x":{"writable":{}}}})"sv,
-       }) {
-    SCOPED_TRACE(out_string8(json_string));
+TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
+  {
+    padded_string json(u8R"({"globals":["myGlobalVariable"]})"sv);
     configuration c;
-
-    padded_string json(json_string);
-    c.load_from_json(&json);
-
-    error_collector errors;
-    c.report_errors(&errors);
-
-    // TODO(strager): Report more helpful schema errors instead of reporting a
-    // JSON syntax error.
+    error_collector errors = load_from_json(c, &json);
     EXPECT_THAT(
         errors.errors,
-        ElementsAre(::testing::VariantWith<error_config_json_syntax_error>(
-            ::testing::_)));
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_type_mismatch, value,
+            offsets_matcher(&json, strlen(u8R"({"globals":)"), u8"["))));
+    EXPECT_FALSE(c.globals().find(u8"myGlobalVariable"_sv))
+        << "invalid global should be ignored";
   }
+
+  {
+    padded_string json(
+        u8R"({"globals":{"testBefore":true,"testBad":"string","testAfter":true}})"sv);
+    configuration c;
+    error_collector errors = load_from_json(c, &json);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_descriptor_type_mismatch, descriptor,
+            offsets_matcher(
+                &json, strlen(u8R"({"globals":{"testBefore":true,"testBad":)"),
+                u8R"("string")"))));
+
+    EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
+        << "valid globals before should work";
+    EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
+        << "valid globals after should work";
+    EXPECT_FALSE(c.globals().find(u8"testBad"_sv))
+        << "invalid global should be ignored";
+  }
+
+  {
+    padded_string json(
+        u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":"string"},"testAfter":true}})"sv);
+    configuration c;
+    error_collector errors = load_from_json(c, &json);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_descriptor_shadowable_type_mismatch, value,
+            offsets_matcher(
+                &json,
+                strlen(
+                    u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":)"),
+                u8R"("string")"))));
+
+    EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
+        << "valid globals before should work";
+    EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
+        << "valid globals after should work";
+    auto* var = c.globals().find(u8"testBad"_sv);
+    ASSERT_TRUE(var) << "broken global should be present";
+    EXPECT_FALSE(var->is_writable)
+        << "valid property on broken global should work";
+    EXPECT_TRUE(var->is_shadowable)
+        << "invalid global property should be ignored (default)";
+  }
+
+  {
+    padded_string json(
+        u8R"({"globals":{"testBefore":true,"testBad":{"writable":"string","shadowable":false},"testAfter":true}})"sv);
+    configuration c;
+    error_collector errors = load_from_json(c, &json);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_descriptor_writable_type_mismatch, value,
+            offsets_matcher(
+                &json,
+                strlen(
+                    u8R"({"globals":{"testBefore":true,"testBad":{"writable":)"),
+                u8R"("string")"))));
+
+    EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
+        << "valid globals before should work";
+    EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
+        << "valid globals after should work";
+    auto* var = c.globals().find(u8"testBad"_sv);
+    ASSERT_TRUE(var) << "broken global should be present";
+    EXPECT_TRUE(var->is_writable)
+        << "invalid global property should be ignored (default)";
+    EXPECT_FALSE(var->is_shadowable)
+        << "valid property on broken global should work";
+  }
+}
+
+TEST(test_configuration_json, bad_global_error_excludes_trailing_whitespace) {
+  // simdjson's raw_json_token function returns trailing whitespace by default.
+  // Ensure the whitespace is not included in error messages.
+
+  // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
+  // and U+0020.
+  padded_string json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }})"sv);
+  configuration c;
+  error_collector errors = load_from_json(c, &json);
+
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_config_globals_descriptor_type_mismatch, descriptor,
+                  offsets_matcher(&json, strlen(u8R"({ "globals": { "a": )"),
+                                  u8R"("b")"))));
+}
+
+error_collector load_from_json(configuration& config, padded_string_view json) {
+  config.load_from_json(json);
+  error_collector errors;
+  config.report_errors(&errors);
+  return errors;
 }
 }
 }

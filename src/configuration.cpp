@@ -18,9 +18,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-::simdjson::error_code get_bool_or_default(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&&, bool* out,
-    bool default_value);
+source_code_span span_of_json_value(::simdjson::fallback::ondemand::value&);
 }
 
 const global_declared_variable_set& configuration::globals() noexcept {
@@ -212,14 +210,31 @@ void configuration::load_from_json(padded_string_view json) {
     return;
   }
 
+  auto globals = document["globals"];
   ::simdjson::ondemand::object globals_value;
-  switch (document["globals"].get(globals_value)) {
+  switch (globals.get(globals_value)) {
   case ::simdjson::error_code::SUCCESS:
     if (!this->load_globals_from_json(globals_value)) {
       this->report_json_error(json);
       return;
     }
     break;
+
+  case ::simdjson::error_code::INCORRECT_TYPE: {
+    // Either "globals" has the wrong type or there is a syntax error. simdjson
+    // gives us INCORRECT_TYPE in both cases.
+    ::simdjson::ondemand::value v;
+    if (globals.get(v) == ::simdjson::SUCCESS &&
+        v.type().error() == ::simdjson::SUCCESS) {
+      this->errors_.report(error_config_globals_type_mismatch{
+          .value = span_of_json_value(v),
+      });
+    } else {
+      this->report_json_error(json);
+      return;
+    }
+    break;
+  }
 
   case ::simdjson::error_code::NO_SUCH_FIELD:
     break;
@@ -340,15 +355,14 @@ bool configuration::load_globals_from_json(
       }
 
       global_declared_variable* var = add_global_variable(global_name);
-      if (get_bool_or_default(descriptor_object["shadowable"],
-                              &var->is_shadowable,
-                              true) != ::simdjson::SUCCESS) {
-        // TODO(strager): Report a schema error instead.
+      if (!this->get_bool_or_default<
+              error_config_globals_descriptor_shadowable_type_mismatch>(
+              descriptor_object["shadowable"], &var->is_shadowable, true)) {
         return false;
       }
-      if (get_bool_or_default(descriptor_object["writable"], &var->is_writable,
-                              true) != ::simdjson::SUCCESS) {
-        // TODO(strager): Report a schema error instead.
+      if (!this->get_bool_or_default<
+              error_config_globals_descriptor_writable_type_mismatch>(
+              descriptor_object["writable"], &var->is_writable, true)) {
         return false;
       }
 
@@ -356,8 +370,10 @@ bool configuration::load_globals_from_json(
     }
 
     default:
-      // TODO(strager): Report a schema error instead.
-      return false;
+      this->errors_.report(error_config_globals_descriptor_type_mismatch{
+          .descriptor = span_of_json_value(descriptor),
+      });
+      break;
     }
   }
   return true;
@@ -377,6 +393,29 @@ bool configuration::should_remove_global_variable(string8_view name) {
                    name) != this->globals_to_remove_.end();
 }
 
+template <class Error>
+bool configuration::get_bool_or_default(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
+    bool default_value) {
+  ::simdjson::fallback::ondemand::value v;
+  ::simdjson::error_code error = value.get(v);
+  switch (error) {
+  case ::simdjson::SUCCESS:
+    if (v.get(*out) != ::simdjson::SUCCESS) {
+      this->errors_.report(Error{span_of_json_value(v)});
+      *out = default_value;
+    }
+    return true;
+
+  default:
+    return false;
+
+  case ::simdjson::NO_SUCH_FIELD:
+    *out = default_value;
+    return true;
+  }
+}
+
 void configuration::report_json_error(padded_string_view json) {
   // TODO(strager): Produce better error messages. simdjson provides no location
   // information for errors:
@@ -387,19 +426,20 @@ void configuration::report_json_error(padded_string_view json) {
 }
 
 namespace {
-::simdjson::error_code get_bool_or_default(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
-    bool default_value) {
-  ::simdjson::error_code error = value.get(*out);
-  switch (error) {
-  case ::simdjson::SUCCESS:
-  default:
-    return error;
+string8_view remove_trailing_json_whitespace(string8_view sv) {
+  // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
+  // and U+0020.
+  std::size_t last_character_index =
+      sv.find_last_not_of(u8"\u0009\u000a\u000d\u0020"sv);
+  QLJS_ASSERT(last_character_index != sv.npos);
+  return sv.substr(0, last_character_index + 1);
+}
 
-  case ::simdjson::NO_SUCH_FIELD:
-    *out = default_value;
-    return ::simdjson::SUCCESS;
-  }
+source_code_span span_of_json_value(
+    ::simdjson::fallback::ondemand::value& value) {
+  string8_view sv = to_string8_view(value.raw_json_token());
+  sv = remove_trailing_json_whitespace(sv);
+  return source_code_span(sv.data(), sv.data() + sv.size());
 }
 }
 }

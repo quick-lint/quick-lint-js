@@ -228,6 +228,31 @@
       .error(QLJS_TRANSLATABLE("JSON syntax error"), where))                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_config_globals_descriptor_type_mismatch, "E171",                   \
+      { source_code_span descriptor; },                                        \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "\"globals\" descriptor must be a boolean or an object"),     \
+             descriptor))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_config_globals_descriptor_shadowable_type_mismatch, "E166",        \
+      { source_code_span value; },                                             \
+      .error(QLJS_TRANSLATABLE("\"globals\" descriptor \"shadowable\" "        \
+                               "property must be a boolean"),                  \
+             value))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_config_globals_descriptor_writable_type_mismatch, "E167",          \
+      { source_code_span value; },                                             \
+      .error(QLJS_TRANSLATABLE("\"globals\" descriptor \"writable\" property " \
+                               "must be a boolean"),                           \
+             value))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_config_globals_type_mismatch, "E168", { source_code_span value; }, \
+      .error(QLJS_TRANSLATABLE("\"globals\" must be an object"), value))       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_depth_limit_exceeded, "E203", { source_code_span token; },         \
       .error(QLJS_TRANSLATABLE("depth limit exceeded"), token))                \
                                                                                \
