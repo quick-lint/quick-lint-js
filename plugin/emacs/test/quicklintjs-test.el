@@ -19,7 +19,7 @@
   (setq package-user-dir cache-dir-name
         package-check-signature nil)
   (add-to-list 'package-archives
-               '("MELPA" . "https://stable.melpa.org/packages/"))
+               '("MELPA" . "https://melpa.org/packages/"))
   (package-initialize)
 
   (unless package-archive-contents
@@ -92,7 +92,8 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
   (ert-deftest quicklintjs-is-in-eglot-servers ()
     (skip-unless (>= emacs-major-version 26))
     (require 'eglot-quicklintjs)
-    (should (member '(js-mode "quick-lint-js" "--lsp-server")  eglot-server-programs))))
+    (should (member '(js-mode "quick-lint-js" "--lsp-server")
+                    eglot-server-programs))))
 
 (defun def-lsp-tests ()
   (ert-deftest quicklintjs-is-in-lsp-clients ()
@@ -109,26 +110,31 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
     (should (member 'javascript-quicklintjs flycheck-checkers)))
 
   (flycheck-ert-def-checker-test
-   javascript-quicklintjs javascript error
+   javascript-quicklintjs javascript error-file-checks
    (let ((flycheck-checker 'javascript-quicklintjs)
-         (inhibit-message t))
+         (inhibit-message 't))
      (flycheck-ert-should-syntax-check
-      "test/error.js" '(js-mode)
+      "test/error.js" 'js-mode
       '(1 1 error "missing name in function statement"
-          :id "E061" :checker javascript-quicklintjs)
+          :id "E061" :checker javascript-quicklintjs
+          :end-line 1 :end-column 10)
       '(1 12 error "unclosed code block; expected '}' by end of file"
-          :id "E134" :checker javascript-quicklintjs)
-      '(2 7 error "unexpected token in variable declaration; expected variable name"
-          :id "E114" :checker javascript-quicklintjs))))
+          :id "E134" :checker javascript-quicklintjs
+          :end-line 1 :end-column 13)
+      '(2 7 error
+          "unexpected token in variable declaration; expected variable name"
+          :id "E114" :checker javascript-quicklintjs
+          :end-line 2 :end-column 10))))
 
   (flycheck-ert-def-checker-test
-   javascript-quicklintjs javascript warning
+   javascript-quicklintjs javascript warning-file-checks
    (let ((flycheck-checker 'javascript-quicklintjs)
-         (inhibit-message t))
+         (inhibit-message 't))
      (flycheck-ert-should-syntax-check
-      "test/warning.js" '(js-mode)
+      "test/warning.js" 'js-mode
       '(1 1 warning "assignment to undeclared variable"
-          :id "E059":checker javascript-quicklintjs)))))
+          :id "E059" :checker javascript-quicklintjs
+          :end-line 1 :end-column 2)))))
 
 ;; quick-lint-js finds bugs in JavaScript programs.
 ;; Copyright (C) 2020  Matthew "strager" Glazar
