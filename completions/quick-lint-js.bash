@@ -14,7 +14,7 @@ _quick-lint-js () {
                         return
                         ;;
                 --output-format=*)
-                        COMPREPLY=($(compgen -W 'gnu-like vim-qflint-json' -- "${cur#*=}"))
+                        COMPREPLY=($(compgen -W 'gnu-like vim-qflist-json' -- "${cur#*=}"))
                         return
                         ;;
                 --exit-fail-on=*|--vim-file-bufnr=*)
