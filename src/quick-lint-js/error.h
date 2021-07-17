@@ -228,6 +228,19 @@
       .error(QLJS_TRANSLATABLE("JSON syntax error"), where))                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_config_global_groups_group_type_mismatch, "E170",                  \
+      { source_code_span group; },                                             \
+      .error(QLJS_TRANSLATABLE("\"global-groups\" entries must be strings"),   \
+             group))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_config_global_groups_type_mismatch, "E169",                        \
+      { source_code_span value; },                                             \
+      .error(QLJS_TRANSLATABLE(                                                \
+                 "\"global-groups\" must be a boolean or an object"),          \
+             value))                                                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_config_globals_descriptor_type_mismatch, "E171",                   \
       { source_code_span descriptor; },                                        \
       .error(QLJS_TRANSLATABLE(                                                \

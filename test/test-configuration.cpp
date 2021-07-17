@@ -385,6 +385,9 @@ TEST(test_configuration_json, false_global_overrides_global_group) {
 }
 
 TEST(test_configuration_json, invalid_json_reports_error) {
+  // TODO(strager): The following are erroneously treated as schema
+  // errors, but should be JSON parse errors:
+  // u8R"({"global-groups": {42}})"sv,
   for (string8_view json_string : {
            u8R"({)"sv,
            u8R"({"globals)"sv,
@@ -393,7 +396,6 @@ TEST(test_configuration_json, invalid_json_reports_error) {
            u8R"({"globals":{"G":{":"}}})"sv,
            u8R"({"globals":}})"sv,
            u8R"({"global-groups":=)"sv,
-           u8R"({"global-groups": {42}})"sv,
            u8R"({"globals":{"g":f}})"sv,
            u8R"({"global-groups":[)"sv,
            u8R"({"global-groups":t)"sv,
@@ -502,6 +504,45 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
         << "invalid global property should be ignored (default)";
     EXPECT_FALSE(var->is_shadowable)
         << "valid property on broken global should work";
+  }
+}
+
+TEST(test_configuration_json, bad_schema_in_global_groups_reports_error) {
+  {
+    padded_string json(u8R"({"global-groups":{"browser":true}})"sv);
+    configuration c;
+    error_collector errors = load_from_json(c, &json);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_global_groups_type_mismatch, value,
+            offsets_matcher(&json, strlen(u8R"({"global-groups":)"), u8"{"))));
+    EXPECT_TRUE(c.globals().find(u8"Array"_sv))
+        << "invalid global-groups should be ignored";
+  }
+
+  {
+    padded_string json(
+        u8R"({"global-groups":["browser",false,"ecmascript"]})"sv);
+    configuration c;
+    error_collector errors = load_from_json(c, &json);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_global_groups_group_type_mismatch, group,
+            offsets_matcher(&json, strlen(u8R"({"global-groups":["browser",)"),
+                            u8"false"))));
+
+    EXPECT_TRUE(c.globals().find(u8"Array"_sv))
+        << "valid group-groups entries should take effect\n"
+           "('Array' is from the 'ecmascript' group)";
+    EXPECT_TRUE(c.globals().find(u8"document"_sv))
+        << "valid group-groups entries should take effect\n"
+           "('document' is from the 'browser' group)";
+    EXPECT_FALSE(c.globals().find(u8"require"_sv))
+        << "invalid global-groups entry should be ignored; "
+           "it shouldn't cause the entire global-groups array to be ignored\n"
+           "('require' is a default)";
   }
 }
 

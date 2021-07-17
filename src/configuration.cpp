@@ -297,21 +297,45 @@ bool configuration::load_global_groups_from_json(
 
     this->reset_global_groups();
     for (::simdjson::simdjson_result<::simdjson::fallback::ondemand::value>
-             global_group_value : global_groups_array_value) {
-      std::string_view global_group_string_value;
-      if (global_group_value.get(global_group_string_value) !=
+             global_group_value_or_error : global_groups_array_value) {
+      ::simdjson::fallback::ondemand::value global_group_value;
+      if (global_group_value_or_error.get(global_group_value) !=
           ::simdjson::SUCCESS) {
-        // TODO(strager): Report a schema error instead.
         return false;
       }
-      this->add_global_group(to_string8_view(global_group_string_value));
+      std::string_view global_group_string_value;
+      switch (global_group_value.get(global_group_string_value)) {
+      case ::simdjson::SUCCESS:
+        this->add_global_group(to_string8_view(global_group_string_value));
+        break;
+
+      case ::simdjson::INCORRECT_TYPE:
+        // If simdjson gives us an INCORRECT_TYPE error, it's possible that we
+        // reached the end of the file. Check whether this is an incorrect
+        // type or malformed JSON.
+        if (global_group_value.type().error() != ::simdjson::SUCCESS) {
+          return false;
+        }
+        this->errors_.report(error_config_global_groups_group_type_mismatch{
+            .group = span_of_json_value(global_group_value),
+        });
+        break;
+
+      default:
+        return false;
+      }
     }
     break;
   }
 
-  default:
-    // TODO(strager): Report a schema error instead.
-    return false;
+  case ::simdjson::fallback::ondemand::json_type::null:
+  case ::simdjson::fallback::ondemand::json_type::number:
+  case ::simdjson::fallback::ondemand::json_type::object:
+  case ::simdjson::fallback::ondemand::json_type::string:
+    this->errors_.report(error_config_global_groups_type_mismatch{
+        .value = span_of_json_value(global_groups_value),
+    });
+    break;
   }
   return true;
 }
@@ -427,6 +451,7 @@ void configuration::report_json_error(padded_string_view json) {
 
 namespace {
 string8_view remove_trailing_json_whitespace(string8_view sv) {
+  QLJS_ASSERT(!sv.empty());
   // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
   // and U+0020.
   std::size_t last_character_index =
