@@ -25,9 +25,10 @@
 ;;   ;; The default is 0.5 (500ms)
 ;;   (setq-local flycheck-idle-change-delay 0)
 ;;
-;;   ;; Run quick-lint-js program when the buffer is changed and when 'js-mode` is
-;;   ;; loaded
-;;   (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change)))
+;;   ;; Run quick-lint-js program when the buffer is changed and when 'js-mode`
+;;   ;; is loaded
+;;   (setq-local flycheck-check-syntax-automatically
+;;               '(mode-enabled idle-change)))
 ;; (add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)
 ;;
 
@@ -45,23 +46,32 @@
 (flycheck-def-args-var flycheck-quicklintjs-args javascript-quicklintjs)
 (flycheck-def-executable-var javascript-quicklintjs "quick-lint-js")
 
+(defun flycheck-quicklintjs-parse-errors (output checker buffer)
+  "Parse quick-lint-js alist output format from OUTPUT"
+  (mapcar (lambda (l)
+            (let ((region (nth 0 l))
+                  (sev (nth 1 l))
+                  (code (nth 2 l))
+                  (msg (nth 3 l)))
+              (flycheck-error-new-at-pos
+               (car region)
+               (if (= sev 0) 'error 'warning)
+               msg
+               :id code
+               :buffer buffer
+               :checker checker
+               :end-pos (cdr region)))) (car (read-from-string output))))
+
 (flycheck-define-checker javascript-quicklintjs
   "quick-lint-js finds bugs in JavaScript programs.
 
 https://quick-lint-js.com"
-  :command	("quick-lint-js"
-                 "--output-format=gnu-like"
-                 "--stdin"
-                 (eval flycheck-quicklintjs-args))
+  :command ("quick-lint-js"
+            "--output-format=emacs-lisp"
+            "--stdin"
+            (eval flycheck-quicklintjs-args))
   :standard-input t
-  :error-patterns ((error
-                    line-start "<stdin>:" line ":" column ":"
-                    (zero-or-more whitespace) "error:" (zero-or-more whitespace)
-                    (message) "[" (id "E" (one-or-more digit)) "]" line-end)
-                   (warning
-                    line-start "<stdin>:" line ":" column ":"
-                    (zero-or-more whitespace) "warning:" (zero-or-more whitespace)
-                    (message) "[" (id "E" (one-or-more digit)) "]" line-end))
+  :error-parser flycheck-quicklintjs-parse-errors
   :error-explainer (lambda (err)
                      (let ((error-code (flycheck-error-id err))
                            (url "https://quick-lint-js.com/errors/#%s"))
