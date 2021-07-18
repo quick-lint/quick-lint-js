@@ -457,6 +457,10 @@ retry:
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::star_equal;
       this->input_ += 2;
+    } else if (this->input_[1] == '/') {
+      this->error_reporter_->report(error_unopened_block_comment{
+          source_code_span(&this->input_[0], &this->input_[1])});
+      this->input_ += 2;
     } else {
       this->last_token_.type = token_type::star;
       this->input_ += 1;
