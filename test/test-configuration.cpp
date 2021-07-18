@@ -388,6 +388,7 @@ TEST(test_configuration_json, invalid_json_reports_error) {
   // TODO(strager): The following are erroneously treated as schema
   // errors, but should be JSON parse errors:
   // u8R"({"global-groups": {42}})"sv,
+  // u8R"({"globals":{"a":{"shadowable":[}}}})"sv,
   for (string8_view json_string : {
            u8R"({)"sv,
            u8R"({"globals)"sv,
