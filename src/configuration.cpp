@@ -255,6 +255,11 @@ void configuration::set_config_file_path(const canonical_path& path) {
 
 void configuration::report_errors(error_reporter* reporter) {
   this->errors_.copy_into(reporter);
+  this->errors_were_reported_ = true;
+}
+
+bool configuration::errors_were_reported() const noexcept {
+  return this->errors_were_reported_;
 }
 
 void configuration::reset() {

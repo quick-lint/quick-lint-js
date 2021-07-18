@@ -34,6 +34,7 @@ class configuration {
   void set_config_file_path(canonical_path&&);
 
   void report_errors(error_reporter*);
+  bool errors_were_reported() const noexcept;
 
   void reset();
 
@@ -59,6 +60,7 @@ class configuration {
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;
   buffering_error_reporter errors_;
+  bool errors_were_reported_ = false;
 
   string8_view save_string(std::string_view s);
 };

@@ -134,6 +134,84 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 self.assertEqual(result.stdout, "")
                 self.assertEqual(result.returncode, 0)
 
+    def test_config_file_parse_error_prevents_lint(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('INVALID JSON')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+
+            # test.js shouldn't be linted.
+            self.assertNotIn("myGlobalVariable", result.stderr)
+            self.assertNotIn("E057", result.stderr)
+
+            # quick-lint-js.config should have errors.
+            self.assertIn("quick-lint-js.config", result.stderr)
+            self.assertIn("E164", result.stderr)
+
+    def test_config_error_for_multiple_js_files_is_printed_only_once(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file_1 = pathlib.Path(test_directory) / "test1.js"
+            test_file_1.write_text("")
+            test_file_2 = pathlib.Path(test_directory) / "test2.js"
+            test_file_2.write_text("")
+
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('INVALID JSON')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file_1),
+                    str(test_file_2),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stderr.count("E164"), 1)
+
+    def test_errors_for_all_config_files_are_printed(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_dir_1 = pathlib.Path(test_directory) / "dir1"
+            test_dir_1.mkdir()
+            test_file_1 = test_dir_1 / "test.js"
+            test_file_1.write_text("")
+            config_file_1 = test_dir_1 / "quick-lint-js.config"
+            config_file_1.write_text('INVALID JSON')
+
+            test_dir_2 = pathlib.Path(test_directory) / "dir2"
+            test_dir_2.mkdir()
+            test_file_2 = test_dir_2 / "test.js"
+            test_file_2.write_text("")
+            config_file_2 = test_dir_2 / "quick-lint-js.config"
+            config_file_2.write_text('INVALID JSON')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file_1),
+                    str(test_file_2),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("dir1", result.stderr)
+            self.assertIn("dir2", result.stderr)
+            self.assertEqual(result.stderr.count("E164"), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
