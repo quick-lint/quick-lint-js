@@ -129,13 +129,13 @@ The following patches have been manually applied:
 * simdjson-reenter-child-ub.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various
-Download URL: https://github.com/simdjson/simdjson/archive/v0.9.4.tar.gz
-Download date: May 24, 2020
-Git commit: 076f41ae4b7c3a3eeed8a043dfb1143abe87ddf0
+Download URL: https://github.com/simdjson/simdjson/archive/refs/tags/v0.9.6.tar.gz
+Download date: July 17, 2021
+Git commit: e9b893ff1b13c6a70135827c62b3f3d65938d135
 License file: simdjson/LICENSE; simdjson/src/to_chars.cpp; simdjson/windows/toni_ronnko_dirent.h; simdjson/windows/getopt.h; simdjson/include/simdjson/internal/isadetection.h
 License type: Apache-2.0; MIT; MIT; MIT(Old Style with legal disclaimer 2)/BSD-2-Clause; BSD-3-Clause
 Location: simdjson
 Project URL: https://github.com/simdjson/simdjson
-Release URL: https://github.com/simdjson/simdjson/releases/tag/v0.9.4
-Release date: May 20, 2021
-Version: 0.9.4
+Release URL: https://github.com/simdjson/simdjson/releases/tag/v0.9.6
+Release date: June 6, 2021
+Version: 0.9.6
