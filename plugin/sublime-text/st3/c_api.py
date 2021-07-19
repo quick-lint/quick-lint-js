@@ -77,9 +77,6 @@ def create_library():
     return lib
 
 
-LIB = create_library()
-
-
 class Diagnostic:
     """Diagnostic layer used to communicate with the plugin."""
 
@@ -95,16 +92,18 @@ class Diagnostic:
 class Parser:
     """Parser layer used to communicate with the plugin."""
 
+    lib = create_library()
+
     def __init__(self, view):
         self.view = view
         self.diagnostics = []
-        self._ctypes_parser = LIB.qljs_sublime_text_3_create_parser()
+        self._ctypes_parser = Parser.lib.qljs_sublime_text_3_create_parser()
         if self._ctypes_parser is None:
             raise MemoryError()
 
     def __del__(self):
         if self._ctypes_parser is not None:
-            LIB.qljs_sublime_text_3_destroy_parser(self._ctypes_parser)
+            Parser.lib.qljs_sublime_text_3_destroy_parser(self._ctypes_parser)
             self._ctypes_parser = None
 
     def set_text(self):
@@ -113,14 +112,14 @@ class Parser:
         allcontent = self.view.substr(allregion)
         text_utf8 = allcontent.encode(encoding="utf-8")
         text_len_utf8 = len(text_utf8)
-        LIB.qljs_sublime_text_3_set_text(
+        Parser.lib.qljs_sublime_text_3_set_text(
             self._ctypes_parser,
             text_utf8,
             text_len_utf8,
         )
 
     def lint(self):
-        ctypes_diagnostics = LIB.qljs_sublime_text_3_lint(self._ctypes_parser)
+        ctypes_diagnostics = Parser.lib.qljs_sublime_text_3_lint(self._ctypes_parser)
         diagnostics = []
         for ctypes_diagnostic in ctypes_diagnostics:
             if ctypes_diagnostic.message is None:

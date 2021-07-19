@@ -80,11 +80,11 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     def __init__(self, view):
         """Called when the view is finished loading."""
         super().__init__(view)
-        self.buffer = self.buffers_manager.add_view(self.view)
+        self.buffer = QuickLintJsListener.buffers_manager.add_view(self.view)
         self.on_modified()
 
     def __del__(self):
-        self.buffers_manager.remove_view(self.view)
+        QuickLintJsListener.buffers_manager.remove_view(self.view)
 
     def on_load(self):
         """Called when the file is finished loading."""
