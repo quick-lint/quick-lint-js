@@ -107,7 +107,7 @@ class Parser:
     try:
         lib = create_library()
     except OSError as error:
-        sublime.error_message(str(error))
+        sublime.error_message("quick-lint-js: " + repr(error))
         lib = None
         err = error
 
