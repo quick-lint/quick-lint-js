@@ -92,9 +92,26 @@ class Diagnostic:
 class Parser:
     """Parser layer used to communicate with the plugin."""
 
-    lib = create_library()
+    try:
+        lib = create_library()
+    except OSError as error:
+        sublime.error_message(str(error))
+        lib = None
+        err = error
+
+    @classmethod
+    def is_working(cls):
+        """Tests if Parser is working."""
+        try:
+            cls(None)
+        except (OSError, MemoryError):
+            return False
+        return True
 
     def __init__(self, view):
+        if Parser.lib is None:
+            self._ctypes_parser = None
+            raise OSError from Parser.err
         self.view = view
         self.diagnostics = []
         self._ctypes_parser = Parser.lib.qljs_sublime_text_3_create_parser()

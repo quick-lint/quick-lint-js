@@ -63,6 +63,8 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     @classmethod
     def is_applicable(cls, settings):
+        if not c_api.Parser.is_working():
+            return False
         syntax = settings.get("syntax", "")
         return "JavaScript" in syntax
 

@@ -107,6 +107,8 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
 
     @classmethod
     def is_applicable(cls, settings):
+        if not c_api.Parser.is_working():
+            return False
         syntax = settings.get("syntax", "")
         return "JavaScript" in syntax
 
@@ -181,6 +183,8 @@ class QuickLintJsTextChangeListener(TextChangeListener, QuickLintJsListener):
 
     @classmethod
     def is_applicable(cls, buffer):
+        if not c_api.Parser.is_working():
+            return False
         settings = buffer.primary_view().settings()
         syntax = settings.get("syntax", "")
         return "JavaScript" in syntax
