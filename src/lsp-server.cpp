@@ -298,7 +298,11 @@ void linting_lsp_server_handler<Linter>::
     auto config = this->config_loader_.watch_and_load_for_file(document_path,
                                                                /*token=*/&doc);
     if (config.ok()) {
-      doc.config = *config;
+      if (*config) {
+        doc.config = *config;
+      } else {
+        doc.config = this->config_loader_.get_default_config();
+      }
     } else {
       doc.config = this->config_loader_.get_default_config();
       byte_buffer& message_json = notification_jsons.emplace_back();
@@ -348,6 +352,9 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
             message_json);
       }
       configuration* config = change_it->config;
+      if (!config) {
+        config = this->config_loader_.get_default_config();
+      }
       doc.config = config;
       byte_buffer& notification_json = notification_jsons.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special

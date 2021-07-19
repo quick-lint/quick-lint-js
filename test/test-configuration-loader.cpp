@@ -256,7 +256,7 @@ TEST_F(test_configuration_loader,
       .config_file = nullptr,
   });
   EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_EQ(*config, loader.get_default_config());
+  EXPECT_EQ(*config, nullptr);
 }
 
 TEST_F(test_configuration_loader, find_quick_lint_js_config_in_same_directory) {
@@ -1061,7 +1061,7 @@ TEST_F(test_configuration_loader, deleting_config_in_same_dir_is_detected) {
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-    EXPECT_EQ(changes[0].config->config_file_path(), std::nullopt);
+    EXPECT_EQ(changes[0].config, nullptr);
   }
 }
 
@@ -1147,7 +1147,7 @@ TEST_F(test_configuration_loader, moving_config_away_in_same_dir_is_detected) {
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-    EXPECT_EQ(changes[0].config->config_file_path(), std::nullopt);
+    EXPECT_EQ(changes[0].config, nullptr);
   }
 }
 
@@ -1340,8 +1340,7 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
-  EXPECT_EQ(changes[0].config->config_file_path(), std::nullopt)
-      << "config should be removed";
+  EXPECT_EQ(changes[0].config, nullptr) << "config should be removed";
 }
 
 TEST_F(test_configuration_loader,
@@ -1372,8 +1371,7 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
-  EXPECT_EQ(changes[0].config->config_file_path(), std::nullopt)
-      << "config should be removed";
+  EXPECT_EQ(changes[0].config, nullptr) << "config should be removed";
 }
 
 TEST_F(test_configuration_loader,
@@ -1565,7 +1563,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
-  EXPECT_FALSE(changes[0].config->globals().find(u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes[0].config, nullptr);
   EXPECT_THAT(changes[0].error,
               IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
                   canonicalize_path(config_file)->c_str(), EACCES));
@@ -1721,7 +1719,7 @@ TEST_F(
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAre(::testing::_));
   EXPECT_EQ(changes_2[0].token, &js_file);
-  EXPECT_FALSE(changes_2[0].config->globals().find(u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes_2[0].config, nullptr);
   EXPECT_THAT(changes_2[0].error, IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
                                       config_file_canonical_path, EACCES));
 }
@@ -1799,7 +1797,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
-  EXPECT_FALSE(changes[0].config->globals().find(u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes[0].config, nullptr);
   EXPECT_THAT(changes[0].error, IS_POINTER_TO_POSIX_CANONICALIZE_PATH_IO_ERROR(
                                     js_file, js_file_canonical_path, EACCES));
 }
@@ -1847,7 +1845,7 @@ TEST(test_configuration_loader_fake,
       .config_file = nullptr,
   });
   ASSERT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_EQ(*config, loader.get_default_config());
+  EXPECT_EQ(*config, nullptr);
 }
 
 TEST(test_configuration_loader_fake,

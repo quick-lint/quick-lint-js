@@ -147,7 +147,7 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
           std::move(parent_directory));
   if (!found.ok()) return found.propagate();
   if (!found->path.has_value()) {
-    return &this->default_config_;
+    return nullptr;
   }
   canonical_path& config_path = *found->path;
   if (input_path) {
@@ -288,7 +288,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
-            .config = &this->default_config_,
+            .config = nullptr,
             .error = &*watch.error,
             .token = watch.token,
         });
@@ -307,7 +307,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
-            .config = &this->default_config_,
+            .config = nullptr,
             .error = &*watch.error,
             .token = watch.token,
         });
@@ -331,7 +331,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
           config = &loaded_config_it->second.config;
         }
       } else {
-        config = &this->default_config_;
+        config = nullptr;
       }
       changes.emplace_back(configuration_change{
           .watched_path = &input_path,

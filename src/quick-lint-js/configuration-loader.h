@@ -40,7 +40,7 @@ class configuration_filesystem {
 
 struct configuration_change {
   const std::string* watched_path;  // Never nullptr.
-  configuration* config;            // Never nullptr.
+  configuration* config;            // Sometimes nullptr.
 
   std::variant<canonicalize_path_io_error, read_file_io_error,
                watch_io_error>* error;  // Sometimes nullptr.
@@ -58,6 +58,7 @@ class configuration_loader {
 
   configuration* get_default_config() { return &this->default_config_; }
 
+  // Returns nullptr if there is no config file.
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
