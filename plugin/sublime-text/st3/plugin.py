@@ -104,7 +104,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
                     self.add_popup(diagnostic)
 
     def add_squiggly_underlines(self):
-        warning_regions, error_regions = self.get_severity_regions()
+        warning_regions, error_regions = self.get_regions_by_severity()
         flags = (
             sublime.DRAW_SQUIGGLY_UNDERLINE
             | sublime.DRAW_NO_FILL
@@ -114,7 +114,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
             view.add_regions("2", warning_regions, "region.orangish", "", flags)
             view.add_regions("1", error_regions, "region.redish", "", flags)
 
-    def get_severity_regions(self):
+    def get_regions_by_severity(self):
         warning_regions = []
         error_regions = []
         for diagnostic in self.buffer.parser.diagnostics:

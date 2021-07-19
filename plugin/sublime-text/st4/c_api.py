@@ -49,13 +49,13 @@ class ParserStructure(ctypes.Structure):
 ParserStructurePointer = ctypes.POINTER(ParserStructure)
 
 
-def get_script_path_directory():
+def get_script_directory_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
 def load_library():
-    script_path_directory = get_script_path_directory()
-    lib_path = script_path_directory + "/libquick-lint-js-lib.so"
+    script_directory_path = get_script_directory_path()
+    lib_path = script_directory_path + "/libquick-lint-js-lib.so"
     return ctypes.CDLL(lib_path)
 
 
