@@ -251,12 +251,12 @@ TEST_F(test_configuration_loader,
   configuration_loader loader(basic_configuration_filesystem::instance());
   std::string js_file = temp_dir + "/hello.js";
   write_file(js_file, u8""sv);
-  auto config = loader.load_for_file(file_to_lint{
+  auto loaded_config = loader.load_for_file(file_to_lint{
       .path = js_file.c_str(),
       .config_file = nullptr,
   });
-  EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_EQ(*config, nullptr);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_EQ(*loaded_config, nullptr);
 }
 
 TEST_F(test_configuration_loader, find_quick_lint_js_config_in_same_directory) {
@@ -267,10 +267,10 @@ TEST_F(test_configuration_loader, find_quick_lint_js_config_in_same_directory) {
   std::string js_file = temp_dir + "/hello.js";
   write_file(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  auto loaded_config = loader.load_for_file(js_file);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -282,10 +282,10 @@ TEST_F(test_configuration_loader,
   std::string js_file = temp_dir + "/hello.js";
   write_file(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  auto loaded_config = loader.load_for_file(js_file);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -297,10 +297,10 @@ TEST_F(test_configuration_loader,
   std::string js_file = temp_dir + "/hello.js";
   write_file(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  auto loaded_config = loader.load_for_file(js_file);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(),
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(),
                    temp_dir + "/quick-lint-js.config");
 }
 
@@ -314,10 +314,10 @@ TEST_F(test_configuration_loader,
   std::string js_file = "hello.js";
   write_file(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  auto loaded_config = loader.load_for_file(js_file);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
@@ -331,10 +331,10 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
     write_file(js_file, u8""sv);
     configuration_loader loader(basic_configuration_filesystem::instance());
 
-    auto config = loader.load_for_file(js_file);
-    ASSERT_FALSE(config.ok());
-    ASSERT_TRUE(config.has_error<read_file_io_error>());
-    read_file_io_error e = config.error<read_file_io_error>();
+    auto loaded_config = loader.load_for_file(js_file);
+    ASSERT_FALSE(loaded_config.ok());
+    ASSERT_TRUE(loaded_config.has_error<read_file_io_error>());
+    read_file_io_error e = loaded_config.error<read_file_io_error>();
     EXPECT_EQ(e.path, canonicalize_path(config_file)->c_str());
 #if QLJS_HAVE_WINDOWS_H
     EXPECT_EQ(e.io_error.error, ERROR_ACCESS_DENIED)
@@ -358,10 +358,10 @@ TEST_F(test_configuration_loader, find_config_in_parent_directory) {
     std::string js_file = temp_dir + "/dir/hello.js";
     write_file(js_file, u8""sv);
     configuration_loader loader(basic_configuration_filesystem::instance());
-    auto config = loader.load_for_file(js_file);
-    ASSERT_TRUE(config.ok()) << config.error_to_string();
+    auto loaded_config = loader.load_for_file(js_file);
+    ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+    EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
   }
 }
 
@@ -376,10 +376,10 @@ TEST_F(test_configuration_loader,
   std::string js_file = "dir/hello.js";
   write_file(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  auto loaded_config = loader.load_for_file(js_file);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader, find_config_in_parent_directory_of_cwd) {
@@ -392,10 +392,10 @@ TEST_F(test_configuration_loader, find_config_in_parent_directory_of_cwd) {
   std::string js_file = "hello.js";
   write_file(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  auto loaded_config = loader.load_for_file(js_file);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader, find_config_in_ancestor_directory) {
@@ -415,10 +415,10 @@ TEST_F(test_configuration_loader, find_config_in_ancestor_directory) {
     std::string js_file = temp_dir + "/a/b/c/d/e/f/hello.js";
     write_file(js_file, u8""sv);
     configuration_loader loader(basic_configuration_filesystem::instance());
-    auto config = loader.load_for_file(js_file);
-    ASSERT_TRUE(config.ok()) << config.error_to_string();
+    auto loaded_config = loader.load_for_file(js_file);
+    ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+    EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
   }
 }
 
@@ -450,10 +450,11 @@ TEST_F(test_configuration_loader,
     std::string js_file = temp_dir + "/dir/subdir/../hello.js";
     write_file(js_file, u8""sv);
     configuration_loader loader(basic_configuration_filesystem::instance());
-    auto config = loader.load_for_file(js_file);
-    ASSERT_TRUE(config.ok()) << config.error_to_string();
+    auto loaded_config = loader.load_for_file(js_file);
+    ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_SAME_FILE((*config)->config_file_path(), config_file_outside_dir);
+    EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(),
+                     config_file_outside_dir);
   }
 }
 
@@ -464,14 +465,14 @@ TEST_F(test_configuration_loader, find_config_in_cwd_if_stdin) {
   write_file(config_file, u8"{}"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(file_to_lint{
+  auto loaded_config = loader.load_for_file(file_to_lint{
       .path = nullptr,
       .config_file = nullptr,
       .is_stdin = true,
   });
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader, find_config_in_parent_of_cwd_if_stdin) {
@@ -482,14 +483,14 @@ TEST_F(test_configuration_loader, find_config_in_parent_of_cwd_if_stdin) {
   write_file(config_file, u8"{}"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(file_to_lint{
+  auto loaded_config = loader.load_for_file(file_to_lint{
       .path = nullptr,
       .config_file = nullptr,
       .is_stdin = true,
   });
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {
@@ -498,14 +499,15 @@ TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(file_to_lint{
+  auto loaded_config = loader.load_for_file(file_to_lint{
       .path = "hello.js",
       .config_file = config_file.c_str(),
   });
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_TRUE((*config)->globals().find(u8"testGlobalVariable"sv));
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  EXPECT_TRUE(
+      (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -515,18 +517,19 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config_one = loader.load_for_file(file_to_lint{
+  auto loaded_config_one = loader.load_for_file(file_to_lint{
       .path = "one.js",
       .config_file = config_file.c_str(),
   });
-  EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
-  auto config_two = loader.load_for_file(file_to_lint{
+  EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
+  auto loaded_config_two = loader.load_for_file(file_to_lint{
       .path = "two.js",
       .config_file = config_file.c_str(),
   });
-  EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+  EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-  EXPECT_EQ(*config_one, *config_two) << "pointers should be the same";
+  EXPECT_EQ(*loaded_config_one, *loaded_config_two)
+      << "pointers should be the same";
 }
 
 TEST_F(test_configuration_loader,
@@ -540,26 +543,28 @@ TEST_F(test_configuration_loader,
              u8R"({"globals": {"testGlobalVariableTwo": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config_one = loader.load_for_file(file_to_lint{
+  auto loaded_config_one = loader.load_for_file(file_to_lint{
       .path = "one.js",
       .config_file = config_file_one.c_str(),
   });
-  EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
-  auto config_two = loader.load_for_file(file_to_lint{
+  EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
+  auto loaded_config_two = loader.load_for_file(file_to_lint{
       .path = "two.js",
       .config_file = config_file_two.c_str(),
   });
-  EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+  EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-  EXPECT_NE(*config_one, *config_two) << "pointers should be different";
+  configuration* config_one = &(*loaded_config_one)->config;
+  configuration* config_two = &(*loaded_config_two)->config;
+  EXPECT_NE(config_one, config_two) << "pointers should be different";
 
-  EXPECT_TRUE((*config_one)->globals().find(u8"testGlobalVariableOne"sv));
-  EXPECT_FALSE((*config_one)->globals().find(u8"testGlobalVariableTwo"sv));
-  EXPECT_SAME_FILE((*config_one)->config_file_path(), config_file_one);
+  EXPECT_TRUE(config_one->globals().find(u8"testGlobalVariableOne"sv));
+  EXPECT_FALSE(config_one->globals().find(u8"testGlobalVariableTwo"sv));
+  EXPECT_SAME_FILE(config_one->config_file_path(), config_file_one);
 
-  EXPECT_FALSE((*config_two)->globals().find(u8"testGlobalVariableOne"sv));
-  EXPECT_TRUE((*config_two)->globals().find(u8"testGlobalVariableTwo"sv));
-  EXPECT_SAME_FILE((*config_two)->config_file_path(), config_file_two);
+  EXPECT_FALSE(config_two->globals().find(u8"testGlobalVariableOne"sv));
+  EXPECT_TRUE(config_two->globals().find(u8"testGlobalVariableTwo"sv));
+  EXPECT_SAME_FILE(config_two->config_file_path(), config_file_two);
 }
 
 TEST_F(test_configuration_loader, missing_config_file_fails) {
@@ -568,13 +573,13 @@ TEST_F(test_configuration_loader, missing_config_file_fails) {
 
   configuration_loader loader(basic_configuration_filesystem::instance());
 
-  auto config = loader.load_for_file(file_to_lint{
+  auto loaded_config = loader.load_for_file(file_to_lint{
       .path = "hello.js",
       .config_file = config_file.c_str(),
   });
-  ASSERT_FALSE(config.ok());
-  ASSERT_TRUE(config.has_error<read_file_io_error>());
-  read_file_io_error e = config.error<read_file_io_error>();
+  ASSERT_FALSE(loaded_config.ok());
+  ASSERT_TRUE(loaded_config.has_error<read_file_io_error>());
+  read_file_io_error e = loaded_config.error<read_file_io_error>();
   EXPECT_EQ(e.path, canonicalize_path(config_file)->c_str());
 #if QLJS_HAVE_WINDOWS_H
   EXPECT_EQ(e.io_error.error, ERROR_FILE_NOT_FOUND)
@@ -596,20 +601,21 @@ TEST_F(test_configuration_loader,
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
     write_file(js_file_one, u8""sv);
-    auto config_one = loader.load_for_file(file_to_lint{
+    auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = nullptr,
     });
-    EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
+    EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
     write_file(js_file_two, u8""sv);
-    auto config_two = loader.load_for_file(file_to_lint{
+    auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = nullptr,
     });
-    EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+    EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-    EXPECT_EQ(*config_one, *config_two) << "pointers should be the same";
+    EXPECT_EQ(*loaded_config_one, *loaded_config_two)
+        << "pointers should be the same";
   }
 }
 
@@ -625,20 +631,21 @@ TEST_F(
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
     write_file(js_file_one, u8""sv);
-    auto config_one = loader.load_for_file(file_to_lint{
+    auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = nullptr,
     });
-    EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
+    EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
     write_file(js_file_two, u8""sv);
-    auto config_two = loader.load_for_file(file_to_lint{
+    auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = config_file.c_str(),
     });
-    EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+    EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-    EXPECT_EQ(*config_one, *config_two) << "pointers should be the same";
+    EXPECT_EQ(*loaded_config_one, *loaded_config_two)
+        << "pointers should be the same";
   }
 
   for (const char* config_file_name :
@@ -650,20 +657,21 @@ TEST_F(
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
     write_file(js_file_one, u8""sv);
-    auto config_one = loader.load_for_file(file_to_lint{
+    auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = config_file.c_str(),
     });
-    EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
+    EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
     write_file(js_file_two, u8""sv);
-    auto config_two = loader.load_for_file(file_to_lint{
+    auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = nullptr,
     });
-    EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+    EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-    EXPECT_EQ(*config_one, *config_two) << "pointers should be the same";
+    EXPECT_EQ(*loaded_config_one, *loaded_config_two)
+        << "pointers should be the same";
   }
 }
 
@@ -682,24 +690,26 @@ TEST_F(
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
     write_file(js_file_one, u8""sv);
-    auto config_one = loader.load_for_file(file_to_lint{
+    auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = nullptr,
     });
-    EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
+    EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
     write_file(js_file_two, u8""sv);
-    auto config_two = loader.load_for_file(file_to_lint{
+    auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = dot_config_file.c_str(),
     });
-    EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+    EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-    EXPECT_NE(*config_one, *config_two) << "pointers should be different";
-    EXPECT_TRUE((*config_one)->globals().find(u8"testGlobalVariableNoDot"sv));
-    EXPECT_FALSE((*config_one)->globals().find(u8"testGlobalVariableDot"sv));
-    EXPECT_FALSE((*config_two)->globals().find(u8"testGlobalVariableNoDot"sv));
-    EXPECT_TRUE((*config_two)->globals().find(u8"testGlobalVariableDot"sv));
+    configuration* config_one = &(*loaded_config_one)->config;
+    configuration* config_two = &(*loaded_config_two)->config;
+    EXPECT_NE(config_one, config_two) << "pointers should be different";
+    EXPECT_TRUE(config_one->globals().find(u8"testGlobalVariableNoDot"sv));
+    EXPECT_FALSE(config_one->globals().find(u8"testGlobalVariableDot"sv));
+    EXPECT_FALSE(config_two->globals().find(u8"testGlobalVariableNoDot"sv));
+    EXPECT_TRUE(config_two->globals().find(u8"testGlobalVariableDot"sv));
   }
 
   {
@@ -714,24 +724,26 @@ TEST_F(
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
     write_file(js_file_one, u8""sv);
-    auto config_one = loader.load_for_file(file_to_lint{
+    auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = dot_config_file.c_str(),
     });
-    EXPECT_TRUE(config_one.ok()) << config_one.error_to_string();
+    EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
     write_file(js_file_two, u8""sv);
-    auto config_two = loader.load_for_file(file_to_lint{
+    auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = nullptr,
     });
-    EXPECT_TRUE(config_two.ok()) << config_two.error_to_string();
+    EXPECT_TRUE(loaded_config_two.ok()) << loaded_config_two.error_to_string();
 
-    EXPECT_NE(*config_one, *config_two) << "pointers should be different";
-    EXPECT_FALSE((*config_one)->globals().find(u8"testGlobalVariableNoDot"sv));
-    EXPECT_TRUE((*config_one)->globals().find(u8"testGlobalVariableDot"sv));
-    EXPECT_TRUE((*config_two)->globals().find(u8"testGlobalVariableNoDot"sv));
-    EXPECT_FALSE((*config_two)->globals().find(u8"testGlobalVariableDot"sv));
+    configuration* config_one = &(*loaded_config_one)->config;
+    configuration* config_two = &(*loaded_config_two)->config;
+    EXPECT_NE(config_one, config_two) << "pointers should be different";
+    EXPECT_FALSE(config_one->globals().find(u8"testGlobalVariableNoDot"sv));
+    EXPECT_TRUE(config_one->globals().find(u8"testGlobalVariableDot"sv));
+    EXPECT_TRUE(config_two->globals().find(u8"testGlobalVariableNoDot"sv));
+    EXPECT_FALSE(config_two->globals().find(u8"testGlobalVariableDot"sv));
   }
 }
 
@@ -743,9 +755,9 @@ TEST_F(test_configuration_loader,
 
   std::string js_file = temp_dir + "/hello.js";
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  auto loaded_config = loader.load_for_file(js_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -756,9 +768,9 @@ TEST_F(test_configuration_loader,
 
   std::string js_file = temp_dir + "/dir/hello.js";
   configuration_loader loader(basic_configuration_filesystem::instance());
-  auto config = loader.load_for_file(js_file);
-  EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_SAME_FILE((*config)->config_file_path(), config_file);
+  auto loaded_config = loader.load_for_file(js_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
 }
 
 TEST_F(test_configuration_loader, config_found_initially_is_unchanged) {
@@ -1840,12 +1852,12 @@ TEST(test_configuration_loader_fake,
   fs.create_file(fs.rooted("hello.js"), u8""sv);
 
   configuration_loader loader(&fs);
-  auto config = loader.load_for_file(file_to_lint{
+  auto loaded_config = loader.load_for_file(file_to_lint{
       .path = fs.rooted("hello.js").c_str(),
       .config_file = nullptr,
   });
-  ASSERT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_EQ(*config, nullptr);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_EQ(*loaded_config, nullptr);
 }
 
 TEST(test_configuration_loader_fake,
@@ -1858,13 +1870,14 @@ TEST(test_configuration_loader_fake,
     fs.create_file(fs.rooted(config_file_name), u8"{}"sv);
 
     configuration_loader loader(&fs);
-    auto config = loader.load_for_file(file_to_lint{
+    auto loaded_config = loader.load_for_file(file_to_lint{
         .path = fs.rooted("hello.js").c_str(),
         .config_file = nullptr,
     });
-    ASSERT_TRUE(config.ok()) << config.error_to_string();
+    ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_EQ((*config)->config_file_path(), fs.rooted(config_file_name));
+    EXPECT_EQ((*loaded_config)->config.config_file_path(),
+              fs.rooted(config_file_name));
   }
 }
 
@@ -1877,13 +1890,14 @@ TEST(test_configuration_loader_fake, find_config_in_parent_directory) {
     fs.create_file(fs.rooted(config_file_name), u8"{}"sv);
 
     configuration_loader loader(&fs);
-    auto config = loader.load_for_file(file_to_lint{
+    auto loaded_config = loader.load_for_file(file_to_lint{
         .path = fs.rooted("dir/hello.js").c_str(),
         .config_file = nullptr,
     });
-    ASSERT_TRUE(config.ok()) << config.error_to_string();
+    ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_EQ((*config)->config_file_path(), fs.rooted(config_file_name));
+    EXPECT_EQ((*loaded_config)->config.config_file_path(),
+              fs.rooted(config_file_name));
   }
 }
 

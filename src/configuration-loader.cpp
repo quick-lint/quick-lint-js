@@ -46,7 +46,7 @@ configuration_loader::watch_and_load_for_file(const std::string& file_path,
       .error = std::nullopt,
       .token = const_cast<void*>(token),
   });
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
       r = this->find_and_load_config_file_for_input(file_path.c_str());
   if (!r.ok()) {
@@ -54,16 +54,16 @@ configuration_loader::watch_and_load_for_file(const std::string& file_path,
                                      read_file_io_error, watch_io_error>();
     return r.propagate();
   }
-  return *r;
+  return *r ? &(*r)->config : nullptr;
 }
 
-result<configuration*, canonicalize_path_io_error, read_file_io_error,
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::load_for_file(const std::string& file_path) {
   return this->find_and_load_config_file_for_input(file_path.c_str());
 }
 
-result<configuration*, canonicalize_path_io_error, read_file_io_error,
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::load_for_file(const file_to_lint& file) {
   if (file.config_file) {
@@ -77,7 +77,7 @@ configuration_loader::load_for_file(const file_to_lint& file) {
   }
 }
 
-result<configuration*, canonicalize_path_io_error, read_file_io_error,
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::load_config_file(const char* config_path) {
   result<canonical_path_result, canonicalize_path_io_error>
@@ -86,7 +86,7 @@ configuration_loader::load_config_file(const char* config_path) {
 
   if (loaded_config_file* config_file =
           this->get_loaded_config(canonical_config_path->canonical())) {
-    return &config_file->config;
+    return config_file;
   }
   result<padded_string, read_file_io_error, watch_io_error> config_json =
       this->fs_->read_file(canonical_config_path->canonical());
@@ -101,20 +101,20 @@ configuration_loader::load_config_file(const char* config_path) {
   config_file->config.set_config_file_path(
       std::move(*canonical_config_path).canonical());
   config_file->config.load_from_json(&config_file->file_content);
-  return &config_file->config;
+  return config_file;
 }
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-result<configuration*, canonicalize_path_io_error, read_file_io_error,
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
   result<canonical_path_result, canonicalize_path_io_error> parent_directory =
       this->get_parent_directory(input_path);
   if (!parent_directory.ok()) return parent_directory.propagate();
-  result<configuration*, read_file_io_error, watch_io_error> r =
+  result<loaded_config_file*, read_file_io_error, watch_io_error> r =
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*parent_directory).canonical(),
           /*input_path=*/input_path);
@@ -122,7 +122,7 @@ configuration_loader::find_and_load_config_file_for_input(
   return *r;
 }
 
-result<configuration*, canonicalize_path_io_error, read_file_io_error,
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::find_and_load_config_file_for_current_directory() {
   result<canonical_path_result, canonicalize_path_io_error> canonical_cwd =
@@ -132,14 +132,14 @@ configuration_loader::find_and_load_config_file_for_current_directory() {
   if (canonical_cwd->have_missing_components()) {
     canonical_cwd->drop_missing_components();
   }
-  result<configuration*, read_file_io_error, watch_io_error> r =
+  result<loaded_config_file*, read_file_io_error, watch_io_error> r =
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
   if (!r.ok()) return r.propagate();
   return *r;
 }
 
-result<configuration*, read_file_io_error, watch_io_error>
+result<loaded_config_file*, read_file_io_error, watch_io_error>
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory, const char* input_path) {
   result<found_config_file, read_file_io_error, watch_io_error> found =
@@ -159,7 +159,7 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   }
 
   if (found->already_loaded) {
-    return &found->already_loaded->config;
+    return found->already_loaded;
   }
 
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
@@ -170,7 +170,7 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   config_file->file_content = std::move(found->file_content);
   config_file->config.set_config_file_path(std::move(config_path));
   config_file->config.load_from_json(&config_file->file_content);
-  return &config_file->config;
+  return config_file;
 }
 
 result<configuration_loader::found_config_file, read_file_io_error,
@@ -263,8 +263,8 @@ configuration_loader::get_parent_directory(const char* input_path) {
                                parent_directory_string.size());
 }
 
-configuration_loader::loaded_config_file*
-configuration_loader::get_loaded_config(const canonical_path& path) noexcept {
+loaded_config_file* configuration_loader::get_loaded_config(
+    const canonical_path& path) noexcept {
   auto existing_config_it = this->loaded_config_files_.find(path);
   return existing_config_it == this->loaded_config_files_.end()
              ? nullptr

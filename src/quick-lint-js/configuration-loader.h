@@ -50,6 +50,11 @@ struct configuration_change {
   void* token;
 };
 
+struct loaded_config_file {
+  configuration config;
+  padded_string file_content;
+};
+
 class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
@@ -62,21 +67,16 @@ class configuration_loader {
   result<configuration*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   load_for_file(const std::string& file_path);
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   load_for_file(const file_to_lint&);
 
   std::vector<configuration_change> refresh();
 
  private:
-  struct loaded_config_file {
-    configuration config;
-    padded_string file_content;
-  };
-
   struct found_config_file {
     std::optional<canonical_path> path;
     loaded_config_file* already_loaded = nullptr;
@@ -92,17 +92,17 @@ class configuration_loader {
     void* token;
   };
 
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   load_config_file(const char* config_path);
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   find_and_load_config_file_for_input(const char* input_path);
-  result<configuration*, canonicalize_path_io_error, read_file_io_error,
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   find_and_load_config_file_for_current_directory();
 
-  result<configuration*, read_file_io_error, watch_io_error>
+  result<loaded_config_file*, read_file_io_error, watch_io_error>
   find_and_load_config_file_in_directory_and_ancestors(canonical_path&&,
                                                        const char* input_path);
   result<found_config_file, read_file_io_error, watch_io_error>

@@ -189,10 +189,8 @@ void handle_options(quick_lint_js::options o) {
                    config_result.error_to_string().c_str());
       std::exit(1);
     }
-    configuration *config = *config_result;
-    if (!config) {
-      config = config_loader.get_default_config();
-    }
+    configuration *config = *config_result ? &(*config_result)->config
+                                           : config_loader.get_default_config();
     result<padded_string, read_file_io_error> source =
         file.is_stdin ? quick_lint_js::read_stdin()
                       : quick_lint_js::read_file(file.path);
