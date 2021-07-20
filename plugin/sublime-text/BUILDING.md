@@ -1,15 +1,14 @@
 # quick-lint-js Sublime Text plugin
 
-This directory contains a plugin for the [Sublime Text editor](https://www.sublimetext.com/).
+This directory contains a plugin for the [Sublime Text editor].
 
 ## Building
 
-**\*\*To build the plugin version made for Sublime Text 3, change all
-`-DQUICK_LINT_JS_SUBLIME_TEXT_4=ON` to `-DQUICK_LINT_JS_SUBLIME_TEXT_3=ON`.\*\***
+To build the plugin version made for Sublime Text 3, change all `-DQUICK_LINT_JS_SUBLIME_TEXT_4=ON` to `-DQUICK_LINT_JS_SUBLIME_TEXT_3=ON`.
 
 ### Linux
 
-To build this extension, install the [Ninja](https://ninja-build.org/), then run the following commands:
+To build this extension, install the [Ninja], then run the following commands:
 
     $ cd plugin/sublime-text/  # Navigate to this directory.
     $ cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -22,3 +21,6 @@ To build this extension, install the [Ninja](https://ninja-build.org/), then run
 To install this extension on your machine after building it, run the following command:
 
     $ cmake --install build --component sublime-text
+
+[Sublime Text editor]: https://www.sublimetext.com/
+[Ninja]: https://ninja-build.org/
