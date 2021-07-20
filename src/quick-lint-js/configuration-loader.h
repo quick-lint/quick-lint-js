@@ -87,7 +87,7 @@ class configuration_loader {
     padded_string file_content{};
   };
 
-  struct watched_path {
+  struct watched_input_path {
     std::string input_path;
     std::optional<canonical_path> config_path;
     std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
@@ -124,7 +124,7 @@ class configuration_loader {
   // Value: cached parsed configuration
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
 
-  std::vector<watched_path> watched_paths_;
+  std::vector<watched_input_path> watched_input_paths_;
 };
 
 class basic_configuration_filesystem : public configuration_filesystem {

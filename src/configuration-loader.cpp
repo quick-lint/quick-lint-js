@@ -39,13 +39,14 @@ result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::watch_and_load_for_file(const std::string& file_path,
                                               const void* token) {
-  watched_path& watch = this->watched_paths_.emplace_back(watched_path{
-      .input_path = std::move(file_path),
-      .config_path =
-          std::nullopt,  // Updated by find_and_load_config_file_for_input.
-      .error = std::nullopt,
-      .token = const_cast<void*>(token),
-  });
+  watched_input_path& watch =
+      this->watched_input_paths_.emplace_back(watched_input_path{
+          .input_path = std::move(file_path),
+          .config_path =
+              std::nullopt,  // Updated by find_and_load_config_file_for_input.
+          .error = std::nullopt,
+          .token = const_cast<void*>(token),
+      });
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
       r = this->find_and_load_config_file_for_input(file_path.c_str());
@@ -151,7 +152,7 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   }
   canonical_path& config_path = *found->path;
   if (input_path) {
-    for (watched_path& watch : this->watched_paths_) {
+    for (watched_input_path& watch : this->watched_input_paths_) {
       if (watch.input_path == input_path) {
         watch.config_path = config_path;
       }
@@ -277,7 +278,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files =
       std::move(this->loaded_config_files_);
 
-  for (watched_path& watch : this->watched_paths_) {
+  for (watched_input_path& watch : this->watched_input_paths_) {
     const std::string& input_path = watch.input_path;
     result<canonical_path_result, canonicalize_path_io_error> parent_directory =
         this->get_parent_directory(input_path.c_str());
@@ -363,7 +364,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
       loaded_config.config.set_config_file_path(config_path);
       loaded_config.config.load_from_json(&loaded_config.file_content);
 
-      for (const watched_path& watch : this->watched_paths_) {
+      for (const watched_input_path& watch : this->watched_input_paths_) {
         if (watch.config_path == config_path) {
           auto existing_change_it =
               std::find_if(changes.begin(), changes.end(),
