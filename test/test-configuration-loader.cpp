@@ -160,6 +160,15 @@ class change_detecting_configuration_loader {
     return this->loader_.watch_and_load_for_file(std::forward<Args>(args)...);
   }
 
+  template <class... Args>
+  auto watch_and_load_config_file(Args&&... args) {
+#if defined(_WIN32)
+    std::lock_guard<std::mutex> lock(this->mutex_);
+#endif
+    return this->loader_.watch_and_load_config_file(
+        std::forward<Args>(args)...);
+  }
+
   std::vector<configuration_change> detect_changes_and_refresh();
 
  private:
@@ -1539,6 +1548,82 @@ TEST_F(test_configuration_loader,
   }
 }
 
+TEST_F(test_configuration_loader, load_config_file_directly) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+
+  configuration_loader loader(basic_configuration_filesystem::instance());
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_TRUE(
+      (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
+}
+
+TEST_F(test_configuration_loader,
+       rewriting_direct_config_file_completely_is_detected_as_change) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"before": true}})");
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+
+  write_file(config_file, u8R"({"globals": {"after": true}})");
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(*changes[0].watched_path, config_file);
+  EXPECT_EQ(changes[0].token, &config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
+  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"));
+}
+
+TEST_F(test_configuration_loader,
+       creating_direct_config_file_is_detected_as_change) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+  EXPECT_FALSE(loaded_config.ok());
+
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(*changes[0].watched_path, config_file);
+  EXPECT_EQ(changes[0].token, &config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
+  EXPECT_TRUE(
+      changes[0].config_file->config.globals().find(u8"testGlobalVariable"));
+}
+
+TEST_F(test_configuration_loader,
+       deleting_direct_config_file_is_detected_as_change) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+
+  EXPECT_EQ(std::remove(config_file.c_str()), 0)
+      << "failed to delete " << config_file << ": " << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(*changes[0].watched_path, config_file);
+  EXPECT_EQ(changes[0].token, &config_file);
+  EXPECT_EQ(changes[0].config_file, nullptr);
+}
+
 #if QLJS_HAVE_UNISTD_H
 TEST_F(test_configuration_loader,
        making_config_file_unreadable_is_detected_as_change) {
@@ -1568,6 +1653,37 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
+  EXPECT_EQ(changes[0].config_file, nullptr);
+  EXPECT_THAT(changes[0].error,
+              IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
+}
+
+TEST_F(test_configuration_loader,
+       making_direct_config_file_unreadable_is_detected_as_change) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_TRUE(
+      (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   EXPECT_THAT(changes[0].error,
               IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
@@ -1618,6 +1734,48 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
+#if defined(__APPLE__)
+// TODO(strager): Fix on macOS+kqueue.
+TEST_F(
+    test_configuration_loader,
+    DISABLED_making_unreadable_direct_config_file_readable_is_detected_as_change)
+#else
+TEST_F(test_configuration_loader,
+       making_unreadable_direct_config_file_readable_is_detected_as_change)
+#endif
+{
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0600), 0)
+      << "failed to make " << config_file
+      << " readable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(changes[0].token, &config_file);
+  EXPECT_TRUE(
+      changes[0].config_file->config.globals().find(u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes[0].error, nullptr);
+}
+
 TEST_F(test_configuration_loader,
        unreadable_config_file_is_not_detected_as_changing) {
   if (process_ignores_filesystem_permissions()) {
@@ -1637,6 +1795,32 @@ TEST_F(test_configuration_loader,
   change_detecting_configuration_loader loader;
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  EXPECT_THAT(changes, IsEmpty());
+}
+
+TEST_F(test_configuration_loader,
+       unreadable_direct_config_file_is_not_detected_as_changing) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
   EXPECT_THAT(loaded_config.error_to_variant(),
               IS_POSIX_READ_FILE_IO_ERROR(
@@ -1678,6 +1862,40 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAre(::testing::_));
   EXPECT_EQ(changes_2[0].token, &js_file);
+  EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
+      u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes_2[0].error, nullptr);
+}
+
+TEST_F(
+    test_configuration_loader,
+    making_direct_config_file_unreadable_then_readable_is_detected_as_change) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  [[maybe_unused]] std::vector<configuration_change> changes_1 =
+      loader.detect_changes_and_refresh();
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0644), 0)
+      << "failed to make " << config_file
+      << " readable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes_2 =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  EXPECT_EQ(changes_2[0].token, &config_file);
   EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
       u8"testGlobalVariable"sv));
   EXPECT_EQ(changes_2[0].error, nullptr);
@@ -1734,6 +1952,54 @@ TEST_F(
                                       config_file_canonical_path, EACCES));
 }
 
+#if defined(__APPLE__)
+// TODO(strager): Fix on macOS+kqueue.
+TEST_F(
+    test_configuration_loader,
+    DISABLED_making_unreadable_direct_config_file_readable_then_unreadable_is_detected_as_change)
+#else
+TEST_F(
+    test_configuration_loader,
+    making_unreadable_direct_config_file_readable_then_unreadable_is_detected_as_change)
+#endif
+{
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  std::string config_file_canonical_path(
+      canonicalize_path(config_file)->path());
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0644), 0)
+      << "failed to make " << config_file
+      << " readable: " << std::strerror(errno);
+
+  [[maybe_unused]] std::vector<configuration_change> changes_1 =
+      loader.detect_changes_and_refresh();
+
+  EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
+      << "failed to make " << config_file
+      << " unreadable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes_2 =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes_2, ElementsAre(::testing::_));
+  EXPECT_EQ(changes_2[0].token, &config_file);
+  EXPECT_EQ(changes_2[0].config_file, nullptr);
+  EXPECT_THAT(changes_2[0].error, IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(
+                                      config_file_canonical_path, EACCES));
+}
+
 TEST_F(test_configuration_loader,
        making_unreadable_parent_dir_readable_is_detected_as_change) {
   if (process_ignores_filesystem_permissions()) {
@@ -1781,6 +2047,52 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
+TEST_F(
+    test_configuration_loader,
+    making_unreadable_parent_dir_of_direct_config_file_readable_is_detected_as_change) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string dir = project_dir + "/dir";
+  create_directory(dir);
+  std::string config_file = dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  std::string config_file_canonical_path(
+      canonicalize_path(config_file)->path());
+  EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
+      << "failed to make " << dir << " unreadable: " << std::strerror(errno);
+
+#if BUGGY
+  configuration_loader loader(basic_configuration_filesystem::instance());
+#else
+  change_detecting_configuration_loader loader;
+#endif
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
+              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  config_file, config_file_canonical_path, EACCES))
+      << loaded_config.error_to_string();
+
+  EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
+      << "failed to make " << dir << " readable: " << std::strerror(errno);
+
+#if BUGGY
+  std::vector<configuration_change> changes = loader.refresh();
+#else
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+#endif
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(changes[0].token, &config_file);
+  EXPECT_TRUE(
+      changes[0].config_file->config.globals().find(u8"testGlobalVariable"sv));
+  EXPECT_EQ(changes[0].error, nullptr);
+}
+
 TEST_F(test_configuration_loader,
        making_parent_dir_unreadable_is_detected_as_change) {
   if (process_ignores_filesystem_permissions()) {
@@ -1816,6 +2128,42 @@ TEST_F(test_configuration_loader,
                                     js_file, js_file_canonical_path, EACCES));
 }
 
+TEST_F(
+    test_configuration_loader,
+    making_parent_dir_of_direct_config_file_unreadable_is_detected_as_change) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+
+  std::string dir = project_dir + "/dir";
+  create_directory(dir);
+  std::string config_file = dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  std::string config_file_canonical_path(
+      canonicalize_path(config_file)->path());
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_TRUE(
+      (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
+
+  EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
+      << "failed to make " << dir << " unreadable: " << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(changes[0].token, &config_file);
+  EXPECT_EQ(changes[0].config_file, nullptr);
+  EXPECT_THAT(changes[0].error,
+              IS_POINTER_TO_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  config_file, config_file_canonical_path, EACCES));
+}
+
 TEST_F(test_configuration_loader,
        unreadable_parent_dir_is_not_detected_as_changing) {
   if (process_ignores_filesystem_permissions()) {
@@ -1846,6 +2194,74 @@ TEST_F(test_configuration_loader,
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
+}
+
+TEST_F(test_configuration_loader,
+       unreadable_parent_dir_of_direct_config_is_not_detected_as_changing) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string dir = project_dir + "/dir";
+  create_directory(dir);
+  std::string config_file = dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  std::string config_file_canonical_path(
+      canonicalize_path(config_file)->path());
+  EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
+      << "failed to make " << dir << " unreadable: " << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
+              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  config_file, config_file_canonical_path, EACCES))
+      << loaded_config.error_to_string();
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  EXPECT_THAT(changes, IsEmpty());
+}
+#endif
+
+// TODO(strager): Test symlinks on Windows too.
+#if QLJS_HAVE_UNISTD_H
+TEST_F(test_configuration_loader,
+       changing_direct_config_path_symlink_is_detected_as_change) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string before_config_file = project_dir + "/before.config";
+  write_file(before_config_file, u8R"({"globals": {"before": true}})");
+  std::string after_config_file = project_dir + "/after.config";
+  write_file(after_config_file, u8R"({"globals": {"after": true}})");
+  std::string config_symlink = project_dir + "/quick-lint-js.config";
+  ASSERT_EQ(::symlink("before.config", config_symlink.c_str()), 0)
+      << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(config_symlink, /*token=*/&config_symlink);
+
+  ASSERT_EQ(std::remove(config_symlink.c_str()), 0) << std::strerror(errno);
+  ASSERT_EQ(::symlink("after.config", config_symlink.c_str()), 0)
+      << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(changes[0].token, &config_symlink);
+  EXPECT_EQ(*changes[0].config_file->config_path,
+            canonicalize_path(after_config_file)->canonical());
+  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"));
+  EXPECT_EQ(changes[0].error, nullptr);
+
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
 #endif
 

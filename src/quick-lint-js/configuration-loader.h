@@ -52,7 +52,8 @@ struct configuration_change {
                watch_io_error>* error;  // Sometimes nullptr.
 
   // token is the pointer given to
-  // configuration_loader::watch_and_load_for_file.
+  // configuration_loader::watch_and_load_for_file or
+  // configuration_loader::watch_and_load_config_file.
   void* token;
 };
 
@@ -68,6 +69,11 @@ class configuration_loader {
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
+
+  // Fails if the config file does not exist.
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
+         watch_io_error>
+  watch_and_load_config_file(const std::string& file_path, const void* token);
 
   // Returns nullptr if there is no config file.
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
@@ -86,6 +92,15 @@ class configuration_loader {
     std::optional<canonical_path> path;
     loaded_config_file* already_loaded = nullptr;
     padded_string file_content{};
+  };
+
+  struct watched_config_path {
+    std::string input_config_path;
+    std::optional<canonical_path> actual_config_path;
+    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
+                               watch_io_error>>
+        error;
+    void* token;
   };
 
   struct watched_input_path {
@@ -125,6 +140,7 @@ class configuration_loader {
   // Value: cached parsed configuration
   std::unordered_map<canonical_path, loaded_config_file> loaded_config_files_;
 
+  std::vector<watched_config_path> watched_config_paths_;
   std::vector<watched_input_path> watched_input_paths_;
 };
 
