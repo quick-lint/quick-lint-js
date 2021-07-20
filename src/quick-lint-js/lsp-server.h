@@ -116,6 +116,11 @@ class linting_lsp_server_handler {
       const std::vector<configuration_change>& config_changes,
       std::vector<byte_buffer>& notification_jsons);
 
+  void get_config_file_diagnostics_notification(loaded_config_file*,
+                                                string8_view uri_json,
+                                                string8_view version_json,
+                                                byte_buffer& notification_json);
+
   void write_configuration_loader_error_notification(
       std::string_view document_path, std::string_view error_details,
       byte_buffer& out_json);

@@ -316,6 +316,16 @@ void linting_lsp_server_handler<Linter>::
         notification_json);
   } else {
     doc.type = document_type::config;
+
+    auto config_file =
+        this->config_loader_.watch_and_load_config_file(document_path,
+                                                        /*token=*/&doc);
+    QLJS_ASSERT(config_file.ok());
+    byte_buffer& config_diagnostics_json = notification_jsons.emplace_back();
+    this->get_config_file_diagnostics_notification(
+        *config_file, get_raw_json(uri), doc.version_json,
+        config_diagnostics_json);
+
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
     this->handle_config_file_changes(config_changes, notification_jsons);
@@ -364,8 +374,54 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
           *config, doc.doc.string(),
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
+    } else if (doc.type == document_type::config) {
+      auto change_it =
+          std::find_if(config_changes.begin(), config_changes.end(),
+                       [&](const configuration_change& change) {
+                         return change.token == &doc;
+                       });
+      if (change_it == config_changes.end()) {
+        continue;
+      }
+
+      QLJS_ASSERT(change_it->config_file);
+      if (change_it->config_file) {
+        byte_buffer& config_diagnostics_json =
+            notification_jsons.emplace_back();
+        this->get_config_file_diagnostics_notification(
+            change_it->config_file,
+            to_json_escaped_string_with_quotes(document_uri), doc.version_json,
+            config_diagnostics_json);
+      }
     }
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    get_config_file_diagnostics_notification(loaded_config_file* config_file,
+                                             string8_view uri_json,
+                                             string8_view version_json,
+                                             byte_buffer& notification_json) {
+  // clang-format off
+  notification_json.append_copy(
+    u8R"--({)--"
+      u8R"--("method":"textDocument/publishDiagnostics",)--"
+      u8R"--("params":{)--"
+        u8R"--("uri":)--");
+  // clang-format on
+  notification_json.append_copy(uri_json);
+
+  notification_json.append_copy(u8R"--(,"version":)--");
+  notification_json.append_copy(version_json);
+
+  notification_json.append_copy(u8R"--(,"diagnostics":)--");
+  lsp_error_reporter error_reporter(notification_json,
+                                    &config_file->file_content);
+  config_file->config.report_errors(&error_reporter);
+  error_reporter.finish();
+
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
 }
 
 template <QLJS_LSP_LINTER Linter>

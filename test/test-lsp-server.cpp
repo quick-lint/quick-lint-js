@@ -896,7 +896,13 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
   std::vector<std::string> linted_uris;
   for (::Json::Value& notification : this->client.messages) {
     EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
-    linted_uris.emplace_back(notification["params"]["uri"].asString());
+    std::string uri = notification["params"]["uri"].asString();
+    if (uri ==
+        to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config")) {
+      // Ignore.
+      continue;
+    }
+    linted_uris.emplace_back(uri);
   }
   EXPECT_THAT(linted_uris,
               ::testing::UnorderedElementsAre(
@@ -1008,7 +1014,15 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   std::vector<std::string> linted_uris;
   for (::Json::Value& notification : this->client.messages) {
     EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
-    linted_uris.emplace_back(notification["params"]["uri"].asString());
+    std::string uri = notification["params"]["uri"].asString();
+    if (uri == to_string(this->fs.file_uri_prefix_8() +
+                         u8"dir-a/quick-lint-js.config") ||
+        uri == to_string(this->fs.file_uri_prefix_8() +
+                         u8"dir-b/quick-lint-js.config")) {
+      // Ignore.
+      continue;
+    }
+    linted_uris.emplace_back(uri);
   }
   EXPECT_THAT(linted_uris, ElementsAre(to_string(this->fs.file_uri_prefix_8() +
                                                  u8"dir-a/test.js")));
@@ -1443,6 +1457,92 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   EXPECT_EQ(
       showMessageMessage["params"]["message"],
       this->config_file_load_error_message("test.js", "quick-lint-js.config"));
+}
+
+TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "json",
+            "version": 1,
+            "text": "THIS IS INVALID JSON"
+          }
+        }
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::Json::Value& response = this->client.messages[0];
+  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+  EXPECT_FALSE(response.isMember("error"));
+  // LSP PublishDiagnosticsParams:
+  EXPECT_EQ(response["params"]["uri"],
+            to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
+  EXPECT_EQ(response["params"]["version"], 1);
+  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0]["message"], "JSON syntax error");
+}
+
+TEST_F(test_linting_lsp_server,
+       introducing_config_file_error_shows_diagnostics) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "json",
+            "version": 1,
+            "text": "{ \"globals\": {} }"
+          }
+        }
+      })"));
+
+  this->client.messages.clear();
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "text": "INVALID JSON"
+            }
+          ]
+        }
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::Json::Value& response = this->client.messages[0];
+  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+  EXPECT_FALSE(response.isMember("error"));
+  // LSP PublishDiagnosticsParams:
+  EXPECT_EQ(response["params"]["uri"],
+            to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
+  EXPECT_EQ(response["params"]["version"], 2);
+  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 0);
+  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
+  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0]["message"], "JSON syntax error");
 }
 
 TEST_F(test_linting_lsp_server,
