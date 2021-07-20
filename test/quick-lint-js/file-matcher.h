@@ -82,6 +82,12 @@ inline ::testing::AssertionResult assert_same_file(
                           lhs_path.has_value() ? lhs_path->c_str() : "",
                           rhs_path);
 }
+
+inline ::testing::AssertionResult assert_same_file(
+    const char* lhs_expr, const char* rhs_expr, const canonical_path& lhs_path,
+    const std::string& rhs_path) {
+  return assert_same_file(lhs_expr, rhs_expr, lhs_path.c_str(), rhs_path);
+}
 }
 
 #endif

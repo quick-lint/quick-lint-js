@@ -615,9 +615,6 @@ TEST_F(test_linting_lsp_server,
                             string8_view, string8_view, byte_buffer&) {
     EXPECT_TRUE(config.globals().find(u8"haveConfigWithoutDot"sv));
     EXPECT_FALSE(config.globals().find(u8"haveConfigWithDot"sv));
-    ASSERT_TRUE(config.config_file_path().has_value());
-    EXPECT_THAT(config.config_file_path()->c_str(),
-                ::testing::Not(::testing::HasSubstr(".quick-lint-js.config")));
   };
 
   this->fs.create_file(this->fs.rooted(".quick-lint-js.config"),

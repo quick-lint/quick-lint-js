@@ -41,6 +41,7 @@ class configuration_filesystem {
 struct loaded_config_file {
   configuration config;
   padded_string file_content;
+  const canonical_path* config_path;  // Never nullptr.
 };
 
 struct configuration_change {

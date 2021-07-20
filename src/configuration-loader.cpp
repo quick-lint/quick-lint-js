@@ -98,9 +98,8 @@ configuration_loader::load_config_file(const char* config_path) {
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
   loaded_config_file* config_file = &config_it->second;
+  config_file->config_path = &config_it->first;
   config_file->file_content = std::move(*config_json);
-  config_file->config.set_config_file_path(
-      std::move(*canonical_config_path).canonical());
   config_file->config.load_from_json(&config_file->file_content);
   return config_file;
 }
@@ -168,8 +167,8 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
       std::forward_as_tuple());
   QLJS_ASSERT(inserted);
   loaded_config_file* config_file = &config_it->second;
+  config_file->config_path = &config_it->first;
   config_file->file_content = std::move(found->file_content);
-  config_file->config.set_config_file_path(std::move(config_path));
   config_file->config.load_from_json(&config_file->file_content);
   return config_file;
 }
@@ -321,11 +320,14 @@ std::vector<configuration_change> configuration_loader::refresh() {
       if (latest->path.has_value()) {
         auto loaded_config_it = loaded_config_files.find(*latest->path);
         if (loaded_config_it == loaded_config_files.end()) {
-          loaded_config_file& loaded_config =
-              loaded_config_files[*latest->path];
+          auto [config_it, inserted] = loaded_config_files.emplace(
+              std::piecewise_construct, std::forward_as_tuple(*latest->path),
+              std::forward_as_tuple());
+          QLJS_ASSERT(inserted);
+          loaded_config_file& loaded_config = config_it->second;
+          loaded_config.config_path = &config_it->first;
           loaded_config.file_content = std::move(latest->file_content);
           loaded_config.config.reset();
-          loaded_config.config.set_config_file_path(*latest->path);
           loaded_config.config.load_from_json(&loaded_config.file_content);
           config_file = &loaded_config;
         } else {
@@ -359,9 +361,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
 
     bool did_change = loaded_config.file_content != *config_json;
     if (did_change) {
+      QLJS_ASSERT(*loaded_config.config_path == config_path);
       loaded_config.file_content = std::move(*config_json);
       loaded_config.config.reset();
-      loaded_config.config.set_config_file_path(config_path);
       loaded_config.config.load_from_json(&loaded_config.file_content);
 
       for (const watched_input_path& watch : this->watched_input_paths_) {

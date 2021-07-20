@@ -192,17 +192,14 @@ void handle_options(quick_lint_js::options o) {
     }
     loaded_config_file *config_file = *config_result;
     if (config_file && !config_file->config.errors_were_reported()) {
-      if (const std::optional<canonical_path> &config_path =
-              config_file->config.config_file_path()) {
-        reporter.set_source(&config_file->file_content,
-                            file_to_lint{
-                                .path = config_path->c_str(),
-                                .config_file = nullptr,
-                                .is_stdin = false,
-                                .vim_bufnr = std::nullopt,
-                            });
-        config_file->config.report_errors(reporter.get());
-      }
+      reporter.set_source(&config_file->file_content,
+                          file_to_lint{
+                              .path = config_file->config_path->c_str(),
+                              .config_file = nullptr,
+                              .is_stdin = false,
+                              .vim_bufnr = std::nullopt,
+                          });
+      config_file->config.report_errors(reporter.get());
     }
   }
 

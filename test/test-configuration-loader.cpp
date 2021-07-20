@@ -270,7 +270,7 @@ TEST_F(test_configuration_loader, find_quick_lint_js_config_in_same_directory) {
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -285,7 +285,7 @@ TEST_F(test_configuration_loader,
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -300,7 +300,7 @@ TEST_F(test_configuration_loader,
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(),
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path,
                    temp_dir + "/quick-lint-js.config");
 }
 
@@ -317,7 +317,7 @@ TEST_F(test_configuration_loader,
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
@@ -361,7 +361,7 @@ TEST_F(test_configuration_loader, find_config_in_parent_directory) {
     auto loaded_config = loader.load_for_file(js_file);
     ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+    EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
   }
 }
 
@@ -379,7 +379,7 @@ TEST_F(test_configuration_loader,
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader, find_config_in_parent_directory_of_cwd) {
@@ -395,7 +395,7 @@ TEST_F(test_configuration_loader, find_config_in_parent_directory_of_cwd) {
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader, find_config_in_ancestor_directory) {
@@ -418,7 +418,7 @@ TEST_F(test_configuration_loader, find_config_in_ancestor_directory) {
     auto loaded_config = loader.load_for_file(js_file);
     ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+    EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
   }
 }
 
@@ -453,8 +453,7 @@ TEST_F(test_configuration_loader,
     auto loaded_config = loader.load_for_file(js_file);
     ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(),
-                     config_file_outside_dir);
+    EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file_outside_dir);
   }
 }
 
@@ -472,7 +471,7 @@ TEST_F(test_configuration_loader, find_config_in_cwd_if_stdin) {
   });
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader, find_config_in_parent_of_cwd_if_stdin) {
@@ -490,7 +489,7 @@ TEST_F(test_configuration_loader, find_config_in_parent_of_cwd_if_stdin) {
   });
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {
@@ -507,7 +506,7 @@ TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {
 
   EXPECT_TRUE(
       (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -560,11 +559,11 @@ TEST_F(test_configuration_loader,
 
   EXPECT_TRUE(config_one->globals().find(u8"testGlobalVariableOne"sv));
   EXPECT_FALSE(config_one->globals().find(u8"testGlobalVariableTwo"sv));
-  EXPECT_SAME_FILE(config_one->config_file_path(), config_file_one);
+  EXPECT_SAME_FILE(*(*loaded_config_one)->config_path, config_file_one);
 
   EXPECT_FALSE(config_two->globals().find(u8"testGlobalVariableOne"sv));
   EXPECT_TRUE(config_two->globals().find(u8"testGlobalVariableTwo"sv));
-  EXPECT_SAME_FILE(config_two->config_file_path(), config_file_two);
+  EXPECT_SAME_FILE(*(*loaded_config_two)->config_path, config_file_two);
 }
 
 TEST_F(test_configuration_loader, missing_config_file_fails) {
@@ -757,7 +756,7 @@ TEST_F(test_configuration_loader,
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -770,7 +769,7 @@ TEST_F(test_configuration_loader,
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_SAME_FILE((*loaded_config)->config.config_file_path(), config_file);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader, config_found_initially_is_unchanged) {
@@ -810,8 +809,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -840,8 +838,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -884,8 +881,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -949,8 +945,7 @@ TEST_F(test_configuration_loader, creating_config_in_same_dir_is_detected) {
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-    EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                     config_file);
+    EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
   }
 }
 
@@ -973,8 +968,7 @@ TEST_F(test_configuration_loader,
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
-    EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                     config_file);
+    EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
   }
 }
 
@@ -998,8 +992,7 @@ TEST_F(test_configuration_loader, creating_config_in_parent_dir_is_detected) {
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-    EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                     config_file);
+    EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
   }
 }
 
@@ -1021,8 +1014,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   primary_config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, primary_config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -1053,8 +1045,7 @@ TEST_F(test_configuration_loader,
           loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-      EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                       inner_config_file);
+      EXPECT_SAME_FILE(*changes[0].config_file->config_path, inner_config_file);
     }
   }
 }
@@ -1105,8 +1096,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   secondary_config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, secondary_config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -1140,8 +1130,7 @@ TEST_F(test_configuration_loader,
           loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-      EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                       outer_config_file);
+      EXPECT_SAME_FILE(*changes[0].config_file->config_path, outer_config_file);
     }
   }
 }
@@ -1189,8 +1178,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   secondary_config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, secondary_config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -1222,8 +1210,7 @@ TEST_F(test_configuration_loader,
           loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-      EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                       outer_config_file);
+      EXPECT_SAME_FILE(*changes[0].config_file->config_path, outer_config_file);
     }
   }
 }
@@ -1249,8 +1236,7 @@ TEST_F(test_configuration_loader, moving_config_into_same_dir_is_detected) {
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-    EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                     renamed_config_file);
+    EXPECT_SAME_FILE(*changes[0].config_file->config_path, renamed_config_file);
   }
 }
 
@@ -1276,8 +1262,7 @@ TEST_F(test_configuration_loader, moving_config_into_parent_dir_is_detected) {
         loader.detect_changes_and_refresh();
     ASSERT_THAT(changes, ElementsAre(::testing::_));
     EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-    EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                     renamed_config_file);
+    EXPECT_SAME_FILE(*changes[0].config_file->config_path, renamed_config_file);
   }
 }
 
@@ -1311,8 +1296,7 @@ TEST_F(test_configuration_loader,
           loader.detect_changes_and_refresh();
       ASSERT_THAT(changes, ElementsAre(::testing::_));
       EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-      EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                       inner_config_file);
+      EXPECT_SAME_FILE(*changes[0].config_file->config_path, inner_config_file);
     }
   }
 }
@@ -1337,8 +1321,7 @@ TEST_F(test_configuration_loader,
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   primary_config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, primary_config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -1451,8 +1434,7 @@ TEST_F(test_configuration_loader,
   ASSERT_THAT(changes, ElementsAre(::testing::_))
       << "adding config should change associated config file";
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
 
 TEST_F(
@@ -1472,8 +1454,7 @@ TEST_F(
       loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
-  EXPECT_SAME_FILE(changes[0].config_file->config.config_file_path(),
-                   config_file);
+  EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
 }
 
 TEST_F(test_configuration_loader,
@@ -1508,8 +1489,7 @@ TEST_F(test_configuration_loader,
     EXPECT_EQ(js_files.count(*token), 1) << "change should have a valid token";
     EXPECT_EQ(unconfigured_js_files.erase(*change.watched_path), 1)
         << "change should report no duplicate watched files";
-    EXPECT_SAME_FILE(change.config_file->config.config_file_path(),
-                     config_file);
+    EXPECT_SAME_FILE(*change.config_file->config_path, config_file);
   }
   EXPECT_THAT(unconfigured_js_files, IsEmpty())
       << "all watched files should have a config";
@@ -1555,8 +1535,7 @@ TEST_F(test_configuration_loader,
               ::testing::UnorderedElementsAre(&inner_js_file, &outer_js_file));
 
   for (const configuration_change& change : changes) {
-    EXPECT_SAME_FILE(change.config_file->config.config_file_path(),
-                     outer_config_file);
+    EXPECT_SAME_FILE(*change.config_file->config_path, outer_config_file);
   }
 }
 
@@ -1900,8 +1879,7 @@ TEST(test_configuration_loader_fake,
     });
     ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_EQ((*loaded_config)->config.config_file_path(),
-              fs.rooted(config_file_name));
+    EXPECT_EQ(*(*loaded_config)->config_path, fs.rooted(config_file_name));
   }
 }
 
@@ -1920,8 +1898,7 @@ TEST(test_configuration_loader_fake, find_config_in_parent_directory) {
     });
     ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-    EXPECT_EQ((*loaded_config)->config.config_file_path(),
-              fs.rooted(config_file_name));
+    EXPECT_EQ(*(*loaded_config)->config_path, fs.rooted(config_file_name));
   }
 }
 
