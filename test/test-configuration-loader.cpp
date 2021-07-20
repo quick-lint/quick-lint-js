@@ -1563,9 +1563,11 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
-  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_TRUE((*config)->globals().find(u8"testGlobalVariable"sv));
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_TRUE(
+      (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
@@ -1604,9 +1606,10 @@ TEST_F(test_configuration_loader,
       << " unreadable: " << std::strerror(errno);
 
   change_detecting_configuration_loader loader;
-  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_FALSE(config.ok());
-  EXPECT_THAT(config.error_to_variant(),
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
               IS_POSIX_READ_FILE_IO_ERROR(
                   canonicalize_path(config_file)->c_str(), EACCES));
 
@@ -1639,9 +1642,10 @@ TEST_F(test_configuration_loader,
       << " unreadable: " << std::strerror(errno);
 
   change_detecting_configuration_loader loader;
-  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_FALSE(config.ok());
-  EXPECT_THAT(config.error_to_variant(),
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
               IS_POSIX_READ_FILE_IO_ERROR(
                   canonicalize_path(config_file)->c_str(), EACCES));
 
@@ -1759,12 +1763,13 @@ TEST_F(test_configuration_loader,
 #else
   change_detecting_configuration_loader loader;
 #endif
-  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_FALSE(config.ok());
-  EXPECT_THAT(config.error_to_variant(),
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
               IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
                   js_file, js_file_canonical_path, EACCES))
-      << config.error_to_string();
+      << loaded_config.error_to_string();
 
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
       << "failed to make " << dir << " readable: " << std::strerror(errno);
@@ -1798,9 +1803,11 @@ TEST_F(test_configuration_loader,
   write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
-  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_TRUE(config.ok()) << config.error_to_string();
-  EXPECT_TRUE((*config)->globals().find(u8"testGlobalVariable"sv));
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_TRUE(
+      (*loaded_config)->config.globals().find(u8"testGlobalVariable"sv));
 
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
@@ -1833,12 +1840,13 @@ TEST_F(test_configuration_loader,
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
   change_detecting_configuration_loader loader;
-  auto config = loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
-  EXPECT_FALSE(config.ok());
-  EXPECT_THAT(config.error_to_variant(),
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
+  EXPECT_FALSE(loaded_config.ok());
+  EXPECT_THAT(loaded_config.error_to_variant(),
               IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
                   js_file, js_file_canonical_path, EACCES))
-      << config.error_to_string();
+      << loaded_config.error_to_string();
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();

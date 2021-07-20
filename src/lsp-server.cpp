@@ -295,11 +295,12 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
-    auto config = this->config_loader_.watch_and_load_for_file(document_path,
-                                                               /*token=*/&doc);
-    if (config.ok()) {
-      if (*config) {
-        doc.config = *config;
+    auto config_file =
+        this->config_loader_.watch_and_load_for_file(document_path,
+                                                     /*token=*/&doc);
+    if (config_file.ok()) {
+      if (*config_file) {
+        doc.config = &(*config_file)->config;
       } else {
         doc.config = this->config_loader_.get_default_config();
       }
@@ -307,7 +308,7 @@ void linting_lsp_server_handler<Linter>::
       doc.config = this->config_loader_.get_default_config();
       byte_buffer& message_json = notification_jsons.emplace_back();
       this->write_configuration_loader_error_notification(
-          document_path, config.error_to_string(), message_json);
+          document_path, config_file.error_to_string(), message_json);
     }
     byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(

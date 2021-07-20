@@ -35,7 +35,7 @@ bool operator!=(const watch_io_error& lhs, const watch_io_error& rhs) noexcept {
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
-result<configuration*, canonicalize_path_io_error, read_file_io_error,
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
        watch_io_error>
 configuration_loader::watch_and_load_for_file(const std::string& file_path,
                                               const void* token) {
@@ -54,7 +54,7 @@ configuration_loader::watch_and_load_for_file(const std::string& file_path,
                                      read_file_io_error, watch_io_error>();
     return r.propagate();
   }
-  return *r ? &(*r)->config : nullptr;
+  return *r;
 }
 
 result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
