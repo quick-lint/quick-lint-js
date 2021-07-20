@@ -38,9 +38,14 @@ class configuration_filesystem {
       const canonical_path&) = 0;
 };
 
+struct loaded_config_file {
+  configuration config;
+  padded_string file_content;
+};
+
 struct configuration_change {
   const std::string* watched_path;  // Never nullptr.
-  configuration* config;            // Sometimes nullptr.
+  loaded_config_file* config_file;  // Sometimes nullptr.
 
   std::variant<canonicalize_path_io_error, read_file_io_error,
                watch_io_error>* error;  // Sometimes nullptr.
@@ -48,11 +53,6 @@ struct configuration_change {
   // token is the pointer given to
   // configuration_loader::watch_and_load_for_file.
   void* token;
-};
-
-struct loaded_config_file {
-  configuration config;
-  padded_string file_content;
 };
 
 class configuration_loader {

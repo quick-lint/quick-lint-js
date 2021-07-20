@@ -288,7 +288,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
-            .config = nullptr,
+            .config_file = nullptr,
             .error = &*watch.error,
             .token = watch.token,
         });
@@ -307,7 +307,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
             .watched_path = &input_path,
-            .config = nullptr,
+            .config_file = nullptr,
             .error = &*watch.error,
             .token = watch.token,
         });
@@ -316,7 +316,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
     }
 
     if (latest->path != watch.config_path || watch.error.has_value()) {
-      configuration* config;
+      loaded_config_file* config_file;
       if (latest->path.has_value()) {
         auto loaded_config_it = loaded_config_files.find(*latest->path);
         if (loaded_config_it == loaded_config_files.end()) {
@@ -326,16 +326,16 @@ std::vector<configuration_change> configuration_loader::refresh() {
           loaded_config.config.reset();
           loaded_config.config.set_config_file_path(*latest->path);
           loaded_config.config.load_from_json(&loaded_config.file_content);
-          config = &loaded_config.config;
+          config_file = &loaded_config;
         } else {
-          config = &loaded_config_it->second.config;
+          config_file = &loaded_config_it->second;
         }
       } else {
-        config = nullptr;
+        config_file = nullptr;
       }
       changes.emplace_back(configuration_change{
           .watched_path = &input_path,
-          .config = config,
+          .config_file = config_file,
           .error = nullptr,
           .token = watch.token,
       });
@@ -374,7 +374,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
           if (!already_changed) {
             changes.emplace_back(configuration_change{
                 .watched_path = &watch.input_path,
-                .config = &loaded_config.config,
+                .config_file = &loaded_config,
                 .error = nullptr,
                 .token = watch.token,
             });

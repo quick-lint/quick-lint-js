@@ -352,10 +352,9 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
                        *change_it->error),
             message_json);
       }
-      configuration* config = change_it->config;
-      if (!config) {
-        config = this->config_loader_.get_default_config();
-      }
+      configuration* config = change_it->config_file
+                                  ? &change_it->config_file->config
+                                  : this->config_loader_.get_default_config();
       doc.config = config;
       byte_buffer& notification_json = notification_jsons.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special
