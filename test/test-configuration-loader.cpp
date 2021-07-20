@@ -1598,11 +1598,12 @@ TEST_F(test_configuration_loader,
 #if defined(__APPLE__)
 // TODO(strager): Fix on macOS+kqueue.
 TEST_F(test_configuration_loader,
-       DISABLED_making_unreadable_config_file_readable_is_detected_as_change) {
+       DISABLED_making_unreadable_config_file_readable_is_detected_as_change)
 #else
 TEST_F(test_configuration_loader,
-       making_unreadable_config_file_readable_is_detected_as_change) {
+       making_unreadable_config_file_readable_is_detected_as_change)
 #endif
+{
   if (process_ignores_filesystem_permissions()) {
     GTEST_SKIP() << "cannot run test as root";
   }
