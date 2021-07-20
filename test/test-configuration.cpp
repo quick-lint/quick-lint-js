@@ -553,7 +553,7 @@ TEST(test_configuration_json, bad_global_error_excludes_trailing_whitespace) {
 
   // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
   // and U+0020.
-  padded_string json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }})"sv);
+  padded_string json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }}"sv);
   configuration c;
   error_collector errors = load_from_json(c, &json);
 
