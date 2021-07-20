@@ -67,9 +67,13 @@ class configuration_loader {
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
+
+  // Returns nullptr if there is no config file.
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   load_for_file(const std::string& file_path);
+
+  // Returns nullptr if there is no config file.
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   load_for_file(const file_to_lint&);
