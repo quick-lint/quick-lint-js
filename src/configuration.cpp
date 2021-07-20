@@ -397,22 +397,12 @@ bool configuration::get_bool_or_default(
   ::simdjson::ondemand::value v;
   ::simdjson::error_code error = value.get(v);
   switch (error) {
-  case ::simdjson::SUCCESS: {
-    ::simdjson::ondemand::json_type type;
-    if (v.type().get(type) != ::simdjson::SUCCESS) {
-      *out = default_value;
-      return false;
-    }
-    if (type != ::simdjson::ondemand::json_type::boolean) {
+  case ::simdjson::SUCCESS:
+    if (v.get(*out) != ::simdjson::SUCCESS) {
       reporter->report(Error{span_of_json_value(v)});
       *out = default_value;
-      return true;
-    }
-    if (v.get(*out) != ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
     }
     return true;
-  }
 
   default:
     *out = default_value;
