@@ -1,6 +1,6 @@
 # ADR011: IO errors
 
-**Status**: Accepted but unimplemented.
+**Status**: Accepted and active.
 
 ## Context
 
