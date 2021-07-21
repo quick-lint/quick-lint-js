@@ -133,6 +133,7 @@ class linting_lsp_server_handler {
 
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;
+  configuration default_config_;
   Linter linter_;
   std::unordered_map<string8, document> documents_;
   bool shutdown_requested_ = false;

@@ -181,6 +181,7 @@ void handle_options(quick_lint_js::options o) {
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
 
+  configuration default_config;
   configuration_loader config_loader(
       basic_configuration_filesystem::instance());
   for (const file_to_lint &file : o.files_to_lint) {
@@ -207,9 +208,8 @@ void handle_options(quick_lint_js::options o) {
     for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
       auto config_result = config_loader.load_for_file(file);
       QLJS_ASSERT(config_result.ok());
-      configuration *config = *config_result
-                                  ? &(*config_result)->config
-                                  : config_loader.get_default_config();
+      configuration *config =
+          *config_result ? &(*config_result)->config : &default_config;
       result<padded_string, read_file_io_error> source =
           file.is_stdin ? quick_lint_js::read_stdin()
                         : quick_lint_js::read_file(file.path);

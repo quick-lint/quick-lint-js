@@ -307,10 +307,10 @@ void linting_lsp_server_handler<Linter>::
               document_path, *config_file, message_json);
         }
       } else {
-        doc.config = this->config_loader_.get_default_config();
+        doc.config = &this->default_config_;
       }
     } else {
-      doc.config = this->config_loader_.get_default_config();
+      doc.config = &this->default_config_;
       byte_buffer& message_json = notification_jsons.emplace_back();
       this->write_configuration_loader_error_notification(
           document_path, config_file.error_to_string(), message_json);
@@ -369,7 +369,7 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
       }
       configuration* config = change_it->config_file
                                   ? &change_it->config_file->config
-                                  : this->config_loader_.get_default_config();
+                                  : &this->default_config_;
       doc.config = config;
       byte_buffer& notification_json = notification_jsons.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special

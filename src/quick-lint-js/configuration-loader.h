@@ -83,8 +83,6 @@ class configuration_loader {
 
   configuration_filesystem* fs() noexcept { return this->fs_; }
 
-  configuration* get_default_config() { return &this->default_config_; }
-
   // Returns nullptr if there is no config file.
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
@@ -168,7 +166,6 @@ class configuration_loader {
   loaded_config_file* get_loaded_config(const canonical_path& path) noexcept;
 
   configuration_filesystem* fs_;
-  configuration default_config_;
 
   // Key: config file path
   // Value: cached parsed configuration
