@@ -40,6 +40,8 @@ Beta release.
 
 Beta release.
 
+[Downloads](https://c.quick-lint-js.com/releases/0.3.0/)
+
 ### Security
 
 * Vim plugin: Version 0.2.0 executed `node_modules/.bin/quick-lint-js` without
