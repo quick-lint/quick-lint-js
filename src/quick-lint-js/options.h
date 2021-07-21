@@ -20,6 +20,7 @@ enum class output_format {
 struct file_to_lint {
   const char *path;
   const char *config_file = nullptr;
+  const char *path_for_config_search = nullptr;
   bool is_stdin = false;
   std::optional<int> vim_bufnr;
 };

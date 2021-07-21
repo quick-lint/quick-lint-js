@@ -43,21 +43,26 @@ and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.
 
 quick-lint-js uses the following algorithm to find its configuration:
 
-1. If the input JavaScript file has no path (e.g. if its contents are given using standard input (*--stdin*)), assume no configuration file and stop.
+1. If the input JavaScript file has no path (e.g. if its contents are given using standard input (*--stdin*) and the *--path-for-config-search* option is not used), assume no configuration file and stop.
 2. Compute the absolute canonical path of the input JavaScript file by joining the JavaScript file's given path with the current working directory, following all symbolic links, and resolving all `.` and `..` components.
-   Remove the last component of the absolute canonical path.
-   Remember this path as the _current directory_.
-3. Look for a configuration file in the _current directory_:
+   (If the *--path-for-config-search* option was used, compute its absolute canonical path.)
+3. Check if the absolute canonical path computed in step 2 exists.
+   a. If the path exists, remove the last component of the path.
+      Remember this path as the _current directory_.
+   b. If the path does not exist, remove the last component of the path repeatedly until the path exists.
+      If no checked path exists (for example, if a path with a non-existent drive was given), assume no configuration file and stop.
+      Remember this path as the _current directory_.
+4. Look for a configuration file in the _current directory_:
    a. Check if the file `quick-lint-js.config` exists.
       If so, use it as the configuration file and stop.
    b. Check if the file `.quick-lint-js.config` exists.
       If so, use it as the configuration file and stop.
    c. Check if the file `package.json` exists.
       If so, use it as the configuration file and stop.
-   d. Go to step 4.
-4. If the _current directory_ is a filesystem root, assume no configuration file and stop.
-5. Remove the last component of the _current directory_.
-6. Go to step 3.
+   d. Go to step 5.
+5. If the _current directory_ is a filesystem root, assume no configuration file and stop.
+6. Remove the last component of the _current directory_.
+7. Go to step 4.
 
 In short, quick-lint-js looks for `quick-lint-js.config`, `.quick-lint-js.config`, or `package.json` in ancestor directories.
 If multiple files are found, `quick-lint-js.config` is used if present, otherwise `.quick-lint-js.config` is used if present.

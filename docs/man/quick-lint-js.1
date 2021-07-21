@@ -109,6 +109,21 @@ Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=v
 Therefore, if multiple input files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
 .RE
 .sp
+\fB\-\-path\-for\-config\-search\fP=\fIpath\fP
+.RS 4
+  For the following input file or \fB\-\-stdin\fP, use \fIpath\fP as the file\(cqs path when
+searching for a configuration file (see \fBquick\-lint\-js.config\fP(5)).
+.sp
+\fIpath\fP must be a syntactically\-valid path.
+\fIpath\fP does not need to exist in the filesystem.
+.sp
+\fB\-\-path\-for\-config\-search\fP applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, \fB\-\-path\-for\-config\-search\fP can be specified multiple times.
+If \fB\-\-path\-for\-config\-search\fP is the last option, it has no effect.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.RE
+.sp
 \fB\-\-config\-file\fP=\fIfile\fP
 .RS 4
 Read configuration options from \fIfile\fP and apply them to input files which are given later in the command line.
@@ -135,8 +150,11 @@ Incompatible with \fB\-\-lsp\-server\fP.
 .RS 4
 Read standard input as a JavaScript file.
 .sp
-If \fB\-\-config\-file\fP is not specified, an empty configuration file is assumed.
+If neither \fB\-\-config\-file\fP nor \fB\-\-path\-for\-config\-search\fP is specified, an empty configuration file is assumed.
 If \fB\-\-config\-file\fP is specified, \fIfile\fP is used for linting standard input.
+If \fB\-\-path\-for\-config\-search\fP is specified and \fB\-\-config\-file\fP is not specified,
+\fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5)
+starting from \fB\-\-path\-for\-config\-search\fP\(cqs \fIpath\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -321,6 +339,22 @@ To lint source files with a strict configuration file and lint test files with a
 $ \fBquick\-lint\-js\fP \(rs
     \-\-config\-file strict\-quick\-lint\-js.config src/index.js src/helpers.js \(rs
     \-\-config\-file lax\-quick\-lint\-js.config test/test\-app.js
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+To lint a temporary file, but use the configuration file of a project:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+$ \fBquick\-lint\-js\fP \-\-path\-for\-config\-search=src/server.js /tmp/unsaved/unsaved12m1uz.js
+/tmp/unsaved/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E057]
 .fam
 .fi
 .if n .RE

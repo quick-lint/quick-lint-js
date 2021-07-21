@@ -483,6 +483,51 @@ TEST_F(test_configuration_loader, find_no_config_if_stdin) {
       << "load_for_file should not search in the current working directory";
 }
 
+TEST_F(test_configuration_loader,
+       find_config_file_in_directory_given_missing_path_for_config_search) {
+  std::string config_project_dir = this->make_temporary_directory();
+  std::string config_file = config_project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8"{}"sv);
+
+  std::string js_project_dir = this->make_temporary_directory();
+  std::string js_file = js_project_dir + "/test.js";
+  write_file(js_file, u8""sv);
+
+  configuration_loader loader(basic_configuration_filesystem::instance());
+  auto loaded_config = loader.load_for_file(file_to_lint{
+      .path = js_file.c_str(),
+      .config_file = nullptr,
+      .path_for_config_search =
+          (config_project_dir + "/does-not-exist.js").c_str(),
+      .is_stdin = false,
+  });
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  ASSERT_NE(*loaded_config, nullptr);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
+}
+
+TEST_F(test_configuration_loader,
+       find_config_file_in_directory_given_path_for_config_search_for_stdin) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8"{}"sv);
+  std::string js_file = project_dir + "/test.js";
+  write_file(js_file, u8"{}"sv);
+
+  configuration_loader loader(basic_configuration_filesystem::instance());
+  auto loaded_config = loader.load_for_file(file_to_lint{
+      .path = nullptr,
+      .config_file = nullptr,
+      .path_for_config_search = js_file.c_str(),
+      .is_stdin = true,
+  });
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  ASSERT_NE(*loaded_config, nullptr);
+  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
+}
+
 TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/config.json";

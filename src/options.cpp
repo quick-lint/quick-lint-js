@@ -150,6 +150,7 @@ options parse_options(int argc, char** argv) {
   options o;
 
   std::optional<int> next_vim_file_bufnr;
+  const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
   bool has_stdin = false;
 
@@ -163,6 +164,7 @@ options parse_options(int argc, char** argv) {
         }
         file_to_lint file{.path = "<stdin>",
                           .config_file = active_config_file,
+                          .path_for_config_search = next_path_for_config_search,
                           .is_stdin = true,
                           .vim_bufnr = next_vim_file_bufnr};
         has_stdin = true;
@@ -170,11 +172,13 @@ options parse_options(int argc, char** argv) {
       } else {
         file_to_lint file{.path = argument,
                           .config_file = active_config_file,
+                          .path_for_config_search = next_path_for_config_search,
                           .is_stdin = false,
                           .vim_bufnr = next_vim_file_bufnr};
         o.files_to_lint.emplace_back(file);
       }
 
+      next_path_for_config_search = nullptr;
       next_vim_file_bufnr = std::nullopt;
     } else if (parser.match_flag_option("--debug-parser-visits"sv,
                                         "--debug-p"sv)) {
@@ -194,6 +198,9 @@ options parse_options(int argc, char** argv) {
                    parser.match_option_with_value("--config-file"sv)) {
       active_config_file = arg_value;
       o.has_config_file = true;
+    } else if (const char* arg_value = parser.match_option_with_value(
+                   "--path-for-config-search"sv)) {
+      next_path_for_config_search = arg_value;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
       int bufnr;
@@ -222,10 +229,12 @@ options parse_options(int argc, char** argv) {
       }
       file_to_lint file{.path = "<stdin>",
                         .config_file = active_config_file,
+                        .path_for_config_search = next_path_for_config_search,
                         .is_stdin = true,
                         .vim_bufnr = next_vim_file_bufnr};
       o.files_to_lint.emplace_back(file);
       has_stdin = true;
+      next_path_for_config_search = nullptr;
       next_vim_file_bufnr = std::nullopt;
     } else {
       const char* unrecognized = parser.match_anything();

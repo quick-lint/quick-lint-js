@@ -182,6 +182,78 @@ TEST(test_options, vim_file_bufnr) {
   }
 }
 
+TEST(test_options, path_for_config_search) {
+  {
+    options o = parse_options({"one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].path_for_config_search, nullptr);
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+
+  {
+    options o =
+        parse_options({"--path-for-config-search", "configme.js", "file.js"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].path, "file.js"sv);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o = parse_options(
+        {"--path-for-config-search", "configme.js", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+
+  {
+    options o = parse_options(
+        {"one.js", "--path-for-config-search=configme.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].path_for_config_search, nullptr);
+    EXPECT_STREQ(o.files_to_lint[1].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o =
+        parse_options({"--path-for-config-search=test/one.js", "/tmp/one.js",
+                       "--path-for-config-search=src/two.js", "/tmp/two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "test/one.js");
+    EXPECT_STREQ(o.files_to_lint[1].path_for_config_search, "src/two.js");
+  }
+
+  {
+    options o = parse_options({"--path-for-config-search=configme.js", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o = parse_options(
+        {"one.js", "--path-for-config-search=configme.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[1].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o = parse_options(
+        {"--path-for-config-search=configme.js", "--", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+
+  {
+    options o = parse_options(
+        {"--path-for-config-search=configme.js", "--stdin", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+}
+
 TEST(test_options, config_file) {
   {
     options o = parse_options({"one.js", "two.js"});
