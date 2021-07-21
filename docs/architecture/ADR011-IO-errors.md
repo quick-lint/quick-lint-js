@@ -5,7 +5,7 @@
 ## Context
 
 quick-lint-js needs to interact with various system APIs, mostly filesystem
-APIs. There are several possiblities for communicating these I/O errors:
+APIs. There are several possibilities for communicating these I/O errors:
 
 * C++ exceptions or setjmp/longjmp
   * Note: [ADR008 bans C++ exceptions](ADR008-Exceptions.md)
