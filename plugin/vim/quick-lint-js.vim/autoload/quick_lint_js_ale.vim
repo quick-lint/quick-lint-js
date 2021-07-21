@@ -5,7 +5,7 @@
 " https://github.com/dense-analysis/ale
 
 function! quick_lint_js_ale#get_command(buffer_number) abort
-  return '%e --output-format=vim-qflist-json --vim-file-bufnr '.string(a:buffer_number).' %t'
+  return '%e --output-format=vim-qflist-json --vim-file-bufnr '.string(a:buffer_number).' --path-for-config-search=%s %t'
 endfunction
 
 function! quick_lint_js_ale#get_executable(buffer_number) abort
