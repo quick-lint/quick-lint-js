@@ -34,4 +34,7 @@ Error types are easy to store and compare. This matters for
 the UI to report changes to the user). Storing errors with [LEAF][] is difficult
 (and this was the reason we switched away from LEAF).
 
+Error types can become verbose (e.g. `result<loaded_config_file*,
+canonicalize_path_io_error, read_file_io_error, watch_io_error>`).
+
 [LEAF]: https://www.boost.org/doc/libs/1_76_0/libs/leaf/doc/html/index.html
