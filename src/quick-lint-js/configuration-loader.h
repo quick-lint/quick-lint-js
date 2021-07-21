@@ -40,14 +40,27 @@ class configuration_filesystem {
 
 struct loaded_config_file {
   configuration config;
+
+  // The content of the quick-lint-js.config file.
   padded_string file_content;
-  const canonical_path* config_path;  // Never nullptr.
+
+  // The path to the quick-lint-js.config file. Never nullptr.
+  const canonical_path* config_path;
 };
 
+// Returned by configuration_loader::refresh.
 struct configuration_change {
-  const std::string* watched_path;  // Never nullptr.
-  loaded_config_file* config_file;  // Sometimes nullptr.
+  // The path given to configuration_loader::watch_and_load_for_file or
+  // configuration_loader::watch_and_load_config_file. Never nullptr.
+  const std::string* watched_path;
 
+  // If config_file is nullptr, then no configuration file exists.
+  loaded_config_file* config_file;
+
+  // If error is not nullptr, then error points to an I/O error which prevented
+  // a configuration file from being determined at all.
+  //
+  // Invariant: (error == nullptr) || (config_file == nullptr)
   std::variant<canonicalize_path_io_error, read_file_io_error,
                watch_io_error>* error;  // Sometimes nullptr.
 
@@ -57,6 +70,13 @@ struct configuration_change {
   void* token;
 };
 
+// A configuration_loader has a few responsibilities:
+//
+// * Load the configuration file for a .js file (watch_and_load_for_file(),
+//   watch_and_load_config_file(), load_for_file()).
+// * Minimize reloading and reparsing of configuration files if many .js files
+//   share a configuration file.
+// * Query when a configuration file has changed (refresh()).
 class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
@@ -85,8 +105,23 @@ class configuration_loader {
          watch_io_error>
   load_for_file(const file_to_lint&);
 
+  // Scans the filesystem for changes to configuration files.
+  //
+  // refresh checks files registered with watch_and_load_for_file and
+  // watch_and_load_config_file.
+  //
+  // There are many scenarios where the configuration might change. For example:
+  //
+  // * quick-lint-js.config was previously found for a .js file, and that
+  //   quick-lint-js.config's content changed.
+  // * A quick-lint-js.config file didn't exist, and now one does.
+  // * A quick-lint-js.config file was moved into an ancestor directory.
   std::vector<configuration_change> refresh();
 
+  // Returns true if the path might possibly be a configuration file detected by
+  // load_for_file or watch_and_load_for_file.
+  //
+  // is_config_file_path does not inspect the filesystem.
   bool is_config_file_path(const std::string& file_path) const;
 
  private:

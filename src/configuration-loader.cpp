@@ -180,6 +180,8 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   return config_file;
 }
 
+// This algorithm is documented in docs/config.adoc:
+// https://quick-lint-js.com/config/#_files
 result<configuration_loader::found_config_file, read_file_io_error,
        watch_io_error>
 configuration_loader::find_config_file_in_directory_and_ancestors(
