@@ -246,6 +246,10 @@ void configuration::report_errors(error_reporter* reporter) {
   this->errors_were_reported_ = true;
 }
 
+bool configuration::have_errors() const noexcept {
+  return !this->errors_.empty();
+}
+
 bool configuration::errors_were_reported() const noexcept {
   return this->errors_were_reported_;
 }

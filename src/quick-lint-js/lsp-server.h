@@ -124,6 +124,9 @@ class linting_lsp_server_handler {
   void write_configuration_loader_error_notification(
       std::string_view document_path, std::string_view error_details,
       byte_buffer& out_json);
+  void write_configuration_errors_notification(std::string_view document_path,
+                                               loaded_config_file*,
+                                               byte_buffer& out_json);
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);

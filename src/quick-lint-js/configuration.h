@@ -30,6 +30,7 @@ class configuration {
   void load_from_json(padded_string_view);
 
   void report_errors(error_reporter*);
+  bool have_errors() const noexcept;
   bool errors_were_reported() const noexcept;
 
   void reset();

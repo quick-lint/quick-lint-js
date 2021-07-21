@@ -1393,6 +1393,63 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
       this->config_file_load_error_message("test.js", "quick-lint-js.config"));
 }
 
+TEST_F(test_linting_lsp_server,
+       opening_js_file_with_invalid_config_json_lints) {
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8"INVALID JSON"sv);
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view uri_json, string8_view version_json,
+                            byte_buffer& notification_json) {
+    EXPECT_TRUE(config.globals().find(u8"Array"sv))
+        << "config should be default";
+    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"sv))
+        << "config should be default";
+    notification_json.append_copy(
+        u8R"({
+          "method": "textDocument/publishDiagnostics",
+          "params": {
+            "uri": )" +
+        string8(uri_json) +
+        u8R"(,
+            "version": )" +
+        string8(version_json) +
+        u8R"(,
+            "diagnostics": []
+          },
+          "jsonrpc": "2.0"
+        })");
+  };
+
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": "testjs"
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
+      << "should have linted despite config file being unloadable";
+
+  ASSERT_EQ(this->client.messages.size(), 2);
+  std::size_t showMessageIndex =
+      this->client.messages[0]["method"] == "window/showMessage" ? 0 : 1;
+  ::Json::Value& showMessageMessage = this->client.messages[showMessageIndex];
+  EXPECT_EQ(showMessageMessage["method"], "window/showMessage");
+  EXPECT_EQ(showMessageMessage["params"]["type"], lsp_warning_message_type);
+  EXPECT_EQ(showMessageMessage["params"]["message"],
+            "Problems found in the config file for "s +
+                this->fs.rooted("test.js").c_str() + " (" +
+                this->fs.rooted("quick-lint-js.config").c_str() + ").");
+}
+
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"configFromFilesystem": true}})");

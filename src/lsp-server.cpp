@@ -301,6 +301,11 @@ void linting_lsp_server_handler<Linter>::
     if (config_file.ok()) {
       if (*config_file) {
         doc.config = &(*config_file)->config;
+        if (doc.config->have_errors()) {
+          byte_buffer& message_json = notification_jsons.emplace_back();
+          this->write_configuration_errors_notification(
+              document_path, *config_file, message_json);
+        }
       } else {
         doc.config = this->config_loader_.get_default_config();
       }
@@ -441,6 +446,27 @@ void linting_lsp_server_handler<Linter>::
   out_json.append_copy(u8". Using default configuration.\\nError details: ");
   write_json_escaped_string(out_json, to_string8_view(error_details));
   out_json.append_copy(u8"\"}}");
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    write_configuration_errors_notification(std::string_view document_path,
+                                            loaded_config_file* config_file,
+                                            byte_buffer& out_json) {
+  // clang-format off
+  out_json.append_copy(u8R"--({)--"
+    u8R"--("jsonrpc":"2.0",)--"
+    u8R"--("method":"window/showMessage",)--"
+    u8R"--("params":{)--"
+      u8R"--("type":2,)--"
+      u8R"--("message":"Problems found in the config file for )--");
+  // clang-format on
+  write_json_escaped_string(out_json, to_string8_view(document_path));
+  out_json.append_copy(u8" (");
+  QLJS_ASSERT(config_file->config_path);
+  write_json_escaped_string(out_json,
+                            to_string8_view(config_file->config_path->path()));
+  out_json.append_copy(u8").\"}}");
 }
 
 template <QLJS_LSP_LINTER Linter>
