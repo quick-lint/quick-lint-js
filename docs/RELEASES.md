@@ -10,11 +10,22 @@ Semantic Versioning.
 
 Beta release.
 
+### Changed
+
+* CLI: The `--stdin` option (and `-`) no longer search for configuration files
+  in the current working directory. Use the `--path-for-config-search` option to
+  approximate the old behavior.
+
 ### Added
 
 * Various new errors (implemented by [Himanshu][])
+* CLI: `--path-for-config-search` allows customizing where configuration files
+  are found for `--stdin`
 * Partially implemented: Global variables can be configured using a
   `quick-lint-js.config` file
+* Syntax and schema errors in `quick-lint-js.config` no longer crash
+  quick-lint-js. Instead, these errors are highlighted similar to errors in
+  JavaScript files.
 
 ### Fixed
 
