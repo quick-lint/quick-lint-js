@@ -120,9 +120,6 @@ class configuration_loader {
   result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
          watch_io_error>
   find_and_load_config_file_for_input(const char* input_path);
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
-  find_and_load_config_file_for_current_directory();
 
   result<loaded_config_file*, read_file_io_error, watch_io_error>
   find_and_load_config_file_in_directory_and_ancestors(canonical_path&&,

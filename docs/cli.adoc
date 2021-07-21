@@ -85,6 +85,9 @@ Incompatible with *--lsp-server*.
 *--stdin*::
   Read standard input as a JavaScript file.
 +
+If *--config-file* is not specified, an empty configuration file is assumed.
+If *--config-file* is specified, _file_ is used for linting standard input.
++
 Incompatible with *--lsp-server*.
 
 *--lsp*::

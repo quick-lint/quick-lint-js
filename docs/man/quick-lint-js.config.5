@@ -61,11 +61,7 @@ quick\-lint\-js uses the following algorithm to find its configuration:
 .  sp -1
 .  IP " 1." 4.2
 .\}
-Compute the absolute canonical path of the input JavaScript file by joining the JavaScript file\(cqs given path with the current working directory, following all symbolic links, and resolving all \f(CR.\fP and \f(CR..\fP components.
-Remove the last component of the absolute canonical path.
-Remember this path as the \fIcurrent directory\fP.
-.sp
-If the input JavaScript file has no path (e.g. if its contents are given using standard input), remember the current working directory as the \fIcurrent directory\fP.
+If the input JavaScript file has no path (e.g. if its contents are given using standard input (\fB\-\-stdin\fP)), assume no configuration file and stop.
 .RE
 .sp
 .RS 4
@@ -75,6 +71,19 @@ If the input JavaScript file has no path (e.g. if its contents are given using s
 .el \{\
 .  sp -1
 .  IP " 2." 4.2
+.\}
+Compute the absolute canonical path of the input JavaScript file by joining the JavaScript file\(cqs given path with the current working directory, following all symbolic links, and resolving all \f(CR.\fP and \f(CR..\fP components.
+Remove the last component of the absolute canonical path.
+Remember this path as the \fIcurrent directory\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 3." 4.2
 .\}
 Look for a configuration file in the \fIcurrent directory\fP:
 .sp
@@ -122,19 +131,8 @@ If so, use it as the configuration file and stop.
 .  sp -1
 .  IP " 4." 4.2
 .\}
-Go to step 3.
+Go to step 4.
 .RE
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04' 3.\h'+01'\c
-.\}
-.el \{\
-.  sp -1
-.  IP " 3." 4.2
-.\}
-If the \fIcurrent directory\fP is a filesystem root, assume no configuration file and stop.
 .RE
 .sp
 .RS 4
@@ -145,7 +143,7 @@ If the \fIcurrent directory\fP is a filesystem root, assume no configuration fil
 .  sp -1
 .  IP " 4." 4.2
 .\}
-Remove the last component of the \fIcurrent directory\fP.
+If the \fIcurrent directory\fP is a filesystem root, assume no configuration file and stop.
 .RE
 .sp
 .RS 4
@@ -156,7 +154,18 @@ Remove the last component of the \fIcurrent directory\fP.
 .  sp -1
 .  IP " 5." 4.2
 .\}
-Go to step 2.
+Remove the last component of the \fIcurrent directory\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 6.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 6." 4.2
+.\}
+Go to step 3.
 .RE
 .sp
 In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP, \f(CR.quick\-lint\-js.config\fP, or \f(CRpackage.json\fP in ancestor directories.

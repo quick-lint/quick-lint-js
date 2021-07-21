@@ -466,7 +466,7 @@ TEST_F(test_configuration_loader,
   }
 }
 
-TEST_F(test_configuration_loader, find_config_in_cwd_if_stdin) {
+TEST_F(test_configuration_loader, find_no_config_if_stdin) {
   std::string temp_dir = this->make_temporary_directory();
   this->set_current_working_directory(temp_dir);
   std::string config_file = "quick-lint-js.config";
@@ -479,26 +479,8 @@ TEST_F(test_configuration_loader, find_config_in_cwd_if_stdin) {
       .is_stdin = true,
   });
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-
-  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
-}
-
-TEST_F(test_configuration_loader, find_config_in_parent_of_cwd_if_stdin) {
-  std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
-  this->set_current_working_directory(temp_dir + "/dir");
-  std::string config_file = "../quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
-
-  configuration_loader loader(basic_configuration_filesystem::instance());
-  auto loaded_config = loader.load_for_file(file_to_lint{
-      .path = nullptr,
-      .config_file = nullptr,
-      .is_stdin = true,
-  });
-  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-
-  EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
+  EXPECT_EQ(*loaded_config, nullptr)
+      << "load_for_file should not search in the current working directory";
 }
 
 TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {

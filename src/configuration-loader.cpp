@@ -97,7 +97,7 @@ configuration_loader::load_for_file(const file_to_lint& file) {
     if (file.path) {
       return this->find_and_load_config_file_for_input(file.path);
     } else {
-      return this->find_and_load_config_file_for_current_directory();
+      return nullptr;
     }
   }
 }
@@ -142,23 +142,6 @@ configuration_loader::find_and_load_config_file_for_input(
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*parent_directory).canonical(),
           /*input_path=*/input_path);
-  if (!r.ok()) return r.propagate();
-  return *r;
-}
-
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
-configuration_loader::find_and_load_config_file_for_current_directory() {
-  result<canonical_path_result, canonicalize_path_io_error> canonical_cwd =
-      this->fs_->canonicalize_path(".");
-  if (!canonical_cwd.ok()) return canonical_cwd.propagate();
-
-  if (canonical_cwd->have_missing_components()) {
-    canonical_cwd->drop_missing_components();
-  }
-  result<loaded_config_file*, read_file_io_error, watch_io_error> r =
-      this->find_and_load_config_file_in_directory_and_ancestors(
-          std::move(*canonical_cwd).canonical(), /*input_path=*/nullptr);
   if (!r.ok()) return r.propagate();
   return *r;
 }

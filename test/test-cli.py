@@ -92,6 +92,26 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.stdout, "")
             self.assertEqual(result.returncode, 0)
 
+    def test_config_file_for_stdin(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            config_file = pathlib.Path(test_directory) / "config.json"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--config-file",
+                    str(config_file),
+                    "--stdin",
+                ],
+                capture_output=True,
+                encoding="utf-8",
+                input="console.log(myGlobalVariable);",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
     def test_missing_explicit_config_file(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
             test_file = pathlib.Path(test_directory) / "test.js"
