@@ -69,6 +69,10 @@ REPORT-FN is Flymake's callback."
            :noquery t
            :buffer (get-buffer-create " *flymake-quicklintjs*")
            :command `(,flymake-quicklintjs-program
+                      ,@(let ((file (buffer-file-name)))
+                          (if file
+                            `("--path-for-config-search" ,file)
+                            ()))
                       "--stdin" "--output-format=emacs-lisp"
                       ,@flymake-quicklintjs-args)
            :sentinel

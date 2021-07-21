@@ -68,6 +68,10 @@
 https://quick-lint-js.com"
   :command ("quick-lint-js"
             "--output-format=emacs-lisp"
+            (eval (let ((file (buffer-file-name)))
+                    (if file
+                      `("--path-for-config-search" ,file)
+                      ())))
             "--stdin"
             (eval flycheck-quicklintjs-args))
   :standard-input t
