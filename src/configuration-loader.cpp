@@ -8,6 +8,7 @@
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 #include <string_view>
 #include <unordered_map>
@@ -213,6 +214,7 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
          }) {
       canonical_path config_path = parent_directory;
       config_path.append_component(file_name);
+      QLJS_ASSERT(this->is_config_file_path(config_path.c_str()));
 
       if (loaded_config_file* config_file =
               this->get_loaded_config(config_path)) {
@@ -498,6 +500,19 @@ std::vector<configuration_change> configuration_loader::refresh() {
   }
 
   return changes;
+}
+
+bool configuration_loader::is_config_file_path(
+    const std::string& file_path) const {
+#if defined(_WIN32)
+#define QLJS_PREFERRED_PATH_SEPARATOR "\\"
+#else
+#define QLJS_PREFERRED_PATH_SEPARATOR "/"
+#endif
+  return ends_with(file_path,
+                   QLJS_PREFERRED_PATH_SEPARATOR "quick-lint-js.config") ||
+         ends_with(file_path,
+                   QLJS_PREFERRED_PATH_SEPARATOR ".quick-lint-js.config");
 }
 
 basic_configuration_filesystem*

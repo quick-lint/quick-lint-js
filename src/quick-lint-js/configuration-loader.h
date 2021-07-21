@@ -87,6 +87,8 @@ class configuration_loader {
 
   std::vector<configuration_change> refresh();
 
+  bool is_config_file_path(const std::string& file_path) const;
+
  private:
   struct found_config_file {
     std::optional<canonical_path> path;

@@ -1638,6 +1638,27 @@ TEST_F(test_linting_lsp_server,
   EXPECT_THAT(this->lint_calls, IsEmpty());
 }
 
+TEST_F(test_linting_lsp_server, json_file_which_is_not_config_file_is_ignored) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() +
+                   u8R"(not-quick-lint-js.config",
+            "languageId": "json",
+            "version": 1,
+            "text": "THIS IS INVALID JSON"
+          }
+        }
+      })"));
+
+  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->lint_calls, IsEmpty());
+}
+
 TEST_F(test_linting_lsp_server,
        opening_non_javascript_file_does_not_cause_diagnostics) {
   this->server.append(

@@ -319,7 +319,7 @@ void linting_lsp_server_handler<Linter>::
     this->linter_.lint_and_get_diagnostics_notification(
         *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
-  } else {
+  } else if (this->config_loader_.is_config_file_path(document_path)) {
     doc.type = document_type::config;
 
     auto config_file =
