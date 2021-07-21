@@ -66,7 +66,12 @@ endif::[]
 If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
 See the <<Example>> section for an example.
 +
-If *--config-file* is not given, an empty configuration file is assumed.
+ifdef::backend-manpage[]
+If *--config-file* is not given, *quick-lint-js* searches for a configuration file according to the rules specified in *quick-lint-js.config*(5).
+endif::[]
+ifdef::backend-html5[]
+If *--config-file* is not given, *quick-lint-js* link:../config/[searches for a configuration file].
+endif::[]
 +
 Incompatible with *--lsp-server*.
 
