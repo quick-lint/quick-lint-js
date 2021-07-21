@@ -541,6 +541,90 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
   EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
 }
 
+TEST_F(
+    test_linting_lsp_server,
+    open_then_close_then_open_js_file_then_modify_config_file_lints_js_file) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "languageId": "json",
+            "version": 1,
+            "text": "{\"globals\": {\"testGlobalVariableBefore\": true}}"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didClose",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js"
+          }
+        }
+      })"));
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+            "languageId": "javascript",
+            "version": 10,
+            "text": ""
+          }
+        }
+      })"));
+
+  this->lint_calls.clear();
+  this->lint_callback = [&](configuration& config, padded_string_view,
+                            string8_view, string8_view, byte_buffer&) {
+    EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"sv));
+    EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"sv));
+  };
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": ")" +
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+            "version": 2
+          },
+          "contentChanges": [
+            {
+              "text": "{\"globals\": {\"testGlobalVariableAfter\": true}}"
+            }
+          ]
+        }
+      })"));
+
+  EXPECT_THAT(this->lint_calls, ElementsAre(u8""));
+}
+
 TEST_F(test_linting_lsp_server,
        linting_uses_config_from_file_with_special_chars_in_document_uri) {
   this->fs.create_file(this->fs.rooted("a%b~/quick-lint-js.config"),

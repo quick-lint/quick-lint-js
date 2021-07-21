@@ -169,6 +169,14 @@ class change_detecting_configuration_loader {
         std::forward<Args>(args)...);
   }
 
+  template <class... Args>
+  auto unwatch_file(Args&&... args) {
+#if defined(_WIN32)
+    std::lock_guard<std::mutex> lock(this->mutex_);
+#endif
+    return this->loader_.unwatch_file(std::forward<Args>(args)...);
+  }
+
   std::vector<configuration_change> detect_changes_and_refresh();
 
  private:
@@ -1649,6 +1657,43 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
+}
+
+TEST_F(test_configuration_loader,
+       unwatching_js_file_then_modifying_config_file_is_not_a_change) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string js_file = project_dir + "/hello.js";
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"before": true}})");
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  write_file(config_file, u8R"({"globals": {"during": true}})");
+  loader.unwatch_file(js_file);
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+
+  write_file(config_file, u8R"({"globals": {"after": true}})");
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+}
+
+TEST_F(test_configuration_loader,
+       unwatching_config_file_then_modifying_is_not_a_change) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8R"({"globals": {"before": true}})");
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
+
+  write_file(config_file, u8R"({"globals": {"during": true}})");
+  loader.unwatch_file(config_file);
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+
+  write_file(config_file, u8R"({"globals": {"after": true}})");
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
 
 #if QLJS_HAVE_UNISTD_H

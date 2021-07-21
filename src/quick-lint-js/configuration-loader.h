@@ -103,6 +103,9 @@ class configuration_loader {
          watch_io_error>
   load_for_file(const file_to_lint&);
 
+  // Undo a call to watch_and_load_for_file or watch_and_load_config_file.
+  void unwatch_file(const std::string& file_path);
+
   // Scans the filesystem for changes to configuration files.
   //
   // refresh checks files registered with watch_and_load_for_file and

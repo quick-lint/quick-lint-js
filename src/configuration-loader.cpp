@@ -281,6 +281,23 @@ loaded_config_file* configuration_loader::get_loaded_config(
              : &existing_config_it->second;
 }
 
+void configuration_loader::unwatch_file(const std::string& file_path) {
+  this->watched_config_paths_.erase(
+      std::remove_if(this->watched_config_paths_.begin(),
+                     this->watched_config_paths_.end(),
+                     [&](const watched_config_path& watch) {
+                       return watch.input_config_path == file_path;
+                     }),
+      this->watched_config_paths_.end());
+  this->watched_input_paths_.erase(
+      std::remove_if(this->watched_input_paths_.begin(),
+                     this->watched_input_paths_.end(),
+                     [&](const watched_input_path& watch) {
+                       return watch.input_path == file_path;
+                     }),
+      this->watched_input_paths_.end());
+}
+
 std::vector<configuration_change> configuration_loader::refresh() {
   std::vector<configuration_change> changes;
 

@@ -246,6 +246,7 @@ void linting_lsp_server_handler<Linter>::
     QLJS_UNIMPLEMENTED();
   }
 
+  this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
   this->documents_.erase(string8(uri));
   // TODO(strager): Signal to configuration_loader and
