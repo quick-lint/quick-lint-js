@@ -257,6 +257,7 @@ void configuration::reset() {
   this->add_global_group_node_js_ = true;
   this->add_global_group_ecmascript_ = true;
   this->string_allocator_.memory_resource()->release();
+  this->errors_.clear();
 }
 
 bool configuration::load_global_groups_from_json(

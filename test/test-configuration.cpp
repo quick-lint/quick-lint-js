@@ -564,6 +564,25 @@ TEST(test_configuration_json, bad_global_error_excludes_trailing_whitespace) {
                                   u8R"("b")"))));
 }
 
+TEST(test_configuration_json, resetting_clears_errors) {
+  configuration c;
+  padded_string json(u8"INVALID JSON"sv);
+  c.load_from_json(&json);
+
+  {
+    error_collector errors;
+    c.report_errors(&errors);
+    EXPECT_THAT(errors.errors, ::testing::ElementsAre(::testing::_));
+  }
+
+  c.reset();
+  {
+    error_collector errors;
+    c.report_errors(&errors);
+    EXPECT_THAT(errors.errors, ::testing::IsEmpty());
+  }
+}
+
 error_collector load_from_json(configuration& config, padded_string_view json) {
   config.load_from_json(json);
   error_collector errors;

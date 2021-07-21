@@ -28,6 +28,8 @@ class buffering_error_reporter final : public error_reporter {
 
   bool empty() const noexcept;
 
+  void clear() noexcept;
+
  private:
   struct impl;
 
