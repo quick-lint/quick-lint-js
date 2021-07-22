@@ -59,7 +59,10 @@ Usage example in your [Emacs initialization] file.
 
 ### Flycheck
 
-First install the Flycheck, it's available on MELPA.
+First, [install
+Flycheck](https://www.flycheck.org/en/latest/user/installation.html). You can
+install it from MELPA by [adding the MELPA repository][install-MELPA] then
+running the following in Emacs:
 
 `M-x package-install RET flycheck RET`
 
@@ -129,7 +132,10 @@ Usage example in your [Emacs initialization] file.
 
 ### LSP Mode
 
-First install the LSP Mode, if you have MELPA configured simply:
+First, [install
+LSP Mode](https://emacs-lsp.github.io/lsp-mode/page/installation/). You can
+install it from MELPA by [adding the MELPA repository][install-MELPA] then
+running the following in Emacs:
 
 `M-x package-install RET lsp-mode RET`
 
@@ -167,3 +173,4 @@ https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
 https://www.gnu.org/software/emacs/manual/html_node/emacs/Lisp-Libraries.html
 [ELPA]: https://elpa.gnu.org
 [MELPA]: https://melpa.org/#/getting-started
+[install-MELPA]: https://melpa.org/#/getting-started
