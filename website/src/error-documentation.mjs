@@ -90,10 +90,12 @@ export class ErrorDocumentation {
   constructor({
     codeBlocks,
     filePath,
+    markdownEnv,
     markdownTokens,
     titleErrorCode,
     titleErrorDescription,
   }) {
+    this._markdownEnv = markdownEnv;
     this._markdownTokens = markdownTokens;
     this.codeBlocks = codeBlocks;
     this.filePath = filePath;
@@ -134,7 +136,8 @@ export class ErrorDocumentation {
   }
 
   static parseString(filePath, markdown) {
-    let tokens = markdownParser.parse(markdown);
+    let markdownEnv = {};
+    let tokens = markdownParser.parse(markdown, markdownEnv);
 
     let codeBlocks = [];
     let titleErrorCode = "";
@@ -185,6 +188,7 @@ export class ErrorDocumentation {
     return new ErrorDocumentation({
       codeBlocks: codeBlocks,
       filePath: filePath,
+      markdownEnv: markdownEnv,
       markdownTokens: tokens,
       titleErrorCode: titleErrorCode,
       titleErrorDescription: titleErrorDescription,
@@ -192,10 +196,11 @@ export class ErrorDocumentation {
   }
 
   toHTML() {
+    this._markdownEnv.doc = this;
     let innerHTML = markdownParser.renderer.render(
       this._markdownTokens,
       markdownParser.options,
-      { doc: this }
+      this._markdownEnv
     );
     return `<article id='${this.titleErrorCode}'>${innerHTML}</article>`;
   }

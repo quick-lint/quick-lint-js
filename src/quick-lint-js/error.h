@@ -263,7 +263,7 @@
       error_config_global_groups_type_mismatch, "E169",                        \
       { source_code_span value; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "\"global-groups\" must be a boolean or an object"),           \
+                "\"global-groups\" must be a boolean or an array"),            \
             value))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
