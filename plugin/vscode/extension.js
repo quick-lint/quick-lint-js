@@ -15,20 +15,21 @@ let {
 let processFactoryPromise = createProcessFactoryAsync();
 
 let DocumentLinterState = {
-  // A Parser hasn't been created yet.
+  // A DocumentForVSCode hasn't been created yet.
   NO_PARSER: "NO_PARSER",
 
-  // A Parser is in the process of being created.
+  // A DocumentForVSCode is in the process of being created.
   CREATING_PARSER: "CREATING_PARSER",
 
-  // A Parser has been created, but it has no text.
+  // A DocumentForVSCode has been created, but it has no text.
   PARSER_UNINITIALIZED: "PARSER_UNINITIALIZED",
 
-  // A Parser has been created, and its text is up-to-date with the
+  // A DocumentForVSCode has been created, and its text is up-to-date with the
   // vscode.Document.
   PARSER_LOADED: "PARSER_LOADED",
 
-  // The Parser's Process crashed, and we are creating a new Process and Parser.
+  // The DocumentForVSCode's Process crashed, and we are creating a new Process
+  // and DocumentForVSCode.
   //
   // Document changes should be queued.
   RECOVERING: "RECOVERING",
@@ -73,7 +74,7 @@ class DocumentLinter {
       let factory = await processFactoryPromise;
       // TODO(strager): Reuse processes across documents.
       let process = await factory.createProcessAsync();
-      let parser = await process.createParserForVSCodeAsync();
+      let parser = await process.createDocumentForVSCodeAsync();
 
       if (this._state === DocumentLinterState.DISPOSED) {
         parser.dispose();
@@ -251,7 +252,7 @@ class DocumentLinter {
         // TODO(strager): Reuse processes across documents.
         let factory = await processFactoryPromise;
         let process = await factory.createProcessAsync();
-        let parser = await process.createParserForVSCodeAsync();
+        let parser = await process.createDocumentForVSCodeAsync();
 
         // BEGIN CRITICAL SECTION (no awaiting below)
         assert.strictEqual(this._state, DocumentLinterState.RECOVERING);

@@ -17,7 +17,7 @@
 namespace quick_lint_js {
 namespace {
 template <class Locator, class ErrorReporter>
-class qljs_parser_base {
+class qljs_document_base {
  public:
   const auto* lint() {
     this->error_reporter_.reset();
@@ -39,8 +39,8 @@ class qljs_parser_base {
 }
 }
 
-struct qljs_vscode_parser final
-    : public quick_lint_js::qljs_parser_base<
+struct qljs_vscode_document final
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::lsp_locator,
           quick_lint_js::c_api_error_reporter<qljs_vscode_diagnostic,
                                               quick_lint_js::lsp_locator>> {
@@ -59,14 +59,14 @@ struct qljs_vscode_parser final
   }
 };
 
-qljs_vscode_parser* qljs_vscode_create_parser(void) {
-  qljs_vscode_parser* p = new qljs_vscode_parser();
+qljs_vscode_document* qljs_vscode_create_document(void) {
+  qljs_vscode_document* p = new qljs_vscode_document();
   return p;
 }
 
-void qljs_vscode_destroy_parser(qljs_vscode_parser* p) { delete p; }
+void qljs_vscode_destroy_document(qljs_vscode_document* p) { delete p; }
 
-void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
+void qljs_vscode_replace_text(qljs_vscode_document* p, int start_line,
                               int start_character, int end_line,
                               int end_character,
                               const void* replacement_text_utf_8,
@@ -78,12 +78,12 @@ void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
           replacement_text_byte_count));
 }
 
-const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
+const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_document* p) {
   return p->lint();
 }
 
-struct qljs_web_demo_parser final
-    : public quick_lint_js::qljs_parser_base<
+struct qljs_web_demo_document final
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::web_demo_locator,
           quick_lint_js::c_api_error_reporter<
               qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
@@ -93,21 +93,21 @@ struct qljs_web_demo_parser final
   }
 };
 
-qljs_web_demo_parser* qljs_web_demo_create_parser(void) {
-  qljs_web_demo_parser* p = new qljs_web_demo_parser();
+qljs_web_demo_document* qljs_web_demo_create_document(void) {
+  qljs_web_demo_document* p = new qljs_web_demo_document();
   return p;
 }
 
-void qljs_web_demo_destroy_parser(qljs_web_demo_parser* p) { delete p; }
+void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
 
-void qljs_web_demo_set_text(qljs_web_demo_parser* p, const void* text_utf_8,
+void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                             size_t text_byte_count) {
   p->set_text(quick_lint_js::string8_view(
       reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
       text_byte_count));
 }
 
-const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
+const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
   return p->lint();
 }
 

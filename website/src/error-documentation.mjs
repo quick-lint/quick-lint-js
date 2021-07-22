@@ -116,9 +116,9 @@ export class ErrorDocumentation {
     let factory = await createProcessFactoryAsync();
     let process = await factory.createProcessAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
-      let parser = await process.createParserForWebDemoAsync();
-      parser.setText(this.codeBlocks[i]);
-      let diagnostics = parser.lint();
+      let doc = await process.createDocumentForWebDemoAsync();
+      doc.setText(this.codeBlocks[i]);
+      let diagnostics = doc.lint();
       this.diagnostics.push(diagnostics);
     }
     assert.strictEqual(this.diagnostics.length, this.codeBlocks.length);

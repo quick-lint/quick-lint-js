@@ -101,8 +101,9 @@ class ProcessFactory {
 
 // A WebAssembly instance.
 //
-// If a Process crashes, every ParserForVSCode or ParserForWebDemo associated
-// with its creating Process is tainted and should not be used anymore.
+// If a Process crashes, every DocumentForVSCode or DocumentForWebDemo
+// associated with its creating Process is tainted and should not be used
+// anymore.
 class Process {
   constructor(wasmInstance) {
     this._wasmInstance = wasmInstance;
@@ -126,29 +127,29 @@ class Process {
 
     this._malloc = wrap("malloc");
     this._free = wrap("free");
-    this._vscodeCreateParser = wrap("qljs_vscode_create_parser");
-    this._vscodeDestroyParser = wrap("qljs_vscode_destroy_parser");
+    this._vscodeCreateDocument = wrap("qljs_vscode_create_document");
+    this._vscodeDestroyDocument = wrap("qljs_vscode_destroy_document");
     this._vscodeLint = wrap("qljs_vscode_lint");
     this._vscodeReplaceText = wrap("qljs_vscode_replace_text");
-    this._webDemoCreateParser = wrap("qljs_web_demo_create_parser");
-    this._webDemoDestroyParser = wrap("qljs_web_demo_destroy_parser");
+    this._webDemoCreateDocument = wrap("qljs_web_demo_create_document");
+    this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
   }
 
-  async createParserForVSCodeAsync() {
-    return new ParserForVSCode(this);
+  async createDocumentForVSCodeAsync() {
+    return new DocumentForVSCode(this);
   }
 
-  async createParserForWebDemoAsync() {
-    return new ParserForWebDemo(this);
+  async createDocumentForWebDemoAsync() {
+    return new DocumentForWebDemo(this);
   }
 }
 
-class ParserForVSCode {
+class DocumentForVSCode {
   constructor(process) {
     this._process = process;
-    this._parser = this._process._vscodeCreateParser();
+    this._parser = this._process._vscodeCreateDocument();
   }
 
   replaceText(range, replacementText) {
@@ -225,15 +226,15 @@ class ParserForVSCode {
   }
 
   dispose() {
-    this._process._vscodeDestroyParser(this._parser);
+    this._process._vscodeDestroyDocument(this._parser);
     this._parser = null;
   }
 }
 
-class ParserForWebDemo {
+class DocumentForWebDemo {
   constructor(process) {
     this._process = process;
-    this._parser = this._process._webDemoCreateParser();
+    this._parser = this._process._webDemoCreateDocument();
   }
 
   setText(text) {
@@ -298,7 +299,7 @@ class ParserForWebDemo {
   }
 
   dispose() {
-    this._process._webDemoDestroyParser(this._parser);
+    this._process._webDemoDestroyDocument(this._parser);
     this._parser = null;
   }
 }
