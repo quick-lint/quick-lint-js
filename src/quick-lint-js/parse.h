@@ -1770,7 +1770,7 @@ class parser {
 
     case token_type::comma:
       this->error_reporter_->report(error_comma_not_allowed_between_class_methods{
-          .expected_left_curly = this->peek().span(),
+          .unexpected_comma = this->peek().span(),
       });
       this->skip();
       break;

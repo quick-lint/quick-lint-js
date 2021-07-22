@@ -113,22 +113,6 @@ TEST_F(test_lex, lex_block_comments) {
   }
 }
 
-TEST_F(test_lex, lex_unopened_block_comment) {
-  {
-    error_collector v;
-    padded_string input(u8"hello */"_sv);
-    lexer l(&input, &v);
-    l.skip(); // identifier
-    l.skip(); // star
-    l.skip(); // slash
-    EXPECT_EQ(l.peek().type, token_type::end_of_file);
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-			      error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 6, 7))));
-  }
-}
-
 TEST_F(test_lex, lex_line_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"// hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {

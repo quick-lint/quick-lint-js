@@ -56,7 +56,7 @@ TEST(test_parse, comma_not_allowed_between_class_methods) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_comma_not_allowed_between_class_methods,
-                              expected_left_curly,
+                              unexpected_comma,
                               offsets_matcher(&code, 104, 105))));
   }
 }
