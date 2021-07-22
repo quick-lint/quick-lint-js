@@ -15,6 +15,11 @@ Beta release.
 * CLI: The `--stdin` option (and `-`) no longer search for configuration files
   in the current working directory. Use the `--path-for-config-search` option to
   approximate the old behavior.
+* Emacs: For scratch buffers, the Flycheck and Flymake plugins no longer
+  search for configuration files.
+* Vim: For unnamed buffers, the ALE plugin no longer searches for configuration
+  files in the current working directory's parent and ancestors. Name the buffer
+  using the `:file` command if you want a configuration file to take effect.
 
 ### Added
 
@@ -35,6 +40,8 @@ Beta release.
   `collect-copyright`
 * Building quick-lint-js no longer fails if a directory called `brew` exists
   anywhere in `$PATH`
+* Various crashes given invalid JavaScript no longer happen (implemented by
+  [wagner riffel][])
 
 ## 0.3.0 (2021-07-02)
 
