@@ -360,8 +360,9 @@
   QLJS_ERROR_TYPE(                                                             \
       error_comma_not_allowed_between_class_methods, "E209",                   \
       { source_code_span unexpected_comma; },                                  \
-      .error(QLJS_TRANSLATABLE("commas are not allowed between class methods"),\
-      unexpected_comma))                                                       \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("commas are not allowed between class methods"),   \
+          unexpected_comma))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_right_paren_for_function_call, "E141",                    \

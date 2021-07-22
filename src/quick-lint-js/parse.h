@@ -1769,9 +1769,10 @@ class parser {
       break;
 
     case token_type::comma:
-      this->error_reporter_->report(error_comma_not_allowed_between_class_methods{
-          .unexpected_comma = this->peek().span(),
-      });
+      this->error_reporter_->report(
+          error_comma_not_allowed_between_class_methods{
+              .unexpected_comma = this->peek().span(),
+          });
       this->skip();
       break;
 
