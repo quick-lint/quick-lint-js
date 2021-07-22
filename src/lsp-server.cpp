@@ -302,7 +302,7 @@ void linting_lsp_server_handler<Linter>::
     if (config_file.ok()) {
       if (*config_file) {
         doc.config = &(*config_file)->config;
-        if (doc.config->have_errors()) {
+        if (!(*config_file)->errors.empty()) {
           byte_buffer& message_json = notification_jsons.emplace_back();
           this->write_configuration_errors_notification(
               document_path, *config_file, message_json);
@@ -424,7 +424,7 @@ void linting_lsp_server_handler<Linter>::
   notification_json.append_copy(u8R"--(,"diagnostics":)--");
   lsp_error_reporter error_reporter(notification_json,
                                     &config_file->file_content);
-  config_file->config.report_errors(&error_reporter);
+  config_file->errors.copy_into(&error_reporter);
   error_reporter.finish();
 
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");

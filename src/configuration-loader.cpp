@@ -127,7 +127,8 @@ configuration_loader::load_config_file(const char* config_path) {
   loaded_config_file* config_file = &config_it->second;
   config_file->config_path = &config_it->first;
   config_file->file_content = std::move(*config_json);
-  config_file->config.load_from_json(&config_file->file_content);
+  config_file->config.load_from_json(&config_file->file_content,
+                                     &config_file->errors);
   return config_file;
 }
 
@@ -179,7 +180,8 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
   loaded_config_file* config_file = &config_it->second;
   config_file->config_path = &config_it->first;
   config_file->file_content = std::move(found->file_content);
-  config_file->config.load_from_json(&config_file->file_content);
+  config_file->config.load_from_json(&config_file->file_content,
+                                     &config_file->errors);
   return config_file;
 }
 
@@ -359,7 +361,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
         loaded_config.config_path = &config_it->first;
         loaded_config.file_content = std::move(*latest_json);
         loaded_config.config.reset();
-        loaded_config.config.load_from_json(&loaded_config.file_content);
+        loaded_config.errors.clear();
+        loaded_config.config.load_from_json(&loaded_config.file_content,
+                                            &loaded_config.errors);
         config_file = &loaded_config;
       } else {
         config_file = &loaded_config_it->second;
@@ -426,7 +430,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
           loaded_config.config_path = &config_it->first;
           loaded_config.file_content = std::move(latest->file_content);
           loaded_config.config.reset();
-          loaded_config.config.load_from_json(&loaded_config.file_content);
+          loaded_config.errors.clear();
+          loaded_config.config.load_from_json(&loaded_config.file_content,
+                                              &loaded_config.errors);
           config_file = &loaded_config;
         } else {
           config_file = &loaded_config_it->second;
@@ -462,7 +468,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
       QLJS_ASSERT(*loaded_config.config_path == config_path);
       loaded_config.file_content = std::move(*config_json);
       loaded_config.config.reset();
-      loaded_config.config.load_from_json(&loaded_config.file_content);
+      loaded_config.errors.clear();
+      loaded_config.config.load_from_json(&loaded_config.file_content,
+                                          &loaded_config.errors);
 
       for (const watched_config_path& watch : this->watched_config_paths_) {
         if (watch.actual_config_path == config_path) {

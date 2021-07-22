@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
 #include <optional>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
@@ -43,6 +44,9 @@ struct loaded_config_file {
 
   // The content of the quick-lint-js.config file.
   padded_string file_content;
+
+  // Errors discovered while parsing file_content.
+  buffering_error_reporter errors;
 
   // The path to the quick-lint-js.config file. Never nullptr.
   const canonical_path* config_path;
