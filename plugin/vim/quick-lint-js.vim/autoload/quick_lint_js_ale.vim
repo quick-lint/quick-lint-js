@@ -5,7 +5,11 @@
 " https://github.com/dense-analysis/ale
 
 function! quick_lint_js_ale#get_command(buffer_number) abort
-  return '%e --output-format=vim-qflist-json --vim-file-bufnr '.string(a:buffer_number).' --path-for-config-search=%s %t'
+  let l:extra_options = ''
+  if quick_lint_js_ale#is_buffer_associated_with_file(a:buffer_number)
+    let l:extra_options .= ' --path-for-config-search=%s'
+  endif
+  return '%e --output-format=vim-qflist-json --vim-file-bufnr '.string(a:buffer_number).l:extra_options.' %t'
 endfunction
 
 function! quick_lint_js_ale#get_executable(buffer_number) abort
@@ -34,6 +38,11 @@ endfunction
 
 function! quick_lint_js_ale#get_lsp_project_root(_buffer_number) abort
   return '/'
+endfunction
+
+function! quick_lint_js_ale#is_buffer_associated_with_file(buffer_number) abort
+  return bufname(a:buffer_number) !=# ''
+    \ && getbufvar(a:buffer_number, '&buftype') ==# ''
 endfunction
 
 " quick-lint-js finds bugs in JavaScript programs.
