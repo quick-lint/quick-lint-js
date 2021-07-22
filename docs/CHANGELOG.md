@@ -34,8 +34,6 @@ Beta release.
 
 ### Fixed
 
-* `for (const x of xs)` no longer warns about a missing initializer for `x`
-  (E205) (implemented by [Himanshu][])
 * Building quick-lint-js with AddressSanitizer on Fedora no longer fails in
   `collect-copyright`
 * Building quick-lint-js no longer fails if a directory called `brew` exists
