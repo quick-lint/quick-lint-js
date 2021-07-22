@@ -482,7 +482,7 @@ TEST_F(test_configuration_loader, find_no_config_if_stdin) {
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(file_to_lint{
-      .path = nullptr,
+      .path = "<stdin>",
       .config_file = nullptr,
       .is_stdin = true,
   });
@@ -525,7 +525,7 @@ TEST_F(test_configuration_loader,
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(file_to_lint{
-      .path = nullptr,
+      .path = "<stdin>",
       .config_file = nullptr,
       .path_for_config_search = js_file.c_str(),
       .is_stdin = true,

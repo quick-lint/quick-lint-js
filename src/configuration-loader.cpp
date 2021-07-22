@@ -94,12 +94,15 @@ configuration_loader::load_for_file(const file_to_lint& file) {
   if (file.config_file) {
     return this->load_config_file(file.config_file);
   }
-  const char* input_path =
-      file.path_for_config_search ? file.path_for_config_search : file.path;
-  if (!input_path) {
+  if (file.path_for_config_search) {
+    return this->find_and_load_config_file_for_input(
+        file.path_for_config_search);
+  }
+  if (file.is_stdin) {
     return nullptr;
   }
-  return this->find_and_load_config_file_for_input(input_path);
+  QLJS_ASSERT(file.path);
+  return this->find_and_load_config_file_for_input(file.path);
 }
 
 result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,

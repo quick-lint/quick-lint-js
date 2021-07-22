@@ -154,6 +154,25 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 self.assertEqual(result.stdout, "")
                 self.assertEqual(result.returncode, 0)
 
+    def test_stdin_does_not_automatically_find_config_file(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('{"global-groups":["emscripten"]}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--stdin",
+                ],
+                cwd=str(test_directory),
+                input="document",
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
     def test_automatically_find_config_file_given_path_for_config_search(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
             test_file = pathlib.Path(test_directory) / "test.js"
