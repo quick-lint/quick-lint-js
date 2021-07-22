@@ -49,9 +49,14 @@ class DocumentLinterDisposed extends Error {}
 exports.DocumentLinterDisposed = DocumentLinterDisposed;
 
 class DocumentLinter {
-  constructor(document, diagnosticCollection) {
+  // document has the following methods:
+  //
+  //   getText(): string;
+  //   setDiagnostics(diagnostics: Object[]): void;
+  //   removeDiagnostics(): void;
+  constructor(document, processFactoryPromise) {
     this._document = document;
-    this._diagnosticCollection = diagnosticCollection;
+    this._processFactoryPromise = processFactoryPromise;
     this._state = DocumentLinterState.NO_PARSER;
 
     // Used only in states: CREATING_PARSER
@@ -71,7 +76,7 @@ class DocumentLinter {
     assert.strictEqual(this._state, DocumentLinterState.NO_PARSER);
     this._state = DocumentLinterState.CREATING_PARSER;
     this._parserPromise = (async () => {
-      let factory = await processFactoryPromise;
+      let factory = await this._processFactoryPromise;
       // TODO(strager): Reuse processes across documents.
       let process = await factory.createProcessAsync();
       let parser = await process.createDocumentForVSCodeAsync();
@@ -118,7 +123,7 @@ class DocumentLinter {
       default:
         throw new Error(`Unexpected linter state: ${this._state}`);
     }
-    this._diagnosticCollection.delete(this._document.uri);
+    this._document.removeDiagnostics();
   }
 
   dispose() {
@@ -185,7 +190,7 @@ class DocumentLinter {
           // END CRITICAL SECTION (no awaiting above)
 
           let diags = this._parser.lint();
-          this._updateDocumentDiagnostics(diags);
+          this._document.setDiagnostics(diags);
         } catch (e) {
           // END CRITICAL SECTION (no awaiting above)
           if (e instanceof ProcessCrashed) {
@@ -229,7 +234,7 @@ class DocumentLinter {
       // END CRITICAL SECTION (no awaiting above)
 
       let diags = this._parser.lint();
-      this._updateDocumentDiagnostics(diags);
+      this._document.setDiagnostics(diags);
     } catch (e) {
       if (e instanceof ProcessCrashed) {
         await this._recoverFromCrashAsync(e);
@@ -250,7 +255,7 @@ class DocumentLinter {
       let diags;
       try {
         // TODO(strager): Reuse processes across documents.
-        let factory = await processFactoryPromise;
+        let factory = await this._processFactoryPromise;
         let process = await factory.createProcessAsync();
         let parser = await process.createDocumentForVSCodeAsync();
 
@@ -279,20 +284,51 @@ class DocumentLinter {
           throw e;
         }
       }
-      this._updateDocumentDiagnostics(diags);
+      this._document.setDiagnostics(diags);
     })();
     // END CRITICAL SECTION (no awaiting above)
     await this._recoveryPromise;
   }
+}
 
-  _updateDocumentDiagnostics(qljsDiagnostics) {
-    let diagnostics = qljsDiagnostics.map((diag) =>
-      this._qljsDiagnosticToVSCodeDiagnostic(diag)
+class VSCodeDocumentLinter {
+  constructor(document, diagnosticCollection) {
+    this._documentLinter = new DocumentLinter(
+      {
+        getText() {
+          return document.getText();
+        },
+        setDiagnostics(qljsDiagnostics) {
+          let vscodeDiagnostics = qljsDiagnostics.map((diag) =>
+            VSCodeDocumentLinter._qljsDiagnosticToVSCodeDiagnostic(diag)
+          );
+          diagnosticCollection.set(document.uri, vscodeDiagnostics);
+        },
+        removeDiagnostics() {
+          diagnosticCollection.delete(document.uri);
+        },
+      },
+      processFactoryPromise
     );
-    this._diagnosticCollection.set(this._document.uri, diagnostics);
   }
 
-  _qljsDiagnosticToVSCodeDiagnostic(diag) {
+  async disposeAsync() {
+    await this._documentLinter.disposeAsync();
+  }
+
+  dispose() {
+    this._documentLinter.dispose();
+  }
+
+  async editorChangedVisibilityAsync() {
+    await this._documentLinter.editorChangedVisibilityAsync();
+  }
+
+  async textChangedAsync(changes) {
+    await this._documentLinter.textChangedAsync(changes);
+  }
+
+  static _qljsDiagnosticToVSCodeDiagnostic(diag) {
     let vsCodeSeverity;
     switch (diag.severity) {
       case DiagnosticSeverity.ERROR:
@@ -326,7 +362,7 @@ class DocumentLinterCollection {
   constructor(diagnosticCollection) {
     this._diagnosticCollection = diagnosticCollection;
 
-    // Mapping from URI string to DocumentLinter.
+    // Mapping from URI string to VSCodeDocumentLinter.
     this._linters = new Map();
   }
 
@@ -334,7 +370,7 @@ class DocumentLinterCollection {
     let documentURIString = document.uri.toString();
     let linter = this._linters.get(documentURIString);
     if (typeof linter === "undefined") {
-      linter = new DocumentLinter(document, this._diagnosticCollection);
+      linter = new VSCodeDocumentLinter(document, this._diagnosticCollection);
       this._linters.set(documentURIString, linter);
     }
     return linter;
