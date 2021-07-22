@@ -48,6 +48,19 @@ TEST(test_parse, statement_starting_with_invalid_token) {
   }
 }
 
+TEST(test_parse, comma_not_allowed_between_class_methods) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class f { constructor() { this._a = false; } ontext(text) { if (this._a) { process.stdout.write(text);}},}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_comma_not_allowed_between_class_methods,
+                              expected_left_curly,
+                              offsets_matcher(&code, 104, 105))));
+  }
+}
+
 TEST(test_parse, asi_for_statement_at_right_curly) {
   {
     spy_visitor v;

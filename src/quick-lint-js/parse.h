@@ -1762,9 +1762,15 @@ class parser {
       break;
 
     case token_type::left_curly:
-    case token_type::comma:
       this->error_reporter_->report(error_unexpected_token{
           .token = this->peek().span(),
+      });
+      this->skip();
+      break;
+
+    case token_type::comma:
+      this->error_reporter_->report(error_comma_not_allowed_between_class_methods{
+          .expected_left_curly = this->peek().span(),
       });
       this->skip();
       break;

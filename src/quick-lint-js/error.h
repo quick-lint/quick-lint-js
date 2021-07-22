@@ -358,6 +358,12 @@
       .error(QLJS_TRANSLATABLE("expected '{{'"), expected_left_curly))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_comma_not_allowed_between_class_methods, "E210",                   \
+      { source_code_span expected_left_curly; },                               \
+      .error(QLJS_TRANSLATABLE("commas are not allowed between class methods"),\
+      expected_left_curly))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_expected_right_paren_for_function_call, "E141",                    \
       {                                                                        \
         source_code_span expected_right_paren;                                 \
