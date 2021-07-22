@@ -108,6 +108,9 @@ class Process {
     this._wasmInstance = wasmInstance;
 
     function wrap(name) {
+      if (!Object.prototype.hasOwnProperty.call(wasmInstance.exports, name)) {
+        throw new TypeError(`WASM does not export function: ${name}`);
+      }
       let func = wasmInstance.exports[name];
       return (...args) => {
         exports.maybeInjectFault(name);
