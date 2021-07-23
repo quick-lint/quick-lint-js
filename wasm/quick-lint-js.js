@@ -7,6 +7,284 @@
 // For build instructions, see plugin/vscode/BUILDING.md.
 let VSCODE_WASM_MODULE_PATH = "./dist/quick-lint-js-vscode.wasm";
 
+let DocumentLinterState = {
+  // A DocumentForVSCode hasn't been created yet.
+  NO_PARSER: "NO_PARSER",
+
+  // A DocumentForVSCode is in the process of being created.
+  CREATING_PARSER: "CREATING_PARSER",
+
+  // A DocumentForVSCode has been created, but it has no text.
+  PARSER_UNINITIALIZED: "PARSER_UNINITIALIZED",
+
+  // A DocumentForVSCode has been created, and its text is up-to-date with the
+  // vscode.Document.
+  PARSER_LOADED: "PARSER_LOADED",
+
+  // The DocumentForVSCode's Process crashed, and we are creating a new Process
+  // and DocumentForVSCode.
+  //
+  // Document changes should be queued.
+  RECOVERING: "RECOVERING",
+
+  DISPOSED: "DISPOSED",
+};
+
+class LintingCrashed extends Error {
+  constructor(originalError) {
+    super(String(originalError));
+    this.originalError = originalError;
+  }
+}
+exports.LintingCrashed = LintingCrashed;
+
+class DocumentLinterDisposed extends Error {}
+exports.DocumentLinterDisposed = DocumentLinterDisposed;
+
+class DocumentLinter {
+  // document has the following methods:
+  //
+  //   getText(): string;
+  //   setDiagnostics(diagnostics: Object[]): void;
+  //   removeDiagnostics(): void;
+  constructor(document, processFactoryPromise) {
+    this._document = document;
+    this._processFactoryPromise = processFactoryPromise;
+    this._state = DocumentLinterState.NO_PARSER;
+
+    // Used only in states: CREATING_PARSER
+    this._parserPromise = null;
+
+    // Used only in states: PARSER_UNINITIALIZED, PARSER_LOADED
+    this._parser = null;
+
+    // Used only in states: PARSER_LOADED, RECOVERING
+    this._pendingChanges = [];
+
+    // Used only in states: RECOVERING
+    this._recoveryPromise = null;
+  }
+
+  async _createParser() {
+    assertEqual(this._state, DocumentLinterState.NO_PARSER);
+    this._state = DocumentLinterState.CREATING_PARSER;
+    this._parserPromise = (async () => {
+      let factory = await this._processFactoryPromise;
+      // TODO(strager): Reuse processes across documents.
+      let process = await factory.createProcessAsync();
+      let parser = await process.createDocumentForVSCodeAsync();
+
+      if (this._state === DocumentLinterState.DISPOSED) {
+        parser.dispose();
+        throw new DocumentLinterDisposed();
+      }
+      assertEqual(this._state, DocumentLinterState.CREATING_PARSER);
+      this._parser = parser;
+      this._state = DocumentLinterState.PARSER_UNINITIALIZED;
+      return parser;
+    })();
+    return await this._parserPromise;
+  }
+
+  async disposeAsync() {
+    let oldState = this._state;
+    this._state = DocumentLinterState.DISPOSED;
+    switch (oldState) {
+      case DocumentLinterState.NO_PARSER:
+        break;
+
+      case DocumentLinterState.CREATING_PARSER:
+      case DocumentLinterState.PARSER_UNINITIALIZED:
+      case DocumentLinterState.PARSER_LOADED: {
+        try {
+          await this._parserPromise;
+        } catch (e) {
+          if (!(e instanceof DocumentLinterDisposed)) {
+            throw e;
+          }
+        }
+        if (this._parser !== null) {
+          this._parser.dispose();
+        }
+        break;
+      }
+
+      case DocumentLinterState.DISPOSED:
+        // TODO(strager): Should double-dispose be okay?
+        throw new DocumentLinterDisposed();
+
+      default:
+        throw new Error(`Unexpected linter state: ${this._state}`);
+    }
+    this._document.removeDiagnostics();
+  }
+
+  dispose() {
+    logAsyncErrors(async () => {
+      await this.disposeAsync();
+    });
+  }
+
+  async editorChangedVisibilityAsync() {
+    switch (this._state) {
+      case DocumentLinterState.NO_PARSER:
+        await this._createParser();
+        await this.editorChangedVisibilityAsync();
+        break;
+
+      case DocumentLinterState.CREATING_PARSER:
+        await this._parserPromise;
+        await this.editorChangedVisibilityAsync();
+        break;
+
+      case DocumentLinterState.PARSER_UNINITIALIZED:
+        await this._initializeParserAsync();
+        break;
+
+      case DocumentLinterState.PARSER_LOADED:
+        // No changes could have been made with the editor closed. Ignore.
+        break;
+
+      case DocumentLinterState.DISPOSED:
+        throw new DocumentLinterDisposed();
+
+      default:
+        throw new Error(`Unexpected linter state: ${this._state}`);
+    }
+  }
+
+  async textChangedAsync(changes) {
+    // BEGIN CRITICAL SECTION (no awaiting below)
+    switch (this._state) {
+      case DocumentLinterState.NO_PARSER:
+        // END CRITICAL SECTION (no awaiting above)
+        await this._createParser();
+        await this._initializeParserAsync();
+        break;
+
+      case DocumentLinterState.CREATING_PARSER:
+        // END CRITICAL SECTION (no awaiting above)
+        await this._parserPromise;
+        await this._initializeParserAsync();
+        break;
+
+      case DocumentLinterState.PARSER_UNINITIALIZED:
+        // END CRITICAL SECTION (no awaiting above)
+        await this._initializeParserAsync();
+        break;
+
+      case DocumentLinterState.PARSER_LOADED:
+        this._pendingChanges.push(...changes);
+        try {
+          for (let change of this._pendingChanges) {
+            this._parser.replaceText(change.range, change.text);
+          }
+          this._pendingChanges.length = 0;
+          // END CRITICAL SECTION (no awaiting above)
+
+          let diags = this._parser.lint();
+          this._document.setDiagnostics(diags);
+        } catch (e) {
+          // END CRITICAL SECTION (no awaiting above)
+          if (e instanceof ProcessCrashed) {
+            await this._recoverFromCrashAsync(e);
+          } else {
+            throw e;
+          }
+        }
+        break;
+
+      case DocumentLinterState.RECOVERING:
+        this._pendingChanges.push(...changes);
+        // END CRITICAL SECTION (no awaiting above)
+        await this._recoveryPromise;
+        // Changes should have been applied during recovery.
+        assertEqual(this._pendingChanges.includes(changes[0]), false);
+        break;
+
+      case DocumentLinterState.DISPOSED:
+        throw new DocumentLinterDisposed();
+
+      default:
+        throw new Error(`Unexpected linter state: ${this._state}`);
+    }
+  }
+
+  // Transition: PARSER_UNINITIALIZED -> PARSER_LOADED (or NO_PARSER on error)
+  async _initializeParserAsync() {
+    // BEGIN CRITICAL SECTION (no awaiting below)
+    assertEqual(this._state, DocumentLinterState.PARSER_UNINITIALIZED);
+    try {
+      this._parser.replaceText(
+        {
+          start: { line: 0, character: 0 },
+          end: { line: 0, character: 0 },
+        },
+        this._document.getText()
+      );
+      this._pendingChanges.length = 0;
+      this._state = DocumentLinterState.PARSER_LOADED;
+      // END CRITICAL SECTION (no awaiting above)
+
+      let diags = this._parser.lint();
+      this._document.setDiagnostics(diags);
+    } catch (e) {
+      if (e instanceof ProcessCrashed) {
+        await this._recoverFromCrashAsync(e);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  // Transition: any -> RECOVERING -> PARSER_LOADED (or NO_PARSER on error)
+  async _recoverFromCrashAsync(error) {
+    // BEGIN CRITICAL SECTION (no awaiting below)
+    console.warn(
+      `[quick-lint-js] warning: Parser process crashed. Recovering: ${error.stack}`
+    );
+    this._state = DocumentLinterState.RECOVERING;
+    this._recoveryPromise = (async () => {
+      let diags;
+      try {
+        // TODO(strager): Reuse processes across documents.
+        let factory = await this._processFactoryPromise;
+        let process = await factory.createProcessAsync();
+        let parser = await process.createDocumentForVSCodeAsync();
+
+        // BEGIN CRITICAL SECTION (no awaiting below)
+        assertEqual(this._state, DocumentLinterState.RECOVERING);
+        parser.replaceText(
+          {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 0 },
+          },
+          this._document.getText()
+        );
+        this._pendingChanges.length = 0;
+        this._parser = parser;
+        this._state = DocumentLinterState.PARSER_LOADED;
+        // END CRITICAL SECTION (no awaiting above)
+
+        diags = parser.lint();
+      } catch (e) {
+        this._parser = null;
+        this._parserPromise = null;
+        this._state = DocumentLinterState.NO_PARSER;
+        if (e instanceof ProcessCrashed) {
+          throw new LintingCrashed(e);
+        } else {
+          throw e;
+        }
+      }
+      this._document.setDiagnostics(diags);
+    })();
+    // END CRITICAL SECTION (no awaiting above)
+    await this._recoveryPromise;
+  }
+}
+exports.DocumentLinter = DocumentLinter;
+
 async function createProcessFactoryAsync() {
   if (typeof window === "undefined") {
     // Node.js.
@@ -352,6 +630,14 @@ function decodeUTF8CString(bytes) {
     throw new Error("null terminator not found in C string");
   }
   return new TextDecoder().decode(bytes.subarray(0, nullTerminatorIndex));
+}
+
+function assertEqual(actual, expected) {
+  if (actual !== expected) {
+    throw new Error(
+      `Assertion failure: expected ${expected} but got ${actual}`
+    );
+  }
 }
 
 // This function is called when functions in this module call C++ functions.

@@ -196,7 +196,7 @@ let tests = {
 
     // Should not throw.
     await linter.disposeAsync();
-    await assert.rejects(promise, extension.DocumentLinterDisposed);
+    await assert.rejects(promise, qljs.DocumentLinterDisposed);
   },
 
   "concurrent edits are applied in order of calls": async ({ addCleanup }) => {
@@ -344,7 +344,7 @@ let tests = {
         await callback();
         return false;
       } catch (e) {
-        if (e instanceof extension.LintingCrashed) {
+        if (e instanceof qljs.LintingCrashed) {
           return true;
         } else {
           throw e;
