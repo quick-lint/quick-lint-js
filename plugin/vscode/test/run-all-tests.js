@@ -4,7 +4,6 @@
 "use strict";
 
 async function mainAsync() {
-  await require("./other-tests.js").mainAsync();
   await require("./run-vscode-tests.js").mainAsync();
 }
 
