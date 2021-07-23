@@ -10,12 +10,11 @@ let {
   DiagnosticSeverity,
   DocumentLinter,
   DocumentLinterDisposed,
+  DocumentProcessManager,
   LintingCrashed,
   ProcessCrashed,
   createProcessFactoryAsync,
 } = qljs;
-
-let processFactoryPromise = createProcessFactoryAsync();
 
 describe("DocumentLinter", () => {
   let toDisposeAfterTest = [];
@@ -38,7 +37,7 @@ describe("DocumentLinter", () => {
   it("diagnostic severity", async () => {
     let document = new MockDocument("let x;let x;\nundeclaredVariable");
     let linter = disposeAfterTest(
-      new DocumentLinter(document, processFactoryPromise)
+      new DocumentLinter(document, new DocumentProcessManager())
     );
     await linter.editorChangedVisibilityAsync();
 
@@ -63,7 +62,7 @@ describe("DocumentLinter", () => {
   it("opening editor lints", async () => {
     let document = new MockDocument("let x;let x;");
     let linter = disposeAfterTest(
-      new DocumentLinter(document, processFactoryPromise)
+      new DocumentLinter(document, new DocumentProcessManager())
     );
 
     await linter.editorChangedVisibilityAsync();
@@ -76,7 +75,7 @@ describe("DocumentLinter", () => {
   it("applying change to unopened editor lints", async () => {
     let document = new MockDocument("let x;");
     let linter = disposeAfterTest(
-      new DocumentLinter(document, processFactoryPromise)
+      new DocumentLinter(document, new DocumentProcessManager())
     );
     assert.deepStrictEqual(document.diagnostics, []);
 
@@ -104,7 +103,7 @@ describe("DocumentLinter", () => {
 
     let document = new MockDocument("let x;");
     let linter = disposeAfterTest(
-      new DocumentLinter(document, processFactoryPromise)
+      new DocumentLinter(document, new DocumentProcessManager())
     );
     await linter.editorChangedVisibilityAsync();
     assert.deepStrictEqual(document.diagnostics, []);
@@ -133,14 +132,14 @@ describe("DocumentLinter", () => {
 
   it("dispose unused linter", async () => {
     let document = new MockDocument("let x;");
-    let linter = new DocumentLinter(document, processFactoryPromise);
+    let linter = new DocumentLinter(document, new DocumentProcessManager());
     // Should not throw.
     await linter.disposeAsync();
   });
 
   it("dispose initializing linter", async () => {
     let document = new MockDocument("hello.js", "let x;");
-    let linter = new DocumentLinter(document, processFactoryPromise);
+    let linter = new DocumentLinter(document, new DocumentProcessManager());
     let promise = linter.editorChangedVisibilityAsync();
 
     // Should not throw.
@@ -151,7 +150,7 @@ describe("DocumentLinter", () => {
   it("concurrent edits are applied in order of calls", async () => {
     let document = new MockDocument("let x;");
     let linter = disposeAfterTest(
-      new DocumentLinter(document, processFactoryPromise)
+      new DocumentLinter(document, new DocumentProcessManager())
     );
     await linter.editorChangedVisibilityAsync();
 
@@ -223,7 +222,7 @@ describe("DocumentLinter", () => {
       let linter = null;
       try {
         let document = new MockDocument("let x;let x;\n");
-        linter = new DocumentLinter(document, processFactoryPromise);
+        linter = new DocumentLinter(document, new DocumentProcessManager());
 
         let crashedOpeningEditor = await didLintingCrashAsync(async () => {
           await linter.editorChangedVisibilityAsync();
@@ -304,7 +303,7 @@ describe("DocumentLinter", () => {
       let linter;
       try {
         let document = new MockDocument("const x = 10;");
-        linter = new DocumentLinter(document, processFactoryPromise);
+        linter = new DocumentLinter(document, new DocumentProcessManager());
         let shouldOpenEditorBeforeChanges = rng.nextCoinFlip();
         if (shouldOpenEditorBeforeChanges) {
           await linter.editorChangedVisibilityAsync();

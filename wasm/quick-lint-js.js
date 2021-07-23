@@ -47,9 +47,9 @@ class DocumentLinter {
   //   getText(): string;
   //   setDiagnostics(diagnostics: Object[]): void;
   //   removeDiagnostics(): void;
-  constructor(document, processFactoryPromise) {
+  constructor(document, documentProcessManager) {
     this._document = document;
-    this._processFactoryPromise = processFactoryPromise;
+    this._documentProcessManager = documentProcessManager;
     this._state = DocumentLinterState.NO_PARSER;
 
     // Used only in states: CREATING_PARSER
@@ -69,7 +69,7 @@ class DocumentLinter {
     assertEqual(this._state, DocumentLinterState.NO_PARSER);
     this._state = DocumentLinterState.CREATING_PARSER;
     this._parserPromise = (async () => {
-      let factory = await this._processFactoryPromise;
+      let factory = await this._documentProcessManager._processFactoryPromise;
       // TODO(strager): Reuse processes across documents.
       let process = await factory.createProcessAsync();
       let parser = await process.createDocumentForVSCodeAsync();
@@ -252,7 +252,7 @@ class DocumentLinter {
       let diags;
       try {
         // TODO(strager): Reuse processes across documents.
-        let factory = await this._processFactoryPromise;
+        let factory = await this._documentProcessManager._processFactoryPromise;
         let process = await factory.createProcessAsync();
         let parser = await process.createDocumentForVSCodeAsync();
 
@@ -288,6 +288,14 @@ class DocumentLinter {
   }
 }
 exports.DocumentLinter = DocumentLinter;
+
+class DocumentProcessManager {
+  constructor() {
+    // TODO(strager): Allow developers to reload the .wasm file.
+    this._processFactoryPromise = createProcessFactoryAsync();
+  }
+}
+exports.DocumentProcessManager = DocumentProcessManager;
 
 async function createProcessFactoryAsync() {
   if (typeof window === "undefined") {

@@ -7,11 +7,8 @@ let vscode = require("vscode");
 let {
   DiagnosticSeverity,
   DocumentLinter,
-  createProcessFactoryAsync,
+  DocumentProcessManager,
 } = require("quick-lint-js-wasm/quick-lint-js.js");
-
-// TODO(strager): Allow developers to reload the .wasm file.
-let processFactoryPromise = createProcessFactoryAsync();
 
 class VSCodeDocumentLinter {
   constructor(document, diagnosticCollection) {
@@ -30,7 +27,7 @@ class VSCodeDocumentLinter {
           diagnosticCollection.delete(document.uri);
         },
       },
-      processFactoryPromise
+      new DocumentProcessManager()
     );
   }
 
