@@ -108,8 +108,9 @@ class DocumentLinterCollection {
   }
 
   async disposeAsync() {
+    let linters = this._linters;
     this._linters = new Map();
-    for (let [_uri, linter] of this._linters) {
+    for (let [_uri, linter] of linters) {
       await linter.disposeAsync();
     }
   }
