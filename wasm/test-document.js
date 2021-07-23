@@ -355,11 +355,8 @@ describe("DocumentLinter", () => {
           ]);
         }
       } finally {
-        // TODO(strager): disposeAsync sometimes crashes. Fix the crashes.
-        if (false) {
-          if (linter !== null) {
-            await linter.disposeAsync();
-          }
+        if (linter !== null) {
+          await linter.disposeAsync();
         }
       }
 

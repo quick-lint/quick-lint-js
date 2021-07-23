@@ -99,7 +99,11 @@ class DocumentLinter {
         try {
           await this._parserPromise;
         } catch (e) {
-          if (!(e instanceof DocumentLinterDisposed)) {
+          if (e instanceof DocumentLinterDisposed) {
+            // Ignore.
+          } else if (e instanceof ProcessCrashed) {
+            // Ignore.
+          } else {
             throw e;
           }
         }
