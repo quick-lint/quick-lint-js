@@ -1,7 +1,7 @@
 {
     "name": "quick-lint-js-node-test-runner",
     "version": "0.1.0",
-    "main": "index.mjs",
+    "main": "index.js",
     "dependencies": {
         "colors": "^1.4.0",
         "jasmine": "^3.7.0"

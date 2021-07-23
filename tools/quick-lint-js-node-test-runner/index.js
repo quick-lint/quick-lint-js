@@ -1,17 +1,17 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import Jasmine from "jasmine";
-import colors from "colors";
-import fs from "fs";
-import path from "path";
-import url from "url";
+let Jasmine = require("jasmine");
+let colors = require("colors");
+let fs = require("fs");
+let path = require("path");
+let url = require("url");
 
-export function main(projectDirectory) {
+function main(projectDirectory) {
   let jasmine = new Jasmine();
   jasmine.loadConfig({
     spec_dir: path.relative("", projectDirectory),
-    spec_files: ["!node_modules/**", "**/test-*.mjs"],
+    spec_files: ["!node_modules/**", "**/test-*.js", "**/test-*.mjs"],
     stopSpecOnExpectationFailure: true,
     random: false,
   });
@@ -20,6 +20,7 @@ export function main(projectDirectory) {
   let { fileNames, testNames } = parseCommandLineOptions();
   jasmine.execute(fileNames, testNames);
 }
+exports.main = main;
 
 function parseCommandLineOptions() {
   let options = process.argv.slice(2);
