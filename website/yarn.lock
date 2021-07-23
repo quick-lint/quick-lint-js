@@ -920,6 +920,12 @@ qs@6.7.0:
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
   integrity sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ==
 
+quick-lint-js-node-test-runner@../tools/quick-lint-js-node-test-runner/:
+  version "0.1.0"
+  dependencies:
+    colors "^1.4.0"
+    jasmine "^3.7.0"
+
 quick-lint-js-wasm@../wasm:
   version "0.0.0"
 
