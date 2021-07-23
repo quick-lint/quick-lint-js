@@ -85,38 +85,51 @@ TEST(test_parse, commas_not_allowed_between_class_methods) {
         v.errors,
         ElementsAre(
             ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
-                             unexpected_comma, offsets_matcher(&code, 10, 11)),
-            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
-                             unexpected_comma, offsets_matcher(&code, 11, 12)),
-            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
-                             unexpected_comma, offsets_matcher(&code, 12, 13)),
-            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
-                             unexpected_comma, offsets_matcher(&code, 48, 49)),
-            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
-                             unexpected_comma, offsets_matcher(&code, 49, 50)),
-            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
-                             unexpected_comma, offsets_matcher(&code, 50, 51)),
+                             unexpected_comma,
+                             offsets_matcher(&code, 10, u8",")),
             ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
                              unexpected_comma,
-                             offsets_matcher(&code, 111, 112)),
+                             offsets_matcher(&code, 11, u8",")),
             ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
                              unexpected_comma,
-                             offsets_matcher(&code, 112, 113)),
+                             offsets_matcher(&code, 12, u8",")),
             ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
                              unexpected_comma,
-                             offsets_matcher(&code, 113, 114))));
+                             offsets_matcher(&code, 48, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 49, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 50, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 111, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 112, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 113, u8","))));
 
-    EXPECT_THAT(
-        v.visits,
-        ElementsAre("visit_variable_declaration", "visit_enter_class_scope",
-                    "visit_property_declaration", "visit_enter_function_scope",
-                    "visit_enter_function_scope_body",
-                    "visit_exit_function_scope", "visit_property_declaration",
-                    "visit_enter_function_scope", "visit_variable_declaration",
-                    "visit_enter_function_scope_body",
-                    "visit_enter_block_scope", "visit_variable_use",
-                    "visit_variable_use", "visit_exit_block_scope",
-                    "visit_exit_function_scope", "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // class f
+                            "visit_enter_class_scope",          // {
+                            "visit_property_declaration",       // constructor
+                            "visit_enter_function_scope",       // ()
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_property_declaration",       // ontext
+                            "visit_enter_function_scope",       // (
+                            "visit_variable_declaration",       // text)
+                            "visit_enter_function_scope_body",  // { if
+                            "visit_enter_block_scope",          // {
+                            "visit_variable_use",               // this._a
+                            "visit_variable_use",  // text
+                            "visit_exit_block_scope",     // }
+                            "visit_exit_function_scope",  // }
+                            "visit_exit_class_scope"      // }
+                            ));
   }
 }
 
