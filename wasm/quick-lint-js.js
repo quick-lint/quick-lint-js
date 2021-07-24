@@ -312,7 +312,7 @@ class DocumentProcessManager {
     this._processPromise = null;
   }
 
-  async createNewProcessAsync() {
+  async _createNewProcessAsync() {
     let processFactory = await this._processFactoryPromise;
     let process = await processFactory.createProcessAsync();
     this._processesCreated += 1;
@@ -322,7 +322,7 @@ class DocumentProcessManager {
   async getOrCreateProcessAsync() {
     // BEGIN CRITICAL SECTION (no awaiting below)
     if (this._processPromise === null) {
-      this._processPromise = this.createNewProcessAsync();
+      this._processPromise = this._createNewProcessAsync();
       // END CRITICAL SECTION (no awaiting above)
     } else {
       // END CRITICAL SECTION (no awaiting above)
@@ -330,7 +330,7 @@ class DocumentProcessManager {
     let process = await this._processPromise;
     // BEGIN CRITICAL SECTION (no awaiting below)
     while (process.isTainted()) {
-      this._processPromise = this.createNewProcessAsync();
+      this._processPromise = this._createNewProcessAsync();
       // END CRITICAL SECTION (no awaiting above)
       process = await this._processPromise;
     }
