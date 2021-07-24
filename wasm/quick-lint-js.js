@@ -69,13 +69,17 @@ class DocumentLinter {
     assertEqual(this._state, DocumentLinterState.NO_PARSER);
     this._state = DocumentLinterState.CREATING_PARSER;
     this._parserPromise = (async () => {
+      let process;
       let parser;
       try {
-        let process =
-          await this._documentProcessManager.getOrCreateProcessAsync();
-        parser = await process.createDocumentForVSCodeAsync();
+        process = await this._documentProcessManager.getOrCreateProcessAsync();
+        // BEGIN CRITICAL SECTION (no awaiting below)
+        this._documentProcessManager.checkIfProcessCrashed(process);
+        parser = process.createDocumentForVSCode();
+        // END CRITICAL SECTION (no awaiting above)
       } catch (e) {
         if (e instanceof ProcessCrashed) {
+          this._documentProcessManager.processCrashed(process);
           throw new LintingCrashed(e);
         } else {
           throw e;
@@ -117,9 +121,15 @@ class DocumentLinter {
         }
         if (this._parser !== null) {
           try {
+            // BEGIN CRITICAL SECTION (no awaiting below)
+            this._documentProcessManager.checkIfProcessCrashed(
+              this._parser.process
+            );
             this._parser.dispose();
+            // END CRITICAL SECTION (no awaiting above)
           } catch (e) {
             if (e instanceof ProcessCrashed) {
+              this._documentProcessManager.processCrashed(this._parser.process);
               // Ignore.
             } else {
               throw e;
@@ -196,17 +206,26 @@ class DocumentLinter {
       case DocumentLinterState.PARSER_LOADED:
         this._pendingChanges.push(...changes);
         try {
+          this._documentProcessManager.checkIfProcessCrashed(
+            this._parser.process
+          );
           for (let change of this._pendingChanges) {
             this._parser.replaceText(change.range, change.text);
           }
           this._pendingChanges.length = 0;
           // END CRITICAL SECTION (no awaiting above)
 
+          // BEGIN CRITICAL SECTION (no awaiting below)
+          this._documentProcessManager.checkIfProcessCrashed(
+            this._parser.process
+          );
           let diags = this._parser.lint();
+          // END CRITICAL SECTION (no awaiting above)
           this._document.setDiagnostics(diags);
         } catch (e) {
           // END CRITICAL SECTION (no awaiting above)
           if (e instanceof ProcessCrashed) {
+            this._documentProcessManager.processCrashed(this._parser.process);
             await this._recoverFromCrashAsync(e);
           } else {
             throw e;
@@ -235,6 +254,7 @@ class DocumentLinter {
     // BEGIN CRITICAL SECTION (no awaiting below)
     assertEqual(this._state, DocumentLinterState.PARSER_UNINITIALIZED);
     try {
+      this._documentProcessManager.checkIfProcessCrashed(this._parser.process);
       this._parser.replaceText(
         {
           start: { line: 0, character: 0 },
@@ -246,10 +266,14 @@ class DocumentLinter {
       this._state = DocumentLinterState.PARSER_LOADED;
       // END CRITICAL SECTION (no awaiting above)
 
+      // BEGIN CRITICAL SECTION (no awaiting below)
+      this._documentProcessManager.checkIfProcessCrashed(this._parser.process);
       let diags = this._parser.lint();
+      // END CRITICAL SECTION (no awaiting above)
       this._document.setDiagnostics(diags);
     } catch (e) {
       if (e instanceof ProcessCrashed) {
+        this._documentProcessManager.processCrashed(this._parser.process);
         await this._recoverFromCrashAsync(e);
       } else {
         throw e;
@@ -266,15 +290,17 @@ class DocumentLinter {
     this._state = DocumentLinterState.RECOVERING;
     this._recoveryPromise = (async () => {
       let diags;
+      let process;
       try {
-        let process =
-          await this._documentProcessManager.getOrCreateDifferentProcessAsync(
-            this._parser.process
-          );
-        let parser = await process.createDocumentForVSCodeAsync();
+        process = await this._documentProcessManager.getOrCreateProcessAsync();
+        // BEGIN CRITICAL SECTION (no awaiting below)
+        this._documentProcessManager.checkIfProcessCrashed(process);
+        let parser = process.createDocumentForVSCode();
+        // END CRITICAL SECTION (no awaiting above)
 
         // BEGIN CRITICAL SECTION (no awaiting below)
         assertEqual(this._state, DocumentLinterState.RECOVERING);
+        this._documentProcessManager.checkIfProcessCrashed(process);
         parser.replaceText(
           {
             start: { line: 0, character: 0 },
@@ -287,12 +313,16 @@ class DocumentLinter {
         this._state = DocumentLinterState.PARSER_LOADED;
         // END CRITICAL SECTION (no awaiting above)
 
+        // BEGIN CRITICAL SECTION (no awaiting below)
+        this._documentProcessManager.checkIfProcessCrashed(process);
         diags = parser.lint();
+        // END CRITICAL SECTION (no awaiting above)
       } catch (e) {
         this._parser = null;
         this._parserPromise = null;
         this._state = DocumentLinterState.NO_PARSER;
         if (e instanceof ProcessCrashed) {
+          this._documentProcessManager.processCrashed(process);
           throw new LintingCrashed(e);
         } else {
           throw e;
@@ -315,6 +345,25 @@ class DocumentProcessManager {
     this._process = null;
   }
 
+  processCrashed(process) {
+    if (!(process instanceof Process)) {
+      throw new TypeError(`Expected Process, but got ${process}`);
+    }
+    if (this._process === process) {
+      this._process = null;
+      this._processPromise = null;
+    }
+  }
+
+  checkIfProcessCrashed(process) {
+    if (!(process instanceof Process)) {
+      throw new TypeError(`Expected Process, but got ${process}`);
+    }
+    if (this._process !== process) {
+      throw new ProcessCrashed();
+    }
+  }
+
   async createNewProcessAsync() {
     let processFactory = await this._processFactoryPromise;
     let process = await processFactory.createProcessAsync();
@@ -330,17 +379,6 @@ class DocumentProcessManager {
       // END CRITICAL SECTION (no awaiting above)
     }
     return await this._processPromise;
-  }
-
-  async getOrCreateDifferentProcessAsync(existingProcess) {
-    if (!(existingProcess instanceof Process)) {
-      throw new TypeError(`Expected Process, but got ${existingProcess}`);
-    }
-    if (this._process !== existingProcess) {
-      return this._process;
-    }
-    this._forgetCurrentProcess();
-    return await this.getOrCreateProcessAsync();
   }
 
   _forgetCurrentProcess() {
@@ -493,7 +531,7 @@ class Process {
     return `Process(id=${this._idForDebugging})`;
   }
 
-  async createDocumentForVSCodeAsync() {
+  createDocumentForVSCode() {
     return new DocumentForVSCode(this);
   }
 

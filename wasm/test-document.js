@@ -269,17 +269,210 @@ describe("DocumentLinter", () => {
 
       crashedProcesses.clear(); // Avoid out-of-memory errors.
     }
+  }, /*timeout=*/ 60_000);
 
-    async function didLintingCrashAsync(callback) {
+  it("open editor for multiple documents, with exhaustive fault injection", async () => {
+    let coinFlips;
+    let rng = new ExhaustiveRNG();
+    let crashedProcesses = new Set();
+    qljs.maybeInjectFault = (process, functionName) => {
+      assert.ok(
+        !crashedProcesses.has(process),
+        "Should not use previously-crashed process"
+      );
+      let shouldCrash = rng.nextCoinFlip();
+      coinFlips.push(shouldCrash);
+      if (shouldCrash) {
+        crashedProcesses.add(process);
+        throw new ProcessCrashed("(injected fault)");
+      }
+    };
+
+    while (!rng.isDone()) {
+      coinFlips = [];
+      let linter1 = null;
+      let linter2 = null;
       try {
-        await callback();
-        return false;
-      } catch (e) {
-        if (e instanceof LintingCrashed) {
-          return true;
-        } else {
-          throw e;
+        let documentProcessManager = new DocumentProcessManager();
+        let document1 = new MockDocument("let x1;let x1;\n");
+        linter1 = new DocumentLinter(document1, documentProcessManager);
+        let document2 = new MockDocument("let x2;let x2;\n");
+        linter2 = new DocumentLinter(document2, documentProcessManager);
+
+        await Promise.all([
+          openAndCheckDocumentAsync({
+            document: document1,
+            linter: linter1,
+            expectedDiagnosticMessages: ["redeclaration of variable: x1"],
+          }),
+
+          openAndCheckDocumentAsync({
+            document: document2,
+            linter: linter2,
+            expectedDiagnosticMessages: ["redeclaration of variable: x2"],
+          }),
+        ]);
+      } finally {
+        if (linter2 !== null) {
+          await linter2.disposeAsync();
         }
+        if (linter1 !== null) {
+          await linter1.disposeAsync();
+        }
+      }
+
+      console.log(`coinFlips: ${coinFlips}`);
+      rng.lap();
+
+      crashedProcesses.clear(); // Avoid out-of-memory errors.
+    }
+
+    async function openAndCheckDocumentAsync({
+      document,
+      linter,
+      expectedDiagnosticMessages,
+    }) {
+      let crashedOpeningEditor = await didLintingCrashAsync(async () => {
+        await linter.editorChangedVisibilityAsync();
+      });
+      if (crashedOpeningEditor) {
+        // Linter crashed before any linting could have happened.
+        // Therefore, no diagnostics should appear.
+        assert.deepStrictEqual(document.diagnostics, []);
+      } else {
+        assert.deepStrictEqual(
+          document.getDiagnosticMessages(),
+          expectedDiagnosticMessages
+        );
+      }
+    }
+  }, /*timeout=*/ 60_000);
+
+  it("edit multiple documents, with exhaustive fault injection", async () => {
+    let coinFlips;
+    let rng = new ExhaustiveRNG();
+    let crashedProcesses = new Set();
+    function maybeInjectFaultWithExhaustiveRNG(process, functionName) {
+      assert.ok(
+        !crashedProcesses.has(process),
+        "Should not use previously-crashed process"
+      );
+      let shouldCrash = rng.nextCoinFlip();
+      coinFlips.push(shouldCrash);
+      if (shouldCrash) {
+        crashedProcesses.add(process);
+        throw new ProcessCrashed("(injected fault)");
+      }
+    }
+    async function maybeDelayAsync() {
+      let shouldDelay = rng.nextCoinFlip();
+      coinFlips.push(shouldDelay);
+      if (shouldDelay) {
+        await null;
+      }
+    }
+
+    while (!rng.isDone()) {
+      coinFlips = [];
+      let linter1 = null;
+      let linter2 = null;
+      try {
+        let documentProcessManager = new DocumentProcessManager();
+
+        let document1 = new MockDocument("let x1;let x1;\n");
+        linter1 = new DocumentLinter(document1, documentProcessManager);
+        await linter1.editorChangedVisibilityAsync();
+
+        let document2 = new MockDocument("let x2;let x2;\n");
+        linter2 = new DocumentLinter(document2, documentProcessManager);
+        await linter2.editorChangedVisibilityAsync();
+
+        qljs.maybeInjectFault = maybeInjectFaultWithExhaustiveRNG;
+
+        await Promise.all([
+          changeAndCheckDocumentAsync({
+            document: document1,
+            linter: linter1,
+            unchangedDiagnosticMessages: ["redeclaration of variable: x1"],
+            changedDiagnosticMessages: [
+              "redeclaration of variable: x1",
+              "redeclaration of variable: y1",
+            ],
+            changedText: "let x1;let x1;\nlet y1;let y1;",
+            changes: [
+              {
+                range: {
+                  start: { line: 1, character: 0 },
+                  end: { line: 1, character: 0 },
+                },
+                text: "let y1;let y1;",
+              },
+            ],
+          }),
+
+          changeAndCheckDocumentAsync({
+            document: document2,
+            linter: linter2,
+            unchangedDiagnosticMessages: ["redeclaration of variable: x2"],
+            changedDiagnosticMessages: [
+              "redeclaration of variable: x2",
+              "redeclaration of variable: y2",
+            ],
+            changedText: "let x2;let x2;\nlet y2;let y2;",
+            changes: [
+              {
+                range: {
+                  start: { line: 1, character: 0 },
+                  end: { line: 1, character: 0 },
+                },
+                text: "let y2;let y2;",
+              },
+            ],
+          }),
+        ]);
+      } finally {
+        if (linter2 !== null) {
+          await linter2.disposeAsync();
+        }
+        if (linter1 !== null) {
+          await linter1.disposeAsync();
+        }
+      }
+
+      console.log(`coinFlips: ${coinFlips}`);
+      rng.lap();
+      qljs.maybeInjectFault = originalMaybeInjectFault;
+
+      crashedProcesses.clear(); // Avoid out-of-memory errors.
+    }
+
+    async function changeAndCheckDocumentAsync({
+      document,
+      linter,
+      unchangedDiagnosticMessages,
+      changedDiagnosticMessages,
+      changedText,
+      changes,
+    }) {
+      let crashedChangingText = await didLintingCrashAsync(async () => {
+        document.text = changedText;
+        await linter.textChangedAsync(changes);
+      });
+      if (crashedChangingText) {
+        // Linter crashed after linting happened, but before linting the
+        // changes could have happened. Therefore, diagnostics should
+        // appear for the old version of the document.
+        assert.deepStrictEqual(
+          document.getDiagnosticMessages(),
+          unchangedDiagnosticMessages
+        );
+      } else {
+        // Crashes might have happened, but DocumentLinter should have
+        // recovered.
+        assert.deepStrictEqual(
+          document.getDiagnosticMessages(),
+          changedDiagnosticMessages
+        );
       }
     }
   }, /*timeout=*/ 60_000);
@@ -560,6 +753,19 @@ class MockDocument {
 
   getDiagnosticMessages() {
     return this.diagnostics.map((diag) => diag.message);
+  }
+}
+
+async function didLintingCrashAsync(callback) {
+  try {
+    await callback();
+    return false;
+  } catch (e) {
+    if (e instanceof LintingCrashed) {
+      return true;
+    } else {
+      throw e;
+    }
   }
 }
 
