@@ -626,6 +626,35 @@ describe("DocumentLinter", () => {
 
     assert.strictEqual(documentProcessManager.numberOfProcessesEverCreated, 1);
   });
+
+  it("crashing document does not prevent other document from linting successfully", async () => {
+    let documentProcessManager = new DocumentProcessManager();
+
+    let document1 = new MockDocument("let x; let x;");
+    let linter1 = disposeAfterTest(
+      new DocumentLinter(document1, documentProcessManager)
+    );
+
+    let document2 = new MockDocument("let y; let y;");
+    let linter2 = disposeAfterTest(
+      new DocumentLinter(document2, documentProcessManager)
+    );
+
+    qljs.maybeInjectFault = (_process, functionName) => {
+      if (functionName === "qljs_vscode_lint") {
+        throw new ProcessCrashed("(injected fault)");
+      }
+    };
+    await assert.rejects(async () => {
+      await linter1.editorChangedVisibilityAsync();
+    });
+
+    qljs.maybeInjectFault = originalMaybeInjectFault;
+    await linter2.editorChangedVisibilityAsync();
+    assert.deepStrictEqual(document2.getDiagnosticMessages(), [
+      "redeclaration of variable: y",
+    ]);
+  });
 });
 
 describe("ExhaustiveRNG", () => {

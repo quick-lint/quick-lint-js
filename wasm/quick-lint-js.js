@@ -76,7 +76,6 @@ class DocumentLinter {
         parser = process.createDocumentForVSCode();
       } catch (e) {
         if (e instanceof ProcessCrashed) {
-          this._documentProcessManager.processCrashed(process);
           throw new LintingCrashed(e);
         } else {
           throw e;
@@ -121,7 +120,6 @@ class DocumentLinter {
             this._parser.dispose();
           } catch (e) {
             if (e instanceof ProcessCrashed) {
-              this._documentProcessManager.processCrashed(this._parser.process);
               // Ignore.
             } else {
               throw e;
@@ -209,7 +207,6 @@ class DocumentLinter {
         } catch (e) {
           // END CRITICAL SECTION (no awaiting above)
           if (e instanceof ProcessCrashed) {
-            this._documentProcessManager.processCrashed(this._parser.process);
             await this._recoverFromCrashAsync(e);
           } else {
             throw e;
@@ -253,7 +250,6 @@ class DocumentLinter {
       this._document.setDiagnostics(diags);
     } catch (e) {
       if (e instanceof ProcessCrashed) {
-        this._documentProcessManager.processCrashed(this._parser.process);
         await this._recoverFromCrashAsync(e);
       } else {
         throw e;
@@ -295,7 +291,6 @@ class DocumentLinter {
         this._parserPromise = null;
         this._state = DocumentLinterState.NO_PARSER;
         if (e instanceof ProcessCrashed) {
-          this._documentProcessManager.processCrashed(process);
           throw new LintingCrashed(e);
         } else {
           throw e;
@@ -315,24 +310,12 @@ class DocumentProcessManager {
     this._processFactoryPromise = createProcessFactoryAsync();
     this._processesCreated = 0;
     this._processPromise = null;
-    this._process = null;
-  }
-
-  processCrashed(process) {
-    if (!(process instanceof Process)) {
-      throw new TypeError(`Expected Process, but got ${process}`);
-    }
-    if (this._process === process) {
-      this._process = null;
-      this._processPromise = null;
-    }
   }
 
   async createNewProcessAsync() {
     let processFactory = await this._processFactoryPromise;
     let process = await processFactory.createProcessAsync();
     this._processesCreated += 1;
-    this._process = process;
     return process;
   }
 
@@ -341,13 +324,17 @@ class DocumentProcessManager {
     if (this._processPromise === null) {
       this._processPromise = this.createNewProcessAsync();
       // END CRITICAL SECTION (no awaiting above)
+    } else {
+      // END CRITICAL SECTION (no awaiting above)
     }
-    return await this._processPromise;
-  }
-
-  _forgetCurrentProcess() {
-    this._process = null;
-    this._processPromise = null;
+    let process = await this._processPromise;
+    // BEGIN CRITICAL SECTION (no awaiting below)
+    while (process.isTainted()) {
+      this._processPromise = this.createNewProcessAsync();
+      // END CRITICAL SECTION (no awaiting above)
+      process = await this._processPromise;
+    }
+    return process;
   }
 
   // For testing only.
@@ -499,6 +486,10 @@ class Process {
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
+  }
+
+  isTainted() {
+    return this._crashedException !== null;
   }
 
   toString() {
