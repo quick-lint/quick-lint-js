@@ -9,17 +9,17 @@ let VSCODE_WASM_MODULE_PATH = "./dist/quick-lint-js-vscode.wasm";
 
 let DocumentLinterState = {
   // A DocumentForVSCode hasn't been created yet.
-  NO_PARSER: "NO_PARSER",
+  NO_WASM_DOC: "NO_WASM_DOC",
 
   // A DocumentForVSCode is in the process of being created.
-  CREATING_PARSER: "CREATING_PARSER",
+  CREATING_WASM_DOC: "CREATING_WASM_DOC",
 
   // A DocumentForVSCode has been created, but it has no text.
-  PARSER_UNINITIALIZED: "PARSER_UNINITIALIZED",
+  WASM_DOC_UNINITIALIZED: "WASM_DOC_UNINITIALIZED",
 
   // A DocumentForVSCode has been created, and its text is up-to-date with the
   // vscode.Document.
-  PARSER_LOADED: "PARSER_LOADED",
+  WASM_DOC_LOADED: "WASM_DOC_LOADED",
 
   // The DocumentForVSCode's Process crashed, and we are creating a new Process
   // and DocumentForVSCode.
@@ -50,30 +50,30 @@ class DocumentLinter {
   constructor(document, documentProcessManager) {
     this._document = document;
     this._documentProcessManager = documentProcessManager;
-    this._state = DocumentLinterState.NO_PARSER;
+    this._state = DocumentLinterState.NO_WASM_DOC;
 
-    // Used only in states: CREATING_PARSER
-    this._parserPromise = null;
+    // Used only in states: CREATING_WASM_DOC
+    this._wasmDocPromise = null;
 
-    // Used only in states: PARSER_UNINITIALIZED, PARSER_LOADED
-    this._parser = null;
+    // Used only in states: WASM_DOC_UNINITIALIZED, WASM_DOC_LOADED
+    this._wasmDoc = null;
 
-    // Used only in states: PARSER_LOADED, RECOVERING
+    // Used only in states: WASM_DOC_LOADED, RECOVERING
     this._pendingChanges = [];
 
     // Used only in states: RECOVERING
     this._recoveryPromise = null;
   }
 
-  async _createParser() {
-    assertEqual(this._state, DocumentLinterState.NO_PARSER);
-    this._state = DocumentLinterState.CREATING_PARSER;
-    this._parserPromise = (async () => {
+  async _createWASMDoc() {
+    assertEqual(this._state, DocumentLinterState.NO_WASM_DOC);
+    this._state = DocumentLinterState.CREATING_WASM_DOC;
+    this._wasmDocPromise = (async () => {
       let process;
-      let parser;
+      let wasmDoc;
       try {
         process = await this._documentProcessManager.getOrCreateProcessAsync();
-        parser = process.createDocumentForVSCode();
+        wasmDoc = process.createDocumentForVSCode();
       } catch (e) {
         if (e instanceof ProcessCrashed) {
           throw new LintingCrashed(e);
@@ -83,29 +83,29 @@ class DocumentLinter {
       }
 
       if (this._state === DocumentLinterState.DISPOSED) {
-        parser.dispose();
+        wasmDoc.dispose();
         throw new DocumentLinterDisposed();
       }
-      assertEqual(this._state, DocumentLinterState.CREATING_PARSER);
-      this._parser = parser;
-      this._state = DocumentLinterState.PARSER_UNINITIALIZED;
-      return parser;
+      assertEqual(this._state, DocumentLinterState.CREATING_WASM_DOC);
+      this._wasmDoc = wasmDoc;
+      this._state = DocumentLinterState.WASM_DOC_UNINITIALIZED;
+      return wasmDoc;
     })();
-    return await this._parserPromise;
+    return await this._wasmDocPromise;
   }
 
   async disposeAsync() {
     let oldState = this._state;
     this._state = DocumentLinterState.DISPOSED;
     switch (oldState) {
-      case DocumentLinterState.NO_PARSER:
+      case DocumentLinterState.NO_WASM_DOC:
         break;
 
-      case DocumentLinterState.CREATING_PARSER:
-      case DocumentLinterState.PARSER_UNINITIALIZED:
-      case DocumentLinterState.PARSER_LOADED: {
+      case DocumentLinterState.CREATING_WASM_DOC:
+      case DocumentLinterState.WASM_DOC_UNINITIALIZED:
+      case DocumentLinterState.WASM_DOC_LOADED: {
         try {
-          await this._parserPromise;
+          await this._wasmDocPromise;
         } catch (e) {
           if (e instanceof DocumentLinterDisposed) {
             // Ignore.
@@ -115,9 +115,9 @@ class DocumentLinter {
             throw e;
           }
         }
-        if (this._parser !== null) {
+        if (this._wasmDoc !== null) {
           try {
-            this._parser.dispose();
+            this._wasmDoc.dispose();
           } catch (e) {
             if (e instanceof ProcessCrashed) {
               // Ignore.
@@ -147,21 +147,21 @@ class DocumentLinter {
 
   async editorChangedVisibilityAsync() {
     switch (this._state) {
-      case DocumentLinterState.NO_PARSER:
-        await this._createParser();
+      case DocumentLinterState.NO_WASM_DOC:
+        await this._createWASMDoc();
         await this.editorChangedVisibilityAsync();
         break;
 
-      case DocumentLinterState.CREATING_PARSER:
-        await this._parserPromise;
+      case DocumentLinterState.CREATING_WASM_DOC:
+        await this._wasmDocPromise;
         await this.editorChangedVisibilityAsync();
         break;
 
-      case DocumentLinterState.PARSER_UNINITIALIZED:
-        await this._initializeParserAsync();
+      case DocumentLinterState.WASM_DOC_UNINITIALIZED:
+        await this._initializeWASMDocAsync();
         break;
 
-      case DocumentLinterState.PARSER_LOADED:
+      case DocumentLinterState.WASM_DOC_LOADED:
         // No changes could have been made with the editor closed. Ignore.
         break;
 
@@ -176,33 +176,33 @@ class DocumentLinter {
   async textChangedAsync(changes) {
     // BEGIN CRITICAL SECTION (no awaiting below)
     switch (this._state) {
-      case DocumentLinterState.NO_PARSER:
+      case DocumentLinterState.NO_WASM_DOC:
         // END CRITICAL SECTION (no awaiting above)
-        await this._createParser();
-        await this._initializeParserAsync();
+        await this._createWASMDoc();
+        await this._initializeWASMDocAsync();
         break;
 
-      case DocumentLinterState.CREATING_PARSER:
+      case DocumentLinterState.CREATING_WASM_DOC:
         // END CRITICAL SECTION (no awaiting above)
-        await this._parserPromise;
-        await this._initializeParserAsync();
+        await this._wasmDocPromise;
+        await this._initializeWASMDocAsync();
         break;
 
-      case DocumentLinterState.PARSER_UNINITIALIZED:
+      case DocumentLinterState.WASM_DOC_UNINITIALIZED:
         // END CRITICAL SECTION (no awaiting above)
-        await this._initializeParserAsync();
+        await this._initializeWASMDocAsync();
         break;
 
-      case DocumentLinterState.PARSER_LOADED:
+      case DocumentLinterState.WASM_DOC_LOADED:
         this._pendingChanges.push(...changes);
         try {
           for (let change of this._pendingChanges) {
-            this._parser.replaceText(change.range, change.text);
+            this._wasmDoc.replaceText(change.range, change.text);
           }
           this._pendingChanges.length = 0;
           // END CRITICAL SECTION (no awaiting above)
 
-          let diags = this._parser.lint();
+          let diags = this._wasmDoc.lint();
           this._document.setDiagnostics(diags);
         } catch (e) {
           // END CRITICAL SECTION (no awaiting above)
@@ -230,12 +230,12 @@ class DocumentLinter {
     }
   }
 
-  // Transition: PARSER_UNINITIALIZED -> PARSER_LOADED (or NO_PARSER on error)
-  async _initializeParserAsync() {
+  // Transition: WASM_DOC_UNINITIALIZED -> WASM_DOC_LOADED (or NO_WASM_DOC on error)
+  async _initializeWASMDocAsync() {
     // BEGIN CRITICAL SECTION (no awaiting below)
-    assertEqual(this._state, DocumentLinterState.PARSER_UNINITIALIZED);
+    assertEqual(this._state, DocumentLinterState.WASM_DOC_UNINITIALIZED);
     try {
-      this._parser.replaceText(
+      this._wasmDoc.replaceText(
         {
           start: { line: 0, character: 0 },
           end: { line: 0, character: 0 },
@@ -243,10 +243,10 @@ class DocumentLinter {
         this._document.getText()
       );
       this._pendingChanges.length = 0;
-      this._state = DocumentLinterState.PARSER_LOADED;
+      this._state = DocumentLinterState.WASM_DOC_LOADED;
       // END CRITICAL SECTION (no awaiting above)
 
-      let diags = this._parser.lint();
+      let diags = this._wasmDoc.lint();
       this._document.setDiagnostics(diags);
     } catch (e) {
       if (e instanceof ProcessCrashed) {
@@ -257,7 +257,7 @@ class DocumentLinter {
     }
   }
 
-  // Transition: any -> RECOVERING -> PARSER_LOADED (or NO_PARSER on error)
+  // Transition: any -> RECOVERING -> WASM_DOC_LOADED (or NO_WASM_DOC on error)
   async _recoverFromCrashAsync(error) {
     // BEGIN CRITICAL SECTION (no awaiting below)
     console.warn(
@@ -269,11 +269,11 @@ class DocumentLinter {
       let process;
       try {
         process = await this._documentProcessManager.getOrCreateProcessAsync();
-        let parser = process.createDocumentForVSCode();
+        let wasmDoc = process.createDocumentForVSCode();
 
         // BEGIN CRITICAL SECTION (no awaiting below)
         assertEqual(this._state, DocumentLinterState.RECOVERING);
-        parser.replaceText(
+        wasmDoc.replaceText(
           {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 0 },
@@ -281,15 +281,15 @@ class DocumentLinter {
           this._document.getText()
         );
         this._pendingChanges.length = 0;
-        this._parser = parser;
-        this._state = DocumentLinterState.PARSER_LOADED;
+        this._wasmDoc = wasmDoc;
+        this._state = DocumentLinterState.WASM_DOC_LOADED;
         // END CRITICAL SECTION (no awaiting above)
 
-        diags = parser.lint();
+        diags = wasmDoc.lint();
       } catch (e) {
-        this._parser = null;
-        this._parserPromise = null;
-        this._state = DocumentLinterState.NO_PARSER;
+        this._wasmDoc = null;
+        this._wasmDocPromise = null;
+        this._state = DocumentLinterState.NO_WASM_DOC;
         if (e instanceof ProcessCrashed) {
           throw new LintingCrashed(e);
         } else {
@@ -529,14 +529,14 @@ class Process {
 class DocumentForVSCode {
   constructor(process) {
     this._process = process;
-    this._parser = this._process._vscodeCreateDocument();
+    this._wasmDoc = this._process._vscodeCreateDocument();
   }
 
   replaceText(range, replacementText) {
     let utf8ReplacementText = encodeUTF8String(replacementText, this._process);
     try {
       this._process._vscodeReplaceText(
-        this._parser,
+        this._wasmDoc,
         range.start.line,
         range.start.character,
         range.end.line,
@@ -556,7 +556,7 @@ class DocumentForVSCode {
   }
 
   lint() {
-    let diagnosticsPointer = this._process._vscodeLint(this._parser);
+    let diagnosticsPointer = this._process._vscodeLint(this._wasmDoc);
 
     let rawDiagnosticsU32 = new Uint32Array(
       this._process._heap,
@@ -612,8 +612,8 @@ class DocumentForVSCode {
   }
 
   dispose() {
-    this._process._vscodeDestroyDocument(this._parser);
-    this._parser = null;
+    this._process._vscodeDestroyDocument(this._wasmDoc);
+    this._wasmDoc = null;
   }
 
   get process() {
@@ -624,14 +624,14 @@ class DocumentForVSCode {
 class DocumentForWebDemo {
   constructor(process) {
     this._process = process;
-    this._parser = this._process._webDemoCreateDocument();
+    this._wasmDoc = this._process._webDemoCreateDocument();
   }
 
   setText(text) {
     let utf8Text = encodeUTF8String(text, this._process);
     try {
       this._process._webDemoSetText(
-        this._parser,
+        this._wasmDoc,
         utf8Text.pointer,
         utf8Text.byteSize
       );
@@ -641,7 +641,7 @@ class DocumentForWebDemo {
   }
 
   lint() {
-    let diagnosticsPointer = this._process._webDemoLint(this._parser);
+    let diagnosticsPointer = this._process._webDemoLint(this._wasmDoc);
 
     let rawDiagnosticsU32 = new Uint32Array(
       this._process._heap,
@@ -689,8 +689,8 @@ class DocumentForWebDemo {
   }
 
   dispose() {
-    this._process._webDemoDestroyDocument(this._parser);
-    this._parser = null;
+    this._process._webDemoDestroyDocument(this._wasmDoc);
+    this._wasmDoc = null;
   }
 }
 
