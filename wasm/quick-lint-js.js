@@ -455,9 +455,6 @@ class Process {
       }
       let func = wasmInstance.exports[name];
       return (...args) => {
-        if (process._crashedException !== null) {
-          throw process._crashedException;
-        }
         try {
           exports.maybeInjectFault(process, name);
           try {
@@ -467,7 +464,7 @@ class Process {
           }
         } catch (e) {
           if (e instanceof ProcessCrashed) {
-            process._crashedException = e;
+            process._taint(e);
           }
           throw e;
         }
@@ -490,6 +487,30 @@ class Process {
 
   isTainted() {
     return this._crashedException !== null;
+  }
+
+  _taint(exception) {
+    this._crashedException = exception;
+
+    function tainted() {
+      throw this._crashedException;
+    }
+
+    // Reduce memory usage.
+    this._wasmInstance = null;
+    this._heap = null;
+
+    // Make future calls crash and also reduce memory usage.
+    this._malloc = tainted;
+    this._free = tainted;
+    this._vscodeCreateDocument = tainted;
+    this._vscodeDestroyDocument = tainted;
+    this._vscodeLint = tainted;
+    this._vscodeReplaceText = tainted;
+    this._webDemoCreateDocument = tainted;
+    this._webDemoDestroyDocument = tainted;
+    this._webDemoLint = tainted;
+    this._webDemoSetText = tainted;
   }
 
   toString() {

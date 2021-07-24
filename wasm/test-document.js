@@ -655,6 +655,33 @@ describe("DocumentLinter", () => {
       "redeclaration of variable: y",
     ]);
   });
+
+  it("untouched documents with crashed process do not leak memory", async () => {
+    let numberOfDocuments = 200;
+    let sourceLength = 100_000;
+    let source = new Array(sourceLength + 1).join(" ");
+
+    let documentProcessManager = new DocumentProcessManager();
+    let linters = [];
+    for (let i = 0; i < numberOfDocuments; ++i) {
+      let document = new MockDocument(source);
+      crashProcessOnNextLint();
+      let linter = disposeAfterTest(
+        new DocumentLinter(document, documentProcessManager)
+      );
+      linters.push(linter);
+      await linter.editorChangedVisibilityAsync();
+    }
+
+    function crashProcessOnNextLint() {
+      qljs.maybeInjectFault = (_process, functionName) => {
+        if (functionName === "qljs_vscode_lint") {
+          qljs.maybeInjectFault = originalMaybeInjectFault;
+          throw new ProcessCrashed("(injected fault)");
+        }
+      };
+    }
+  }, /*timeout=*/ 30_000);
 });
 
 describe("ExhaustiveRNG", () => {
