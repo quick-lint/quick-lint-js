@@ -209,11 +209,7 @@ describe("DocumentLinter", () => {
       );
       // TODO(strager): Figure out why qljs_vscode_create_document failures
       // cause this test to fail.
-      // TODO(strager): Fix problems when qljs_vscode_destroy_document fails.
-      if (
-        functionName !== "qljs_vscode_create_document" &&
-        functionName != "qljs_vscode_destroy_document"
-      ) {
+      if (functionName !== "qljs_vscode_create_document") {
         let shouldCrash = rng.nextCoinFlip();
         coinFlips.push(shouldCrash);
         if (shouldCrash) {
@@ -290,7 +286,7 @@ describe("DocumentLinter", () => {
         }
       }
     }
-  });
+  }, /*timeout=*/ 60_000);
 
   it("concurrent edits are applied in order of calls, with exhaustive fault injection", async () => {
     let coinFlips;
@@ -301,14 +297,11 @@ describe("DocumentLinter", () => {
         !crashedProcesses.has(process),
         "Should not use previously-crashed process"
       );
-      // TODO(strager): Fix problems when qljs_vscode_destroy_document fails.
-      if (functionName != "qljs_vscode_destroy_document") {
-        let shouldCrash = rng.nextCoinFlip();
-        coinFlips.push(shouldCrash);
-        if (shouldCrash) {
-          crashedProcesses.add(process);
-          throw new qljs.ProcessCrashed("(injected fault)");
-        }
+      let shouldCrash = rng.nextCoinFlip();
+      coinFlips.push(shouldCrash);
+      if (shouldCrash) {
+        crashedProcesses.add(process);
+        throw new qljs.ProcessCrashed("(injected fault)");
       }
     }
 
@@ -379,7 +372,7 @@ describe("DocumentLinter", () => {
 
       crashedProcesses.clear(); // Avoid out-of-memory errors.
     }
-  });
+  }, /*timeout=*/ 60_000);
 });
 
 describe("ExhaustiveRNG", () => {

@@ -108,7 +108,15 @@ class DocumentLinter {
           }
         }
         if (this._parser !== null) {
-          this._parser.dispose();
+          try {
+            this._parser.dispose();
+          } catch (e) {
+            if (e instanceof ProcessCrashed) {
+              // Ignore.
+            } else {
+              throw e;
+            }
+          }
         }
         break;
       }
