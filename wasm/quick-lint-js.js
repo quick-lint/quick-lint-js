@@ -41,14 +41,8 @@ exports.LintingCrashed = LintingCrashed;
 class DocumentLinterDisposed extends Error {}
 exports.DocumentLinterDisposed = DocumentLinterDisposed;
 
-class DocumentLinter {
-  // document has the following methods:
-  //
-  //   getText(): string;
-  //   setDiagnostics(diagnostics: Object[]): void;
-  //   removeDiagnostics(): void;
-  constructor(document, documentProcessManager) {
-    this._document = document;
+class AbstractSyncedDocument {
+  constructor(documentProcessManager) {
     this._documentProcessManager = documentProcessManager;
     this._state = DocumentLinterState.NO_WASM_DOC;
 
@@ -136,7 +130,6 @@ class DocumentLinter {
       default:
         throw new Error(`Unexpected linter state: ${this._state}`);
     }
-    this._document.removeDiagnostics();
   }
 
   async editorChangedVisibilityAsync() {
@@ -196,8 +189,7 @@ class DocumentLinter {
           this._pendingChanges.length = 0;
           // END CRITICAL SECTION (no awaiting above)
 
-          let diags = this._wasmDoc.lint();
-          this._document.setDiagnostics(diags);
+          this._documentSynced();
         } catch (e) {
           // END CRITICAL SECTION (no awaiting above)
           if (e instanceof ProcessCrashed) {
@@ -234,14 +226,13 @@ class DocumentLinter {
           start: { line: 0, character: 0 },
           end: { line: 0, character: 0 },
         },
-        this._document.getText()
+        this._getText()
       );
       this._pendingChanges.length = 0;
       this._state = DocumentLinterState.WASM_DOC_LOADED;
       // END CRITICAL SECTION (no awaiting above)
 
-      let diags = this._wasmDoc.lint();
-      this._document.setDiagnostics(diags);
+      this._documentSynced();
     } catch (e) {
       if (e instanceof ProcessCrashed) {
         await this._recoverFromCrashAsync(e);
@@ -272,14 +263,14 @@ class DocumentLinter {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 0 },
           },
-          this._document.getText()
+          this._getText()
         );
         this._pendingChanges.length = 0;
         this._wasmDoc = wasmDoc;
         this._state = DocumentLinterState.WASM_DOC_LOADED;
         // END CRITICAL SECTION (no awaiting above)
 
-        diags = wasmDoc.lint();
+        this._documentSynced();
       } catch (e) {
         this._wasmDoc = null;
         this._wasmDocPromise = null;
@@ -290,10 +281,48 @@ class DocumentLinter {
           throw e;
         }
       }
-      this._document.setDiagnostics(diags);
     })();
     // END CRITICAL SECTION (no awaiting above)
     await this._recoveryPromise;
+  }
+
+  // Abstract:
+  _getText() {
+    throw new Error("Please override _getText in a derived class");
+  }
+
+  // Abstract:
+  _documentSynced() {
+    throw new Error("Please override _documentSynced in a derived class");
+  }
+}
+
+class DocumentLinter extends AbstractSyncedDocument {
+  // document has the following methods:
+  //
+  //   getText(): string;
+  //   setDiagnostics(diagnostics: Object[]): void;
+  //   removeDiagnostics(): void;
+  constructor(document, documentProcessManager) {
+    super(documentProcessManager);
+    this._document = document;
+  }
+
+  // Override:
+  _getText() {
+    return this._document.getText();
+  }
+
+  // Override:
+  _documentSynced() {
+    let diags = this._wasmDoc.lint();
+    this._document.setDiagnostics(diags);
+  }
+
+  // Override:
+  async disposeAsync() {
+    await super.disposeAsync();
+    this._document.removeDiagnostics();
   }
 }
 exports.DocumentLinter = DocumentLinter;
