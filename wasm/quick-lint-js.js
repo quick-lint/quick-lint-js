@@ -69,10 +69,19 @@ class DocumentLinter {
     assertEqual(this._state, DocumentLinterState.NO_PARSER);
     this._state = DocumentLinterState.CREATING_PARSER;
     this._parserPromise = (async () => {
-      let factory = await this._documentProcessManager._processFactoryPromise;
-      // TODO(strager): Reuse processes across documents.
-      let process = await factory.createProcessAsync();
-      let parser = await process.createDocumentForVSCodeAsync();
+      let parser;
+      try {
+        let factory = await this._documentProcessManager._processFactoryPromise;
+        // TODO(strager): Reuse processes across documents.
+        let process = await factory.createProcessAsync();
+        parser = await process.createDocumentForVSCodeAsync();
+      } catch (e) {
+        if (e instanceof ProcessCrashed) {
+          throw new LintingCrashed(e);
+        } else {
+          throw e;
+        }
+      }
 
       if (this._state === DocumentLinterState.DISPOSED) {
         parser.dispose();
@@ -101,7 +110,7 @@ class DocumentLinter {
         } catch (e) {
           if (e instanceof DocumentLinterDisposed) {
             // Ignore.
-          } else if (e instanceof ProcessCrashed) {
+          } else if (e instanceof LintingCrashed) {
             // Ignore.
           } else {
             throw e;
