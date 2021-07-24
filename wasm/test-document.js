@@ -369,6 +369,70 @@ describe("DocumentLinter", () => {
       crashedProcesses.clear(); // Avoid out-of-memory errors.
     }
   }, /*timeout=*/ 60_000);
+
+  it("multiple documents with shared process manager lint independently", async () => {
+    let documentProcessManager = new DocumentProcessManager();
+    let document1 = new MockDocument("let x;let x;");
+    let linter1 = disposeAfterTest(
+      new DocumentLinter(document1, documentProcessManager)
+    );
+    let document2 = new MockDocument("let y;let y;");
+    let linter2 = disposeAfterTest(
+      new DocumentLinter(document2, documentProcessManager)
+    );
+
+    await linter1.editorChangedVisibilityAsync();
+    assert.deepStrictEqual(document1.getDiagnosticMessages(), [
+      "redeclaration of variable: x",
+    ]);
+
+    await linter2.editorChangedVisibilityAsync();
+    assert.deepStrictEqual(document1.getDiagnosticMessages(), [
+      "redeclaration of variable: x",
+    ]);
+    assert.deepStrictEqual(document2.getDiagnosticMessages(), [
+      "redeclaration of variable: y",
+    ]);
+
+    document1.text = "let x;let x2;";
+    await linter1.textChangedAsync([
+      {
+        range: {
+          start: { line: 0, character: "let x;let x".length },
+          end: { line: 0, character: "let x;let x".length },
+        },
+        text: "2",
+      },
+    ]);
+    assert.deepStrictEqual(document1.getDiagnosticMessages(), []);
+    assert.deepStrictEqual(document2.getDiagnosticMessages(), [
+      "redeclaration of variable: y",
+    ]);
+
+    document2.text = "let z;let z;";
+    await linter2.textChangedAsync([
+      {
+        range: {
+          start: { line: 0, character: "let ".length },
+          end: { line: 0, character: "let y".length },
+        },
+        text: "z",
+      },
+      {
+        range: {
+          start: { line: 0, character: "let z;let ".length },
+          end: { line: 0, character: "let z;let y".length },
+        },
+        text: "z",
+      },
+    ]);
+    assert.deepStrictEqual(document1.getDiagnosticMessages(), []);
+    assert.deepStrictEqual(document2.getDiagnosticMessages(), [
+      "redeclaration of variable: z",
+    ]);
+
+    assert.strictEqual(documentProcessManager.numberOfProcessesEverCreated, 1);
+  });
 });
 
 describe("ExhaustiveRNG", () => {

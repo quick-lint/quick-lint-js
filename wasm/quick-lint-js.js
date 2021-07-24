@@ -71,9 +71,8 @@ class DocumentLinter {
     this._parserPromise = (async () => {
       let parser;
       try {
-        let factory = await this._documentProcessManager._processFactoryPromise;
-        // TODO(strager): Reuse processes across documents.
-        let process = await factory.createProcessAsync();
+        let process =
+          await this._documentProcessManager.getOrCreateProcessAsync();
         parser = await process.createDocumentForVSCodeAsync();
       } catch (e) {
         if (e instanceof ProcessCrashed) {
@@ -268,9 +267,10 @@ class DocumentLinter {
     this._recoveryPromise = (async () => {
       let diags;
       try {
-        // TODO(strager): Reuse processes across documents.
-        let factory = await this._documentProcessManager._processFactoryPromise;
-        let process = await factory.createProcessAsync();
+        let process =
+          await this._documentProcessManager.getOrCreateDifferentProcessAsync(
+            this._parser.process
+          );
         let parser = await process.createDocumentForVSCodeAsync();
 
         // BEGIN CRITICAL SECTION (no awaiting below)
@@ -310,6 +310,47 @@ class DocumentProcessManager {
   constructor() {
     // TODO(strager): Allow developers to reload the .wasm file.
     this._processFactoryPromise = createProcessFactoryAsync();
+    this._processesCreated = 0;
+    this._processPromise = null;
+    this._process = null;
+  }
+
+  async createNewProcessAsync() {
+    let processFactory = await this._processFactoryPromise;
+    let process = await processFactory.createProcessAsync();
+    this._processesCreated += 1;
+    this._process = process;
+    return process;
+  }
+
+  async getOrCreateProcessAsync() {
+    // BEGIN CRITICAL SECTION (no awaiting below)
+    if (this._processPromise === null) {
+      this._processPromise = this.createNewProcessAsync();
+      // END CRITICAL SECTION (no awaiting above)
+    }
+    return await this._processPromise;
+  }
+
+  async getOrCreateDifferentProcessAsync(existingProcess) {
+    if (!(existingProcess instanceof Process)) {
+      throw new TypeError(`Expected Process, but got ${existingProcess}`);
+    }
+    if (this._process !== existingProcess) {
+      return this._process;
+    }
+    this._forgetCurrentProcess();
+    return await this.getOrCreateProcessAsync();
+  }
+
+  _forgetCurrentProcess() {
+    this._process = null;
+    this._processPromise = null;
+  }
+
+  // For testing only.
+  get numberOfProcessesEverCreated() {
+    return this._processesCreated;
   }
 }
 exports.DocumentProcessManager = DocumentProcessManager;
@@ -549,6 +590,10 @@ class DocumentForVSCode {
   dispose() {
     this._process._vscodeDestroyDocument(this._parser);
     this._parser = null;
+  }
+
+  get process() {
+    return this._process;
   }
 }
 
