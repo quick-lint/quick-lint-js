@@ -201,7 +201,12 @@ describe("DocumentLinter", () => {
 
     let coinFlips;
     let rng = new ExhaustiveRNG();
-    qljs.maybeInjectFault = (functionName) => {
+    let crashedProcesses = new Set();
+    qljs.maybeInjectFault = (process, functionName) => {
+      assert.ok(
+        !crashedProcesses.has(process),
+        "Should not use previously-crashed process"
+      );
       // TODO(strager): Figure out why qljs_vscode_create_document failures
       // cause this test to fail.
       // TODO(strager): Fix problems when qljs_vscode_destroy_document fails.
@@ -212,6 +217,7 @@ describe("DocumentLinter", () => {
         let shouldCrash = rng.nextCoinFlip();
         coinFlips.push(shouldCrash);
         if (shouldCrash) {
+          crashedProcesses.add(process);
           throw new ProcessCrashed("(injected fault)");
         }
       }
@@ -268,6 +274,8 @@ describe("DocumentLinter", () => {
 
       console.log(`coinFlips: ${coinFlips}`);
       rng.lap();
+
+      crashedProcesses.clear(); // Avoid out-of-memory errors.
     }
 
     async function didLintingCrashAsync(callback) {
@@ -287,12 +295,18 @@ describe("DocumentLinter", () => {
   it("concurrent edits are applied in order of calls, with exhaustive fault injection", async () => {
     let coinFlips;
     let rng = new ExhaustiveRNG();
-    function maybeInjectFaultWithExhaustiveRNG(functionName) {
+    let crashedProcesses = new Set();
+    function maybeInjectFaultWithExhaustiveRNG(process, functionName) {
+      assert.ok(
+        !crashedProcesses.has(process),
+        "Should not use previously-crashed process"
+      );
       // TODO(strager): Fix problems when qljs_vscode_destroy_document fails.
       if (functionName != "qljs_vscode_destroy_document") {
         let shouldCrash = rng.nextCoinFlip();
         coinFlips.push(shouldCrash);
         if (shouldCrash) {
+          crashedProcesses.add(process);
           throw new qljs.ProcessCrashed("(injected fault)");
         }
       }
@@ -362,6 +376,8 @@ describe("DocumentLinter", () => {
       console.log(`coinFlips: ${coinFlips}`);
       rng.lap();
       qljs.maybeInjectFault = originalMaybeInjectFault;
+
+      crashedProcesses.clear(); // Avoid out-of-memory errors.
     }
   });
 });

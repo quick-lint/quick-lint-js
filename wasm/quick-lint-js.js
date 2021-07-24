@@ -389,6 +389,8 @@ class ProcessFactory {
   }
 }
 
+let nextProcessIDForDebugging = 1;
+
 // A WebAssembly instance.
 //
 // If a Process crashes, every DocumentForVSCode or DocumentForWebDemo
@@ -396,15 +398,17 @@ class ProcessFactory {
 // anymore.
 class Process {
   constructor(wasmInstance) {
+    this._idForDebugging = nextProcessIDForDebugging++;
     this._wasmInstance = wasmInstance;
 
+    let process = this;
     function wrap(name) {
       if (!Object.prototype.hasOwnProperty.call(wasmInstance.exports, name)) {
         throw new TypeError(`WASM does not export function: ${name}`);
       }
       let func = wasmInstance.exports[name];
       return (...args) => {
-        exports.maybeInjectFault(name);
+        exports.maybeInjectFault(process, name);
         try {
           return func(...args);
         } catch (e) {
@@ -425,6 +429,10 @@ class Process {
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
+  }
+
+  toString() {
+    return `Process(id=${this._idForDebugging})`;
   }
 
   async createDocumentForVSCodeAsync() {
@@ -454,8 +462,14 @@ class DocumentForVSCode {
         utf8ReplacementText.pointer,
         utf8ReplacementText.byteSize
       );
-    } finally {
       utf8ReplacementText.dispose();
+    } catch (e) {
+      if (e instanceof ProcessCrashed) {
+        // Don't touch the Process.
+      } else {
+        utf8ReplacementText.dispose();
+      }
+      throw e;
     }
   }
 
@@ -656,7 +670,7 @@ function assertEqual(actual, expected) {
 //
 // Replace this function with a function which throws an exception to simulate
 // errors such as segfaults and OOMs.
-exports.maybeInjectFault = () => {};
+exports.maybeInjectFault = (_process, _functionName) => {};
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
