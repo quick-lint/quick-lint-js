@@ -35,10 +35,6 @@ class VSCodeDocumentLinter {
     await this._documentLinter.disposeAsync();
   }
 
-  dispose() {
-    this._documentLinter.dispose();
-  }
-
   async editorChangedVisibilityAsync() {
     await this._documentLinter.editorChangedVisibilityAsync();
   }

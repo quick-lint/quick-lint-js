@@ -139,12 +139,6 @@ class DocumentLinter {
     this._document.removeDiagnostics();
   }
 
-  dispose() {
-    logAsyncErrors(async () => {
-      await this.disposeAsync();
-    });
-  }
-
   async editorChangedVisibilityAsync() {
     switch (this._state) {
       case DocumentLinterState.NO_WASM_DOC:
