@@ -87,8 +87,7 @@ REPORT-FN is Flymake's callback."
                                         (buffer-substring-no-properties
                                          (point-min) (point-max)))))))
                        (if (or diags (zerop (process-exit-status p)))
-                           (funcall report-fn diags
-                                    :region (cons (point-min) (point-max)))
+                           (funcall report-fn diags)
                          (funcall report-fn
                                   :panic :explanation
                                   (buffer-substring
