@@ -63,11 +63,11 @@ class AbstractSyncedDocument {
     assertEqual(this._state, DocumentLinterState.NO_WASM_DOC);
     this._state = DocumentLinterState.CREATING_WASM_DOC;
     this._wasmDocPromise = (async () => {
-      let process;
       let wasmDoc;
       try {
-        process = await this._documentProcessManager.getOrCreateProcessAsync();
-        wasmDoc = process.createDocumentForVSCode();
+        let workspace =
+          await this._documentProcessManager.getOrCreateWorkspaceAsync();
+        wasmDoc = workspace.createDocument();
       } catch (e) {
         if (e instanceof ProcessCrashed) {
           throw new LintingCrashed(e);
@@ -250,11 +250,10 @@ class AbstractSyncedDocument {
     );
     this._state = DocumentLinterState.RECOVERING;
     this._recoveryPromise = (async () => {
-      let diags;
-      let process;
       try {
-        process = await this._documentProcessManager.getOrCreateProcessAsync();
-        let wasmDoc = process.createDocumentForVSCode();
+        let workspace =
+          await this._documentProcessManager.getOrCreateWorkspaceAsync();
+        let wasmDoc = workspace.createDocument();
 
         // BEGIN CRITICAL SECTION (no awaiting below)
         assertEqual(this._state, DocumentLinterState.RECOVERING);
@@ -332,32 +331,35 @@ class DocumentProcessManager {
     // TODO(strager): Allow developers to reload the .wasm file.
     this._processFactoryPromise = createProcessFactoryAsync();
     this._processesCreated = 0;
-    this._processPromise = null;
+    this._processAndWorkspacePromise = null;
   }
 
-  async _createNewProcessAsync() {
+  async _createNewProcessAndWorkspaceAsync() {
     let processFactory = await this._processFactoryPromise;
     let process = await processFactory.createProcessAsync();
     this._processesCreated += 1;
-    return process;
+    let workspace = process.createWorkspaceForVSCode();
+    return { process, workspace };
   }
 
-  async getOrCreateProcessAsync() {
+  async getOrCreateWorkspaceAsync() {
     // BEGIN CRITICAL SECTION (no awaiting below)
-    if (this._processPromise === null) {
-      this._processPromise = this._createNewProcessAsync();
+    if (this._processAndWorkspacePromise === null) {
+      this._processAndWorkspacePromise =
+        this._createNewProcessAndWorkspaceAsync();
       // END CRITICAL SECTION (no awaiting above)
     } else {
       // END CRITICAL SECTION (no awaiting above)
     }
-    let process = await this._processPromise;
+    let { process, workspace } = await this._processAndWorkspacePromise;
     // BEGIN CRITICAL SECTION (no awaiting below)
     while (process.isTainted()) {
-      this._processPromise = this._createNewProcessAsync();
+      this._processAndWorkspacePromise =
+        this._createNewProcessAndWorkspaceAsync();
       // END CRITICAL SECTION (no awaiting above)
-      process = await this._processPromise;
+      ({ process, workspace } = await this._processAndWorkspacePromise);
     }
-    return process;
+    return workspace;
   }
 
   // For testing only.
@@ -546,8 +548,8 @@ class Process {
     return `Process(id=${this._idForDebugging})`;
   }
 
-  createDocumentForVSCode() {
-    return new DocumentForVSCode(this);
+  createWorkspaceForVSCode() {
+    return new WorkspaceForVSCode(this);
   }
 
   async createDocumentForWebDemoAsync() {
@@ -555,12 +557,32 @@ class Process {
   }
 }
 
-class DocumentForVSCode {
+class WorkspaceForVSCode {
   constructor(process) {
     this._process = process;
     this._wasmWorkspace = this._process._vscodeCreateWorkspace();
+  }
+
+  // Returns a DocumentForVSCode
+  createDocument() {
+    return new DocumentForVSCode(this);
+  }
+
+  dispose() {
+    this._process._vscodeDestroyWorkspace(this._wasmWorkspace);
+    this._wasmWorkspace = null;
+  }
+}
+
+class DocumentForVSCode {
+  // Private. Call WorkspaceForVSCode#createDocument instead.
+  constructor(workspace) {
+    if (!(workspace instanceof WorkspaceForVSCode)) {
+      throw new TypeError(`Expected WorkspaceForVSCode, but got ${workspace}`);
+    }
+    this._process = workspace._process;
     this._wasmDoc = this._process._vscodeCreateSourceDocument(
-      this._wasmWorkspace
+      workspace._wasmWorkspace
     );
   }
 
