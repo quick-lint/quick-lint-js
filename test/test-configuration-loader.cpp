@@ -18,8 +18,8 @@
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/options.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
@@ -217,39 +217,8 @@ class change_detecting_configuration_loader {
   configuration_loader loader_;
 };
 
-class test_configuration_loader : public ::testing::Test {
- public:
-  std::string make_temporary_directory() {
-    std::string temp_dir = quick_lint_js::make_temporary_directory();
-    this->temporary_directories_.emplace_back(temp_dir);
-    return temp_dir;
-  }
-
-  void set_current_working_directory(const std::string& path) {
-    this->set_current_working_directory(path.c_str());
-  }
-
-  void set_current_working_directory(const char* path) {
-    if (!this->old_working_directory_.has_value()) {
-      this->old_working_directory_ = get_current_working_directory();
-    }
-    quick_lint_js::set_current_working_directory(path);
-  }
-
- protected:
-  void TearDown() override {
-    if (this->old_working_directory_.has_value()) {
-      set_current_working_directory(*this->old_working_directory_);
-    }
-    for (const std::string& temp_dir : this->temporary_directories_) {
-      delete_directory_recursive(temp_dir);
-    }
-  }
-
- private:
-  std::vector<std::string> temporary_directories_;
-  std::optional<std::string> old_working_directory_;
-};
+class test_configuration_loader : public ::testing::Test,
+                                  protected filesystem_test {};
 
 bool process_ignores_filesystem_permissions() noexcept {
 #if QLJS_HAVE_UNISTD_H
