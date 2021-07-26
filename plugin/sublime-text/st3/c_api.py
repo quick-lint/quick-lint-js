@@ -124,10 +124,10 @@ class Parser:
             self._ctypes_parser = None
 
     def set_text(self):
-        viewsize = self.view.size()
-        allregion = sublime.Region(0, viewsize)
-        allcontent = self.view.substr(allregion)
-        text_utf8 = allcontent.encode(encoding="utf-8")
+        view_size = self.view.size()
+        all_region = sublime.Region(0, view_size)
+        all_content = self.view.substr(all_region)
+        text_utf8 = all_content.encode(encoding="utf-8")
         text_len_utf8 = len(text_utf8)
         Parser.lib.qljs_sublime_text_3_set_text(
             self._ctypes_parser,
