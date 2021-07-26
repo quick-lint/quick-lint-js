@@ -24,7 +24,7 @@ class PluginBuffer:
     """
 
     def __init__(self, view):
-        self.views = set((view,))
+        self.views = {view}
         self.parser = c_api.Parser(view)
 
 
