@@ -498,8 +498,12 @@ class Process {
 
     this._malloc = wrap("malloc");
     this._free = wrap("free");
-    this._vscodeCreateDocument = wrap("qljs_vscode_create_document");
+    this._vscodeCreateSourceDocument = wrap(
+      "qljs_vscode_create_source_document"
+    );
+    this._vscodeCreateWorkspace = wrap("qljs_vscode_create_workspace");
     this._vscodeDestroyDocument = wrap("qljs_vscode_destroy_document");
+    this._vscodeDestroyWorkspace = wrap("qljs_vscode_destroy_workspace");
     this._vscodeLint = wrap("qljs_vscode_lint");
     this._vscodeReplaceText = wrap("qljs_vscode_replace_text");
     this._webDemoCreateDocument = wrap("qljs_web_demo_create_document");
@@ -526,8 +530,10 @@ class Process {
     // Make future calls crash and also reduce memory usage.
     this._malloc = tainted;
     this._free = tainted;
-    this._vscodeCreateDocument = tainted;
+    this._vscodeCreateSourceDocument = tainted;
+    this._vscodeCreateWorkspace = tainted;
     this._vscodeDestroyDocument = tainted;
+    this._vscodeDestroyWorkspace = tainted;
     this._vscodeLint = tainted;
     this._vscodeReplaceText = tainted;
     this._webDemoCreateDocument = tainted;
@@ -552,7 +558,10 @@ class Process {
 class DocumentForVSCode {
   constructor(process) {
     this._process = process;
-    this._wasmDoc = this._process._vscodeCreateDocument();
+    this._wasmWorkspace = this._process._vscodeCreateWorkspace();
+    this._wasmDoc = this._process._vscodeCreateSourceDocument(
+      this._wasmWorkspace
+    );
   }
 
   replaceText(range, replacementText) {
@@ -637,6 +646,8 @@ class DocumentForVSCode {
   dispose() {
     this._process._vscodeDestroyDocument(this._wasmDoc);
     this._wasmDoc = null;
+    this._process._vscodeDestroyWorkspace(this._wasmWorkspace);
+    this._wasmWorkspace = null;
   }
 
   get process() {

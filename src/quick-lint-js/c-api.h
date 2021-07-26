@@ -15,7 +15,11 @@ typedef enum qljs_severity {
   qljs_severity_warning = 2,
 } qljs_severity;
 
+typedef struct qljs_vscode_workspace qljs_vscode_workspace;
 typedef struct qljs_vscode_document qljs_vscode_document;
+qljs_vscode_workspace* qljs_vscode_create_workspace();
+void qljs_vscode_destroy_workspace(qljs_vscode_workspace*);
+
 struct qljs_vscode_diagnostic {
   const char* message;
   const char* code;
@@ -25,7 +29,8 @@ struct qljs_vscode_diagnostic {
   int end_line;
   int end_character;
 };
-qljs_vscode_document* qljs_vscode_create_document(void);
+qljs_vscode_document* qljs_vscode_create_source_document(
+    qljs_vscode_workspace*);
 void qljs_vscode_destroy_document(qljs_vscode_document*);
 void qljs_vscode_replace_text(qljs_vscode_document*, int start_line,
                               int start_character, int end_line,

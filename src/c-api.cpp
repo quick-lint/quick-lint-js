@@ -1,7 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <cstddef>
+#include <memory>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
@@ -13,6 +16,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/web-demo-location.h>
+#include <vector>
 
 namespace quick_lint_js {
 namespace {
@@ -39,12 +43,34 @@ class qljs_document_base {
 }
 }
 
+struct qljs_vscode_workspace {
+ public:
+  qljs_vscode_document* create_source_document();
+
+  void destroy_document(qljs_vscode_document*);
+
+ private:
+  std::vector<std::unique_ptr<qljs_vscode_document>> documents_;
+};
+
+qljs_vscode_workspace* qljs_vscode_create_workspace() {
+  qljs_vscode_workspace* workspace = new qljs_vscode_workspace();
+  return workspace;
+}
+
+void qljs_vscode_destroy_workspace(qljs_vscode_workspace* workspace) {
+  delete workspace;
+}
+
 struct qljs_vscode_document final
     : public quick_lint_js::qljs_document_base<
           quick_lint_js::lsp_locator,
           quick_lint_js::c_api_error_reporter<qljs_vscode_diagnostic,
                                               quick_lint_js::lsp_locator>> {
  public:
+  explicit qljs_vscode_document(qljs_vscode_workspace* workspace)
+      : workspace(workspace) {}
+
   void replace_text(int start_line, int start_character, int end_line,
                     int end_character,
                     quick_lint_js::string8_view replacement) {
@@ -57,14 +83,34 @@ struct qljs_vscode_document final
         },
         replacement);
   }
+
+  qljs_vscode_workspace* workspace;
 };
 
-qljs_vscode_document* qljs_vscode_create_document(void) {
-  qljs_vscode_document* p = new qljs_vscode_document();
-  return p;
+qljs_vscode_document* qljs_vscode_workspace::create_source_document() {
+  std::unique_ptr<qljs_vscode_document>& doc = this->documents_.emplace_back(
+      std::make_unique<qljs_vscode_document>(this));
+  return doc.get();
 }
 
-void qljs_vscode_destroy_document(qljs_vscode_document* p) { delete p; }
+void qljs_vscode_workspace::destroy_document(qljs_vscode_document* doc) {
+  auto doc_it = std::find_if(
+      this->documents_.begin(), this->documents_.end(),
+      [&](const std::unique_ptr<qljs_vscode_document>& existing_doc) {
+        return existing_doc.get() == doc;
+      });
+  QLJS_ASSERT(doc_it != this->documents_.end());
+  this->documents_.erase(doc_it);
+}
+
+qljs_vscode_document* qljs_vscode_create_source_document(
+    qljs_vscode_workspace* workspace) {
+  return workspace->create_source_document();
+}
+
+void qljs_vscode_destroy_document(qljs_vscode_document* p) {
+  p->workspace->destroy_document(p);
+}
 
 void qljs_vscode_replace_text(qljs_vscode_document* p, int start_line,
                               int start_character, int end_line,
