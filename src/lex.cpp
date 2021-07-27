@@ -458,9 +458,32 @@ retry:
       this->last_token_.type = token_type::star_equal;
       this->input_ += 2;
     } else if (this->input_[1] == '/') {
-      this->error_reporter_->report(error_unopened_block_comment{
-          source_code_span(&this->input_[0], &this->input_[1])});
-      this->input_ += 2;
+      buffering_error_reporter temp_error_reporter;
+      error_reporter* old_error_reporter =
+          std::exchange(this->error_reporter_, &temp_error_reporter);
+      lexer_transaction transaction = this->begin_transaction();
+
+      // satisfy reparse_as_regexp assertions
+      this->last_token_.type = token_type::slash;
+      this->input_ += 1;
+      this->last_token_.begin = this->input_;
+
+      this->reparse_as_regexp();
+      bool parsed_ok = temp_error_reporter.empty() &&
+                       !this->transaction_has_lex_errors(transaction);
+      this->roll_back_transaction(std::move(transaction));
+      this->error_reporter_ = old_error_reporter;
+
+      if (!parsed_ok) {
+        this->error_reporter_->report(error_unopened_block_comment{
+            source_code_span(&this->input_[0], &this->input_[1])});
+        this->input_ += 1;
+        this->last_token_.type = token_type::slash;
+      } else {
+        this->last_token_.type = token_type::star;
+      }
+      this->input_ += 1;
+      this->last_token_.begin = this->input_;
     } else {
       this->last_token_.type = token_type::star;
       this->input_ += 1;
@@ -955,8 +978,8 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->error_reporter_ = transaction.old_error_reporter;
 }
 
-bool lexer::transaction_has_lex_errors(const lexer_transaction&) const
-    noexcept {
+bool lexer::transaction_has_lex_errors(
+    const lexer_transaction&) const noexcept {
   buffering_error_reporter* buffered_errors =
       static_cast<buffering_error_reporter*>(this->error_reporter_);
   return !buffered_errors->empty();
