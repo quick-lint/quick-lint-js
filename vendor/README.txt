@@ -105,6 +105,58 @@ Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.4
 Release date: September 25, 2020
 Version: 1.9.4
 
+## node
+
+The node directory contains Node.js, a JavaScript runtime environment.
+
+Only the following files have been kept to reduce storage consumption:
+
+* node/AUTHORS
+* node/LICENSE
+* node/README.md
+* node/src/js_native_api.h
+* node/src/js_native_api_types.h
+* node/src/node_api.h
+* node/src/node_api_types.h
+
+Copyright: Copyright Node.js contributors. All rights reserved.; various
+Download URL: https://nodejs.org/download/release/v14.17.3/node-v14.17.3.tar.xz
+Download date: July 25, 2021
+Git commit: 9fb7b48c5ed7707fbc4007a2e3fc99aec7587d8b
+License file: node/LICENSE
+License type: MIT; various
+Location: node
+Project URL: https://nodejs.org/
+Release URL: https://nodejs.org/download/release/v14.17.3/
+Release date: July 5, 2021
+Version: v14.17.3
+
+## node-addon-api
+
+The node-addon-api directory contains node-addon-api, header-only C++ wrapper
+classes which simplify the use of the C based Node-API provided by Node.js when
+using C++.
+
+The following directories have been deleted to reduce storage consumption:
+
+* node-addon-api/.github/
+* node-addon-api/benchmark/
+* node-addon-api/doc/
+* node-addon-api/test/
+* node-addon-api/tools/
+
+Copyright: Copyright (c) 2017 Node.js API collaborators
+Download URL: https://github.com/nodejs/node-addon-api/archive/refs/tags/4.0.0.tar.gz
+Download date: July 25, 2021
+Git commit: ad76ad07f914fab02be5778ec67485916c4626d9
+License file: node-addon-api/LICENSE.md
+License type: MIT
+Location: node-addon-api
+Project URL: https://github.com/nodejs/node-addon-api
+Release URL: https://github.com/nodejs/node-addon-api/releases/tag/4.0.0
+Release date: June 15, 2021
+Version: 4.0.0
+
 ## simdjson
 
 The simdjson directory contains simdjson, a C++ library for parsing JSON.
