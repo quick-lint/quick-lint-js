@@ -107,8 +107,6 @@ class lexer {
   //               token_type::slash_equal.
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
-  // helper function while parsing '*' followed by '/'
-  bool reparse_as_regexp(bool lookahead);
 
   // Save lexer state.
   //

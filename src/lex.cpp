@@ -458,17 +458,32 @@ retry:
       this->last_token_.type = token_type::star_equal;
       this->input_ += 2;
     } else if (this->input_[1] == '/') {
-      // either this is an unopened comment */
-      // or binary operator * followed by /regexp/
-      // scan forward to see if there is a valid and closed regexp
-      if (reparse_as_regexp(/*lookahead=*/true)) {
-        this->last_token_.type = token_type::star;
-        this->input_ += 1;
-      } else {
+      buffering_error_reporter temp_error_reporter;
+      error_reporter* old_error_reporter =
+          std::exchange(this->error_reporter_, &temp_error_reporter);
+      lexer_transaction transaction = this->begin_transaction();
+
+      // satisfy reparse_as_regexp assertions
+      this->last_token_.type = token_type::slash;
+      this->input_ += 1;
+      this->last_token_.begin = this->input_;
+
+      this->reparse_as_regexp();
+      bool parsed_ok = temp_error_reporter.empty() &&
+                       !this->transaction_has_lex_errors(transaction);
+      this->roll_back_transaction(std::move(transaction));
+      this->error_reporter_ = old_error_reporter;
+
+      if (!parsed_ok) {
         this->error_reporter_->report(error_unopened_block_comment{
             source_code_span(&this->input_[0], &this->input_[1])});
-        this->input_ += 2;
+        this->input_ += 1;
+        this->last_token_.type = token_type::slash;
+      } else {
+        this->last_token_.type = token_type::star;
       }
+      this->input_ += 1;
+      this->last_token_.begin = this->input_;
     } else {
       this->last_token_.type = token_type::star;
       this->input_ += 1;
@@ -826,33 +841,19 @@ lexer::parsed_template_body lexer::parse_template_body(
   }
 }
 
-void lexer::reparse_as_regexp() { reparse_as_regexp(false); }
+void lexer::reparse_as_regexp() {
+  QLJS_ASSERT(this->last_token_.type == token_type::slash ||
+              this->last_token_.type == token_type::slash_equal);
 
-bool lexer::reparse_as_regexp(bool lookahead = false) {
-  // if lookahead, return true if valid regexp, do not collect errors
-  if (!lookahead) {
-    QLJS_ASSERT(this->last_token_.type == token_type::slash ||
-                this->last_token_.type == token_type::slash_equal);
-
-    this->input_ = const_cast<char8*>(this->last_token_.begin);
-    QLJS_ASSERT(this->input_[0] == '/');
-    this->last_token_.type = token_type::regexp;
-  }
+  this->input_ = const_cast<char8*>(this->last_token_.begin);
+  QLJS_ASSERT(this->input_[0] == '/');
+  this->last_token_.type = token_type::regexp;
   const char8* c = &this->input_[1];
-  if (lookahead) {
-    if (static_cast<unsigned char>(*c) == '\0') {
-      return false;
-    }
-    c = &this->input_[2];
-  }
 
 next:
   switch (static_cast<unsigned char>(*c)) {
   case '\0':
     if (this->is_eof(c)) {
-      if (lookahead) {
-        return false;
-      }
       this->error_reporter_->report(error_unclosed_regexp_literal{
           source_code_span(this->last_token_.begin, c)});
       break;
@@ -866,9 +867,6 @@ next:
     switch (*c) {
     case '\0':
       if (this->is_eof(c)) {
-        if (lookahead) {
-          return false;
-        }
         this->error_reporter_->report(error_unclosed_regexp_literal{
             source_code_span(this->last_token_.begin, c)});
         break;
@@ -922,9 +920,6 @@ next:
       if (ident.escape_sequences) {
         for (const source_code_span& escape_sequence :
              *ident.escape_sequences) {
-          if (lookahead) {
-            return false;
-          }
           this->error_reporter_->report(
               error_regexp_literal_flags_cannot_contain_unicode_escapes{
                   .escape_sequence = escape_sequence});
@@ -938,9 +933,6 @@ next:
   case u8'\r':
   case 0xe2:
     if (this->newline_character_size(c) != 0) {
-      if (lookahead) {
-        return false;
-      }
       this->error_reporter_->report(error_unclosed_regexp_literal{
           source_code_span(this->last_token_.begin, c)});
       break;
@@ -951,11 +943,8 @@ next:
     goto next;
   }
 
-  if (!lookahead) {
-    this->input_ = c;
-    this->last_token_.end = this->input_;
-  }
-  return true;
+  this->input_ = c;
+  this->last_token_.end = this->input_;
 }
 
 lexer_transaction lexer::begin_transaction() {

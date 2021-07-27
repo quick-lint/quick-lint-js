@@ -118,14 +118,54 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     error_collector v;
     padded_string input(u8"hello */"_sv);
     lexer l(&input, &v);
-    l.skip(); // identifier
-    l.skip(); // star
-    l.skip(); // slash
+    l.skip();  // identifier
+    l.skip();  // star
+    l.skip();  // slash
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-			      error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 6, 7))));
+                              error_unopened_block_comment, comment_close,
+                              offsets_matcher(&input, 6, u8"/"))));
+  }
+}
+
+TEST_F(test_lex, lex_unopened_block_comment2) {
+  {
+    error_collector v;
+    padded_string input(u8"3; */hello"_sv);
+    lexer l(&input, &v);
+    l.skip();  // number 3
+    l.skip();  // semicolon
+    l.skip();  // star
+    l.skip();  // slash
+    l.skip();  // identifier (hello)
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unopened_block_comment, comment_close,
+                              offsets_matcher(&input, 3, u8"/"))));
+  }
+}
+
+TEST_F(test_lex, lex_unopened_block_comment_with_regexp_literal) {
+  {
+    error_collector v;
+    padded_string input(u8"3; */ hello/"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();  // number 3
+    EXPECT_EQ(l.peek().type, token_type::semicolon);
+    l.skip();  // star
+    EXPECT_EQ(l.peek().type, token_type::star);
+    l.skip();  // slash
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip();  // identifier
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();  // slash
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip();  // slash
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
