@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
+set(VSCODE_DIST_DIR dist)
+
 if (EMSCRIPTEN)
   # TODO(strager): Rename.
   quick_lint_js_add_executable(quick-lint-js-vscode empty.cpp)
@@ -19,7 +21,6 @@ if (EMSCRIPTEN)
   )
   set_target_properties(quick-lint-js-vscode PROPERTIES SUFFIX .wasm)
 
-  set(VSCODE_DIST_DIR dist)
   install(
     TARGETS quick-lint-js-vscode
     RUNTIME
@@ -41,6 +42,91 @@ if (EMSCRIPTEN)
       EXCLUDE_FROM_ALL
       RENAME copyright.txt
     )
+  endif ()
+endif ()
+
+if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
+  if (NOT QUICK_LINT_JS_NODEJS_OS_PLATFORM)
+    if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
+      set(NODEJS_OS_PLATFORM darwin)
+    elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
+      set(NODEJS_OS_PLATFORM linux)
+    elseif (CMAKE_SYSTEM_NAME STREQUAL Windows)
+      set(NODEJS_OS_PLATFORM win32)
+    else ()
+      set(NODEJS_OS_PLATFORM)
+    endif ()
+    set(
+      QUICK_LINT_JS_NODEJS_OS_PLATFORM
+      "${NODEJS_OS_PLATFORM}"
+      CACHE STRING
+      "Node.js value of os.platform() for the target system"
+      FORCE
+    )
+  endif ()
+  if (NOT QUICK_LINT_JS_NODEJS_OS_ARCH)
+    if (CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64 OR CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64)
+      set(NODEJS_OS_ARCH x64)
+    else ()
+      set(NODEJS_OS_ARCH)
+    endif ()
+    set(
+      QUICK_LINT_JS_NODEJS_OS_ARCH
+      "${NODEJS_OS_ARCH}"
+      CACHE STRING
+      "Node.js value of os.arch() for the target system"
+      FORCE
+    )
+  endif ()
+
+  if (QUICK_LINT_JS_NODEJS_OS_PLATFORM AND QUICK_LINT_JS_NODEJS_OS_ARCH)
+    quick_lint_js_add_library(quick-lint-js-node-fs SHARED node-fs.cpp)
+    set_target_properties(
+      quick-lint-js-node-fs
+      PROPERTIES
+      PREFIX ""
+      SUFFIX "_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.node"
+    )
+    target_compile_definitions(quick-lint-js-node-fs PRIVATE NAPI_VERSION=6)
+    target_link_libraries(
+      quick-lint-js-node-fs
+      PRIVATE
+      node-addon-api
+      quick-lint-js-lib
+    )
+    install(
+      TARGETS quick-lint-js-node-fs
+      LIBRARY  # Linux DSO; macOS dylib
+        COMPONENT vscode
+        EXCLUDE_FROM_ALL
+        DESTINATION "${VSCODE_DIST_DIR}"
+      RUNTIME  # Windows DLL
+        COMPONENT vscode
+        EXCLUDE_FROM_ALL
+        DESTINATION "${VSCODE_DIST_DIR}"
+    )
+
+    quick_lint_js_collect_copyright(
+      quick-lint-js-node-fs-licenses
+      TARGET quick-lint-js-node-fs
+      OUTPUT_FILE quick-lint-js-node-fs-licenses.txt
+      EXTRA_VENDOR_PROJECTS node node-addon-api
+    )
+    if (TARGET quick-lint-js-node-fs-licenses)
+      install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-node-fs-licenses.txt"
+        COMPONENT vscode
+        DESTINATION "${VSCODE_DIST_DIR}"
+        EXCLUDE_FROM_ALL
+        RENAME "copyright_quick-lint-js-node-fs_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.txt"
+      )
+    endif ()
+  else ()
+    if (NOT QUICK_LINT_JS_NODEJS_OS_PLATFORM)
+      message(WARNING "Could not determine Node.js os.platform (QUICK_LINT_JS_NODEJS_OS_PLATFORM) (CMAKE_SYSTEM_NAME is ${CMAKE_SYSTEM_NAME}); not building Node.js extension")
+    else ()
+      message(WARNING "Could not determine Node.js os.arch (QUICK_LINT_JS_NODEJS_OS_ARCH) (CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR}); not building Node.js extension")
+    endif ()
   endif ()
 endif ()
 

@@ -10,6 +10,8 @@ project(quick-lint-js)
 include(GNUInstallDirs)
 
 option(QUICK_LINT_JS_ENABLE_BENCHMARKS "Build microbenchmark programs" OFF)
+option(QUICK_LINT_JS_ENABLE_VSCODE "Build VS Code extension bits" OFF)
+
 set(
   QUICK_LINT_JS_INSTALL_LICENSES_DIR
   "${CMAKE_INSTALL_DOCDIR}"

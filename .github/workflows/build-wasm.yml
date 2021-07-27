@@ -9,9 +9,16 @@ on:
 
 jobs:
   build:
-    name: wasm
-    runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v3
+    name: ${{ matrix.os.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: macos-10.15, name: "macOS", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "Ubuntu 16.04", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: windows-latest, name: "Windows"}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v3"]')[matrix.os.runs_on == 'ubuntu-latest'] }}
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
@@ -21,12 +28,23 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: C++ configure
-        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-      - name: C++ build
-        run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
-      - name: C++ install
-        run: emmake cmake --install build --component vscode --prefix wasm
+      - name: install build dependencies
+        if: ${{ matrix.os.runs_on == "macos-10.15" }}
+        run: brew install ninja
+
+      - name: C++ Node.js configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DQUICK_LINT_JS_ENABLE_VSCODE=YES ${{ matrix.os.CMAKE_FLAGS }}
+      - name: C++ Node.js build
+        run: cmake --build build --config Debug --target quick-lint-js-node-fs quick-lint-js-node-fs-licenses
+      - name: C++ Node.js install
+        run: cmake --install build --component vscode --prefix wasm
+
+      - name: C++ wasm configure
+        run: emcmake cmake -S . -B build-emscripten -DCMAKE_BUILD_TYPE=Debug ${{ matrix.os.CMAKE_FLAGS }}
+      - name: C++ wasm build
+        run: emmake cmake --build build-emscripten --target quick-lint-js-vscode quick-lint-js-vscode-licenses
+      - name: C++ wasm install
+        run: emmake cmake --install build-emscripten --component vscode --prefix wasm
 
       - name: JS configure
         run: cd wasm && yarn install

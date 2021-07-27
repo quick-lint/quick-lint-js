@@ -8,8 +8,51 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build:
-    name: extension
+  build-node-addon:
+    name: Node.js addon for ${{ matrix.os.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1"]')[matrix.os.runs_on == 'ubuntu-latest'] }}
+    env:
+      CMAKE_CXX_COMPILER: ${{ matrix.os.CXX }}
+      CMAKE_CXX_FLAGS: ${{ matrix.os.CFLAGS }}
+      CMAKE_C_COMPILER: ${{ matrix.os.CC }}
+      CMAKE_C_FLAGS: ${{ matrix.os.CFLAGS }}
+      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.os.LDFLAGS }}
+      CMAKE_EXTRA_FLAGS: ${{ matrix.os.CMAKE_FLAGS }}
+      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.os.LDFLAGS }}
+      QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure
+        run: |
+          env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
+          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_VSCODE=YES ${CMAKE_EXTRA_FLAGS} -S . -B build
+        shell: bash
+      - name: build
+        run: cmake --build build --config Release --target quick-lint-js-node-fs quick-lint-js-node-fs-licenses
+      - name: install
+        run: cmake --install build --component vscode --prefix wasm
+
+      - name: upload build to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-node-${{ matrix.os.archive_name }}
+          path: wasm/dist/
+
+  build-extension:
+    name: VS Code extension
+    needs: build-node-addon
     runs-on: ubuntu-latest
     # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
     env:
@@ -26,6 +69,19 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
           sudo apt-get install -y ninja-build
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-node-linux
+          path: ./wasm/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-node-macos
+          path: ./wasm/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-node-windows
+          path: ./wasm/dist/
 
       - name: C++ configure
         run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-O3 -flto' -DCMAKE_CXX_FLAGS='-O3 -fno-rtti -fno-exceptions -flto'

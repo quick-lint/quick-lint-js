@@ -1,0 +1,47 @@
+; Copyright (C) 2020  Matthew "strager" Glazar
+; See end of file for extended copyright information.
+
+; This file is used to create an implib (.imp) file for node.exe on Windows.
+;
+; This file contains a list of all N-API symbols exported by node.exe for use by
+; addons.
+
+LIBRARY NODE.EXE
+EXPORTS
+    napi_add_finalizer
+    napi_close_handle_scope
+    napi_create_error
+    napi_create_function
+    napi_create_reference
+    napi_create_string_utf8
+    napi_create_type_error
+    napi_delete_reference
+    napi_fatal_error
+    napi_get_and_clear_last_exception
+    napi_get_cb_info
+    napi_get_last_error_info
+    napi_get_reference_value
+    napi_is_exception_pending
+    napi_module_register
+    napi_open_handle_scope
+    napi_set_property
+    napi_throw
+    ; TODO(strager): Complete this list. Many symbols are missing.
+
+; quick-lint-js finds bugs in JavaScript programs.
+; Copyright (C) 2020  Matthew "strager" Glazar
+;
+; This file is part of quick-lint-js.
+;
+; quick-lint-js is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+;
+; quick-lint-js is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

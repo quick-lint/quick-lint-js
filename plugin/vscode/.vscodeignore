@@ -6,7 +6,6 @@
 !node_modules/
 !node_modules/quick-lint-js-wasm/
 !node_modules/quick-lint-js-wasm/dist/
-!node_modules/quick-lint-js-wasm/dist/copyright.txt
-!node_modules/quick-lint-js-wasm/dist/quick-lint-js-vscode.wasm
+!node_modules/quick-lint-js-wasm/dist/*
 !node_modules/quick-lint-js-wasm/quick-lint-js.js
 !package.json

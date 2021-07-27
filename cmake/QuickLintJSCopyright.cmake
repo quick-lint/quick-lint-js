@@ -4,7 +4,13 @@
 set(QUICK_LINT_JS_COLLECT_COPYRIGHT "${CMAKE_CURRENT_LIST_DIR}/../tools/collect-copyright")
 
 function (quick_lint_js_collect_copyright NAME)
-  cmake_parse_arguments("" "" "OUTPUT_FILE;TARGET" "" ${ARGN})
+  cmake_parse_arguments(
+    ""
+    ""
+    "OUTPUT_FILE;TARGET"
+    "EXTRA_VENDOR_PROJECTS"
+    ${ARGN}
+  )
   set(LINKMAP_FILE "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}.trace")
 
   set(ERROR_MESSAGE_SEVERITY WARNING)
@@ -66,6 +72,15 @@ function (quick_lint_js_collect_copyright NAME)
       "${_TARGET}"
       PRIVATE
       "-MAP:${LINKMAP_FILE}"
+    )
+  endif ()
+
+  if (_EXTRA_VENDOR_PROJECTS)
+    list(
+      APPEND
+      COLLECT_COPYRIGHT_OPTIONS
+      --extra-vendor-projects
+      ${_EXTRA_VENDOR_PROJECTS}
     )
   endif ()
 

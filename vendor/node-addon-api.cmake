@@ -1,17 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-cmake_minimum_required(VERSION 3.10)
-
-if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
-  include(benchmark.cmake)
-endif ()
-include(boost.cmake)
-include(googletest.cmake)
-include(jsoncpp.cmake)
-include(node-addon-api.cmake)
-include(node.cmake)
-include(simdjson.cmake)
+add_library(node-addon-api INTERFACE)
+target_compile_definitions(node-addon-api INTERFACE NAPI_DISABLE_CPP_EXCEPTIONS)
+target_include_directories(node-addon-api SYSTEM INTERFACE node-addon-api)
+target_link_libraries(node-addon-api INTERFACE node-napi)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

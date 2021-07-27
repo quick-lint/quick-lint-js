@@ -28,6 +28,7 @@ archive_to_vendor_project = {
     "libboost.a": "boost",
     "libquick-lint-js-lib.a": None,
     "libsimdjson.a": "simdjson",
+    "node-napi.lib": None,  # Dynamically linked.
     "quick-lint-js-lib.lib": None,
     "simdjson.lib": "simdjson",
     # HACK(strager): Ignore these libraries for now.
@@ -67,6 +68,12 @@ def main() -> None:
         help="Don't assume system package manager manages the standard library",
     )
     parser.add_argument(
+        "--extra-vendor-projects",
+        default=[],
+        help="Include license information for these projects from --vendor-readme",
+        nargs="+",
+    )
+    parser.add_argument(
         "--vendor-readme",
         required=False,
         default=str(pathlib.Path(__file__).parent / ".." / "vendor" / "README.txt"),
@@ -103,6 +110,7 @@ Parts of quick-lint-js might be distributed under different licenses:
         vendor_projects=vendor_projects,
         vendor_directory=vendor_readme_file.parent,
         is_cross_compiling_emscripten=args.cross_compiling_emscripten,
+        extra_vendor_projects=args.extra_vendor_projects,
     )
 
 
@@ -111,6 +119,7 @@ def dump_from_linkmap(
     vendor_projects: typing.List["VendorReadmeProject"],
     vendor_directory: pathlib.Path,
     is_cross_compiling_emscripten: bool,
+    extra_vendor_projects: typing.List[str],
 ) -> None:
     link_map = parse_link_map(link_map_file.read_text())
     linked_system_archives = [
@@ -123,6 +132,7 @@ def dump_from_linkmap(
     ]
     dump_from_vendor(
         linked_vendored_archives,
+        project_names=extra_vendor_projects,
         vendor_projects=vendor_projects,
         vendor_directory=vendor_directory,
     )
@@ -134,9 +144,11 @@ def dump_from_linkmap(
 
 def dump_from_vendor(
     archives: typing.List[str],
+    project_names: typing.List[str],
     vendor_projects: typing.List["VendorReadmeProject"],
     vendor_directory: pathlib.Path,
 ) -> None:
+    all_project_names = project_names
     for archive in sorted(archives):
         try:
             vendor_project_name = archive_to_vendor_project[pathlib.Path(archive).name]
@@ -145,13 +157,16 @@ def dump_from_vendor(
         if vendor_project_name is None:
             # Archive is quick-lint-js itself. Its license is handled elsewhere.
             continue
+        all_project_names.append(vendor_project_name)
 
+    all_project_names = sorted(set(all_project_names))
+    for vendor_project_name in all_project_names:
         matching_vendor_projects = [
             p for p in vendor_projects if p.project_name == vendor_project_name
         ]
         if len(matching_vendor_projects) != 1:
             raise Exception(
-                f"could not find vendor project for archive: {archive} (project name: {vendor_project_name}"
+                f"could not find vendor project for project name: {vendor_project_name}"
             ) from None
         vendor_project = matching_vendor_projects[0]
 

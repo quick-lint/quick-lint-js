@@ -1,27 +1,22 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import path from "path";
-import url from "url";
+#include <napi.h>
 
-let __filename = url.fileURLToPath(import.meta.url);
-let __dirname = path.dirname(__filename);
+namespace {
+::Napi::String hello(const ::Napi::CallbackInfo& info) {
+  ::Napi::Env env = info.Env();
+  return ::Napi::String::New(env, "hi");
+}
 
-export let websiteConfig = {
-  esbuildBundles: {
-    "/demo/demo.bundled.js": {
-      entryPoints: ["/demo/demo.mjs"],
-      external: ["fs", "os", "path"],
-    },
-  },
-  htmlRedirects: {
-    "/cli.html": "cli/",
-    "/hiring.html": "hiring/",
-    "/install.html": "install/",
-    "/license.html": "license/",
-  },
-  wwwRootPath: path.join(__dirname, "..", "public"),
-};
+::Napi::Object initialize_addon(::Napi::Env env, ::Napi::Object exports) {
+  exports.Set(::Napi::String::New(env, "hello"),
+              ::Napi::Function::New(env, hello));
+  return exports;
+}
+}
+
+NODE_API_MODULE(quick_lint_js_node_fs, initialize_addon)
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
