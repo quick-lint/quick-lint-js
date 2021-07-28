@@ -474,6 +474,7 @@ retry:
         this->error_reporter_->report(error_unopened_block_comment{
             source_code_span(starpos, &this->input_[2])});
         this->input_ += 2;
+        this->skip_whitespace();
         goto retry;
       } else {
         this->last_token_.type = token_type::star;
