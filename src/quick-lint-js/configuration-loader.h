@@ -185,16 +185,6 @@ class configuration_loader {
   std::vector<watched_config_path> watched_config_paths_;
   std::vector<watched_input_path> watched_input_paths_;
 };
-
-class basic_configuration_filesystem : public configuration_filesystem {
- public:
-  static basic_configuration_filesystem* instance() noexcept;
-
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
-      const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
-      const canonical_path&) override;
-};
 }
 
 #endif

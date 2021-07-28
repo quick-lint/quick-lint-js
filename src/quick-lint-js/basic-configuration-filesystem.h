@@ -1,45 +1,34 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <benchmark/benchmark.h>
-#include <quick-lint-js/basic-configuration-filesystem.h>
+#ifndef QUICK_LINT_JS_BASIC_CONFIGURATION_LOADER_H
+#define QUICK_LINT_JS_BASIC_CONFIGURATION_LOADER_H
+
+#if defined(__EMSCRIPTEN__)
+// No filesystem on the web.
+#else
+
 #include <quick-lint-js/configuration-loader.h>
+#include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/options.h>
-#include <quick-lint-js/temporary-directory.h>
+#include <quick-lint-js/result.h>
 #include <string>
 
 namespace quick_lint_js {
-namespace {
-void benchmark_no_config_file(::benchmark::State& state) {
-  int extra_depth = narrow_cast<int>(state.range(0));
-  std::string temp_dir = make_temporary_directory();
+class basic_configuration_filesystem : public configuration_filesystem {
+ public:
+  static basic_configuration_filesystem* instance() noexcept;
 
-  std::string path = temp_dir;
-  for (int i = 0; i < extra_depth; ++i) {
-    path += "/subdir" + std::to_string(i);
-    create_directory(path);
-  }
-  path += "/hello.js";
-  write_file(path, u8"");
-
-  for (auto _ : state) {
-    configuration_loader loader(basic_configuration_filesystem::instance());
-    auto config = loader.load_for_file(path);
-    ::benchmark::DoNotOptimize(config);
-  }
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+      const std::string&) override;
+  result<padded_string, read_file_io_error, watch_io_error> read_file(
+      const canonical_path&) override;
+};
 }
-BENCHMARK(benchmark_no_config_file)
-    ->Arg(0)
-    ->Arg(8)
-    ->Arg(16)
-    ->Arg(24)
-    ->Arg(32)
-    ->Arg(48)
-    ->Arg(64);
-}  // namespace
-}  // namespace quick_lint_js
+
+#endif
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

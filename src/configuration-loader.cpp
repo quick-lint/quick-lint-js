@@ -529,22 +529,6 @@ bool configuration_loader::is_config_file_path(
          ends_with(file_path,
                    QLJS_PREFERRED_PATH_SEPARATOR ".quick-lint-js.config");
 }
-
-basic_configuration_filesystem*
-basic_configuration_filesystem::instance() noexcept {
-  static basic_configuration_filesystem fs;
-  return &fs;
-}
-
-result<canonical_path_result, canonicalize_path_io_error>
-basic_configuration_filesystem::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
-}
-
-result<padded_string, read_file_io_error, watch_io_error>
-basic_configuration_filesystem::read_file(const canonical_path& path) {
-  return quick_lint_js::read_file(path.c_str());
-}
 }
 
 #endif

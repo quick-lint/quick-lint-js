@@ -5,6 +5,7 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/basic-configuration-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/json.h>
