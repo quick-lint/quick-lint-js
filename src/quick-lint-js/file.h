@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_H
 #define QUICK_LINT_JS_FILE_H
 
+#if defined(__EMSCRIPTEN__)
+// No file I/O on the web.
+#else
+
 #include <cstdio>
 #include <cstring>
 #include <quick-lint-js/assert.h>
@@ -50,6 +54,8 @@ auto exit_on_read_file_error_handlers() {
       });
 }
 }
+
+#endif
 
 #endif
 

@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <algorithm>
 #include <array>
 #include <condition_variable>
@@ -210,6 +212,8 @@ void non_blocking_pipe_writer::write_as_much_as_possible_now_non_blocking(
 }
 #endif
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

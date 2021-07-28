@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
+#if defined(__EMSCRIPTEN__)
+// No canonicalize_path on the web.
+#else
+
 #include <cstddef>
 #include <functional>
 #include <optional>
@@ -125,6 +129,8 @@ struct hash<quick_lint_js::canonical_path> {
   }
 };
 }
+
+#endif
 
 #endif
 

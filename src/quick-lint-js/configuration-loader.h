@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_LOADER_H
 #define QUICK_LINT_JS_CONFIGURATION_LOADER_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <optional>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/configuration.h>
@@ -140,7 +144,7 @@ class configuration_loader {
     std::string input_config_path;
     std::optional<canonical_path> actual_config_path;
     std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
-                               watch_io_error>>
+                               watch_io_error> >
         error;
     void* token;
   };
@@ -149,7 +153,7 @@ class configuration_loader {
     std::string input_path;
     std::optional<canonical_path> config_path;
     std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
-                               watch_io_error>>
+                               watch_io_error> >
         error;
     void* token;
   };
@@ -192,6 +196,8 @@ class basic_configuration_filesystem : public configuration_filesystem {
       const canonical_path&) override;
 };
 }
+
+#endif
 
 #endif
 

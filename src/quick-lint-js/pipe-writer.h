@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_PIPE_WRITER_H
 #define QUICK_LINT_JS_PIPE_WRITER_H
 
+#if defined(__EMSCRIPTEN__)
+// No pipe_writer on the web.
+#else
+
 #include <condition_variable>
 #include <mutex>
 #include <quick-lint-js/char8.h>
@@ -115,6 +119,8 @@ using pipe_writer = background_thread_pipe_writer;
 using pipe_writer = non_blocking_pipe_writer;
 #endif
 }
+
+#endif
 
 #endif
 

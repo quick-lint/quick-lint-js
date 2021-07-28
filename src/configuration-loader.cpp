@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
@@ -544,6 +546,8 @@ basic_configuration_filesystem::read_file(const canonical_path& path) {
   return quick_lint_js::read_file(path.c_str());
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

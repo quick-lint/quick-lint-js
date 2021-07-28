@@ -47,7 +47,9 @@ struct posix_file_io_error {
 };
 #endif
 
-#if QLJS_HAVE_WINDOWS_H
+#if defined(__EMSCRIPTEN__)
+// No platform_file_io_error on the web.
+#elif QLJS_HAVE_WINDOWS_H
 using platform_file_io_error = windows_file_io_error;
 #elif QLJS_HAVE_UNISTD_H
 using platform_file_io_error = posix_file_io_error;
@@ -55,6 +57,9 @@ using platform_file_io_error = posix_file_io_error;
 #error "Unknown platform"
 #endif
 
+#if defined(__EMSCRIPTEN__)
+// No file_read_result on the web.
+#else
 // A file_read_result represents the effect of a call to
 // platform_file_ref::read.
 //
@@ -90,6 +95,7 @@ struct file_read_result
     return ***this;
   }
 };
+#endif
 
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
@@ -213,7 +219,9 @@ class posix_fd_file : private posix_fd_file_ref {
 };
 #endif
 
-#if QLJS_HAVE_WINDOWS_H
+#if defined(__EMSCRIPTEN__)
+// No platform_file or platform_file_ref on web.
+#elif QLJS_HAVE_WINDOWS_H
 using platform_file = windows_handle_file;
 using platform_file_ref = windows_handle_file_ref;
 #elif QLJS_HAVE_UNISTD_H

@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_ENDPOINT_H
 #define QUICK_LINT_JS_LSP_ENDPOINT_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <cstddef>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
@@ -45,9 +49,10 @@ concept lsp_endpoint_handler =
 //
 // lsp_endpoint implements JSON-RPC.
 template <QLJS_LSP_ENDPOINT_HANDLER Handler, QLJS_LSP_ENDPOINT_REMOTE Remote>
-class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
+class lsp_endpoint
+    : private lsp_message_parser<lsp_endpoint<Handler, Remote> > {
  private:
-  using message_parser = lsp_message_parser<lsp_endpoint<Handler, Remote>>;
+  using message_parser = lsp_message_parser<lsp_endpoint<Handler, Remote> >;
 
  public:
   explicit lsp_endpoint() {}
@@ -104,7 +109,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
     if (is_batch_request) {
       response_json.append_copy(u8"[");
       std::size_t empty_response_json_size = response_json.size();
-      for (::simdjson::simdjson_result<::simdjson::ondemand::value>
+      for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
                sub_request_or_error : batched_requests) {
         ::simdjson::ondemand::object sub_request;
         if (sub_request_or_error.get(sub_request) !=
@@ -181,6 +186,8 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Handler, Remote>> {
   friend message_parser;
 };
 }
+
+#endif
 
 #endif
 

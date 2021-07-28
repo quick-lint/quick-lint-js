@@ -83,10 +83,10 @@
 
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
 #elif defined(__has_include)
-#if __has_include(<unistd.h>)
+#if __has_include(<unistd.h>) && !defined(__EMSCRIPTEN__)
 #define QLJS_HAVE_UNISTD_H 1
 #endif
-#elif defined(__unix__)
+#elif defined(__unix__) && !defined(__EMSCRIPTEN__)
 #define QLJS_HAVE_UNISTD_H 1
 #endif
 #if !defined(QLJS_HAVE_UNISTD_H)

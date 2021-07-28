@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_H
 #define QUICK_LINT_JS_LSP_SERVER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <cstddef>
 #include <functional>
 #include <quick-lint-js/assert.h>
@@ -174,6 +178,8 @@ class mock_lsp_linter {
 extern template class linting_lsp_server_handler<lsp_javascript_linter>;
 extern template class linting_lsp_server_handler<mock_lsp_linter>;
 }
+
+#endif
 
 #endif
 
