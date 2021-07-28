@@ -125,10 +125,10 @@ TEST(test_parse, commas_not_allowed_between_class_methods) {
                             "visit_enter_function_scope_body",  // { if
                             "visit_enter_block_scope",          // {
                             "visit_variable_use",               // this._a
-                            "visit_variable_use",  // text
-                            "visit_exit_block_scope",     // }
-                            "visit_exit_function_scope",  // }
-                            "visit_exit_class_scope"      // }
+                            "visit_variable_use",               // text
+                            "visit_exit_block_scope",           // }
+                            "visit_exit_function_scope",        // }
+                            "visit_exit_class_scope"            // }
                             ));
   }
 }
