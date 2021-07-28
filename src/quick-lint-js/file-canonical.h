@@ -37,7 +37,7 @@ class canonical_path {
   explicit canonical_path(std::string &&path);
 
   std::string_view path() const &noexcept;
-  std::string &&path() && noexcept;
+  std::string &&path() &&noexcept;
   const char *c_str() const noexcept;
 
   // Add a new component to the end of the path.
@@ -77,11 +77,11 @@ class canonical_path_result {
                                  std::size_t existing_path_length);
 
   std::string_view path() const &noexcept;
-  std::string &&path() && noexcept;
+  std::string &&path() &&noexcept;
   const char *c_str() const noexcept;
 
   const canonical_path &canonical() const &noexcept;
-  canonical_path &&canonical() && noexcept;
+  canonical_path &&canonical() &&noexcept;
 
   bool have_missing_components() const noexcept;
   void drop_missing_components();
@@ -115,8 +115,8 @@ template <>
 struct hash<quick_lint_js::canonical_path> {
   using is_transparent = void;
 
-  std::size_t operator()(const quick_lint_js::canonical_path &path) const
-      noexcept {
+  std::size_t operator()(
+      const quick_lint_js::canonical_path &path) const noexcept {
     return std::hash<std::string_view>()(path.path());
   }
 

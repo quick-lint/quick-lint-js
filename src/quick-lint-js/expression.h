@@ -1233,8 +1233,8 @@ inline int expression::object_entry_count() const noexcept {
       [](const auto &self) { return self.object_entry_count_impl(); });
 }
 
-inline object_property_value_pair expression::object_entry(int index) const
-    noexcept {
+inline object_property_value_pair expression::object_entry(
+    int index) const noexcept {
   return this->with_derived(
       [&](const auto &self) { return self.object_entry_impl(index); });
 }

@@ -670,8 +670,6 @@ retry:
 bool lexer::test_for_regexp(int offset) {
   lexer_transaction transaction = this->begin_transaction();
 
-  const char8* starpos = &this->input_[offset];
-
   this->last_token_.type = token_type::slash;
   this->input_ += offset + 1;
   this->last_token_.begin = this->input_;

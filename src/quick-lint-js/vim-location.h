@@ -49,8 +49,8 @@ class vim_locator {
 
   offset_type offset(const char8*) const noexcept;
 
-  vim_source_position position(int line_number, offset_type offset) const
-      noexcept;
+  vim_source_position position(int line_number,
+                               offset_type offset) const noexcept;
 
   padded_string_view input_;
   mutable std::vector<offset_type> offset_of_lines_;
