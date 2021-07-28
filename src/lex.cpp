@@ -462,23 +462,17 @@ retry:
       this->last_token_.type = token_type::star_equal;
       this->input_ += 2;
     } else if (this->input_[1] == '/') {
-      buffering_error_reporter temp_error_reporter;
-      error_reporter* old_error_reporter =
-          std::exchange(this->error_reporter_, &temp_error_reporter);
       lexer_transaction transaction = this->begin_transaction();
 
       const char8* starpos = &this->input_[0];
-      token old_last_token = this->last_token_;
 
       this->last_token_.type = token_type::slash;
       this->input_ += 1;
       this->last_token_.begin = this->input_;
       this->reparse_as_regexp();
 
-      bool parsed_ok = temp_error_reporter.empty() &&
-                       !this->transaction_has_lex_errors(transaction);
+      bool parsed_ok = !this->transaction_has_lex_errors(transaction);
       this->roll_back_transaction(std::move(transaction));
-      this->error_reporter_ = old_error_reporter;
 
       if (!parsed_ok) {
         this->error_reporter_->report(error_unopened_block_comment{
@@ -853,6 +847,7 @@ void lexer::reparse_as_regexp() {
   this->input_ = const_cast<char8*>(this->last_token_.begin);
   QLJS_ASSERT(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
+
   const char8* c = &this->input_[1];
 
 next:
