@@ -132,6 +132,7 @@ TEST_F(test_lex, lex_unopened_block_comment1) {
     error_collector v;
     padded_string input(u8"*-----*/"_sv);
     lexer l(&input, &v);
+
     while (l.peek().type != token_type::end_of_file) {
       l.skip();
     }
@@ -246,7 +247,7 @@ TEST_F(test_lex, lex_unopened_block_comment_with_regexp_literal) {
     EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();  // slash
     EXPECT_EQ(l.peek().type, token_type::slash);
-    l.skip();
+    l.skip();  // slash
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
     EXPECT_THAT(v.errors, IsEmpty());
   }

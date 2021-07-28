@@ -854,8 +854,8 @@ void lexer::reparse_as_regexp() {
   this->input_ = const_cast<char8*>(this->last_token_.begin);
   QLJS_ASSERT(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
-
   const char8* c = &this->input_[1];
+
 next:
   switch (static_cast<unsigned char>(*c)) {
   case '\0':
