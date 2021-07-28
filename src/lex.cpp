@@ -989,7 +989,7 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
 }
 
 bool lexer::transaction_has_lex_errors(const lexer_transaction&) const
- noexcept {
+    noexcept {
   buffering_error_reporter* buffered_errors =
       static_cast<buffering_error_reporter*>(this->error_reporter_);
   return !buffered_errors->empty();
