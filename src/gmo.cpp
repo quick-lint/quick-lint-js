@@ -37,8 +37,8 @@ class native_gmo_file {
     }
   }
 
-  std::string_view find_translation_scanning(
-      std::string_view original) const noexcept {
+  std::string_view find_translation_scanning(std::string_view original) const
+      noexcept {
     for (word_type i = 0; i < this->string_count(); ++i) {
       if (this->original_string_at(i) == original) {
         return this->translated_string_at(i);
@@ -47,8 +47,8 @@ class native_gmo_file {
     return original;
   }
 
-  std::string_view find_translation_hashing(
-      gmo_message original) const noexcept {
+  std::string_view find_translation_hashing(gmo_message original) const
+      noexcept {
     offset_type hash_table_offset = this->read_word(/*offset=*/0x18);
     word_type hash_table_size = this->hash_table_size();
 
@@ -95,8 +95,8 @@ class native_gmo_file {
     return this->read_word(/*offset=*/0x14);
   }
 
-  std::string_view string_at(offset_type table_offset,
-                             word_type index) const noexcept {
+  std::string_view string_at(offset_type table_offset, word_type index) const
+      noexcept {
     offset_type table_entry_offset = table_offset + index * 0x8;
     word_type length = this->read_word(table_entry_offset + 0x0);
     word_type offset = this->read_word(table_entry_offset + 0x4);
@@ -134,13 +134,13 @@ std::string_view gmo_file::original_string_at(word_type index) const noexcept {
   QLJS_ENDIAN_DISPATCH(.original_string_at(index));
 }
 
-std::string_view gmo_file::translated_string_at(
-    word_type index) const noexcept {
+std::string_view gmo_file::translated_string_at(word_type index) const
+    noexcept {
   QLJS_ENDIAN_DISPATCH(.translated_string_at(index));
 }
 
-std::string_view gmo_file::find_translation(
-    gmo_message original) const noexcept {
+std::string_view gmo_file::find_translation(gmo_message original) const
+    noexcept {
   QLJS_ENDIAN_DISPATCH(.find_translation(original));
 }
 
