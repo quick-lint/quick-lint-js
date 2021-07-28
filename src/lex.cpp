@@ -451,9 +451,27 @@ retry:
         this->last_token_.type = token_type::star_star_equal;
         this->input_ += 3;
       } else if (this->input_[2] == '/') {
-        // **/ instead of star_star slash, interpret as star, star, slash
-        this->last_token_.type = token_type::star;
-        this->input_ += 1;
+        lexer_transaction transaction = this->begin_transaction();
+
+        const char8* starpos = &this->input_[1];
+
+        this->last_token_.type = token_type::slash;
+        this->input_ += 2;
+        this->last_token_.begin = this->input_;
+        this->reparse_as_regexp();
+
+        bool parsed_ok = !this->transaction_has_lex_errors(transaction);
+        this->roll_back_transaction(std::move(transaction));
+
+        if (!parsed_ok) {
+          this->error_reporter_->report(error_unopened_block_comment{
+              source_code_span(starpos, &this->input_[3])});
+          this->input_ += 3;
+          goto retry;
+        } else {
+          this->last_token_.type = token_type::star_star;
+          this->input_ += 2;
+        }
       } else {
         this->last_token_.type = token_type::star_star;
         this->input_ += 2;
