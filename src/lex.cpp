@@ -451,23 +451,10 @@ retry:
         this->last_token_.type = token_type::star_star_equal;
         this->input_ += 3;
       } else if (this->input_[2] == '/') {
-        lexer_transaction transaction = this->begin_transaction();
-
-        const char8* starpos = &this->input_[1];
-
-        this->last_token_.type = token_type::slash;
-        this->input_ += 2;
-        this->last_token_.begin = this->input_;
-        this->reparse_as_regexp();
-
-        bool parsed_ok = !this->transaction_has_lex_errors(transaction);
-        this->roll_back_transaction(std::move(transaction));
-
+        bool parsed_ok = this->test_for_regexp(1);
         if (!parsed_ok) {
-          this->error_reporter_->report(error_unopened_block_comment{
-              source_code_span(starpos, &this->input_[3])});
-          this->input_ += 3;
-          goto retry;
+          this->last_token_.type = token_type::star;
+          this->input_ += 1;
         } else {
           this->last_token_.type = token_type::star_star;
           this->input_ += 2;
@@ -480,17 +467,8 @@ retry:
       this->last_token_.type = token_type::star_equal;
       this->input_ += 2;
     } else if (this->input_[1] == '/') {
-      lexer_transaction transaction = this->begin_transaction();
-
       const char8* starpos = &this->input_[0];
-
-      this->last_token_.type = token_type::slash;
-      this->input_ += 1;
-      this->last_token_.begin = this->input_;
-      this->reparse_as_regexp();
-
-      bool parsed_ok = !this->transaction_has_lex_errors(transaction);
-      this->roll_back_transaction(std::move(transaction));
+      bool parsed_ok = this->test_for_regexp(0);
 
       if (!parsed_ok) {
         this->error_reporter_->report(error_unopened_block_comment{
@@ -686,6 +664,21 @@ retry:
     goto retry;
   }
   }
+}
+
+bool lexer::test_for_regexp(int offset) {
+  lexer_transaction transaction = this->begin_transaction();
+
+  const char8* starpos = &this->input_[offset];
+
+  this->last_token_.type = token_type::slash;
+  this->input_ += offset + 1;
+  this->last_token_.begin = this->input_;
+  this->reparse_as_regexp();
+
+  bool parsed_ok = !this->transaction_has_lex_errors(transaction);
+  this->roll_back_transaction(std::move(transaction));
+  return parsed_ok;
 }
 
 const char8* lexer::parse_string_literal() noexcept {

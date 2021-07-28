@@ -172,6 +172,8 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     error_collector v;
     padded_string input(u8"**/"_sv);
     lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::star);
+    l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unopened_block_comment, comment_close,
@@ -181,19 +183,16 @@ TEST_F(test_lex, lex_unopened_block_comment) {
 
 TEST_F(test_lex, lex_regexp_literal_starting_with_star_slash) {
   {
+    // '/*' is not an end of block comment because it precedes a regexp literal
     error_collector v;
-    padded_string input(u8"3; */ hello/"_sv);
+    padded_string input(u8"*/ hello/"_sv);
     lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, token_type::number);
-    l.skip();
-    EXPECT_EQ(l.peek().type, token_type::semicolon);
-    l.skip();
     EXPECT_EQ(l.peek().type, token_type::star);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
-    EXPECT_EQ(l.peek().begin, &input[strlen(u8"3; *")]);
+    EXPECT_EQ(l.peek().begin, &input[strlen(u8"*")]);
     EXPECT_EQ(l.peek().end, &input[input.size()]);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);

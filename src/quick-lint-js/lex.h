@@ -108,6 +108,11 @@ class lexer {
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
 
+  // Returns true if a valid regexp literal comes after '*/' or '**/'
+  // Precondition: this->input[offset+1] == '/'
+  // offset is number of characters preceding the final /
+  bool test_for_regexp(int offset);
+
   // Save lexer state.
   //
   // After calling begin_transaction, you must call either commit_transaction or
