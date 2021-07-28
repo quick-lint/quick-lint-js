@@ -450,6 +450,10 @@ retry:
       if (this->input_[2] == '=') {
         this->last_token_.type = token_type::star_star_equal;
         this->input_ += 3;
+      } else if (this->input_[2] == '/') {
+        // **/ instead of star_star slash, interpret as star, star, slash
+        this->last_token_.type = token_type::star;
+        this->input_ += 1;
       } else {
         this->last_token_.type = token_type::star_star;
         this->input_ += 2;
@@ -463,12 +467,14 @@ retry:
           std::exchange(this->error_reporter_, &temp_error_reporter);
       lexer_transaction transaction = this->begin_transaction();
 
-      // satisfy reparse_as_regexp assertions
+      const char8* starpos = &this->input_[0];
+      token old_last_token = this->last_token_;
+
       this->last_token_.type = token_type::slash;
       this->input_ += 1;
       this->last_token_.begin = this->input_;
-
       this->reparse_as_regexp();
+
       bool parsed_ok = temp_error_reporter.empty() &&
                        !this->transaction_has_lex_errors(transaction);
       this->roll_back_transaction(std::move(transaction));
@@ -476,14 +482,14 @@ retry:
 
       if (!parsed_ok) {
         this->error_reporter_->report(error_unopened_block_comment{
-            source_code_span(&this->input_[0], &this->input_[1])});
-        this->input_ += 1;
-        this->last_token_.type = token_type::slash;
+            source_code_span(starpos, &this->input_[1])});
+        // skip */
+        this->input_ += 2;
+        goto retry;
       } else {
         this->last_token_.type = token_type::star;
+        this->input_ += 1;
       }
-      this->input_ += 1;
-      this->last_token_.begin = this->input_;
     } else {
       this->last_token_.type = token_type::star;
       this->input_ += 1;
