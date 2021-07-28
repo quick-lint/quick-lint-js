@@ -146,6 +146,25 @@ TEST_F(test_file_canonical, canonical_path_to_non_existing_file_succeeds) {
 }
 
 TEST_F(test_file_canonical,
+       parent_of_present_canonical_components_of_non_existing_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
+
+  create_directory(temp_dir + "/dir");
+  result<canonical_path_result, canonicalize_path_io_error> canonicalized =
+      canonicalize_path(temp_dir + "/dir/does-not-exist.txt");
+  ASSERT_TRUE(canonicalized.ok()) << canonicalized.error().to_string();
+  canonicalized->drop_missing_components();
+
+  canonical_path canonical = std::move(*canonicalized).canonical();
+  canonical.parent();
+  EXPECT_EQ(canonical.path(), temp_dir_canonical->path());
+}
+
+TEST_F(test_file_canonical,
        canonical_path_to_non_existing_parent_directory_succeeds) {
   std::string temp_dir = this->make_temporary_directory();
   result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
@@ -987,6 +1006,20 @@ TEST_F(test_file_canonical, append_component_posix) {
         << "before = " << tc.before << "\ncomponent = " << tc.component;
   }
 }
+
+TEST_F(test_file_canonical, remove_appended_component_posix) {
+  canonical_path p("/dir/subdir");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), "/dir/subdir");
+}
+
+TEST_F(test_file_canonical, remove_component_appended_to_root_posix) {
+  canonical_path p("/");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), "/");
+}
 #endif
 
 #if defined(_WIN32)
@@ -1038,6 +1071,20 @@ TEST_F(test_file_canonical, append_component_win32) {
     EXPECT_EQ(p.path(), tc.after)
         << "before = " << tc.before << "\ncomponent = " << tc.component;
   }
+}
+
+TEST_F(test_file_canonical, remove_appended_component_win32) {
+  canonical_path p(R"(X:\dir\subdir)");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), R"(X:\dir\subdir)");
+}
+
+TEST_F(test_file_canonical, remove_component_appended_to_root_win32) {
+  canonical_path p(R"(X:\)");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), R"(X:\)");
 }
 #endif
 }

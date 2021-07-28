@@ -98,6 +98,48 @@ struct canonicalizing_path_io_error {
 
 canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
   QLJS_ASSERT(!this->path_.empty());
+
+#if QLJS_PATHS_POSIX
+  std::string_view p(this->path_);
+  while (!ends_with(p, "/")) {
+    std::size_t slash_index = p.find_last_of("/");
+    QLJS_ASSERT(slash_index != std::string::npos);
+    if (slash_index == 0 || slash_index == 1) {
+      // Preserve the slash for resulting root paths.
+      this->path_lengths_.push_back(slash_index + 1);
+      p = p.substr(0, slash_index + 1);
+    } else {
+      this->path_lengths_.push_back(slash_index);
+      p = p.substr(0, slash_index);
+    }
+  }
+  std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
+#elif QLJS_PATHS_WIN32
+  // TODO(strager): path_lengths_ is in UTF-16 code units, but it's interpreted
+  // as UTF-8 code units! Fix by storing a std::wstring in canonical_path
+  // instead of a std::string.
+  // TODO(strager): Avoid string conversions and copying.
+  std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
+  QLJS_ASSERT(wpath.has_value());
+  for (;;) {
+    HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
+    switch (result) {
+    case S_OK:
+      this->path_lengths_.push_back(std::wcslen(wpath->data()));
+      break;
+    case S_FALSE:
+      // Path is a root path already.
+      goto done;
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
+    }
+  }
+done:
+  std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
+#else
+#error "Unsupported platform"
+#endif
 }
 
 std::string_view canonical_path::path() const &noexcept { return this->path_; }
@@ -135,6 +177,7 @@ bool operator!=(const canonical_path &lhs, std::string_view rhs) noexcept {
 }
 
 void canonical_path::append_component(std::string_view component) {
+  this->path_lengths_.push_back(this->path_.size());
   if (this->path_[this->path_.size() - 1] !=
       preferred_component_separator_char) {
     this->path_.push_back(preferred_component_separator_char);
@@ -143,39 +186,13 @@ void canonical_path::append_component(std::string_view component) {
 }
 
 bool canonical_path::parent() {
-#if QLJS_PATHS_POSIX
-  if (this->path_[this->path_.size() - 1] == '/') {
+  if (this->path_lengths_.empty()) {
     return false;
   }
-  std::size_t slash_index = this->path_.find_last_of("/");
-  QLJS_ASSERT(slash_index != std::string::npos);
-  if (slash_index == 0 || slash_index == 1) {
-    // Preserve the slash for resulting root paths.
-    this->path_.resize(slash_index + 1);
-  } else {
-    this->path_.resize(slash_index);
-  }
+  std::size_t path_length = this->path_lengths_.back();
+  this->path_lengths_.pop_back();
+  this->path_.resize(path_length);
   return true;
-#elif QLJS_PATHS_WIN32
-  // TODO(strager): Avoid string conversions and copying.
-  std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
-  QLJS_ASSERT(wpath.has_value());
-  HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
-  switch (result) {
-  case S_OK:
-    wpath->resize(std::wcslen(wpath->data()));
-    this->path_ = std::filesystem::path(*wpath).string();
-    return true;
-  case S_FALSE:
-    // Path is a root path already.
-    return false;
-  default:
-    QLJS_UNIMPLEMENTED();
-    break;
-  }
-#else
-#error "Unsupported platform"
-#endif
 }
 
 canonical_path_result::canonical_path_result(std::string &&path,
@@ -207,6 +224,10 @@ bool canonical_path_result::have_missing_components() const noexcept {
 }
 
 void canonical_path_result::drop_missing_components() {
+  while (!this->path_.path_lengths_.empty() &&
+         this->path_.path_lengths_.back() >= this->existing_path_length_) {
+    this->path_.path_lengths_.pop_back();
+  }
   this->path_.path_.resize(this->existing_path_length_);
 }
 
