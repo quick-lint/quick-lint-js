@@ -121,9 +121,10 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();  // end of file
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 6, u8"/"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unopened_block_comment, comment_close,
+                    offsets_matcher(&input, strlen(u8"hello "), u8"*/"))));
   }
 }
 
@@ -138,9 +139,10 @@ TEST_F(test_lex, lex_unopened_block_comment1) {
     }
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 6, u8"/"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unopened_block_comment, comment_close,
+                    offsets_matcher(&input, strlen(u8"*-----"), u8"*/"))));
   }
   {
     error_collector v;
@@ -154,9 +156,10 @@ TEST_F(test_lex, lex_unopened_block_comment1) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 6, u8"/"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unopened_block_comment, comment_close,
+                    offsets_matcher(&input, strlen(u8"******"), u8"*/"))));
   }
   {
     error_collector v;
@@ -166,7 +169,7 @@ TEST_F(test_lex, lex_unopened_block_comment1) {
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 0, u8"/"))));
+                              offsets_matcher(&input, 0, u8"*/"))));
   }
   {
     error_collector v;
@@ -196,7 +199,7 @@ TEST_F(test_lex, lex_unopened_block_comment1) {
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unopened_block_comment, comment_close,
                     offsets_matcher(&input, strlen(u8"foo(a, true * direct "),
-                                    u8"/"))));
+                                    u8"*/"))));
   }
   {
     error_collector v;
@@ -207,7 +210,7 @@ TEST_F(test_lex, lex_unopened_block_comment1) {
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
                               error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 1, u8"/"))));
+                              offsets_matcher(&input, 1, u8"*/"))));
   }
 }
 
@@ -227,7 +230,7 @@ TEST_F(test_lex, lex_unopened_block_comment2) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_unopened_block_comment, comment_close,
-                    offsets_matcher(&input, strlen(u8"3; "), u8"/"))));
+                    offsets_matcher(&input, strlen(u8"3; "), u8"*/"))));
   }
 }
 

@@ -482,8 +482,7 @@ retry:
 
       if (!parsed_ok) {
         this->error_reporter_->report(error_unopened_block_comment{
-            source_code_span(starpos, &this->input_[1])});
-        // skip */
+            source_code_span(starpos, &this->input_[2])});
         this->input_ += 2;
         goto retry;
       } else {
