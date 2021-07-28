@@ -192,7 +192,7 @@ TEST_F(test_lex, lex_regexp_literal_starting_with_star_slash) {
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
-    EXPECT_EQ(l.peek().begin, &input[strlen(u8"*")]);
+    EXPECT_EQ(l.peek().begin, &input[1]);
     EXPECT_EQ(l.peek().end, &input[input.size()]);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -202,8 +202,8 @@ TEST_F(test_lex, lex_regexp_literal_starting_with_star_slash) {
 
 TEST_F(test_lex, lex_regexp_literal_starting_with_star_star_slash) {
   {
-    error_collector v;
     padded_string input(u8"3 **/ banana/"_sv);
+    error_collector v;
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
     l.skip();
@@ -212,7 +212,7 @@ TEST_F(test_lex, lex_regexp_literal_starting_with_star_star_slash) {
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
-    EXPECT_EQ(l.peek().begin, &input[strlen(u8"3 **")]);
+    EXPECT_EQ(l.peek().begin, &input[4]);
     EXPECT_EQ(l.peek().end, &input[input.size()]);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
