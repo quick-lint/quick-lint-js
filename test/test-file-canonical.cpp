@@ -1033,22 +1033,29 @@ TEST_F(test_file_canonical, parent_of_root_is_root_win32) {
 
 TEST_F(test_file_canonical, parent_of_non_root_removes_component_win32) {
   struct test_case {
-    const std::string_view before;
-    const std::string_view after;
+    const string8_view before;
+    const string8_view after;
   };
 
   for (const test_case& tc : {
-           test_case{R"(C:\hello)", R"(C:\)"},
-           test_case{R"(C:\dir\subdir)", R"(C:\dir)"},
-           test_case{R"(C:\a\b\c\d)", R"(C:\a\b\c)"},
-           test_case{R"(\\?\X:\hello)", R"(\\?\X:\)"},
-           test_case{R"(\\?\X:\dir\subdir)", R"(\\?\X:\dir)"},
-           test_case{R"(\\?\X:\a\b\c\d)", R"(\\?\X:\a\b\c)"},
-           test_case{R"(\\server\share\file)", R"(\\server\share)"},
+           test_case{u8R"(C:\hello)", u8R"(C:\)"},
+           test_case{u8R"(C:\dir\subdir)", u8R"(C:\dir)"},
+           test_case{u8R"(C:\a\b\c\d)", u8R"(C:\a\b\c)"},
+           test_case{u8R"(\\?\X:\hello)", u8R"(\\?\X:\)"},
+           test_case{u8R"(\\?\X:\dir\subdir)", u8R"(\\?\X:\dir)"},
+           test_case{u8R"(\\?\X:\a\b\c\d)", u8R"(\\?\X:\a\b\c)"},
+           test_case{u8R"(\\server\share\file)", u8R"(\\server\share)"},
+           test_case{u8"X:\\parent\u0080dir\\sub\u0080dir",
+                     u8"X:\\parent\u0080dir"},
+           test_case{u8"X:\\parent\u0800dir\\sub\u0800dir",
+                     u8"X:\\parent\u0800dir"},
+           test_case{u8"X:\\parent\U00108000dir\\sub\U00108000dir",
+                     u8"X:\\parent\U00108000dir"},
        }) {
-    canonical_path p(std::string(tc.before));
+    canonical_path p(to_string(tc.before));
     EXPECT_TRUE(p.parent());
-    EXPECT_EQ(p.path(), tc.after) << "before = " << tc.before;
+    EXPECT_EQ(p.path(), to_string(tc.after))
+        << "before = " << out_string8(tc.before);
   }
 }
 

@@ -115,9 +115,6 @@ canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
   }
   std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
 #elif QLJS_PATHS_WIN32
-  // TODO(strager): path_lengths_ is in UTF-16 code units, but it's interpreted
-  // as UTF-8 code units! Fix by storing a std::wstring in canonical_path
-  // instead of a std::string.
   // TODO(strager): Avoid string conversions and copying.
   std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
   QLJS_ASSERT(wpath.has_value());
@@ -125,7 +122,9 @@ canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
     HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
     switch (result) {
     case S_OK:
-      this->path_lengths_.push_back(std::wcslen(wpath->data()));
+      // TODO(strager): Avoid allocating just to count UTF-8 code units.
+      this->path_lengths_.push_back(
+          std::filesystem::path(wpath->c_str()).u8string().size());
       break;
     case S_FALSE:
       // Path is a root path already.
