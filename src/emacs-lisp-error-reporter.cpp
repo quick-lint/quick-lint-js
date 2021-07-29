@@ -82,6 +82,7 @@ void emacs_lisp_error_formatter::write_after_message(severity sev,
     return;
   }
   this->output_ << "\")";
+  this->output_.flush();
 }
 }
 
