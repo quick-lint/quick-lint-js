@@ -18,25 +18,12 @@
 ;;; Code:
 
 (require 'lsp-mode)
-
-(defgroup lsp-quicklintjs nil
-  "quick-lint-js LSP Mode integration."
-  :link '(url-link :tag "Website" "https://quick-lint-js.com"))
-
-(defcustom lsp-quicklintjs-program "quick-lint-js"
-  "Path to quick-lint-js program to run."
-  :group 'lsp-quicklintjs
-  :type 'stringp)
-
-(defcustom lsp-quicklintjs-args nil
-  "Arguments to quick-lint-js."
-  :group 'lsp-quicklintjs
-  :type '(repeat string))
+(require 'quicklintjs)
 
 (lsp-register-client
  (make-lsp-client
-  :new-connection (lsp-stdio-connection `(,lsp-quicklintjs-program "--lsp-server"
-                                                                     ,@lsp-quicklintjs-args))
+  :new-connection (lsp-stdio-connection `,(quicklintjs-find-program
+                                           "--lsp-server"))
   :major-modes '(js-mode)
   :server-id 'quick-lint-js))
 

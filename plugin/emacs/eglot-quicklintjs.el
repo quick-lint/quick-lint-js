@@ -19,26 +19,10 @@
 ;;; Code:
 
 (require 'eglot)
+(require 'quicklintjs)
 
-(defgroup eglot-quicklintjs nil
-  "quick-lint-js Eglot integration."
-  :group 'eglot-quicklintjs
-  :link '(url-link :tag "Website" "https://quick-lint-js.com"))
-
-(defcustom eglot-quicklintjs-program "quick-lint-js"
-  "Path to quick-lint-js program to run."
-  :group 'eglot-quicklintjs
-  :type 'stringp)
-
-(defcustom eglot-quicklintjs-args nil
-  "Arguments to quick-lint-js."
-  :group 'eglot-quicklintjs
-  :type '(repeat string))
-
-(add-to-list 'eglot-server-programs `(js-mode . (,eglot-quicklintjs-program
-                                                  "--lsp-server"
-                                                  ,@eglot-quicklintjs-args)))
-
+(add-to-list 'eglot-server-programs `(js-mode . ,(quicklintjs-find-program
+                                                  "--lsp-server")))
 (provide 'eglot-quicklintjs)
 
 ;; quick-lint-js finds bugs in JavaScript programs.

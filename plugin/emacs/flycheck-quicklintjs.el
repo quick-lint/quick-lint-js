@@ -35,16 +35,7 @@
 ;;; Code:
 
 (require 'flycheck)
-
-(defgroup flycheck-quicklintjs nil
-  "quick-lint-js Flycheck integration."
-  :prefix "flycheck-"
-  :group 'flycheck
-  :group 'quicklintjs
-  :link '(url-link :tag "Website" "https://quick-lint-js.com"))
-
-(flycheck-def-args-var flycheck-quicklintjs-args javascript-quicklintjs)
-(flycheck-def-executable-var javascript-quicklintjs "quick-lint-js")
+(require 'quicklintjs)
 
 (defun flycheck-quicklintjs-parse-errors (output checker buffer)
   "Parse quick-lint-js alist output format from OUTPUT"
@@ -62,25 +53,22 @@
                :checker checker
                :end-pos (cdr region)))) (car (read-from-string output))))
 
-(flycheck-define-checker javascript-quicklintjs
+(flycheck-define-command-checker 'javascript-quicklintjs
   "quick-lint-js finds bugs in JavaScript programs.
 
 https://quick-lint-js.com"
-  :command ("quick-lint-js"
-            "--output-format=emacs-lisp"
-            (eval (let ((file (buffer-file-name)))
-                    (if file
-                      `("--path-for-config-search" ,file)
-                      ())))
-            "--stdin"
-            (eval flycheck-quicklintjs-args))
-  :standard-input t
-  :error-parser flycheck-quicklintjs-parse-errors
+  :command (quicklintjs-find-program
+                  "--output-format=emacs-lisp"
+                  (let ((file (buffer-file-name)))
+                    (when file (concat "--path-for-config-search=" file)))
+                  "--stdin")
+  :standard-input 't
+  :error-parser 'flycheck-quicklintjs-parse-errors
   :error-explainer (lambda (err)
                      (let ((error-code (flycheck-error-id err))
                            (url "https://quick-lint-js.com/errors/#%s"))
                        (and error-code `(url . ,(format url error-code)))))
-  :modes js-mode)
+  :modes 'js-mode)
 
 (add-to-list 'flycheck-checkers 'javascript-quicklintjs t)
 

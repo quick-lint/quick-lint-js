@@ -2,8 +2,10 @@
 ;;; Commentary:
 
 ;;; Code:
+(require 'cl-lib)
 (require 'ert)
 (require 'package)
+(require 'quicklintjs)
 
 (defconst cache-dir-name (concat
                           (expand-file-name default-directory)
@@ -28,10 +30,13 @@
   (quicklintjs-install-deps (if (>= emacs-major-version 26)
                                 '(flycheck eglot lsp-mode)
                               '(flycheck)))
+
+  (set 'quicklintjs-find-program-function (lambda () "quick-lint-js"))
   (def-flycheck-tests)
   (def-eglot-tests)
   (def-lsp-tests)
   (def-flymake-tests)
+  (def-quicklintjs-tests)
   (ert-run-tests-batch-and-exit))
 
 (defun def-flymake-tests ()
@@ -73,7 +78,7 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
       (with-current-buffer js-buf
         (insert "foobar")
         (should (equal (call-process-region (point-min) (point-max)
-                                            flymake-quicklintjs-program nil
+                                            quicklintjs-program-name nil
                                             out-buf nil "--stdin"
                                             "--output-format=emacs-lisp") 0)))))
 
@@ -84,7 +89,7 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
         (insert "function")
         (should (equal (call-process-region
                         (point-min) (point-max)
-                        flymake-quicklintjs-program nil
+                        quicklintjs-program-name nil
                         out-buf nil "--stdin"
                         "--output-format=emacs-lisp") 0))))))
 
@@ -135,6 +140,20 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
       '(1 1 warning "assignment to undeclared variable"
           :id "E059" :checker javascript-quicklintjs
           :end-line 1 :end-column 2)))))
+
+(defun def-quicklintjs-tests ()
+  (ert-deftest quicklintjs-find-program-argv ()
+    (should (cl-every (lambda (a b) (string= a b))
+                      (quicklintjs-find-program "foo" "baz")
+                      '("quick-lint-js" "foo" "baz"))))
+  (ert-deftest quicklintjs-find-program-removes-nil ()
+    (should (cl-every (lambda (a b) (string= a b))
+                      (quicklintjs-find-program "foo" nil "baz")
+                      '("quick-lint-js" "foo" "baz"))))
+  (ert-deftest quicklintjs-find-program-removes-empty ()
+    (should (cl-every (lambda (a b) (string= a b))
+                      (quicklintjs-find-program "foo" "" "baz")
+                      '("quick-lint-js" "foo" "baz")))))
 
 ;; quick-lint-js finds bugs in JavaScript programs.
 ;; Copyright (C) 2020  Matthew "strager" Glazar

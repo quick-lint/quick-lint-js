@@ -24,20 +24,7 @@
 ;;; Code:
 
 (require 'flymake)
-
-(defgroup flymake-quicklintjs nil
-  "Flymake backend for quick-lint-js"
-  :link '(url-link :tag "Website" "https://quick-lint-js.com"))
-
-(defcustom flymake-quicklintjs-program "quick-lint-js"
-  "Path to quick-lint-js program to run."
-  :group 'flymake-quicklintjs
-  :type 'stringp)
-
-(defcustom flymake-quicklintjs-args nil
-  "Arguments to quick-lint-js."
-  :group 'flymake-quicklintjs
-  :type '(repeat 'string))
+(require 'quicklintjs)
 
 (defvar-local flymake-quicklintjs--proc nil
   "Internal variable for `flymake-quicklintjs'")
@@ -68,13 +55,10 @@ REPORT-FN is Flymake's callback."
            :connection-type 'pipe
            :noquery t
            :buffer (get-buffer-create " *flymake-quicklintjs*")
-           :command `(,flymake-quicklintjs-program
-                      ,@(let ((file (buffer-file-name)))
-                          (if file
-                            `("--path-for-config-search" ,file)
-                            ()))
-                      "--stdin" "--output-format=emacs-lisp"
-                      ,@flymake-quicklintjs-args)
+           :command (quicklintjs-find-program
+                     (let ((file (buffer-file-name)))
+                       (when file (concat "--path-for-config-search=" file)))
+                      "--stdin" "--output-format=emacs-lisp")
            :sentinel
            (lambda (p _ev)
              (unwind-protect
