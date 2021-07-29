@@ -122,9 +122,7 @@ canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
     HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
     switch (result) {
     case S_OK:
-      // TODO(strager): Avoid allocating just to count UTF-8 code units.
-      this->path_lengths_.push_back(
-          std::filesystem::path(wpath->c_str()).u8string().size());
+      this->path_lengths_.push_back(count_utf_8_code_units(wpath->c_str()));
       break;
     case S_FALSE:
       // Path is a root path already.
