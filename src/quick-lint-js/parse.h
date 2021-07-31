@@ -1260,6 +1260,14 @@ class parser {
       }
       this->skip();
 
+      if (this->peek().type != token_type::left_curly) {
+        const char8 *expected_body = this->lexer_.end_of_previous_token();
+        this->error_reporter_->report(error_missing_function_body{
+            .expected_body = source_code_span(expected_body, expected_body)});
+
+        // Don't parse a function body.
+        return;
+      }
       break;
 
     // function f {}  // Invalid.

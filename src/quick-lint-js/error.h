@@ -795,6 +795,11 @@
              function_name))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_function_body, "E172",                                     \
+      { source_code_span expected_body; },                                     \
+      .error(QLJS_TRANSLATABLE("missing body for function"), expected_body))   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_header_of_for_loop, "E096", { source_code_span where; },   \
       .error(QLJS_TRANSLATABLE("missing for loop header"), where))             \
                                                                                \
