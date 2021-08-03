@@ -1007,7 +1007,7 @@
       .error(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unopened_block_comment, "E209",                                    \
+      error_unopened_block_comment, "E210",                                    \
       { source_code_span comment_close; },                                     \
       .error(QLJS_TRANSLATABLE("unopened block comment"), comment_close))      \
                                                                                \
