@@ -481,7 +481,21 @@ expression* parser::parse_primary_expression(precedence prec) {
   }
 
   case token_type::colon:
-  case token_type::kw_debugger: {
+  case token_type::kw_break:
+  case token_type::kw_case:
+  case token_type::kw_catch:
+  case token_type::kw_const:
+  case token_type::kw_continue:
+  case token_type::kw_debugger:
+  case token_type::kw_default:
+  case token_type::kw_do:
+  case token_type::kw_else:
+  case token_type::kw_export:
+  case token_type::kw_extends:
+  case token_type::kw_finally:
+  case token_type::kw_try:
+  case token_type::kw_var:
+  case token_type::kw_with: {
     source_code_span token_span = this->peek().span();
     this->error_reporter_->report(error_unexpected_token{token_span});
     this->skip();
