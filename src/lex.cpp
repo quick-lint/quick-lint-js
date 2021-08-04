@@ -453,6 +453,7 @@ retry:
       } else if (this->input_[2] == '/') {
         bool parsed_ok = this->test_for_regexp(1);
         if (!parsed_ok) {
+          // We saw '**/'. Emit a '*' token now. Later, we will interpret the following '*/' as a comment. 
           this->last_token_.type = token_type::star;
           this->input_ += 1;
         } else {
