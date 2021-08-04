@@ -846,10 +846,6 @@ TEST_F(test_file_canonical, unsearchable_parent_directory) {
   EXPECT_THAT(canonical.error().canonicalizing_path,
               ::testing::EndsWith("dir/file"));
   EXPECT_EQ(canonical.error().io_error.error, EACCES);
-
-  // Allow test cleanup to delete the directory.
-  EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
-      << std::strerror(errno);
 }
 
 TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
@@ -872,10 +868,6 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
   EXPECT_THAT(canonical.error().canonicalizing_path,
               ::testing::EndsWith("dir/subdir"));
   EXPECT_EQ(canonical.error().io_error.error, EACCES);
-
-  // Allow test cleanup to delete the directory.
-  EXPECT_EQ(::chmod((temp_dir + "/dir").c_str(), 0700), 0)
-      << std::strerror(errno);
 }
 #endif
 
