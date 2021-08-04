@@ -668,11 +668,11 @@ retry:
   }
 }
 
-bool lexer::test_for_regexp(int offset) {
+bool lexer::test_for_regexp(const char8* regexp_begin) {
   lexer_transaction transaction = this->begin_transaction();
 
   this->last_token_.type = token_type::slash;
-  this->input_ += offset + 1;
+  this->input_ = regexp_begin;
   this->last_token_.begin = this->input_;
   this->reparse_as_regexp();
 
