@@ -451,9 +451,10 @@ retry:
         this->last_token_.type = token_type::star_star_equal;
         this->input_ += 3;
       } else if (this->input_[2] == '/') {
-        bool parsed_ok = this->test_for_regexp(1);
+        bool parsed_ok = this->test_for_regexp(&this->input_[2]);
         if (!parsed_ok) {
-          // We saw '**/'. Emit a '*' token now. Later, we will interpret the following '*/' as a comment. 
+          // We saw '**/'. Emit a '*' token now. Later, we will interpret the
+          // following '*/' as a comment.
           this->last_token_.type = token_type::star;
           this->input_ += 1;
         } else {
@@ -469,7 +470,7 @@ retry:
       this->input_ += 2;
     } else if (this->input_[1] == '/') {
       const char8* starpos = &this->input_[0];
-      bool parsed_ok = this->test_for_regexp(0);
+      bool parsed_ok = this->test_for_regexp(&this->input_[1]);
 
       if (!parsed_ok) {
         this->error_reporter_->report(error_unopened_block_comment{
@@ -860,7 +861,6 @@ void lexer::reparse_as_regexp() {
   this->last_token_.type = token_type::regexp;
 
   const char8* c = &this->input_[1];
-
 next:
   switch (static_cast<unsigned char>(*c)) {
   case '\0':
