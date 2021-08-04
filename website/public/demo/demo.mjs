@@ -19,15 +19,15 @@ if (typeof window.ResizeObserver !== "undefined") {
 createProcessFactoryAsync()
   .then(async (processFactory) => {
     let process = await processFactory.createProcessAsync();
-    let parser = await process.createParserForWebDemoAsync();
+    let doc = await process.createDocumentForWebDemoAsync();
 
     function lintAndUpdate() {
       synchronizeContent();
 
       // TODO(strager): On crash, show the error to the user.
       let input = codeInputElement.value;
-      parser.setText(input);
-      let marks = parser.lint();
+      doc.setText(input);
+      let marks = doc.lint();
       markEditorText(shadowCodeInputElement, window, marks);
     }
     codeInputElement.addEventListener("input", (event) => {

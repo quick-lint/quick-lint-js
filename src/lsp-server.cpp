@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
@@ -246,6 +248,7 @@ void linting_lsp_server_handler<Linter>::
     QLJS_UNIMPLEMENTED();
   }
 
+  this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
   this->documents_.erase(string8(uri));
   // TODO(strager): Signal to configuration_loader and
@@ -295,22 +298,42 @@ void linting_lsp_server_handler<Linter>::
 
   if (language_id == "javascript" || language_id == "js") {
     doc.type = document_type::lintable;
-    auto config = this->config_loader_.watch_and_load_for_file(document_path,
-                                                               /*token=*/&doc);
-    if (config.ok()) {
-      doc.config = *config;
+    auto config_file =
+        this->config_loader_.watch_and_load_for_file(document_path,
+                                                     /*token=*/&doc);
+    if (config_file.ok()) {
+      if (*config_file) {
+        doc.config = &(*config_file)->config;
+        if (!(*config_file)->errors.empty()) {
+          byte_buffer& message_json = notification_jsons.emplace_back();
+          this->write_configuration_errors_notification(
+              document_path, *config_file, message_json);
+        }
+      } else {
+        doc.config = &this->default_config_;
+      }
     } else {
-      doc.config = this->config_loader_.get_default_config();
+      doc.config = &this->default_config_;
       byte_buffer& message_json = notification_jsons.emplace_back();
       this->write_configuration_loader_error_notification(
-          document_path, config.error_to_string(), message_json);
+          document_path, config_file.error_to_string(), message_json);
     }
     byte_buffer& notification_json = notification_jsons.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
         *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
-  } else {
+  } else if (this->config_loader_.is_config_file_path(document_path)) {
     doc.type = document_type::config;
+
+    auto config_file =
+        this->config_loader_.watch_and_load_config_file(document_path,
+                                                        /*token=*/&doc);
+    QLJS_ASSERT(config_file.ok());
+    byte_buffer& config_diagnostics_json = notification_jsons.emplace_back();
+    this->get_config_file_diagnostics_notification(
+        *config_file, get_raw_json(uri), doc.version_json,
+        config_diagnostics_json);
+
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
     this->handle_config_file_changes(config_changes, notification_jsons);
@@ -347,7 +370,9 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
                        *change_it->error),
             message_json);
       }
-      configuration* config = change_it->config;
+      configuration* config = change_it->config_file
+                                  ? &change_it->config_file->config
+                                  : &this->default_config_;
       doc.config = config;
       byte_buffer& notification_json = notification_jsons.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special
@@ -357,8 +382,54 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
           *config, doc.doc.string(),
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
+    } else if (doc.type == document_type::config) {
+      auto change_it =
+          std::find_if(config_changes.begin(), config_changes.end(),
+                       [&](const configuration_change& change) {
+                         return change.token == &doc;
+                       });
+      if (change_it == config_changes.end()) {
+        continue;
+      }
+
+      QLJS_ASSERT(change_it->config_file);
+      if (change_it->config_file) {
+        byte_buffer& config_diagnostics_json =
+            notification_jsons.emplace_back();
+        this->get_config_file_diagnostics_notification(
+            change_it->config_file,
+            to_json_escaped_string_with_quotes(document_uri), doc.version_json,
+            config_diagnostics_json);
+      }
     }
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    get_config_file_diagnostics_notification(loaded_config_file* config_file,
+                                             string8_view uri_json,
+                                             string8_view version_json,
+                                             byte_buffer& notification_json) {
+  // clang-format off
+  notification_json.append_copy(
+    u8R"--({)--"
+      u8R"--("method":"textDocument/publishDiagnostics",)--"
+      u8R"--("params":{)--"
+        u8R"--("uri":)--");
+  // clang-format on
+  notification_json.append_copy(uri_json);
+
+  notification_json.append_copy(u8R"--(,"version":)--");
+  notification_json.append_copy(version_json);
+
+  notification_json.append_copy(u8R"--(,"diagnostics":)--");
+  lsp_error_reporter error_reporter(notification_json,
+                                    &config_file->file_content);
+  config_file->errors.copy_into(&error_reporter);
+  error_reporter.finish();
+
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -378,6 +449,27 @@ void linting_lsp_server_handler<Linter>::
   out_json.append_copy(u8". Using default configuration.\\nError details: ");
   write_json_escaped_string(out_json, to_string8_view(error_details));
   out_json.append_copy(u8"\"}}");
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::
+    write_configuration_errors_notification(std::string_view document_path,
+                                            loaded_config_file* config_file,
+                                            byte_buffer& out_json) {
+  // clang-format off
+  out_json.append_copy(u8R"--({)--"
+    u8R"--("jsonrpc":"2.0",)--"
+    u8R"--("method":"window/showMessage",)--"
+    u8R"--("params":{)--"
+      u8R"--("type":2,)--"
+      u8R"--("message":"Problems found in the config file for )--");
+  // clang-format on
+  write_json_escaped_string(out_json, to_string8_view(document_path));
+  out_json.append_copy(u8" (");
+  QLJS_ASSERT(config_file->config_path);
+  write_json_escaped_string(out_json,
+                            to_string8_view(config_file->config_path->path()));
+  out_json.append_copy(u8").\"}}");
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -531,6 +623,8 @@ int get_int(
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

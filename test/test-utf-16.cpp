@@ -4,8 +4,12 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
+#include <string_view>
+
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
+namespace {
 #if defined(_WIN32)
 TEST(test_utf_16_windows, mbargv) {
   std::vector<wchar_t*> argv;
@@ -34,6 +38,35 @@ TEST(test_utf_16_windows, mbstring_to_wstring) {
   }
 }
 #endif
+
+TEST(test_count_utf_8_code_units_in_utf_16, empty_string) {
+  EXPECT_EQ(count_utf_8_code_units(u""sv), 0);
+}
+
+TEST(test_count_utf_8_code_units_in_utf_16, ascii) {
+  EXPECT_EQ(count_utf_8_code_units(u"abc 123"sv), 7);
+  EXPECT_EQ(count_utf_8_code_units(u"\u007f"sv), 1);
+  EXPECT_EQ(count_utf_8_code_units(u"\u0000"sv), 1);
+}
+
+TEST(test_count_utf_8_code_units_in_utf_16, 2_byte_utf_8) {
+  EXPECT_EQ(count_utf_8_code_units(u"\u0080"sv), 2);
+  EXPECT_EQ(count_utf_8_code_units(u"\u07ff"sv), 2);
+}
+
+TEST(test_count_utf_8_code_units_in_utf_16, 3_byte_utf_8) {
+  EXPECT_EQ(count_utf_8_code_units(u"\u0800"sv), 3);
+  EXPECT_EQ(count_utf_8_code_units(u"\uffff"sv), 3);
+}
+
+TEST(test_count_utf_8_code_units_in_utf_16, surrogate_pair) {
+  EXPECT_EQ(count_utf_8_code_units(u"\U00010437"sv), 4) << "D801 DC37";
+  EXPECT_EQ(count_utf_8_code_units(u"\U00024B62"sv), 4) << "D852 DF62";
+}
+
+// TODO(strager): How should count_utf_8_code_units behave with invalid UTF-16
+// (e.g. incomplete surrogate pair)?
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

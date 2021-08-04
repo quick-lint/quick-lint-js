@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_PIPE_WRITER_H
 #define QUICK_LINT_JS_LSP_PIPE_WRITER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
@@ -31,6 +35,8 @@ class lsp_pipe_writer : private pipe_writer {
 #endif
 };
 }
+
+#endif
 
 #endif
 

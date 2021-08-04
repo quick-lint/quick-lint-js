@@ -53,6 +53,24 @@ Incompatible with *--lsp-server*.
 *--vim-file-bufnr* applies only to the next input file given in the command line.
 Therefore, if multiple input files are given, *--vim-file-bufnr* can be specified multiple times.
 
+*--path-for-config-search*=_path_::
+  For the following input file or *--stdin*, use _path_ as the file's path when
+ifdef::backend-manpage[]
+searching for a configuration file (see *quick-lint-js.config*(5)).
+endif::[]
+ifdef::backend-html5[]
+link:../config/[searching for a configuration file].
+endif::[]
++
+_path_ must be a syntactically-valid path.
+_path_ does not need to exist in the filesystem.
++
+*--path-for-config-search* applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, *--path-for-config-search* can be specified multiple times.
+If *--path-for-config-search* is the last option, it has no effect.
++
+Incompatible with *--lsp-server*.
+
 [#config-file]
 *--config-file*=_file_::
   Read configuration options from _file_ and apply them to input files which are given later in the command line.
@@ -66,7 +84,12 @@ endif::[]
 If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
 See the <<Example>> section for an example.
 +
-If *--config-file* is not given, an empty configuration file is assumed.
+ifdef::backend-manpage[]
+If *--config-file* is not given, *quick-lint-js* searches for a configuration file according to the rules specified in *quick-lint-js.config*(5).
+endif::[]
+ifdef::backend-html5[]
+If *--config-file* is not given, *quick-lint-js* link:../config/[searches for a configuration file].
+endif::[]
 +
 Incompatible with *--lsp-server*.
 
@@ -79,6 +102,17 @@ Incompatible with *--lsp-server*.
 
 *--stdin*::
   Read standard input as a JavaScript file.
++
+If neither *--config-file* nor *--path-for-config-search* is specified, an empty configuration file is assumed.
+If *--config-file* is specified, _file_ is used for linting standard input.
+If *--path-for-config-search* is specified and *--config-file* is not specified,
+ifdef::backend-manpage[]
+*quick-lint-js* searches for a configuration file according to the rules specified in *quick-lint-js.config*(5)
+endif::[]
+ifdef::backend-html5[]
+*quick-lint-js* link:../config/[searches for a configuration file]
+endif::[]
+starting from *--path-for-config-search*'s _path_.
 +
 Incompatible with *--lsp-server*.
 
@@ -219,6 +253,15 @@ ____
 $ *quick-lint-js* \
     --config-file strict-quick-lint-js.config src/index.js src/helpers.js \
     --config-file lax-quick-lint-js.config test/test-app.js
+----
+____
+
+To lint a temporary file, but use the configuration file of a project:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved/unsaved12m1uz.js
+/tmp/unsaved/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E057]
 ----
 ____
 

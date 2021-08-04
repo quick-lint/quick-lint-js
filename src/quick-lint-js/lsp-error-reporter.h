@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_ERROR_REPORTER_H
 #define QUICK_LINT_JS_LSP_ERROR_REPORTER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <optional>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/error-formatter.h>
@@ -51,6 +55,8 @@ class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
   const char *code_;
 };
 }
+
+#endif
 
 #endif
 

@@ -23,7 +23,8 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-error_collector load_from_json(configuration&, padded_string_view json);
+void load_from_json(configuration&, padded_string_view json);
+void load_from_json(configuration&, string8_view json);
 
 TEST(test_configuration, browser_globals_are_present_by_default) {
   configuration c;
@@ -260,27 +261,21 @@ TEST(test_configuration, add_ecmascript_and_node_js_groups) {
 
 TEST(test_configuration_json, empty_json_creates_default_config) {
   configuration c;
-
-  padded_string json(u8"{}"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8"{}"sv);
 
   EXPECT_DEFAULT_CONFIG(c);
 }
 
 TEST(test_configuration_json, true_global_groups_leaves_defaults) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": true})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": true})"sv);
 
   EXPECT_DEFAULT_CONFIG(c);
 }
 
 TEST(test_configuration_json, false_global_groups_disables_all_groups) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": false})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": false})"sv);
 
   EXPECT_FALSE(c.globals().find(u8"Array"sv));
   EXPECT_FALSE(c.globals().find(u8"console"sv));
@@ -288,9 +283,7 @@ TEST(test_configuration_json, false_global_groups_disables_all_groups) {
 
 TEST(test_configuration_json, empty_global_groups_disables_all_groups) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": []})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": []})"sv);
 
   EXPECT_FALSE(c.globals().find(u8"Array"sv));
   EXPECT_FALSE(c.globals().find(u8"console"sv));
@@ -298,9 +291,7 @@ TEST(test_configuration_json, empty_global_groups_disables_all_groups) {
 
 TEST(test_configuration_json, global_groups_with_node_js_enables_only_node_js) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": ["node.js"]})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": ["node.js"]})"sv);
 
   EXPECT_TRUE(c.globals().find(u8"console"sv));
   EXPECT_FALSE(c.globals().find(u8"Array"sv));
@@ -308,18 +299,14 @@ TEST(test_configuration_json, global_groups_with_node_js_enables_only_node_js) {
 
 TEST(test_configuration_json, empty_globals_leaves_defaults) {
   configuration c;
-
-  padded_string json(u8R"({"globals": {}})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"globals": {}})"sv);
 
   EXPECT_DEFAULT_CONFIG(c);
 }
 
 TEST(test_configuration_json, true_global_is_usable) {
   configuration c;
-
-  padded_string json(u8R"({"globals": {"myTestGlobalVariable": true}})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"globals": {"myTestGlobalVariable": true}})"sv);
 
   const global_declared_variable* found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
@@ -330,9 +317,7 @@ TEST(test_configuration_json, true_global_is_usable) {
 
 TEST(test_configuration_json, empty_object_global_is_usable) {
   configuration c;
-
-  padded_string json(u8R"({"globals": {"myTestGlobalVariable": {}}})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"globals": {"myTestGlobalVariable": {}}})"sv);
 
   const global_declared_variable* found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
@@ -343,10 +328,8 @@ TEST(test_configuration_json, empty_object_global_is_usable) {
 
 TEST(test_configuration_json, unwritable_global_is_not_writable) {
   configuration c;
-
-  padded_string json(
-      u8R"({"globals": {"myTestGlobalVariable": {"writable": false}}})"sv);
-  c.load_from_json(&json);
+  load_from_json(
+      c, u8R"({"globals": {"myTestGlobalVariable": {"writable": false}}})"sv);
 
   const global_declared_variable* found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
@@ -357,10 +340,8 @@ TEST(test_configuration_json, unwritable_global_is_not_writable) {
 
 TEST(test_configuration_json, unshadowable_global_is_not_shadowable) {
   configuration c;
-
-  padded_string json(
-      u8R"({"globals": {"myTestGlobalVariable": {"shadowable": false}}})"sv);
-  c.load_from_json(&json);
+  load_from_json(
+      c, u8R"({"globals": {"myTestGlobalVariable": {"shadowable": false}}})"sv);
 
   const global_declared_variable* found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
@@ -371,10 +352,9 @@ TEST(test_configuration_json, unshadowable_global_is_not_shadowable) {
 
 TEST(test_configuration_json, false_global_overrides_global_group) {
   configuration c;
-
-  padded_string json(
+  load_from_json(
+      c,
       u8R"({"globals": {"console": false}, "global-groups": ["ecmascript", "node.js"]})"sv);
-  c.load_from_json(&json);
 
   EXPECT_TRUE(c.globals().find(u8"Array"_sv))
       << "ecmascript group should take effect";
@@ -405,10 +385,8 @@ TEST(test_configuration_json, invalid_json_reports_error) {
     configuration c;
 
     padded_string json(json_string);
-    c.load_from_json(&json);
-
     error_collector errors;
-    c.report_errors(&errors);
+    c.load_from_json(&json, &errors);
 
     // TODO(strager): Check error_config_json_syntax_error::where.
     EXPECT_THAT(
@@ -422,7 +400,8 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
   {
     padded_string json(u8R"({"globals":["myGlobalVariable"]})"sv);
     configuration c;
-    error_collector errors = load_from_json(c, &json);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
     EXPECT_THAT(
         errors.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -436,7 +415,8 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
     padded_string json(
         u8R"({"globals":{"testBefore":true,"testBad":"string","testAfter":true}})"sv);
     configuration c;
-    error_collector errors = load_from_json(c, &json);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
     EXPECT_THAT(
         errors.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -457,7 +437,8 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
     padded_string json(
         u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":"string"},"testAfter":true}})"sv);
     configuration c;
-    error_collector errors = load_from_json(c, &json);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
     EXPECT_THAT(
         errors.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -484,7 +465,8 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
     padded_string json(
         u8R"({"globals":{"testBefore":true,"testBad":{"writable":"string","shadowable":false},"testAfter":true}})"sv);
     configuration c;
-    error_collector errors = load_from_json(c, &json);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
     EXPECT_THAT(
         errors.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -512,7 +494,8 @@ TEST(test_configuration_json, bad_schema_in_global_groups_reports_error) {
   {
     padded_string json(u8R"({"global-groups":{"browser":true}})"sv);
     configuration c;
-    error_collector errors = load_from_json(c, &json);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
     EXPECT_THAT(
         errors.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -526,7 +509,8 @@ TEST(test_configuration_json, bad_schema_in_global_groups_reports_error) {
     padded_string json(
         u8R"({"global-groups":["browser",false,"ecmascript"]})"sv);
     configuration c;
-    error_collector errors = load_from_json(c, &json);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
     EXPECT_THAT(
         errors.errors,
         ElementsAre(ERROR_TYPE_FIELD(
@@ -553,9 +537,10 @@ TEST(test_configuration_json, bad_global_error_excludes_trailing_whitespace) {
 
   // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
   // and U+0020.
-  padded_string json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }})"sv);
+  padded_string json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }}"sv);
   configuration c;
-  error_collector errors = load_from_json(c, &json);
+  error_collector errors;
+  c.load_from_json(&json, &errors);
 
   EXPECT_THAT(errors.errors,
               ElementsAre(ERROR_TYPE_FIELD(
@@ -564,11 +549,15 @@ TEST(test_configuration_json, bad_global_error_excludes_trailing_whitespace) {
                                   u8R"("b")"))));
 }
 
-error_collector load_from_json(configuration& config, padded_string_view json) {
-  config.load_from_json(json);
+void load_from_json(configuration& config, padded_string_view json) {
   error_collector errors;
-  config.report_errors(&errors);
-  return errors;
+  config.load_from_json(json, &errors);
+  EXPECT_THAT(errors.errors, ::testing::IsEmpty());
+}
+
+void load_from_json(configuration& config, string8_view json) {
+  padded_string padded_json(json);
+  load_from_json(config, &padded_json);
 }
 }
 }

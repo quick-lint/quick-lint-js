@@ -178,25 +178,49 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  configuration_loader config_loader(
-      basic_configuration_filesystem::instance());
   quick_lint_js::any_error_reporter reporter =
       quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
-  for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    auto config = config_loader.load_for_file(file);
-    if (!config.ok()) {
-      std::fprintf(stderr, "error: %s\n", config.error_to_string().c_str());
+
+  configuration default_config;
+  configuration_loader config_loader(
+      basic_configuration_filesystem::instance());
+  for (const file_to_lint &file : o.files_to_lint) {
+    auto config_result = config_loader.load_for_file(file);
+    if (!config_result.ok()) {
+      std::fprintf(stderr, "error: %s\n",
+                   config_result.error_to_string().c_str());
       std::exit(1);
     }
-    result<padded_string, read_file_io_error> source =
-        file.is_stdin ? quick_lint_js::read_stdin()
-                      : quick_lint_js::read_file(file.path);
-    if (!source.ok()) {
-      source.error().print_and_exit();
+    loaded_config_file *config_file = *config_result;
+    if (config_file && !config_file->config.errors_were_reported) {
+      reporter.set_source(&config_file->file_content,
+                          file_to_lint{
+                              .path = config_file->config_path->c_str(),
+                              .config_file = nullptr,
+                              .is_stdin = false,
+                              .vim_bufnr = std::nullopt,
+                          });
+      config_file->errors.copy_into(reporter.get());
+      config_file->config.errors_were_reported = true;
     }
-    reporter.set_source(&*source, file);
-    quick_lint_js::process_file(&*source, **config, reporter.get(),
-                                o.print_parser_visits);
+  }
+
+  if (!reporter.get_error()) {
+    for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
+      auto config_result = config_loader.load_for_file(file);
+      QLJS_ASSERT(config_result.ok());
+      configuration *config =
+          *config_result ? &(*config_result)->config : &default_config;
+      result<padded_string, read_file_io_error> source =
+          file.is_stdin ? quick_lint_js::read_stdin()
+                        : quick_lint_js::read_file(file.path);
+      if (!source.ok()) {
+        source.error().print_and_exit();
+      }
+      reporter.set_source(&*source, file);
+      quick_lint_js::process_file(&*source, *config, reporter.get(),
+                                  o.print_parser_visits);
+    }
   }
   reporter.finish();
 

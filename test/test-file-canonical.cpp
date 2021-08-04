@@ -16,10 +16,10 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file-path.h>
+#include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <string>
 
 #if defined(_WIN32)
@@ -36,38 +36,8 @@ using ::testing::Not;
 
 namespace quick_lint_js {
 namespace {
-class test_file_canonical : public ::testing::Test {
- public:
-  std::string make_temporary_directory() {
-    temp_directory_path = quick_lint_js::make_temporary_directory();
-    return temp_directory_path.value();
-  }
-
-  void set_current_working_directory(const std::string& path) {
-    this->set_current_working_directory(path.c_str());
-  }
-
-  void set_current_working_directory(const char* path) {
-    if (!this->old_working_directory_.has_value()) {
-      this->old_working_directory_ = get_current_working_directory();
-    }
-    quick_lint_js::set_current_working_directory(path);
-  }
-
- private:
-  std::optional<std::string> temp_directory_path;
-  std::optional<std::string> old_working_directory_;
-
- protected:
-  void TearDown() override {
-    if (this->old_working_directory_.has_value()) {
-      set_current_working_directory(*this->old_working_directory_);
-    }
-    if (this->temp_directory_path.has_value()) {
-      delete_directory_recursive(*this->temp_directory_path);
-    }
-  }
-};
+class test_file_canonical : public ::testing::Test,
+                            protected filesystem_test {};
 
 bool process_ignores_filesystem_permissions() noexcept {
 #if QLJS_HAVE_UNISTD_H
@@ -173,6 +143,25 @@ TEST_F(test_file_canonical, canonical_path_to_non_existing_file_succeeds) {
   EXPECT_TRUE(canonical->have_missing_components());
   canonical->drop_missing_components();
   EXPECT_EQ(canonical->path(), temp_dir_canonical->path());
+}
+
+TEST_F(test_file_canonical,
+       parent_of_present_canonical_components_of_non_existing_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  result<canonical_path_result, canonicalize_path_io_error> temp_dir_canonical =
+      canonicalize_path(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
+
+  create_directory(temp_dir + "/dir");
+  result<canonical_path_result, canonicalize_path_io_error> canonicalized =
+      canonicalize_path(temp_dir + "/dir/does-not-exist.txt");
+  ASSERT_TRUE(canonicalized.ok()) << canonicalized.error().to_string();
+  canonicalized->drop_missing_components();
+
+  canonical_path canonical = std::move(*canonicalized).canonical();
+  canonical.parent();
+  EXPECT_EQ(canonical.path(), temp_dir_canonical->path());
 }
 
 TEST_F(test_file_canonical,
@@ -1017,6 +1006,20 @@ TEST_F(test_file_canonical, append_component_posix) {
         << "before = " << tc.before << "\ncomponent = " << tc.component;
   }
 }
+
+TEST_F(test_file_canonical, remove_appended_component_posix) {
+  canonical_path p("/dir/subdir");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), "/dir/subdir");
+}
+
+TEST_F(test_file_canonical, remove_component_appended_to_root_posix) {
+  canonical_path p("/");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), "/");
+}
 #endif
 
 #if defined(_WIN32)
@@ -1030,22 +1033,29 @@ TEST_F(test_file_canonical, parent_of_root_is_root_win32) {
 
 TEST_F(test_file_canonical, parent_of_non_root_removes_component_win32) {
   struct test_case {
-    const std::string_view before;
-    const std::string_view after;
+    const string8_view before;
+    const string8_view after;
   };
 
   for (const test_case& tc : {
-           test_case{R"(C:\hello)", R"(C:\)"},
-           test_case{R"(C:\dir\subdir)", R"(C:\dir)"},
-           test_case{R"(C:\a\b\c\d)", R"(C:\a\b\c)"},
-           test_case{R"(\\?\X:\hello)", R"(\\?\X:\)"},
-           test_case{R"(\\?\X:\dir\subdir)", R"(\\?\X:\dir)"},
-           test_case{R"(\\?\X:\a\b\c\d)", R"(\\?\X:\a\b\c)"},
-           test_case{R"(\\server\share\file)", R"(\\server\share)"},
+           test_case{u8R"(C:\hello)", u8R"(C:\)"},
+           test_case{u8R"(C:\dir\subdir)", u8R"(C:\dir)"},
+           test_case{u8R"(C:\a\b\c\d)", u8R"(C:\a\b\c)"},
+           test_case{u8R"(\\?\X:\hello)", u8R"(\\?\X:\)"},
+           test_case{u8R"(\\?\X:\dir\subdir)", u8R"(\\?\X:\dir)"},
+           test_case{u8R"(\\?\X:\a\b\c\d)", u8R"(\\?\X:\a\b\c)"},
+           test_case{u8R"(\\server\share\file)", u8R"(\\server\share)"},
+           test_case{u8"X:\\parent\u0080dir\\sub\u0080dir",
+                     u8"X:\\parent\u0080dir"},
+           test_case{u8"X:\\parent\u0800dir\\sub\u0800dir",
+                     u8"X:\\parent\u0800dir"},
+           test_case{u8"X:\\parent\U00108000dir\\sub\U00108000dir",
+                     u8"X:\\parent\U00108000dir"},
        }) {
-    canonical_path p(std::string(tc.before));
+    canonical_path p(to_string(tc.before));
     EXPECT_TRUE(p.parent());
-    EXPECT_EQ(p.path(), tc.after) << "before = " << tc.before;
+    EXPECT_EQ(p.path(), to_string(tc.after))
+        << "before = " << out_string8(tc.before);
   }
 }
 
@@ -1068,6 +1078,20 @@ TEST_F(test_file_canonical, append_component_win32) {
     EXPECT_EQ(p.path(), tc.after)
         << "before = " << tc.before << "\ncomponent = " << tc.component;
   }
+}
+
+TEST_F(test_file_canonical, remove_appended_component_win32) {
+  canonical_path p(R"(X:\dir\subdir)");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), R"(X:\dir\subdir)");
+}
+
+TEST_F(test_file_canonical, remove_component_appended_to_root_win32) {
+  canonical_path p(R"(X:\)");
+  p.append_component("file.txt");
+  p.parent();
+  EXPECT_EQ(p.path(), R"(X:\)");
 }
 #endif
 }

@@ -12,7 +12,7 @@ if (EMSCRIPTEN)
     quick-lint-js-vscode
     PRIVATE
     quick-lint-js-lib
-    "-sEXPORTED_FUNCTIONS=[\"_qljs_vscode_create_parser\",\"_qljs_vscode_destroy_parser\",\"_qljs_vscode_replace_text\",\"_qljs_vscode_lint\",\"_qljs_web_demo_create_parser\",\"_qljs_web_demo_destroy_parser\",\"_qljs_web_demo_set_text\",\"_qljs_web_demo_lint\",\"_malloc\",\"_free\"]"
+    "-sEXPORTED_FUNCTIONS=[\"_qljs_vscode_create_workspace\",\"_qljs_vscode_destroy_workspace\",\"_qljs_vscode_create_source_document\",\"_qljs_vscode_destroy_document\",\"_qljs_vscode_replace_text\",\"_qljs_vscode_lint\",\"_qljs_web_demo_create_document\",\"_qljs_web_demo_destroy_document\",\"_qljs_web_demo_set_text\",\"_qljs_web_demo_lint\",\"_malloc\",\"_free\"]"
     -sASSERTIONS=0
     -sSTANDALONE_WASM=1
     --no-entry

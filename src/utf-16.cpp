@@ -9,6 +9,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #if defined(_WIN32)
@@ -99,6 +100,31 @@ std::optional<std::wstring> mbstring_to_wstring(const char *mbstring) {
     return std::nullopt;
   }
   return wstring;
+}
+#endif
+
+std::size_t count_utf_8_code_units(std::u16string_view utf_16) noexcept {
+  std::size_t count = 0;
+  for (char16_t c : utf_16) {
+    if (c < 0x0080) {
+      count += 1;
+    } else if (c < 0x0800) {
+      count += 2;
+    } else if (0xd800 <= c && c <= 0xdfff) {
+      // Part of a surrogate pair.
+      count += 2;
+    } else {
+      count += 3;
+    }
+  }
+  return count;
+}
+
+#if defined(_WIN32)
+std::size_t count_utf_8_code_units(std::wstring_view utf_16) noexcept {
+  static_assert(sizeof(char16_t) == sizeof(wchar_t));
+  return count_utf_8_code_units(std::u16string_view(
+      reinterpret_cast<const char16_t *>(utf_16.data()), utf_16.size()));
 }
 #endif
 }

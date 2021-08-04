@@ -17,12 +17,11 @@
     "markdown-it": "^12.0.6",
     "mime": "^2.5.2",
     "morgan": "^1.10.0",
+    "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/",
     "quick-lint-js-wasm": "../wasm"
   },
   "devDependencies": {
     "axios": "^0.21.1",
-    "colors": "^1.4.0",
-    "jasmine": "^3.7.0",
     "prettier": "^2.3.0"
   }
 }

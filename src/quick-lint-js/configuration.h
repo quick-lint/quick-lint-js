@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_CONFIGURATION_H
 
 #include <optional>
-#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/lint.h>
@@ -21,25 +20,24 @@ class configuration {
  public:
   const global_declared_variable_set& globals() noexcept;
 
-  const std::optional<canonical_path>& config_file_path() const;
-
   void reset_global_groups();
   bool add_global_group(string8_view group_name);
 
   global_declared_variable* add_global_variable(string8_view name);
   void remove_global_variable(string8_view name);
 
-  void load_from_json(padded_string_view);
-  void set_config_file_path(const canonical_path&);
-  void set_config_file_path(canonical_path&&);
-
-  void report_errors(error_reporter*);
+  void load_from_json(padded_string_view, error_reporter*);
 
   void reset();
 
+  // TODO(strager): Move this out of the configuration class. It's only used by
+  // the CLI.
+  bool errors_were_reported = false;
+
  private:
-  bool load_global_groups_from_json(simdjson::ondemand::value&);
-  bool load_globals_from_json(simdjson::ondemand::object&);
+  bool load_global_groups_from_json(simdjson::ondemand::value&,
+                                    error_reporter*);
+  bool load_globals_from_json(simdjson::ondemand::object&, error_reporter*);
 
   bool should_remove_global_variable(string8_view name);
 
@@ -47,18 +45,16 @@ class configuration {
   template <class Error>
   bool get_bool_or_default(
       ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-      bool* out, bool default_value);
+      bool* out, bool default_value, error_reporter*);
 
-  void report_json_error(padded_string_view json);
+  void report_json_error(padded_string_view json, error_reporter*);
 
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
-  std::optional<canonical_path> config_file_path_;
   bool add_global_group_browser_ = true;
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;
   monotonic_allocator string_allocator_;
-  buffering_error_reporter errors_;
 
   string8_view save_string(std::string_view s);
 };

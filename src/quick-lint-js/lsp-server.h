@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_H
 #define QUICK_LINT_JS_LSP_SERVER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <cstddef>
 #include <functional>
 #include <quick-lint-js/assert.h>
@@ -116,15 +120,24 @@ class linting_lsp_server_handler {
       const std::vector<configuration_change>& config_changes,
       std::vector<byte_buffer>& notification_jsons);
 
+  void get_config_file_diagnostics_notification(loaded_config_file*,
+                                                string8_view uri_json,
+                                                string8_view version_json,
+                                                byte_buffer& notification_json);
+
   void write_configuration_loader_error_notification(
       std::string_view document_path, std::string_view error_details,
       byte_buffer& out_json);
+  void write_configuration_errors_notification(std::string_view document_path,
+                                               loaded_config_file*,
+                                               byte_buffer& out_json);
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
 
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;
+  configuration default_config_;
   Linter linter_;
   std::unordered_map<string8, document> documents_;
   bool shutdown_requested_ = false;
@@ -165,6 +178,8 @@ class mock_lsp_linter {
 extern template class linting_lsp_server_handler<lsp_javascript_linter>;
 extern template class linting_lsp_server_handler<mock_lsp_linter>;
 }
+
+#endif
 
 #endif
 

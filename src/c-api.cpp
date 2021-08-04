@@ -1,7 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <cstddef>
+#include <memory>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
@@ -13,11 +16,12 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/web-demo-location.h>
+#include <vector>
 
 namespace quick_lint_js {
 namespace {
 template <class Locator, class ErrorReporter>
-class qljs_parser_base {
+class qljs_document_base {
  public:
   const auto* lint() {
     this->error_reporter_.reset();
@@ -39,12 +43,34 @@ class qljs_parser_base {
 }
 }
 
-struct qljs_vscode_parser final
-    : public quick_lint_js::qljs_parser_base<
+struct qljs_vscode_workspace {
+ public:
+  qljs_vscode_document* create_source_document();
+
+  void destroy_document(qljs_vscode_document*);
+
+ private:
+  std::vector<std::unique_ptr<qljs_vscode_document>> documents_;
+};
+
+qljs_vscode_workspace* qljs_vscode_create_workspace() {
+  qljs_vscode_workspace* workspace = new qljs_vscode_workspace();
+  return workspace;
+}
+
+void qljs_vscode_destroy_workspace(qljs_vscode_workspace* workspace) {
+  delete workspace;
+}
+
+struct qljs_vscode_document final
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::lsp_locator,
           quick_lint_js::c_api_error_reporter<qljs_vscode_diagnostic,
                                               quick_lint_js::lsp_locator>> {
  public:
+  explicit qljs_vscode_document(qljs_vscode_workspace* workspace)
+      : workspace(workspace) {}
+
   void replace_text(int start_line, int start_character, int end_line,
                     int end_character,
                     quick_lint_js::string8_view replacement) {
@@ -57,16 +83,36 @@ struct qljs_vscode_parser final
         },
         replacement);
   }
+
+  qljs_vscode_workspace* workspace;
 };
 
-qljs_vscode_parser* qljs_vscode_create_parser(void) {
-  qljs_vscode_parser* p = new qljs_vscode_parser();
-  return p;
+qljs_vscode_document* qljs_vscode_workspace::create_source_document() {
+  std::unique_ptr<qljs_vscode_document>& doc = this->documents_.emplace_back(
+      std::make_unique<qljs_vscode_document>(this));
+  return doc.get();
 }
 
-void qljs_vscode_destroy_parser(qljs_vscode_parser* p) { delete p; }
+void qljs_vscode_workspace::destroy_document(qljs_vscode_document* doc) {
+  auto doc_it = std::find_if(
+      this->documents_.begin(), this->documents_.end(),
+      [&](const std::unique_ptr<qljs_vscode_document>& existing_doc) {
+        return existing_doc.get() == doc;
+      });
+  QLJS_ASSERT(doc_it != this->documents_.end());
+  this->documents_.erase(doc_it);
+}
 
-void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
+qljs_vscode_document* qljs_vscode_create_source_document(
+    qljs_vscode_workspace* workspace) {
+  return workspace->create_source_document();
+}
+
+void qljs_vscode_destroy_document(qljs_vscode_document* p) {
+  p->workspace->destroy_document(p);
+}
+
+void qljs_vscode_replace_text(qljs_vscode_document* p, int start_line,
                               int start_character, int end_line,
                               int end_character,
                               const void* replacement_text_utf_8,
@@ -78,12 +124,12 @@ void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
           replacement_text_byte_count));
 }
 
-const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
+const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_document* p) {
   return p->lint();
 }
 
-struct qljs_web_demo_parser final
-    : public quick_lint_js::qljs_parser_base<
+struct qljs_web_demo_document final
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::web_demo_locator,
           quick_lint_js::c_api_error_reporter<
               qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
@@ -93,21 +139,21 @@ struct qljs_web_demo_parser final
   }
 };
 
-qljs_web_demo_parser* qljs_web_demo_create_parser(void) {
-  qljs_web_demo_parser* p = new qljs_web_demo_parser();
+qljs_web_demo_document* qljs_web_demo_create_document(void) {
+  qljs_web_demo_document* p = new qljs_web_demo_document();
   return p;
 }
 
-void qljs_web_demo_destroy_parser(qljs_web_demo_parser* p) { delete p; }
+void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
 
-void qljs_web_demo_set_text(qljs_web_demo_parser* p, const void* text_utf_8,
+void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                             size_t text_byte_count) {
   p->set_text(quick_lint_js::string8_view(
       reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
       text_byte_count));
 }
 
-const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
+const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
   return p->lint();
 }
 

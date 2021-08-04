@@ -17,11 +17,11 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
 #include <stdlib.h>
 #include <string>
@@ -41,38 +41,7 @@ using namespace std::literals::chrono_literals;
 
 namespace quick_lint_js {
 namespace {
-class test_file : public ::testing::Test {
- public:
-  std::string make_temporary_directory() {
-    temp_directory_path = quick_lint_js::make_temporary_directory();
-    return temp_directory_path.value();
-  }
-
-  void set_current_working_directory(const std::string& path) {
-    this->set_current_working_directory(path.c_str());
-  }
-
-  void set_current_working_directory(const char* path) {
-    if (!this->old_working_directory_.has_value()) {
-      this->old_working_directory_ = get_current_working_directory();
-    }
-    quick_lint_js::set_current_working_directory(path);
-  }
-
- private:
-  std::optional<std::string> temp_directory_path;
-  std::optional<std::string> old_working_directory_;
-
- protected:
-  void TearDown() override {
-    if (this->old_working_directory_.has_value()) {
-      set_current_working_directory(*this->old_working_directory_);
-    }
-    if (this->temp_directory_path.has_value()) {
-      delete_directory_recursive(*this->temp_directory_path);
-    }
-  }
-};
+class test_file : public ::testing::Test, protected filesystem_test {};
 
 TEST_F(test_file, read_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";

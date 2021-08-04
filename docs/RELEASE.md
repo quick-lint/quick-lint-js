@@ -2,7 +2,7 @@
 
 Follow the following steps to release a new version of quick-lint-js:
 
-1. Update the release notes file: docs/RELEASES.md
+1. Update the release notes file: docs/CHANGELOG.md
 
 2. Update version number and release date. Change these files containing version
    numbers:

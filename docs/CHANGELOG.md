@@ -10,24 +10,42 @@ Semantic Versioning.
 
 Beta release.
 
+### Changed
+
+* CLI: The `--stdin` option (and `-`) no longer search for configuration files
+  in the current working directory. Use the `--path-for-config-search` option to
+  approximate the old behavior.
+* Emacs: For scratch buffers, the Flycheck and Flymake plugins no longer
+  search for configuration files.
+* Vim: For unnamed buffers, the ALE plugin no longer searches for configuration
+  files in the current working directory's parent and ancestors. Name the buffer
+  using the `:file` command if you want a configuration file to take effect.
+
 ### Added
 
 * Various new errors (implemented by [Himanshu][])
+* CLI: `--path-for-config-search` allows customizing where configuration files
+  are found for `--stdin`
 * Partially implemented: Global variables can be configured using a
   `quick-lint-js.config` file
+* Syntax and schema errors in `quick-lint-js.config` no longer crash
+  quick-lint-js. Instead, these errors are highlighted similar to errors in
+  JavaScript files.
 
 ### Fixed
 
-* `for (const x of xs)` no longer warns about a missing initializer for `x`
-  (E205) (implemented by [Himanshu][])
 * Building quick-lint-js with AddressSanitizer on Fedora no longer fails in
   `collect-copyright`
 * Building quick-lint-js no longer fails if a directory called `brew` exists
   anywhere in `$PATH`
+* Various crashes given invalid JavaScript no longer happen (implemented by
+  [wagner riffel][])
 
 ## 0.3.0 (2021-07-02)
 
 Beta release.
+
+[Downloads](https://c.quick-lint-js.com/releases/0.3.0/)
 
 ### Security
 

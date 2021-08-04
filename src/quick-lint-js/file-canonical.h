@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_CANONICAL_H
 #define QUICK_LINT_JS_FILE_CANONICAL_H
 
+#if defined(__EMSCRIPTEN__)
+// No canonicalize_path on the web.
+#else
+
 #include <cstddef>
 #include <functional>
 #include <optional>
@@ -11,6 +15,7 @@
 #include <quick-lint-js/result.h>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace quick_lint_js {
 class canonical_path_result;
@@ -67,6 +72,15 @@ class canonical_path {
 
  private:
   std::string path_;
+
+  // On POSIX, if path_ is "/hello/world/x", then path_lengths_ is {1, 6, 12}:
+  //
+  //   /hello/world/x
+  //    ^    ^     ^
+  //    1    6     12
+  //
+  // If path_ is a root path, then path_lengths_ is empty.
+  std::vector<std::size_t> path_lengths_;
 
   friend canonical_path_result;
 };
@@ -125,6 +139,8 @@ struct hash<quick_lint_js::canonical_path> {
   }
 };
 }
+
+#endif
 
 #endif
 

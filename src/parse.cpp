@@ -942,6 +942,7 @@ next:
     case token_type::minus:
     case token_type::plus:
     case token_type::question:
+    case token_type::semicolon:
     case token_type::right_paren: {
       source_code_span empty_property_name(dot_span.end(), dot_span.end());
       children.back() = this->make_expression<expression::dot>(

@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_MESSAGE_PARSER_H
 #define QUICK_LINT_JS_LSP_MESSAGE_PARSER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <cstddef>
 #include <optional>
 #include <quick-lint-js/char8.h>
@@ -113,6 +117,8 @@ class lsp_message_parser : private lsp_message_parser_base {
   }
 };
 }
+
+#endif
 
 #endif
 
