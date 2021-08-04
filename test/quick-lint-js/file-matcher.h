@@ -33,7 +33,7 @@ inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
                                                    const char* rhs_path) {
   bool same;
 #if QLJS_HAVE_STD_FILESYSTEM
-  // TODO(strager): std::filesystem::equivalent treats differnt symlinks
+  // TODO(strager): std::filesystem::equivalent treats different symlinks
   // pointing to the same file as equivalent. This behavior differs from our
   // lstat-based implementation below.
   same = std::filesystem::equivalent(lhs_path, rhs_path);
