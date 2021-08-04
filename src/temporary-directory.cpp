@@ -95,9 +95,16 @@ void delete_directory_recursive(const std::string &path) {
   }
   while (::FTSENT *entry = ::fts_read(fts)) {
     switch (entry->fts_info) {
-    case FTS_D:
-      // Do nothing. We handle FTS_DP (post-order) instead.
+    case FTS_D: {
+      // Make sure the directory is traversable before traversing.
+      int rc = ::chmod(entry->fts_accpath, 0700);
+      if (rc != 0) {
+        std::fprintf(stderr,
+                     "warning: failed to change permissions for %s: %s\n",
+                     entry->fts_accpath, std::strerror(errno));
+      }
       break;
+    }
 
     case FTS_DP: {
       int rc = ::rmdir(entry->fts_accpath);

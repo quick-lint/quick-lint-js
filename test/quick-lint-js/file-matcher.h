@@ -23,6 +23,9 @@
 #define EXPECT_SAME_FILE(path_a, path_b) \
   EXPECT_PRED_FORMAT2(::quick_lint_js::assert_same_file, path_a, path_b)
 
+#define EXPECT_FILE_DOES_NOT_EXIST(path) \
+  EXPECT_PRED_FORMAT1(::quick_lint_js::assert_file_does_not_exist, path)
+
 namespace quick_lint_js {
 inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
                                                    const char* rhs_expr,
@@ -88,6 +91,43 @@ inline ::testing::AssertionResult assert_same_file(
     const std::string& rhs_path) {
   return assert_same_file(lhs_expr, rhs_expr, lhs_path.c_str(), rhs_path);
 }
+
+inline ::testing::AssertionResult assert_file_does_not_exist(const char* expr,
+                                                             const char* path) {
+  bool exists;
+#if QLJS_HAVE_STD_FILESYSTEM
+  exists = std::filesystem::exists(std::filesystem::path(path));
+#elif QLJS_HAVE_SYS_STAT_H
+  struct ::stat s;
+  if (::stat(path, &s) == 0) {
+    exists = true;
+  } else {
+    switch (errno) {
+    case ENOENT:
+      exists = false;
+      break;
+    default:
+      return ::testing::AssertionFailure()
+             << "checking for existance of " << expr << " (" << path
+             << ") failed: " << std::strerror(errno);
+    }
+  }
+#else
+#error "Unsupported platform"
+#endif
+  if (exists) {
+    return ::testing::AssertionFailure()
+           << expr << " (" << path << ") should not exist but it does";
+  } else {
+    return ::testing::AssertionSuccess();
+  }
+}
+
+inline ::testing::AssertionResult assert_file_does_not_exist(
+    const char* expr, const std::string& path) {
+  return assert_file_does_not_exist(expr, path.c_str());
+}
+
 }
 
 #endif
