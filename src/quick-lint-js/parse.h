@@ -1776,6 +1776,14 @@ class parser {
       this->skip();
       break;
 
+    case token_type::comma:
+      this->error_reporter_->report(
+          error_comma_not_allowed_between_class_methods{
+              .unexpected_comma = this->peek().span(),
+          });
+      this->skip();
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;

@@ -224,6 +224,13 @@
           comma))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_comma_not_allowed_between_class_methods, "E209",                   \
+      { source_code_span unexpected_comma; },                                  \
+      .error(                                                                  \
+          QLJS_TRANSLATABLE("commas are not allowed between class methods"),   \
+          unexpected_comma))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_config_json_syntax_error, "E164", { source_code_span where; },     \
       .error(QLJS_TRANSLATABLE("JSON syntax error"), where))                   \
                                                                                \
