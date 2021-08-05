@@ -1007,6 +1007,11 @@
       .error(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unopened_block_comment, "E210",                                    \
+      { source_code_span comment_close; },                                     \
+      .error(QLJS_TRANSLATABLE("unopened block comment"), comment_close))      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_code_block, "E134", { source_code_span block_open; },     \
       .error(QLJS_TRANSLATABLE(                                                \
                  "unclosed code block; expected '}' by end of file"),          \

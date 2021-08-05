@@ -108,6 +108,10 @@ class lexer {
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
 
+  // Returns true if a valid regexp literal is found
+  // Precondition: *regexp_begin == '/'
+  bool test_for_regexp(const char8* regexp_begin);
+
   // Save lexer state.
   //
   // After calling begin_transaction, you must call either commit_transaction or

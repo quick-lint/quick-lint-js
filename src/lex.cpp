@@ -450,6 +450,17 @@ retry:
       if (this->input_[2] == '=') {
         this->last_token_.type = token_type::star_star_equal;
         this->input_ += 3;
+      } else if (this->input_[2] == '/') {
+        bool parsed_ok = this->test_for_regexp(&this->input_[2]);
+        if (!parsed_ok) {
+          // We saw '**/'. Emit a '*' token now. Later, we will interpret the
+          // following '*/' as a comment.
+          this->last_token_.type = token_type::star;
+          this->input_ += 1;
+        } else {
+          this->last_token_.type = token_type::star_star;
+          this->input_ += 2;
+        }
       } else {
         this->last_token_.type = token_type::star_star;
         this->input_ += 2;
@@ -457,6 +468,20 @@ retry:
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::star_equal;
       this->input_ += 2;
+    } else if (this->input_[1] == '/') {
+      const char8* starpos = &this->input_[0];
+      bool parsed_ok = this->test_for_regexp(&this->input_[1]);
+
+      if (!parsed_ok) {
+        this->error_reporter_->report(error_unopened_block_comment{
+            source_code_span(starpos, &this->input_[2])});
+        this->input_ += 2;
+        this->skip_whitespace();
+        goto retry;
+      } else {
+        this->last_token_.type = token_type::star;
+        this->input_ += 1;
+      }
     } else {
       this->last_token_.type = token_type::star;
       this->input_ += 1;
@@ -642,6 +667,19 @@ retry:
     goto retry;
   }
   }
+}
+
+bool lexer::test_for_regexp(const char8* regexp_begin) {
+  lexer_transaction transaction = this->begin_transaction();
+
+  this->last_token_.type = token_type::slash;
+  this->input_ = regexp_begin;
+  this->last_token_.begin = this->input_;
+  this->reparse_as_regexp();
+
+  bool parsed_ok = !this->transaction_has_lex_errors(transaction);
+  this->roll_back_transaction(std::move(transaction));
+  return parsed_ok;
 }
 
 const char8* lexer::parse_string_literal() noexcept {

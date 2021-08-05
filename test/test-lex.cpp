@@ -113,6 +113,113 @@ TEST_F(test_lex, lex_block_comments) {
   }
 }
 
+TEST_F(test_lex, lex_unopened_block_comment) {
+  {
+    error_collector v;
+    padded_string input(u8"hello */"_sv);
+    lexer l(&input, &v);  // identifier
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();  // end of file
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unopened_block_comment, comment_close,
+                    offsets_matcher(&input, strlen(u8"hello "), u8"*/"))));
+  }
+  {
+    error_collector v;
+    padded_string input(u8"*-----*/"_sv);
+    lexer l(&input, &v);
+
+    while (l.peek().type != token_type::end_of_file) {
+      l.skip();
+    }
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unopened_block_comment, comment_close,
+                    offsets_matcher(&input, strlen(u8"*-----"), u8"*/"))));
+  }
+  {
+    error_collector v;
+    padded_string input(u8"*******/"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::star_star);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::star_star);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::star_star);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unopened_block_comment, comment_close,
+                    offsets_matcher(&input, strlen(u8"******"), u8"*/"))));
+  }
+  {
+    error_collector v;
+    padded_string input(u8"*/"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unopened_block_comment, comment_close,
+                              offsets_matcher(&input, 0, u8"*/"))));
+  }
+  {
+    error_collector v;
+    padded_string input(u8"**/"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::star);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_unopened_block_comment, comment_close,
+                              offsets_matcher(&input, 1, u8"*/"))));
+  }
+}
+
+TEST_F(test_lex, lex_regexp_literal_starting_with_star_slash) {
+  {
+    // '/*' is not an end of block comment because it precedes a regexp literal
+    error_collector v;
+    padded_string input(u8"*/ hello/"_sv);
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::star);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[input.size()]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_lex, lex_regexp_literal_starting_with_star_star_slash) {
+  {
+    padded_string input(u8"3 **/ banana/"_sv);
+    error_collector v;
+    lexer l(&input, &v);
+    EXPECT_EQ(l.peek().type, token_type::number);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::star_star);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.reparse_as_regexp();
+    EXPECT_EQ(l.peek().type, token_type::regexp);
+    EXPECT_EQ(l.peek().begin, &input[4]);
+    EXPECT_EQ(l.peek().end, &input[input.size()]);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST_F(test_lex, lex_line_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"// hello"_sv), IsEmpty());
   for (string8_view line_terminator : line_terminators) {
