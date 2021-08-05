@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <limits.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
@@ -74,7 +75,7 @@ std::string make_temporary_directory() {
 
 void create_directory(const std::string &path) {
 #if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::create_directory(path);
+  std::filesystem::create_directory(to_string8(path));
 #else
   if (::mkdir(path.c_str(), 0755) != 0) {
     std::fprintf(stderr, "error: failed to create directory %s: %s\n",

@@ -33,6 +33,7 @@
 using ::testing::AnyOf;
 using ::testing::HasSubstr;
 using ::testing::Not;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -183,6 +184,31 @@ TEST_F(test_file_canonical,
   EXPECT_TRUE(canonical->have_missing_components());
   canonical->drop_missing_components();
   EXPECT_EQ(canonical->path(), temp_dir_canonical->path());
+}
+
+TEST_F(test_file_canonical,
+       canonical_path_to_non_existing_file_with_non_ascii_succeeds) {
+  for (string8_view character8 : {u8"\u00e0"sv, u8"\u0800"sv}) {
+    std::string character = to_string(character8);
+    SCOPED_TRACE(character);
+
+    std::string temp_dir = this->make_temporary_directory();
+    create_directory(temp_dir + "/parent" + character + "dir");
+    result<canonical_path_result, canonicalize_path_io_error>
+        parent_dir_canonical =
+            canonicalize_path(temp_dir + "/parent" + character + "dir");
+    ASSERT_TRUE(parent_dir_canonical.ok())
+        << parent_dir_canonical.error().to_string();
+
+    result<canonical_path_result, canonicalize_path_io_error> canonical =
+        canonicalize_path(temp_dir + "/parent" + character + "dir/does-not-" +
+                          character + "exist/file" + character + "name.txt");
+    ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+    EXPECT_TRUE(canonical->have_missing_components());
+    canonical->drop_missing_components();
+    EXPECT_EQ(canonical->path(), parent_dir_canonical->path());
+  }
 }
 
 TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {

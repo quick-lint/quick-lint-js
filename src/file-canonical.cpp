@@ -567,11 +567,14 @@ class windows_path_canonicalizer
 
   canonical_path_result result() {
     // HACK(strager): Convert UTF-16 to UTF-8.
-    // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
-    // interpreted as UTF-8 code units! Fix by storing a std::wstring in
-    // canonical_path.
-    return canonical_path_result(std::filesystem::path(canonical_).string(),
-                                 existing_path_length_);
+    std::string canonical_utf_8 =
+        to_string(std::filesystem::path(canonical_).u8string());
+    std::size_t existing_path_length_utf_8 =
+        count_utf_8_code_units(std::u16string_view(
+            reinterpret_cast<const char16_t *>(canonical_.data()),
+            existing_path_length_));
+    return canonical_path_result(std::move(canonical_utf_8),
+                                 existing_path_length_utf_8);
   }
 
   quick_lint_js::result<void, canonicalizing_path_io_error>
