@@ -1,7 +1,7 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-name: build and test VS Code extension
+name: build and test VS Code extension (WASM)
 on:
   push:
   pull_request:
@@ -91,7 +91,7 @@ jobs:
         run: emmake cmake --install build --component vscode --prefix wasm
 
       - name: JS configure
-        run: cd plugin/vscode && yarn
+        run: cd plugin/vscode-wasm && yarn
       - name: JS test
         run: |
           DISPLAY=:1
@@ -102,26 +102,26 @@ jobs:
           sleep 0.1  # Wait for Xvfb to start.
           printf 'Started Xvfb\n' >&2
 
-          cd plugin/vscode
+          cd plugin/vscode-wasm
           yarn test
           kill %1
           wait || :
 
       - name: create extension
-        run: cd plugin/vscode && ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
+        run: cd plugin/vscode-wasm && ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin-wasm/vscode/
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
           name: plugin-vscode-${{ github.sha }}
-          path: plugin/vscode/*.vsix
+          path: plugin/vscode-wasm/*.vsix
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
-          local-file-globs: plugin/vscode/*.vsix
+          local-file-globs: plugin/vscode-wasm/*.vsix
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/vscode/
           user: ${{ secrets.artifacts_user }}

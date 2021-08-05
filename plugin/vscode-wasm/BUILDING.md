@@ -10,12 +10,12 @@ package](../../wasm/README.md#Building).
 
 Then, run the following command:
 
-    $ cd plugin/vscode/  # Navigate to this directory.
+    $ cd plugin/vscode-wasm/  # Navigate to this directory.
     $ yarn install --force
 
-Finally, run the following command to create `quick-lint-js-0.3.0.vsix`:
+Finally, run the following command to create `quick-lint-js-wasm-0.3.0.vsix`:
 
-    $ ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
+    $ ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode-wasm/
 
 ## Testing
 

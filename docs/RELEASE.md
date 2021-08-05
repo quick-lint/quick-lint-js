@@ -22,8 +22,8 @@ Follow the following steps to release a new version of quick-lint-js:
    * plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt
    * plugin/vscode-lsp/README.md
    * plugin/vscode-lsp/package.json
-   * plugin/vscode/BUILDING.md
-   * plugin/vscode/package.json
+   * plugin/vscode-wasm/BUILDING.md
+   * plugin/vscode-wasm/package.json
    * src/quick-lint-js/version.h
    * website/public/index.ejs.html
    * website/public/install/index.ejs.html

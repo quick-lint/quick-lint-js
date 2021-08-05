@@ -1,5 +1,5 @@
 {
-  "name": "quick-lint-js",
+  "name": "quick-lint-js-wasm",
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
   "version": "0.3.0",
