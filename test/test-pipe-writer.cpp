@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No pipes on the web.
+#else
+
 #include <array>
 #include <condition_variable>
 #include <cstddef>
@@ -52,7 +56,7 @@ byte_buffer byte_buffer_of(string8_view data) {
 }
 
 TEST_F(test_pipe_writer, large_write_sends_fully) {
-  std::future<result<padded_string, read_file_io_error>> data_future =
+  std::future<result<padded_string, read_file_io_error> > data_future =
       std::async(std::launch::async, [this] {
         return read_file("<pipe>", this->pipe.reader.ref());
       });
@@ -177,6 +181,8 @@ TEST_F(test_pipe_writer,
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

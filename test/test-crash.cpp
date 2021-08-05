@@ -63,6 +63,8 @@ bool file_exists(const char* path) { return ::access(path, F_OK) == 0; }
 bool file_exists(const char* path) {
   return ::GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
 }
+#elif defined(__EMSCRIPTEN__)
+bool file_exists([[maybe_unused]] const char* path) { QLJS_UNIMPLEMENTED(); }
 #else
 #error "Unknown platform"
 #endif

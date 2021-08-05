@@ -641,6 +641,7 @@ string8 repeated_str(string8_view before, string8_view inner,
   return reps;
 }
 
+#if QLJS_HAVE_SETJMP
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
     for (const string8 &exps : {
@@ -691,6 +692,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+#endif
 
 #if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {

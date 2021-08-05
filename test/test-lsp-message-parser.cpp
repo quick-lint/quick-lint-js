@@ -4,6 +4,10 @@
 // LSP specification:
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
@@ -83,6 +87,8 @@ TEST(test_lsp_message_parser, two_messages_chunked) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

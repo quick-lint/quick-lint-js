@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <json/value.h>
@@ -28,7 +32,7 @@ string8 json_to_string(::Json::Value& value) {
 }
 
 std::string json_get_string(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value) {
+    ::simdjson::simdjson_result< ::simdjson::ondemand::value>&& value) {
   std::string_view s = "<not found>";
   EXPECT_EQ(value.get(s), ::simdjson::error_code::SUCCESS);
   return std::string(s);
@@ -267,6 +271,8 @@ TEST(test_lsp_endpoint, malformed_json) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

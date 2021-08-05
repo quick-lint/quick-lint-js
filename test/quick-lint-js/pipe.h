@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_PIPE_H
 #define QUICK_LINT_JS_PIPE_H
 
+#if defined(__EMSCRIPTEN__)
+// No pipes on the web.
+#else
+
 #include <quick-lint-js/file-handle.h>
 
 namespace quick_lint_js {
@@ -14,6 +18,8 @@ struct pipe_fds {
 
 pipe_fds make_pipe();
 }
+
+#endif
 
 #endif
 

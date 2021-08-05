@@ -149,7 +149,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_PIPE)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if !defined(__EMSCRIPTEN__) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_PIPE 1
 #else
 #define QLJS_HAVE_PIPE 0

@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on the web.
+#else
+
 #include <cerrno>
 #include <condition_variable>
 #include <cstdint>
@@ -2515,6 +2519,8 @@ void move_file(const std::string& from, const std::string& to) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

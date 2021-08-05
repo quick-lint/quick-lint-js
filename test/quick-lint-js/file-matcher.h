@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_MATCHER_H
 #define QUICK_LINT_JS_FILE_MATCHER_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on the web.
+#else
+
 #include <cerrno>
 #include <cstring>
 #include <gtest/gtest.h>
@@ -129,6 +133,8 @@ inline ::testing::AssertionResult assert_file_does_not_exist(
 }
 
 }
+
+#endif
 
 #endif
 

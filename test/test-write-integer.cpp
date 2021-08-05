@@ -32,7 +32,7 @@ TEST(test_write_integer, maximum) {
   }
   if constexpr (std::numeric_limits<std::size_t>::max() >=
                 18446744073709551615ULL) {
-    EXPECT_EQ(write_integer(std::size_t{18446744073709551615ULL}),
+    EXPECT_EQ(write_integer(std::size_t(18446744073709551615ULL)),
               u8"18446744073709551615");
   }
 

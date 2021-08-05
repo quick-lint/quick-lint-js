@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_EVENT_LOOP_H
 #define QUICK_LINT_JS_EVENT_LOOP_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -255,7 +259,7 @@ class poll_event_loop : public event_loop_base<Derived> {
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
       QLJS_ASSERT(pipe.is_pipe_non_blocking());
 
-      std::array<::pollfd, 3> pollfds;
+      std::array< ::pollfd, 3> pollfds;
       std::size_t pollfd_count = 0;
 
       std::size_t read_pipe_index = pollfd_count++;
@@ -288,7 +292,7 @@ class poll_event_loop : public event_loop_base<Derived> {
 
       QLJS_ASSERT(pollfd_count > 0);
       QLJS_ASSERT(pollfd_count <= pollfds.size());
-      int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfd_count),
+      int rc = ::poll(pollfds.data(), narrow_cast< ::nfds_t>(pollfd_count),
                       /*timeout=*/-1);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
@@ -437,6 +441,8 @@ inline windows_handle_file create_io_completion_port() noexcept {
 }
 #endif
 }
+
+#endif
 
 #endif
 

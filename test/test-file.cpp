@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on the web.
+#else
+
 #include <cassert>
 #include <cerrno>
 #include <chrono>
@@ -220,6 +224,8 @@ TEST_F(test_file, read_pipe_empty_writes) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

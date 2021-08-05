@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No pipes on the web.
+#else
+
 #include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -58,6 +62,8 @@ TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

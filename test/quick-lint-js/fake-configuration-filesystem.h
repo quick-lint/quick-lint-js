@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 #define QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on the web.
+#else
+
 #include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -85,9 +89,11 @@ class fake_configuration_filesystem : public configuration_filesystem {
   }
 
  private:
-  std::unordered_map<canonical_path, std::function<read_file_result()>> files_;
+  std::unordered_map<canonical_path, std::function<read_file_result()> > files_;
 };
 }
+
+#endif
 
 #endif
 

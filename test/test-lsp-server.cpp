@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <json/value.h>
@@ -1983,6 +1987,8 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
 // diagnostics only once.
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
