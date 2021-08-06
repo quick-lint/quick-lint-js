@@ -122,18 +122,18 @@ class Parser:
 
     def __init__(self, view):
         if Parser.lib is None:
-            self._ctypes_parser = None
+            self._ctypes_parser_pointer = None
             raise OSError from Parser.err
         self.view = view
         self.diagnostics = []
-        self._ctypes_parser = Parser.lib.qljs_sublime_text_4_create_parser()
-        if self._ctypes_parser is None:
+        self._ctypes_parser_pointer = Parser.lib.qljs_sublime_text_4_create_parser()
+        if self._ctypes_parser_pointer is None:
             raise MemoryError()
 
     def __del__(self):
-        if self._ctypes_parser is not None:
-            Parser.lib.qljs_sublime_text_4_destroy_parser(self._ctypes_parser)
-            self._ctypes_parser = None
+        if self._ctypes_parser_pointer is not None:
+            Parser.lib.qljs_sublime_text_4_destroy_parser(self._ctypes_parser_pointer)
+            self._ctypes_parser_pointer = None
 
     def set_text(self):
         view_size = self.view.size()
@@ -142,14 +142,14 @@ class Parser:
         text_utf8 = all_content.encode(encoding="utf-8")
         text_len_utf8 = len(text_utf8)
         Parser.lib.qljs_sublime_text_4_replace_text(
-            self._ctypes_parser, 0, 0, 0, 0, text_utf8, text_len_utf8
+            self._ctypes_parser_pointer, 0, 0, 0, 0, text_utf8, text_len_utf8
         )
 
     def replace_text(self, change):
         replacement_text_utf8 = change.str.encode(encoding="utf-8")
         replacement_text_len_utf8 = len(replacement_text_utf8)
         Parser.lib.qljs_sublime_text_4_replace_text(
-            self._ctypes_parser,
+            self._ctypes_parser_pointer,
             change.a.row,
             change.a.col_utf16,
             change.b.row,
@@ -159,9 +159,11 @@ class Parser:
         )
 
     def lint(self):
-        ctypes_diagnostics = Parser.lib.qljs_sublime_text_4_lint(self._ctypes_parser)
+        ctypes_diagnostics_pointer = Parser.lib.qljs_sublime_text_4_lint(
+            self._ctypes_parser_pointer
+        )
         diagnostics = []
-        for ctypes_diagnostic in ctypes_diagnostics:
+        for ctypes_diagnostic in ctypes_diagnostics_pointer:
             if ctypes_diagnostic.message is None:
                 break
             diagnostics.append(Diagnostic(ctypes_diagnostic, self.view))
