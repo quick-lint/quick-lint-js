@@ -1,0 +1,129 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+name: build and test VS Code extension
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build-node-addon:
+    name: Node.js addon for ${{ matrix.os.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1"]')[matrix.os.runs_on == 'ubuntu-latest'] }}
+    env:
+      CMAKE_CXX_COMPILER: ${{ matrix.os.CXX }}
+      CMAKE_CXX_FLAGS: ${{ matrix.os.CFLAGS }}
+      CMAKE_C_COMPILER: ${{ matrix.os.CC }}
+      CMAKE_C_FLAGS: ${{ matrix.os.CFLAGS }}
+      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.os.LDFLAGS }}
+      CMAKE_EXTRA_FLAGS: ${{ matrix.os.CMAKE_FLAGS }}
+      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.os.LDFLAGS }}
+      QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure
+        run: |
+          env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
+          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_VSCODE=YES -DCMAKE_POSITION_INDEPENDENT_CODE=YES ${CMAKE_EXTRA_FLAGS} -S . -B build
+        shell: bash
+      - name: build
+        run: cmake --build build --config Release --target quick-lint-js-vscode-node quick-lint-js-vscode-node-licenses
+      - name: install
+        run: cmake --install build --component vscode-node --prefix plugin/vscode
+
+      - name: upload build to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: vscode-dist-${{ matrix.os.archive_name }}
+          path: plugin/vscode/dist/
+
+  build-extension:
+    name: VS Code extension
+    needs: build-node-addon
+    runs-on: ubuntu-latest
+    # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
+    env:
+      QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-linux
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-macos
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-windows
+          path: ./plugin/vscode/dist/
+
+      - name: JS configure
+        run: cd plugin/vscode && yarn
+      - name: JS test
+        run: |
+          DISPLAY=:1
+          export DISPLAY
+
+          type Xvfb  # Ensure Xvfb is installed.
+          Xvfb "${DISPLAY}" -screen 0 1024x768x24 &
+          sleep 0.1  # Wait for Xvfb to start.
+          printf 'Started Xvfb\n' >&2
+
+          cd plugin/vscode
+          yarn test
+          kill %1
+          wait || :
+
+      - name: create extension
+        run: cd plugin/vscode && ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
+
+      - name: upload build to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: plugin-vscode-${{ github.sha }}
+          path: plugin/vscode/*.vsix
+      - name: upload build to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: plugin/vscode/*.vsix
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/vscode/
+          user: ${{ secrets.artifacts_user }}
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

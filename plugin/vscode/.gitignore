@@ -1,0 +1,4 @@
+/.vscode-test/
+/dist/
+/node_modules/
+/quick-lint-js-*.vsix

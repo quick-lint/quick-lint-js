@@ -1,0 +1,45 @@
+{
+  "name": "quick-lint-js",
+  "description": "Find JavaScript bugs with quick-lint-js",
+  "publisher": "quick-lint",
+  "version": "0.3.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "categories": [
+    "Linters"
+  ],
+  "engines": {
+    "vscode": "^1.49.0"
+  },
+  "activationEvents": [
+    "onLanguage:javascript"
+  ],
+  "main": "./extension.js",
+  "extensionDependencies": [
+    "vscode.javascript"
+  ],
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "quick-lint-js",
+      "properties": {}
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quick-lint/quick-lint-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quick-lint/quick-lint-js/issues"
+  },
+  "scripts": {
+    "fmt": "prettier --write '*.js' 'test/*.js' '*.json' '.vscode/*.json'",
+    "test": "node test/run-vscode-tests.js"
+  },
+  "devDependencies": {
+    "colors": "1.4.0",
+    "prettier": "^2.3.0",
+    "tape": "5.2.2",
+    "vsce": "^1.93.0",
+    "vscode-test": "1.5.2"
+  }
+}

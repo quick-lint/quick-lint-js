@@ -8,85 +8,47 @@ include(QuickLintJSTarget)
 
 set(VSCODE_DIST_DIR dist)
 
-if (EMSCRIPTEN)
-  # TODO(strager): Rename.
-  quick_lint_js_add_executable(quick-lint-js-vscode empty.cpp)
-  target_link_libraries(
-    quick-lint-js-vscode
-    PRIVATE
-    quick-lint-js-lib
-    "-sEXPORTED_FUNCTIONS=[\"_qljs_vscode_create_workspace\",\"_qljs_vscode_destroy_workspace\",\"_qljs_vscode_create_source_document\",\"_qljs_vscode_destroy_document\",\"_qljs_vscode_replace_text\",\"_qljs_vscode_lint\",\"_qljs_web_demo_create_document\",\"_qljs_web_demo_destroy_document\",\"_qljs_web_demo_set_text\",\"_qljs_web_demo_lint\",\"_malloc\",\"_free\"]"
-    -sASSERTIONS=0
-    -sSTANDALONE_WASM=1
-    --no-entry
-  )
-  set_target_properties(quick-lint-js-vscode PROPERTIES SUFFIX .wasm)
-
-  install(
-    TARGETS quick-lint-js-vscode
-    RUNTIME
-    COMPONENT vscode
-    EXCLUDE_FROM_ALL
-    DESTINATION "${VSCODE_DIST_DIR}"
-  )
-
-  quick_lint_js_collect_copyright(
-    quick-lint-js-vscode-licenses
-    TARGET quick-lint-js-vscode
-    OUTPUT_FILE quick-lint-js-vscode-licenses.txt
-  )
-  if (TARGET quick-lint-js-vscode-licenses)
-    install(
-      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-vscode-licenses.txt"
-      COMPONENT vscode
-      DESTINATION "${VSCODE_DIST_DIR}"
-      EXCLUDE_FROM_ALL
-      RENAME copyright.txt
-    )
-  endif ()
-endif ()
-
 if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
   if (QUICK_LINT_JS_NODEJS_OS_PLATFORM AND QUICK_LINT_JS_NODEJS_OS_ARCH)
-    quick_lint_js_add_library(quick-lint-js-node-fs SHARED node-fs.cpp)
+    quick_lint_js_add_library(quick-lint-js-vscode-node SHARED quick-lint-js-vscode-node.cpp)
     set_target_properties(
-      quick-lint-js-node-fs
+      quick-lint-js-vscode-node
       PROPERTIES
       PREFIX ""
       SUFFIX "_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.node"
     )
-    target_compile_definitions(quick-lint-js-node-fs PRIVATE NAPI_VERSION=6)
+    target_compile_definitions(quick-lint-js-vscode-node PRIVATE NAPI_VERSION=6)
     target_link_libraries(
-      quick-lint-js-node-fs
+      quick-lint-js-vscode-node
       PRIVATE
       node-addon-api
       quick-lint-js-lib
     )
     install(
-      TARGETS quick-lint-js-node-fs
+      TARGETS quick-lint-js-vscode-node
       LIBRARY  # Linux DSO; macOS dylib
-        COMPONENT vscode
+        COMPONENT vscode-node
         EXCLUDE_FROM_ALL
         DESTINATION "${VSCODE_DIST_DIR}"
       RUNTIME  # Windows DLL
-        COMPONENT vscode
+        COMPONENT vscode-node
         EXCLUDE_FROM_ALL
         DESTINATION "${VSCODE_DIST_DIR}"
     )
 
     quick_lint_js_collect_copyright(
-      quick-lint-js-node-fs-licenses
-      TARGET quick-lint-js-node-fs
-      OUTPUT_FILE quick-lint-js-node-fs-licenses.txt
+      quick-lint-js-vscode-node-licenses
+      TARGET quick-lint-js-vscode-node
+      OUTPUT_FILE quick-lint-js-vscode-node-licenses.txt
       EXTRA_VENDOR_PROJECTS node node-addon-api
     )
-    if (TARGET quick-lint-js-node-fs-licenses)
+    if (TARGET quick-lint-js-vscode-node-licenses)
       install(
-        FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-node-fs-licenses.txt"
-        COMPONENT vscode
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-vscode-node-licenses.txt"
+        COMPONENT vscode-node
         DESTINATION "${VSCODE_DIST_DIR}"
         EXCLUDE_FROM_ALL
-        RENAME "copyright_quick-lint-js-node-fs_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.txt"
+        RENAME "copyright_quick-lint-js-vscode-node_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.txt"
       )
     endif ()
   else ()
