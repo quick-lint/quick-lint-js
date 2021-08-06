@@ -232,10 +232,11 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
                                          &this->document_.locator());
     parser p(this->document_.string(), &error_reporter);
     linter l(&error_reporter, &this->config_.globals());
-    // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
-    // instead of parse_and_visit_module to avoid crashing on
-    // QLJS_PARSER_UNIMPLEMENTED.
-    p.parse_and_visit_module(l);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
+    if (!ok) {
+      // TODO(strager): Show a pop-up message explaining that the parser
+      // crashed.
+    }
     return error_reporter.diagnostics();
   }
 
