@@ -412,8 +412,9 @@ void process_file(padded_string_view input, configuration &config,
                   error_reporter *error_reporter, bool print_parser_visits) {
   parser p(input, error_reporter);
   linter l(error_reporter, &config.globals());
-  // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
-  // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
+  // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
+  // instead of parse_and_visit_module to avoid crashing on
+  // QLJS_PARSER_UNIMPLEMENTED.
   if (print_parser_visits) {
     buffering_visitor v(p.buffering_visitor_memory());
     p.parse_and_visit_module(v);
