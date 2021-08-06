@@ -481,35 +481,36 @@ expression* parser::parse_primary_expression(precedence prec) {
   }
 
   case token_type::colon:
-  case token_type::kw_break:
-  case token_type::kw_case:
-  case token_type::kw_catch:
-  case token_type::kw_const:
-  case token_type::kw_continue:
-  case token_type::kw_debugger:
-  case token_type::kw_default:
-  case token_type::kw_do:
-  case token_type::kw_else:
-  case token_type::kw_export:
-  case token_type::kw_extends:
-  case token_type::kw_finally:
-  case token_type::kw_try:
-  case token_type::kw_var:
-  case token_type::kw_with: {
+  case token_type::kw_debugger: {
     source_code_span token_span = this->peek().span();
-    this->error_reporter_->report(error_unexpected_token{token_span});
+    this->error_reporter_->report(
+        error_unexpected_token{token_span});
     this->skip();
     return this->make_expression<expression::_invalid>(token_span);
   }
 
   case token_type::end_of_file:
+  case token_type::kw_break:
+  case token_type::kw_case:
+  case token_type::kw_catch:
+  case token_type::kw_const:
+  case token_type::kw_continue:
+  case token_type::kw_default:
+  case token_type::kw_do:
+  case token_type::kw_else:
   case token_type::kw_enum:
+  case token_type::kw_export:
+  case token_type::kw_extends:
+  case token_type::kw_finally:
   case token_type::kw_for:
   case token_type::kw_if:
   case token_type::kw_return:
   case token_type::kw_switch:
   case token_type::kw_throw:
+  case token_type::kw_try:
+  case token_type::kw_var:
   case token_type::kw_while:
+  case token_type::kw_with:
   case token_type::right_curly:
   case token_type::right_paren:
   case token_type::right_square:
