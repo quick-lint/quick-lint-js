@@ -184,27 +184,29 @@ qljs_sublime_text_4_error qljs_sublime_text_4_replace_text(
     qljs_sublime_text_4_parser* p, int start_line, int start_character,
     int end_line, int end_character, const void* replacement_text_utf_8,
     size_t replacement_text_byte_count) {
-  if (setjmp(qljs_sublime_text_jump_buffer) == 0) {
+  QLJS_SUBLIME_TEXT_TRY() {
     p->replace_text(start_line, start_character, end_line, end_character,
                     quick_lint_js::string8_view(
                         reinterpret_cast<const quick_lint_js::char8*>(
                             replacement_text_utf_8),
                         replacement_text_byte_count));
     return qljs_sublime_text_4_error{NULL};
+  } QLJS_SUBLIME_TEXT_CATCH() {
+    return qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
   }
-  return qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
 }
 
 const qljs_sublime_text_4_result* qljs_sublime_text_4_lint(
     qljs_sublime_text_4_parser* p) {
-  if (setjmp(qljs_sublime_text_jump_buffer) == 0) {
+  QLJS_SUBLIME_TEXT_TRY() {
     return new qljs_sublime_text_4_result{.value = {.diagnostics = p->lint()},
                                           .is_diagnostics = true};
+  } QLJS_SUBLIME_TEXT_CATCH() {
+    qljs_sublime_text_4_error error =
+        qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
+    return new qljs_sublime_text_4_result{.value = {.error = error},
+                                          .is_diagnostics = false};
   }
-  qljs_sublime_text_4_error error =
-      qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
-  return new qljs_sublime_text_4_result{.value = {.error = error},
-                                        .is_diagnostics = false};
 }
 #endif
 

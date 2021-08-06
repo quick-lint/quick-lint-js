@@ -8,7 +8,6 @@
 #include <quick-lint-js/have.h>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
-#include <csetjmp>
 #include <quick-lint-js/sublime-text.h>
 #endif
 
@@ -17,8 +16,7 @@
 #endif
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() \
-  longjmp(qljs_sublime_text_jump_buffer, 1)
+#define QLJS_CRASH_ALLOWING_CORE_DUMP() QLJS_SUBLIME_TEXT_THROW()
 #elif QLJS_HAVE_DEBUGBREAK
 #define QLJS_CRASH_ALLOWING_CORE_DUMP() ::__debugbreak()
 #elif QLJS_HAVE_BUILTIN_TRAP
