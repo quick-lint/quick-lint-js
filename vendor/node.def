@@ -25,13 +25,16 @@ EXPORTS
     napi_get_and_clear_last_exception
     napi_get_array_length
     napi_get_cb_info
+    napi_get_element
     napi_get_instance_data
     napi_get_last_error_info
     napi_get_named_property
     napi_get_new_target
     napi_get_reference_value
     napi_get_undefined
+    napi_get_value_int64
     napi_get_value_string_utf8
+    napi_is_array
     napi_is_exception_pending
     napi_module_register
     napi_new_instance

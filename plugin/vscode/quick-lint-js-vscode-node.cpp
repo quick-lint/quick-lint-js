@@ -13,6 +13,8 @@
 
 namespace quick_lint_js {
 namespace {
+int to_int(::Napi::Value);
+
 // State global to a specific Node.js instance/thread.
 class addon_state {
  public:
@@ -152,12 +154,14 @@ class vscode_error_reporter final : public error_reporter {
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
-    return DefineClass(env, "Document",
-                       {
-                           InstanceMethod<&qljs_document::dispose>("dispose"),
-                           InstanceMethod<&qljs_document::lint>("lint"),
-                           InstanceMethod<&qljs_document::set_text>("setText"),
-                       });
+    return DefineClass(
+        env, "Document",
+        {
+            InstanceMethod<&qljs_document::dispose>("dispose"),
+            InstanceMethod<&qljs_document::lint>("lint"),
+            InstanceMethod<&qljs_document::replace_text>("replaceText"),
+            InstanceMethod<&qljs_document::set_text>("setText"),
+        });
   }
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
@@ -168,6 +172,40 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     ::Napi::Env env = info.Env();
 
     // TODO(strager): Reduce memory usage.
+
+    return env.Undefined();
+  }
+
+  ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+    if (!(info.Length() >= 1 && info[0].IsArray())) {
+      ::Napi::TypeError::New(env, "Expected Array")
+          .ThrowAsJavaScriptException();
+      return env.Undefined();
+    }
+
+    ::Napi::Array changes = info[0].As<::Napi::Array>();
+    for (std::uint32_t i = 0; i < changes.Length(); ++i) {
+      ::Napi::Object change = changes.Get(i).As<::Napi::Object>();
+      ::Napi::Object range = change.Get("range").As<::Napi::Object>();
+      ::Napi::Object start = range.Get("start").As<::Napi::Object>();
+      ::Napi::Object end = range.Get("end").As<::Napi::Object>();
+      lsp_range r = {
+          .start =
+              {
+                  .line = to_int(start.Get("line")),
+                  .character = to_int(start.Get("character")),
+              },
+          .end =
+              {
+                  .line = to_int(end.Get("line")),
+                  .character = to_int(end.Get("character")),
+              },
+      };
+      std::string replacement_text =
+          change.Get("text").As<::Napi::String>().Utf8Value();
+      this->document_.replace_text(r, to_string8_view(replacement_text));
+    }
 
     return env.Undefined();
   }
@@ -213,6 +251,10 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   return state->qljs_document_class.New({
       /*vscode=*/info[0],
   });
+}
+
+int to_int(::Napi::Value v) {
+  return narrow_cast<int>(v.As<::Napi::Number>().Int64Value());
 }
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {

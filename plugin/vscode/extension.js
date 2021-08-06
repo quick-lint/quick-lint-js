@@ -29,8 +29,8 @@ class VSCodeDocumentLinter {
     this._lint();
   }
 
-  textChanged(_changes) {
-    this._qljsDocument.setText(this._document.getText());
+  textChanged(changes) {
+    this._qljsDocument.replaceText(changes);
     this._lint();
   }
 
