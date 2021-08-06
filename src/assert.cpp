@@ -4,12 +4,30 @@
 #include <cstdio>
 #include <quick-lint-js/assert.h>
 
+#if QLJS_SUBLIME_TEXT_PLUGIN
+#include <cstdlib>
+#include <quick-lint-js/sublime-text.h>
+#endif
+
 namespace quick_lint_js {
 void report_assertion_failure(const char *qljs_file_name, int qljs_line,
                               const char *qljs_function_name,
                               const char *message) {
-  std::fprintf(stderr, "%s:%d: internal check failed in %s: %s\n",
+  constexpr static const char *format =
+      "%s:%d: internal check failed in %s: %s\n";
+#if QLJS_SUBLIME_TEXT_PLUGIN
+  // Memory management in C and auto allocating sprintf() - asprintf():
+  // https://insanecoding.blogspot.com/2014/06/memory-management-in-c-and-auto.html
+  qljs_sublime_text_assertion_failure_report = (char *)std::malloc(
+      std::snprintf(nullptr, 0, format, qljs_file_name, qljs_line,
+                    qljs_function_name, message) +
+      1);
+  std::sprintf(qljs_sublime_text_assertion_failure_report, format,
                qljs_file_name, qljs_line, qljs_function_name, message);
+#else
+  std::fprintf(stderr, format, qljs_file_name, qljs_line, qljs_function_name,
+               message);
+#endif
 }
 }
 

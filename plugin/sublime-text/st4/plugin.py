@@ -91,6 +91,11 @@ class QuickLintJsListener:
             view.add_regions("2", warning_regions, "region.orangish", "", flags)
             view.add_regions("1", error_regions, "region.redish", "", flags)
 
+    def remove_squiggly_underlines(self):
+        for view in self.plugin_buffer.views:
+            view.erase_regions("2")
+            view.erase_regions("1")
+
     def get_regions_by_severity(self):
         warning_regions = []
         error_regions = []
@@ -131,9 +136,14 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
 
     def on_load(self):
         """Called when the file is finished loading."""
-        self.plugin_buffer.parser.set_text()
-        self.plugin_buffer.parser.lint()
-        self.add_squiggly_underlines()
+        try:
+            self.plugin_buffer.parser.set_text()
+            self.plugin_buffer.parser.lint()
+            self.add_squiggly_underlines()
+        except c_api.Error as error:
+            self.remove_squiggly_underlines()
+            if error.has_message():
+                error.display_message()
 
     def on_reload(self):
         """Called, for example, when a file is changed outside of the editor.
@@ -199,10 +209,15 @@ class QuickLintJsTextChangeListener(TextChangeListener, QuickLintJsListener):
                 self.buffer.id()
             )
         )
-        for change in changes:
-            self.plugin_buffer.parser.replace_text(change)
-        self.plugin_buffer.parser.lint()
-        self.add_squiggly_underlines()
+        try:
+            for change in changes:
+                self.plugin_buffer.parser.replace_text(change)
+            self.plugin_buffer.parser.lint()
+            self.add_squiggly_underlines()
+        except c_api.Error as error:
+            self.remove_squiggly_underlines()
+            if error.has_message():
+                error.display_message()
 
 
 # quick-lint-js finds bugs in JavaScript programs.

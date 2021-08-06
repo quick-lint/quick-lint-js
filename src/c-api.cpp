@@ -12,8 +12,12 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/web-demo-location.h>
+
+#if QLJS_SUBLIME_TEXT_PLUGIN
+#include <quick-lint-js/sublime-text-3-location.h>
+#include <quick-lint-js/sublime-text.h>
+#endif
 
 namespace quick_lint_js {
 namespace {
@@ -112,6 +116,7 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
   return p->lint();
 }
 
+#if QLJS_SUBLIME_TEXT_PLUGIN
 struct qljs_sublime_text_3_parser final
     : public quick_lint_js::qljs_parser_base<
           quick_lint_js::sublime_text_3_locator,
@@ -175,22 +180,33 @@ void qljs_sublime_text_4_destroy_parser(qljs_sublime_text_4_parser* p) {
   delete p;
 }
 
-void qljs_sublime_text_4_replace_text(qljs_sublime_text_4_parser* p,
-                                      int start_line, int start_character,
-                                      int end_line, int end_character,
-                                      const void* replacement_text_utf_8,
-                                      size_t replacement_text_byte_count) {
-  p->replace_text(
-      start_line, start_character, end_line, end_character,
-      quick_lint_js::string8_view(
-          reinterpret_cast<const quick_lint_js::char8*>(replacement_text_utf_8),
-          replacement_text_byte_count));
+qljs_sublime_text_4_error qljs_sublime_text_4_replace_text(
+    qljs_sublime_text_4_parser* p, int start_line, int start_character,
+    int end_line, int end_character, const void* replacement_text_utf_8,
+    size_t replacement_text_byte_count) {
+  if (setjmp(qljs_sublime_text_jump_buffer) == 0) {
+    p->replace_text(start_line, start_character, end_line, end_character,
+                    quick_lint_js::string8_view(
+                        reinterpret_cast<const quick_lint_js::char8*>(
+                            replacement_text_utf_8),
+                        replacement_text_byte_count));
+    return qljs_sublime_text_4_error{NULL};
+  }
+  return qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
 }
 
-const qljs_sublime_text_4_diagnostic* qljs_sublime_text_4_lint(
+const qljs_sublime_text_4_result* qljs_sublime_text_4_lint(
     qljs_sublime_text_4_parser* p) {
-  return p->lint();
+  if (setjmp(qljs_sublime_text_jump_buffer) == 0) {
+    return new qljs_sublime_text_4_result{.value = {.diagnostics = p->lint()},
+                                          .is_diagnostics = true};
+  }
+  qljs_sublime_text_4_error error =
+      qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
+  return new qljs_sublime_text_4_result{.value = {.error = error},
+                                        .is_diagnostics = false};
 }
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

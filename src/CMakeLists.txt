@@ -131,6 +131,7 @@ quick_lint_js_add_library(
   quick-lint-js/simd.h
   quick-lint-js/sloppy-result.h
   quick-lint-js/sublime-text-3-location.h
+  quick-lint-js/sublime-text.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
@@ -146,6 +147,7 @@ quick_lint_js_add_library(
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
   sublime-text-3-location.cpp
+  sublime-text.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
   translation-data.cpp
@@ -200,6 +202,45 @@ if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
     quick-lint-js-lib
     PUBLIC
     QLJS_HAVE_CHARCONV_HEADER=0
+  )
+endif ()
+
+CHECK_INCLUDE_FILE_CXX("csetjmp" QUICK_LINT_JS_CSETJMP_FOUND)
+if (NOT EMSCRIPTEN AND QUICK_LINT_JS_CSETJMP_FOUND)
+  set(QUICK_LINT_JS_HAVE_SETJMP ON)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SETJMP=1
+  )
+else ()
+  set(QUICK_LINT_JS_HAVE_SETJMP OFF)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SETJMP=0
+  )
+endif ()
+
+if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR
+    QUICK_LINT_JS_SUBLIME_TEXT_4)
+  if (QUICK_LINT_JS_HAVE_SETJMP)
+    target_compile_definitions(
+      quick-lint-js-lib
+      PUBLIC
+      QLJS_SUBLIME_TEXT_PLUGIN=1
+    )
+  else ()
+    message(
+      FATAL_ERROR
+      "You need to have setjmp available to build the Sublime Text plugin."
+    )
+  endif ()
+else ()
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_SUBLIME_TEXT_PLUGIN=0
   )
 endif ()
 

@@ -1,41 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CRASH_H
-#define QUICK_LINT_JS_CRASH_H
+#ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
+#define QUICK_LINT_JS_SUBLIME_TEXT_H
 
-#include <cstdlib>
-#include <quick-lint-js/have.h>
-
-#if QLJS_SUBLIME_TEXT_PLUGIN
 #include <csetjmp>
-#include <quick-lint-js/sublime-text.h>
-#endif
 
-#if QLJS_HAVE_DEBUGBREAK
-#include <intrin.h>
-#endif
+extern jmp_buf qljs_sublime_text_jump_buffer;
 
-#if QLJS_SUBLIME_TEXT_PLUGIN
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() \
-  longjmp(qljs_sublime_text_jump_buffer, 1)
-#elif QLJS_HAVE_DEBUGBREAK
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::__debugbreak()
-#elif QLJS_HAVE_BUILTIN_TRAP
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() __builtin_trap()
-#else
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::std::abort()
-#endif
-
-#define QLJS_CRASH_DISALLOWING_CORE_DUMP()   \
-  do {                                       \
-    ::quick_lint_js::disable_core_dumping(); \
-    QLJS_CRASH_ALLOWING_CORE_DUMP();         \
-  } while (false)
-
-namespace quick_lint_js {
-void disable_core_dumping();
-}
+extern char *qljs_sublime_text_assertion_failure_report;
 
 #endif
 
