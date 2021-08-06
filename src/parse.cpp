@@ -483,8 +483,7 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::colon:
   case token_type::kw_debugger: {
     source_code_span token_span = this->peek().span();
-    this->error_reporter_->report(
-        error_unexpected_token{token_span});
+    this->error_reporter_->report(error_unexpected_token{token_span});
     this->skip();
     return this->make_expression<expression::_invalid>(token_span);
   }
