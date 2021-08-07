@@ -8,8 +8,8 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build-node-addon:
-    name: Node.js addon for ${{ matrix.os.name }}
+  build-and-test:
+    name: ${{ matrix.os.name }}
     strategy:
       fail-fast: false
       matrix:
@@ -33,15 +33,24 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: configure
+      - name: C++ configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
           cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_VSCODE=YES -DCMAKE_POSITION_INDEPENDENT_CODE=YES ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
-      - name: build
+      - name: C++ build
         run: cmake --build build --config Release --target quick-lint-js-vscode-node quick-lint-js-vscode-node-licenses
-      - name: install
+      - name: C++ install
         run: cmake --install build --component vscode-node --prefix plugin/vscode
+
+      - name: JS configure
+        run: cd plugin/vscode && yarn
+      - name: JS test
+        # NOTE(strager): We test on Linux in the build-extension job.
+        if: ${{ matrix.os.archive_name != 'linux' }}
+        run: |
+          cd plugin/vscode
+          yarn test
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
@@ -51,8 +60,8 @@ jobs:
           path: plugin/vscode/dist/
 
   build-extension:
-    name: VS Code extension
-    needs: build-node-addon
+    name: VS Code .vsix
+    needs: build-and-test
     runs-on: ubuntu-latest
     # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
     env:
@@ -76,7 +85,11 @@ jobs:
 
       - name: JS configure
         run: cd plugin/vscode && yarn
-      - name: JS test
+        # TODO(strager): Testing on Linux doesn't work inside a
+        # ghcr.io/quick-lint/quick-lint-js-github-builder Docker container. Fix
+        # the Docker image then move this testing on Linux into the
+        # build-and-test job.
+      - name: JS test (Linux)
         run: |
           DISPLAY=:1
           export DISPLAY
