@@ -12,7 +12,7 @@ quick-lint-js finds many bugs, including:
 * Using `await` in a non-`async` function
 * Syntax errors
 
-![Demonstration of quick-lint-js in Visual Studio Code](plugin/vscode-wasm/demo.webp)
+![Demonstration of quick-lint-js in Visual Studio Code](plugin/vscode/demo.webp)
 
 ## Installing
 
