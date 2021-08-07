@@ -51,6 +51,7 @@ class configuration {
 
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
+  bool did_add_globals_from_groups_ = false;
   bool add_global_group_browser_ = true;
   bool add_global_group_node_js_ = true;
   bool add_global_group_ecmascript_ = true;

@@ -23,6 +23,10 @@ source_code_span span_of_json_value(::simdjson::fallback::ondemand::value&);
 }
 
 const global_declared_variable_set& configuration::globals() noexcept {
+  if (this->did_add_globals_from_groups_) {
+    return this->globals_;
+  }
+
   if (this->add_global_group_browser_) {
     for (const char8** it = global_variables_browser; *it; ++it) {
       string8_view global(*it);
@@ -142,6 +146,7 @@ const global_declared_variable_set& configuration::globals() noexcept {
     }
   }
 
+  this->did_add_globals_from_groups_ = true;
   return this->globals_;
 }
 

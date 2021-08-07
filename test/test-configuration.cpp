@@ -195,6 +195,16 @@ TEST(test_configuration, added_global_variable_shadows_default) {
   EXPECT_FALSE(found_var->is_writable);
 }
 
+TEST(test_configuration,
+     adding_global_variable_does_not_disable_default_groups) {
+  configuration c;
+
+  c.add_global_variable(u8"testGlobalVariable"_sv);
+
+  EXPECT_TRUE(c.globals().find(u8"Array"_sv));
+  EXPECT_TRUE(c.globals().find(u8"console"_sv));
+}
+
 TEST(test_configuration, removed_global_variable_shadows_default) {
   configuration c;
   c.remove_global_variable(u8"Array"_sv);
