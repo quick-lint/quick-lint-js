@@ -6,11 +6,11 @@
 
 #include <csetjmp>
 
-#define QLJS_SUBLIME_TEXT_TRY() if (setjmp(qljs_sublime_text_jump_buffer) == 0)
+#define QLJS_SUBLIME_TEXT_TRY() if (setjmp(qljs_sublime_text_jmp_buf) == 0)
 #define QLJS_SUBLIME_TEXT_CATCH() else
-#define QLJS_SUBLIME_TEXT_THROW() longjmp(qljs_sublime_text_jump_buffer, 1)
+#define QLJS_SUBLIME_TEXT_THROW() ::std::longjmp(qljs_sublime_text_jmp_buf, 1)
 
-extern jmp_buf qljs_sublime_text_jump_buffer;
+extern jmp_buf qljs_sublime_text_jmp_buf;
 
 extern char *qljs_sublime_text_assertion_failure_report;
 

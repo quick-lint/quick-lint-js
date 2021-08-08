@@ -3,7 +3,7 @@
 
 #include <quick-lint-js/sublime-text.h>
 
-jmp_buf qljs_sublime_text_jump_buffer;
+jmp_buf qljs_sublime_text_jmp_buf;
 
 char *qljs_sublime_text_assertion_failure_report = (char *)"";
 
