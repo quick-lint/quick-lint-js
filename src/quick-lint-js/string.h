@@ -1,16 +1,16 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ASPRINTF_H
-#define QUICK_LINT_JS_ASPRINTF_H
+#ifndef QUICK_LINT_JS_STRING_H
+#define QUICK_LINT_JS_STRING_H
+
+#include <cstdarg>
 
 #define QLJS_SAFE_FREE(ptr) \
   do {                      \
     free(ptr);              \
     ptr = nullptr;          \
   } while (false)
-
-#include <cstdarg>
 
 namespace quick_lint_js {
 // Name:
@@ -27,7 +27,7 @@ int asprintf(char **strp, const char *format, ...);
 int vasprintf(char **strp, const char *format, va_list argptr);
 }
 
-#endif  // QUICK_LINT_JS_ASPRINTF_H
+#endif  // QUICK_LINT_JS_STRING_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

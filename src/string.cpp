@@ -1,13 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-// Memory management in C and auto allocating sprintf() - asprintf():
-// https://insanecoding.blogspot.com/2014/06/memory-management-in-c-and-auto.html
-
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/asprintf.h>
+#include <quick-lint-js/string.h>
 
 // Define the following, and this will work with MSVC or other platforms that
 // lack va_copy, but a simple copying of va_list does the trick.
@@ -18,6 +15,8 @@
 #endif
 
 namespace quick_lint_js {
+// Memory management in C and auto allocating sprintf() - asprintf():
+// https://insanecoding.blogspot.com/2014/06/memory-management-in-c-and-auto.html
 int asprintf(char **strp, const char *format, ...) {
   int ret;
   va_list argptr;
