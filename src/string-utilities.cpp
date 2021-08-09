@@ -4,7 +4,7 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/string.h>
+#include <quick-lint-js/string-utilities.h>
 
 // Define the following, and this will work with MSVC or other platforms that
 // lack va_copy, but a simple copying of va_list does the trick.
@@ -58,7 +58,7 @@ int vasprintf(char **strp, const char *format, va_list argptr) {
 
   return ret;
 }
-}
+}  // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
