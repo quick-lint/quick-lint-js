@@ -54,10 +54,11 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
     # all views that belong to the same buffer. Because that way,
     # if there are multiple views (tabs) of the same buffer (file),
     # they will all apply the same changes (have squiggly underlines
-    # and pop-ups available):
+    # and pop-ups available).
     #
-    # Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
-    # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
+    # For more information:
+    #   Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
+    #   https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     buffers_manager = BuffersManager()
 
@@ -135,9 +136,9 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         color = self.view.style_for_scope("comment.line")["foreground"]
 
         # Sublime Text 3 parser cannot interpret escaped quotes.
-        #
-        #   Parse Error: quot; code: Unknown entity
-        #
+        # >
+        # > Parse Error: quot; code: Unknown entity
+        # >
         content = minihtml % (
             html.escape(diagnostic.message, quote=False),
             html.escape(color, quote=False),

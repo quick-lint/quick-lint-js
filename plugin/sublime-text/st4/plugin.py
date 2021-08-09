@@ -61,10 +61,11 @@ class QuickLintJsListener:
     # all views that belong to the same buffer. Because that way,
     # if there are multiple views (tabs) of the same buffer (file),
     # they will all apply the same changes (have squiggly underlines
-    # and pop-ups available):
+    # and pop-ups available).
     #
-    # Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
-    # https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
+    # For more information:
+    #   Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
+    #   https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     plugin_buffers_manager = PluginBuffersManager()
 
