@@ -76,10 +76,10 @@ struct qljs_sublime_text_4_diagnostic {
   int end_line;
   int end_character;
 };
-/* There are three states for the structure below:
- * 1. Without error: qljs_sublime_text_4_error{NULL}
- * 2. With error without message: qljs_sublime_text_4_error{""}
- * 3. With error with message: qljs_sublime_text_4_error{"internal failure"} */
+// There are three states for the structure below:
+// 1. Without error: qljs_sublime_text_4_error{NULL}
+// 2. With error without message: qljs_sublime_text_4_error{""}
+// 3. With error with message: qljs_sublime_text_4_error{"internal failure"}
 struct qljs_sublime_text_4_error {
   const char* assertion_failure_report;
 };
