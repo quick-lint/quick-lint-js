@@ -38,7 +38,6 @@ int vasprintf(char **strp, const char *format, va_list argptr) {
 
   size = vsnprintf(0, 0, format, argptr2);
 #endif
-
   if ((size >= 0) && (size < INT_MAX)) {
     *strp = (char *)malloc(size + 1);  // +1 for null
     if (*strp) {
@@ -51,11 +50,9 @@ int vasprintf(char **strp, const char *format, va_list argptr) {
   } else {
     *strp = nullptr;
   }
-
 #ifndef _MSC_VER
   va_end(argptr2);
 #endif
-
   return ret;
 }
 }  // namespace quick_lint_js
