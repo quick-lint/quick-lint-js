@@ -36,6 +36,14 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
         DESTINATION "${VSCODE_DIST_DIR}"
     )
 
+    if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+      target_link_libraries(
+        quick-lint-js-vscode-node
+        PRIVATE
+        -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js-vscode-node.map
+      )
+    endif ()
+
     quick_lint_js_collect_copyright(
       quick-lint-js-vscode-node-licenses
       TARGET quick-lint-js-vscode-node
