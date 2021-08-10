@@ -28,6 +28,7 @@ archive_to_vendor_project = {
     "libboost.a": "boost",
     "libquick-lint-js-lib.a": None,
     "libsimdjson.a": "simdjson",
+    "node-hook.lib": None,
     "node-napi.lib": None,  # Dynamically linked.
     "quick-lint-js-lib.lib": None,
     "simdjson.lib": "simdjson",
@@ -36,6 +37,7 @@ archive_to_vendor_project = {
     "LIBCMTD.lib": None,
     "MSVCRT.lib": None,
     "MSVCRTD.lib": None,
+    "delayimp.lib": None,
     "kernel32.lib": None,
     "libcpmt.lib": None,
     "libcpmtd.lib": None,

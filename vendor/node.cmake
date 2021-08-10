@@ -39,6 +39,19 @@ if (WIN32)
     INTERFACE
     "${CMAKE_CURRENT_BINARY_DIR}/node-napi.lib"
   )
+
+  # Ensure symbols are found in the extension host (node.exe or code.exe or
+  # electron.exe or whatever), not in a separately-loaded DLL called "NODE.EXE".
+  add_library(node-hook STATIC node-hook.cpp)
+  target_link_libraries(
+    node-napi
+    INTERFACE
+    -DELAY:nobind  # Reduce binary size.
+    -DELAYLOAD:NODE.EXE
+    -WHOLEARCHIVE:$<TARGET_FILE:node-hook>
+    delayimp
+  )
+  add_dependencies(node-napi node-hook)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
