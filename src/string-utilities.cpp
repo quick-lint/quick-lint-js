@@ -4,6 +4,7 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <quick-lint-js/string-utilities.h>
 
 // Define the following, and this will work with MSVC or other platforms that
@@ -54,6 +55,15 @@ int vasprintf(char **strp, const char *format, va_list argptr) {
   va_end(argptr2);
 #endif
   return ret;
+}
+
+char **astrcat(char **destptr, const char *src) {
+  std::size_t size;
+  size = std::strlen(*destptr);
+  size += std::strlen(src);
+  destptr = (char **)std::realloc(destptr, size + 1);  // +1 for null
+  std::strcat(*destptr, src);
+  return destptr;
 }
 }  // namespace quick_lint_js
 
