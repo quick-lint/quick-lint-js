@@ -1283,6 +1283,27 @@ namespace quick_lint_js {
   struct name struct_body;
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
+
+enum class error_type {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) name,
+  QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+};
+
+template <class Error>
+struct error_type_from_type_detail;
+
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+  template <>                                                 \
+  struct error_type_from_type_detail<name> {                  \
+    static constexpr error_type type = error_type::name;      \
+  };
+QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+
+template <class Error>
+inline constexpr error_type error_type_from_type =
+    error_type_from_type_detail<Error>::type;
 }
 
 #endif

@@ -79,6 +79,9 @@ struct gmo_message {
   std::string_view message;
   gmo_file::word_type hash;
 
+  /*implicit*/ constexpr gmo_message()
+      : hash(gmo_file::hash_string(this->message)) {}
+
   explicit constexpr gmo_message(const char *raw_message, std::size_t length)
       : message(raw_message, length),
         hash(gmo_file::hash_string(this->message)) {}

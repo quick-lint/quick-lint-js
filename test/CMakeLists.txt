@@ -36,6 +36,8 @@ quick_lint_js_add_executable(
   test-configuration.cpp
   test-constant-divider.cpp
   test-crash.cpp
+  test-diagnostic-formatter.cpp
+  test-diagnostic.cpp
   test-document.cpp
   test-emacs-lisp-error-reporter.cpp
   test-emacs-location.cpp
