@@ -34,13 +34,7 @@ jobs:
           sudo -u arch-builder makepkg --syncdeps --cleanbuild -p PKGBUILD-dev --noconfirm
 
       - name: lint package
-        run: |
-          cd dist/arch/
-          namcap PKGBUILD-dev PKGBUILD-git PKGBUILD-release ./quick-lint-js-*.pkg.tar.zst |& tee errors
-          if [ -s errors ]; then
-            printf 'error: namcap reported an error\n' >&2
-            exit 1
-          fi
+        run: ./dist/arch/lint.sh
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2

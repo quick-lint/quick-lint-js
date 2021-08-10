@@ -1,6 +1,7 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CheckCXXSourceCompiles)
 
@@ -175,6 +176,36 @@ function (quick_lint_js_have_charconv OUT_VAR)
     "${QUICK_LINT_JS_HAVE_CHARCONV_AND_STD_TO_CHARS}"
     PARENT_SCOPE
   )
+endfunction ()
+
+function (quick_lint_js_add_c_cxx_flag_if_supported FLAG VAR)
+  check_c_compiler_flag("${FLAG}" "${VAR}_C")
+  if ("${${VAR}_C}")
+    add_compile_options($<$<COMPILE_LANGUAGE:C>:${FLAG}>)
+  endif ()
+
+  check_cxx_compiler_flag("${FLAG}" "${VAR}_CXX")
+  if ("${${VAR}_CXX}")
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${FLAG}>)
+  endif ()
+endfunction ()
+
+function (quick_lint_js_add_cxx_linker_flag_if_supported FLAG VAR)
+  list(APPEND CMAKE_REQUIRED_LIBRARIES "${FLAG}")
+  check_cxx_source_compiles("int main() { return 0; }" "${VAR}")
+  if ("${${VAR}}")
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+      link_libraries("$<$<LINK_LANGUAGE:CXX>:${FLAG}>")
+    else ()
+      link_libraries("${FLAG}")
+    endif ()
+  endif ()
+endfunction ()
+
+function (quick_lint_js_enable_dead_code_stripping)
+  quick_lint_js_add_c_cxx_flag_if_supported(-fdata-sections QUICK_LINT_JS_HAVE_FDATA_SECTIONS)
+  quick_lint_js_add_c_cxx_flag_if_supported(-ffunction-sections QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS)
+  quick_lint_js_add_cxx_linker_flag_if_supported(-Wl,--gc-sections QUICK_LINT_JS_HAVE_GC_SECTIONS)
 endfunction ()
 
 # quick-lint-js finds bugs in JavaScript programs.

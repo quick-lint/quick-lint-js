@@ -21,7 +21,7 @@ following commands:
     # If you want to build PKGBUILD-git or PKGBUILD-release, replace
     # 'PKGBUILD-dev' in the following command:
     $ makepkg --syncdeps --cleanbuild -p PKGBUILD-dev
-    $ namcap PKGBUILD-dev PKGBUILD-git PKGBUILD-release ./quick-lint-js-*.pkg.tar.zst
+    $ ./lint.sh
 
 To install the built package, run the following command:
 
