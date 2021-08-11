@@ -12,12 +12,6 @@
 namespace quick_lint_js {
 struct buffering_error_reporter::impl {
   struct any_error {
-    enum class error_kind {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) name,
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-    };
-
     union underlying_error {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format)             \
   ::quick_lint_js::name name;                                        \
@@ -27,7 +21,7 @@ struct buffering_error_reporter::impl {
 #undef QLJS_ERROR_TYPE
     };
 
-    error_kind kind;
+    error_type type;
     underlying_error error;
   };
 
@@ -48,7 +42,7 @@ buffering_error_reporter::~buffering_error_reporter() = default;
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
   void buffering_error_reporter::report(name error) {    \
     this->impl_->errors_.push_back(impl::any_error{      \
-        .kind = impl::any_error::error_kind::name,       \
+        .type = error_type::name,                        \
         .error = {.name = error},                        \
     });                                                  \
   }
@@ -57,9 +51,9 @@ QLJS_X_ERROR_TYPES
 
 void buffering_error_reporter::copy_into(error_reporter *other) const {
   for (impl::any_error &error : this->impl_->errors_) {
-    switch (error.kind) {
+    switch (error.type) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  case impl::any_error::error_kind::name:                \
+  case error_type::name:                                 \
     other->report(error.error.name);                     \
     break;
       QLJS_X_ERROR_TYPES
