@@ -45,7 +45,6 @@ class new_style_error_reporter : public error_reporter {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
- protected:
   virtual void report_impl(error_type type, void *error) = 0;
 };
 }

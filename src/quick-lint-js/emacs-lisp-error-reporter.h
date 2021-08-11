@@ -26,7 +26,6 @@ class emacs_lisp_error_reporter final : public new_style_error_reporter {
   void set_source(padded_string_view input);
   void finish();
 
- protected:
   void report_impl(error_type type, void *error) override;
 
  private:

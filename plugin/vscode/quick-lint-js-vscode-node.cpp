@@ -134,7 +134,6 @@ class vscode_error_reporter final : public new_style_error_reporter {
 
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
- protected:
   void report_impl(error_type type, void* error) override {
     vscode_error_formatter formatter(
         /*vscode=*/this->vscode_,

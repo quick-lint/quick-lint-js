@@ -48,7 +48,6 @@ class basic_text_error_reporter final : public new_style_error_reporter {
 
   std::vector<string8> messages() { return this->messages_; }
 
- protected:
   void report_impl(error_type type, void *error) override {
     basic_text_error_formatter formatter(this);
     formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
