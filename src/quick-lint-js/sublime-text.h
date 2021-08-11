@@ -12,7 +12,7 @@
 
 extern jmp_buf qljs_sublime_text_jmp_buf;
 
-#endif
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
