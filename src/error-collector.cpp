@@ -16,14 +16,14 @@ QLJS_X_ERROR_TYPES
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   error_collector::error::error(name &&data)                  \
-      : kind_(kind::kind_##name), variant_##name##_(std::move(data)) {}
+      : type_(error_type::name), variant_##name##_(std::move(data)) {}
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
 const char *error_collector::error::error_code() const noexcept {
-  switch (this->kind_) {
+  switch (this->type_) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  case error_collector::error::kind::kind_##name:             \
+  case error_type::name:                                      \
     return code;
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -34,7 +34,7 @@ const char *error_collector::error::error_code() const noexcept {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call)              \
   template <>                                                              \
   bool holds_alternative<name>(const error_collector::error &e) noexcept { \
-    return e.kind_ == error_collector::error::kind::kind_##name;           \
+    return e.type_ == error_type::name;                                    \
   }                                                                        \
                                                                            \
   template <>                                                              \
@@ -46,9 +46,9 @@ QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
 void PrintTo(const error_collector::error &e, std::ostream *out) {
-  switch (e.kind_) {
+  switch (e.type_) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  case error_collector::error::kind::kind_##name:             \
+  case error_type::name:                                      \
     *out << #name;                                            \
     return;
     QLJS_X_ERROR_TYPES

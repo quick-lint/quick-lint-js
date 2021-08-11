@@ -40,13 +40,7 @@ struct error_collector : public error_reporter {
     friend void PrintTo(const error &, std::ostream *);
 
    private:
-    enum class kind {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) kind_##name,
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-    };
-
-    kind kind_;
+    error_type type_;
     union {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   name variant_##name##_;
