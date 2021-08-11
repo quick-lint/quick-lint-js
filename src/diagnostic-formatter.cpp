@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
