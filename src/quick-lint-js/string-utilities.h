@@ -25,10 +25,6 @@ namespace quick_lint_js {
 //   https://linux.die.net/man/3/asprintf
 int asprintf(char **strp, const char *format, ...);
 int vasprintf(char **strp, const char *format, va_list argptr);
-
-// Name:
-//   astrcat - concatenate source string to destination allocated string
-char **astrcat(char **destptr, const char *src);
 }  // namespace quick_lint_js
 
 #endif  // QUICK_LINT_JS_STRING_UTILITIES_H

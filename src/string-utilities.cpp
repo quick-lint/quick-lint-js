@@ -56,15 +56,6 @@ int vasprintf(char **strp, const char *format, va_list argptr) {
 #endif
   return ret;
 }
-
-char **astrcat(char **destptr, const char *src) {
-  std::size_t size;
-  size = std::strlen(*destptr);
-  size += std::strlen(src);
-  destptr = (char **)std::realloc(destptr, size + 1);  // +1 for null
-  std::strcat(*destptr, src);
-  return destptr;
-}
 }  // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
