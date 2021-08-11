@@ -12,6 +12,24 @@
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/translation.h>
 
+// QLJS_ERROR_TYPE should have the following signature:
+//
+// #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) ...
+//
+// * error_name: identifier
+// * error_code: string literal
+// * struct_body: class member list, wrapped in { }
+// * format: member function calls
+//
+// A class named *error_name* is created in the quick_lint_js namespace.
+// *struct_body* is the body of the class.
+//
+// *format* should look like the following:
+//
+//    .error(QLJS_TRANSLATABLE("format string"), source_location)
+//
+// In *format*, the *error_name* class is in scope, so source_location above
+// would refer to a member variable in the class (listed in *struct_body*).
 #define QLJS_X_ERROR_TYPES                                                     \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_before_variable_declaration, "E001",                    \
