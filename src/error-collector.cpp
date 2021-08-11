@@ -7,15 +7,19 @@
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void error_collector::report(name e) {                      \
-    this->errors.emplace_back(std::move(e));                  \
-  }
-QLJS_X_ERROR_TYPES
+void error_collector::report_impl(error_type type, void *error) {
+  switch (type) {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)          \
+  case error_type::name:                                               \
+    this->errors.emplace_back(*reinterpret_cast<const name *>(error)); \
+    break;
+    QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
+  }
+}
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  error_collector::error::error(name &&data)                  \
+  error_collector::error::error(const name &data)             \
       : type_(error_type::name), variant_##name##_(std::move(data)) {}
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

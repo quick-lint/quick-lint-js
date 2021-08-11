@@ -15,17 +15,14 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct error_collector : public error_reporter {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void report(name e) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+struct error_collector : public new_style_error_reporter {
+  void report_impl(error_type type, void *error) override;
 
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {
    public:
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  explicit error(name &&);
+  explicit error(const name &);
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
