@@ -270,15 +270,29 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
 }
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
+  constexpr diagnostic_info diag_info = {
+      .code = "E999",
+      .messages =
+          {
+              diagnostic_message_info{
+                  .format = "something happened"_gmo_message,
+                  .severity = diagnostic_severity::error,
+                  .args =
+                      {
+                          {0, diagnostic_arg_type::source_code_span},
+                      },
+              },
+          },
+  };
+
   padded_string code(u8"hello world"_sv);
   source_code_span hello_span(&code[0], &code[5]);
   vim_locator locator(&code);
 
   std::stringstream stream;
-  vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view(), "E999")
-      .error("something happened"_gmo_message, hello_span)
-      .end();
+  vim_qflist_json_error_formatter formatter(stream, locator, "FILE",
+                                            /*bufnr=*/std::string_view());
+  formatter.format(diag_info, &hello_span);
 
   ::Json::Value object = parse_json(stream);
   EXPECT_EQ(object["col"], 1);
@@ -289,17 +303,46 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
 }
 
 TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
+  struct test_diag {
+    source_code_span hello_span;
+    source_code_span world_span;
+  };
+  constexpr diagnostic_info diag_info = {
+      .code = "E999",
+      .messages =
+          {
+              diagnostic_message_info{
+                  .format = "something happened"_gmo_message,
+                  .severity = diagnostic_severity::error,
+                  .args =
+                      {
+                          {offsetof(test_diag, hello_span),
+                           diagnostic_arg_type::source_code_span},
+                      },
+              },
+              diagnostic_message_info{
+                  .format = "here"_gmo_message,
+                  .severity = diagnostic_severity::note,
+                  .args =
+                      {
+                          {offsetof(test_diag, world_span),
+                           diagnostic_arg_type::source_code_span},
+                      },
+              },
+          },
+  };
+
   padded_string code(u8"hello world"_sv);
-  source_code_span hello_span(&code[0], &code[5]);
-  source_code_span world_span(&code[6], &code[11]);
   vim_locator locator(&code);
 
   std::stringstream stream;
-  vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view(), "E999")
-      .error("something happened"_gmo_message, hello_span)
-      .note("see here"_gmo_message, world_span)
-      .end();
+  test_diag diag = {
+      .hello_span = source_code_span(&code[0], &code[5]),
+      .world_span = source_code_span(&code[6], &code[11]),
+  };
+  vim_qflist_json_error_formatter formatter(stream, locator, "FILE",
+                                            /*bufnr=*/std::string_view());
+  formatter.format(diag_info, &diag);
 
   ::Json::Value object = parse_json(stream);
   EXPECT_EQ(object["col"], 1);
@@ -307,59 +350,6 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
   EXPECT_EQ(object["end_lnum"], 1);
   EXPECT_EQ(object["lnum"], 1);
   EXPECT_EQ(object["text"], "something happened");
-}
-
-TEST(test_vim_qflist_json_error_formatter, message_with_zero_placeholder) {
-  padded_string code(u8"hello world"_sv);
-  source_code_span hello_span(&code[0], &code[5]);
-  vim_locator locator(&code);
-
-  std::stringstream stream;
-  vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view(), "E888")
-      .error("this {0} looks fishy"_gmo_message, hello_span)
-      .end();
-
-  ::Json::Value object = parse_json(stream);
-  EXPECT_EQ(object["text"], "this hello looks fishy");
-}
-
-TEST(test_vim_qflist_json_error_formatter,
-     message_with_extra_identifier_placeholder) {
-  padded_string code(u8"hello world"_sv);
-  source_code_span hello_span(&code[0], &code[5]);
-  identifier world_identifier(source_code_span(&code[6], &code[11]));
-  vim_locator locator(&code);
-
-  std::stringstream stream;
-  vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view(), "E888")
-      .error("this {1} looks fishy"_gmo_message, hello_span, world_identifier)
-      .end();
-
-  ::Json::Value object = parse_json(stream);
-  EXPECT_EQ(object["text"], "this world looks fishy");
-}
-
-TEST(test_vim_qflist_json_error_formatter,
-     message_with_multiple_span_placeholders) {
-  padded_string code(u8"let me = be(free);"_sv);
-  vim_locator locator(&code);
-  source_code_span let_span(&code[0], &code[3]);
-  ASSERT_EQ(let_span.string_view(), u8"let");
-  source_code_span me_span(&code[4], &code[6]);
-  ASSERT_EQ(me_span.string_view(), u8"me");
-  source_code_span be_span(&code[9], &code[11]);
-  ASSERT_EQ(be_span.string_view(), u8"be");
-
-  std::stringstream stream;
-  vim_qflist_json_error_formatter(stream, locator, "FILE",
-                                  /*bufnr=*/std::string_view(), "E999")
-      .error("free {1} and {0} {1} {2}"_gmo_message, let_span, me_span, be_span)
-      .end();
-
-  ::Json::Value object = parse_json(stream);
-  EXPECT_EQ(object["text"], "free me and let me be");
 }
 }
 }
