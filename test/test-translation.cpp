@@ -4,7 +4,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/token.h>
@@ -20,47 +21,49 @@ class basic_text_error_reporter;
 class basic_text_error_formatter;
 
 class basic_text_error_formatter
-    : public error_formatter<basic_text_error_formatter> {
+    : public diagnostic_formatter<basic_text_error_formatter> {
  public:
   explicit basic_text_error_formatter(basic_text_error_reporter *reporter)
       : reporter_(reporter) {}
 
-  void write_before_message(severity, const source_code_span &) {}
+  void write_before_message([[maybe_unused]] std::string_view code,
+                            diagnostic_severity, const source_code_span &) {}
 
-  void write_message_part(severity, string8_view part) {
+  void write_message_part([[maybe_unused]] std::string_view code,
+                          diagnostic_severity, string8_view part) {
     this->current_message_.append(part);
   }
 
-  void write_after_message(severity, const source_code_span &);
+  void write_after_message(std::string_view code, diagnostic_severity,
+                           const source_code_span &);
 
  private:
   basic_text_error_reporter *reporter_;
   string8 current_message_;
 };
 
-class basic_text_error_reporter final : public error_reporter {
+class basic_text_error_reporter final : public new_style_error_reporter {
  public:
   explicit basic_text_error_reporter() = default;
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void report(name e) override { format_error(e, this->format()); }
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
   std::vector<string8> messages() { return this->messages_; }
 
- private:
-  basic_text_error_formatter format() {
-    return basic_text_error_formatter(this);
+ protected:
+  void report_impl(error_type type, void *error) override {
+    basic_text_error_formatter formatter(this);
+    formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
+                     error);
   }
 
+ private:
   std::vector<string8> messages_;
 
   friend basic_text_error_formatter;
 };
 
-void basic_text_error_formatter::write_after_message(severity,
-                                                     const source_code_span &) {
+void basic_text_error_formatter::write_after_message(
+    [[maybe_unused]] std::string_view code, diagnostic_severity,
+    const source_code_span &) {
   this->reporter_->messages_.emplace_back(std::move(this->current_message_));
 }
 
