@@ -135,6 +135,7 @@ template class c_api_error_formatter<qljs_web_demo_diagnostic,
                                      web_demo_locator>;
 template class c_api_error_reporter<qljs_web_demo_diagnostic, web_demo_locator>;
 
+#if QLJS_SUBLIME_TEXT_PLUGIN
 template class c_api_error_formatter<qljs_sublime_text_3_diagnostic,
                                      sublime_text_3_locator>;
 template class c_api_error_reporter<qljs_sublime_text_3_diagnostic,
@@ -144,6 +145,7 @@ template class c_api_error_formatter<qljs_sublime_text_4_diagnostic,
                                      lsp_locator>;
 template class c_api_error_reporter<qljs_sublime_text_4_diagnostic,
                                     lsp_locator>;
+#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
