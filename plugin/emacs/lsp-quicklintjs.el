@@ -44,6 +44,21 @@
 (require 'quicklintjs)
 
 ;;;###autoload
+(defun lsp-quicklintjs ()
+  "Like `lsp', but set root folder to `default-directory' to avoid project root\
+prompts."
+  (interactive)
+  ;; Don't mess with user's session state file
+  (set (make-local-variable 'lsp-session-file)
+       (expand-file-name (locate-user-emacs-file
+                          ".lsp-quicklintjs-session-v1")))
+  (let* ((session (lsp-session)))
+    (cl-pushnew (expand-file-name default-directory)
+                (lsp-session-folders session) :test 'equal)
+    (lsp--persist-session session))
+ (lsp))
+
+;;;###autoload
 (with-eval-after-load 'lsp-mode
   (lsp-register-client
    (make-lsp-client
