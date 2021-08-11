@@ -4,8 +4,9 @@
 #include <memory>
 #include <napi.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
@@ -61,33 +62,36 @@ struct vscode_module {
   ::Napi::Number diagnostic_severity_warning;
 };
 
-class vscode_error_formatter : public error_formatter<vscode_error_formatter> {
+class vscode_error_formatter
+    : public diagnostic_formatter<vscode_error_formatter> {
  public:
   explicit vscode_error_formatter(vscode_module* vscode, ::Napi::Env env,
                                   ::Napi::Array diagnostics,
-                                  const lsp_locator* locator, const char* code)
+                                  const lsp_locator* locator)
       : vscode_(vscode),
         env_(env),
         diagnostics_(diagnostics),
-        locator_(locator),
-        code_(code) {}
+        locator_(locator) {}
 
-  void write_before_message(severity, const source_code_span&) {}
+  void write_before_message([[maybe_unused]] std::string_view code,
+                            diagnostic_severity, const source_code_span&) {}
 
-  void write_message_part(severity, string8_view message_part) {
+  void write_message_part([[maybe_unused]] std::string_view code,
+                          diagnostic_severity, string8_view message_part) {
     this->message_.append(message_part);
   }
 
-  void write_after_message(severity sev, const source_code_span& origin) {
+  void write_after_message(std::string_view code, diagnostic_severity sev,
+                           const source_code_span& origin) {
     ::Napi::Value severity;
     switch (sev) {
-    case severity::error:
+    case diagnostic_severity::error:
       severity = this->vscode_->diagnostic_severity_error;
       break;
-    case severity::warning:
+    case diagnostic_severity::warning:
       severity = this->vscode_->diagnostic_severity_warning;
       break;
-    case severity::note:
+    case diagnostic_severity::note:
       // Don't write notes. Only write the main message.
       return;
     }
@@ -106,7 +110,7 @@ class vscode_error_formatter : public error_formatter<vscode_error_formatter> {
             this->env_, reinterpret_cast<const char*>(this->message_.data())),
         /*severity=*/severity,
     });
-    diag.Set("code", ::Napi::String::New(this->env_, this->code_));
+    diag.Set("code", ::Napi::String::New(this->env_, code.data(), code.size()));
     diag.Set("source", ::Napi::String::New(this->env_, "quick-lint-js"));
     this->diagnostics_.Set(this->diagnostics_.Length(), diag);
   }
@@ -116,11 +120,10 @@ class vscode_error_formatter : public error_formatter<vscode_error_formatter> {
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
   const lsp_locator* locator_;
-  const char* code_;
   string8 message_;
 };
 
-class vscode_error_reporter final : public error_reporter {
+class vscode_error_reporter final : public new_style_error_reporter {
  public:
   explicit vscode_error_reporter(vscode_module* vscode, ::Napi::Env env,
                                  const lsp_locator* locator) noexcept
@@ -129,23 +132,20 @@ class vscode_error_reporter final : public error_reporter {
         diagnostics_(::Napi::Array::New(env)),
         locator_(locator) {}
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void report(name e) { format_error(e, this->format(code)); }
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
- private:
-  vscode_error_formatter format(const char* code) {
-    return vscode_error_formatter(
+ protected:
+  void report_impl(error_type type, void* error) override {
+    vscode_error_formatter formatter(
         /*vscode=*/this->vscode_,
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,
-        /*locator=*/this->locator_,
-        /*code=*/code);
+        /*locator=*/this->locator_);
+    formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
+                     error);
   }
 
+ private:
   vscode_module* vscode_;
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
