@@ -19,7 +19,7 @@
 namespace quick_lint_js {
 class emacs_lisp_error_formatter;
 
-class emacs_lisp_error_reporter final : public new_style_error_reporter {
+class emacs_lisp_error_reporter final : public error_reporter {
  public:
   explicit emacs_lisp_error_reporter(std::ostream &output);
 

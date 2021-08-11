@@ -27,7 +27,7 @@ template <class Diagnostic, class Locator>
 class c_api_error_formatter;
 
 template <class Diagnostic, class Locator>
-class c_api_error_reporter final : public new_style_error_reporter {
+class c_api_error_reporter final : public error_reporter {
  public:
   explicit c_api_error_reporter();
 

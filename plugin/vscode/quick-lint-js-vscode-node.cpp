@@ -123,7 +123,7 @@ class vscode_error_formatter
   string8 message_;
 };
 
-class vscode_error_reporter final : public new_style_error_reporter {
+class vscode_error_reporter final : public error_reporter {
  public:
   explicit vscode_error_reporter(vscode_module* vscode, ::Napi::Env env,
                                  const lsp_locator* locator) noexcept

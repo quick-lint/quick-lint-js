@@ -19,7 +19,7 @@
 namespace quick_lint_js {
 class text_error_formatter;
 
-class text_error_reporter final : public new_style_error_reporter {
+class text_error_reporter final : public error_reporter {
  public:
   explicit text_error_reporter(std::ostream &output);
 

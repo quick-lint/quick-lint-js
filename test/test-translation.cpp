@@ -42,7 +42,7 @@ class basic_text_error_formatter
   string8 current_message_;
 };
 
-class basic_text_error_reporter final : public new_style_error_reporter {
+class basic_text_error_reporter final : public error_reporter {
  public:
   explicit basic_text_error_reporter() = default;
 

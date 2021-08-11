@@ -18,7 +18,7 @@
 namespace quick_lint_js {
 class vim_qflist_json_error_formatter;
 
-class vim_qflist_json_error_reporter final : public new_style_error_reporter {
+class vim_qflist_json_error_reporter final : public error_reporter {
  public:
   explicit vim_qflist_json_error_reporter(std::ostream &output);
 

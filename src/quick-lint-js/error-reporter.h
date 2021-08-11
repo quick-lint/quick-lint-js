@@ -36,9 +36,6 @@ class null_error_reporter : public error_reporter {
   void report_impl(error_type, void *) override {}
 };
 inline null_error_reporter null_error_reporter::instance;
-
-// TODO(strager): Delete new_style_error_reporter.
-class new_style_error_reporter : public error_reporter {};
 }
 
 #endif

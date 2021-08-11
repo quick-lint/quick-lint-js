@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct error_collector : public new_style_error_reporter {
+struct error_collector : public error_reporter {
   void report_impl(error_type type, void *error) override;
 
   // Like std::variant<(error types)>, but with much faster compilation.

@@ -23,7 +23,7 @@
 namespace quick_lint_js {
 class lsp_error_formatter;
 
-class lsp_error_reporter final : public new_style_error_reporter {
+class lsp_error_reporter final : public error_reporter {
  public:
   explicit lsp_error_reporter(byte_buffer &output, padded_string_view input);
 

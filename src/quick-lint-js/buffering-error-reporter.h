@@ -10,7 +10,7 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-class buffering_error_reporter final : public new_style_error_reporter {
+class buffering_error_reporter final : public error_reporter {
  public:
   explicit buffering_error_reporter();
 

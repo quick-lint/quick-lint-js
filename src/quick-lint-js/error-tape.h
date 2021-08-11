@@ -13,7 +13,7 @@
 
 namespace quick_lint_js {
 template <typename T>
-class error_tape final : public new_style_error_reporter {
+class error_tape final : public error_reporter {
  public:
   explicit error_tape(T reporter, const compiled_error_list *predicate)
       : reporter_(reporter), predicate_(predicate) {}
