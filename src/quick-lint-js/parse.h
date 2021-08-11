@@ -1305,6 +1305,8 @@ class parser {
     this->parse_and_visit_statement_block_no_scope(v);
   }
 
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters(Visitor &v) {
     std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
@@ -1358,6 +1360,7 @@ class parser {
     }
   done:;
   }
+  QLJS_WARNING_POP
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class(Visitor &v, name_requirement require_name) {
@@ -3085,6 +3088,8 @@ class parser {
                                        /*allow_in_operator=*/allow_in_operator);
   }
 
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   // declaring_token is the const/let/var token.
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
@@ -3314,6 +3319,7 @@ class parser {
       first_binding = false;
     }
   }
+  QLJS_WARNING_POP
 
   bool is_let_token_a_variable_reference(token following_token,
                                          bool allow_declarations) noexcept {
