@@ -192,7 +192,8 @@ qljs_sublime_text_4_error qljs_sublime_text_4_replace_text(
                             replacement_text_utf_8),
                         replacement_text_byte_count));
     return qljs_sublime_text_4_error{NULL};
-  } QLJS_SUBLIME_TEXT_CATCH() {
+  }
+  QLJS_SUBLIME_TEXT_CATCH() {
     qljs_sublime_text_4_error error =
         qljs_sublime_text_4_error{qljs_sublime_text_program_error_reports};
     QLJS_CLEAR_PROGRAM_ERROR();
@@ -205,7 +206,8 @@ const qljs_sublime_text_4_result* qljs_sublime_text_4_lint(
   QLJS_SUBLIME_TEXT_TRY() {
     return new qljs_sublime_text_4_result{.value = {.diagnostics = p->lint()},
                                           .is_diagnostics = true};
-  } QLJS_SUBLIME_TEXT_CATCH() {
+  }
+  QLJS_SUBLIME_TEXT_CATCH() {
     qljs_sublime_text_4_error error =
         qljs_sublime_text_4_error{qljs_sublime_text_program_error_reports};
     QLJS_CLEAR_PROGRAM_ERROR();
