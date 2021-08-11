@@ -19,27 +19,8 @@ class error_reporter {
 
   virtual ~error_reporter() = default;
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  virtual void report(name) = 0;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-};
-
-class null_error_reporter : public error_reporter {
- public:
-  static null_error_reporter instance;
-
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name) override {}
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-};
-inline null_error_reporter null_error_reporter::instance;
-
-class new_style_error_reporter : public error_reporter {
- public:
 #define QLJS_ERROR_TYPE(name, code, struct_body, format)   \
-  void report(name error) override {                       \
+  void report(name error) {                                \
     this->report_impl(error_type_from_type<name>, &error); \
   }
   QLJS_X_ERROR_TYPES
@@ -47,6 +28,17 @@ class new_style_error_reporter : public error_reporter {
 
   virtual void report_impl(error_type type, void *error) = 0;
 };
+
+class null_error_reporter : public error_reporter {
+ public:
+  static null_error_reporter instance;
+
+  void report_impl(error_type, void *) override {}
+};
+inline null_error_reporter null_error_reporter::instance;
+
+// TODO(strager): Delete new_style_error_reporter.
+class new_style_error_reporter : public error_reporter {};
 }
 
 #endif
