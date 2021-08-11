@@ -10,7 +10,7 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-class buffering_error_reporter final : public error_reporter {
+class buffering_error_reporter final : public new_style_error_reporter {
  public:
   explicit buffering_error_reporter();
 
@@ -19,10 +19,7 @@ class buffering_error_reporter final : public error_reporter {
 
   ~buffering_error_reporter() override;
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name error) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  void report_impl(error_type type, void *error) override;
 
   void copy_into(error_reporter *other) const;
   void move_into(error_reporter *other);

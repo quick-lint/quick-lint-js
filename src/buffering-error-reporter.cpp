@@ -39,15 +39,20 @@ buffering_error_reporter &buffering_error_reporter::operator=(
 
 buffering_error_reporter::~buffering_error_reporter() = default;
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void buffering_error_reporter::report(name error) {    \
-    this->impl_->errors_.push_back(impl::any_error{      \
-        .type = error_type::name,                        \
-        .error = {.name = error},                        \
-    });                                                  \
-  }
-QLJS_X_ERROR_TYPES
+void buffering_error_reporter::report_impl(error_type type, void *error) {
+  // TODO(strager): memcpy instead of switching.
+  switch (type) {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format)           \
+  case error_type::name:                                           \
+    this->impl_->errors_.push_back(impl::any_error{                \
+        .type = error_type::name,                                  \
+        .error = {.name = *reinterpret_cast<const name *>(error)}, \
+    });                                                            \
+    break;
+    QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
+  }
+}
 
 void buffering_error_reporter::copy_into(error_reporter *other) const {
   for (impl::any_error &error : this->impl_->errors_) {
