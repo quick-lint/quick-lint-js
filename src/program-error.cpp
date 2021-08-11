@@ -1,18 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
-#define QUICK_LINT_JS_SUBLIME_TEXT_H
+#include <quick-lint-js/program-error.h>
 
-#include <csetjmp>
-
-#define QLJS_SUBLIME_TEXT_TRY() if (setjmp(qljs_sublime_text_jmp_buf) == 0)
-#define QLJS_SUBLIME_TEXT_CATCH() else
-#define QLJS_SUBLIME_TEXT_THROW() ::std::longjmp(qljs_sublime_text_jmp_buf, 1)
-
-extern jmp_buf qljs_sublime_text_jmp_buf;
-
-#endif
+char* qljs_sublime_text_program_error_reports = (char*)"";
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

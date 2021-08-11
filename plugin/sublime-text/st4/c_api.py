@@ -44,10 +44,10 @@ class ErrorStructure(ctypes.Structure):
     """Error layer used to communicate with the C++ code."""
 
     # struct qljs_sublime_text_4_error {
-    #   const char* assertion_failure_report;
+    #   const char* message;
     # };
     _fields_ = [
-        ("assertion_failure_report", ctypes.c_char_p),
+        ("message", ctypes.c_char_p),
     ]
 
 
@@ -138,19 +138,18 @@ class Diagnostic:
 
 
 def display_error_message(message):
-    sublime.error_message("quick-lint-js: " + message)
+    sublime.error_message("error: quick-lint-js:\n" + message)
 
 
 class Error(Exception):
     """Error layer used to communicate with the plugin."""
 
     def __init__(self, ctypes_error):
-        self.report = ctypes_error.assertion_failure_report.decode(encoding="utf-8")
-        self.message = "Assertion Failure: " + self.report
+        self.message = ctypes_error.message.decode(encoding="utf-8")
         super().__init__(self.message)
 
     def has_message(self):
-        return bool(self.report)
+        return bool(self.message)
 
     def display_message(self):
         display_error_message(self.message)
@@ -199,7 +198,7 @@ class Parser:
         ctypes_error = Parser.lib.qljs_sublime_text_4_replace_text(
             self._ctypes_parser_pointer, 0, 0, 0, 0, text_utf8, text_len_utf8
         )
-        if ctypes_error.assertion_failure_report is not None:
+        if ctypes_error.message is not None:
             raise Error(ctypes_error)
 
     def replace_text(self, change):
@@ -214,7 +213,7 @@ class Parser:
             replacement_text_utf8,
             replacement_text_len_utf8,
         )
-        if ctypes_error.assertion_failure_report is not None:
+        if ctypes_error.message is not None:
             raise Error(ctypes_error)
 
     def lint(self):

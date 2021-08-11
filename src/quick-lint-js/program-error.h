@@ -1,18 +1,28 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
-#define QUICK_LINT_JS_SUBLIME_TEXT_H
+#ifndef QUICK_LINT_JS_PROGRAM_ERROR_H
+#define QUICK_LINT_JS_PROGRAM_ERROR_H
 
-#include <csetjmp>
+#if QLJS_SUBLIME_TEXT_PLUGIN
+#include <quick-lint-js/string-utilities.h>
 
-#define QLJS_SUBLIME_TEXT_TRY() if (setjmp(qljs_sublime_text_jmp_buf) == 0)
-#define QLJS_SUBLIME_TEXT_CATCH() else
-#define QLJS_SUBLIME_TEXT_THROW() ::std::longjmp(qljs_sublime_text_jmp_buf, 1)
+// Appends report to qljs_sublime_text_program_error_reports
+#define QLJS_REPORT_PROGRAM_ERROR(format, ...)               \
+  ::quick_lint_js::asprintf(                                 \
+      &qljs_sublime_text_program_error_reports, "%s" format, \
+      qljs_sublime_text_program_error_reports, ##__VA_ARGS__)
 
-extern jmp_buf qljs_sublime_text_jmp_buf;
+#define QLJS_CLEAR_PROGRAM_ERROR() \
+  qljs_sublime_text_program_error_reports = (char*)""
 
+extern char* qljs_sublime_text_program_error_reports;
+#else
+#define QLJS_REPORT_PROGRAM_ERROR(...) ::std::fprintf(stderr, __VA_ARGS__)
+#define QLJS_CLEAN_PROGRAM_ERROR() /* empty */
 #endif
+
+#endif  // QUICK_LINT_JS_PROGRAM_ERROR_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

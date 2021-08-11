@@ -5,8 +5,6 @@
 
 jmp_buf qljs_sublime_text_jmp_buf;
 
-char *qljs_sublime_text_assertion_failure_report = (char *)"";
-
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

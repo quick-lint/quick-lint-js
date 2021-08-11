@@ -15,6 +15,7 @@
 #include <quick-lint-js/web-demo-location.h>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
+#include <quick-lint-js/program-error.h>
 #include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/sublime-text.h>
 #endif
@@ -192,7 +193,10 @@ qljs_sublime_text_4_error qljs_sublime_text_4_replace_text(
                         replacement_text_byte_count));
     return qljs_sublime_text_4_error{NULL};
   } QLJS_SUBLIME_TEXT_CATCH() {
-    return qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
+    qljs_sublime_text_4_error error =
+        qljs_sublime_text_4_error{qljs_sublime_text_program_error_reports};
+    QLJS_CLEAR_PROGRAM_ERROR();
+    return error;
   }
 }
 
@@ -203,7 +207,8 @@ const qljs_sublime_text_4_result* qljs_sublime_text_4_lint(
                                           .is_diagnostics = true};
   } QLJS_SUBLIME_TEXT_CATCH() {
     qljs_sublime_text_4_error error =
-        qljs_sublime_text_4_error{qljs_sublime_text_assertion_failure_report};
+        qljs_sublime_text_4_error{qljs_sublime_text_program_error_reports};
+    QLJS_CLEAR_PROGRAM_ERROR();
     return new qljs_sublime_text_4_result{.value = {.error = error},
                                           .is_diagnostics = false};
   }
