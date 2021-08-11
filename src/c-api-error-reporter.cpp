@@ -32,13 +32,13 @@ void c_api_error_reporter<Diagnostic, Locator>::reset() {
   // TODO(strager): Release allocated string memory.
 }
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)      \
-  template <class Diagnostic, class Locator>                       \
-  void c_api_error_reporter<Diagnostic, Locator>::report(name e) { \
-    format_error(e, this->format(code));                           \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+template <class Diagnostic, class Locator>
+void c_api_error_reporter<Diagnostic, Locator>::report_impl(error_type type,
+                                                            void *error) {
+  c_api_error_formatter formatter(this);
+  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
+                   error);
+}
 
 template <class Diagnostic, class Locator>
 const Diagnostic *c_api_error_reporter<Diagnostic, Locator>::get_diagnostics() {
@@ -46,12 +46,6 @@ const Diagnostic *c_api_error_reporter<Diagnostic, Locator>::get_diagnostics() {
   this->diagnostics_.emplace_back();
 
   return this->diagnostics_.data();
-}
-
-template <class Diagnostic, class Locator>
-c_api_error_formatter<Diagnostic, Locator>
-c_api_error_reporter<Diagnostic, Locator>::format(const char *code) {
-  return c_api_error_formatter(this, /*code=*/code);
 }
 
 template <class Diagnostic, class Locator>
@@ -67,13 +61,13 @@ char8 *c_api_error_reporter<Diagnostic, Locator>::allocate_c_string(
 
 template <class Diagnostic, class Locator>
 c_api_error_formatter<Diagnostic, Locator>::c_api_error_formatter(
-    c_api_error_reporter<Diagnostic, Locator> *reporter, const char *code)
-    : reporter_(reporter), code_(code) {}
+    c_api_error_reporter<Diagnostic, Locator> *reporter)
+    : reporter_(reporter) {}
 
 template <class Diagnostic, class Locator>
 void c_api_error_formatter<Diagnostic, Locator>::write_before_message(
-    severity sev, const source_code_span &) {
-  if (sev == severity::note) {
+    std::string_view, diagnostic_severity sev, const source_code_span &) {
+  if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }
@@ -82,8 +76,8 @@ void c_api_error_formatter<Diagnostic, Locator>::write_before_message(
 
 template <class Diagnostic, class Locator>
 void c_api_error_formatter<Diagnostic, Locator>::write_message_part(
-    severity sev, string8_view message) {
-  if (sev == severity::note) {
+    std::string_view, diagnostic_severity sev, string8_view message) {
+  if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }
@@ -92,16 +86,17 @@ void c_api_error_formatter<Diagnostic, Locator>::write_message_part(
 
 template <class Diagnostic, class Locator>
 void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
-    severity sev, const source_code_span &origin) {
+    std::string_view code, diagnostic_severity sev,
+    const source_code_span &origin) {
   qljs_severity diag_severity = qljs_severity_error;
   switch (sev) {
-  case severity::note:
+  case diagnostic_severity::note:
     // Don't write notes. Only write the main message.
     return;
-  case severity::error:
+  case diagnostic_severity::error:
     diag_severity = qljs_severity_error;
     break;
-  case severity::warning:
+  case diagnostic_severity::warning:
     diag_severity = qljs_severity_warning;
     break;
   }
@@ -117,7 +112,8 @@ void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
     diag.begin_offset = narrow_cast<int>(r.begin);
     diag.end_offset = narrow_cast<int>(r.end);
   }
-  diag.code = this->code_;
+  // FIXME(strager): code is not guaranteed to be null-terminated.
+  diag.code = code.data();
   diag.message = reinterpret_cast<const char *>(
       this->reporter_->allocate_c_string(this->current_message_));
   diag.severity = diag_severity;
