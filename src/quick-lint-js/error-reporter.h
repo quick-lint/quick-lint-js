@@ -1,41 +1,40 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_BUFFERING_ERROR_REPORTER_H
-#define QUICK_LINT_JS_BUFFERING_ERROR_REPORTER_H
+#ifndef QUICK_LINT_JS_ERROR_REPORTER_H
+#define QUICK_LINT_JS_ERROR_REPORTER_H
 
-#include <memory>
-#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-class buffering_error_reporter final : public error_reporter {
+class error_reporter {
  public:
-  explicit buffering_error_reporter();
+  error_reporter() noexcept = default;
 
-  buffering_error_reporter(buffering_error_reporter &&);
-  buffering_error_reporter &operator=(buffering_error_reporter &&);
+  error_reporter(const error_reporter &) noexcept = default;
+  error_reporter &operator=(const error_reporter &) noexcept = default;
 
-  ~buffering_error_reporter() override;
+  error_reporter(error_reporter &&) noexcept = default;
+  error_reporter &operator=(error_reporter &&) noexcept = default;
+
+  virtual ~error_reporter() = default;
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name error) override;
+  virtual void report(name) = 0;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-
-  void copy_into(error_reporter *other) const;
-  void move_into(error_reporter *other);
-
-  bool empty() const noexcept;
-
-  void clear() noexcept;
-
- private:
-  struct impl;
-
-  std::unique_ptr<impl> impl_;
 };
+
+class null_error_reporter : public error_reporter {
+ public:
+  static null_error_reporter instance;
+
+#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
+  void report(name) override {}
+  QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+};
+inline null_error_reporter null_error_reporter::instance;
 }
 
 #endif

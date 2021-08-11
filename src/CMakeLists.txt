@@ -98,6 +98,7 @@ quick_lint_js_add_library(
   quick-lint-js/error-collector.h
   quick-lint-js/error-formatter.h
   quick-lint-js/error-list.h
+  quick-lint-js/error-reporter.h
   quick-lint-js/error-tape.h
   quick-lint-js/error.h
   quick-lint-js/event-loop.h

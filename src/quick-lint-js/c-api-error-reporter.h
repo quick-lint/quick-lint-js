@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>

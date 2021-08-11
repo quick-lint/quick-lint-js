@@ -6,6 +6,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
