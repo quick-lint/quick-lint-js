@@ -31,8 +31,7 @@ class compiled_error_list {
   std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
   std::vector<std::string> parse_warnings() const;
 
-  template <class Error>
-  bool is_present() const noexcept;
+  bool is_present(error_type) const noexcept;
 
   bool is_user_provided() const noexcept;
 
@@ -41,12 +40,6 @@ class compiled_error_list {
 
   std::vector<parsed_error_list> parsed_error_lists_;
 };
-
-#define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
-  template <>                                                        \
-  bool compiled_error_list::is_present<error_name>() const noexcept;
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
 }
 
 #endif

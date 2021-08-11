@@ -18,7 +18,7 @@ namespace {
 TEST(test_error_list, compiled_default_matches_all_errors) {
   compiled_error_list errors;
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
-  EXPECT_TRUE(errors.is_present<error_name>()) << #error_name;
+  EXPECT_TRUE(errors.is_present(error_type::error_name)) << #error_name;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
@@ -33,9 +33,11 @@ TEST(test_error_list, compiled_excluded_error_by_code) {
   compiled_error_list errors;
   errors.add(parsed_errors);
 
-  EXPECT_FALSE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_FALSE(
+      errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 should be disabled";
-  EXPECT_TRUE(errors.is_present<error_big_int_literal_contains_decimal_point>())
+  EXPECT_TRUE(errors.is_present(
+      error_type::error_big_int_literal_contains_decimal_point))
       << "E005 should be enabled";
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
@@ -51,7 +53,7 @@ TEST(test_error_list, compiled_excluded_then_included_error_by_code) {
   errors.add(parsed_error_lists[0]);
   errors.add(parsed_error_lists[1]);
 
-  EXPECT_TRUE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 should be enabled";
 }
 
@@ -64,7 +66,8 @@ TEST(test_error_list, compiled_included_then_excluded_error_by_code) {
   errors.add(parsed_error_lists[0]);
   errors.add(parsed_error_lists[1]);
 
-  EXPECT_FALSE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_FALSE(
+      errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 should be disabled";
 }
 
@@ -76,7 +79,7 @@ TEST(test_error_list, compiled_exclude_all_matches_no_errors) {
   errors.add(parsed_errors);
 
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
-  EXPECT_FALSE(errors.is_present<error_name>()) << #error_name;
+  EXPECT_FALSE(errors.is_present(error_type::error_name)) << #error_name;
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
@@ -93,10 +96,10 @@ TEST(test_error_list,
   compiled_error_list errors;
   errors.add(parsed_errors);
 
-  EXPECT_TRUE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 should be enabled";
-  EXPECT_FALSE(
-      errors.is_present<error_big_int_literal_contains_decimal_point>())
+  EXPECT_FALSE(errors.is_present(
+      error_type::error_big_int_literal_contains_decimal_point))
       << "E005 (default) should be disabled";
 }
 
@@ -112,9 +115,11 @@ TEST(test_error_list,
   errors.add(parsed_error_lists[0]);
   errors.add(parsed_error_lists[1]);
 
-  EXPECT_FALSE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_FALSE(
+      errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 should be disabled";
-  EXPECT_TRUE(errors.is_present<error_big_int_literal_contains_decimal_point>())
+  EXPECT_TRUE(errors.is_present(
+      error_type::error_big_int_literal_contains_decimal_point))
       << "E005 should be enabled";
 }
 
@@ -127,10 +132,10 @@ TEST(test_error_list,
   compiled_error_list errors;
   errors.add(parsed_errors);
 
-  EXPECT_TRUE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 should be enabled";
-  EXPECT_FALSE(
-      errors.is_present<error_big_int_literal_contains_decimal_point>())
+  EXPECT_FALSE(errors.is_present(
+      error_type::error_big_int_literal_contains_decimal_point))
       << "E005 (all) should be disabled";
 }
 
@@ -147,9 +152,10 @@ TEST(test_error_list,
   errors.add(parsed_error_lists[0]);
   errors.add(parsed_error_lists[1]);
 
-  EXPECT_TRUE(errors.is_present<error_assignment_to_const_variable>())
+  EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
       << "E003 (all) should be enabled";
-  EXPECT_TRUE(errors.is_present<error_big_int_literal_contains_decimal_point>())
+  EXPECT_TRUE(errors.is_present(
+      error_type::error_big_int_literal_contains_decimal_point))
       << "E005 (all) should be enabled";
 }
 

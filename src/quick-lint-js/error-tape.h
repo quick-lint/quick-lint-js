@@ -23,12 +23,12 @@ class error_tape final : public error_reporter {
     return this->found_matching_error_;
   }
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name e) override final {                   \
-    if (this->predicate_->template is_present<name>()) { \
-      this->found_matching_error_ = true;                \
-    }                                                    \
-    reporter_.report(e);                                 \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format)  \
+  void report(name e) override final {                    \
+    if (this->predicate_->is_present(error_type::name)) { \
+      this->found_matching_error_ = true;                 \
+    }                                                     \
+    reporter_.report(e);                                  \
   }
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

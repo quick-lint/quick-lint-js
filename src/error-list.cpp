@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error.h>
 #include <string>
@@ -37,6 +38,7 @@ bool is_valid_error_code(std::string_view code) noexcept {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
+  // TODO(strager): Use the codes from all_diagnostic_infos.
   static std::unordered_set<any_error_code, hash_any_error_code>
       valid_error_codes = {
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
@@ -184,13 +186,12 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
   return warnings;
 }
 
-#define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format)  \
-  template <>                                                         \
-  bool compiled_error_list::is_present<error_name>() const noexcept { \
-    return this->is_present(error_code);                              \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+bool compiled_error_list::is_present(error_type type) const noexcept {
+  // TODO(strager): Use type as an index instead of converting it into a string.
+  const diagnostic_info& diag_info =
+      all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
+  return this->is_present(diag_info.code);
+}
 
 bool compiled_error_list::is_present(const char* error_code) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.
