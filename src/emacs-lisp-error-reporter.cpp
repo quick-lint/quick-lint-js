@@ -22,28 +22,22 @@ void emacs_lisp_error_reporter::set_source(padded_string_view input) {
   this->locator_.emplace(input);
 }
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void emacs_lisp_error_reporter::report(name e) {            \
-    format_error(e, this->format(code));                      \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-emacs_lisp_error_formatter emacs_lisp_error_reporter::format(const char *code) {
+void emacs_lisp_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->locator_.has_value());
-  return emacs_lisp_error_formatter(/*output=*/this->output_,
-                                    /*locator=*/*this->locator_,
-                                    /*code=*/code);
+  emacs_lisp_error_formatter formatter(/*output=*/this->output_,
+                                       /*locator=*/*this->locator_);
+  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
+                   error);
 }
 
 emacs_lisp_error_formatter::emacs_lisp_error_formatter(std::ostream &output,
-                                                       emacs_locator &locator,
-                                                       const char *code)
-    : output_(output), locator_(locator), code_(code) {}
+                                                       emacs_locator &locator)
+    : output_(output), locator_(locator) {}
 
 void emacs_lisp_error_formatter::write_before_message(
-    severity sev, const source_code_span &origin) {
-  if (sev == severity::note) {
+    std::string_view code, diagnostic_severity sev,
+    const source_code_span &origin) {
+  if (sev == diagnostic_severity::note) {
     return;
   }
   emacs_source_range r = this->locator_.range(origin);
@@ -51,7 +45,7 @@ void emacs_lisp_error_formatter::write_before_message(
   emacs_source_position::offset_type end = r.end().offset;
   this->output_ << "((" << beg << " . " << end << ") " << static_cast<int>(sev)
                 << " "
-                << "\"" << this->code_ << "\" \"";
+                << "\"" << code << "\" \"";
 }
 
 namespace {
@@ -68,17 +62,19 @@ void write_elisp_stringp_escaped_message(std::ostream &output,
 }
 }
 
-void emacs_lisp_error_formatter::write_message_part(severity sev,
-                                                    string8_view message) {
-  if (sev == severity::note) {
+void emacs_lisp_error_formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    string8_view message) {
+  if (sev == diagnostic_severity::note) {
     return;
   }
   write_elisp_stringp_escaped_message(this->output_, message);
 }
 
-void emacs_lisp_error_formatter::write_after_message(severity sev,
-                                                     const source_code_span &) {
-  if (sev == severity::note) {
+void emacs_lisp_error_formatter::write_after_message(
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    const source_code_span &) {
+  if (sev == diagnostic_severity::note) {
     return;
   }
   this->output_ << "\")";
