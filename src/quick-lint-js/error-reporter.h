@@ -35,6 +35,19 @@ class null_error_reporter : public error_reporter {
 #undef QLJS_ERROR_TYPE
 };
 inline null_error_reporter null_error_reporter::instance;
+
+class new_style_error_reporter : public error_reporter {
+ public:
+#define QLJS_ERROR_TYPE(name, code, struct_body, format)   \
+  void report(name error) override {                       \
+    this->report_impl(error_type_from_type<name>, &error); \
+  }
+  QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+
+ protected:
+  virtual void report_impl(error_type type, void *error) = 0;
+};
 }
 
 #endif

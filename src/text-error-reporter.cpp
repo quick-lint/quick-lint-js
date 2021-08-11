@@ -20,54 +20,51 @@ void text_error_reporter::set_source(padded_string_view input,
   this->file_path_ = file_path;
 }
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void text_error_reporter::report(name e) {                  \
-    format_error(e, this->format(code));                      \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-text_error_formatter text_error_reporter::format(const char *code) {
+void text_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
-  return text_error_formatter(/*output=*/this->output_,
-                              /*file_path=*/this->file_path_,
-                              /*locator=*/*this->locator_,
-                              /*code=*/code);
+  text_error_formatter formatter(/*output=*/this->output_,
+                                 /*file_path=*/this->file_path_,
+                                 /*locator=*/*this->locator_);
+  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
+                   error);
 }
 
 text_error_formatter::text_error_formatter(std::ostream &output,
                                            const char *file_path,
-                                           cli_locator &locator,
-                                           const char *code)
-    : output_(output), file_path_(file_path), locator_(locator), code_(code) {}
+                                           cli_locator &locator)
+    : output_(output), file_path_(file_path), locator_(locator) {}
 
 void text_error_formatter::write_before_message(
-    severity sev, const source_code_span &origin) {
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    const source_code_span &origin) {
   cli_source_range r = this->locator_.range(origin);
   cli_source_position p = r.begin();
   this->output_ << this->file_path_ << ":" << p.line_number << ":"
                 << p.column_number << ": ";
   switch (sev) {
-  case severity::error:
+  case diagnostic_severity::error:
     this->output_ << "error: ";
     break;
-  case severity::note:
+  case diagnostic_severity::note:
     this->output_ << "note: ";
     break;
-  case severity::warning:
+  case diagnostic_severity::warning:
     this->output_ << "warning: ";
     break;
   }
 }
 
-void text_error_formatter::write_message_part(severity, string8_view message) {
+void text_error_formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, diagnostic_severity,
+    string8_view message) {
   this->output_ << out_string8(message);
 }
 
-void text_error_formatter::write_after_message(severity,
+void text_error_formatter::write_after_message(std::string_view code,
+                                               diagnostic_severity,
                                                const source_code_span &) {
-  this->output_ << " [" << this->code_ << "]\n";
+  this->output_ << " [" << code << "]\n";
 }
 }
 

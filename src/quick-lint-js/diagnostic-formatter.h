@@ -10,6 +10,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diagnostic.h>
+#include <quick-lint-js/error-formatter.h>
 #include <quick-lint-js/gmo.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -20,9 +21,6 @@
 #include <utility>
 
 namespace quick_lint_js {
-string8_view translated_headlinese_statement_kind(statement_kind) noexcept;
-string8_view translated_singular_statement_kind(statement_kind) noexcept;
-
 class diagnostic_formatter_base {
  public:
   static source_code_span get_argument_source_code_span(
