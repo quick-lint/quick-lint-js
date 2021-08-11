@@ -29,7 +29,7 @@ string8_view translated_singular_statement_kind(statement_kind) noexcept;
   template <>                                                 \
   struct error_formatter_detail<name> : public name {         \
     template <class Formatter>                                \
-    void format(Formatter &&formatter) const {                \
+    void format(Formatter &&formatter) {                      \
       std::forward<Formatter>(formatter) format_call.end();   \
     }                                                         \
   };
@@ -41,7 +41,8 @@ inline void format_error(const Error &e, Formatter &&formatter) {
   // HACK(strager): This cast invokes undefined behavior. But it's probably
   // fine...
   const auto &f = static_cast<const error_formatter_detail<Error> &>(e);
-  f.format(std::forward<Formatter>(formatter));
+  const_cast<error_formatter_detail<Error> &>(f).format(
+      std::forward<Formatter>(formatter));
 }
 
 class error_formatter_base {
@@ -93,6 +94,10 @@ class error_formatter_base {
 
   static parameter to_parameter(statement_kind sk) { return parameter(sk); }
 
+  static parameter to_parameter(char8 &c) {
+    return parameter(string8_view(&c, 1));
+  }
+
   static parameter to_parameter(string8_view s) { return parameter(s); }
 
   static parameter to_parameter(const source_code_span &span) {
@@ -113,20 +118,20 @@ class error_formatter : public error_formatter_base {
   // void write_after_message(severity, const source_code_span &origin);
 
   template <class... Args>
-  error_formatter &warning(const gmo_message &message, Args... parameters) {
-    this->add(severity::warning, message, std::forward<Args>(parameters)...);
+  error_formatter &warning(const gmo_message &message, Args &... parameters) {
+    this->add(severity::warning, message, parameters...);
     return *this;
   }
 
   template <class... Args>
-  error_formatter &error(const gmo_message &message, Args... parameters) {
-    this->add(severity::error, message, std::forward<Args>(parameters)...);
+  error_formatter &error(const gmo_message &message, Args &... parameters) {
+    this->add(severity::error, message, parameters...);
     return *this;
   }
 
   template <class... Args>
-  error_formatter &note(const gmo_message &message, Args &&... parameters) {
-    this->add(severity::note, message, std::forward<Args>(parameters)...);
+  error_formatter &note(const gmo_message &message, Args &... parameters) {
+    this->add(severity::note, message, parameters...);
     return *this;
   }
 
@@ -135,10 +140,9 @@ class error_formatter : public error_formatter_base {
  private:
   template <class Origin, class... Args>
   void add(severity sev, const gmo_message &message, const Origin &origin,
-           Args &&... parameters) {
+           Args &... parameters) {
     this->add(sev, message, this->to_span(origin),
-              {this->to_parameter(origin),
-               this->to_parameter(std::forward<Args>(parameters))...});
+              {this->to_parameter(origin), this->to_parameter(parameters)...});
   }
 
   void add(severity, const gmo_message &message,

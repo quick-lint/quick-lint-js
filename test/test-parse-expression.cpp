@@ -3065,9 +3065,10 @@ TEST_F(test_parse_expression, invalid_parentheses) {
     EXPECT_EQ(summarize(ast), "?");
     EXPECT_THAT(
         p.errors(),
-        ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_missing_expression_between_parentheses, left_paren,
-            offsets_matcher(p.code(), 0, u8"("),  //
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_expression_between_parentheses,
+            left_paren_to_right_paren, offsets_matcher(p.code(), 0, u8"()"),  //
+            left_paren, offsets_matcher(p.code(), 0, u8"("),                  //
             right_paren, offsets_matcher(p.code(), strlen(u8"("), u8")"))));
   }
 }

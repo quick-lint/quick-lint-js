@@ -310,12 +310,12 @@
   QLJS_ERROR_TYPE(                                                             \
       error_expected_as_before_imported_namespace_alias, "E126",               \
       {                                                                        \
+        source_code_span star_through_alias_token;                             \
         source_code_span alias;                                                \
         source_code_span star_token;                                           \
       },                                                                       \
       .error(QLJS_TRANSLATABLE("expected 'as' between '{1}' and '{2}'"),       \
-             source_code_span(star_token.begin(), alias.end()), star_token,    \
-             alias))                                                           \
+             star_through_alias_token, star_token, alias))                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_comma_to_separate_object_literal_entries, "E131",         \
@@ -389,7 +389,7 @@
       },                                                                       \
       .error(QLJS_TRANSLATABLE(                                                \
                  "do-while loop is missing '{1}' around condition"),           \
-             where, string8_view(&token, 1)))                                  \
+             where, token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_if_condition, "E017",                  \
@@ -406,7 +406,7 @@
       },                                                                       \
       .error(                                                                  \
           QLJS_TRANSLATABLE("if statement is missing '{1}' around condition"), \
-          where, string8_view(&token, 1)))                                     \
+          where, token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_switch_condition, "E091",              \
@@ -423,7 +423,7 @@
       },                                                                       \
       .error(QLJS_TRANSLATABLE(                                                \
                  "switch statement is missing '{1}' around condition"),        \
-             where, string8_view(&token, 1)))                                  \
+             where, token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_while_condition, "E087",               \
@@ -440,7 +440,7 @@
       },                                                                       \
       .error(                                                                  \
           QLJS_TRANSLATABLE("while loop is missing '{1}' around condition"),   \
-          where, string8_view(&token, 1)))                                     \
+          where, token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_with_expression, "E089",               \
@@ -457,7 +457,7 @@
       },                                                                       \
       .error(QLJS_TRANSLATABLE(                                                \
                  "with statement is missing '{1}' around expression"),         \
-             where, string8_view(&token, 1)))                                  \
+             where, token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_variable_name_for_catch, "E135",                          \
@@ -702,12 +702,13 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_catch_variable_between_parentheses, "E130",                \
       {                                                                        \
+        source_code_span left_paren_to_right_paren;                            \
         source_code_span left_paren;                                           \
         source_code_span right_paren;                                          \
       },                                                                       \
       .error(QLJS_TRANSLATABLE(                                                \
                  "missing catch variable name between parentheses"),           \
-             source_code_span(left_paren.begin(), right_paren.end())))         \
+             left_paren_to_right_paren))                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_comma_between_object_literal_entries, "E025",              \
@@ -759,11 +760,12 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_expression_between_parentheses, "E078",                    \
       {                                                                        \
+        source_code_span left_paren_to_right_paren;                            \
         source_code_span left_paren;                                           \
         source_code_span right_paren;                                          \
       },                                                                       \
       .error(QLJS_TRANSLATABLE("missing expression between parentheses"),      \
-             source_code_span(left_paren.begin(), right_paren.end())))         \
+             left_paren_to_right_paren))                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_for_loop_header, "E125", { source_code_span for_token; },  \

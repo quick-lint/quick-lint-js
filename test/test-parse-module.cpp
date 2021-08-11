@@ -604,9 +604,11 @@ TEST(test_parse, import_star_without_as_keyword) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_expected_as_before_imported_namespace_alias, star_token,
-            offsets_matcher(&code, strlen(u8"import "), u8"*"),  //
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_expected_as_before_imported_namespace_alias,
+            star_through_alias_token,
+            offsets_matcher(&code, strlen(u8"import "), u8"* myExport"),     //
+            star_token, offsets_matcher(&code, strlen(u8"import "), u8"*"),  //
             alias,
             offsets_matcher(&code, strlen(u8"import * "), u8"myExport"))));
     EXPECT_THAT(v.visits,

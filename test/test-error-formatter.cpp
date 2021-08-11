@@ -50,8 +50,8 @@ TEST(test_error_formatter, message_with_zero_placeholder) {
   const char8* code = u8"hello world";
   string_error_formatter formatter;
 
-  formatter.error("this {0} looks fishy"_gmo_message,
-                  source_code_span(&code[0], &code[5]));
+  source_code_span hello_span(&code[0], &code[5]);
+  formatter.error("this {0} looks fishy"_gmo_message, hello_span);
 
   EXPECT_EQ(formatter.message, u8"this hello looks fishy\n");
 }
@@ -60,9 +60,10 @@ TEST(test_error_formatter, message_with_extra_identifier_placeholder) {
   const char8* code = u8"hello world";
   string_error_formatter formatter;
 
-  formatter.error("this {1} looks fishy"_gmo_message,
-                  source_code_span(&code[0], &code[5]),
-                  identifier(source_code_span(&code[6], &code[11])));
+  source_code_span hello_span(&code[0], &code[5]);
+  identifier world_identifier(source_code_span(&code[6], &code[11]));
+  formatter.error("this {1} looks fishy"_gmo_message, hello_span,
+                  world_identifier);
 
   EXPECT_EQ(formatter.message, u8"this world looks fishy\n");
 }
@@ -96,71 +97,71 @@ TEST(test_error_formatter, message_with_escaped_curlies) {
 TEST(test_error_formatter, statement_kind_placeholder) {
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
-                    statement_kind::do_while_loop);
+    statement_kind sk = statement_kind::do_while_loop;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected 'do-while' loop\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:singular}"_gmo_message, empty_span,
-                    statement_kind::do_while_loop);
+    statement_kind sk = statement_kind::do_while_loop;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected a 'do-while' loop\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
-                    statement_kind::for_loop);
+    statement_kind sk = statement_kind::for_loop;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected 'for' loop\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:singular}"_gmo_message, empty_span,
-                    statement_kind::for_loop);
+    statement_kind sk = statement_kind::for_loop;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected a 'for' loop\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
-                    statement_kind::if_statement);
+    statement_kind sk = statement_kind::if_statement;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected 'if' statement\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:singular}"_gmo_message, empty_span,
-                    statement_kind::if_statement);
+    statement_kind sk = statement_kind::if_statement;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected an 'if' statement\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
-                    statement_kind::while_loop);
+    statement_kind sk = statement_kind::while_loop;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected 'while' loop\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:singular}"_gmo_message, empty_span,
-                    statement_kind::while_loop);
+    statement_kind sk = statement_kind::while_loop;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected a 'while' loop\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:headlinese}"_gmo_message, empty_span,
-                    statement_kind::with_statement);
+    statement_kind sk = statement_kind::with_statement;
+    formatter.error("expected {1:headlinese}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected 'with' statement\n");
   }
 
   {
     string_error_formatter formatter;
-    formatter.error("expected {1:singular}"_gmo_message, empty_span,
-                    statement_kind::with_statement);
+    statement_kind sk = statement_kind::with_statement;
+    formatter.error("expected {1:singular}"_gmo_message, empty_span, sk);
     EXPECT_EQ(formatter.message, u8"expected a 'with' statement\n");
   }
 }

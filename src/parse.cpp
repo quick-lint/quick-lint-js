@@ -284,6 +284,8 @@ expression* parser::parse_primary_expression(precedence prec) {
         // ()  // Invalid.
         this->error_reporter_->report(
             error_missing_expression_between_parentheses{
+                .left_paren_to_right_paren = source_code_span(
+                    left_paren_span.begin(), right_paren_span.end()),
                 .left_paren = left_paren_span,
                 .right_paren = right_paren_span,
             });

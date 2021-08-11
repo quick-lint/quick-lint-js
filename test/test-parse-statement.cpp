@@ -385,8 +385,11 @@ TEST(test_parse, catch_without_variable_name_in_parentheses) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_missing_catch_variable_between_parentheses, left_paren,
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_catch_variable_between_parentheses,
+            left_paren_to_right_paren,
+            offsets_matcher(&code, strlen(u8"try {} catch "), u8"()"),  //
+            left_paren,
             offsets_matcher(&code, strlen(u8"try {} catch "), u8"("),  //
             right_paren,
             offsets_matcher(&code, strlen(u8"try {} catch ("), u8")"))));

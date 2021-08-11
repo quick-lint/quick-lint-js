@@ -1960,6 +1960,8 @@ class parser {
         case token_type::right_paren:
           this->error_reporter_->report(
               error_missing_catch_variable_between_parentheses{
+                  .left_paren_to_right_paren = source_code_span(
+                      catch_left_paren_span.begin(), this->peek().end),
                   .left_paren = catch_left_paren_span,
                   .right_paren = this->peek().span(),
               });
@@ -2842,6 +2844,8 @@ class parser {
     case token_type::identifier:
       this->error_reporter_->report(
           error_expected_as_before_imported_namespace_alias{
+              .star_through_alias_token =
+                  source_code_span(star_span.begin(), this->peek().end),
               .alias = this->peek().span(),
               .star_token = star_span,
           });
