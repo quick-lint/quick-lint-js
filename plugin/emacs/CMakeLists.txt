@@ -4,14 +4,54 @@
 cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 
-install(
-  FILES quicklintjs.el
-  FILES flycheck-quicklintjs.el
-  FILES lsp-quicklintjs.el
-  FILES eglot-quicklintjs.el
-  FILES flymake-quicklintjs.el
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp"
-)
+find_package(QuickLintJsEmacs)
+
+if (QUICK_LINT_JS_EMACS_FOUND)
+  emacs_pkg_target(emacs-plugin-quicklintjs
+    ${CMAKE_CURRENT_LIST_DIR}/quicklintjs.el 0.0.1
+    OUTPUT quicklintjs-0.0.1)
+
+  emacs_pkg_target(emacs-plugin-flycheck-quicklintjs
+    ${CMAKE_CURRENT_LIST_DIR}/flycheck-quicklintjs.el 0.0.1
+    OUTPUT flycheck-quicklintjs-0.0.1)
+
+  emacs_pkg_target(emacs-plugin-flymake-quicklintjs
+    ${CMAKE_CURRENT_LIST_DIR}/flymake-quicklintjs.el 0.0.1
+    OUTPUT flymake-quicklintjs-0.0.1)
+
+  emacs_pkg_target(emacs-plugin-eglot-quicklintjs
+    ${CMAKE_CURRENT_LIST_DIR}/eglot-quicklintjs.el 0.0.1
+    OUTPUT eglot-quicklintjs-0.0.1)
+
+  emacs_pkg_target(emacs-plugin-lsp-quicklintjs
+    ${CMAKE_CURRENT_LIST_DIR}/lsp-quicklintjs.el 0.0.1
+    OUTPUT lsp-quicklintjs-0.0.1)
+
+  add_dependencies(emacs-plugin-flycheck-quicklintjs
+    emacs-plugin-quicklintjs)
+  add_dependencies(emacs-plugin-flymake-quicklintjs
+    emacs-plugin-quicklintjs)
+  add_dependencies(emacs-plugin-eglot-quicklintjs
+    emacs-plugin-quicklintjs)
+  add_dependencies(emacs-plugin-lsp-quicklintjs
+    emacs-plugin-quicklintjs)
+
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/quicklintjs-0.0.1
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp/elpa)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/flycheck-quicklintjs-0.0.1
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp/elpa)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/flymake-quicklintjs-0.0.1
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp/elpa)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/eglot-quicklintjs-0.0.1
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp/elpa)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lsp-quicklintjs-0.0.1
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp/elpa)
+endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

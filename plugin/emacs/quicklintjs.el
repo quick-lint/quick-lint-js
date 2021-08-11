@@ -1,4 +1,28 @@
 ;;; quicklintjs.el --- Helper functions for quicklintjs Emacs plugins   -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2020 Matthew "strager" Glazar
+
+;; Version: 0.0.1
+;; Author: Wagner Riffel <w@104d.net>
+;; URL: https://quick-lint-js.com
+;; Keywords: languages, tools
+;; Package-Requires: ((emacs "24.5"))
+
+;; This file is part of quick-lint-js.
+;;
+;; quick-lint-js is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; quick-lint-js is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 
 ;; Shared parts of configuration and code among others Emacs plugins.
@@ -15,7 +39,7 @@
   :link '(url-link :tag "Website" "https://quick-lint-js.com"))
 
 (defcustom quicklintjs-program-name "quick-lint-js"
-  "quick-lint-js executable to use."
+  "Quick-lint-js executable name to search."
   :group 'quicklintjs
   :type 'string
   :safe 'stringp)
@@ -36,13 +60,13 @@
 
 ;;;###autoload
 (defun quicklintjs-executable-find ()
-  "Search `quicklintjs-program-name' in `exec-path'."
+  "Search `quicklintjs-program-name' in variable `exec-path'."
   (executable-find quicklintjs-program-name))
 
 ;;;###autoload
 (defun quicklintjs-find-program (&rest argv)
-  "Make a list of strings by calling `quicklintjs-find-program-function',
-appending `quicklintjs-program-args' and `argv'.
+  "Make a list of strings by calling `quicklintjs-find-program-function',\
+appending `quicklintjs-program-args' and ARGV.
 Empty strings and nil are ignored."
   (cl-remove-if-not (lambda (a) (and (stringp a)
                                      (> (length a) 0)))
@@ -51,23 +75,5 @@ Empty strings and nil are ignored."
                             quicklintjs-program-args argv)))
 
 (provide 'quicklintjs)
-
-;; quick-lint-js finds bugs in JavaScript programs.
-;; Copyright (C) 2020  Matthew Glazar
-;;
-;; This file is part of quick-lint-js.
-;;
-;; quick-lint-js is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-;;
-;; quick-lint-js is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; quicklintjs.el ends here

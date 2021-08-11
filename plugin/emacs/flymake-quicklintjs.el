@@ -1,5 +1,28 @@
 ;;; flymake-quicklintjs.el ---  Flymake support for quick-lint-js -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2020 Matthew "strager" Glazar
+
+;; Version: 0.0.1
+;; Author: Wagner Riffel <w@104d.net>
+;; URL: https://quick-lint-js.com
+;; Keywords: languages, tools
+;; Package-Requires: ((quicklintjs "0.0.1") (flymake "1.0.9") (emacs "26.1"))
+
+;; This file is part of quick-lint-js.
+;;
+;; quick-lint-js is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; quick-lint-js is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 
 ;; Flymake support for quick-lint-js.
@@ -14,7 +37,6 @@
 ;;   ;; Enable Flymake
 ;;   (unless (bound-and-true-p flymake-mode)
 ;;     (flymake-mode))
-;;   (add-hook 'flymake-diagnostic-functions #'flymake-quicklintjs nil t)
 ;;
 ;;   ;; Remove the time to wait after last change before automatically checking
 ;;   ;; buffer.  The default is 0.5 (500ms)
@@ -43,8 +65,9 @@ Return a list of Flymake diagnostic objects in source buffer SRC-BUF."
 (defun flymake-quicklintjs--report-with-crash (qljs-stdout-buf
                                                qljs-stderr-buf
                                                src-buf report-fn)
-  "Similar to `flymake-quicklintjs--report' but tries to recover errors from
-quick-lint-js crashes and logs whatever is in QLJS-STDERR-BUF"
+  "Similar to `flymake-quicklintjs--report' but try to recover errors in\
+SRC-BUF when quick-lint-js crashes by inspecting QLJS-STDOUT-BUF.
+Whatever is in QLJS-STDERR-BUF is also logged as warning using `flymake-log'."
   (flymake-log :warning
                "quick-lint-js exited with a deadly signal.\n\
 Please consider filing a bug at\
@@ -70,7 +93,7 @@ qjls-stderr-buf:\n\
     (funcall report-fn '())))
 
 (defun flymake-quicklintjs--report (qljs-stdout-buf src-buf report-fn)
-  "Call REPORT-FN to highlight reports in SRC_BUF reported in QLJS-STDOUT-BUF.
+  "Call REPORT-FN to highlight reports in SRC-BUF reported in QLJS-STDOUT-BUF.
 QLJS-STDOUT-BUF is entirely read and it's expected to be in
 QUICKLINTJS-OUTPUT-ALIST format."
   (with-current-buffer qljs-stdout-buf
@@ -124,24 +147,10 @@ REPORT-FN is Flymake's callback."
       (process-send-region flymake-quicklintjs--proc (point-min) (point-max))
       (process-send-eof flymake-quicklintjs--proc))))
 
-(provide 'flymake-quicklintjs)
+;;;###autoload
+(with-eval-after-load 'flymake
+  (add-hook 'flymake-diagnostic-functions #'flymake-quicklintjs nil t))
 
-;; quick-lint-js finds bugs in JavaScript programs.
-;; Copyright (C) 2020  Matthew Glazar
-;;
-;; This file is part of quick-lint-js.
-;;
-;; quick-lint-js is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-;;
-;; quick-lint-js is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+(provide 'flymake-quicklintjs)
 
 ;;; flymake-quicklintjs.el ends here
