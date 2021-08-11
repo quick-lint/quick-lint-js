@@ -188,8 +188,7 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
 
 bool compiled_error_list::is_present(error_type type) const noexcept {
   // TODO(strager): Use type as an index instead of converting it into a string.
-  const diagnostic_info& diag_info =
-      all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
+  const diagnostic_info& diag_info = get_diagnostic_info(type);
   return this->is_present(diag_info.code);
 }
 

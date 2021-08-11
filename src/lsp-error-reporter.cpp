@@ -33,8 +33,7 @@ void lsp_error_reporter::report_impl(error_type type, void *error) {
   this->need_comma_ = true;
   lsp_error_formatter formatter(/*output=*/this->output_,
                                 /*locator=*/this->locator_);
-  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                   error);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 lsp_error_formatter::lsp_error_formatter(byte_buffer &output,

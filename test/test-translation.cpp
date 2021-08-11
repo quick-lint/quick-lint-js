@@ -50,8 +50,7 @@ class basic_text_error_reporter final : public error_reporter {
 
   void report_impl(error_type type, void *error) override {
     basic_text_error_formatter formatter(this);
-    formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                     error);
+    formatter.format(get_diagnostic_info(type), error);
   }
 
  private:

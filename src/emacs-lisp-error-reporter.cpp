@@ -26,8 +26,7 @@ void emacs_lisp_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->locator_.has_value());
   emacs_lisp_error_formatter formatter(/*output=*/this->output_,
                                        /*locator=*/*this->locator_);
-  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                   error);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 emacs_lisp_error_formatter::emacs_lisp_error_formatter(std::ostream &output,

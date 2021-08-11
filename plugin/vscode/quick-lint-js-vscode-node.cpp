@@ -140,8 +140,7 @@ class vscode_error_reporter final : public error_reporter {
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,
         /*locator=*/this->locator_);
-    formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                     error);
+    formatter.format(get_diagnostic_info(type), error);
   }
 
  private:

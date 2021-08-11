@@ -36,8 +36,7 @@ template <class Diagnostic, class Locator>
 void c_api_error_reporter<Diagnostic, Locator>::report_impl(error_type type,
                                                             void *error) {
   c_api_error_formatter formatter(this);
-  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                   error);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 template <class Diagnostic, class Locator>

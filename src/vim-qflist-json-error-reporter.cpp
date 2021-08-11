@@ -59,8 +59,7 @@ void vim_qflist_json_error_reporter::report_impl(error_type type, void *error) {
                                             /*locator=*/*this->locator_,
                                             /*file_name=*/this->file_name_,
                                             /*bufnr=*/this->bufnr_);
-  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                   error);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(

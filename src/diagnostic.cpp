@@ -113,6 +113,10 @@ const diagnostic_info all_diagnostic_infos[] = {
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 };
+
+const diagnostic_info& get_diagnostic_info(error_type type) noexcept {
+  return all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -26,8 +26,7 @@ void text_error_reporter::report_impl(error_type type, void *error) {
   text_error_formatter formatter(/*output=*/this->output_,
                                  /*file_path=*/this->file_path_,
                                  /*locator=*/*this->locator_);
-  formatter.format(all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)],
-                   error);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 text_error_formatter::text_error_formatter(std::ostream &output,

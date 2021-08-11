@@ -9,6 +9,8 @@
 #include <quick-lint-js/language.h>
 
 namespace quick_lint_js {
+enum class error_type;
+
 enum class diagnostic_severity : std::uint8_t {
   error,
   note,
@@ -40,6 +42,8 @@ struct diagnostic_info {
 };
 
 extern const diagnostic_info all_diagnostic_infos[];
+
+const diagnostic_info &get_diagnostic_info(error_type) noexcept;
 }
 
 #endif

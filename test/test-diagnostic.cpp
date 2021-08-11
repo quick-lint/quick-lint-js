@@ -15,8 +15,7 @@ namespace quick_lint_js {
 namespace {
 template <class Error>
 inline const diagnostic_info& diagnostic_info_for_error =
-    all_diagnostic_infos[static_cast<std::ptrdiff_t>(
-        error_type_from_type<Error>)];
+    get_diagnostic_info(error_type_from_type<Error>);
 
 TEST(test_diagnostic, diagnostic_info) {
   {
