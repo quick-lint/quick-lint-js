@@ -84,6 +84,7 @@ class gmo_message {
       : message_(raw_message, length),
         hash_(gmo_file::hash_string(this->message_)) {}
 
+  constexpr const char *c_str() const noexcept { return this->message_.data(); }
   constexpr std::string_view message() const noexcept { return this->message_; }
   constexpr gmo_file::word_type hash() const noexcept { return this->hash_; }
 

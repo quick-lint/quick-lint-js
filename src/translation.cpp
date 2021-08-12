@@ -134,8 +134,7 @@ const char* translatable_messages::translate(const gmo_message& message) {
     // FIXME(strager): This assumes that the translation is null-terminated.
     return this->translation_->find_translation(message).data();
   } else {
-    // FIXME(strager): This assumes that the message is null-terminated.
-    return message.message().data();
+    return message.c_str();
   }
 }
 }
