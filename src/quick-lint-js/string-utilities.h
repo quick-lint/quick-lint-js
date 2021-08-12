@@ -22,7 +22,7 @@ namespace quick_lint_js {
 // the first argument. This pointer should be passed to free(3) to release the
 // allocated storage when it is no longer needed.
 // More details:
-//   https://linux.die.net/man/3/asprintf
+// https://linux.die.net/man/3/asprintf
 int asprintf(char **strp, const char *format, ...);
 int vasprintf(char **strp, const char *format, va_list argptr);
 }  // namespace quick_lint_js
