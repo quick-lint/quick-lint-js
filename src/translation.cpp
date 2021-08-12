@@ -131,9 +131,11 @@ bool translatable_messages::use_messages_from_locales(
 
 const char* translatable_messages::translate(const gmo_message& message) {
   if (this->translation_.has_value()) {
+    // FIXME(strager): This assumes that the translation is null-terminated.
     return this->translation_->find_translation(message).data();
   } else {
-    return message.message.data();
+    // FIXME(strager): This assumes that the message is null-terminated.
+    return message.message().data();
   }
 }
 }

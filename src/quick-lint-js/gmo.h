@@ -10,7 +10,7 @@
 #include <string_view>
 
 namespace quick_lint_js {
-struct gmo_message;
+class gmo_message;
 
 enum class endian {
   little,
@@ -75,16 +75,21 @@ class gmo_file {
 };
 
 // An un-translated message.
-struct gmo_message {
-  std::string_view message;
-  gmo_file::word_type hash;
-
+class gmo_message {
+ public:
   /*implicit*/ constexpr gmo_message()
-      : hash(gmo_file::hash_string(this->message)) {}
+      : hash_(gmo_file::hash_string(this->message_)) {}
 
   explicit constexpr gmo_message(const char *raw_message, std::size_t length)
-      : message(raw_message, length),
-        hash(gmo_file::hash_string(this->message)) {}
+      : message_(raw_message, length),
+        hash_(gmo_file::hash_string(this->message_)) {}
+
+  constexpr std::string_view message() const noexcept { return this->message_; }
+  constexpr gmo_file::word_type hash() const noexcept { return this->hash_; }
+
+ private:
+  std::string_view message_;
+  gmo_file::word_type hash_;
 };
 
 inline constexpr gmo_message operator""_gmo_message(const char *raw_message,

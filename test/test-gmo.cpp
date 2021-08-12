@@ -167,7 +167,7 @@ TEST(test_gmo, find_with_hash_table_with_no_collisions) {
   // Possible collisions:
   for (gmo_message message : {"d"_gmo_message, "e"_gmo_message, "f"_gmo_message,
                               "g"_gmo_message, "h"_gmo_message}) {
-    EXPECT_EQ(p.find_translation(message), message.message);
+    EXPECT_EQ(p.find_translation(message), message.message());
   }
 }
 

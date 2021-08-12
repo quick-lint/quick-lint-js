@@ -35,7 +35,7 @@ void benchmark_translate_from_translation_hit(benchmark::State &state) {
   QLJS_ALWAYS_ASSERT(have_translation);
   for (const gmo_message &message : messages_to_translate) {
     // Messages should be translated.
-    QLJS_ALWAYS_ASSERT(messages.translate(message) != message.message);
+    QLJS_ALWAYS_ASSERT(messages.translate(message) != message.message());
   }
 
   for (auto _ : state) {
@@ -58,7 +58,7 @@ void benchmark_translate_from_translation_miss(benchmark::State &state) {
   QLJS_ALWAYS_ASSERT(have_translation);
   for (const gmo_message &message : messages_to_translate) {
     // Messages should not be translated.
-    QLJS_ALWAYS_ASSERT(messages.translate(message) == message.message);
+    QLJS_ALWAYS_ASSERT(messages.translate(message) == message.message());
   }
 
   for (auto _ : state) {
@@ -100,7 +100,7 @@ void benchmark_load_translations_and_find_hit(benchmark::State &state) {
         messages.use_messages_from_locale(locale, gmo_files);
     QLJS_ALWAYS_ASSERT(have_translation);
     QLJS_ALWAYS_ASSERT(messages.translate(message_to_translate) !=
-                       message_to_translate.message);
+                       message_to_translate.message());
   }
 
   for (auto _ : state) {
@@ -125,7 +125,7 @@ void benchmark_load_translations_and_find_miss(benchmark::State &state) {
         messages.use_messages_from_locale(locale, gmo_files);
     QLJS_ALWAYS_ASSERT(have_translation);
     QLJS_ALWAYS_ASSERT(messages.translate(message_to_translate) ==
-                       message_to_translate.message);
+                       message_to_translate.message());
   }
 
   for (auto _ : state) {

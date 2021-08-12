@@ -22,7 +22,7 @@ TEST(test_diagnostic, diagnostic_info) {
     const diagnostic_info& info = diagnostic_info_for_error<
         error_expected_parentheses_around_if_condition>;
     EXPECT_EQ(info.code, "E017"sv);
-    EXPECT_EQ(info.messages[0].format.message,
+    EXPECT_EQ(info.messages[0].format.message(),
               "if statement needs parentheses around condition"sv);
     EXPECT_EQ(info.messages[0].severity, diagnostic_severity::error);
     EXPECT_EQ(
@@ -30,14 +30,14 @@ TEST(test_diagnostic, diagnostic_info) {
         offsetof(error_expected_parentheses_around_if_condition, condition));
     EXPECT_EQ(info.messages[0].args[0].type,
               diagnostic_arg_type::source_code_span);
-    EXPECT_EQ(info.messages[1].format.message, ""sv);
+    EXPECT_EQ(info.messages[1].format.message(), ""sv);
   }
 
   {
     const diagnostic_info& info = diagnostic_info_for_error<
         error_expected_parenthesis_around_if_condition>;
     EXPECT_EQ(info.code, "E018"sv);
-    EXPECT_EQ(info.messages[0].format.message,
+    EXPECT_EQ(info.messages[0].format.message(),
               "if statement is missing '{1}' around condition"sv);
     EXPECT_EQ(info.messages[0].severity, diagnostic_severity::error);
     EXPECT_EQ(info.messages[0].args[0].offset,
@@ -47,21 +47,21 @@ TEST(test_diagnostic, diagnostic_info) {
     EXPECT_EQ(info.messages[0].args[1].offset,
               offsetof(error_expected_parenthesis_around_if_condition, token));
     EXPECT_EQ(info.messages[0].args[1].type, diagnostic_arg_type::char8);
-    EXPECT_EQ(info.messages[1].format.message, ""sv);
+    EXPECT_EQ(info.messages[1].format.message(), ""sv);
   }
 
   {
     const diagnostic_info& info = diagnostic_info_for_error<
         error_function_call_before_declaration_in_blocked_scope>;
     EXPECT_EQ(info.code, "E077"sv);
-    EXPECT_EQ(info.messages[0].format.message,
+    EXPECT_EQ(info.messages[0].format.message(),
               "function called before declaration in blocked scope: {0}"sv);
     EXPECT_EQ(info.messages[0].severity, diagnostic_severity::warning);
     EXPECT_EQ(
         info.messages[0].args[0].offset,
         offsetof(error_function_call_before_declaration_in_blocked_scope, use));
     EXPECT_EQ(info.messages[0].args[0].type, diagnostic_arg_type::identifier);
-    EXPECT_EQ(info.messages[1].format.message, "function declared here"sv);
+    EXPECT_EQ(info.messages[1].format.message(), "function declared here"sv);
     EXPECT_EQ(info.messages[1].args[0].offset,
               offsetof(error_function_call_before_declaration_in_blocked_scope,
                        declaration));
@@ -72,7 +72,7 @@ TEST(test_diagnostic, diagnostic_info) {
     const diagnostic_info& info =
         diagnostic_info_for_error<error_class_statement_not_allowed_in_body>;
     EXPECT_EQ(info.code, "E149"sv);
-    EXPECT_EQ(info.messages[0].format.message,
+    EXPECT_EQ(info.messages[0].format.message(),
               "missing body for {1:headlinese}"sv);
     EXPECT_EQ(info.messages[0].severity, diagnostic_severity::error);
     EXPECT_EQ(
@@ -85,7 +85,7 @@ TEST(test_diagnostic, diagnostic_info) {
         offsetof(error_class_statement_not_allowed_in_body, kind_of_statement));
     EXPECT_EQ(info.messages[0].args[1].type,
               diagnostic_arg_type::statement_kind);
-    EXPECT_EQ(info.messages[1].format.message,
+    EXPECT_EQ(info.messages[1].format.message(),
               "a class statement is not allowed as the body of {1:singular}"sv);
     EXPECT_EQ(
         info.messages[1].args[0].offset,

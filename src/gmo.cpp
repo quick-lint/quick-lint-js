@@ -31,7 +31,7 @@ class native_gmo_file {
 
   std::string_view find_translation(gmo_message original) const noexcept {
     if (this->hash_table_size() == 0) {
-      return this->find_translation_scanning(original.message);
+      return this->find_translation_scanning(original.message());
     } else {
       return this->find_translation_hashing(original);
     }
@@ -49,12 +49,15 @@ class native_gmo_file {
 
   std::string_view find_translation_hashing(gmo_message original) const
       noexcept {
+    std::string_view original_message = original.message();
+    word_type original_hash = original.hash();
+
     offset_type hash_table_offset = this->read_word(/*offset=*/0x18);
     word_type hash_table_size = this->hash_table_size();
 
-    word_type bucket_index = original.hash % this->file_->hash_table_size_;
+    word_type bucket_index = original_hash % this->file_->hash_table_size_;
     word_type probe_increment =
-        1 + (original.hash % this->file_->hash_table_probe_);
+        1 + (original_hash % this->file_->hash_table_probe_);
     QLJS_ASSERT(probe_increment < hash_table_size);
 
     for (;;) {
@@ -64,7 +67,7 @@ class native_gmo_file {
         break;
       }
       word_type string_index = string_number - 1;
-      if (this->original_string_at(string_index) == original.message) {
+      if (this->original_string_at(string_index) == original_message) {
         return this->translated_string_at(string_number - 1);
       }
       // TODO(strager): Check for addition overflow.
@@ -73,7 +76,7 @@ class native_gmo_file {
         bucket_index -= hash_table_size;
       }
     }
-    return original.message;
+    return original_message;
   }
 
   word_type read_word(word_type offset) const noexcept {
