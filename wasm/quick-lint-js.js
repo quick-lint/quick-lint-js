@@ -559,7 +559,6 @@ class Process {
 
 class WorkspaceForVSCode {
   constructor(process) {
-    assertEqual(loadNodeFS().hello(), "hi");
     this._process = process;
     this._wasmWorkspace = this._process._vscodeCreateWorkspace();
   }
@@ -756,14 +755,6 @@ let DiagnosticSeverity = {
   WARNING: 2,
 };
 exports.DiagnosticSeverity = DiagnosticSeverity;
-
-// Load quick-lint-js-node-fs_*.node.
-function loadNodeFS() {
-  let os = require("os");
-  let path = require("path");
-  let modulePath = `./dist/quick-lint-js-node-fs_${os.platform()}-${os.arch()}.node`;
-  return require(path.join(__dirname, modulePath));
-}
 
 function encodeUTF8String(string, process) {
   let maxUTF8BytesPerUTF16CodeUnit = Math.ceil(

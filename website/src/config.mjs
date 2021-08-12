@@ -11,7 +11,7 @@ export let websiteConfig = {
   esbuildBundles: {
     "/demo/demo.bundled.js": {
       entryPoints: ["/demo/demo.mjs"],
-      external: ["fs", "os", "path"],
+      external: ["fs", "path"],
     },
   },
   htmlRedirects: {

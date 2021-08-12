@@ -46,58 +46,6 @@ if (EMSCRIPTEN)
   endif ()
 endif ()
 
-if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
-  if (QUICK_LINT_JS_NODEJS_OS_PLATFORM AND QUICK_LINT_JS_NODEJS_OS_ARCH)
-    quick_lint_js_add_library(quick-lint-js-node-fs SHARED node-fs.cpp)
-    set_target_properties(
-      quick-lint-js-node-fs
-      PROPERTIES
-      PREFIX ""
-      SUFFIX "_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.node"
-    )
-    target_compile_definitions(quick-lint-js-node-fs PRIVATE NAPI_VERSION=6)
-    target_link_libraries(
-      quick-lint-js-node-fs
-      PRIVATE
-      node-addon-api
-      quick-lint-js-lib
-    )
-    install(
-      TARGETS quick-lint-js-node-fs
-      LIBRARY  # Linux DSO; macOS dylib
-        COMPONENT vscode
-        EXCLUDE_FROM_ALL
-        DESTINATION "${VSCODE_DIST_DIR}"
-      RUNTIME  # Windows DLL
-        COMPONENT vscode
-        EXCLUDE_FROM_ALL
-        DESTINATION "${VSCODE_DIST_DIR}"
-    )
-
-    quick_lint_js_collect_copyright(
-      quick-lint-js-node-fs-licenses
-      TARGET quick-lint-js-node-fs
-      OUTPUT_FILE quick-lint-js-node-fs-licenses.txt
-      EXTRA_VENDOR_PROJECTS node node-addon-api
-    )
-    if (TARGET quick-lint-js-node-fs-licenses)
-      install(
-        FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-node-fs-licenses.txt"
-        COMPONENT vscode
-        DESTINATION "${VSCODE_DIST_DIR}"
-        EXCLUDE_FROM_ALL
-        RENAME "copyright_quick-lint-js-node-fs_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.txt"
-      )
-    endif ()
-  else ()
-    if (NOT QUICK_LINT_JS_NODEJS_OS_PLATFORM)
-      message(WARNING "Could not determine Node.js os.platform (QUICK_LINT_JS_NODEJS_OS_PLATFORM) (CMAKE_SYSTEM_NAME is ${CMAKE_SYSTEM_NAME}); not building Node.js extension")
-    else ()
-      message(WARNING "Could not determine Node.js os.arch (QUICK_LINT_JS_NODEJS_OS_ARCH) (CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR}); not building Node.js extension")
-    endif ()
-  endif ()
-endif ()
-
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #
