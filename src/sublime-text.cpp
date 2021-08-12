@@ -5,6 +5,10 @@
 
 jmp_buf qljs_sublime_text_jmp_buf;
 
+void qljs_sublime_text_signal_handler(int signal_number) {
+  QLJS_SUBLIME_TEXT_THROW();
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

@@ -5,12 +5,25 @@
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
 #include <csetjmp>
+#include <csignal>
 
 #define QLJS_SUBLIME_TEXT_TRY() if (setjmp(qljs_sublime_text_jmp_buf) == 0)
 #define QLJS_SUBLIME_TEXT_CATCH() else
 #define QLJS_SUBLIME_TEXT_THROW() ::std::longjmp(qljs_sublime_text_jmp_buf, 1)
 
+#define QLJS_SUBLIME_TEXT_DEFINE_SIGNAL_HANDLER()       \
+  do {                                                  \
+    signal(SIGABRT, &qljs_sublime_text_signal_handler); \
+    signal(SIGFPE, &qljs_sublime_text_signal_handler);  \
+    signal(SIGILL, &qljs_sublime_text_signal_handler);  \
+    signal(SIGINT, &qljs_sublime_text_signal_handler);  \
+    signal(SIGSEGV, &qljs_sublime_text_signal_handler); \
+    signal(SIGTERM, &qljs_sublime_text_signal_handler); \
+  } while (false)
+
 extern jmp_buf qljs_sublime_text_jmp_buf;
+
+void qljs_sublime_text_signal_handler(int signal_number);
 
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_H
 
