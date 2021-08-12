@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(require 'cl-seq)
-
 (defgroup quicklintjs nil
   "quick-lint-js finds bugs in JavaScript programs."
   :prefix "quicklintjs-"
