@@ -178,6 +178,7 @@ consumption:
 The following patches have been manually applied:
 
 * simdjson-cmake-version.patch
+* simdjson-iostream.patch
 * simdjson-reenter-child-ub.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various

@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <cstring>
-#include <iostream>
+#include <ostream>
 #include <quick-lint-js/char8.h>
 #include <string_view>
 
