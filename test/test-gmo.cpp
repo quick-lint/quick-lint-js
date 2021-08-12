@@ -112,8 +112,8 @@ TEST(test_gmo, missing_translation_gives_original_string) {
   gmo_file p(big_endian_two_string_gmo_file);
 
   const char *message = "does not exist";
-  std::string_view translated =
-      p.find_translation(gmo_message(message, std::strlen(message)));
+  std::string_view translated = p.find_translation(
+      gmo_message(message, narrow_cast<int>(std::strlen(message))));
   EXPECT_EQ(translated.data(), message);
 }
 

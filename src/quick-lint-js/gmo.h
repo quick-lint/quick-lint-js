@@ -78,24 +78,31 @@ class gmo_file {
 class gmo_message {
  public:
   /*implicit*/ constexpr gmo_message()
-      : hash_(gmo_file::hash_string(this->message_)) {}
+      : hash_(gmo_file::hash_string(this->message())) {}
 
-  explicit constexpr gmo_message(const char *raw_message, std::size_t length)
-      : message_(raw_message, length),
-        hash_(gmo_file::hash_string(this->message_)) {}
+  explicit constexpr gmo_message(const char *raw_message, int length)
+      : message_(raw_message),
+        message_length_(length),
+        hash_(gmo_file::hash_string(this->message())) {}
 
-  constexpr const char *c_str() const noexcept { return this->message_.data(); }
-  constexpr std::string_view message() const noexcept { return this->message_; }
+  constexpr const char *c_str() const noexcept { return this->message_; }
+
+  constexpr std::string_view message() const noexcept {
+    return std::string_view(this->message_,
+                            static_cast<std::size_t>(this->message_length_));
+  }
+
   constexpr gmo_file::word_type hash() const noexcept { return this->hash_; }
 
  private:
-  std::string_view message_;
+  const char *message_ = nullptr;
+  int message_length_ = 0;
   gmo_file::word_type hash_;
 };
 
 inline constexpr gmo_message operator""_gmo_message(const char *raw_message,
                                                     std::size_t length) {
-  return gmo_message(raw_message, length);
+  return gmo_message(raw_message, static_cast<int>(length));
 }
 }
 
