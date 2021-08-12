@@ -226,6 +226,23 @@ else ()
   )
 endif ()
 
+check_cxx_symbol_exists("sigsetjmp" "csetjmp" QUICK_LINT_JS_SIGSETJMP_FOUND)
+if (QUICK_LINT_JS_SIGSETJMP_FOUND)
+  set(QUICK_LINT_JS_HAVE_SIGSETJMP ON)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SIGSETJMP=1
+  )
+else ()
+  set(QUICK_LINT_JS_HAVE_SIGSETJMP OFF)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SIGSETJMP=0
+  )
+endif ()
+
 if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
   if (QUICK_LINT_JS_HAVE_SETJMP)
     target_compile_definitions(

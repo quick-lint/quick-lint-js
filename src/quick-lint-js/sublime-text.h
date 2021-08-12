@@ -7,9 +7,16 @@
 #include <csetjmp>
 #include <csignal>
 
+#if QLJS_HAVE_SIGSETJMP
+#define QLJS_SUBLIME_TEXT_TRY() \
+  if (sigsetjmp(qljs_sublime_text_sigjmp_buf, 1) == 0)
+#define QLJS_SUBLIME_TEXT_CATCH() else
+#define QLJS_SUBLIME_TEXT_THROW() siglongjmp(qljs_sublime_text_sigjmp_buf, 1)
+#else
 #define QLJS_SUBLIME_TEXT_TRY() if (setjmp(qljs_sublime_text_jmp_buf) == 0)
 #define QLJS_SUBLIME_TEXT_CATCH() else
 #define QLJS_SUBLIME_TEXT_THROW() ::std::longjmp(qljs_sublime_text_jmp_buf, 1)
+#endif
 
 #define QLJS_SUBLIME_TEXT_DEFINE_SIGNAL_HANDLER()       \
   do {                                                  \
@@ -21,7 +28,11 @@
     signal(SIGTERM, &qljs_sublime_text_signal_handler); \
   } while (false)
 
+#if QLJS_HAVE_SIGSETJMP
+extern sigjmp_buf qljs_sublime_text_sigjmp_buf;
+#else
 extern jmp_buf qljs_sublime_text_jmp_buf;
+#endif
 
 void qljs_sublime_text_signal_handler(int signal_number);
 

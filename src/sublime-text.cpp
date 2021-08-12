@@ -3,7 +3,11 @@
 
 #include <quick-lint-js/sublime-text.h>
 
+#if QLJS_HAVE_SIGSETJMP
+sigjmp_buf qljs_sublime_text_sigjmp_buf;
+#else
 jmp_buf qljs_sublime_text_jmp_buf;
+#endif
 
 void qljs_sublime_text_signal_handler(int signal_number) {
   QLJS_SUBLIME_TEXT_THROW();
