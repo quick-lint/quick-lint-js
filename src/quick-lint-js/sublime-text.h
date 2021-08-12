@@ -66,10 +66,11 @@ void qljs_sublime_text_signal_handler(int signal_number);
 #include <cstdlib>
 #include <ctime>
 
-#define QLJS_RANDRANGE(start, stop) ((rand() % (stop - start + 1)) + start)
+#define QLJS_RANDRANGE(start, stop) \
+  ((::std::rand() % (stop - start + 1)) + start)
 
 #define QLJS_SUBLIME_INITILIZE_TEST_CRASH() \
-  srand(static_cast<unsigned int>(time(NULL)))
+  ::std::srand(static_cast<unsigned int>(::std::time(NULL)))
 
 #define QLJS_SUBLIME_EXECUTE_TEST_CRASH()                            \
   do {                                                               \
