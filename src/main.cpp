@@ -175,7 +175,7 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_SUCCESS);
   }
   if (o.files_to_lint.empty()) {
-    std::cerr << "error: expected file name\n";
+    std::fprintf(stderr, "error: expected file name\n");
     std::exit(EXIT_FAILURE);
   }
 
@@ -235,35 +235,49 @@ void handle_options(quick_lint_js::options o) {
 
 class debug_visitor {
  public:
-  void visit_end_of_module() { std::cerr << "end of module\n"; }
+  void visit_end_of_module() { std::fprintf(stderr, "end of module\n"); }
 
-  void visit_enter_block_scope() { std::cerr << "entered block scope\n"; }
+  void visit_enter_block_scope() {
+    std::fprintf(stderr, "entered block scope\n");
+  }
 
-  void visit_enter_with_scope() { std::cerr << "entered with scope\n"; }
+  void visit_enter_with_scope() {
+    std::fprintf(stderr, "entered with scope\n");
+  }
 
-  void visit_enter_class_scope() { std::cerr << "entered class scope\n"; }
+  void visit_enter_class_scope() {
+    std::fprintf(stderr, "entered class scope\n");
+  }
 
-  void visit_enter_for_scope() { std::cerr << "entered for scope\n"; }
+  void visit_enter_for_scope() { std::fprintf(stderr, "entered for scope\n"); }
 
-  void visit_enter_function_scope() { std::cerr << "entered function scope\n"; }
+  void visit_enter_function_scope() {
+    std::fprintf(stderr, "entered function scope\n");
+  }
 
   void visit_enter_function_scope_body() {
-    std::cerr << "entered function scope body\n";
+    std::fprintf(stderr, "entered function scope body\n");
   }
 
   void visit_enter_named_function_scope(identifier) {
-    std::cerr << "entered named function scope\n";
+    std::fprintf(stderr, "entered named function scope\n");
   }
 
-  void visit_exit_block_scope() { std::cerr << "exited block scope\n"; }
+  void visit_exit_block_scope() {
+    std::fprintf(stderr, "exited block scope\n");
+  }
 
-  void visit_exit_with_scope() { std::cerr << "exited with scope\n"; }
+  void visit_exit_with_scope() { std::fprintf(stderr, "exited with scope\n"); }
 
-  void visit_exit_class_scope() { std::cerr << "exited class scope\n"; }
+  void visit_exit_class_scope() {
+    std::fprintf(stderr, "exited class scope\n");
+  }
 
-  void visit_exit_for_scope() { std::cerr << "exited for scope\n"; }
+  void visit_exit_for_scope() { std::fprintf(stderr, "exited for scope\n"); }
 
-  void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
+  void visit_exit_function_scope() {
+    std::fprintf(stderr, "exited function scope\n");
+  }
 
   void visit_property_declaration(std::optional<identifier> name) {
     std::cerr << "property declaration";
@@ -535,11 +549,12 @@ void print_help_message() {
   int max_width = 36;
 
   auto print_option = [&](const char *abbr, const char *message) {
-    std::cout << std::setw(max_width) << std::left << abbr << message << '\n';
+    std::printf("%-*s%s\n", max_width, abbr, message);
   };
 
-  std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
-            << "OPTIONS\n";
+  std::printf(
+      "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
+      "OPTIONS\n");
   print_option("--config-file=[FILE]",
                "Read configuration from a JSON file for later input files");
   print_option("--exit-fail-on=[CODES]",
@@ -562,16 +577,17 @@ void print_help_message() {
   mention_man_page = true;
 #endif
   if (mention_man_page) {
-    std::cout << "\nFor more information, run 'man quick-lint-js' or visit\n"
-                 "https://quick-lint-js.com/cli/\n";
+    std::printf(
+        "\nFor more information, run 'man quick-lint-js' or visit\n"
+        "https://quick-lint-js.com/cli/\n");
   } else {
-    std::cout
-        << "\nFor more information, visit https://quick-lint-js.com/cli/\n";
+    std::printf(
+        "\nFor more information, visit https://quick-lint-js.com/cli/\n");
   }
 }
 
 void print_version_information() {
-  std::cout << "quick-lint-js version " << QUICK_LINT_JS_VERSION_STRING << '\n';
+  std::puts("quick-lint-js version " QUICK_LINT_JS_VERSION_STRING);
 }
 }
 }

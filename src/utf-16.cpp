@@ -2,8 +2,8 @@
 // See end of file for extended copyright information.
 
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <optional>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -67,8 +67,8 @@ char *mbargv::warg_to_mbarg(wchar_t *warg) {
 }
 
 void mbargv::conversion_failed(wchar_t *warg) {
-  std::wcerr << "error: failed to convert " << warg << " to mbstring\n";
-  std::cerr << windows_error_message(GetLastError()) << '\n';
+  std::fprintf(stderr, "error: failed to convert %Ls to mbstring\n", warg);
+  std::fprintf(stderr, "%s\n", windows_error_message(GetLastError()));
   std::exit(EXIT_FAILURE);
 }
 

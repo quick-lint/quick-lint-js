@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <limits.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
@@ -36,7 +35,7 @@ namespace quick_lint_js {
 std::string make_temporary_directory() {
   std::string temp_directory_name = "/tmp/quick-lint-js.XXXXXX";
   if (!::mkdtemp(temp_directory_name.data())) {
-    std::cerr << "failed to create temporary directory\n";
+    std::fprintf(stderr, "failed to create temporary directory\n");
     std::abort();
   }
   return temp_directory_name;
@@ -66,7 +65,7 @@ std::string make_temporary_directory() {
     }
     return temp_directory_path.string();
   }
-  std::cerr << "failed to create temporary directory\n";
+  std::fprintf(stderr, "failed to create temporary directory\n");
   std::abort();
 }
 #else

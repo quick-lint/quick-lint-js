@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <iostream>
+#include <ostream>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
