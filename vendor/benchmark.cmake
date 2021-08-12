@@ -34,6 +34,16 @@ set_property(
   "${BENCHMARK_INCLUDE_DIRECTORIES}"
 )
 
+# HACK(strager): sysinfo.cc needs some Windows headers. Some headers in Windows
+# SDK version 10.0.17763.0 contain invalid code which causes the
+# standards-compliant preprocessor to generate invalid C++ code. Use the legacy
+# peprocessor.
+if (QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_CXX)
+  target_compile_options(benchmark PRIVATE /Zc:preprocessor-)
+elseif (QUICK_LINT_JS_HAVE_EXPERIMENTAL_PREPROCESSOR_CXX)
+  target_compile_options(benchmark PRIVATE /experimental:preprocessor-)
+endif ()
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

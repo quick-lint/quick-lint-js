@@ -96,6 +96,22 @@ function (quick_lint_js_set_cxx_standard)
 
   set(CMAKE_CXX_STANDARD "${CMAKE_CXX_STANDARD}" PARENT_SCOPE)
   set(CMAKE_CXX_STANDARD_REQUIRED "${CMAKE_CXX_STANDARD_REQUIRED}" PARENT_SCOPE)
+
+  quick_lint_js_use_new_msvc_preprocessor()
+endfunction ()
+
+function (quick_lint_js_use_new_msvc_preprocessor)
+  # https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160
+  quick_lint_js_add_c_cxx_flag_if_supported(/Zc:preprocessor QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR)
+  if (NOT QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_C OR NOT QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_CXX)
+    quick_lint_js_add_c_cxx_flag_if_supported(/experimental:preprocessor QUICK_LINT_JS_HAVE_EXPERIMENTAL_PREPROCESSOR)
+  endif ()
+
+  # <Windows.h>, at least in SDK version 10.0.17763.0, has some bogus code when
+  # /Zc:preprocessor is enabled. Work around it.
+  quick_lint_js_get_supported_warning_options(/wd5105 WARNING_OPTIONS_TO_ADD)
+  add_compile_options(${WARNING_OPTIONS_TO_ADD})
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
 endfunction ()
 
 function (quick_lint_js_add_warning_options_if_supported)
