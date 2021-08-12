@@ -226,8 +226,7 @@ else ()
   )
 endif ()
 
-if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR
-    QUICK_LINT_JS_SUBLIME_TEXT_4)
+if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
   if (QUICK_LINT_JS_HAVE_SETJMP)
     target_compile_definitions(
       quick-lint-js-lib
