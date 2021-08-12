@@ -58,12 +58,26 @@ struct qljs_sublime_text_3_diagnostic {
   int begin_offset;
   int end_offset;
 };
+// There are three states for the structure below:
+// 1. Without error: qljs_sublime_text_3_error{NULL}
+// 2. With error without message: qljs_sublime_text_3_error{""}
+// 3. With error with message: qljs_sublime_text_3_error{"internal failure"}
+struct qljs_sublime_text_3_error {
+  const char* assertion_failure_report;
+};
+struct qljs_sublime_text_3_result {
+  union {
+    const qljs_sublime_text_3_diagnostic* diagnostics;
+    const qljs_sublime_text_3_error error;
+  } value;
+  bool is_diagnostics;
+};
 qljs_sublime_text_3_parser* qljs_sublime_text_3_create_parser(void);
 void qljs_sublime_text_3_destroy_parser(qljs_sublime_text_3_parser*);
-void qljs_sublime_text_3_set_text(qljs_sublime_text_3_parser*,
-                                  const void* text_utf_8,
-                                  size_t text_byte_count);
-const qljs_sublime_text_3_diagnostic* qljs_sublime_text_3_lint(
+qljs_sublime_text_3_error qljs_sublime_text_3_set_text(
+    qljs_sublime_text_3_parser*, const void* text_utf_8,
+    size_t text_byte_count);
+const qljs_sublime_text_3_result* qljs_sublime_text_3_lint(
     qljs_sublime_text_3_parser*);
 
 typedef struct qljs_sublime_text_4_parser qljs_sublime_text_4_parser;

@@ -36,6 +36,42 @@ class DiagnosticStructure(ctypes.Structure):
 DiagnosticStructurePointer = ctypes.POINTER(DiagnosticStructure)
 
 
+class ErrorStructure(ctypes.Structure):
+    """Error layer used to communicate with the C++ code."""
+
+    # struct qljs_sublime_text_3_error {
+    #   const char* message;
+    # };
+    _fields_ = [
+        ("message", ctypes.c_char_p),
+    ]
+
+
+class ResultStructure(ctypes.Structure):
+    """Result layer used to communicate with the C++ code."""
+
+    # struct qljs_sublime_text_3_result {
+    #   union {
+    #     qljs_sublime_text_4_diagnostic* diagnostics;
+    #     qljs_sublime_text_4_error error;
+    #   } value;
+    #   bool is_diagnostics;
+    # };
+    class ValueUnion(ctypes.Union):
+        _fields_ = [
+            ("diagnostics", DiagnosticStructurePointer),
+            ("error", ErrorStructure),
+        ]
+
+    _fields_ = [
+        ("value", ValueUnion),
+        ("is_diagnostics", ctypes.c_bool),
+    ]
+
+
+ResultStructurePointer = ctypes.POINTER(ResultStructure)
+
+
 class ParserStructure(ctypes.Structure):
     """Parser layer used to communicate with the C++ code."""
 
@@ -69,10 +105,10 @@ def create_library():
         ctypes.c_void_p,
         ctypes.c_size_t,
     ]
-    lib.qljs_sublime_text_3_set_text.restype = None
+    lib.qljs_sublime_text_3_set_text.restype = ErrorStructure
 
     lib.qljs_sublime_text_3_lint.argtypes = [ParserStructurePointer]
-    lib.qljs_sublime_text_3_lint.restype = DiagnosticStructurePointer
+    lib.qljs_sublime_text_3_lint.restype = ResultStructurePointer
 
     return lib
 
@@ -89,13 +125,31 @@ class Diagnostic:
         )
 
 
+def display_error_message(message):
+    sublime.error_message("error: quick-lint-js:\n" + message)
+
+
+class Error(Exception):
+    """Error layer used to communicate with the plugin."""
+
+    def __init__(self, ctypes_error):
+        self.message = ctypes_error.message.decode(encoding="utf-8")
+        super().__init__(self.message)
+
+    def has_message(self):
+        return bool(self.message)
+
+    def display_message(self):
+        display_error_message(self.message)
+
+
 class Parser:
     """Parser layer used to communicate with the plugin."""
 
     try:
         lib = create_library()
     except OSError as error:
-        sublime.error_message("quick-lint-js: " + repr(error))
+        display_error_message(repr(error))
         lib = None
         err = error
 
@@ -129,22 +183,30 @@ class Parser:
         all_content = self.view.substr(all_region)
         text_utf8 = all_content.encode(encoding="utf-8")
         text_len_utf8 = len(text_utf8)
-        Parser.lib.qljs_sublime_text_3_set_text(
+        ctypes_error = Parser.lib.qljs_sublime_text_3_set_text(
             self._ctypes_parser_pointer,
             text_utf8,
             text_len_utf8,
         )
+        if ctypes_error.message is not None:
+            raise Error(ctypes_error)
 
     def lint(self):
-        ctypes_diagnostics_pointer = Parser.lib.qljs_sublime_text_3_lint(
+        ctypes_result_pointer = Parser.lib.qljs_sublime_text_3_lint(
             self._ctypes_parser_pointer
         )
-        diagnostics = []
-        for ctypes_diagnostic in ctypes_diagnostics_pointer:
-            if ctypes_diagnostic.message is None:
-                break
-            diagnostics.append(Diagnostic(ctypes_diagnostic))
-        self.diagnostics = diagnostics
+        ctypes_result = ctypes_result_pointer.contents
+        if ctypes_result.is_diagnostics:
+            ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
+            diagnostics = []
+            for ctypes_diagnostic in ctypes_diagnostics_pointer:
+                if ctypes_diagnostic.message is None:
+                    break
+                diagnostics.append(Diagnostic(ctypes_diagnostic))
+            self.diagnostics = diagnostics
+        else:
+            self.diagnostics = []
+            raise Error(ctypes_result.value.error)
 
 
 # quick-lint-js finds bugs in JavaScript programs.

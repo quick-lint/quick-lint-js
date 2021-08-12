@@ -131,6 +131,11 @@ struct qljs_sublime_text_3_parser final
 };
 
 qljs_sublime_text_3_parser* qljs_sublime_text_3_create_parser(void) {
+#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
+  QLJS_SUBLIME_INITILIZE_TEST_CRASH();
+#endif
+
+  QLJS_SUBLIME_TEXT_DEFINE_SIGNAL_HANDLER();
   qljs_sublime_text_3_parser* p = new qljs_sublime_text_3_parser();
   return p;
 }
@@ -139,17 +144,36 @@ void qljs_sublime_text_3_destroy_parser(qljs_sublime_text_3_parser* p) {
   delete p;
 }
 
-void qljs_sublime_text_3_set_text(qljs_sublime_text_3_parser* p,
-                                  const void* text_utf_8,
-                                  size_t text_byte_count) {
-  p->set_text(quick_lint_js::string8_view(
-      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
-      text_byte_count));
+qljs_sublime_text_3_error qljs_sublime_text_3_set_text(
+    qljs_sublime_text_3_parser* p, const void* text_utf_8,
+    size_t text_byte_count) {
+  QLJS_SUBLIME_TEXT_TRY() {
+    p->set_text(quick_lint_js::string8_view(
+        reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
+        text_byte_count));
+    return qljs_sublime_text_3_error{NULL};
+  }
+  QLJS_SUBLIME_TEXT_CATCH() {
+    qljs_sublime_text_3_error error =
+        qljs_sublime_text_3_error{qljs_sublime_text_program_error_reports};
+    QLJS_CLEAR_PROGRAM_ERROR();
+    return error;
+  }
 }
 
-const qljs_sublime_text_3_diagnostic* qljs_sublime_text_3_lint(
+const qljs_sublime_text_3_result* qljs_sublime_text_3_lint(
     qljs_sublime_text_3_parser* p) {
-  return p->lint();
+  QLJS_SUBLIME_TEXT_TRY() {
+    return new qljs_sublime_text_3_result{.value = {.diagnostics = p->lint()},
+                                          .is_diagnostics = true};
+  }
+  QLJS_SUBLIME_TEXT_CATCH() {
+    qljs_sublime_text_3_error error =
+        qljs_sublime_text_3_error{qljs_sublime_text_program_error_reports};
+    QLJS_CLEAR_PROGRAM_ERROR();
+    return new qljs_sublime_text_3_result{.value = {.error = error},
+                                          .is_diagnostics = false};
+  }
 }
 
 struct qljs_sublime_text_4_parser final
