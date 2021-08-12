@@ -173,6 +173,10 @@ struct qljs_sublime_text_4_parser final
 };
 
 qljs_sublime_text_4_parser* qljs_sublime_text_4_create_parser(void) {
+#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
+  QLJS_SUBLIME_INITILIZE_TEST_CRASH();
+#endif
+
   QLJS_SUBLIME_TEXT_DEFINE_SIGNAL_HANDLER();
   qljs_sublime_text_4_parser* p = new qljs_sublime_text_4_parser();
   return p;

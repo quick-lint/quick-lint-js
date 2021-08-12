@@ -244,6 +244,10 @@ else ()
 endif ()
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
+  set(QUICK_LINT_JS_SUBLIME_TEXT TRUE)
+endif ()
+
+if (QUICK_LINT_JS_SUBLIME_TEXT)
   if (QUICK_LINT_JS_HAVE_SETJMP)
     target_compile_definitions(
       quick-lint-js-lib
@@ -261,6 +265,29 @@ else ()
     quick-lint-js-lib
     PUBLIC
     QLJS_SUBLIME_TEXT_PLUGIN=0
+  )
+endif ()
+
+
+if (QUICK_LINT_JS_SUBLIME_TEXT_TEST)
+  if (QUICK_LINT_JS_SUBLIME_TEXT)
+    target_compile_definitions(
+      quick-lint-js-lib
+      PUBLIC
+      QLJS_SUBLIME_TEXT_PLUGIN_TEST=1
+    )
+  else ()
+    message(
+      FATAL_ERROR
+      "You need to set QUICK_LINT_JS_SUBLIME_TEXT_3=ON or QUICK_LINT_JS_SUBLIME_TEXT_4=ON \
+to test the Sublime Text plugin."
+    )
+  endif ()
+else ()
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_SUBLIME_TEXT_PLUGIN_TEST=0
   )
 endif ()
 

@@ -2154,6 +2154,10 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   }
 #endif
 
+#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
+  QLJS_SUBLIME_EXECUTE_TEST_CRASH();
+#endif
+
   QLJS_REPORT_PROGRAM_ERROR("%s:%d: fatal: token not implemented in %s: %s",
                             qljs_file_name, qljs_line, qljs_function_name,
                             to_string(this->peek().type));

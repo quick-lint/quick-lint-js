@@ -36,6 +36,42 @@ extern jmp_buf qljs_sublime_text_jmp_buf;
 
 void qljs_sublime_text_signal_handler(int signal_number);
 
+// For testing purposes only.
+#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
+#include <cassert>
+#include <cstdlib>
+#include <ctime>
+
+#define QLJS_SUBLIME_INITILIZE_TEST_CRASH() \
+  srand(static_cast<unsigned int>(time(NULL)))
+
+#define QLJS_SUBLIME_EXECUTE_TEST_CRASH()                                  \
+  do {                                                                     \
+    switch (static_cast<int>(rand() % (5 + 1))) {                          \
+    case 0:                                                                \
+      ::std::fputs("case 0: ::std::abort();", stderr);                     \
+      ::std::abort();                                                      \
+    case 1:                                                                \
+      ::std::fputs("case 1: assert(false);", stderr);                      \
+      assert(false);                                                       \
+    case 2:                                                                \
+      ::std::fputs("case 2: *((unsigned int*)0) = 0xDEAD;", stderr);       \
+      *((unsigned int*)0) = 0xDEAD;                                        \
+    case 3:                                                                \
+      ::std::fputs("case 3: *((char*)NULL) = 0;", stderr);                 \
+      *((char*)NULL) = 0;                                                  \
+    case 4:                                                                \
+      ::std::fputs("case 4: raise(SIGSEGV);", stderr);                     \
+      raise(SIGSEGV);                                                      \
+    case 5:                                                                \
+      ::std::fputs("case 5: for (long long int i = 0; ++i; (&i)[i] = i);", \
+                   stderr);                                                \
+      for (long long int i = 0; ++i; (&i)[i] = i)                          \
+        ;                                                                  \
+    }                                                                      \
+  } while (false)
+#endif
+
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_H
 
 // quick-lint-js finds bugs in JavaScript programs.
