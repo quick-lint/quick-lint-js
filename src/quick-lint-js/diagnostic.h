@@ -41,8 +41,6 @@ struct diagnostic_info {
   diagnostic_message_info messages[2];
 };
 
-extern const diagnostic_info all_diagnostic_infos[];
-
 const diagnostic_info &get_diagnostic_info(error_type) noexcept;
 }
 

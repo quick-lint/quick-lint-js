@@ -7,6 +7,9 @@
 #define QLJS_CPP_CONCAT(x, y) QLJS_CPP_CONCAT_(x, y)
 #define QLJS_CPP_CONCAT_(x, y) x##y
 
+#define QLJS_COUNT_ARGS(...) QLJS_COUNT_ARGS_(__VA_ARGS__, 5, 4, 3, 2, 1, 0)
+#define QLJS_COUNT_ARGS_(_0, _1, _2, _3, _4, count, ...) count
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
