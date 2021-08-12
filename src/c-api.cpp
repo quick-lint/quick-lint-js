@@ -151,7 +151,7 @@ qljs_sublime_text_3_error qljs_sublime_text_3_set_text(
     p->set_text(quick_lint_js::string8_view(
         reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
         text_byte_count));
-    return qljs_sublime_text_3_error{NULL};
+    return qljs_sublime_text_3_error{nullptr};
   }
   QLJS_SUBLIME_TEXT_CATCH() {
     qljs_sublime_text_3_error error =
@@ -220,7 +220,7 @@ qljs_sublime_text_4_error qljs_sublime_text_4_replace_text(
                         reinterpret_cast<const quick_lint_js::char8*>(
                             replacement_text_utf_8),
                         replacement_text_byte_count));
-    return qljs_sublime_text_4_error{NULL};
+    return qljs_sublime_text_4_error{nullptr};
   }
   QLJS_SUBLIME_TEXT_CATCH() {
     qljs_sublime_text_4_error error =

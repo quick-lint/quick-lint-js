@@ -59,7 +59,7 @@ struct qljs_sublime_text_3_diagnostic {
   int end_offset;
 };
 // There are three states for the structure below:
-// 1. Without error: qljs_sublime_text_3_error{NULL}
+// 1. Without error: qljs_sublime_text_3_error{nullptr}
 // 2. With error without message: qljs_sublime_text_3_error{""}
 // 3. With error with message: qljs_sublime_text_3_error{"internal failure"}
 struct qljs_sublime_text_3_error {
@@ -91,7 +91,7 @@ struct qljs_sublime_text_4_diagnostic {
   int end_character;
 };
 // There are three states for the structure below:
-// 1. Without error: qljs_sublime_text_4_error{NULL}
+// 1. Without error: qljs_sublime_text_4_error{nullptr}
 // 2. With error without message: qljs_sublime_text_4_error{""}
 // 3. With error with message: qljs_sublime_text_4_error{"internal failure"}
 struct qljs_sublime_text_4_error {

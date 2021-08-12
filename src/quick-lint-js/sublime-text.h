@@ -70,7 +70,7 @@ void qljs_sublime_text_signal_handler(int signal_number);
   ((::std::rand() % (stop - start + 1)) + start)
 
 #define QLJS_SUBLIME_INITILIZE_TEST_CRASH() \
-  ::std::srand(static_cast<unsigned int>(::std::time(NULL)))
+  ::std::srand(static_cast<unsigned int>(::std::time(nullptr)))
 
 #define QLJS_SUBLIME_EXECUTE_TEST_CRASH()                            \
   do {                                                               \
