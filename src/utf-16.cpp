@@ -68,7 +68,7 @@ char *mbargv::warg_to_mbarg(wchar_t *warg) {
 
 void mbargv::conversion_failed(wchar_t *warg) {
   std::fprintf(stderr, "error: failed to convert %Ls to mbstring\n", warg);
-  std::fprintf(stderr, "%s\n", windows_error_message(GetLastError()));
+  std::fprintf(stderr, "%s\n", windows_error_message(GetLastError()).c_str());
   std::exit(EXIT_FAILURE);
 }
 
