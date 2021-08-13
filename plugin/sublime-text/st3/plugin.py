@@ -139,9 +139,10 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
 
     def add_popup(self, diagnostic):
         minihtml = """
-        <span>%s
-            <span style=\"color: %s;\">quick-lint-js(%s)</span>
-        </span>
+        <body style="margin: 0.8rem;">
+            <div>%s</div>
+            <div style="color: %s;">quick-lint-js(%s)</div>
+        </body>
         """
         color = self.view.style_for_scope("comment.line")["foreground"]
 
