@@ -16,28 +16,6 @@ async function main() {
   let factory = await createProcessFactoryAsync();
   let qljsProcess = await factory.createProcessAsync();
 
-  let documentForVSCode = await qljsProcess.createDocumentForVSCodeAsync();
-  try {
-    documentForVSCode.replaceText(
-      {
-        start: { line: 0, character: 0 },
-        end: { line: 0, character: 0 },
-      },
-      fileContent
-    );
-    let diagnostics = documentForVSCode.lint();
-
-    for (let diag of diagnostics) {
-      console.log(
-        `vscode: ${diag.startLine}:${diag.startCharacter}-${diag.endLine}:${
-          diag.endCharacter
-        }: ${severityString(diag.severity)}: ${diag.message}`
-      );
-    }
-  } finally {
-    documentForVSCode.dispose();
-  }
-
   let documentForWebDemo = await qljsProcess.createDocumentForWebDemoAsync();
   try {
     documentForWebDemo.setText(fileContent);

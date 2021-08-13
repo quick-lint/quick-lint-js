@@ -30,8 +30,7 @@ jobs:
 
       - name: JS configure
         run: cd wasm && yarn install
-      - name: JS test
-        run: cd wasm && yarn test
+      # TODO(strager): Write some tests and run them here.
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

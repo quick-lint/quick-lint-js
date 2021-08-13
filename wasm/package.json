@@ -2,11 +2,9 @@
   "name": "quick-lint-js-wasm",
   "version": "0.0.0",
   "scripts": {
-    "fmt": "prettier --write '*.js' '*.json'",
-    "test": "node run-tests.js"
+    "fmt": "prettier --write '*.js' '*.json'"
   },
   "devDependencies": {
-    "prettier": "^2.3.0",
-    "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/"
+    "prettier": "^2.3.0"
   }
 }
