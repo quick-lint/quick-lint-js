@@ -3,7 +3,9 @@
 
 #include <quick-lint-js/program-error.h>
 
+#if QLJS_SUBLIME_TEXT_PLUGIN
 char* qljs_sublime_text_program_error_reports = const_cast<char*>("");
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
