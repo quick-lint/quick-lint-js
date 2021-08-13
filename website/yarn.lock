@@ -926,9 +926,6 @@ quick-lint-js-node-test-runner@../tools/quick-lint-js-node-test-runner/:
     colors "^1.4.0"
     jasmine "^3.7.0"
 
-quick-lint-js-wasm@../wasm:
-  version "0.0.0"
-
 range-parser@~1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.1.tgz#3cf37023d199e1c24d1a55b84800c2f3e6468031"

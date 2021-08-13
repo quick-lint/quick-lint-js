@@ -7,7 +7,7 @@ import fs from "fs";
 import jsdom from "jsdom";
 import path from "path";
 import url from "url";
-import { createProcessFactoryAsync } from "quick-lint-js-wasm/quick-lint-js.js";
+import { createProcessFactoryAsync } from "../wasm/quick-lint-js.js";
 import { markEditorText } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);

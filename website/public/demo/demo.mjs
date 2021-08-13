@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import { createProcessFactoryAsync } from "quick-lint-js-wasm/quick-lint-js.js";
+import { createProcessFactoryAsync } from "../../wasm/quick-lint-js.js";
 import { markEditorText } from "./editor.mjs";
 
 let codeInputElement = document.getElementById("code-input");

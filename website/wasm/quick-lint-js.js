@@ -4,8 +4,8 @@
 "use strict";
 
 // TODO(strager): Make this configurable.
-// For build instructions, see wasm/README.md.
-let VSCODE_WASM_MODULE_PATH = "./dist/quick-lint-js-vscode.wasm";
+// For build instructions, see website/wasm/README.md.
+let VSCODE_WASM_MODULE_PATH = "../public/demo/dist/quick-lint-js-vscode.wasm";
 
 class LintingCrashed extends Error {
   constructor(originalError) {
