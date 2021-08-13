@@ -29,7 +29,6 @@ quick_lint_js_add_executable(
   test-buffering-error-reporter.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
-  test-c-api-error-reporter.cpp
   test-c-api.cpp
   test-cli-location.cpp
   test-configuration-loader.cpp

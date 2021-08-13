@@ -16,7 +16,6 @@
 #include <quick-lint-js/warning.h>
 #include <vector>
 
-struct qljs_vscode_diagnostic;
 struct qljs_web_demo_diagnostic;
 
 namespace quick_lint_js {
@@ -70,10 +69,6 @@ class c_api_error_formatter
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wweak-template-vtables")
-
-extern template class c_api_error_formatter<qljs_vscode_diagnostic,
-                                            lsp_locator>;
-extern template class c_api_error_reporter<qljs_vscode_diagnostic, lsp_locator>;
 
 extern template class c_api_error_formatter<qljs_web_demo_diagnostic,
                                             web_demo_locator>;

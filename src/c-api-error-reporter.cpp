@@ -118,9 +118,6 @@ void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
   diag.severity = diag_severity;
 }
 
-template class c_api_error_formatter<qljs_vscode_diagnostic, lsp_locator>;
-template class c_api_error_reporter<qljs_vscode_diagnostic, lsp_locator>;
-
 template class c_api_error_formatter<qljs_web_demo_diagnostic,
                                      web_demo_locator>;
 template class c_api_error_reporter<qljs_web_demo_diagnostic, web_demo_locator>;
