@@ -12,7 +12,7 @@ let qljs = require(path.join(
   `./dist/quick-lint-js-vscode-node_${os.platform()}-${os.arch()}.node`
 ));
 
-class VSCodeDocumentLinter {
+class QLJSDocument {
   constructor(document, diagnosticCollection) {
     this._document = document;
     this._diagnosticCollection = diagnosticCollection;
@@ -40,42 +40,42 @@ class VSCodeDocumentLinter {
   }
 }
 
-class DocumentLinterCollection {
+class QLJSWorkspace {
   constructor(diagnosticCollection) {
     this._diagnosticCollection = diagnosticCollection;
 
-    // Mapping from URI string to VSCodeDocumentLinter.
-    this._linters = new Map();
+    // Mapping from URI string to QLJSDocument.
+    this._qljsDocuments = new Map();
   }
 
   getLinter(document) {
     let documentURIString = document.uri.toString();
-    let linter = this._linters.get(documentURIString);
-    if (typeof linter === "undefined") {
-      linter = new VSCodeDocumentLinter(document, this._diagnosticCollection);
-      this._linters.set(documentURIString, linter);
+    let qljsDocument = this._qljsDocuments.get(documentURIString);
+    if (typeof qljsDocument === "undefined") {
+      qljsDocument = new QLJSDocument(document, this._diagnosticCollection);
+      this._qljsDocuments.set(documentURIString, qljsDocument);
     }
-    return linter;
+    return qljsDocument;
   }
 
   disposeLinter(document) {
     let documentURIString = document.uri.toString();
-    let linter = this._linters.get(documentURIString);
-    if (typeof linter !== "undefined") {
-      linter.dispose();
-      this._linters.delete(documentURIString);
+    let qljsDocument = this._qljsDocuments.get(documentURIString);
+    if (typeof qljsDocument !== "undefined") {
+      qljsDocument.dispose();
+      this._qljsDocuments.delete(documentURIString);
     }
   }
 
   dispose() {
-    let linters = this._linters;
-    this._linters = new Map();
-    for (let [_uri, linter] of linters) {
-      linter.dispose();
+    let qljsDocuments = this._qljsDocuments;
+    this._qljsDocuments = new Map();
+    for (let [_uri, qljsDocument] of qljsDocuments) {
+      qljsDocument.dispose();
     }
   }
 }
-exports.DocumentLinterCollection = DocumentLinterCollection;
+exports.QLJSWorkspace = QLJSWorkspace;
 
 let toDispose = [];
 
@@ -83,8 +83,8 @@ async function activateAsync() {
   let diagnostics = vscode.languages.createDiagnosticCollection();
   toDispose.push(diagnostics);
 
-  let linters = new DocumentLinterCollection(diagnostics);
-  toDispose.push(linters);
+  let qljsWorkspace = new QLJSWorkspace(diagnostics);
+  toDispose.push(qljsWorkspace);
 
   toDispose.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
@@ -98,7 +98,9 @@ async function activateAsync() {
       if (!isBogusEvent) {
         logErrors(() => {
           if (isLintable(event.document)) {
-            linters.getLinter(event.document).textChanged(event.contentChanges);
+            qljsWorkspace
+              .getLinter(event.document)
+              .textChanged(event.contentChanges);
           }
         });
       }
@@ -116,7 +118,7 @@ async function activateAsync() {
   toDispose.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       logErrors(() => {
-        linters.disposeLinter(document);
+        qljsWorkspace.disposeLinter(document);
       });
     })
   );
@@ -124,7 +126,7 @@ async function activateAsync() {
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
       if (isLintable(editor.document)) {
-        linters.getLinter(editor.document).editorChangedVisibility();
+        qljsWorkspace.getLinter(editor.document).editorChangedVisibility();
       }
     }
   }
