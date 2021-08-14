@@ -23,6 +23,7 @@ class addon_state {
   static std::unique_ptr<addon_state> create(::Napi::Env env);
 
   ::Napi::FunctionReference qljs_document_class;
+  ::Napi::FunctionReference qljs_workspace_class;
 };
 
 // The 'vscode' CommonJS module.
@@ -150,6 +151,44 @@ class vscode_error_reporter final : public error_reporter {
   const lsp_locator* locator_;
 };
 
+class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
+ public:
+  static ::Napi::Function init(::Napi::Env env) {
+    return DefineClass(
+        env, "Workspace",
+        {
+            InstanceMethod<&qljs_workspace::create_document>("createDocument"),
+            InstanceMethod<&qljs_workspace::dispose>("dispose"),
+        });
+  }
+
+  explicit qljs_workspace(const ::Napi::CallbackInfo& info)
+      : ::Napi::ObjectWrap<qljs_workspace>(info),
+        vscode_(info[0].As<::Napi::Object>()) {}
+
+  ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+
+    // TODO(strager): Reduce memory usage.
+
+    return env.Undefined();
+  }
+
+  ::Napi::Value create_document(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+    addon_state* state = env.GetInstanceData<addon_state>();
+
+    return state->qljs_document_class.New({
+        /*workspace=*/info.This(),
+    });
+  }
+
+  vscode_module* vscode() noexcept { return &this->vscode_; }
+
+ private:
+  vscode_module vscode_;
+};
+
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
@@ -165,7 +204,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
-        vscode_(info[0].As<::Napi::Object>()) {}
+        workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
+        workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())) {}
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -225,9 +265,10 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   ::Napi::Value lint(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
-    this->vscode_.load_non_persistent(env);
+    vscode_module* vscode = this->workspace_->vscode();
+    vscode->load_non_persistent(env);
 
-    vscode_error_reporter error_reporter(&this->vscode_, env,
+    vscode_error_reporter error_reporter(vscode, env,
                                          &this->document_.locator());
     parser p(this->document_.string(), &error_reporter);
     linter l(&error_reporter, &this->config_.globals());
@@ -240,16 +281,17 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
  private:
-  vscode_module vscode_;
   document<lsp_locator> document_;
   configuration config_;
+  ::Napi::ObjectReference workspace_ref_;
+  qljs_workspace* workspace_;
 };
 
-::Napi::Object create_document(const ::Napi::CallbackInfo& info) {
+::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
   addon_state* state = env.GetInstanceData<addon_state>();
 
-  return state->qljs_document_class.New({
+  return state->qljs_workspace_class.New({
       /*vscode=*/info[0],
   });
 }
@@ -261,6 +303,7 @@ int to_int(::Napi::Value v) {
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   return std::unique_ptr<addon_state>(new addon_state{
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
+      .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
   });
 }
 
@@ -269,8 +312,8 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   env.SetInstanceData<addon_state>(state.get());
   state.release();
 
-  exports.Set("createDocument",
-              ::Napi::Function::New(env, create_document, "createDocument"));
+  exports.Set("createWorkspace",
+              ::Napi::Function::New(env, create_workspace, "createWorkspace"));
   return exports;
 }
 }

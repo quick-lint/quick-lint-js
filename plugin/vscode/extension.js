@@ -13,10 +13,10 @@ let qljs = require(path.join(
 ));
 
 class QLJSDocument {
-  constructor(document, diagnosticCollection) {
+  constructor(qljsWorkspace, document, diagnosticCollection) {
     this._document = document;
     this._diagnosticCollection = diagnosticCollection;
-    this._qljsDocument = qljs.createDocument(vscode);
+    this._qljsDocument = qljsWorkspace.createDocument();
   }
 
   dispose() {
@@ -43,6 +43,7 @@ class QLJSDocument {
 class QLJSWorkspace {
   constructor(diagnosticCollection) {
     this._diagnosticCollection = diagnosticCollection;
+    this._qljsWorkspace = qljs.createWorkspace(vscode);
 
     // Mapping from URI string to QLJSDocument.
     this._qljsDocuments = new Map();
@@ -52,7 +53,11 @@ class QLJSWorkspace {
     let documentURIString = document.uri.toString();
     let qljsDocument = this._qljsDocuments.get(documentURIString);
     if (typeof qljsDocument === "undefined") {
-      qljsDocument = new QLJSDocument(document, this._diagnosticCollection);
+      qljsDocument = new QLJSDocument(
+        this._qljsWorkspace,
+        document,
+        this._diagnosticCollection
+      );
       this._qljsDocuments.set(documentURIString, qljsDocument);
     }
     return qljsDocument;
