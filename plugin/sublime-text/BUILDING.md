@@ -20,6 +20,29 @@ cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
 ninja -C build quick-lint-js-sublime-text
 ```
 
+### macOS
+
+To build this extension, install [LLVM], [CMake], and [Ninja] using [Homebrew]:
+
+```shell
+brew install llvm cmake ninja
+```
+
+then run the following commands:
+
+```shell
+PATH="$(brew --prefix)/opt/llvm/bin:$PATH" \
+    CC=clang \
+    CXX=clang++ \
+    CPPFLAGS="-I$(brew --prefix)/opt/llvm/include" \
+    CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY \
+    LDFLAGS="-L$(brew --prefix)/opt/llvm/lib" \
+    cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DQUICK_LINT_JS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+ninja -C build quick-lint-js-sublime-text
+```
+
 ### Windows
 
 To build this extension, install [Visual Studio C/C++], [CMake], and [Ninja],
@@ -45,7 +68,9 @@ cmake --install build --component sublime-text
 
 [Sublime Text editor]: https://www.sublimetext.com/
 [GCC]: https://gcc.gnu.org/
+[LLVM]: https://llvm.org/
 [Visual Studio C/C++]: https://visualstudio.microsoft.com/vs/features/cplusplus/
 [CMake]: https://cmake.org/
 [Ninja]: https://ninja-build.org/
+[Homebrew]: https://brew.sh/
 [developer command prompt]: https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-160#developer_command_prompt_shortcuts

@@ -105,9 +105,15 @@ def load_library():
     if platform.system() == "Windows":
         lib_path_file = "quick-lint-js-lib.dll"
         directory_separator = "\\"
+    elif platform.system() == "Darwin":
+        lib_path_file = "libquick-lint-js-lib.dylib"
+        directory_separator = "/"
     elif platform.system() == "Linux":
         lib_path_file = "libquick-lint-js-lib.so"
         directory_separator = "/"
+    else:
+        raise OSError("Operating system not supported.")
+
 
     lib_directory_path = get_script_directory_path()
     lib_path = lib_directory_path + directory_separator + lib_path_file
