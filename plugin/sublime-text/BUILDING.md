@@ -49,8 +49,8 @@ To build this extension, install [Visual Studio C/C++], [CMake], and [Ninja],
 then open the [developer command prompt] belonging to Visual Studio and run the
 following commands:
 
-```shell
-cd plugin/sublime-text/  # Navigate to this directory.
+```batch
+cd plugin/sublime-text/  &REM Navigate to this directory.
 cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release ^
     -DQUICK_LINT_JS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON ^
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
