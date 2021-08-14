@@ -5,6 +5,7 @@
 
 import ctypes
 import os
+import platform
 
 import sublime
 
@@ -85,10 +86,34 @@ def get_script_directory_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
+class set_directory:
+    """Sets the cwd (current working directory) within the context."""
+
+    def __init__(self, path):
+        self.path = path
+        self.origin = os.getcwd()
+
+    def __enter__(self):
+        os.chdir(self.path)
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        os.chdir(self.origin)
+        return False
+
+
 def load_library():
-    script_directory_path = get_script_directory_path()
-    lib_path = script_directory_path + "/libquick-lint-js-lib.so"
-    return ctypes.CDLL(lib_path)
+    if platform.system() == "Windows":
+        lib_path_file = "quick-lint-js-lib.dll"
+        directory_separator = "\\"
+    elif platform.system() == "Linux":
+        lib_path_file = "libquick-lint-js-lib.so"
+        directory_separator = "/"
+
+    lib_directory_path = get_script_directory_path()
+    lib_path = lib_directory_path + directory_separator + lib_path_file
+    with set_directory(lib_directory_path):
+        lib = ctypes.CDLL(lib_path)
+    return lib
 
 
 def create_library():
