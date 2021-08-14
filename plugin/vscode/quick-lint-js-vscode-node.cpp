@@ -16,11 +16,14 @@
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/parse.h>
 #include <string>
+#include <vector>
 
 namespace quick_lint_js {
 namespace {
 int to_int(::Napi::Value);
 std::optional<std::string> to_optional_string(::Napi::Value);
+void call_on_next_tick(::Napi::Env, ::Napi::Function, ::napi_value self,
+                       std::vector<::napi_value> args);
 
 // State global to a specific Node.js instance/thread.
 class addon_state {
@@ -169,7 +172,9 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   explicit qljs_workspace(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_workspace>(info),
-        vscode_(info[0].As<::Napi::Object>()) {}
+        vscode_(info[0].As<::Napi::Object>()),
+        configuration_load_io_error_callback_(
+            ::Napi::Persistent(info[1].As<::Napi::Function>())) {}
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -193,6 +198,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
  private:
   vscode_module vscode_;
+  ::Napi::FunctionReference configuration_load_io_error_callback_;
   basic_configuration_filesystem fs_;
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
@@ -217,6 +223,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       : ::Napi::ObjectWrap<qljs_document>(info),
         workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
         workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())) {
+    ::Napi::Env env = info.Env();
+
     std::optional<std::string> file_path = to_optional_string(info[1]);
     this->config_ = &this->workspace_->default_config_;
     if (file_path.has_value()) {
@@ -230,7 +238,16 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
           this->config_ = &loaded_config->config;
         }
       } else {
-        // TODO(strager): Propagate config load I/O errors.
+        call_on_next_tick(
+            env,
+            this->workspace_->configuration_load_io_error_callback_.Value(),
+            /*this=*/env.Null(),
+            {
+                /*qljsDocument=*/info.This(),
+                /*errorMessage=*/
+                ::Napi::String::New(env,
+                                    loaded_config_result.error_to_string()),
+            });
       }
     }
   }
@@ -319,8 +336,11 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   ::Napi::Env env = info.Env();
   addon_state* state = env.GetInstanceData<addon_state>();
 
+  ::Napi::Object options = info[0].As<::Napi::Object>();
   return state->qljs_workspace_class.New({
-      /*vscode=*/info[0],
+      /*vscode=*/options.Get("vscode"),
+      /*on_configuration_load_io_error=*/
+      options.Get("onConfigurationLoadIOError"),
   });
 }
 
@@ -334,6 +354,19 @@ std::optional<std::string> to_optional_string(::Napi::Value v) {
   } else {
     return v.As<::Napi::String>().Utf8Value();
   }
+}
+
+void call_on_next_tick(::Napi::Env env, ::Napi::Function func,
+                       ::napi_value self, std::vector<::napi_value> args) {
+  args.insert(args.begin(), self);
+  ::Napi::Value next_tick_callback =
+      func.Get("bind").As<::Napi::Function>().Call(func, std::move(args));
+  env.Global()
+      .Get("process")
+      .As<::Napi::Object>()
+      .Get("nextTick")
+      .As<::Napi::Function>()
+      .Call({next_tick_callback});
 }
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {

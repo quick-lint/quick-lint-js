@@ -19,6 +19,7 @@ class QLJSDocument {
     this._qljsDocument = qljsWorkspace.createDocument(
       document.uri.scheme === "file" ? document.uri.fsPath : null
     );
+    this._qljsDocument._document = this;
   }
 
   dispose() {
@@ -45,7 +46,15 @@ class QLJSDocument {
 class QLJSWorkspace {
   constructor(diagnosticCollection) {
     this._diagnosticCollection = diagnosticCollection;
-    this._qljsWorkspace = qljs.createWorkspace(vscode);
+    this._qljsWorkspace = qljs.createWorkspace({
+      vscode: vscode,
+      onConfigurationLoadIOError: (qljsDocument, errorMessage) => {
+        let document = qljsDocument._document;
+        vscode.window.showErrorMessage(
+          `Failed to load configuration file for ${document._document.uri.fsPath}. Using default configuration.\nError details: ${errorMessage}`
+        );
+      },
+    });
 
     // Mapping from URI string to QLJSDocument.
     this._qljsDocuments = new Map();

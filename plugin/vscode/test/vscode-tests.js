@@ -442,6 +442,29 @@ tests = {
       ]
     );
   },
+
+  "I/O error loading quick-lint-js.config shows pop-up": async ({
+    addCleanup,
+  }) => {
+    let messageSpy = VSCodeMessageSpy.spy({ addCleanup });
+
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(jsFilePath, "variableDoesNotExist;");
+    let jsURI = vscode.Uri.file(jsFilePath);
+    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+    fs.mkdirSync(configFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+    await waitUntilAnyDiagnosticsAsync(jsURI);
+
+    messageSpy.assertAnyErrorMessageMatches(
+      /Failed to load configuration file for .*hello\.js\. Using default configuration\.\nError details: failed to read from .*quick-lint-js\.config: .*/
+    );
+  },
 };
 
 async function waitUntilAnyDiagnosticsAsync(documentURI) {
@@ -456,6 +479,60 @@ async function waitUntilNoDiagnosticsAsync(documentURI) {
     let diags = normalizeDiagnostics(documentURI);
     assert.deepStrictEqual(diags, []);
   });
+}
+
+class VSCodeMessageSpy {
+  static spy({ addCleanup }) {
+    let spy = new VSCodeMessageSpy();
+
+    let methodsToSpy = [
+      "showErrorMessage",
+      "showInformationMessage",
+      "showWarningMessage",
+    ];
+    for (let methodToSpy of methodsToSpy) {
+      spy._spyMethod(methodToSpy, { addCleanup });
+    }
+
+    return spy;
+  }
+
+  constructor() {
+    this._messages = [];
+  }
+
+  getErrorMessages() {
+    return this._messages.filter((m) => m.method === "showErrorMessage");
+  }
+
+  assertAnyErrorMessageMatches(regExp) {
+    assert.strictEqual(
+      this.getErrorMessages().some((m) => regExp.test(m.message)),
+      true,
+      `Expected message indicating IO error. Got messages: ${JSON.stringify(
+        this._messages
+      )}`
+    );
+  }
+
+  _spyMethod(methodToSpy, { addCleanup }) {
+    let originalMethod = vscode.window[methodToSpy];
+    addCleanup(() => {
+      vscode.window[methodToSpy] = originalMethod;
+    });
+
+    let self = this;
+    vscode.window[methodToSpy] = function showMessageSpy(message, ...args) {
+      console.log(
+        `called: vscode.window.${methodToSpy}(${JSON.stringify(message)}, ...)`
+      );
+      self._messages.push({
+        message: message,
+        method: methodToSpy,
+      });
+      return originalMethod.call(this, message, ...args);
+    };
+  }
 }
 
 // Convert an array of vscode.Diagnostic into an array of plain JavaScript
