@@ -286,4 +286,5 @@ To run the tests, execute the test binary in the build directory:
 [CMake]: https://cmake.org/
 [Ninja]: https://ninja-build.org/
 [Visual Studio]: https://visualstudio.microsoft.com/vs/
+[Homebrew]: https://brew.sh/
 [Nix]: https://nixos.org/manual/nix/stable/
