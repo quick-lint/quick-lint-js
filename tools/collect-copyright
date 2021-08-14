@@ -613,7 +613,11 @@ class RedHat:
         self, files: typing.Iterable[str]
     ) -> typing.List[InstalledPackage]:
         package_names = [self._rpm_package_for_installed_file(f) for f in files]
-        packages = [self._get_rpm_package(name) for name in set(package_names)]
+        packages = [
+            self._get_rpm_package(name)
+            for name in set(package_names)
+            if name is not None
+        ]
         return packages
 
     def get_copyright(self, package: InstalledPackage) -> str:
@@ -630,14 +634,16 @@ class RedHat:
         raise error
 
     @staticmethod
-    def _rpm_package_for_installed_file(file_path: str) -> str:
+    def _rpm_package_for_installed_file(file_path: str) -> typing.Optional[str]:
         logger.debug("checking which RPM provides file %s", file_path)
         process = subprocess.run(
             ["rpm", "--query", "--whatprovides", "--", file_path],
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
-        process.check_returncode()
+        if process.returncode != 0:
+            warn(f"could not determine RPM package for file: {file_path}")
+            return None
         rpm_name = process.stdout.rstrip("\n")
         logger.debug("RPM %s provides file %s", rpm_name, file_path)
         return rpm_name
