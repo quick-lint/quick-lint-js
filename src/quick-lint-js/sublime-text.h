@@ -63,6 +63,7 @@ void qljs_sublime_text_signal_handler(int signal_number);
 // For testing purposes only.
 #if QLJS_SUBLIME_TEXT_PLUGIN_TEST
 #include <cassert>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
