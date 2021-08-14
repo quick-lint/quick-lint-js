@@ -21,7 +21,7 @@
 // It's because the signal mask of the process not be restored when the
 // longjmp is called but be restored when siglongjmp is called, so for
 // the code to work as expected there will be a preference in
-// sigsetjmp/siglongjmp over setjmp/longjmp.
+// sigsetjmp/siglongjmp over setjmp/longjmp (at least on linux).
 //
 // For more details:
 // https://stackoverflow.com/q/7334595  | https://stackoverflow.com/q/1715413
