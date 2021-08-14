@@ -12,23 +12,23 @@ let qljs = require(path.join(
   `./dist/quick-lint-js-vscode-node_${os.platform()}-${os.arch()}.node`
 ));
 
-class QLJSDocument {
-  constructor(qljsWorkspace, document, diagnosticCollection) {
-    this._document = document;
+class Document {
+  constructor(workspace, vscodeDocument, diagnosticCollection) {
+    this._vscodeDocument = vscodeDocument;
     this._diagnosticCollection = diagnosticCollection;
-    this._qljsDocument = qljsWorkspace.createDocument(
-      document.uri.scheme === "file" ? document.uri.fsPath : null
+    this._qljsDocument = workspace.createDocument(
+      vscodeDocument.uri.scheme === "file" ? vscodeDocument.uri.fsPath : null
     );
     this._qljsDocument._document = this;
   }
 
   dispose() {
-    this._diagnosticCollection.delete(this._document.uri);
+    this._diagnosticCollection.delete(this._vscodeDocument.uri);
     this._qljsDocument.dispose();
   }
 
   editorChangedVisibility() {
-    this._qljsDocument.setText(this._document.getText());
+    this._qljsDocument.setText(this._vscodeDocument.getText());
     this._lint();
   }
 
@@ -39,11 +39,11 @@ class QLJSDocument {
 
   _lint() {
     let vscodeDiagnostics = this._qljsDocument.lint();
-    this._diagnosticCollection.set(this._document.uri, vscodeDiagnostics);
+    this._diagnosticCollection.set(this._vscodeDocument.uri, vscodeDiagnostics);
   }
 }
 
-class QLJSWorkspace {
+class Workspace {
   constructor(diagnosticCollection) {
     this._diagnosticCollection = diagnosticCollection;
     this._qljsWorkspace = qljs.createWorkspace({
@@ -51,47 +51,47 @@ class QLJSWorkspace {
       onConfigurationLoadIOError: (qljsDocument, errorMessage) => {
         let document = qljsDocument._document;
         vscode.window.showErrorMessage(
-          `Failed to load configuration file for ${document._document.uri.fsPath}. Using default configuration.\nError details: ${errorMessage}`
+          `Failed to load configuration file for ${document._vscodeDocument.uri.fsPath}. Using default configuration.\nError details: ${errorMessage}`
         );
       },
     });
 
-    // Mapping from URI string to QLJSDocument.
-    this._qljsDocuments = new Map();
+    // Mapping from URI string to Document.
+    this._documents = new Map();
   }
 
-  getLinter(document) {
-    let documentURIString = document.uri.toString();
-    let qljsDocument = this._qljsDocuments.get(documentURIString);
-    if (typeof qljsDocument === "undefined") {
-      qljsDocument = new QLJSDocument(
+  getLinter(vscodeDocument) {
+    let documentURIString = vscodeDocument.uri.toString();
+    let document = this._documents.get(documentURIString);
+    if (typeof document === "undefined") {
+      document = new Document(
         this._qljsWorkspace,
-        document,
+        vscodeDocument,
         this._diagnosticCollection
       );
-      this._qljsDocuments.set(documentURIString, qljsDocument);
+      this._documents.set(documentURIString, document);
     }
-    return qljsDocument;
+    return document;
   }
 
-  disposeLinter(document) {
-    let documentURIString = document.uri.toString();
-    let qljsDocument = this._qljsDocuments.get(documentURIString);
-    if (typeof qljsDocument !== "undefined") {
-      qljsDocument.dispose();
-      this._qljsDocuments.delete(documentURIString);
+  disposeLinter(vscodeDocument) {
+    let documentURIString = vscodeDocument.uri.toString();
+    let document = this._documents.get(documentURIString);
+    if (typeof document !== "undefined") {
+      document.dispose();
+      this._documents.delete(documentURIString);
     }
   }
 
   dispose() {
-    let qljsDocuments = this._qljsDocuments;
-    this._qljsDocuments = new Map();
-    for (let [_uri, qljsDocument] of qljsDocuments) {
-      qljsDocument.dispose();
+    let documents = this._documents;
+    this._documents = new Map();
+    for (let [_uri, document] of documents) {
+      document.dispose();
     }
   }
 }
-exports.QLJSWorkspace = QLJSWorkspace;
+exports.Workspace = Workspace;
 
 let toDispose = [];
 
@@ -99,8 +99,8 @@ async function activateAsync() {
   let diagnostics = vscode.languages.createDiagnosticCollection();
   toDispose.push(diagnostics);
 
-  let qljsWorkspace = new QLJSWorkspace(diagnostics);
-  toDispose.push(qljsWorkspace);
+  let workspace = new Workspace(diagnostics);
+  toDispose.push(workspace);
 
   toDispose.push(
     vscode.workspace.onDidChangeTextDocument((event) => {
@@ -114,7 +114,7 @@ async function activateAsync() {
       if (!isBogusEvent) {
         logErrors(() => {
           if (isLintable(event.document)) {
-            qljsWorkspace
+            workspace
               .getLinter(event.document)
               .textChanged(event.contentChanges);
           }
@@ -132,9 +132,9 @@ async function activateAsync() {
   );
 
   toDispose.push(
-    vscode.workspace.onDidCloseTextDocument((document) => {
+    vscode.workspace.onDidCloseTextDocument((vscodeDocument) => {
       logErrors(() => {
-        qljsWorkspace.disposeLinter(document);
+        workspace.disposeLinter(vscodeDocument);
       });
     })
   );
@@ -142,7 +142,7 @@ async function activateAsync() {
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
       if (isLintable(editor.document)) {
-        qljsWorkspace.getLinter(editor.document).editorChangedVisibility();
+        workspace.getLinter(editor.document).editorChangedVisibility();
       }
     }
   }
@@ -160,8 +160,8 @@ async function deactivateAsync() {
 }
 exports.deactivate = deactivateAsync;
 
-function isLintable(document) {
-  return document.languageId === "javascript";
+function isLintable(vscodeDocument) {
+  return vscodeDocument.languageId === "javascript";
 }
 
 function logErrors(callback) {

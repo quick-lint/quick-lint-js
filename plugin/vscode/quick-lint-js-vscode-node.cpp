@@ -163,7 +163,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
     return DefineClass(
-        env, "Workspace",
+        env, "QLJSWorkspace",
         {
             InstanceMethod<&qljs_workspace::create_document>("createDocument"),
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
@@ -210,7 +210,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
     return DefineClass(
-        env, "Document",
+        env, "QLJSDocument",
         {
             InstanceMethod<&qljs_document::dispose>("dispose"),
             InstanceMethod<&qljs_document::lint>("lint"),
