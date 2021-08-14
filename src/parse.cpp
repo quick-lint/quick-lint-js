@@ -493,13 +493,27 @@ expression* parser::parse_primary_expression(precedence prec) {
   }
 
   case token_type::end_of_file:
+  case token_type::kw_break:
+  case token_type::kw_case:
+  case token_type::kw_catch:
+  case token_type::kw_const:
+  case token_type::kw_continue:
+  case token_type::kw_default:
+  case token_type::kw_do:
+  case token_type::kw_else:
   case token_type::kw_enum:
+  case token_type::kw_export:
+  case token_type::kw_extends:
+  case token_type::kw_finally:
   case token_type::kw_for:
   case token_type::kw_if:
   case token_type::kw_return:
   case token_type::kw_switch:
   case token_type::kw_throw:
+  case token_type::kw_try:
+  case token_type::kw_var:
   case token_type::kw_while:
+  case token_type::kw_with:
   case token_type::right_curly:
   case token_type::right_paren:
   case token_type::right_square:

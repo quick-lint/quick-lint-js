@@ -1159,6 +1159,37 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
   }
 }
 
+TEST(test_parse, handle_unexpected_keyword_in_expression) {
+  //
+  // keywords temporarily omitted because they will crash downstream
+  // ---
+  // catch    parse_expression_remainder
+  // do       parse_and_visit_do_while
+  // else     parse_and_visit_statement
+  // extends  parse_expression_remainder: kw_extends
+  // finally  parse_expression_remainder: kw_finally
+  // function parse_and_visit_function_parameters_and_body_no_scope
+  // with     internal check failed in narrow_cast
+  //
+  for (string8_view statement : {
+           u8"break"_sv,
+           u8"case"_sv,
+           u8"const"_sv,
+           u8"continue"_sv,
+           u8"default"_sv,
+           u8"export"_sv,
+           u8"try"_sv,
+           u8"var"_sv,
+       }) {
+    padded_string code(string8(u8"*\n"_sv) + string8(statement));
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, Not(IsEmpty()));
+  }
+}
+
 TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
   for (string8_view statement : {
            u8"for(;x;);"_sv,
