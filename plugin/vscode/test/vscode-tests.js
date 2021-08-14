@@ -412,6 +412,36 @@ tests = {
 
     await waitUntilNoDiagnosticsAsync(helloURI);
   },
+
+  "opened .js file uses quick-lint-js.config from disk": async ({
+    addCleanup,
+  }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(jsFilePath, "testGlobalVariable;\ndocument;");
+    let jsURI = vscode.Uri.file(jsFilePath);
+    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+    fs.writeFileSync(
+      configFilePath,
+      '{"globals": {"testGlobalVariable": true}, "global-groups": ["ecmascript"]}'
+    );
+
+    await loadExtensionAsync({ addCleanup });
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+    await waitUntilAnyDiagnosticsAsync(jsURI);
+    let jsDiags = normalizeDiagnostics(jsURI);
+    assert.deepStrictEqual(
+      jsDiags.map(({ code, startLine }) => ({ code, startLine })),
+      [
+        {
+          code: "E057",
+          startLine: 1, // document
+        },
+      ]
+    );
+  },
 };
 
 async function waitUntilAnyDiagnosticsAsync(documentURI) {

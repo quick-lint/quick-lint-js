@@ -3,6 +3,9 @@
 
 #include <memory>
 #include <napi.h>
+#include <optional>
+#include <quick-lint-js/basic-configuration-filesystem.h>
+#include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic.h>
@@ -12,10 +15,12 @@
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/parse.h>
+#include <string>
 
 namespace quick_lint_js {
 namespace {
 int to_int(::Napi::Value);
+std::optional<std::string> to_optional_string(::Napi::Value);
 
 // State global to a specific Node.js instance/thread.
 class addon_state {
@@ -180,6 +185,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     return state->qljs_document_class.New({
         /*workspace=*/info.This(),
+        /*file_path=*/info[0],
     });
   }
 
@@ -187,6 +193,11 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
  private:
   vscode_module vscode_;
+  basic_configuration_filesystem fs_;
+  configuration_loader config_loader_{&fs_};
+  configuration default_config_;
+
+  friend class qljs_document;
 };
 
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
@@ -205,7 +216,24 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
         workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
-        workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())) {}
+        workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())) {
+    std::optional<std::string> file_path = to_optional_string(info[1]);
+    this->config_ = &this->workspace_->default_config_;
+    if (file_path.has_value()) {
+      auto loaded_config_result =
+          this->workspace_->config_loader_.watch_and_load_for_file(*file_path,
+                                                                   this);
+      if (loaded_config_result.ok()) {
+        loaded_config_file* loaded_config = *loaded_config_result;
+        if (loaded_config) {
+          // TODO(strager): Show config parse errors.
+          this->config_ = &loaded_config->config;
+        }
+      } else {
+        // TODO(strager): Propagate config load I/O errors.
+      }
+    }
+  }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -271,7 +299,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     vscode_error_reporter error_reporter(vscode, env,
                                          &this->document_.locator());
     parser p(this->document_.string(), &error_reporter);
-    linter l(&error_reporter, &this->config_.globals());
+    linter l(&error_reporter, &this->config_->globals());
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
     if (!ok) {
       // TODO(strager): Show a pop-up message explaining that the parser
@@ -282,7 +310,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
  private:
   document<lsp_locator> document_;
-  configuration config_;
+  configuration* config_;
   ::Napi::ObjectReference workspace_ref_;
   qljs_workspace* workspace_;
 };
@@ -298,6 +326,14 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
 int to_int(::Napi::Value v) {
   return narrow_cast<int>(v.As<::Napi::Number>().Int64Value());
+}
+
+std::optional<std::string> to_optional_string(::Napi::Value v) {
+  if (v.IsNull()) {
+    return std::nullopt;
+  } else {
+    return v.As<::Napi::String>().Utf8Value();
+  }
 }
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {

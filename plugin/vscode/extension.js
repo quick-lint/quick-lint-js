@@ -16,7 +16,9 @@ class QLJSDocument {
   constructor(qljsWorkspace, document, diagnosticCollection) {
     this._document = document;
     this._diagnosticCollection = diagnosticCollection;
-    this._qljsDocument = qljsWorkspace.createDocument();
+    this._qljsDocument = qljsWorkspace.createDocument(
+      document.uri.scheme === "file" ? document.uri.fsPath : null
+    );
   }
 
   dispose() {
