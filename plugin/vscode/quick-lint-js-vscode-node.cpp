@@ -194,8 +194,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     });
   }
 
-  vscode_module* vscode() noexcept { return &this->vscode_; }
-
  private:
   vscode_module vscode_;
   ::Napi::FunctionReference configuration_load_io_error_callback_;
@@ -310,7 +308,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   ::Napi::Value lint(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
-    vscode_module* vscode = this->workspace_->vscode();
+    vscode_module* vscode = &this->workspace_->vscode_;
     vscode->load_non_persistent(env);
 
     vscode_error_reporter error_reporter(vscode, env,
