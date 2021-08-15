@@ -12,10 +12,14 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <string>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace quick_lint_js {
@@ -24,6 +28,9 @@ int to_int(::Napi::Value);
 std::optional<std::string> to_optional_string(::Napi::Value);
 void call_on_next_tick(::Napi::Env, ::Napi::Function, ::napi_value self,
                        std::vector<::napi_value> args);
+
+class qljs_document;
+class qljs_workspace;
 
 // State global to a specific Node.js instance/thread.
 class addon_state {
@@ -159,6 +166,23 @@ class vscode_error_reporter final : public error_reporter {
   const lsp_locator* locator_;
 };
 
+// A configuration_filesystem which allows unsaved VS Code documents to appear
+// as real files.
+class vscode_configuration_filesystem : public configuration_filesystem {
+ public:
+  explicit vscode_configuration_filesystem(qljs_workspace* workspace)
+      : workspace_(workspace) {}
+
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+      const std::string&) override;
+  result<padded_string, read_file_io_error, watch_io_error> read_file(
+      const canonical_path&) override;
+
+ private:
+  qljs_workspace* workspace_;
+  basic_configuration_filesystem underlying_fs_;
+};
+
 class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
@@ -167,6 +191,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         {
             InstanceMethod<&qljs_workspace::create_document>("createDocument"),
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
+            InstanceMethod<&qljs_workspace::is_config_file_path>(
+                "isConfigFilePath"),
         });
   }
 
@@ -174,7 +200,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       : ::Napi::ObjectWrap<qljs_workspace>(info),
         vscode_(info[0].As<::Napi::Object>()),
         configuration_load_io_error_callback_(
-            ::Napi::Persistent(info[1].As<::Napi::Function>())) {}
+            ::Napi::Persistent(info[1].As<::Napi::Function>())),
+        fs_(this) {}
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -184,22 +211,40 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return env.Undefined();
   }
 
+  ::Napi::Value is_config_file_path(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+    std::string path = info[0].As<::Napi::String>().Utf8Value();
+    return ::Napi::Boolean::New(env,
+                                this->config_loader_.is_config_file_path(path));
+  }
+
   ::Napi::Value create_document(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
     addon_state* state = env.GetInstanceData<addon_state>();
 
-    return state->qljs_document_class.New({
+    ::Napi::Object doc = state->qljs_document_class.New({
         /*workspace=*/info.This(),
         /*file_path=*/info[0],
     });
+    if (std::optional<std::string> file_path = to_optional_string(info[0])) {
+      auto [_it, inserted] =
+          this->documents_.try_emplace(*file_path, ::Napi::Persistent(doc));
+      QLJS_ASSERT(inserted);
+    }
+    return doc;
   }
+
+  qljs_document* find_document(std::string_view path);
 
  private:
   vscode_module vscode_;
   ::Napi::FunctionReference configuration_load_io_error_callback_;
-  basic_configuration_filesystem fs_;
+  vscode_configuration_filesystem fs_;
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
+
+  // qljs_document-s opened for editing.
+  std::unordered_map<std::string, ::Napi::ObjectReference> documents_;
 
   friend class qljs_document;
 };
@@ -225,7 +270,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
     std::optional<std::string> file_path = to_optional_string(info[1]);
     this->config_ = &this->workspace_->default_config_;
-    if (file_path.has_value()) {
+    if (file_path.has_value() &&
+        !this->workspace_->config_loader_.is_config_file_path(*file_path)) {
       auto loaded_config_result =
           this->workspace_->config_loader_.watch_and_load_for_file(*file_path,
                                                                    this);
@@ -323,6 +369,10 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     return error_reporter.diagnostics();
   }
 
+  padded_string_view document_string() noexcept {
+    return this->document_.string();
+  }
+
  private:
   document<lsp_locator> document_;
   configuration* config_;
@@ -330,6 +380,32 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   qljs_workspace* workspace_;
 };
 
+result<canonical_path_result, canonicalize_path_io_error>
+vscode_configuration_filesystem::canonicalize_path(const std::string& path) {
+  return this->underlying_fs_.canonicalize_path(path);
+}
+
+result<padded_string, read_file_io_error, watch_io_error>
+vscode_configuration_filesystem::read_file(const canonical_path& path) {
+  qljs_document* doc = this->workspace_->find_document(path.path());
+  if (!doc) {
+    return this->underlying_fs_.read_file(path);
+  }
+  return padded_string(doc->document_string().string_view());
+}
+
+qljs_document* qljs_workspace::find_document(std::string_view path) {
+#if QLJS_HAVE_STD_TRANSPARENT_KEYS
+  std::string_view key = path;
+#else
+  std::string key(path);
+#endif
+  auto doc_it = this->documents_.find(key);
+  if (doc_it == this->documents_.end()) {
+    return nullptr;
+  }
+  return qljs_document::Unwrap(doc_it->second.Value());
+}
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
   addon_state* state = env.GetInstanceData<addon_state>();

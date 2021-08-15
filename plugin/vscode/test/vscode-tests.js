@@ -465,6 +465,49 @@ tests = {
       /Failed to load configuration file for .*hello\.js\. Using default configuration\.\nError details: failed to read from .*quick-lint-js\.config: .*/
     );
   },
+
+  "opened .js file uses opened quick-lint-js.config (not from disk)": async ({
+    addCleanup,
+  }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(
+      jsFilePath,
+      "testGlobalVariableFromEditor;\ntestGlobalVariableFromDisk;"
+    );
+    let jsURI = vscode.Uri.file(jsFilePath);
+    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+    fs.writeFileSync(
+      configFilePath,
+      '{"globals": {"testGlobalVariableFromDisk": true}}'
+    );
+    let configURI = vscode.Uri.file(configFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let configDocument = await vscode.workspace.openTextDocument(configURI);
+    let configEditor = await vscode.window.showTextDocument(configDocument);
+    await configEditor.edit((editBuilder) => {
+      editBuilder.replace(
+        new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 0)),
+        '{"globals": {"testGlobalVariableFromEditor": true}, "global-groups": ["ecmascript"]}'
+      );
+    });
+
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(jsDocument);
+    await waitUntilAnyDiagnosticsAsync(jsURI);
+
+    let jsDiags = normalizeDiagnostics(jsURI);
+    assert.deepStrictEqual(
+      jsDiags.map(({ code, startLine }) => ({ code, startLine })),
+      [
+        {
+          code: "E057",
+          startLine: 1, // testGlobalVariableFromDisk
+        },
+      ]
+    );
+  },
 };
 
 async function waitUntilAnyDiagnosticsAsync(documentURI) {
@@ -572,7 +615,9 @@ function makeScratchDirectory({ addCleanup }) {
   addCleanup(() => {
     fs.rmdirSync(scratchDirectory, { recursive: true });
   });
-  return scratchDirectory;
+  // TODO(strager): Don't call realpath. realpath is currently needed to work
+  // around bugs in quick-lint-js regarding symlinks.
+  return fs.realpathSync(scratchDirectory);
 }
 
 function sleepAsync(duration) {

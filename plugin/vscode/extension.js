@@ -90,6 +90,19 @@ class Workspace {
       document.dispose();
     }
   }
+
+  isLintable(vscodeDocument) {
+    if (vscodeDocument.languageId === "javascript") {
+      return true;
+    }
+    if (
+      vscodeDocument.uri.scheme === "file" &&
+      this._qljsWorkspace.isConfigFilePath(vscodeDocument.uri.fsPath)
+    ) {
+      return true;
+    }
+    return false;
+  }
 }
 exports.Workspace = Workspace;
 
@@ -113,7 +126,7 @@ async function activateAsync() {
       let isBogusEvent = event.contentChanges.length === 0;
       if (!isBogusEvent) {
         logErrors(() => {
-          if (isLintable(event.document)) {
+          if (workspace.isLintable(event.document)) {
             workspace
               .getLinter(event.document)
               .textChanged(event.contentChanges);
@@ -141,7 +154,7 @@ async function activateAsync() {
 
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
-      if (isLintable(editor.document)) {
+      if (workspace.isLintable(editor.document)) {
         workspace.getLinter(editor.document).editorChangedVisibility();
       }
     }
@@ -159,10 +172,6 @@ async function deactivateAsync() {
   }
 }
 exports.deactivate = deactivateAsync;
-
-function isLintable(vscodeDocument) {
-  return vscodeDocument.languageId === "javascript";
-}
 
 function logErrors(callback) {
   try {
