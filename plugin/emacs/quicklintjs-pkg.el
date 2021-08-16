@@ -31,7 +31,8 @@
   (setq package-user-dir nil)
   (cl-assert (= (length command-line-args-left) 1))
 
-  (let ((file (car command-line-args-left)))
+  (let ((file (car command-line-args-left))
+        (inhibit-message 't))
     (with-temp-buffer
       (insert-file-contents-literally file)
       (let* ((pkg-desc (package-buffer-info))
