@@ -508,6 +508,65 @@ tests = {
       ]
     );
   },
+
+  "opened .js file uses quick-lint-js.config from disk after config editor is closed":
+    async ({ addCleanup }) => {
+      // TODO(strager): Enable this test when VS Code is fixed (or when we find a
+      // workaround). In tests, VS Code does not send us didCloseTextDocument
+      // notifications, so this test can't know when quick-lint-js.config is
+      // closed.
+      // https://github.com/microsoft/vscode/issues/130957
+      return;
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(
+        jsFilePath,
+        "testGlobalVariableFromEditor;\ntestGlobalVariableFromDiskModified;"
+      );
+      let jsURI = vscode.Uri.file(jsFilePath);
+      let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+      fs.writeFileSync(
+        configFilePath,
+        '{"globals": {"testGlobalVariableFromDiskOriginal": true}}'
+      );
+      let configURI = vscode.Uri.file(configFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let configDocument = await vscode.workspace.openTextDocument(configURI);
+      let configEditor = await vscode.window.showTextDocument(configDocument);
+      await configEditor.edit((editBuilder) => {
+        editBuilder.replace(
+          new vscode.Range(
+            new vscode.Position(0, 0),
+            new vscode.Position(1, 0)
+          ),
+          '{"globals": {"testGlobalVariableFromEditor": true}, "global-groups": ["ecmascript"]}'
+        );
+      });
+      await vscode.commands.executeCommand(
+        "workbench.action.closeActiveEditor"
+      );
+      fs.writeFileSync(
+        configFilePath,
+        '{"globals": {"testGlobalVariableFromDiskModified": true}}'
+      );
+
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(jsDocument);
+      await waitUntilAnyDiagnosticsAsync(jsURI);
+
+      let jsDiags = normalizeDiagnostics(jsURI);
+      assert.deepStrictEqual(
+        jsDiags.map(({ code, startLine }) => ({ code, startLine })),
+        [
+          {
+            code: "E057",
+            startLine: 0, // testGlobalVariableFromEditor
+          },
+        ]
+      );
+    },
 };
 
 async function waitUntilAnyDiagnosticsAsync(documentURI) {

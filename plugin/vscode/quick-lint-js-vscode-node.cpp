@@ -260,6 +260,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   qljs_document* find_document(std::string_view path);
 
+  void forget_document(qljs_document*);
+
  private:
   vscode_module vscode_;
   ::Napi::FunctionReference configuration_load_io_error_callback_;
@@ -331,7 +333,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
     ::Napi::Env env = info.Env();
 
-    // TODO(strager): Reduce memory usage.
+    this->workspace_->forget_document(this);
+    // TODO(strager): Reduce memory usage of this instance.
 
     return env.Undefined();
   }
@@ -441,6 +444,22 @@ qljs_document* qljs_workspace::find_document(std::string_view path) {
   }
   return qljs_document::Unwrap(doc_it->second.Value());
 }
+
+void qljs_workspace::forget_document(qljs_document* doc) {
+  auto doc_it = std::find_if(
+      this->documents_.begin(), this->documents_.end(), [&](auto& pair) {
+        return qljs_document::Unwrap(pair.second.Value()) == doc;
+      });
+  if (doc_it == this->documents_.end()) {
+    // The document could be missing for any of the following reasons:
+    // * Our extension was loaded after the document was opened.
+    //   (TODO(strager): We should fix this.)
+    // * The closed document was unnamed.
+  } else {
+    this->documents_.erase(doc_it);
+  }
+}
+
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
   addon_state* state = env.GetInstanceData<addon_state>();
