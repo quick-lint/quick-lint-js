@@ -12,6 +12,17 @@
     ptr = nullptr;          \
   } while (false)
 
+// More details:
+// https://clang.llvm.org/docs/AttributeReference.html#format
+// https://gcc.gnu.org/onlinedocs/gcc-11.1.0/gcc/Common-Function-Attributes.html#Common-Function-Attributes
+#if defined(__GNUC__) || defined(__clang__)
+#define QLJS_ASPRINTF_ATTRS __attribute__((format(printf, 2, 3)))
+#define QLJS_VSPRINTF_ATTRS __attribute__((format(printf, 2, 0)))
+#else
+#define QLJS_ASPRINTF_ATTRS /* empty */
+#define QLJS_VSPRINTF_ATTRS /* empty */
+#endif
+
 namespace quick_lint_js {
 // Name:
 //   asprintf, vasprintf - print to allocated string
@@ -23,8 +34,8 @@ namespace quick_lint_js {
 // allocated storage when it is no longer needed.
 // More details:
 // https://linux.die.net/man/3/asprintf
-int asprintf(char **strp, const char *format, ...);
-int vasprintf(char **strp, const char *format, va_list argptr);
+int asprintf(char **strp, const char *fmt, ...) QLJS_ASPRINTF_ATTRS;
+int vasprintf(char **strp, const char *fmt, va_list argptr) QLJS_VSPRINTF_ATTRS;
 }  // namespace quick_lint_js
 
 #endif  // QUICK_LINT_JS_STRING_UTILITIES_H

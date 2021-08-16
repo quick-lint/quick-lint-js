@@ -10,8 +10,6 @@
 
 QLJS_WARNING_IGNORE_CLANG("-Wformat-zero-length")
 
-using ::testing::KilledBySignal;
-
 namespace quick_lint_js {
 namespace {
 TEST(test_string_utilities_asprintf, pass_null_string_pointer) {

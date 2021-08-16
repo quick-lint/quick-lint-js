@@ -18,17 +18,18 @@
 namespace quick_lint_js {
 // Memory management in C and auto allocating sprintf() - asprintf():
 // https://insanecoding.blogspot.com/2014/06/memory-management-in-c-and-auto.html
-int asprintf(char **strp, const char *format, ...) {
+int asprintf(char **strp, const char *fmt, ...) {
   int ret;
   va_list argptr;
-  va_start(argptr, format);
-  ret = vasprintf(strp, format, argptr);
+  va_start(argptr, fmt);
+  ret = vasprintf(strp, fmt, argptr);
   va_end(argptr);
   return ret;
 }
-int vasprintf(char **strp, const char *format, va_list argptr) {
+
+int vasprintf(char **strp, const char *fmt, va_list argptr) {
 #ifdef _MSC_VER
-  int ret = -1, size = _vscprintf(format, argptr);
+  int ret = -1, size = _vscprintf(fmt, argptr);
 #else
   int ret = -1, size;
 
@@ -37,12 +38,14 @@ int vasprintf(char **strp, const char *format, va_list argptr) {
   // contents, a copy is needed because the function is called twice.
   QLJS_ASPRINTF_VA_COPY(argptr2, argptr);
 
-  size = vsnprintf(0, 0, format, argptr2);
+  size = vsnprintf(nullptr, 0, fmt, argptr2);
 #endif
   if ((size >= 0) && (size < INT_MAX)) {
-    *strp = (char *)malloc(size + 1);  // +1 for null
+    // +1 for null
+    *strp = static_cast<char *>(malloc(static_cast<std::size_t>(size + 1)));
     if (*strp) {
-      ret = vsnprintf(*strp, size + 1, format, argptr);  // +1 for null
+      // +1 for null
+      ret = vsnprintf(*strp, static_cast<std::size_t>(size + 1), fmt, argptr);
       if ((ret < 0) || (ret > size)) {
         QLJS_SAFE_FREE(*strp);
         ret = -1;
