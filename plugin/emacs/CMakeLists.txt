@@ -20,13 +20,14 @@ macro(emacs_pkg_target NAME FILE)
       ${QUICK_LINT_JS_EMACS}
       -Q -batch
       -l package --eval "(package-initialize)"
-      --eval "(add-to-list 'package-directory-list \"${CMAKE_CACHEFILE_DIR}\")"
-      -l ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-pkg.el
+      --eval "(add-to-list 'package-directory-list \"${CMAKE_CURRENT_BINARY_DIR}\")"
+      -l ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-make-package.el
       -f quicklintjs-batch-make-pkg
       ${FILE}
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     DEPENDS
       ${QUICK_LINT_JS_EMACS}
-      ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-pkg.el
+      ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-make-package.el
       ${FILE}
     VERBATIM)
 
