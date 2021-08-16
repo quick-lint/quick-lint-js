@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cstdio>
 #include <memory>
 #include <napi.h>
 #include <optional>
@@ -22,8 +23,31 @@
 #include <unordered_map>
 #include <vector>
 
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+// Define this macro to a non-empty string to log to the specified file:
+// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
+
+#if defined(QLJS_DEBUG_LOGGING_FILE)
+#define QLJS_DEBUG_LOG(...)                          \
+  do {                                               \
+    ::quick_lint_js::debug_log_to_file(__VA_ARGS__); \
+  } while (false)
+#else
+#define QLJS_DEBUG_LOG(...) \
+  do {                      \
+  } while (false)
+#endif
+
 namespace quick_lint_js {
 namespace {
+#if defined(QLJS_DEBUG_LOGGING_FILE)
+template <class... Args>
+void debug_log_to_file(const char* format, Args&&...);
+#endif
+
 int to_int(::Napi::Value);
 std::optional<std::string> to_optional_string(::Napi::Value);
 void call_on_next_tick(::Napi::Env, ::Napi::Function, ::napi_value self,
@@ -270,6 +294,13 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
     std::optional<std::string> file_path = to_optional_string(info[1]);
     this->config_ = &this->workspace_->default_config_;
+    if (file_path.has_value()) {
+      QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", this,
+                     file_path->c_str());
+    } else {
+      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", this,
+                     file_path->c_str());
+    }
     if (file_path.has_value() &&
         !this->workspace_->config_loader_.is_config_file_path(*file_path)) {
       auto loaded_config_result =
@@ -297,6 +328,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
+    QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
     ::Napi::Env env = info.Env();
 
     // TODO(strager): Reduce memory usage.
@@ -305,6 +337,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
   ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
+    QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     ::Napi::Env env = info.Env();
     if (!(info.Length() >= 1 && info[0].IsArray())) {
       ::Napi::TypeError::New(env, "Expected Array")
@@ -389,8 +422,10 @@ result<padded_string, read_file_io_error, watch_io_error>
 vscode_configuration_filesystem::read_file(const canonical_path& path) {
   qljs_document* doc = this->workspace_->find_document(path.path());
   if (!doc) {
+    QLJS_DEBUG_LOG("Reading file from disk: %s\n", path.c_str());
     return this->underlying_fs_.read_file(path);
   }
+  QLJS_DEBUG_LOG("Reading file from open document: %s\n", path.c_str());
   return padded_string(doc->document_string().string_view());
 }
 
@@ -429,6 +464,20 @@ std::optional<std::string> to_optional_string(::Napi::Value v) {
     return v.As<::Napi::String>().Utf8Value();
   }
 }
+
+#if defined(QLJS_DEBUG_LOGGING_FILE)
+template <class... Args>
+void debug_log_to_file(const char* format, Args&&... args) {
+  static FILE* file = std::fopen(QLJS_DEBUG_LOGGING_FILE, "a");
+  if (file) {
+#if QLJS_HAVE_GETPID
+    std::fprintf(file, "[%d] ", ::getpid());
+#endif
+    std::fprintf(file, format, args...);
+    std::fflush(file);
+  }
+}
+#endif
 
 void call_on_next_tick(::Napi::Env env, ::Napi::Function func,
                        ::napi_value self, std::vector<::napi_value> args) {

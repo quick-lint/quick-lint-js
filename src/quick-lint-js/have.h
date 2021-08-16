@@ -148,6 +148,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_GETPID)
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#define QLJS_HAVE_GETPID 1
+#else
+#define QLJS_HAVE_GETPID 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_PIPE)
 #if !defined(__EMSCRIPTEN__) && defined(_POSIX_VERSION) && \
     _POSIX_VERSION >= 200112L
