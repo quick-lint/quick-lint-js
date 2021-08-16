@@ -4,7 +4,34 @@
 cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 
-find_package(QuickLintJsEmacs)
+find_package(QuickLintJSEmacs)
+
+macro(emacs_pkg_target NAME FILE)
+  cmake_parse_arguments(
+    ""
+    ""
+    "OUTPUT"
+    ""
+    ${ARGN})
+
+  add_custom_command(
+    OUTPUT ${_OUTPUT}
+    COMMAND
+      ${QUICK_LINT_JS_EMACS}
+      -Q -batch
+      -l package --eval "(package-initialize)"
+      --eval "(add-to-list 'package-directory-list \"${CMAKE_CACHEFILE_DIR}\")"
+      -l ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-pkg.el
+      -f quicklintjs-batch-make-pkg
+      ${FILE}
+    DEPENDS
+      ${QUICK_LINT_JS_EMACS}
+      ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-pkg.el
+      ${FILE}
+    VERBATIM)
+
+  add_custom_target(${NAME} ALL DEPENDS ${_OUTPUT})
+endmacro ()
 
 if (QUICK_LINT_JS_EMACS_FOUND)
   emacs_pkg_target(emacs-plugin-quicklintjs

@@ -1,14 +1,9 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-if (QUICK_LINT_JS_EMACS)
-  set(QUICK_LINT_JS_EMACS "${QUICK_LINT_JS_EMACS}")
-else ()
-  find_program(QUICK_LINT_JS_EMACS "emacs")
-endif ()
+find_program(QUICK_LINT_JS_EMACS "emacs")
 
 if (NOT QUICK_LINT_JS_EMACS)
-  message(WARNING "Emacs not found. Skipping... ")
   return ()
 endif ()
 
@@ -31,34 +26,7 @@ if (NOT EMACS_VERSION GREATER_EQUAL 24.5)
 endif ()
 
 set(QUICK_LINT_JS_EMACS_FOUND TRUE)
-message(STATUS "Found Emacs: (${QUICK_LINT_JS_EMACS}) suitable version ${EMACS_VERSION} minimum required is 24.5")
-
-macro(emacs_pkg_target NAME FILE)
-  cmake_parse_arguments(
-    ""
-    ""
-    "OUTPUT"
-    ""
-    ${ARGN})
-
-  add_custom_command(
-    OUTPUT ${_OUTPUT}
-    COMMAND
-      ${QUICK_LINT_JS_EMACS}
-      -Q -batch
-      -l package --eval "(package-initialize)"
-      --eval "(add-to-list 'package-directory-list \"${CMAKE_CACHEFILE_DIR}\")"
-      -l ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-pkg.el
-      -f quicklintjs-batch-make-pkg
-      ${FILE}
-    DEPENDS
-      ${QUICK_LINT_JS_EMACS}
-      ${CMAKE_CURRENT_LIST_DIR}/quicklintjs-pkg.el
-      ${FILE}
-    VERBATIM)
-
-  add_custom_target(${NAME} ALL DEPENDS ${_OUTPUT})
-endmacro ()
+message(STATUS "Found Emacs ${QUICK_LINT_JS_EMACS} (found suitable version \"${EMACS_VERSION}\" minimum required is \"24.5\")")
 
 mark_as_advanced(QUICK_LINT_JS_EMACS)
 
