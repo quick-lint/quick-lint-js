@@ -18,7 +18,8 @@ class AbstractDocument {
     this._diagnosticCollection = diagnosticCollection;
     this._qljsDocument = workspace.createDocument(
       vscodeDocument,
-      diagnosticCollection
+      diagnosticCollection,
+      /*isConfigFile=*/ this.constructor === ConfigDocument
     );
     this._qljsDocument._document = this;
   }
@@ -29,28 +30,16 @@ class AbstractDocument {
 
   editorChangedVisibility() {
     this._qljsDocument.setText(this._vscodeDocument.getText());
-    this._lint();
   }
 
   textChanged(changes) {
     this._qljsDocument.replaceText(changes);
-    this._lint();
-  }
-
-  // Abstract methods:
-  //
-  // _lint();
-}
-
-class ConfigDocument extends AbstractDocument {
-  _lint() {}
-}
-
-class LintableDocument extends AbstractDocument {
-  _lint() {
-    this._qljsDocument.lint();
   }
 }
+
+class ConfigDocument extends AbstractDocument {}
+
+class LintableDocument extends AbstractDocument {}
 
 class Workspace {
   constructor(diagnosticCollection) {

@@ -261,6 +261,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
             ? ::Napi::String::New(env, *file_path)
             : env.Null(),
         /*vscode_diagnostic_collection=*/info[1],
+        /*is_config_file=*/info[2],
     });
     if (file_path.has_value()) {
       auto [_it, inserted] =
@@ -294,7 +295,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
         env, "QLJSDocument",
         {
             InstanceMethod<&qljs_document::dispose>("dispose"),
-            InstanceMethod<&qljs_document::lint>("lint"),
             InstanceMethod<&qljs_document::replace_text>("replaceText"),
             InstanceMethod<&qljs_document::set_text>("setText"),
         });
@@ -302,6 +302,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
+        is_config_file_(info[4].As<::Napi::Boolean>().Value()),
         workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
         workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())),
         vscode_document_ref_(::Napi::Persistent(info[1].As<::Napi::Object>())),
@@ -389,6 +390,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       this->document_.replace_text(r, to_string8_view(replacement_text));
     }
 
+    this->after_modification(env);
+
     return env.Undefined();
   }
 
@@ -403,11 +406,23 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     ::Napi::String text = info[0].As<::Napi::String>();
     this->document_.set_text(to_string8_view(text.Utf8Value()));
 
+    this->after_modification(env);
+
     return env.Undefined();
   }
 
-  ::Napi::Value lint(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
+  padded_string_view document_string() noexcept {
+    return this->document_.string();
+  }
+
+ private:
+  void after_modification(::Napi::Env env) {
+    if (!this->is_config_file_) {
+      this->lint(env);
+    }
+  }
+
+  void lint(::Napi::Env env) {
     vscode_module* vscode = &this->workspace_->vscode_;
     vscode->load_non_persistent(env);
 
@@ -421,15 +436,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       // crashed.
     }
     this->publish_diagnostics(error_reporter.diagnostics());
-
-    return env.Undefined();
   }
 
-  padded_string_view document_string() noexcept {
-    return this->document_.string();
-  }
-
- private:
   void publish_diagnostics(::Napi::Value diagnostics) {
     this->vscode_diagnostic_collection_ref_.Get("set")
         .As<::Napi::Function>()
@@ -450,6 +458,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
   document<lsp_locator> document_;
+  bool is_config_file_;
   configuration* config_;
   ::Napi::ObjectReference workspace_ref_;
   qljs_workspace* workspace_;
