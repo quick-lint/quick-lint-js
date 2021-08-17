@@ -226,6 +226,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         {
             InstanceMethod<&qljs_workspace::create_document>("createDocument"),
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
+            InstanceMethod<&qljs_workspace::dispose_linter>("disposeLinter"),
             InstanceMethod<&qljs_workspace::is_config_file_path>(
                 "isConfigFilePath"),
         });
@@ -247,6 +248,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
   void dispose_documents();
+
+  ::Napi::Value dispose_linter(const ::Napi::CallbackInfo& info);
 
   ::Napi::Value is_config_file_path(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -562,6 +565,23 @@ void qljs_workspace::dispose_documents() {
 
   this->qljs_documents_ref_.Get("clear").As<::Napi::Function>().Call(
       /*this=*/this->qljs_documents_ref_.Value(), {});
+}
+
+::Napi::Value qljs_workspace::dispose_linter(const ::Napi::CallbackInfo& info) {
+  ::Napi::Env env = info.Env();
+
+  ::Napi::Value vscode_document = info[0];
+  ::Napi::Value qljs_doc =
+      this->qljs_documents_ref_.Get("get").As<::Napi::Function>().Call(
+          /*this=*/this->qljs_documents_ref_.Value(), {vscode_document});
+  if (!qljs_doc.IsUndefined()) {
+    qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+    doc->dispose();
+    this->qljs_documents_ref_.Get("delete").As<::Napi::Function>().Call(
+        /*this=*/this->qljs_documents_ref_.Value(), {vscode_document});
+  }
+
+  return env.Undefined();
 }
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {

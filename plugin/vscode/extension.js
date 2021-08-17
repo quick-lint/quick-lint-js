@@ -76,11 +76,7 @@ class Workspace {
   }
 
   disposeLinter(vscodeDocument) {
-    let qljsDocument = this._qljsDocuments.get(vscodeDocument);
-    if (typeof qljsDocument !== "undefined") {
-      qljsDocument.dispose();
-      this._qljsDocuments.delete(vscodeDocument);
-    }
+    this._qljsWorkspace.disposeLinter(vscodeDocument);
   }
 
   dispose() {
