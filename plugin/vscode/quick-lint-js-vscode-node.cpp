@@ -79,7 +79,12 @@ struct vscode_module {
         range_class(
             ::Napi::Persistent(module.Get("Range").As<::Napi::Function>())),
         diagnostic_severity_enum(::Napi::Persistent(
-            module.Get("DiagnosticSeverity").As<::Napi::Object>())) {}
+            module.Get("DiagnosticSeverity").As<::Napi::Object>())),
+        window_namespace(
+            ::Napi::Persistent(module.Get("window").As<::Napi::Object>())),
+        window_show_error_message(
+            ::Napi::Persistent(this->window_namespace.Get("showErrorMessage")
+                                   .As<::Napi::Function>())) {}
 
   void load_non_persistent(::Napi::Env) {
     this->diagnostic_severity_error =
@@ -101,6 +106,11 @@ struct vscode_module {
   ::Napi::Number diagnostic_severity_error;
   // vscode.DiagnosticSeverity.Warning (not persistent)
   ::Napi::Number diagnostic_severity_warning;
+
+  // vscode.window
+  ::Napi::ObjectReference window_namespace;
+  // vscode.window.showErrorMessage
+  ::Napi::FunctionReference window_show_error_message;
 };
 
 class vscode_error_formatter
@@ -224,8 +234,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   explicit qljs_workspace(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_workspace>(info),
         vscode_(info[0].As<::Napi::Object>()),
-        configuration_load_io_error_callback_(
-            ::Napi::Persistent(info[1].As<::Napi::Function>())),
         fs_(this) {}
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
@@ -277,7 +285,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
  private:
   vscode_module vscode_;
-  ::Napi::FunctionReference configuration_load_io_error_callback_;
   vscode_configuration_filesystem fs_;
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
@@ -333,15 +340,15 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
           this->config_ = &loaded_config->config;
         }
       } else {
+        std::string message =
+            "Failed to load configuration file for " + *file_path +
+            ". Using default configuration.\nError details: " +
+            loaded_config_result.error_to_string();
         call_on_next_tick(
-            env,
-            this->workspace_->configuration_load_io_error_callback_.Value(),
-            /*this=*/env.Null(),
+            env, this->workspace_->vscode_.window_show_error_message.Value(),
+            /*this=*/this->workspace_->vscode_.window_namespace.Value(),
             {
-                /*qljsDocument=*/info.This(),
-                /*errorMessage=*/
-                ::Napi::String::New(env,
-                                    loaded_config_result.error_to_string()),
+                ::Napi::String::New(env, message),
             });
       }
     }
@@ -518,8 +525,6 @@ void qljs_workspace::forget_document(qljs_document* doc) {
   ::Napi::Object options = info[0].As<::Napi::Object>();
   return state->qljs_workspace_class.New({
       /*vscode=*/options.Get("vscode"),
-      /*on_configuration_load_io_error=*/
-      options.Get("onConfigurationLoadIOError"),
   });
 }
 

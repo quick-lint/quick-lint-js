@@ -46,12 +46,6 @@ class Workspace {
     this._diagnosticCollection = diagnosticCollection;
     this._qljsWorkspace = qljs.createWorkspace({
       vscode: vscode,
-      onConfigurationLoadIOError: (qljsDocument, errorMessage) => {
-        let document = qljsDocument._document;
-        vscode.window.showErrorMessage(
-          `Failed to load configuration file for ${document._vscodeDocument.uri.fsPath}. Using default configuration.\nError details: ${errorMessage}`
-        );
-      },
     });
 
     // Mapping from URI string to Document.
