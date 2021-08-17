@@ -302,6 +302,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
         env, "QLJSDocument",
         {
             InstanceMethod<&qljs_document::dispose>("dispose"),
+            InstanceMethod<&qljs_document::editor_changed_visibility>(
+                "editorChangedVisibility"),
             InstanceMethod<&qljs_document::replace_text>("replaceText"),
             InstanceMethod<&qljs_document::set_text>("setText"),
         });
@@ -365,6 +367,16 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     return env.Undefined();
   }
 
+  ::Napi::Value editor_changed_visibility(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+    ::Napi::String text = this->vscode_document_ref_.Get("getText")
+                              .As<::Napi::Function>()
+                              .Call(this->vscode_document_ref_.Value(), {})
+                              .As<::Napi::String>();
+    this->set_text(env, text);
+    return env.Undefined();
+  }
+
   ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
     QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     ::Napi::Env env = info.Env();
@@ -411,11 +423,14 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     }
 
     ::Napi::String text = info[0].As<::Napi::String>();
-    this->document_.set_text(to_string8_view(text.Utf8Value()));
-
-    this->after_modification(env);
+    this->set_text(env, text);
 
     return env.Undefined();
+  }
+
+  void set_text(::Napi::Env env, ::Napi::String text) {
+    this->document_.set_text(to_string8_view(text.Utf8Value()));
+    this->after_modification(env);
   }
 
   padded_string_view document_string() noexcept {

@@ -14,7 +14,6 @@ let qljs = require(path.join(
 
 class AbstractDocument {
   constructor(workspace, vscodeDocument, diagnosticCollection) {
-    this._vscodeDocument = vscodeDocument;
     this._qljsDocument = workspace.createDocument(
       vscodeDocument,
       diagnosticCollection,
@@ -27,7 +26,7 @@ class AbstractDocument {
   }
 
   editorChangedVisibility() {
-    this._qljsDocument.setText(this._vscodeDocument.getText());
+    this._qljsDocument.editorChangedVisibility();
   }
 
   textChanged(changes) {
