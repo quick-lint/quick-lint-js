@@ -16,12 +16,14 @@ class AbstractDocument {
   constructor(workspace, vscodeDocument, diagnosticCollection) {
     this._vscodeDocument = vscodeDocument;
     this._diagnosticCollection = diagnosticCollection;
-    this._qljsDocument = workspace.createDocument(vscodeDocument);
+    this._qljsDocument = workspace.createDocument(
+      vscodeDocument,
+      diagnosticCollection
+    );
     this._qljsDocument._document = this;
   }
 
   dispose() {
-    this._diagnosticCollection.delete(this._vscodeDocument.uri);
     this._qljsDocument.dispose();
   }
 
@@ -46,8 +48,7 @@ class ConfigDocument extends AbstractDocument {
 
 class LintableDocument extends AbstractDocument {
   _lint() {
-    let vscodeDiagnostics = this._qljsDocument.lint();
-    this._diagnosticCollection.set(this._vscodeDocument.uri, vscodeDiagnostics);
+    this._qljsDocument.lint();
   }
 }
 

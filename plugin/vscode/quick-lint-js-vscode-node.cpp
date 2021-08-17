@@ -260,6 +260,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         /*file_path=*/file_path.has_value()
             ? ::Napi::String::New(env, *file_path)
             : env.Null(),
+        /*vscode_diagnostic_collection=*/info[1],
     });
     if (file_path.has_value()) {
       auto [_it, inserted] =
@@ -303,7 +304,11 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       : ::Napi::ObjectWrap<qljs_document>(info),
         workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
         workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())),
-        vscode_document_ref_(::Napi::Persistent(info[1].As<::Napi::Object>())) {
+        vscode_document_ref_(::Napi::Persistent(info[1].As<::Napi::Object>())),
+        vscode_document_uri_ref_(::Napi::Persistent(
+            this->vscode_document_ref_.Get("uri").As<::Napi::Object>())),
+        vscode_diagnostic_collection_ref_(
+            ::Napi::Persistent(info[3].As<::Napi::Object>())) {
     ::Napi::Env env = info.Env();
 
     std::optional<std::string> file_path = to_optional_string(info[2]);
@@ -346,6 +351,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     ::Napi::Env env = info.Env();
 
     this->workspace_->forget_document(this);
+    this->delete_diagnostics();
     // TODO(strager): Reduce memory usage of this instance.
 
     return env.Undefined();
@@ -414,7 +420,9 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       // TODO(strager): Show a pop-up message explaining that the parser
       // crashed.
     }
-    return error_reporter.diagnostics();
+    this->publish_diagnostics(error_reporter.diagnostics());
+
+    return env.Undefined();
   }
 
   padded_string_view document_string() noexcept {
@@ -422,11 +430,32 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
  private:
+  void publish_diagnostics(::Napi::Value diagnostics) {
+    this->vscode_diagnostic_collection_ref_.Get("set")
+        .As<::Napi::Function>()
+        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
+              {
+                  this->vscode_document_uri_ref_.Value(),
+                  diagnostics,
+              });
+  }
+
+  void delete_diagnostics() {
+    this->vscode_diagnostic_collection_ref_.Get("delete")
+        .As<::Napi::Function>()
+        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
+              {
+                  this->vscode_document_uri_ref_.Value(),
+              });
+  }
+
   document<lsp_locator> document_;
   configuration* config_;
   ::Napi::ObjectReference workspace_ref_;
   qljs_workspace* workspace_;
   ::Napi::ObjectReference vscode_document_ref_;
+  ::Napi::ObjectReference vscode_document_uri_ref_;
+  ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 };
 
 result<canonical_path_result, canonicalize_path_io_error>
