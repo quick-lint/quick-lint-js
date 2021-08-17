@@ -229,6 +229,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
             InstanceMethod<&qljs_workspace::dispose_linter>("disposeLinter"),
             InstanceMethod<&qljs_workspace::is_config_file_path>(
                 "isConfigFilePath"),
+            InstanceMethod<&qljs_workspace::replace_text>("replaceText"),
         });
   }
 
@@ -257,6 +258,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return ::Napi::Boolean::New(env,
                                 this->config_loader_.is_config_file_path(path));
   }
+
+  ::Napi::Value replace_text(const ::Napi::CallbackInfo& info);
 
   ::Napi::Value create_document(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -388,7 +391,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
   ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
-    QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     ::Napi::Env env = info.Env();
     if (!(info.Length() >= 1 && info[0].IsArray())) {
       ::Napi::TypeError::New(env, "Expected Array")
@@ -397,6 +399,13 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     }
 
     ::Napi::Array changes = info[0].As<::Napi::Array>();
+    this->replace_text(env, changes);
+
+    return env.Undefined();
+  }
+
+  void replace_text(::Napi::Env env, ::Napi::Array changes) {
+    QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     for (std::uint32_t i = 0; i < changes.Length(); ++i) {
       ::Napi::Object change = changes.Get(i).As<::Napi::Object>();
       ::Napi::Object range = change.Get("range").As<::Napi::Object>();
@@ -420,8 +429,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     }
 
     this->after_modification(env);
-
-    return env.Undefined();
   }
 
   ::Napi::Value set_text(const ::Napi::CallbackInfo& info) {
@@ -579,6 +586,22 @@ void qljs_workspace::dispose_documents() {
     doc->dispose();
     this->qljs_documents_ref_.Get("delete").As<::Napi::Function>().Call(
         /*this=*/this->qljs_documents_ref_.Value(), {vscode_document});
+  }
+
+  return env.Undefined();
+}
+
+::Napi::Value qljs_workspace::replace_text(const ::Napi::CallbackInfo& info) {
+  ::Napi::Env env = info.Env();
+
+  ::Napi::Value vscode_document = info[0];
+  ::Napi::Value qljs_doc =
+      this->qljs_documents_ref_.Get("get").As<::Napi::Function>().Call(
+          /*this=*/this->qljs_documents_ref_.Value(), {vscode_document});
+  if (!qljs_doc.IsUndefined()) {
+    qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+    ::Napi::Array changes = info[1].As<::Napi::Array>();
+    doc->replace_text(env, changes);
   }
 
   return env.Undefined();

@@ -30,10 +30,7 @@ class Workspace {
   }
 
   replaceText(vscodeDocument, changes) {
-    let qljsDocument = this.getExistingLinter(vscodeDocument);
-    if (qljsDocument !== null) {
-      qljsDocument.replaceText(changes);
-    }
+    this._qljsWorkspace.replaceText(vscodeDocument, changes);
   }
 
   editorVisibilityChanged(vscodeDocument) {
