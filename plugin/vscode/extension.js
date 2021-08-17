@@ -60,17 +60,31 @@ class Workspace {
     this._documents = new Map();
   }
 
-  getLinter(vscodeDocument) {
+  // Returns null if no associated linter exists.
+  getExistingLinter(vscodeDocument) {
     let documentURIString = vscodeDocument.uri.toString();
     let document = this._documents.get(documentURIString);
     if (typeof document === "undefined") {
-      document = new Document(
-        this._qljsWorkspace,
-        vscodeDocument,
-        this._diagnosticCollection
-      );
-      this._documents.set(documentURIString, document);
+      return null;
     }
+    return document;
+  }
+
+  // Throws if an associated linter already exists (i.e. if
+  // getExistingLinter(vscodeDocument) returns non-null).
+  createLinter(vscodeDocument) {
+    let documentURIString = vscodeDocument.uri.toString();
+    if (this._documents.has(documentURIString)) {
+      throw new Error(
+        `Document already created for vscode.Document ${documentURIString}`
+      );
+    }
+    let document = new Document(
+      this._qljsWorkspace,
+      vscodeDocument,
+      this._diagnosticCollection
+    );
+    this._documents.set(documentURIString, document);
     return document;
   }
 
@@ -126,10 +140,9 @@ async function activateAsync() {
       let isBogusEvent = event.contentChanges.length === 0;
       if (!isBogusEvent) {
         logErrors(() => {
-          if (workspace.isLintable(event.document)) {
-            workspace
-              .getLinter(event.document)
-              .textChanged(event.contentChanges);
+          let document = workspace.getExistingLinter(event.document);
+          if (document !== null) {
+            document.textChanged(event.contentChanges);
           }
         });
       }
@@ -154,8 +167,15 @@ async function activateAsync() {
 
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
-      if (workspace.isLintable(editor.document)) {
-        workspace.getLinter(editor.document).editorChangedVisibility();
+      let vscodeDocument = editor.document;
+      let document = workspace.getExistingLinter(vscodeDocument);
+      if (document === null) {
+        if (workspace.isLintable(vscodeDocument)) {
+          document = workspace.createLinter(vscodeDocument);
+        }
+      }
+      if (document !== null) {
+        document.editorChangedVisibility();
       }
     }
   }
