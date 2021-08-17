@@ -42,12 +42,16 @@
 #define QLJS_SUBLIME_TEXT_THROW() ::std::longjmp(qljs_sublime_text_jmp_buf, 1)
 #endif
 
-#define QLJS_SUBLIME_TEXT_DEFINE_SIGNAL_HANDLER()       \
-  do {                                                  \
-    signal(SIGABRT, &qljs_sublime_text_signal_handler); \
-    signal(SIGFPE, &qljs_sublime_text_signal_handler);  \
-    signal(SIGILL, &qljs_sublime_text_signal_handler);  \
-    signal(SIGSEGV, &qljs_sublime_text_signal_handler); \
+#define QLJS_SUBLIME_TEXT_DEFINE_SIGNAL_HANDLER()           \
+  do {                                                      \
+    /* Abort signal */                                      \
+    signal(SIGABRT, &qljs_sublime_text_signal_handler);     \
+    /* Floating-point exception */                          \
+    signal(SIGFPE, &qljs_sublime_text_signal_handler);      \
+    /* Illegal Instruction */                               \
+    signal(SIGILL, &qljs_sublime_text_signal_handler);      \
+    /* Invalid memory reference - segmentation violation */ \
+    signal(SIGSEGV, &qljs_sublime_text_signal_handler);     \
   } while (false)
 
 #if QLJS_HAVE_SIGSETJMP
