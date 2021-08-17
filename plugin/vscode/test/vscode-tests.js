@@ -588,6 +588,39 @@ tests = {
         ]
       );
     },
+
+  "opened .js re-lints when changing open quick-lint-js.config": async ({
+    addCleanup,
+  }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(jsFilePath, "testGlobalVariableFromEditor;");
+    let jsURI = vscode.Uri.file(jsFilePath);
+    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+    fs.writeFileSync(configFilePath, "{}");
+    let configURI = vscode.Uri.file(configFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(
+      jsDocument,
+      vscode.ViewColumn.One
+    );
+    await waitUntilAnyDiagnosticsAsync(jsURI);
+
+    let configDocument = await vscode.workspace.openTextDocument(configURI);
+    let configEditor = await vscode.window.showTextDocument(
+      configDocument,
+      vscode.ViewColumn.Two
+    );
+    await configEditor.edit((editBuilder) => {
+      editBuilder.replace(
+        new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 0)),
+        '{"globals": {"testGlobalVariableFromEditor": true}}'
+      );
+    });
+    await waitUntilNoDiagnosticsAsync(jsURI);
+  },
 };
 
 async function waitUntilAnyDiagnosticsAsync(documentURI) {

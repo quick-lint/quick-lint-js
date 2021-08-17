@@ -543,8 +543,17 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
  private:
   void after_modification(::Napi::Env env, qljs_document* doc) {
     switch (doc->type_) {
-    case document_type::config:
+    case document_type::config: {
+      std::vector<configuration_change> changes =
+          this->config_loader_.refresh();
+      for (const configuration_change& change : changes) {
+        qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
+        doc->config_ = change.config_file ? &change.config_file->config
+                                          : &this->default_config_;
+        this->lint_and_publish_diagnostics(env, doc);
+      }
       break;
+    }
 
     case document_type::lintable:
       this->lint_and_publish_diagnostics(env, doc);
