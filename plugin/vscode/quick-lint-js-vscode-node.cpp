@@ -234,15 +234,19 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   explicit qljs_workspace(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_workspace>(info),
         vscode_(info[0].As<::Napi::Object>()),
-        fs_(this) {}
+        fs_(this),
+        qljs_documents_ref_(::Napi::Persistent(info[1].As<::Napi::Object>())) {}
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
 
+    this->dispose_documents();
     // TODO(strager): Reduce memory usage.
 
     return env.Undefined();
   }
+
+  void dispose_documents();
 
   ::Napi::Value is_config_file_path(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -288,6 +292,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   vscode_configuration_filesystem fs_;
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
+  ::Napi::ObjectReference qljs_documents_ref_;
 
   // qljs_document-s opened for editing.
   std::unordered_map<std::string, ::Napi::ObjectReference> documents_;
@@ -357,14 +362,16 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
-    QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
     ::Napi::Env env = info.Env();
+    this->dispose();
+    return env.Undefined();
+  }
 
+  void dispose() {
+    QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
     this->workspace_->forget_document(this);
     this->delete_diagnostics();
     // TODO(strager): Reduce memory usage of this instance.
-
-    return env.Undefined();
   }
 
   ::Napi::Value editor_changed_visibility(const ::Napi::CallbackInfo& info) {
@@ -533,6 +540,30 @@ void qljs_workspace::forget_document(qljs_document* doc) {
   }
 }
 
+void qljs_workspace::dispose_documents() {
+  ::Napi::Object iterator =
+      this->qljs_documents_ref_.Get("values")
+          .As<::Napi::Function>()
+          .Call(/*this=*/this->qljs_documents_ref_.Value(), {})
+          .As<::Napi::Object>();
+  for (;;) {
+    ::Napi::Object entry = iterator.Get("next")
+                               .As<::Napi::Function>()
+                               .Call(/*this=*/iterator, {})
+                               .As<::Napi::Object>();
+    bool done = entry.Get("done").As<::Napi::Boolean>().Value();
+    if (done) {
+      break;
+    }
+    qljs_document* doc =
+        qljs_document::Unwrap(entry.Get("value").As<::Napi::Object>());
+    doc->dispose();
+  }
+
+  this->qljs_documents_ref_.Get("clear").As<::Napi::Function>().Call(
+      /*this=*/this->qljs_documents_ref_.Value(), {});
+}
+
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
   addon_state* state = env.GetInstanceData<addon_state>();
@@ -540,6 +571,7 @@ void qljs_workspace::forget_document(qljs_document* doc) {
   ::Napi::Object options = info[0].As<::Napi::Object>();
   return state->qljs_workspace_class.New({
       /*vscode=*/options.Get("vscode"),
+      /*qljs_documents=*/options.Get("qljsDocuments"),
   });
 }
 

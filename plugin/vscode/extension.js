@@ -19,13 +19,14 @@ let DocumentType = {
 
 class Workspace {
   constructor(diagnosticCollection) {
-    this._diagnosticCollection = diagnosticCollection;
-    this._qljsWorkspace = qljs.createWorkspace({
-      vscode: vscode,
-    });
-
     // Mapping from vscode.Document to qljs.QLJSDocument.
     this._qljsDocuments = new Map();
+
+    this._diagnosticCollection = diagnosticCollection;
+    this._qljsWorkspace = qljs.createWorkspace({
+      qljsDocuments: this._qljsDocuments,
+      vscode: vscode,
+    });
   }
 
   replaceText(vscodeDocument, changes) {
@@ -83,11 +84,7 @@ class Workspace {
   }
 
   dispose() {
-    let qljsDocuments = this._qljsDocuments;
-    this._qljsDocuments = new Map();
-    for (let [_vscodeDocument, qljsDocument] of qljsDocuments) {
-      qljsDocument.dispose();
-    }
+    this._qljsWorkspace.dispose();
   }
 
   // Returns a DocumentType.
