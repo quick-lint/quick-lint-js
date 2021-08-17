@@ -15,13 +15,11 @@ let qljs = require(path.join(
 class AbstractDocument {
   constructor(workspace, vscodeDocument, diagnosticCollection) {
     this._vscodeDocument = vscodeDocument;
-    this._diagnosticCollection = diagnosticCollection;
     this._qljsDocument = workspace.createDocument(
       vscodeDocument,
       diagnosticCollection,
       /*isConfigFile=*/ this.constructor === ConfigDocument
     );
-    this._qljsDocument._document = this;
   }
 
   dispose() {
