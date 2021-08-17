@@ -47,9 +47,7 @@
     signal(SIGABRT, &qljs_sublime_text_signal_handler); \
     signal(SIGFPE, &qljs_sublime_text_signal_handler);  \
     signal(SIGILL, &qljs_sublime_text_signal_handler);  \
-    signal(SIGINT, &qljs_sublime_text_signal_handler);  \
     signal(SIGSEGV, &qljs_sublime_text_signal_handler); \
-    signal(SIGTERM, &qljs_sublime_text_signal_handler); \
   } while (false)
 
 #if QLJS_HAVE_SIGSETJMP
