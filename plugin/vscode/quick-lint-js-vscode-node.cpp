@@ -50,6 +50,7 @@ void debug_log_to_file(const char* format, Args&&...);
 
 int to_int(::Napi::Value);
 std::optional<std::string> to_optional_string(::Napi::Value);
+std::string to_string(::Napi::Value);
 void call_on_next_tick(::Napi::Env, ::Napi::Function, ::napi_value self,
                        std::vector<::napi_value> args);
 
@@ -246,11 +247,21 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Env env = info.Env();
     addon_state* state = env.GetInstanceData<addon_state>();
 
+    ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
+    ::Napi::Object vscode_document_uri =
+        vscode_document.Get("uri").As<::Napi::Object>();
+    std::optional<std::string> file_path = std::nullopt;
+    if (to_string(vscode_document_uri.Get("scheme")) == "file") {
+      file_path = to_string(vscode_document_uri.Get("fsPath"));
+    }
     ::Napi::Object doc = state->qljs_document_class.New({
         /*workspace=*/info.This(),
-        /*file_path=*/info[0],
+        /*vscode_document=*/vscode_document,
+        /*file_path=*/file_path.has_value()
+            ? ::Napi::String::New(env, *file_path)
+            : env.Null(),
     });
-    if (std::optional<std::string> file_path = to_optional_string(info[0])) {
+    if (file_path.has_value()) {
       auto [_it, inserted] =
           this->documents_.try_emplace(*file_path, ::Napi::Persistent(doc));
       QLJS_ASSERT(inserted);
@@ -291,10 +302,11 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
         workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
-        workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())) {
+        workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())),
+        vscode_document_ref_(::Napi::Persistent(info[1].As<::Napi::Object>())) {
     ::Napi::Env env = info.Env();
 
-    std::optional<std::string> file_path = to_optional_string(info[1]);
+    std::optional<std::string> file_path = to_optional_string(info[2]);
     this->config_ = &this->workspace_->default_config_;
     if (file_path.has_value()) {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", this,
@@ -414,6 +426,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   configuration* config_;
   ::Napi::ObjectReference workspace_ref_;
   qljs_workspace* workspace_;
+  ::Napi::ObjectReference vscode_document_ref_;
 };
 
 result<canonical_path_result, canonicalize_path_io_error>
@@ -482,6 +495,10 @@ std::optional<std::string> to_optional_string(::Napi::Value v) {
   } else {
     return v.As<::Napi::String>().Utf8Value();
   }
+}
+
+std::string to_string(::Napi::Value v) {
+  return v.As<::Napi::String>().Utf8Value();
 }
 
 #if defined(QLJS_DEBUG_LOGGING_FILE)

@@ -16,9 +16,7 @@ class AbstractDocument {
   constructor(workspace, vscodeDocument, diagnosticCollection) {
     this._vscodeDocument = vscodeDocument;
     this._diagnosticCollection = diagnosticCollection;
-    this._qljsDocument = workspace.createDocument(
-      vscodeDocument.uri.scheme === "file" ? vscodeDocument.uri.fsPath : null
-    );
+    this._qljsDocument = workspace.createDocument(vscodeDocument);
     this._qljsDocument._document = this;
   }
 
