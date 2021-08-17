@@ -509,6 +509,27 @@ tests = {
     );
   },
 
+  "valid quick-lint-js.config has no diagnostics; should not be linted as a .js file":
+    async ({ addCleanup }) => {
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+      fs.writeFileSync(
+        configFilePath,
+        '{"globals": {"testGlobalVariable": true}}'
+      );
+      let configURI = vscode.Uri.file(configFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let configDocument = await vscode.workspace.openTextDocument(configURI);
+      let configEditor = await vscode.window.showTextDocument(configDocument);
+
+      // Wait for possible linting to take effect.
+      await sleepAsync(100);
+
+      let configDiags = normalizeDiagnostics(configURI);
+      assert.deepStrictEqual(configDiags, []);
+    },
+
   "opened .js file uses quick-lint-js.config from disk after config editor is closed":
     async ({ addCleanup }) => {
       // TODO(strager): Enable this test when VS Code is fixed (or when we find a

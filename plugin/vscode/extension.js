@@ -12,7 +12,7 @@ let qljs = require(path.join(
   `./dist/quick-lint-js-vscode-node_${os.platform()}-${os.arch()}.node`
 ));
 
-class Document {
+class AbstractDocument {
   constructor(workspace, vscodeDocument, diagnosticCollection) {
     this._vscodeDocument = vscodeDocument;
     this._diagnosticCollection = diagnosticCollection;
@@ -37,6 +37,16 @@ class Document {
     this._lint();
   }
 
+  // Abstract methods:
+  //
+  // _lint();
+}
+
+class ConfigDocument extends AbstractDocument {
+  _lint() {}
+}
+
+class LintableDocument extends AbstractDocument {
   _lint() {
     let vscodeDiagnostics = this._qljsDocument.lint();
     this._diagnosticCollection.set(this._vscodeDocument.uri, vscodeDiagnostics);
@@ -72,14 +82,14 @@ class Workspace {
 
   // Throws if an associated linter already exists (i.e. if
   // getExistingLinter(vscodeDocument) returns non-null).
-  createLinter(vscodeDocument) {
+  createLinter(vscodeDocument, documentType) {
     let documentURIString = vscodeDocument.uri.toString();
     if (this._documents.has(documentURIString)) {
       throw new Error(
         `Document already created for vscode.Document ${documentURIString}`
       );
     }
-    let document = new Document(
+    let document = new documentType(
       this._qljsWorkspace,
       vscodeDocument,
       this._diagnosticCollection
@@ -105,17 +115,20 @@ class Workspace {
     }
   }
 
-  isLintable(vscodeDocument) {
+  // Returns a subclass of AbstractDocument (the class itself, not an instance).
+  //
+  // Returns null if this extension should ignore the document.
+  classifyDocument(vscodeDocument) {
     if (vscodeDocument.languageId === "javascript") {
-      return true;
+      return LintableDocument;
     }
     if (
       vscodeDocument.uri.scheme === "file" &&
       this._qljsWorkspace.isConfigFilePath(vscodeDocument.uri.fsPath)
     ) {
-      return true;
+      return ConfigDocument;
     }
-    return false;
+    return null;
   }
 }
 exports.Workspace = Workspace;
@@ -170,8 +183,9 @@ async function activateAsync() {
       let vscodeDocument = editor.document;
       let document = workspace.getExistingLinter(vscodeDocument);
       if (document === null) {
-        if (workspace.isLintable(vscodeDocument)) {
-          document = workspace.createLinter(vscodeDocument);
+        let documentType = workspace.classifyDocument(vscodeDocument);
+        if (documentType !== null) {
+          document = workspace.createLinter(vscodeDocument, documentType);
         }
       }
       if (document !== null) {
