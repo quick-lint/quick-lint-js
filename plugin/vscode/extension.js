@@ -26,6 +26,7 @@ class Workspace {
     this._qljsWorkspace = qljs.createWorkspace({
       qljsDocuments: this._qljsDocuments,
       vscode: vscode,
+      vscodeDiagnosticCollection: diagnosticCollection,
     });
   }
 
@@ -34,16 +35,7 @@ class Workspace {
   }
 
   editorVisibilityChanged(vscodeDocument) {
-    let qljsDocument = this.getExistingLinter(vscodeDocument);
-    if (qljsDocument === null) {
-      let documentType = this.classifyDocument(vscodeDocument);
-      if (documentType !== null) {
-        qljsDocument = this.createLinter(vscodeDocument, documentType);
-      }
-    }
-    if (qljsDocument !== null) {
-      qljsDocument.editorChangedVisibility();
-    }
+    this._qljsWorkspace.editorVisibilityChanged(vscodeDocument);
   }
 
   // Returns null if no associated linter exists.
