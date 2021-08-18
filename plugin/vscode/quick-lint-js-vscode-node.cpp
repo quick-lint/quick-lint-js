@@ -265,8 +265,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::Value replace_text(const ::Napi::CallbackInfo& info);
 
   ::Napi::Value create_document(::Napi::Env env, ::Napi::Object vscode_document,
-                                ::Napi::Value vscode_diagnostic_collection,
-                                ::Napi::Value is_config_file) {
+                                document_type type) {
     addon_state* state = env.GetInstanceData<addon_state>();
 
     ::Napi::Object vscode_document_uri =
@@ -281,8 +280,10 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         /*file_path=*/file_path.has_value()
             ? ::Napi::String::New(env, *file_path)
             : env.Null(),
-        /*vscode_diagnostic_collection=*/vscode_diagnostic_collection,
-        /*is_config_file=*/is_config_file,
+        /*vscode_diagnostic_collection=*/
+        this->vscode_diagnostic_collection_ref_.Value(),
+        /*is_config_file=*/
+        ::Napi::Boolean::New(env, type == document_type::config),
     });
     if (file_path.has_value()) {
       auto [_it, inserted] =
@@ -581,13 +582,10 @@ void qljs_workspace::dispose_documents() {
     switch (type) {
     case document_type::config:
     case document_type::lintable:
-      qljs_doc = this->create_document(
-          env,
-          /*vscode_document=*/vscode_document,
-          /*vscode_diagnostic_collection=*/
-          this->vscode_diagnostic_collection_ref_.Value(),
-          /*is_config_file=*/
-          ::Napi::Boolean::New(env, type == document_type::config));
+      qljs_doc = this->create_document(env,
+                                       /*vscode_document=*/vscode_document,
+                                       /*type=*/
+                                       type);
       this->qljs_documents_.Get("set").As<::Napi::Function>().Call(
           /*this=*/this->qljs_documents_.Value(), {vscode_document, qljs_doc});
       break;
