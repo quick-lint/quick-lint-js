@@ -16,6 +16,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <string>
@@ -47,12 +48,6 @@ namespace {
 template <class... Args>
 void debug_log_to_file(const char* format, Args&&...);
 #endif
-
-int to_int(::Napi::Value);
-std::optional<std::string> to_optional_string(::Napi::Value);
-std::string to_string(::Napi::Value);
-void call_on_next_tick(::Napi::Env, ::Napi::Function, ::napi_value self,
-                       std::vector<::napi_value> args);
 
 class qljs_document;
 class qljs_workspace;
@@ -632,22 +627,6 @@ void qljs_workspace::dispose_documents() {
   });
 }
 
-int to_int(::Napi::Value v) {
-  return narrow_cast<int>(v.As<::Napi::Number>().Int64Value());
-}
-
-std::optional<std::string> to_optional_string(::Napi::Value v) {
-  if (v.IsNull()) {
-    return std::nullopt;
-  } else {
-    return v.As<::Napi::String>().Utf8Value();
-  }
-}
-
-std::string to_string(::Napi::Value v) {
-  return v.As<::Napi::String>().Utf8Value();
-}
-
 #if defined(QLJS_DEBUG_LOGGING_FILE)
 template <class... Args>
 void debug_log_to_file(const char* format, Args&&... args) {
@@ -661,19 +640,6 @@ void debug_log_to_file(const char* format, Args&&... args) {
   }
 }
 #endif
-
-void call_on_next_tick(::Napi::Env env, ::Napi::Function func,
-                       ::napi_value self, std::vector<::napi_value> args) {
-  args.insert(args.begin(), self);
-  ::Napi::Value next_tick_callback =
-      func.Get("bind").As<::Napi::Function>().Call(func, std::move(args));
-  env.Global()
-      .Get("process")
-      .As<::Napi::Object>()
-      .Get("nextTick")
-      .As<::Napi::Function>()
-      .Call({next_tick_callback});
-}
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   return std::unique_ptr<addon_state>(new addon_state{

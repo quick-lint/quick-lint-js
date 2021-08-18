@@ -10,7 +10,12 @@ set(VSCODE_DIST_DIR dist)
 
 if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
   if (QUICK_LINT_JS_NODEJS_OS_PLATFORM AND QUICK_LINT_JS_NODEJS_OS_ARCH)
-    quick_lint_js_add_library(quick-lint-js-vscode-node SHARED quick-lint-js-vscode-node.cpp)
+    quick_lint_js_add_library(
+      quick-lint-js-vscode-node
+      SHARED
+      quick-lint-js-vscode-node.cpp
+      quick-lint-js/napi-support.h
+    )
     set_target_properties(
       quick-lint-js-vscode-node
       PROPERTIES
@@ -18,6 +23,7 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       SUFFIX "_${QUICK_LINT_JS_NODEJS_OS_PLATFORM}-${QUICK_LINT_JS_NODEJS_OS_ARCH}.node"
     )
     target_compile_definitions(quick-lint-js-vscode-node PRIVATE NAPI_VERSION=6)
+    target_include_directories(quick-lint-js-vscode-node PRIVATE .)
     target_link_libraries(
       quick-lint-js-vscode-node
       PRIVATE
