@@ -261,11 +261,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     }
   }
 
-  void dispose() {
-    QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
-    // TODO(strager): Reduce memory usage of this instance.
-  }
-
   void replace_text(::Napi::Array changes) {
     QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     for (std::uint32_t i = 0; i < changes.Length(); ++i) {
@@ -413,7 +408,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   void dispose_documents() {
     this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
       qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
-      doc->dispose();
       this->delete_diagnostics(doc);
     });
     this->qljs_documents_.clear();
@@ -427,7 +421,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
     if (!qljs_doc.IsUndefined()) {
       qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-      doc->dispose();
+      QLJS_DEBUG_LOG("Document %p: Closing\n", doc);
       this->delete_diagnostics(doc);
       this->qljs_documents_.erase(vscode_document);
       this->fs_.forget_document(doc);
