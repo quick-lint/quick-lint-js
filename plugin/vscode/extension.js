@@ -17,28 +17,6 @@ let DocumentType = {
   LINTABLE: "LINTABLE",
 };
 
-class Document {
-  constructor(workspace, vscodeDocument, diagnosticCollection, documentType) {
-    this._qljsDocument = workspace.createDocument(
-      vscodeDocument,
-      diagnosticCollection,
-      /*isConfigFile=*/ documentType === DocumentType.CONFIG
-    );
-  }
-
-  dispose() {
-    this._qljsDocument.dispose();
-  }
-
-  editorChangedVisibility() {
-    this._qljsDocument.editorChangedVisibility();
-  }
-
-  textChanged(changes) {
-    this._qljsDocument.replaceText(changes);
-  }
-}
-
 class Workspace {
   constructor(diagnosticCollection) {
     this._diagnosticCollection = diagnosticCollection;
@@ -46,53 +24,52 @@ class Workspace {
       vscode: vscode,
     });
 
-    // Mapping from URI string to Document.
-    this._documents = new Map();
+    // Mapping from URI string to qljs.QLJSDocument.
+    this._qljsDocuments = new Map();
   }
 
   // Returns null if no associated linter exists.
   getExistingLinter(vscodeDocument) {
     let documentURIString = vscodeDocument.uri.toString();
-    let document = this._documents.get(documentURIString);
-    if (typeof document === "undefined") {
+    let qljsDocument = this._qljsDocuments.get(documentURIString);
+    if (typeof qljsDocument === "undefined") {
       return null;
     }
-    return document;
+    return qljsDocument;
   }
 
   // Throws if an associated linter already exists (i.e. if
   // getExistingLinter(vscodeDocument) returns non-null).
   createLinter(vscodeDocument, documentType) {
     let documentURIString = vscodeDocument.uri.toString();
-    if (this._documents.has(documentURIString)) {
+    if (this._qljsDocuments.has(documentURIString)) {
       throw new Error(
         `Document already created for vscode.Document ${documentURIString}`
       );
     }
-    let document = new Document(
-      this._qljsWorkspace,
+    let qljsDocument = this._qljsWorkspace.createDocument(
       vscodeDocument,
       this._diagnosticCollection,
-      documentType
+      /*isConfigFile=*/ documentType === DocumentType.CONFIG
     );
-    this._documents.set(documentURIString, document);
-    return document;
+    this._qljsDocuments.set(documentURIString, qljsDocument);
+    return qljsDocument;
   }
 
   disposeLinter(vscodeDocument) {
     let documentURIString = vscodeDocument.uri.toString();
-    let document = this._documents.get(documentURIString);
-    if (typeof document !== "undefined") {
-      document.dispose();
-      this._documents.delete(documentURIString);
+    let qljsDocument = this._qljsDocuments.get(documentURIString);
+    if (typeof qljsDocument !== "undefined") {
+      qljsDocument.dispose();
+      this._qljsDocuments.delete(documentURIString);
     }
   }
 
   dispose() {
-    let documents = this._documents;
-    this._documents = new Map();
-    for (let [_uri, document] of documents) {
-      document.dispose();
+    let qljsDocuments = this._qljsDocuments;
+    this._qljsDocuments = new Map();
+    for (let [_uri, qljsDocument] of qljsDocuments) {
+      qljsDocument.dispose();
     }
   }
 
@@ -136,7 +113,7 @@ async function activateAsync() {
         logErrors(() => {
           let document = workspace.getExistingLinter(event.document);
           if (document !== null) {
-            document.textChanged(event.contentChanges);
+            document.replaceText(event.contentChanges);
           }
         });
       }
