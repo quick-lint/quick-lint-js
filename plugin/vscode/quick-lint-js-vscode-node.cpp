@@ -486,16 +486,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   qljs_document* maybe_create_document(::Napi::Env env,
                                        vscode_document vscode_doc) {
-    document_type type = this->classify_document(vscode_doc);
-    switch (type) {
-    case document_type::unknown:
-      return nullptr;
-
-    case document_type::config:
-    case document_type::lintable:
-      break;
-    }
-
     addon_state* state = env.GetInstanceData<addon_state>();
 
     ::Napi::Object vscode_document_uri = vscode_doc.uri();
@@ -503,6 +493,17 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     if (to_string(vscode_document_uri.Get("scheme")) == "file") {
       file_path = to_string(vscode_document_uri.Get("fsPath"));
     }
+
+    document_type type;
+    if (vscode_doc.language_id() == "javascript") {
+      type = document_type::lintable;
+    } else if (file_path.has_value() &&
+               this->config_loader_.is_config_file_path(*file_path)) {
+      type = document_type::config;
+    } else {
+      return nullptr;
+    }
+
     ::Napi::Object js_doc = state->qljs_document_class.New({vscode_doc});
     qljs_document* doc = qljs_document::Unwrap(js_doc);
     if (file_path.has_value()) {
@@ -541,19 +542,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
  private:
-  document_type classify_document(vscode_document vscode_doc) {
-    if (vscode_doc.language_id() == "javascript") {
-      return document_type::lintable;
-    }
-    ::Napi::Object uri = vscode_doc.uri();
-    if (to_string(uri.Get("scheme")) == "file" &&
-        this->config_loader_.is_config_file_path(
-            uri.Get("fsPath").As<::Napi::String>().Utf8Value())) {
-      return document_type::config;
-    }
-    return document_type::unknown;
-  }
-
   void after_modification(::Napi::Env env, qljs_document* doc) {
     switch (doc->type_) {
     case document_type::config:
