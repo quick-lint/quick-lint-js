@@ -55,7 +55,6 @@ class qljs_workspace;
 enum class document_type {
   config,
   lintable,
-  unknown,
 };
 
 // State global to a specific Node.js instance/thread.
@@ -549,10 +548,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     case document_type::lintable:
       this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
-      break;
-
-    case document_type::unknown:
-      QLJS_UNREACHABLE();
       break;
     }
   }
