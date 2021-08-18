@@ -435,26 +435,28 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
+    qljs_document* doc;
     if (qljs_doc.IsUndefined()) {
       document_type type = this->classify_document(vscode_document);
       switch (type) {
       case document_type::config:
       case document_type::lintable:
-        qljs_doc = this->create_document(env,
-                                         /*vscode_document=*/vscode_document,
-                                         /*type=*/
-                                         type);
-        this->qljs_documents_.set(vscode_document, qljs_doc);
+        doc = this->create_document(env,
+                                    /*vscode_document=*/vscode_document,
+                                    /*type=*/
+                                    type);
         break;
 
       case document_type::unknown:
         // Ignore.
+        doc = nullptr;
         break;
       }
+    } else {
+      doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     }
 
-    if (!qljs_doc.IsUndefined()) {
-      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+    if (doc) {
       ::Napi::String text = doc->vscode_document_.get_text();
       doc->document_.set_text(to_string8_view(text.Utf8Value()));
 
@@ -479,8 +481,9 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return env.Undefined();
   }
 
-  ::Napi::Value create_document(::Napi::Env env, ::Napi::Object vscode_document,
-                                document_type type) {
+  qljs_document* create_document(::Napi::Env env,
+                                 ::Napi::Object vscode_document,
+                                 document_type type) {
     addon_state* state = env.GetInstanceData<addon_state>();
 
     ::Napi::Object vscode_document_uri =
@@ -503,7 +506,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     if (file_path.has_value()) {
       this->fs_.overlay_document(std::move(*file_path), doc);
     }
-    return js_doc;
+    this->qljs_documents_.set(vscode_document, js_doc);
+    return doc;
   }
 
   void publish_diagnostics(qljs_document* doc, ::Napi::Value diagnostics) {
