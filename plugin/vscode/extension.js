@@ -12,12 +12,17 @@ let qljs = require(path.join(
   `./dist/quick-lint-js-vscode-node_${os.platform()}-${os.arch()}.node`
 ));
 
-class AbstractDocument {
-  constructor(workspace, vscodeDocument, diagnosticCollection) {
+let DocumentType = {
+  CONFIG: "CONFIG",
+  LINTABLE: "LINTABLE",
+};
+
+class Document {
+  constructor(workspace, vscodeDocument, diagnosticCollection, documentType) {
     this._qljsDocument = workspace.createDocument(
       vscodeDocument,
       diagnosticCollection,
-      /*isConfigFile=*/ this.constructor === ConfigDocument
+      /*isConfigFile=*/ documentType === DocumentType.CONFIG
     );
   }
 
@@ -33,10 +38,6 @@ class AbstractDocument {
     this._qljsDocument.replaceText(changes);
   }
 }
-
-class ConfigDocument extends AbstractDocument {}
-
-class LintableDocument extends AbstractDocument {}
 
 class Workspace {
   constructor(diagnosticCollection) {
@@ -68,10 +69,11 @@ class Workspace {
         `Document already created for vscode.Document ${documentURIString}`
       );
     }
-    let document = new documentType(
+    let document = new Document(
       this._qljsWorkspace,
       vscodeDocument,
-      this._diagnosticCollection
+      this._diagnosticCollection,
+      documentType
     );
     this._documents.set(documentURIString, document);
     return document;
@@ -94,18 +96,18 @@ class Workspace {
     }
   }
 
-  // Returns a subclass of AbstractDocument (the class itself, not an instance).
+  // Returns a DocumentType.
   //
   // Returns null if this extension should ignore the document.
   classifyDocument(vscodeDocument) {
     if (vscodeDocument.languageId === "javascript") {
-      return LintableDocument;
+      return DocumentType.LINTABLE;
     }
     if (
       vscodeDocument.uri.scheme === "file" &&
       this._qljsWorkspace.isConfigFilePath(vscodeDocument.uri.fsPath)
     ) {
-      return ConfigDocument;
+      return DocumentType.CONFIG;
     }
     return null;
   }
