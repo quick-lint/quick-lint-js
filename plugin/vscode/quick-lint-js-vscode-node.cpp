@@ -230,13 +230,10 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return DefineClass(
         env, "QLJSWorkspace",
         {
-            InstanceMethod<&qljs_workspace::create_document>("createDocument"),
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
             InstanceMethod<&qljs_workspace::dispose_linter>("disposeLinter"),
             InstanceMethod<&qljs_workspace::editor_visibility_changed>(
                 "editorVisibilityChanged"),
-            InstanceMethod<&qljs_workspace::is_config_file_path>(
-                "isConfigFilePath"),
             InstanceMethod<&qljs_workspace::replace_text>("replaceText"),
         });
   }
@@ -265,23 +262,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   ::Napi::Value editor_visibility_changed(const ::Napi::CallbackInfo& info);
 
-  ::Napi::Value is_config_file_path(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
-    std::string path = info[0].As<::Napi::String>().Utf8Value();
-    return ::Napi::Boolean::New(env,
-                                this->config_loader_.is_config_file_path(path));
-  }
-
   ::Napi::Value replace_text(const ::Napi::CallbackInfo& info);
-
-  ::Napi::Value create_document(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
-    ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
-    ::Napi::Value vscode_diagnostic_collection = info[1];
-    ::Napi::Value is_config_file = info[2];
-    return this->create_document(env, vscode_document,
-                                 vscode_diagnostic_collection, is_config_file);
-  }
 
   ::Napi::Value create_document(::Napi::Env env, ::Napi::Object vscode_document,
                                 ::Napi::Value vscode_diagnostic_collection,
@@ -335,15 +316,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
-    return DefineClass(
-        env, "QLJSDocument",
-        {
-            InstanceMethod<&qljs_document::dispose>("dispose"),
-            InstanceMethod<&qljs_document::editor_changed_visibility>(
-                "editorChangedVisibility"),
-            InstanceMethod<&qljs_document::replace_text>("replaceText"),
-            InstanceMethod<&qljs_document::set_text>("setText"),
-        });
+    return DefineClass(env, "QLJSDocument", {});
   }
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
@@ -393,23 +366,11 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     }
   }
 
-  ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
-    this->dispose();
-    return env.Undefined();
-  }
-
   void dispose() {
     QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
     this->workspace_->forget_document(this);
     this->delete_diagnostics();
     // TODO(strager): Reduce memory usage of this instance.
-  }
-
-  ::Napi::Value editor_changed_visibility(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
-    this->editor_changed_visibility(env);
-    return env.Undefined();
   }
 
   void editor_changed_visibility(::Napi::Env env) {
@@ -418,20 +379,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
                               .Call(this->vscode_document_ref_.Value(), {})
                               .As<::Napi::String>();
     this->set_text(env, text);
-  }
-
-  ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
-    if (!(info.Length() >= 1 && info[0].IsArray())) {
-      ::Napi::TypeError::New(env, "Expected Array")
-          .ThrowAsJavaScriptException();
-      return env.Undefined();
-    }
-
-    ::Napi::Array changes = info[0].As<::Napi::Array>();
-    this->replace_text(env, changes);
-
-    return env.Undefined();
   }
 
   void replace_text(::Napi::Env env, ::Napi::Array changes) {
@@ -459,20 +406,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     }
 
     this->after_modification(env);
-  }
-
-  ::Napi::Value set_text(const ::Napi::CallbackInfo& info) {
-    ::Napi::Env env = info.Env();
-    if (!(info.Length() >= 1 && info[0].IsString())) {
-      ::Napi::TypeError::New(env, "Expected string")
-          .ThrowAsJavaScriptException();
-      return env.Undefined();
-    }
-
-    ::Napi::String text = info[0].As<::Napi::String>();
-    this->set_text(env, text);
-
-    return env.Undefined();
   }
 
   void set_text(::Napi::Env env, ::Napi::String text) {
