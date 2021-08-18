@@ -312,6 +312,9 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   void forget_document(qljs_document*);
 
+  void publish_diagnostics(qljs_document*, ::Napi::Value diagnostics);
+  void delete_diagnostics(qljs_document*);
+
  private:
   document_type classify_document(::Napi::Object vscode_document);
 
@@ -340,9 +343,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
         is_config_file_(info[4].As<::Napi::Boolean>().Value()),
-        vscode_document_(::Napi::Persistent(info[1].As<::Napi::Object>())),
-        vscode_diagnostic_collection_ref_(
-            ::Napi::Persistent(info[3].As<::Napi::Object>())) {
+        vscode_document_(::Napi::Persistent(info[1].As<::Napi::Object>())) {
     ::Napi::Env env = info.Env();
     qljs_workspace* workspace =
         qljs_workspace::Unwrap(info[0].As<::Napi::Object>());
@@ -387,7 +388,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   void dispose() {
     QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
-    this->delete_diagnostics();
     // TODO(strager): Reduce memory usage of this instance.
   }
 
@@ -421,7 +421,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
  private:
-  void lint(::Napi::Env env, vscode_module* vscode) {
+  ::Napi::Array lint(::Napi::Env env, vscode_module* vscode) {
     vscode->load_non_persistent(env);
 
     vscode_error_reporter error_reporter(vscode, env,
@@ -433,33 +433,13 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       // TODO(strager): Show a pop-up message explaining that the parser
       // crashed.
     }
-    this->publish_diagnostics(error_reporter.diagnostics());
-  }
-
-  void publish_diagnostics(::Napi::Value diagnostics) {
-    this->vscode_diagnostic_collection_ref_.Get("set")
-        .As<::Napi::Function>()
-        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
-              {
-                  this->vscode_document_.uri(),
-                  diagnostics,
-              });
-  }
-
-  void delete_diagnostics() {
-    this->vscode_diagnostic_collection_ref_.Get("delete")
-        .As<::Napi::Function>()
-        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
-              {
-                  this->vscode_document_.uri(),
-              });
+    return std::move(error_reporter).diagnostics();
   }
 
   document<lsp_locator> document_;
   bool is_config_file_;
   configuration* config_;
   vscode_document vscode_document_;
-  ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
   friend class qljs_workspace;
 };
@@ -508,6 +488,26 @@ void qljs_workspace::forget_document(qljs_document* doc) {
   }
 }
 
+void qljs_workspace::publish_diagnostics(qljs_document* doc,
+                                         ::Napi::Value diagnostics) {
+  this->vscode_diagnostic_collection_ref_.Get("set")
+      .As<::Napi::Function>()
+      .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
+            {
+                doc->vscode_document_.uri(),
+                diagnostics,
+            });
+}
+
+void qljs_workspace::delete_diagnostics(qljs_document* doc) {
+  this->vscode_diagnostic_collection_ref_.Get("delete")
+      .As<::Napi::Function>()
+      .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
+            {
+                doc->vscode_document_.uri(),
+            });
+}
+
 document_type qljs_workspace::classify_document(
     ::Napi::Object vscode_document) {
   if (to_string(vscode_document.Get("languageId")) == "javascript") {
@@ -524,14 +524,15 @@ document_type qljs_workspace::classify_document(
 
 void qljs_workspace::after_modification(::Napi::Env env, qljs_document* doc) {
   if (!doc->is_config_file_) {
-    doc->lint(env, &this->vscode_);
+    this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
   }
 }
 
 void qljs_workspace::dispose_documents() {
-  this->qljs_documents_.for_each([](::Napi::Value value) -> void {
+  this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
     qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
     doc->dispose();
+    this->delete_diagnostics(doc);
   });
   this->qljs_documents_.clear();
   this->documents_.clear();
@@ -545,6 +546,7 @@ void qljs_workspace::dispose_documents() {
   if (!qljs_doc.IsUndefined()) {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     doc->dispose();
+    this->delete_diagnostics(doc);
     this->qljs_documents_.erase(vscode_document);
     this->forget_document(doc);
   }
