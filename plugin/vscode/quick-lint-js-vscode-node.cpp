@@ -437,21 +437,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
     qljs_document* doc;
     if (qljs_doc.IsUndefined()) {
-      document_type type = this->classify_document(vscode_document);
-      switch (type) {
-      case document_type::config:
-      case document_type::lintable:
-        doc = this->create_document(env,
-                                    /*vscode_document=*/vscode_document,
-                                    /*type=*/
-                                    type);
-        break;
-
-      case document_type::unknown:
-        // Ignore.
-        doc = nullptr;
-        break;
-      }
+      doc = this->maybe_create_document(env,
+                                        /*vscode_document=*/vscode_document);
     } else {
       doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     }
@@ -481,9 +468,18 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return env.Undefined();
   }
 
-  qljs_document* create_document(::Napi::Env env,
-                                 ::Napi::Object vscode_document,
-                                 document_type type) {
+  qljs_document* maybe_create_document(::Napi::Env env,
+                                       ::Napi::Object vscode_document) {
+    document_type type = this->classify_document(vscode_document);
+    switch (type) {
+    case document_type::unknown:
+      return nullptr;
+
+    case document_type::config:
+    case document_type::lintable:
+      break;
+    }
+
     addon_state* state = env.GetInstanceData<addon_state>();
 
     ::Napi::Object vscode_document_uri =
