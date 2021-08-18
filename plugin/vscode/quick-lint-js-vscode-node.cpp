@@ -385,11 +385,12 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return DefineClass(
         env, "QLJSWorkspace",
         {
+            InstanceMethod<&qljs_workspace::close_document>("closeDocument"),
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
-            InstanceMethod<&qljs_workspace::dispose_linter>("disposeLinter"),
+            InstanceMethod<&qljs_workspace::document_changed>(
+                "documentChanged"),
             InstanceMethod<&qljs_workspace::editor_visibility_changed>(
                 "editorVisibilityChanged"),
-            InstanceMethod<&qljs_workspace::replace_text>("replaceText"),
         });
   }
 
@@ -419,7 +420,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     this->fs_.clear();
   }
 
-  ::Napi::Value dispose_linter(const ::Napi::CallbackInfo& info) {
+  ::Napi::Value close_document(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
 
     ::Napi::Value vscode_document = info[0];
@@ -469,7 +470,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return env.Undefined();
   }
 
-  ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
+  ::Napi::Value document_changed(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
 
     ::Napi::Value vscode_document = info[0];

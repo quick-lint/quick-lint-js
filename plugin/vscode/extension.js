@@ -35,7 +35,7 @@ async function activateAsync() {
       let isBogusEvent = event.contentChanges.length === 0;
       if (!isBogusEvent) {
         logErrors(() => {
-          workspace.replaceText(event.document, event.contentChanges);
+          workspace.documentChanged(event.document, event.contentChanges);
         });
       }
     })
@@ -52,7 +52,7 @@ async function activateAsync() {
   toDispose.push(
     vscode.workspace.onDidCloseTextDocument((vscodeDocument) => {
       logErrors(() => {
-        workspace.disposeLinter(vscodeDocument);
+        workspace.closeDocument(vscodeDocument);
       });
     })
   );
