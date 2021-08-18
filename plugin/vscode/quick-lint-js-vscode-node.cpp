@@ -340,15 +340,15 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
         is_config_file_(info[4].As<::Napi::Boolean>().Value()),
-        workspace_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
-        workspace_(qljs_workspace::Unwrap(workspace_ref_.Value())),
         vscode_document_(::Napi::Persistent(info[1].As<::Napi::Object>())),
         vscode_diagnostic_collection_ref_(
             ::Napi::Persistent(info[3].As<::Napi::Object>())) {
     ::Napi::Env env = info.Env();
 
+    qljs_workspace* workspace =
+        qljs_workspace::Unwrap(info[0].As<::Napi::Object>());
     std::optional<std::string> file_path = to_optional_string(info[2]);
-    this->config_ = &this->workspace_->default_config_;
+    this->config_ = &workspace->default_config_;
     if (file_path.has_value()) {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", this,
                      file_path->c_str());
@@ -357,10 +357,9 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
                      file_path->c_str());
     }
     if (file_path.has_value() &&
-        !this->workspace_->config_loader_.is_config_file_path(*file_path)) {
+        !workspace->config_loader_.is_config_file_path(*file_path)) {
       auto loaded_config_result =
-          this->workspace_->config_loader_.watch_and_load_for_file(*file_path,
-                                                                   this);
+          workspace->config_loader_.watch_and_load_for_file(*file_path, this);
       if (loaded_config_result.ok()) {
         loaded_config_file* loaded_config = *loaded_config_result;
         if (loaded_config) {
@@ -372,19 +371,18 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
             "Failed to load configuration file for " + *file_path +
             ". Using default configuration.\nError details: " +
             loaded_config_result.error_to_string();
-        call_on_next_tick(
-            env, this->workspace_->vscode_.window_show_error_message.Value(),
-            /*this=*/this->workspace_->vscode_.window_namespace.Value(),
-            {
-                ::Napi::String::New(env, message),
-            });
+        call_on_next_tick(env,
+                          workspace->vscode_.window_show_error_message.Value(),
+                          /*this=*/workspace->vscode_.window_namespace.Value(),
+                          {
+                              ::Napi::String::New(env, message),
+                          });
       }
     }
   }
 
   void dispose() {
     QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
-    this->workspace_->forget_document(this);
     this->delete_diagnostics();
     // TODO(strager): Reduce memory usage of this instance.
   }
@@ -419,8 +417,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
  private:
-  void lint(::Napi::Env env) {
-    vscode_module* vscode = &this->workspace_->vscode_;
+  void lint(::Napi::Env env, vscode_module* vscode) {
     vscode->load_non_persistent(env);
 
     vscode_error_reporter error_reporter(vscode, env,
@@ -457,8 +454,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   document<lsp_locator> document_;
   bool is_config_file_;
   configuration* config_;
-  ::Napi::ObjectReference workspace_ref_;
-  qljs_workspace* workspace_;
   vscode_document vscode_document_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
@@ -525,7 +520,7 @@ document_type qljs_workspace::classify_document(
 
 void qljs_workspace::after_modification(::Napi::Env env, qljs_document* doc) {
   if (!doc->is_config_file_) {
-    doc->lint(env);
+    doc->lint(env, &this->vscode_);
   }
 }
 
@@ -535,6 +530,7 @@ void qljs_workspace::dispose_documents() {
     doc->dispose();
   });
   this->qljs_documents_.clear();
+  this->documents_.clear();
 }
 
 ::Napi::Value qljs_workspace::dispose_linter(const ::Napi::CallbackInfo& info) {
@@ -546,6 +542,7 @@ void qljs_workspace::dispose_documents() {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     doc->dispose();
     this->qljs_documents_.erase(vscode_document);
+    this->forget_document(doc);
   }
 
   return env.Undefined();
