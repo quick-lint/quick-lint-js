@@ -1565,7 +1565,7 @@ quick-lint-js version 0.3.0</code></pre>
             <code class="vim">call&nbsp;plug#begin(...)</code> and
             <code class="vim">call&nbsp;plug#end()</code>:
             <blockquote>
-              <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+              <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'tag': '0.3.0'}</code></pre>
             </blockquote>
           </li>
           <li>Restart Vim.</li>
@@ -1576,6 +1576,11 @@ quick-lint-js version 0.3.0</code></pre>
         <p>
           This option requires
           <a href="https://github.com/VundleVim/Vundle.vim">Vundle</a>.
+        </p>
+        <p>
+          Using Vundle is <em>not recommended</em>. Vundle doesn't support
+          version pinning. We recommend using a
+          <a href="#manual-vim">different Vim plugin manager</a>.
         </p>
         <ol>
           <li>
