@@ -303,7 +303,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
   // qljs_document-s opened for editing.
-  std::unordered_map<std::string, ::Napi::ObjectReference> documents_;
+  std::unordered_map<std::string, qljs_document*> documents_;
 
   friend class qljs_document;
 };
@@ -430,14 +430,12 @@ qljs_document* qljs_workspace::find_document(std::string_view path) {
   if (doc_it == this->documents_.end()) {
     return nullptr;
   }
-  return qljs_document::Unwrap(doc_it->second.Value());
+  return doc_it->second;
 }
 
 void qljs_workspace::forget_document(qljs_document* doc) {
-  auto doc_it = std::find_if(
-      this->documents_.begin(), this->documents_.end(), [&](auto& pair) {
-        return qljs_document::Unwrap(pair.second.Value()) == doc;
-      });
+  auto doc_it = std::find_if(this->documents_.begin(), this->documents_.end(),
+                             [&](auto& pair) { return pair.second == doc; });
   if (doc_it == this->documents_.end()) {
     // The document could be missing for any of the following reasons:
     // * Our extension was loaded after the document was opened.
@@ -586,8 +584,7 @@ void qljs_workspace::dispose_documents() {
   }
   doc->init(env, this, file_path, type == document_type::config);
   if (file_path.has_value()) {
-    auto [_it, inserted] =
-        this->documents_.try_emplace(*file_path, ::Napi::Persistent(js_doc));
+    auto [_it, inserted] = this->documents_.try_emplace(*file_path, doc);
     QLJS_ASSERT(inserted);
   }
   return js_doc;
