@@ -223,6 +223,102 @@ class vscode_error_reporter final : public error_reporter {
   const lsp_locator* locator_;
 };
 
+class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
+ public:
+  static ::Napi::Function init(::Napi::Env env) {
+    return DefineClass(env, "QLJSDocument", {});
+  }
+
+  explicit qljs_document(const ::Napi::CallbackInfo& info)
+      : ::Napi::ObjectWrap<qljs_document>(info),
+        vscode_document_(::Napi::Persistent(info[0].As<::Napi::Object>())) {}
+
+  void init(::Napi::Env env, configuration* default_config,
+            configuration_loader& config_loader, vscode_module* vscode,
+            const std::optional<std::string>& file_path, document_type type) {
+    this->type_ = type;
+    this->config_ = default_config;
+    if (file_path.has_value() && type == document_type::lintable) {
+      auto loaded_config_result =
+          config_loader.watch_and_load_for_file(*file_path, this);
+      if (loaded_config_result.ok()) {
+        loaded_config_file* loaded_config = *loaded_config_result;
+        if (loaded_config) {
+          // TODO(strager): Show config parse errors.
+          this->config_ = &loaded_config->config;
+        }
+      } else {
+        std::string message =
+            "Failed to load configuration file for " + *file_path +
+            ". Using default configuration.\nError details: " +
+            loaded_config_result.error_to_string();
+        call_on_next_tick(env, vscode->window_show_error_message.Value(),
+                          /*this=*/vscode->window_namespace.Value(),
+                          {
+                              ::Napi::String::New(env, message),
+                          });
+      }
+    }
+  }
+
+  void dispose() {
+    QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
+    // TODO(strager): Reduce memory usage of this instance.
+  }
+
+  void replace_text(::Napi::Array changes) {
+    QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
+    for (std::uint32_t i = 0; i < changes.Length(); ++i) {
+      ::Napi::Object change = changes.Get(i).As<::Napi::Object>();
+      ::Napi::Object range = change.Get("range").As<::Napi::Object>();
+      ::Napi::Object start = range.Get("start").As<::Napi::Object>();
+      ::Napi::Object end = range.Get("end").As<::Napi::Object>();
+      lsp_range r = {
+          .start =
+              {
+                  .line = to_int(start.Get("line")),
+                  .character = to_int(start.Get("character")),
+              },
+          .end =
+              {
+                  .line = to_int(end.Get("line")),
+                  .character = to_int(end.Get("character")),
+              },
+      };
+      std::string replacement_text =
+          change.Get("text").As<::Napi::String>().Utf8Value();
+      this->document_.replace_text(r, to_string8_view(replacement_text));
+    }
+  }
+
+  padded_string_view document_string() noexcept {
+    return this->document_.string();
+  }
+
+ private:
+  ::Napi::Array lint(::Napi::Env env, vscode_module* vscode) {
+    vscode->load_non_persistent(env);
+
+    vscode_error_reporter error_reporter(vscode, env,
+                                         &this->document_.locator());
+    parser p(this->document_.string(), &error_reporter);
+    linter l(&error_reporter, &this->config_->globals());
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
+    if (!ok) {
+      // TODO(strager): Show a pop-up message explaining that the parser
+      // crashed.
+    }
+    return std::move(error_reporter).diagnostics();
+  }
+
+  document<lsp_locator> document_;
+  document_type type_;
+  configuration* config_;
+  vscode_document vscode_document_;
+
+  friend class qljs_workspace;
+};
+
 // A configuration_filesystem which allows unsaved VS Code documents to appear
 // as real files.
 class vscode_configuration_filesystem : public configuration_filesystem {
@@ -330,102 +426,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
   friend class qljs_document;
-};
-
-class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
- public:
-  static ::Napi::Function init(::Napi::Env env) {
-    return DefineClass(env, "QLJSDocument", {});
-  }
-
-  explicit qljs_document(const ::Napi::CallbackInfo& info)
-      : ::Napi::ObjectWrap<qljs_document>(info),
-        vscode_document_(::Napi::Persistent(info[0].As<::Napi::Object>())) {}
-
-  void init(::Napi::Env env, configuration* default_config,
-            configuration_loader& config_loader, vscode_module* vscode,
-            const std::optional<std::string>& file_path, document_type type) {
-    this->type_ = type;
-    this->config_ = default_config;
-    if (file_path.has_value() && type == document_type::lintable) {
-      auto loaded_config_result =
-          config_loader.watch_and_load_for_file(*file_path, this);
-      if (loaded_config_result.ok()) {
-        loaded_config_file* loaded_config = *loaded_config_result;
-        if (loaded_config) {
-          // TODO(strager): Show config parse errors.
-          this->config_ = &loaded_config->config;
-        }
-      } else {
-        std::string message =
-            "Failed to load configuration file for " + *file_path +
-            ". Using default configuration.\nError details: " +
-            loaded_config_result.error_to_string();
-        call_on_next_tick(env, vscode->window_show_error_message.Value(),
-                          /*this=*/vscode->window_namespace.Value(),
-                          {
-                              ::Napi::String::New(env, message),
-                          });
-      }
-    }
-  }
-
-  void dispose() {
-    QLJS_DEBUG_LOG("Document %p: Disposing\n", this);
-    // TODO(strager): Reduce memory usage of this instance.
-  }
-
-  void replace_text(::Napi::Array changes) {
-    QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
-    for (std::uint32_t i = 0; i < changes.Length(); ++i) {
-      ::Napi::Object change = changes.Get(i).As<::Napi::Object>();
-      ::Napi::Object range = change.Get("range").As<::Napi::Object>();
-      ::Napi::Object start = range.Get("start").As<::Napi::Object>();
-      ::Napi::Object end = range.Get("end").As<::Napi::Object>();
-      lsp_range r = {
-          .start =
-              {
-                  .line = to_int(start.Get("line")),
-                  .character = to_int(start.Get("character")),
-              },
-          .end =
-              {
-                  .line = to_int(end.Get("line")),
-                  .character = to_int(end.Get("character")),
-              },
-      };
-      std::string replacement_text =
-          change.Get("text").As<::Napi::String>().Utf8Value();
-      this->document_.replace_text(r, to_string8_view(replacement_text));
-    }
-  }
-
-  padded_string_view document_string() noexcept {
-    return this->document_.string();
-  }
-
- private:
-  ::Napi::Array lint(::Napi::Env env, vscode_module* vscode) {
-    vscode->load_non_persistent(env);
-
-    vscode_error_reporter error_reporter(vscode, env,
-                                         &this->document_.locator());
-    parser p(this->document_.string(), &error_reporter);
-    linter l(&error_reporter, &this->config_->globals());
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
-    if (!ok) {
-      // TODO(strager): Show a pop-up message explaining that the parser
-      // crashed.
-    }
-    return std::move(error_reporter).diagnostics();
-  }
-
-  document<lsp_locator> document_;
-  document_type type_;
-  configuration* config_;
-  vscode_document vscode_document_;
-
-  friend class qljs_workspace;
 };
 
 result<canonical_path_result, canonicalize_path_io_error>
