@@ -106,7 +106,10 @@ class EditorMarker {
           mark.setAttribute("data-severity", currentMark.severity);
         }
 
-        if (
+        if (this._markBeginNode === null) {
+          // Special case: insert an empty <mark> at the end.
+          this._editor.appendChild(mark);
+        } else if (
           this._markEndNode === null ||
           this._markBeginNode === this._markEndNode.nextSibling
         ) {
@@ -141,11 +144,7 @@ class EditorMarker {
       if (splitIndex === 0) {
         return currentNode;
       } else if (splitIndex === currentNode.textContent.length) {
-        if (currentNode.nextSibling === null) {
-          throw new Error("Can't happen");
-        } else {
-          return currentNode.nextSibling;
-        }
+        return currentNode.nextSibling;
       } else {
         let nextNode = splitTextNode(currentNode, splitIndex, self._window);
         return nextNode;
