@@ -237,8 +237,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       : ::Napi::ObjectWrap<qljs_workspace>(info),
         vscode_(info[0].As<::Napi::Object>()),
         fs_(this),
-        qljs_documents_(::Napi::Persistent(
-            info.Env().Global().Get("Map").As<::Napi::Function>().New({}))),
+        qljs_documents_(info.Env()),
         vscode_diagnostic_collection_ref_(
             ::Napi::Persistent(info[1].As<::Napi::Object>())) {}
 
@@ -300,7 +299,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
   // Mapping from vscode.Document to qljs.QLJSDocument (qljs_document).
-  ::Napi::ObjectReference qljs_documents_;
+  js_map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
   // qljs_document-s opened for editing.
@@ -524,41 +523,22 @@ document_type qljs_workspace::classify_document(
 }
 
 void qljs_workspace::dispose_documents() {
-  ::Napi::Object iterator =
-      this->qljs_documents_.Get("values")
-          .As<::Napi::Function>()
-          .Call(/*this=*/this->qljs_documents_.Value(), {})
-          .As<::Napi::Object>();
-  for (;;) {
-    ::Napi::Object entry = iterator.Get("next")
-                               .As<::Napi::Function>()
-                               .Call(/*this=*/iterator, {})
-                               .As<::Napi::Object>();
-    bool done = entry.Get("done").As<::Napi::Boolean>().Value();
-    if (done) {
-      break;
-    }
-    qljs_document* doc =
-        qljs_document::Unwrap(entry.Get("value").As<::Napi::Object>());
+  this->qljs_documents_.for_each([](::Napi::Value value) -> void {
+    qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
     doc->dispose();
-  }
-
-  this->qljs_documents_.Get("clear").As<::Napi::Function>().Call(
-      /*this=*/this->qljs_documents_.Value(), {});
+  });
+  this->qljs_documents_.clear();
 }
 
 ::Napi::Value qljs_workspace::dispose_linter(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
 
   ::Napi::Value vscode_document = info[0];
-  ::Napi::Value qljs_doc =
-      this->qljs_documents_.Get("get").As<::Napi::Function>().Call(
-          /*this=*/this->qljs_documents_.Value(), {vscode_document});
+  ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
   if (!qljs_doc.IsUndefined()) {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     doc->dispose();
-    this->qljs_documents_.Get("delete").As<::Napi::Function>().Call(
-        /*this=*/this->qljs_documents_.Value(), {vscode_document});
+    this->qljs_documents_.erase(vscode_document);
   }
 
   return env.Undefined();
@@ -569,9 +549,7 @@ void qljs_workspace::dispose_documents() {
   ::Napi::Env env = info.Env();
 
   ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
-  ::Napi::Value qljs_doc =
-      this->qljs_documents_.Get("get").As<::Napi::Function>().Call(
-          /*this=*/this->qljs_documents_.Value(), {vscode_document});
+  ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
   if (qljs_doc.IsUndefined()) {
     document_type type = this->classify_document(vscode_document);
     switch (type) {
@@ -581,8 +559,7 @@ void qljs_workspace::dispose_documents() {
                                        /*vscode_document=*/vscode_document,
                                        /*type=*/
                                        type);
-      this->qljs_documents_.Get("set").As<::Napi::Function>().Call(
-          /*this=*/this->qljs_documents_.Value(), {vscode_document, qljs_doc});
+      this->qljs_documents_.set(vscode_document, qljs_doc);
       break;
 
     case document_type::unknown:
@@ -603,9 +580,7 @@ void qljs_workspace::dispose_documents() {
   ::Napi::Env env = info.Env();
 
   ::Napi::Value vscode_document = info[0];
-  ::Napi::Value qljs_doc =
-      this->qljs_documents_.Get("get").As<::Napi::Function>().Call(
-          /*this=*/this->qljs_documents_.Value(), {vscode_document});
+  ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
   if (!qljs_doc.IsUndefined()) {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     ::Napi::Array changes = info[1].As<::Napi::Array>();

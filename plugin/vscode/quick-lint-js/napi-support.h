@@ -27,7 +27,8 @@ inline std::string to_string(::Napi::Value v) {
 }
 
 inline void call_on_next_tick(::Napi::Env env, ::Napi::Function func,
-                       ::napi_value self, std::vector<::napi_value> args) {
+                              ::napi_value self,
+                              std::vector<::napi_value> args) {
   args.insert(args.begin(), self);
   ::Napi::Value next_tick_callback =
       func.Get("bind").As<::Napi::Function>().Call(func, std::move(args));
@@ -38,6 +39,62 @@ inline void call_on_next_tick(::Napi::Env env, ::Napi::Function func,
       .As<::Napi::Function>()
       .Call({next_tick_callback});
 }
+
+// The JavaScript Map class.
+class js_map {
+ public:
+  // new Map()
+  explicit js_map(::Napi::Env env)
+      : map_(::Napi::Persistent(
+            env.Global().Get("Map").As<::Napi::Function>().New({}))) {}
+
+  // Map#get(key)
+  ::Napi::Value get(::Napi::Value key) {
+    return this->map_.Get("get").As<::Napi::Function>().Call(
+        /*this=*/this->map_.Value(), {key});
+  }
+
+  // Map#set(key, value)
+  void set(::Napi::Value key, ::Napi::Value value) {
+    this->map_.Get("set").As<::Napi::Function>().Call(
+        /*this=*/this->map_.Value(), {key, value});
+  }
+
+  // Map#delete(key)
+  void erase(::Napi::Value key) {
+    this->map_.Get("delete").As<::Napi::Function>().Call(
+        /*this=*/this->map_.Value(), {key});
+  }
+
+  // Map#clear()
+  void clear() {
+    this->map_.Get("clear").As<::Napi::Function>().Call(
+        /*this=*/this->map_.Value(), {});
+  }
+
+  // Map#forEach(callback)
+  template <class Func>
+  void for_each(Func&& callback) {
+    ::Napi::Object iterator = this->map_.Get("values")
+                                  .As<::Napi::Function>()
+                                  .Call(/*this=*/this->map_.Value(), {})
+                                  .As<::Napi::Object>();
+    for (;;) {
+      ::Napi::Object entry = iterator.Get("next")
+                                 .As<::Napi::Function>()
+                                 .Call(/*this=*/iterator, {})
+                                 .As<::Napi::Object>();
+      bool done = entry.Get("done").As<::Napi::Boolean>().Value();
+      if (done) {
+        break;
+      }
+      callback(entry.Get("value"));
+    }
+  }
+
+ private:
+  ::Napi::ObjectReference map_;
+};
 }
 
 #endif
