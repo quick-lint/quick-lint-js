@@ -19,8 +19,6 @@ async function activateAsync() {
   toDispose.push(diagnostics);
 
   let workspace = qljs.createWorkspace({
-    // Mapping from vscode.Document to qljs.QLJSDocument.
-    qljsDocuments: new Map(),
     vscode: vscode,
     vscodeDiagnosticCollection: diagnostics,
   });
