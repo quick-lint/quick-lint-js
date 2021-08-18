@@ -96,7 +96,13 @@ describe("markEditorText", () => {
     assert.strictEqual(editor.innerHTML, "hello<mark>world</mark>");
   });
 
-  it("add empty mark", () => {
+  it("add empty mark at beginning", () => {
+    let editor = preElementWithHTML("helloworld");
+    markEditorText(editor, dom.window, [{ begin: 0, end: 0 }]);
+    assert.strictEqual(editor.innerHTML, "<mark></mark>helloworld");
+  });
+
+  it("add empty mark in middle", () => {
     let editor = preElementWithHTML("helloworld");
     markEditorText(editor, dom.window, [{ begin: 5, end: 5 }]);
     assert.strictEqual(editor.innerHTML, "hello<mark></mark>world");

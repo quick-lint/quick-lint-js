@@ -106,7 +106,10 @@ class EditorMarker {
           mark.setAttribute("data-severity", currentMark.severity);
         }
 
-        if (this._markBeginNode === this._markEndNode.nextSibling) {
+        if (
+          this._markEndNode === null ||
+          this._markBeginNode === this._markEndNode.nextSibling
+        ) {
           // Special case: insert an empty <mark>.
           if (currentMark.begin !== currentMark.end) {
             throw new Error(
@@ -133,6 +136,7 @@ class EditorMarker {
       return currentNodeBeginOffset <= offset && offset <= currentNodeEndOffset;
     }
 
+    // Returns the first node which should be inside the <mark>.
     function splitNodeAtMarkBegin(splitIndex) {
       if (splitIndex === 0) {
         return currentNode;
@@ -148,6 +152,7 @@ class EditorMarker {
       }
     }
 
+    // Returns the last node which should be inside the <mark>.
     function splitNodeAtMarkEnd(splitIndex) {
       if (splitIndex === 0) {
         return currentNode.previousSibling;
