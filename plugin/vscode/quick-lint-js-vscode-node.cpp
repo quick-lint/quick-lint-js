@@ -114,25 +114,34 @@ struct vscode_module {
   ::Napi::FunctionReference window_show_error_message;
 };
 
-// A wrapper around a vscode.Document.
+// A non-owning wrapper around a vscode.Document.
 class vscode_document {
  public:
-  explicit vscode_document(::Napi::ObjectReference&& doc)
-      : doc_(std::move(doc)) {}
+  // Do not call.
+  explicit vscode_document() : vscode_document(::Napi::Object()) {}
+
+  // Do not call.
+  explicit vscode_document(napi_env env, napi_value value)
+      : vscode_document(::Napi::Object(env, value)) {}
+
+  explicit vscode_document(::Napi::Object doc) : doc_(doc) {}
 
   // vscode.Document#getText()
   ::Napi::String get_text() {
     return this->doc_.Get("getText")
         .As<::Napi::Function>()
-        .Call(this->doc_.Value(), {})
+        .Call(this->doc_, {})
         .As<::Napi::String>();
   }
 
   // vscode.Document#uri
   ::Napi::Object uri() { return this->doc_.Get("uri").As<::Napi::Object>(); }
 
+  napi_env Env() const { return this->doc_.Env(); }
+  operator napi_value() const { return this->doc_; }
+
  private:
-  ::Napi::ObjectReference doc_;
+  ::Napi::Object doc_;
 };
 
 class vscode_error_formatter
@@ -231,7 +240,9 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
-        vscode_document_(::Napi::Persistent(info[0].As<::Napi::Object>())) {}
+        vscode_document_(
+            ::Napi::Persistent(vscode_document(info[0].As<::Napi::Object>()))) {
+  }
 
   void init(::Napi::Env env, configuration* default_config,
             configuration_loader& config_loader, vscode_module* vscode,
@@ -309,7 +320,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   document<lsp_locator> document_;
   document_type type_;
   configuration* config_;
-  vscode_document vscode_document_;
+  ::Napi::Reference<vscode_document> vscode_document_;
 
   friend class qljs_workspace;
 };
@@ -444,7 +455,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
 
     if (doc) {
-      ::Napi::String text = doc->vscode_document_.get_text();
+      ::Napi::String text = doc->vscode_document_.Value().get_text();
       doc->document_.set_text(to_string8_view(text.Utf8Value()));
 
       this->after_modification(env, doc);
@@ -511,7 +522,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
               {
-                  doc->vscode_document_.uri(),
+                  doc->vscode_document_.Value().uri(),
                   diagnostics,
               });
   }
@@ -521,7 +532,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
               {
-                  doc->vscode_document_.uri(),
+                  doc->vscode_document_.Value().uri(),
               });
   }
 
