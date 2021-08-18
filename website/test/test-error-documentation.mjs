@@ -73,7 +73,10 @@ wasn't that neat?
 `
     );
     expect(doc.codeBlocks).toEqual([
-      "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
+      {
+        language: "javascript",
+        text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
+      },
     ]);
   });
 
@@ -94,7 +97,10 @@ wasn't that neat?
 `
     );
     expect(doc.codeBlocks).toEqual([
-      "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
+      {
+        language: "javascript",
+        text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
+      },
     ]);
   });
 
@@ -115,7 +121,10 @@ wasn't that neat?
 `
     );
     expect(doc.codeBlocks).toEqual([
-      "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
+      {
+        language: "testscript",
+        text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
+      },
     ]);
   });
 
@@ -135,7 +144,11 @@ second
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual(["first\n", "second\n", "third\n"]);
+    expect(doc.codeBlocks).toEqual([
+      { language: "javascript", text: "first\n" },
+      { language: "javascript", text: "second\n" },
+      { language: "javascript", text: "third\n" },
+    ]);
   });
 
   it("html wraps byte order mark", () => {
@@ -182,6 +195,44 @@ wasn't that neat?
     possibilities.forEach((possibility) => {
       expect(codeHasBOM(possibility)).toBe(false);
     });
+  });
+
+  it("lint JavaScript", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "    let x;\n    let x;\n"
+    );
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([
+      [
+        {
+          code: "E034",
+          message: "redeclaration of variable: x",
+          severity: 1,
+          begin: 11,
+          end: 12,
+        },
+      ],
+    ]);
+  });
+
+  it("lint config file", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      '```quick-lint-js.config\n{"globals": false}\n```\n'
+    );
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([
+      [
+        {
+          code: "E168",
+          message: '"globals" must be an object',
+          severity: 1,
+          begin: 12,
+          end: 17,
+        },
+      ],
+    ]);
   });
 });
 

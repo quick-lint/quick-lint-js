@@ -37,6 +37,15 @@ class qljs_document_base {
     return this->error_reporter_.get_diagnostics();
   }
 
+  const auto* lint_as_config_file() {
+    this->error_reporter_.reset();
+    this->error_reporter_.set_input(this->document_.string(),
+                                    &this->document_.locator());
+    configuration().load_from_json(this->document_.string(),
+                                   &this->error_reporter_);
+    return this->error_reporter_.get_diagnostics();
+  }
+
   quick_lint_js::document<Locator> document_;
   ErrorReporter error_reporter_;
   configuration config_;
@@ -71,6 +80,11 @@ void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
 
 const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
   return p->lint();
+}
+
+const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
+    qljs_web_demo_document* p) {
+  return p->lint_as_config_file();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

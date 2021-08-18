@@ -117,8 +117,12 @@ export class ErrorDocumentation {
     let process = await factory.createProcessAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
-      doc.setText(this.codeBlocks[i]);
-      let diagnostics = doc.lint();
+      let { text, language } = this.codeBlocks[i];
+      doc.setText(text);
+      let diagnostics =
+        language === "quick-lint-js.config"
+          ? doc.lintAsConfigFile()
+          : doc.lint();
       this.diagnostics.push(diagnostics);
     }
     assert.strictEqual(this.diagnostics.length, this.codeBlocks.length);
@@ -160,8 +164,14 @@ export class ErrorDocumentation {
           break;
 
         case "code_block":
+          codeBlocks.push({ text: token.content, language: "javascript" });
+          break;
+
         case "fence":
-          codeBlocks.push(token.content);
+          codeBlocks.push({
+            text: token.content,
+            language: token.info || "javascript",
+          });
           break;
 
         case "inline":

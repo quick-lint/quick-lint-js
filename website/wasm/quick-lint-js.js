@@ -152,6 +152,7 @@ class Process {
     this._webDemoCreateDocument = wrap("qljs_web_demo_create_document");
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
+    this._webDemoLintAsConfigFile = wrap("qljs_web_demo_lint_as_config_file");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
   }
 
@@ -209,7 +210,17 @@ class DocumentForWebDemo {
 
   lint() {
     let diagnosticsPointer = this._process._webDemoLint(this._wasmDoc);
+    return this._parseDiagnostics(diagnosticsPointer);
+  }
 
+  lintAsConfigFile() {
+    let diagnosticsPointer = this._process._webDemoLintAsConfigFile(
+      this._wasmDoc
+    );
+    return this._parseDiagnostics(diagnosticsPointer);
+  }
+
+  _parseDiagnostics(diagnosticsPointer) {
     let rawDiagnosticsU32 = new Uint32Array(
       this._process._heap,
       diagnosticsPointer
