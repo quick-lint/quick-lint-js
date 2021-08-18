@@ -316,7 +316,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
-        vscode_document_(::Napi::Persistent(info[1].As<::Napi::Object>())) {}
+        vscode_document_(::Napi::Persistent(info[0].As<::Napi::Object>())) {}
 
   void init(::Napi::Env env, qljs_workspace* workspace,
             const std::optional<std::string>& file_path, bool is_config_file) {
@@ -575,16 +575,7 @@ void qljs_workspace::dispose_documents() {
   if (to_string(vscode_document_uri.Get("scheme")) == "file") {
     file_path = to_string(vscode_document_uri.Get("fsPath"));
   }
-  ::Napi::Object js_doc = state->qljs_document_class.New({
-      /*workspace=*/this->Value(),
-      /*vscode_document=*/vscode_document,
-      /*file_path=*/file_path.has_value() ? ::Napi::String::New(env, *file_path)
-                                          : env.Null(),
-      /*vscode_diagnostic_collection=*/
-      this->vscode_diagnostic_collection_ref_.Value(),
-      /*is_config_file=*/
-      ::Napi::Boolean::New(env, type == document_type::config),
-  });
+  ::Napi::Object js_doc = state->qljs_document_class.New({vscode_document});
   qljs_document* doc = qljs_document::Unwrap(js_doc);
   if (file_path.has_value()) {
     QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
