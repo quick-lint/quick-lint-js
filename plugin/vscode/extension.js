@@ -24,7 +24,7 @@ class Workspace {
       vscode: vscode,
     });
 
-    // Mapping from URI string to qljs.QLJSDocument.
+    // Mapping from vscode.Document to qljs.QLJSDocument.
     this._qljsDocuments = new Map();
   }
 
@@ -50,8 +50,7 @@ class Workspace {
 
   // Returns null if no associated linter exists.
   getExistingLinter(vscodeDocument) {
-    let documentURIString = vscodeDocument.uri.toString();
-    let qljsDocument = this._qljsDocuments.get(documentURIString);
+    let qljsDocument = this._qljsDocuments.get(vscodeDocument);
     if (typeof qljsDocument === "undefined") {
       return null;
     }
@@ -61,10 +60,9 @@ class Workspace {
   // Throws if an associated linter already exists (i.e. if
   // getExistingLinter(vscodeDocument) returns non-null).
   createLinter(vscodeDocument, documentType) {
-    let documentURIString = vscodeDocument.uri.toString();
-    if (this._qljsDocuments.has(documentURIString)) {
+    if (this._qljsDocuments.has(vscodeDocument)) {
       throw new Error(
-        `Document already created for vscode.Document ${documentURIString}`
+        `Document already created for vscode.Document ${vscodeDocument.uri.toString()}`
       );
     }
     let qljsDocument = this._qljsWorkspace.createDocument(
@@ -72,23 +70,22 @@ class Workspace {
       this._diagnosticCollection,
       /*isConfigFile=*/ documentType === DocumentType.CONFIG
     );
-    this._qljsDocuments.set(documentURIString, qljsDocument);
+    this._qljsDocuments.set(vscodeDocument, qljsDocument);
     return qljsDocument;
   }
 
   disposeLinter(vscodeDocument) {
-    let documentURIString = vscodeDocument.uri.toString();
-    let qljsDocument = this._qljsDocuments.get(documentURIString);
+    let qljsDocument = this._qljsDocuments.get(vscodeDocument);
     if (typeof qljsDocument !== "undefined") {
       qljsDocument.dispose();
-      this._qljsDocuments.delete(documentURIString);
+      this._qljsDocuments.delete(vscodeDocument);
     }
   }
 
   dispose() {
     let qljsDocuments = this._qljsDocuments;
     this._qljsDocuments = new Map();
-    for (let [_uri, qljsDocument] of qljsDocuments) {
+    for (let [_vscodeDocument, qljsDocument] of qljsDocuments) {
       qljsDocument.dispose();
     }
   }
