@@ -12,19 +12,11 @@ let qljs = require(path.join(
   `./dist/quick-lint-js-vscode-node_${os.platform()}-${os.arch()}.node`
 ));
 
-let DocumentType = {
-  CONFIG: "CONFIG",
-  LINTABLE: "LINTABLE",
-};
-
 class Workspace {
   constructor(diagnosticCollection) {
-    // Mapping from vscode.Document to qljs.QLJSDocument.
-    this._qljsDocuments = new Map();
-
-    this._diagnosticCollection = diagnosticCollection;
     this._qljsWorkspace = qljs.createWorkspace({
-      qljsDocuments: this._qljsDocuments,
+      // Mapping from vscode.Document to qljs.QLJSDocument.
+      qljsDocuments: new Map(),
       vscode: vscode,
       vscodeDiagnosticCollection: diagnosticCollection,
     });
@@ -38,54 +30,12 @@ class Workspace {
     this._qljsWorkspace.editorVisibilityChanged(vscodeDocument);
   }
 
-  // Returns null if no associated linter exists.
-  getExistingLinter(vscodeDocument) {
-    let qljsDocument = this._qljsDocuments.get(vscodeDocument);
-    if (typeof qljsDocument === "undefined") {
-      return null;
-    }
-    return qljsDocument;
-  }
-
-  // Throws if an associated linter already exists (i.e. if
-  // getExistingLinter(vscodeDocument) returns non-null).
-  createLinter(vscodeDocument, documentType) {
-    if (this._qljsDocuments.has(vscodeDocument)) {
-      throw new Error(
-        `Document already created for vscode.Document ${vscodeDocument.uri.toString()}`
-      );
-    }
-    let qljsDocument = this._qljsWorkspace.createDocument(
-      vscodeDocument,
-      this._diagnosticCollection,
-      /*isConfigFile=*/ documentType === DocumentType.CONFIG
-    );
-    this._qljsDocuments.set(vscodeDocument, qljsDocument);
-    return qljsDocument;
-  }
-
   disposeLinter(vscodeDocument) {
     this._qljsWorkspace.disposeLinter(vscodeDocument);
   }
 
   dispose() {
     this._qljsWorkspace.dispose();
-  }
-
-  // Returns a DocumentType.
-  //
-  // Returns null if this extension should ignore the document.
-  classifyDocument(vscodeDocument) {
-    if (vscodeDocument.languageId === "javascript") {
-      return DocumentType.LINTABLE;
-    }
-    if (
-      vscodeDocument.uri.scheme === "file" &&
-      this._qljsWorkspace.isConfigFilePath(vscodeDocument.uri.fsPath)
-    ) {
-      return DocumentType.CONFIG;
-    }
-    return null;
   }
 }
 exports.Workspace = Workspace;
