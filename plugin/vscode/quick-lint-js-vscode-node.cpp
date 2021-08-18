@@ -279,34 +279,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   ::Napi::Value replace_text(const ::Napi::CallbackInfo& info);
 
-  ::Napi::Value create_document(::Napi::Env env, ::Napi::Object vscode_document,
-                                document_type type) {
-    addon_state* state = env.GetInstanceData<addon_state>();
-
-    ::Napi::Object vscode_document_uri =
-        vscode_document.Get("uri").As<::Napi::Object>();
-    std::optional<std::string> file_path = std::nullopt;
-    if (to_string(vscode_document_uri.Get("scheme")) == "file") {
-      file_path = to_string(vscode_document_uri.Get("fsPath"));
-    }
-    ::Napi::Object doc = state->qljs_document_class.New({
-        /*workspace=*/this->Value(),
-        /*vscode_document=*/vscode_document,
-        /*file_path=*/file_path.has_value()
-            ? ::Napi::String::New(env, *file_path)
-            : env.Null(),
-        /*vscode_diagnostic_collection=*/
-        this->vscode_diagnostic_collection_ref_.Value(),
-        /*is_config_file=*/
-        ::Napi::Boolean::New(env, type == document_type::config),
-    });
-    if (file_path.has_value()) {
-      auto [_it, inserted] =
-          this->documents_.try_emplace(*file_path, ::Napi::Persistent(doc));
-      QLJS_ASSERT(inserted);
-    }
-    return doc;
-  }
+  ::Napi::Value create_document(::Napi::Env, ::Napi::Object vscode_document,
+                                document_type);
 
   qljs_document* find_document(std::string_view path);
 
@@ -342,26 +316,12 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   explicit qljs_document(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_document>(info),
-        is_config_file_(info[4].As<::Napi::Boolean>().Value()),
-        vscode_document_(::Napi::Persistent(info[1].As<::Napi::Object>())) {
-    ::Napi::Env env = info.Env();
-    qljs_workspace* workspace =
-        qljs_workspace::Unwrap(info[0].As<::Napi::Object>());
-    std::optional<std::string> file_path = to_optional_string(info[2]);
-    if (file_path.has_value()) {
-      QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", this,
-                     file_path->c_str());
-    } else {
-      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", this,
-                     file_path->c_str());
-    }
+        vscode_document_(::Napi::Persistent(info[1].As<::Napi::Object>())) {}
 
+  void init(::Napi::Env env, qljs_workspace* workspace,
+            const std::optional<std::string>& file_path, bool is_config_file) {
+    this->is_config_file_ = is_config_file;
     this->config_ = &workspace->default_config_;
-    this->load_config(env, workspace, file_path);
-  }
-
-  void load_config(::Napi::Env env, qljs_workspace* workspace,
-                   const std::optional<std::string>& file_path) {
     if (file_path.has_value() && !this->is_config_file_) {
       auto loaded_config_result =
           workspace->config_loader_.watch_and_load_for_file(*file_path, this);
@@ -602,6 +562,44 @@ void qljs_workspace::dispose_documents() {
   }
 
   return env.Undefined();
+}
+
+::Napi::Value qljs_workspace::create_document(::Napi::Env env,
+                                              ::Napi::Object vscode_document,
+                                              document_type type) {
+  addon_state* state = env.GetInstanceData<addon_state>();
+
+  ::Napi::Object vscode_document_uri =
+      vscode_document.Get("uri").As<::Napi::Object>();
+  std::optional<std::string> file_path = std::nullopt;
+  if (to_string(vscode_document_uri.Get("scheme")) == "file") {
+    file_path = to_string(vscode_document_uri.Get("fsPath"));
+  }
+  ::Napi::Object js_doc = state->qljs_document_class.New({
+      /*workspace=*/this->Value(),
+      /*vscode_document=*/vscode_document,
+      /*file_path=*/file_path.has_value() ? ::Napi::String::New(env, *file_path)
+                                          : env.Null(),
+      /*vscode_diagnostic_collection=*/
+      this->vscode_diagnostic_collection_ref_.Value(),
+      /*is_config_file=*/
+      ::Napi::Boolean::New(env, type == document_type::config),
+  });
+  qljs_document* doc = qljs_document::Unwrap(js_doc);
+  if (file_path.has_value()) {
+    QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
+                   file_path->c_str());
+  } else {
+    QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
+                   file_path->c_str());
+  }
+  doc->init(env, this, file_path, type == document_type::config);
+  if (file_path.has_value()) {
+    auto [_it, inserted] =
+        this->documents_.try_emplace(*file_path, ::Napi::Persistent(js_doc));
+    QLJS_ASSERT(inserted);
+  }
+  return js_doc;
 }
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
