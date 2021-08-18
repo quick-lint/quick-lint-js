@@ -13,7 +13,7 @@ function! quick_lint_js_ale#get_command(buffer_number) abort
 endfunction
 
 function! quick_lint_js_ale#get_executable(buffer_number) abort
-  return ale#node#FindExecutable(a:buffer_number, 'javascript_quick_lint_js', [
+  return quick_lint_js_ale#find_executable(a:buffer_number, 'javascript_quick_lint_js', [
     \ 'node_modules/.bin/quick-lint-js',
   \ ])
 endfunction
@@ -43,6 +43,16 @@ endfunction
 function! quick_lint_js_ale#is_buffer_associated_with_file(buffer_number) abort
   return bufname(a:buffer_number) !=# ''
     \ && getbufvar(a:buffer_number, '&buftype') ==# ''
+endfunction
+
+" Wrapper around ale#path#FindExecutable.
+function! quick_lint_js_ale#find_executable(buffer_number, base_variable_name, path_list) abort
+  try
+    return ale#path#FindExecutable(a:buffer_number, a:base_variable_name, a:path_list)
+  catch /E117:/
+    " In older versions of ALE, this function exists elsewhere:
+    return ale#node#FindExecutable(a:buffer_number, a:base_variable_name, a:path_list)
+  endtry
 endfunction
 
 " quick-lint-js finds bugs in JavaScript programs.
