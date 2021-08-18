@@ -324,9 +324,20 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 class vscode_configuration_filesystem : public configuration_filesystem {
  public:
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
-      const std::string&) override;
+      const std::string& path) override {
+    return this->underlying_fs_.canonicalize_path(path);
+  }
+
   result<padded_string, read_file_io_error, watch_io_error> read_file(
-      const canonical_path&) override;
+      const canonical_path& path) override {
+    qljs_document* doc = this->find_document(path.path());
+    if (!doc) {
+      QLJS_DEBUG_LOG("Reading file from disk: %s\n", path.c_str());
+      return this->underlying_fs_.read_file(path);
+    }
+    QLJS_DEBUG_LOG("Reading file from open document: %s\n", path.c_str());
+    return padded_string(doc->document_string().string_view());
+  }
 
   void clear() { this->overlaid_documents_.clear(); }
 
@@ -398,24 +409,155 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     return env.Undefined();
   }
 
-  void dispose_documents();
+  void dispose_documents() {
+    this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
+      qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
+      doc->dispose();
+      this->delete_diagnostics(doc);
+    });
+    this->qljs_documents_.clear();
+    this->fs_.clear();
+  }
 
-  ::Napi::Value dispose_linter(const ::Napi::CallbackInfo& info);
+  ::Napi::Value dispose_linter(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
 
-  ::Napi::Value editor_visibility_changed(const ::Napi::CallbackInfo& info);
+    ::Napi::Value vscode_document = info[0];
+    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
+    if (!qljs_doc.IsUndefined()) {
+      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      doc->dispose();
+      this->delete_diagnostics(doc);
+      this->qljs_documents_.erase(vscode_document);
+      this->fs_.forget_document(doc);
+    }
 
-  ::Napi::Value replace_text(const ::Napi::CallbackInfo& info);
+    return env.Undefined();
+  }
 
-  ::Napi::Value create_document(::Napi::Env, ::Napi::Object vscode_document,
-                                document_type);
+  ::Napi::Value editor_visibility_changed(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
 
-  void publish_diagnostics(qljs_document*, ::Napi::Value diagnostics);
-  void delete_diagnostics(qljs_document*);
+    ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
+    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
+    if (qljs_doc.IsUndefined()) {
+      document_type type = this->classify_document(vscode_document);
+      switch (type) {
+      case document_type::config:
+      case document_type::lintable:
+        qljs_doc = this->create_document(env,
+                                         /*vscode_document=*/vscode_document,
+                                         /*type=*/
+                                         type);
+        this->qljs_documents_.set(vscode_document, qljs_doc);
+        break;
+
+      case document_type::unknown:
+        // Ignore.
+        break;
+      }
+    }
+
+    if (!qljs_doc.IsUndefined()) {
+      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      ::Napi::String text = doc->vscode_document_.get_text();
+      doc->document_.set_text(to_string8_view(text.Utf8Value()));
+
+      this->after_modification(env, doc);
+    }
+
+    return env.Undefined();
+  }
+
+  ::Napi::Value replace_text(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+
+    ::Napi::Value vscode_document = info[0];
+    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
+    if (!qljs_doc.IsUndefined()) {
+      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      ::Napi::Array changes = info[1].As<::Napi::Array>();
+      doc->replace_text(changes);
+      this->after_modification(env, doc);
+    }
+
+    return env.Undefined();
+  }
+
+  ::Napi::Value create_document(::Napi::Env env, ::Napi::Object vscode_document,
+                                document_type type) {
+    addon_state* state = env.GetInstanceData<addon_state>();
+
+    ::Napi::Object vscode_document_uri =
+        vscode_document.Get("uri").As<::Napi::Object>();
+    std::optional<std::string> file_path = std::nullopt;
+    if (to_string(vscode_document_uri.Get("scheme")) == "file") {
+      file_path = to_string(vscode_document_uri.Get("fsPath"));
+    }
+    ::Napi::Object js_doc = state->qljs_document_class.New({vscode_document});
+    qljs_document* doc = qljs_document::Unwrap(js_doc);
+    if (file_path.has_value()) {
+      QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
+                     file_path->c_str());
+    } else {
+      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
+                     file_path->c_str());
+    }
+    doc->init(env, &this->default_config_, this->config_loader_, &this->vscode_,
+              file_path, type);
+    if (file_path.has_value()) {
+      this->fs_.overlay_document(std::move(*file_path), doc);
+    }
+    return js_doc;
+  }
+
+  void publish_diagnostics(qljs_document* doc, ::Napi::Value diagnostics) {
+    this->vscode_diagnostic_collection_ref_.Get("set")
+        .As<::Napi::Function>()
+        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
+              {
+                  doc->vscode_document_.uri(),
+                  diagnostics,
+              });
+  }
+
+  void delete_diagnostics(qljs_document* doc) {
+    this->vscode_diagnostic_collection_ref_.Get("delete")
+        .As<::Napi::Function>()
+        .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
+              {
+                  doc->vscode_document_.uri(),
+              });
+  }
 
  private:
-  document_type classify_document(::Napi::Object vscode_document);
+  document_type classify_document(::Napi::Object vscode_document) {
+    if (to_string(vscode_document.Get("languageId")) == "javascript") {
+      return document_type::lintable;
+    }
+    ::Napi::Object uri = vscode_document.Get("uri").As<::Napi::Object>();
+    if (to_string(uri.Get("scheme")) == "file" &&
+        this->config_loader_.is_config_file_path(
+            uri.Get("fsPath").As<::Napi::String>().Utf8Value())) {
+      return document_type::config;
+    }
+    return document_type::unknown;
+  }
 
-  void after_modification(::Napi::Env, qljs_document*);
+  void after_modification(::Napi::Env env, qljs_document* doc) {
+    switch (doc->type_) {
+    case document_type::config:
+      break;
+
+    case document_type::lintable:
+      this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
+      break;
+
+    case document_type::unknown:
+      QLJS_UNREACHABLE();
+      break;
+    }
+  }
 
   vscode_module vscode_;
   vscode_configuration_filesystem fs_;
@@ -427,175 +569,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   friend class qljs_document;
 };
-
-result<canonical_path_result, canonicalize_path_io_error>
-vscode_configuration_filesystem::canonicalize_path(const std::string& path) {
-  return this->underlying_fs_.canonicalize_path(path);
-}
-
-result<padded_string, read_file_io_error, watch_io_error>
-vscode_configuration_filesystem::read_file(const canonical_path& path) {
-  qljs_document* doc = this->find_document(path.path());
-  if (!doc) {
-    QLJS_DEBUG_LOG("Reading file from disk: %s\n", path.c_str());
-    return this->underlying_fs_.read_file(path);
-  }
-  QLJS_DEBUG_LOG("Reading file from open document: %s\n", path.c_str());
-  return padded_string(doc->document_string().string_view());
-}
-
-void qljs_workspace::publish_diagnostics(qljs_document* doc,
-                                         ::Napi::Value diagnostics) {
-  this->vscode_diagnostic_collection_ref_.Get("set")
-      .As<::Napi::Function>()
-      .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
-            {
-                doc->vscode_document_.uri(),
-                diagnostics,
-            });
-}
-
-void qljs_workspace::delete_diagnostics(qljs_document* doc) {
-  this->vscode_diagnostic_collection_ref_.Get("delete")
-      .As<::Napi::Function>()
-      .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
-            {
-                doc->vscode_document_.uri(),
-            });
-}
-
-document_type qljs_workspace::classify_document(
-    ::Napi::Object vscode_document) {
-  if (to_string(vscode_document.Get("languageId")) == "javascript") {
-    return document_type::lintable;
-  }
-  ::Napi::Object uri = vscode_document.Get("uri").As<::Napi::Object>();
-  if (to_string(uri.Get("scheme")) == "file" &&
-      this->config_loader_.is_config_file_path(
-          uri.Get("fsPath").As<::Napi::String>().Utf8Value())) {
-    return document_type::config;
-  }
-  return document_type::unknown;
-}
-
-void qljs_workspace::after_modification(::Napi::Env env, qljs_document* doc) {
-  switch (doc->type_) {
-  case document_type::config:
-    break;
-
-  case document_type::lintable:
-    this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
-    break;
-
-  case document_type::unknown:
-    QLJS_UNREACHABLE();
-    break;
-  }
-}
-
-void qljs_workspace::dispose_documents() {
-  this->qljs_documents_.for_each([this](::Napi::Value value) -> void {
-    qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
-    doc->dispose();
-    this->delete_diagnostics(doc);
-  });
-  this->qljs_documents_.clear();
-  this->fs_.clear();
-}
-
-::Napi::Value qljs_workspace::dispose_linter(const ::Napi::CallbackInfo& info) {
-  ::Napi::Env env = info.Env();
-
-  ::Napi::Value vscode_document = info[0];
-  ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
-  if (!qljs_doc.IsUndefined()) {
-    qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-    doc->dispose();
-    this->delete_diagnostics(doc);
-    this->qljs_documents_.erase(vscode_document);
-    this->fs_.forget_document(doc);
-  }
-
-  return env.Undefined();
-}
-
-::Napi::Value qljs_workspace::editor_visibility_changed(
-    const ::Napi::CallbackInfo& info) {
-  ::Napi::Env env = info.Env();
-
-  ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
-  ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
-  if (qljs_doc.IsUndefined()) {
-    document_type type = this->classify_document(vscode_document);
-    switch (type) {
-    case document_type::config:
-    case document_type::lintable:
-      qljs_doc = this->create_document(env,
-                                       /*vscode_document=*/vscode_document,
-                                       /*type=*/
-                                       type);
-      this->qljs_documents_.set(vscode_document, qljs_doc);
-      break;
-
-    case document_type::unknown:
-      // Ignore.
-      break;
-    }
-  }
-
-  if (!qljs_doc.IsUndefined()) {
-    qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-    ::Napi::String text = doc->vscode_document_.get_text();
-    doc->document_.set_text(to_string8_view(text.Utf8Value()));
-
-    this->after_modification(env, doc);
-  }
-
-  return env.Undefined();
-}
-
-::Napi::Value qljs_workspace::replace_text(const ::Napi::CallbackInfo& info) {
-  ::Napi::Env env = info.Env();
-
-  ::Napi::Value vscode_document = info[0];
-  ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
-  if (!qljs_doc.IsUndefined()) {
-    qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-    ::Napi::Array changes = info[1].As<::Napi::Array>();
-    doc->replace_text(changes);
-    this->after_modification(env, doc);
-  }
-
-  return env.Undefined();
-}
-
-::Napi::Value qljs_workspace::create_document(::Napi::Env env,
-                                              ::Napi::Object vscode_document,
-                                              document_type type) {
-  addon_state* state = env.GetInstanceData<addon_state>();
-
-  ::Napi::Object vscode_document_uri =
-      vscode_document.Get("uri").As<::Napi::Object>();
-  std::optional<std::string> file_path = std::nullopt;
-  if (to_string(vscode_document_uri.Get("scheme")) == "file") {
-    file_path = to_string(vscode_document_uri.Get("fsPath"));
-  }
-  ::Napi::Object js_doc = state->qljs_document_class.New({vscode_document});
-  qljs_document* doc = qljs_document::Unwrap(js_doc);
-  if (file_path.has_value()) {
-    QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
-                   file_path->c_str());
-  } else {
-    QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
-                   file_path->c_str());
-  }
-  doc->init(env, &this->default_config_, this->config_loader_, &this->vscode_,
-            file_path, type);
-  if (file_path.has_value()) {
-    this->fs_.overlay_document(std::move(*file_path), doc);
-  }
-  return js_doc;
-}
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
   ::Napi::Env env = info.Env();
