@@ -356,8 +356,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", this,
                      file_path->c_str());
     }
-    if (file_path.has_value() &&
-        !workspace->config_loader_.is_config_file_path(*file_path)) {
+    if (file_path.has_value() && !this->is_config_file_) {
       auto loaded_config_result =
           workspace->config_loader_.watch_and_load_for_file(*file_path, this);
       if (loaded_config_result.ok()) {
