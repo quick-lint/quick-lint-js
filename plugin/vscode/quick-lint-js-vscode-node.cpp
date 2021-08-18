@@ -294,6 +294,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
  private:
   document_type classify_document(::Napi::Object vscode_document);
 
+  void after_modification(::Napi::Env, qljs_document*);
+
   vscode_module vscode_;
   vscode_configuration_filesystem fs_;
   configuration_loader config_loader_{&fs_};
@@ -368,15 +370,15 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     // TODO(strager): Reduce memory usage of this instance.
   }
 
-  void editor_changed_visibility(::Napi::Env env) {
+  void editor_changed_visibility() {
     ::Napi::String text = this->vscode_document_ref_.Get("getText")
                               .As<::Napi::Function>()
                               .Call(this->vscode_document_ref_.Value(), {})
                               .As<::Napi::String>();
-    this->set_text(env, text);
+    this->set_text(text);
   }
 
-  void replace_text(::Napi::Env env, ::Napi::Array changes) {
+  void replace_text(::Napi::Array changes) {
     QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     for (std::uint32_t i = 0; i < changes.Length(); ++i) {
       ::Napi::Object change = changes.Get(i).As<::Napi::Object>();
@@ -399,13 +401,10 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
           change.Get("text").As<::Napi::String>().Utf8Value();
       this->document_.replace_text(r, to_string8_view(replacement_text));
     }
-
-    this->after_modification(env);
   }
 
-  void set_text(::Napi::Env env, ::Napi::String text) {
+  void set_text(::Napi::String text) {
     this->document_.set_text(to_string8_view(text.Utf8Value()));
-    this->after_modification(env);
   }
 
   padded_string_view document_string() noexcept {
@@ -413,12 +412,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
  private:
-  void after_modification(::Napi::Env env) {
-    if (!this->is_config_file_) {
-      this->lint(env);
-    }
-  }
-
   void lint(::Napi::Env env) {
     vscode_module* vscode = &this->workspace_->vscode_;
     vscode->load_non_persistent(env);
@@ -462,6 +455,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   ::Napi::ObjectReference vscode_document_ref_;
   ::Napi::ObjectReference vscode_document_uri_ref_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
+
+  friend class qljs_workspace;
 };
 
 result<canonical_path_result, canonicalize_path_io_error>
@@ -522,6 +517,12 @@ document_type qljs_workspace::classify_document(
   return document_type::unknown;
 }
 
+void qljs_workspace::after_modification(::Napi::Env env, qljs_document* doc) {
+  if (!doc->is_config_file_) {
+    doc->lint(env);
+  }
+}
+
 void qljs_workspace::dispose_documents() {
   this->qljs_documents_.for_each([](::Napi::Value value) -> void {
     qljs_document* doc = qljs_document::Unwrap(value.As<::Napi::Object>());
@@ -570,7 +571,8 @@ void qljs_workspace::dispose_documents() {
 
   if (!qljs_doc.IsUndefined()) {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-    doc->editor_changed_visibility(env);
+    doc->editor_changed_visibility();
+    this->after_modification(env, doc);
   }
 
   return env.Undefined();
@@ -584,7 +586,8 @@ void qljs_workspace::dispose_documents() {
   if (!qljs_doc.IsUndefined()) {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     ::Napi::Array changes = info[1].As<::Napi::Array>();
-    doc->replace_text(env, changes);
+    doc->replace_text(changes);
+    this->after_modification(env, doc);
   }
 
   return env.Undefined();
