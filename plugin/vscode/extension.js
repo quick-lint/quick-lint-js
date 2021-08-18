@@ -12,41 +12,18 @@ let qljs = require(path.join(
   `./dist/quick-lint-js-vscode-node_${os.platform()}-${os.arch()}.node`
 ));
 
-class Workspace {
-  constructor(diagnosticCollection) {
-    this._qljsWorkspace = qljs.createWorkspace({
-      // Mapping from vscode.Document to qljs.QLJSDocument.
-      qljsDocuments: new Map(),
-      vscode: vscode,
-      vscodeDiagnosticCollection: diagnosticCollection,
-    });
-  }
-
-  replaceText(vscodeDocument, changes) {
-    this._qljsWorkspace.replaceText(vscodeDocument, changes);
-  }
-
-  editorVisibilityChanged(vscodeDocument) {
-    this._qljsWorkspace.editorVisibilityChanged(vscodeDocument);
-  }
-
-  disposeLinter(vscodeDocument) {
-    this._qljsWorkspace.disposeLinter(vscodeDocument);
-  }
-
-  dispose() {
-    this._qljsWorkspace.dispose();
-  }
-}
-exports.Workspace = Workspace;
-
 let toDispose = [];
 
 async function activateAsync() {
   let diagnostics = vscode.languages.createDiagnosticCollection();
   toDispose.push(diagnostics);
 
-  let workspace = new Workspace(diagnostics);
+  let workspace = qljs.createWorkspace({
+    // Mapping from vscode.Document to qljs.QLJSDocument.
+    qljsDocuments: new Map(),
+    vscode: vscode,
+    vscodeDiagnosticCollection: diagnostics,
+  });
   toDispose.push(workspace);
 
   toDispose.push(
