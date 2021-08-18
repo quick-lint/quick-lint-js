@@ -134,11 +134,15 @@ class vscode_document {
         .As<::Napi::String>();
   }
 
+  // vscode.Document#languageId
+  std::string language_id() { return to_string(this->doc_.Get("languageId")); }
+
   // vscode.Document#uri
   ::Napi::Object uri() { return this->doc_.Get("uri").As<::Napi::Object>(); }
 
   napi_env Env() const { return this->doc_.Env(); }
   operator napi_value() const { return this->doc_; }
+  operator ::Napi::Value() const { return this->doc_; }
 
  private:
   ::Napi::Object doc_;
@@ -444,12 +448,13 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::Value editor_visibility_changed(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
 
-    ::Napi::Object vscode_document = info[0].As<::Napi::Object>();
-    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
+    ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
+    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
     qljs_document* doc;
     if (qljs_doc.IsUndefined()) {
-      doc = this->maybe_create_document(env,
-                                        /*vscode_document=*/vscode_document);
+      doc = this->maybe_create_document(
+          env,
+          /*vscode_doc=*/vscode_document(vscode_doc));
     } else {
       doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
     }
@@ -480,8 +485,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
   qljs_document* maybe_create_document(::Napi::Env env,
-                                       ::Napi::Object vscode_document) {
-    document_type type = this->classify_document(vscode_document);
+                                       vscode_document vscode_doc) {
+    document_type type = this->classify_document(vscode_doc);
     switch (type) {
     case document_type::unknown:
       return nullptr;
@@ -493,13 +498,12 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     addon_state* state = env.GetInstanceData<addon_state>();
 
-    ::Napi::Object vscode_document_uri =
-        vscode_document.Get("uri").As<::Napi::Object>();
+    ::Napi::Object vscode_document_uri = vscode_doc.uri();
     std::optional<std::string> file_path = std::nullopt;
     if (to_string(vscode_document_uri.Get("scheme")) == "file") {
       file_path = to_string(vscode_document_uri.Get("fsPath"));
     }
-    ::Napi::Object js_doc = state->qljs_document_class.New({vscode_document});
+    ::Napi::Object js_doc = state->qljs_document_class.New({vscode_doc});
     qljs_document* doc = qljs_document::Unwrap(js_doc);
     if (file_path.has_value()) {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
@@ -513,7 +517,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     if (file_path.has_value()) {
       this->fs_.overlay_document(std::move(*file_path), doc);
     }
-    this->qljs_documents_.set(vscode_document, js_doc);
+    this->qljs_documents_.set(vscode_doc, js_doc);
     return doc;
   }
 
@@ -537,11 +541,11 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
  private:
-  document_type classify_document(::Napi::Object vscode_document) {
-    if (to_string(vscode_document.Get("languageId")) == "javascript") {
+  document_type classify_document(vscode_document vscode_doc) {
+    if (vscode_doc.language_id() == "javascript") {
       return document_type::lintable;
     }
-    ::Napi::Object uri = vscode_document.Get("uri").As<::Napi::Object>();
+    ::Napi::Object uri = vscode_doc.uri();
     if (to_string(uri.Get("scheme")) == "file" &&
         this->config_loader_.is_config_file_path(
             uri.Get("fsPath").As<::Napi::String>().Utf8Value())) {
