@@ -28,6 +28,26 @@ class Workspace {
     this._qljsDocuments = new Map();
   }
 
+  replaceText(vscodeDocument, changes) {
+    let qljsDocument = this.getExistingLinter(vscodeDocument);
+    if (qljsDocument !== null) {
+      qljsDocument.replaceText(changes);
+    }
+  }
+
+  editorVisibilityChanged(vscodeDocument) {
+    let qljsDocument = this.getExistingLinter(vscodeDocument);
+    if (qljsDocument === null) {
+      let documentType = this.classifyDocument(vscodeDocument);
+      if (documentType !== null) {
+        qljsDocument = this.createLinter(vscodeDocument, documentType);
+      }
+    }
+    if (qljsDocument !== null) {
+      qljsDocument.editorChangedVisibility();
+    }
+  }
+
   // Returns null if no associated linter exists.
   getExistingLinter(vscodeDocument) {
     let documentURIString = vscodeDocument.uri.toString();
@@ -111,10 +131,7 @@ async function activateAsync() {
       let isBogusEvent = event.contentChanges.length === 0;
       if (!isBogusEvent) {
         logErrors(() => {
-          let document = workspace.getExistingLinter(event.document);
-          if (document !== null) {
-            document.replaceText(event.contentChanges);
-          }
+          workspace.replaceText(event.document, event.contentChanges);
         });
       }
     })
@@ -138,17 +155,7 @@ async function activateAsync() {
 
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
-      let vscodeDocument = editor.document;
-      let document = workspace.getExistingLinter(vscodeDocument);
-      if (document === null) {
-        let documentType = workspace.classifyDocument(vscodeDocument);
-        if (documentType !== null) {
-          document = workspace.createLinter(vscodeDocument, documentType);
-        }
-      }
-      if (document !== null) {
-        document.editorChangedVisibility();
-      }
+      workspace.editorVisibilityChanged(editor.document);
     }
   }
 
