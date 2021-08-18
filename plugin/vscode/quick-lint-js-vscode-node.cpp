@@ -344,11 +344,9 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
         vscode_diagnostic_collection_ref_(
             ::Napi::Persistent(info[3].As<::Napi::Object>())) {
     ::Napi::Env env = info.Env();
-
     qljs_workspace* workspace =
         qljs_workspace::Unwrap(info[0].As<::Napi::Object>());
     std::optional<std::string> file_path = to_optional_string(info[2]);
-    this->config_ = &workspace->default_config_;
     if (file_path.has_value()) {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", this,
                      file_path->c_str());
@@ -356,6 +354,13 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", this,
                      file_path->c_str());
     }
+
+    this->config_ = &workspace->default_config_;
+    this->load_config(env, workspace, file_path);
+  }
+
+  void load_config(::Napi::Env env, qljs_workspace* workspace,
+                   const std::optional<std::string>& file_path) {
     if (file_path.has_value() && !this->is_config_file_) {
       auto loaded_config_result =
           workspace->config_loader_.watch_and_load_for_file(*file_path, this);
