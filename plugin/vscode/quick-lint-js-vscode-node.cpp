@@ -370,14 +370,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     // TODO(strager): Reduce memory usage of this instance.
   }
 
-  void editor_changed_visibility() {
-    ::Napi::String text = this->vscode_document_ref_.Get("getText")
-                              .As<::Napi::Function>()
-                              .Call(this->vscode_document_ref_.Value(), {})
-                              .As<::Napi::String>();
-    this->set_text(text);
-  }
-
   void replace_text(::Napi::Array changes) {
     QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     for (std::uint32_t i = 0; i < changes.Length(); ++i) {
@@ -401,10 +393,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
           change.Get("text").As<::Napi::String>().Utf8Value();
       this->document_.replace_text(r, to_string8_view(replacement_text));
     }
-  }
-
-  void set_text(::Napi::String text) {
-    this->document_.set_text(to_string8_view(text.Utf8Value()));
   }
 
   padded_string_view document_string() noexcept {
@@ -571,7 +559,12 @@ void qljs_workspace::dispose_documents() {
 
   if (!qljs_doc.IsUndefined()) {
     qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-    doc->editor_changed_visibility();
+    ::Napi::String text = doc->vscode_document_ref_.Get("getText")
+                              .As<::Napi::Function>()
+                              .Call(doc->vscode_document_ref_.Value(), {})
+                              .As<::Napi::String>();
+    doc->document_.set_text(to_string8_view(text.Utf8Value()));
+
     this->after_modification(env, doc);
   }
 
