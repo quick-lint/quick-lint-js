@@ -343,10 +343,10 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
         vscode_document_(::Napi::Persistent(info[0].As<::Napi::Object>())) {}
 
   void init(::Napi::Env env, qljs_workspace* workspace,
-            const std::optional<std::string>& file_path, bool is_config_file) {
-    this->is_config_file_ = is_config_file;
+            const std::optional<std::string>& file_path, document_type type) {
+    this->type_ = type;
     this->config_ = &workspace->default_config_;
-    if (file_path.has_value() && !this->is_config_file_) {
+    if (file_path.has_value() && type == document_type::lintable) {
       auto loaded_config_result =
           workspace->config_loader_.watch_and_load_for_file(*file_path, this);
       if (loaded_config_result.ok()) {
@@ -421,7 +421,7 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
   document<lsp_locator> document_;
-  bool is_config_file_;
+  document_type type_;
   configuration* config_;
   vscode_document vscode_document_;
 
@@ -479,8 +479,17 @@ document_type qljs_workspace::classify_document(
 }
 
 void qljs_workspace::after_modification(::Napi::Env env, qljs_document* doc) {
-  if (!doc->is_config_file_) {
+  switch (doc->type_) {
+  case document_type::config:
+    break;
+
+  case document_type::lintable:
     this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
+    break;
+
+  case document_type::unknown:
+    QLJS_UNREACHABLE();
+    break;
   }
 }
 
@@ -580,7 +589,7 @@ void qljs_workspace::dispose_documents() {
     QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
                    file_path->c_str());
   }
-  doc->init(env, this, file_path, type == document_type::config);
+  doc->init(env, this, file_path, type);
   if (file_path.has_value()) {
     this->fs_.overlay_document(std::move(*file_path), doc);
   }
