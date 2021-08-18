@@ -566,8 +566,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   // Mapping from vscode.Document to qljs.QLJSDocument (qljs_document).
   js_map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
-
-  friend class qljs_document;
 };
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
