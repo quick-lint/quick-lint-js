@@ -547,9 +547,13 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       break;
 
     case document_type::lintable:
-      this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
+      this->lint_and_publish_diagnostics(env, doc);
       break;
     }
+  }
+
+  void lint_and_publish_diagnostics(::Napi::Env env, qljs_document* doc) {
+    this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
   }
 
   vscode_module vscode_;
