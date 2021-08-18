@@ -342,13 +342,14 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       : ::Napi::ObjectWrap<qljs_document>(info),
         vscode_document_(::Napi::Persistent(info[0].As<::Napi::Object>())) {}
 
-  void init(::Napi::Env env, qljs_workspace* workspace,
+  void init(::Napi::Env env, configuration* default_config,
+            configuration_loader& config_loader, vscode_module* vscode,
             const std::optional<std::string>& file_path, document_type type) {
     this->type_ = type;
-    this->config_ = &workspace->default_config_;
+    this->config_ = default_config;
     if (file_path.has_value() && type == document_type::lintable) {
       auto loaded_config_result =
-          workspace->config_loader_.watch_and_load_for_file(*file_path, this);
+          config_loader.watch_and_load_for_file(*file_path, this);
       if (loaded_config_result.ok()) {
         loaded_config_file* loaded_config = *loaded_config_result;
         if (loaded_config) {
@@ -360,9 +361,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
             "Failed to load configuration file for " + *file_path +
             ". Using default configuration.\nError details: " +
             loaded_config_result.error_to_string();
-        call_on_next_tick(env,
-                          workspace->vscode_.window_show_error_message.Value(),
-                          /*this=*/workspace->vscode_.window_namespace.Value(),
+        call_on_next_tick(env, vscode->window_show_error_message.Value(),
+                          /*this=*/vscode->window_namespace.Value(),
                           {
                               ::Napi::String::New(env, message),
                           });
@@ -589,7 +589,8 @@ void qljs_workspace::dispose_documents() {
     QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
                    file_path->c_str());
   }
-  doc->init(env, this, file_path, type);
+  doc->init(env, &this->default_config_, this->config_loader_, &this->vscode_,
+            file_path, type);
   if (file_path.has_value()) {
     this->fs_.overlay_document(std::move(*file_path), doc);
   }
