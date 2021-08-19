@@ -305,7 +305,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   }
 
  private:
-  ::Napi::Array lint(::Napi::Env env, vscode_module* vscode) {
+  ::Napi::Array lint_javascript(::Napi::Env env, vscode_module* vscode) {
+    QLJS_ASSERT(this->type_ == document_type::lintable);
     vscode->load_non_persistent(env);
 
     vscode_error_reporter error_reporter(vscode, env,
@@ -317,6 +318,17 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
       // TODO(strager): Show a pop-up message explaining that the parser
       // crashed.
     }
+    return std::move(error_reporter).diagnostics();
+  }
+
+  ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
+                            loaded_config_file* loaded_config) {
+    QLJS_ASSERT(this->type_ == document_type::config);
+    vscode->load_non_persistent(env);
+
+    lsp_locator locator(&loaded_config->file_content);
+    vscode_error_reporter error_reporter(vscode, env, &locator);
+    loaded_config->errors.copy_into(&error_reporter);
     return std::move(error_reporter).diagnostics();
   }
 
@@ -528,13 +540,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
             this->config_loader_.watch_and_load_config_file(*file_path, doc);
         if (loaded_config_result.ok()) {
           this->vscode_.load_non_persistent(env);
-          loaded_config_file* loaded_config = *loaded_config_result;
-          QLJS_ASSERT(loaded_config);
-          lsp_locator locator(&loaded_config->file_content);
-          vscode_error_reporter error_reporter(&this->vscode_, env, &locator);
-          loaded_config->errors.copy_into(&error_reporter);
-          this->publish_diagnostics(doc,
-                                    std::move(error_reporter).diagnostics());
+          this->lint_config_and_publish_diagnostics(env, doc,
+                                                    *loaded_config_result);
         } else {
           QLJS_UNIMPLEMENTED();
         }
@@ -574,22 +581,15 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                        change.watched_path->c_str());
         qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
         switch (doc->type_) {
-        case document_type::config: {
-          this->vscode_.load_non_persistent(env);
-          loaded_config_file* loaded_config = change.config_file;
-          QLJS_ASSERT(loaded_config);
-          lsp_locator locator(&loaded_config->file_content);
-          vscode_error_reporter error_reporter(&this->vscode_, env, &locator);
-          loaded_config->errors.copy_into(&error_reporter);
-          this->publish_diagnostics(doc,
-                                    std::move(error_reporter).diagnostics());
+        case document_type::config:
+          this->lint_config_and_publish_diagnostics(env, doc,
+                                                    change.config_file);
           break;
-        }
 
         case document_type::lintable:
           doc->config_ = change.config_file ? &change.config_file->config
                                             : &this->default_config_;
-          this->lint_and_publish_diagnostics(env, doc);
+          this->lint_javascript_and_publish_diagnostics(env, doc);
           break;
         }
       }
@@ -597,13 +597,20 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
 
     case document_type::lintable:
-      this->lint_and_publish_diagnostics(env, doc);
+      this->lint_javascript_and_publish_diagnostics(env, doc);
       break;
     }
   }
 
-  void lint_and_publish_diagnostics(::Napi::Env env, qljs_document* doc) {
-    this->publish_diagnostics(doc, doc->lint(env, &this->vscode_));
+  void lint_javascript_and_publish_diagnostics(::Napi::Env env,
+                                               qljs_document* doc) {
+    this->publish_diagnostics(doc, doc->lint_javascript(env, &this->vscode_));
+  }
+
+  void lint_config_and_publish_diagnostics(::Napi::Env env, qljs_document* doc,
+                                           loaded_config_file* loaded_config) {
+    this->publish_diagnostics(
+        doc, doc->lint_config(env, &this->vscode_, loaded_config));
   }
 
   vscode_module vscode_;
