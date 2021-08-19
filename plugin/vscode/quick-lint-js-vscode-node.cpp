@@ -498,38 +498,41 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
                      file_path->c_str());
     }
+    doc->type_ = type;
+    doc->document_.set_text(text);
     if (file_path.has_value()) {
       this->fs_.overlay_document(*file_path, doc);
     }
-    doc->document_.set_text(text);
-
-    doc->type_ = type;
-    doc->config_ = &this->default_config_;
-    if (file_path.has_value() && type == document_type::lintable) {
-      auto loaded_config_result =
-          this->config_loader_.watch_and_load_for_file(*file_path, doc);
-      if (loaded_config_result.ok()) {
-        loaded_config_file* loaded_config = *loaded_config_result;
-        if (loaded_config) {
-          // TODO(strager): Show config parse errors.
-          doc->config_ = &loaded_config->config;
-        }
-      } else {
-        std::string message =
-            "Failed to load configuration file for " + *file_path +
-            ". Using default configuration.\nError details: " +
-            loaded_config_result.error_to_string();
-        call_on_next_tick(env, this->vscode_.window_show_error_message.Value(),
-                          /*this=*/this->vscode_.window_namespace.Value(),
-                          {
-                              ::Napi::String::New(env, message),
-                          });
-      }
-    }
-
     this->qljs_documents_.set(vscode_doc, js_doc);
 
-    if (type == document_type::config) {
+    switch (type) {
+    case document_type::lintable:
+      doc->config_ = &this->default_config_;
+      if (file_path.has_value()) {
+        auto loaded_config_result =
+            this->config_loader_.watch_and_load_for_file(*file_path, doc);
+        if (loaded_config_result.ok()) {
+          loaded_config_file* loaded_config = *loaded_config_result;
+          if (loaded_config) {
+            // TODO(strager): Show config parse errors.
+            doc->config_ = &loaded_config->config;
+          }
+        } else {
+          std::string message =
+              "Failed to load configuration file for " + *file_path +
+              ". Using default configuration.\nError details: " +
+              loaded_config_result.error_to_string();
+          call_on_next_tick(env,
+                            this->vscode_.window_show_error_message.Value(),
+                            /*this=*/this->vscode_.window_namespace.Value(),
+                            {
+                                ::Napi::String::New(env, message),
+                            });
+        }
+      }
+      break;
+
+    case document_type::config:
       if (file_path.has_value()) {
         auto loaded_config_result =
             this->config_loader_.watch_and_load_config_file(*file_path, doc);
@@ -541,6 +544,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
           QLJS_UNIMPLEMENTED();
         }
       }
+      break;
     }
 
     return doc;
