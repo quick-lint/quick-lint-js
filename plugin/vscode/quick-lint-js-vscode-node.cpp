@@ -29,7 +29,7 @@
 #endif
 
 // Define this macro to a non-empty string to log to the specified file:
-// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
+#define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
 
 #if defined(QLJS_DEBUG_LOGGING_FILE)
 #define QLJS_DEBUG_LOG(...)                          \
@@ -525,7 +525,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     if (type == document_type::config) {
       if (file_path.has_value()) {
         auto loaded_config_result =
-            this->config_loader_.watch_and_load_config_file(*file_path, this);
+            this->config_loader_.watch_and_load_config_file(*file_path, doc);
         if (loaded_config_result.ok()) {
           this->vscode_.load_non_persistent(env);
           loaded_config_file* loaded_config = *loaded_config_result;
@@ -573,10 +573,24 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         QLJS_DEBUG_LOG("Configuration changed for %s\n",
                        change.watched_path->c_str());
         qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
-        if (doc->type_ == document_type::lintable) {
+        switch (doc->type_) {
+        case document_type::config: {
+          this->vscode_.load_non_persistent(env);
+          loaded_config_file* loaded_config = change.config_file;
+          QLJS_ASSERT(loaded_config);
+          lsp_locator locator(&loaded_config->file_content);
+          vscode_error_reporter error_reporter(&this->vscode_, env, &locator);
+          loaded_config->errors.copy_into(&error_reporter);
+          this->publish_diagnostics(doc,
+                                    std::move(error_reporter).diagnostics());
+          break;
+        }
+
+        case document_type::lintable:
           doc->config_ = change.config_file ? &change.config_file->config
                                             : &this->default_config_;
           this->lint_and_publish_diagnostics(env, doc);
+          break;
         }
       }
       break;
