@@ -530,6 +530,30 @@ tests = {
       assert.deepStrictEqual(configDiags, []);
     },
 
+  "opening invalid quick-lint-js.config shows diagnostics": async ({
+    addCleanup,
+  }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+    fs.writeFileSync(
+      configFilePath,
+      '{"globals": {"testGlobalVariable": "INVALID"}}'
+    );
+    let configURI = vscode.Uri.file(configFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let configDocument = await vscode.workspace.openTextDocument(configURI);
+    let configEditor = await vscode.window.showTextDocument(configDocument);
+
+    await waitUntilAnyDiagnosticsAsync(configURI);
+
+    let configDiags = normalizeDiagnostics(configURI);
+    assert.deepStrictEqual(
+      configDiags.map(({ code }) => code),
+      ["E171"]
+    );
+  },
+
   "opened .js file uses quick-lint-js.config from disk after config editor is closed":
     async ({ addCleanup }) => {
       // TODO(strager): Enable this test when VS Code is fixed (or when we find a

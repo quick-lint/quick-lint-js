@@ -322,8 +322,10 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
   document<lsp_locator> document_;
   document_type type_;
-  configuration* config_;
   ::Napi::Reference<vscode_document> vscode_document_;
+
+  // Used only if type_ == document_type::lintable:
+  configuration* config_;
 
   friend class qljs_workspace;
 };
@@ -350,9 +352,9 @@ class vscode_configuration_filesystem : public configuration_filesystem {
 
   void clear() { this->overlaid_documents_.clear(); }
 
-  void overlay_document(std::string&& file_path, qljs_document* doc) {
+  void overlay_document(const std::string& file_path, qljs_document* doc) {
     auto [_it, inserted] =
-        this->overlaid_documents_.try_emplace(std::move(file_path), doc);
+        this->overlaid_documents_.try_emplace(file_path, doc);
     QLJS_ASSERT(inserted);
   }
 
@@ -451,17 +453,16 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
     qljs_document* doc;
     if (qljs_doc.IsUndefined()) {
+      vscode_document d(vscode_doc);
       doc = this->maybe_create_document(
           env,
-          /*vscode_doc=*/vscode_document(vscode_doc));
+          /*vscode_doc=*/d,
+          /*text=*/to_string8_view(d.get_text().Utf8Value()));
+      if (doc) {
+        this->after_modification(env, doc);
+      }
     } else {
       doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
-    }
-
-    if (doc) {
-      ::Napi::String text = doc->vscode_document_.Value().get_text();
-      doc->document_.set_text(to_string8_view(text.Utf8Value()));
-
       this->after_modification(env, doc);
     }
 
@@ -484,7 +485,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
   qljs_document* maybe_create_document(::Napi::Env env,
-                                       vscode_document vscode_doc) {
+                                       vscode_document vscode_doc,
+                                       string8_view text) {
     addon_state* state = env.GetInstanceData<addon_state>();
 
     ::Napi::Object vscode_document_uri = vscode_doc.uri();
@@ -512,12 +514,33 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
                      file_path->c_str());
     }
+    if (file_path.has_value()) {
+      this->fs_.overlay_document(*file_path, doc);
+    }
+    doc->document_.set_text(text);
     doc->init(env, &this->default_config_, this->config_loader_, &this->vscode_,
               file_path, type);
-    if (file_path.has_value()) {
-      this->fs_.overlay_document(std::move(*file_path), doc);
-    }
     this->qljs_documents_.set(vscode_doc, js_doc);
+
+    if (type == document_type::config) {
+      if (file_path.has_value()) {
+        auto loaded_config_result =
+            this->config_loader_.watch_and_load_config_file(*file_path, this);
+        if (loaded_config_result.ok()) {
+          this->vscode_.load_non_persistent(env);
+          loaded_config_file* loaded_config = *loaded_config_result;
+          QLJS_ASSERT(loaded_config);
+          lsp_locator locator(&loaded_config->file_content);
+          vscode_error_reporter error_reporter(&this->vscode_, env, &locator);
+          loaded_config->errors.copy_into(&error_reporter);
+          this->publish_diagnostics(doc,
+                                    std::move(error_reporter).diagnostics());
+        } else {
+          QLJS_UNIMPLEMENTED();
+        }
+      }
+    }
+
     return doc;
   }
 
@@ -547,10 +570,14 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       std::vector<configuration_change> changes =
           this->config_loader_.refresh();
       for (const configuration_change& change : changes) {
+        QLJS_DEBUG_LOG("Configuration changed for %s\n",
+                       change.watched_path->c_str());
         qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
-        doc->config_ = change.config_file ? &change.config_file->config
-                                          : &this->default_config_;
-        this->lint_and_publish_diagnostics(env, doc);
+        if (doc->type_ == document_type::lintable) {
+          doc->config_ = change.config_file ? &change.config_file->config
+                                            : &this->default_config_;
+          this->lint_and_publish_diagnostics(env, doc);
+        }
       }
       break;
     }
