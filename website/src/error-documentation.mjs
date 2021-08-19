@@ -219,6 +219,14 @@ export class ErrorDocumentation {
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let diagnostics = this.diagnostics[i];
 
+      // TODO(strager): Fix quick-lint-js (or our documentation) and remove this
+      // workaround.
+      if (this.codeBlocks[i].language === "javascript-ignoring-extra-errors") {
+        diagnostics = diagnostics.filter(
+          (diag) => diag.code === this.titleErrorCode
+        );
+      }
+
       let expectDiagnostic = i === 0;
       if (expectDiagnostic) {
         if (diagnostics.length === 0) {
