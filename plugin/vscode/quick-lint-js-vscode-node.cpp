@@ -247,34 +247,6 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
             ::Napi::Persistent(vscode_document(info[0].As<::Napi::Object>()))) {
   }
 
-  void init(::Napi::Env env, configuration* default_config,
-            configuration_loader& config_loader, vscode_module* vscode,
-            const std::optional<std::string>& file_path, document_type type) {
-    this->type_ = type;
-    this->config_ = default_config;
-    if (file_path.has_value() && type == document_type::lintable) {
-      auto loaded_config_result =
-          config_loader.watch_and_load_for_file(*file_path, this);
-      if (loaded_config_result.ok()) {
-        loaded_config_file* loaded_config = *loaded_config_result;
-        if (loaded_config) {
-          // TODO(strager): Show config parse errors.
-          this->config_ = &loaded_config->config;
-        }
-      } else {
-        std::string message =
-            "Failed to load configuration file for " + *file_path +
-            ". Using default configuration.\nError details: " +
-            loaded_config_result.error_to_string();
-        call_on_next_tick(env, vscode->window_show_error_message.Value(),
-                          /*this=*/vscode->window_namespace.Value(),
-                          {
-                              ::Napi::String::New(env, message),
-                          });
-      }
-    }
-  }
-
   void replace_text(::Napi::Array changes) {
     QLJS_DEBUG_LOG("Document %p: Replacing text\n", this);
     for (std::uint32_t i = 0; i < changes.Length(); ++i) {
@@ -530,8 +502,31 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       this->fs_.overlay_document(*file_path, doc);
     }
     doc->document_.set_text(text);
-    doc->init(env, &this->default_config_, this->config_loader_, &this->vscode_,
-              file_path, type);
+
+    doc->type_ = type;
+    doc->config_ = &this->default_config_;
+    if (file_path.has_value() && type == document_type::lintable) {
+      auto loaded_config_result =
+          this->config_loader_.watch_and_load_for_file(*file_path, doc);
+      if (loaded_config_result.ok()) {
+        loaded_config_file* loaded_config = *loaded_config_result;
+        if (loaded_config) {
+          // TODO(strager): Show config parse errors.
+          doc->config_ = &loaded_config->config;
+        }
+      } else {
+        std::string message =
+            "Failed to load configuration file for " + *file_path +
+            ". Using default configuration.\nError details: " +
+            loaded_config_result.error_to_string();
+        call_on_next_tick(env, this->vscode_.window_show_error_message.Value(),
+                          /*this=*/this->vscode_.window_namespace.Value(),
+                          {
+                              ::Napi::String::New(env, message),
+                          });
+      }
+    }
+
     this->qljs_documents_.set(vscode_doc, js_doc);
 
     if (type == document_type::config) {
