@@ -11,7 +11,8 @@
     "vscode": "^1.49.0"
   },
   "activationEvents": [
-    "onLanguage:javascript"
+    "onLanguage:javascript",
+    "onLanguage:json"
   ],
   "main": "./extension.js",
   "extensionDependencies": [
@@ -22,7 +23,16 @@
       "type": "object",
       "title": "quick-lint-js",
       "properties": {}
-    }
+    },
+    "languages": [
+      {
+        "id": "json",
+        "filenames": [
+          "quick-lint-js.config",
+          ".quick-lint-js.config"
+        ]
+      }
+    ]
   },
   "repository": {
     "type": "git",
