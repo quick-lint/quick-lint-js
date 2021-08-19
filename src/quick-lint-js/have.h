@@ -156,6 +156,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_GETTID)
+#if defined(__linux__) && __GLIBC__ == 2 && __GLIBC_MINOR__ >= 30
+#define QLJS_HAVE_GETTID 1
+#else
+#define QLJS_HAVE_GETTID 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_PIPE)
 #if !defined(__EMSCRIPTEN__) && defined(_POSIX_VERSION) && \
     _POSIX_VERSION >= 200112L

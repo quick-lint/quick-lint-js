@@ -147,7 +147,7 @@ class windows_handle_file : private windows_handle_file_ref {
 
   void close();
 
-  windows_handle_file_ref ref() noexcept;
+  windows_handle_file_ref ref() const noexcept;
 
   using windows_handle_file_ref::get;
   using windows_handle_file_ref::get_last_error_message;
@@ -171,7 +171,7 @@ class posix_fd_file_ref {
 
   bool valid() const noexcept;
 
-  int get() noexcept;
+  int get() const noexcept;
 
   file_read_result read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
@@ -206,7 +206,7 @@ class posix_fd_file : private posix_fd_file_ref {
 
   void close();
 
-  posix_fd_file_ref ref() noexcept;
+  posix_fd_file_ref ref() const noexcept;
 
   using posix_fd_file_ref::get;
   using posix_fd_file_ref::get_last_error_message;

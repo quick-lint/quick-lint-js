@@ -6,6 +6,7 @@
 #include <napi.h>
 #include <optional>
 #include <quick-lint-js/basic-configuration-filesystem.h>
+#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diagnostic-formatter.h>
@@ -13,16 +14,23 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/pipe.h>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <unordered_map>
 #include <vector>
+
+#if QLJS_HAVE_GETTID
+#include <sys/types.h>
+#endif
 
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>
@@ -314,13 +322,60 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
   friend class qljs_workspace;
 };
 
+template <class UnderlyingFilesystem>
+class thread_safe_configuration_filesystem : public configuration_filesystem {
+ public:
+  template <class... Args>
+  explicit thread_safe_configuration_filesystem(Args&&... args)
+      : underlying_fs_(std::forward<Args>(args)...) {}
+
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+      const std::string& path) override {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.canonicalize_path(path);
+  }
+
+  result<padded_string, read_file_io_error, watch_io_error> read_file(
+      const canonical_path& path) override {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.read_file(path);
+  }
+
+  auto get_inotify_fd() {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.get_inotify_fd();
+  }
+
+  template <class Event>
+  auto handle_poll_event(Event&& event) {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.handle_poll_event(std::forward<Event>(event));
+  }
+
+  template <class Overlapped, class Number, class Error>
+  auto handle_event(Overlapped overlapped, Number number_of_bytes_transferred,
+                    Error error) {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.handle_event(
+        overlapped, number_of_bytes_transferred, error);
+  }
+
+ private:
+  std::mutex lock_;
+  UnderlyingFilesystem underlying_fs_;
+};
+
 // A configuration_filesystem which allows unsaved VS Code documents to appear
 // as real files.
 class vscode_configuration_filesystem : public configuration_filesystem {
  public:
+  explicit vscode_configuration_filesystem(
+      configuration_filesystem* underlying_fs)
+      : underlying_fs_(underlying_fs) {}
+
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string& path) override {
-    return this->underlying_fs_.canonicalize_path(path);
+    return this->underlying_fs_->canonicalize_path(path);
   }
 
   result<padded_string, read_file_io_error, watch_io_error> read_file(
@@ -328,7 +383,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
     qljs_document* doc = this->find_document(path.path());
     if (!doc) {
       QLJS_DEBUG_LOG("Reading file from disk: %s\n", path.c_str());
-      return this->underlying_fs_.read_file(path);
+      return this->underlying_fs_->read_file(path);
     }
     QLJS_DEBUG_LOG("Reading file from open document: %s\n", path.c_str());
     return padded_string(doc->document_string().string_view());
@@ -371,9 +426,22 @@ class vscode_configuration_filesystem : public configuration_filesystem {
   }
 
   std::unordered_map<std::string, qljs_document*> overlaid_documents_;
-  basic_configuration_filesystem underlying_fs_;
+  configuration_filesystem* underlying_fs_;
+
+  friend class qljs_workspace;  // HACK(strager)
 };
 
+// NOTE[workspace-cleanup]:
+//
+// If a qljs_workspace is deleted, its
+// check_for_config_file_changes_on_js_thread_ TypedThreadSafeFunction might
+// still have some calls in its queue.
+// check_for_config_file_changes_from_thread() might use a qljs_workspace
+// after it has been deleted. To prevent user-after-free errors, we create a
+// JS weak reference to the qljs_workspace object. The weak reference is
+// stored as check_for_config_file_changes_on_js_thread_'s Context.
+// check_for_config_file_changes_from_thread does nothing if the
+// qljs_workspace has been deleted.
 class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
  public:
   static ::Napi::Function init(::Napi::Env env) {
@@ -392,9 +460,41 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   explicit qljs_workspace(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_workspace>(info),
         vscode_(info[0].As<::Napi::Object>()),
+        check_for_config_file_changes_on_js_thread_(
+            ::Napi::TypedThreadSafeFunction<
+                /*ContextType=*/void, /*DataType=*/void,
+                /*Callback=*/check_for_config_file_changes_from_thread>::
+                New(
+                    /*env=*/info.Env(),
+                    /*callback=*/nullptr,
+                    /*resource=*/::Napi::Object(),
+                    /*resourceName=*/"quick-lint-js-fs-thread",
+                    /*maxQueueSize=*/0,
+                    /*initialThreadCount=*/1,
+                    /*context=*/this->create_weak_reference_to_self(info.Env()),
+                    /*finalizeCallback=*/
+                    [](Napi::Env env, [[maybe_unused]] void* data,
+                       void* context) -> void {
+                      // See NOTE[workspace-cleanup].
+                      ::napi_status status = ::napi_delete_reference(
+                          env, reinterpret_cast<::napi_ref>(context));
+                      QLJS_ASSERT(status == ::napi_ok);
+                    },
+                    /*data=*/static_cast<void*>(nullptr))),
         qljs_documents_(info.Env()),
         vscode_diagnostic_collection_ref_(
-            ::Napi::Persistent(info[1].As<::Napi::Object>())) {}
+            ::Napi::Persistent(info[1].As<::Napi::Object>())) {
+    QLJS_DEBUG_LOG("Workspace %p: created\n", this);
+    this->fs_change_detection_thread_ = std::thread(
+        [this]() -> void { this->run_fs_change_detection_thread(); });
+  }
+
+  ~qljs_workspace() {
+    // See NOTE[workspace-cleanup].
+    QLJS_DEBUG_LOG("Workspace %p: destroying\n", this);
+    this->fs_change_detection_event_loop_.stop();
+    this->fs_change_detection_thread_.join();
+  }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
@@ -411,6 +511,11 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       this->delete_diagnostics(doc);
     });
     this->qljs_documents_.clear();
+
+    // TODO(strager): Create a configuration_loader::clear() function.
+    for (auto& [path, _doc] : this->fs_.overlaid_documents_) {
+      this->config_loader_.unwatch_file(path);
+    }
     this->fs_.clear();
   }
 
@@ -509,6 +614,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     case document_type::lintable:
       doc->config_ = &this->default_config_;
       if (file_path.has_value()) {
+        QLJS_DEBUG_LOG("Workspace %p: watching config for: %s\n", this,
+                       file_path->c_str());
         auto loaded_config_result =
             this->config_loader_.watch_and_load_for_file(*file_path, doc);
         if (loaded_config_result.ok()) {
@@ -534,6 +641,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
     case document_type::config:
       if (file_path.has_value()) {
+        QLJS_DEBUG_LOG("Workspace %p: watching config file: %s\n", this,
+                       file_path->c_str());
         auto loaded_config_result =
             this->config_loader_.watch_and_load_config_file(*file_path, doc);
         if (loaded_config_result.ok()) {
@@ -572,32 +681,58 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
  private:
   void after_modification(::Napi::Env env, qljs_document* doc) {
     switch (doc->type_) {
-    case document_type::config: {
-      std::vector<configuration_change> changes =
-          this->config_loader_.refresh();
-      for (const configuration_change& change : changes) {
-        QLJS_DEBUG_LOG("Configuration changed for %s\n",
-                       change.watched_path->c_str());
-        qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
-        switch (doc->type_) {
-        case document_type::config:
-          this->lint_config_and_publish_diagnostics(env, doc,
-                                                    change.config_file);
-          break;
-
-        case document_type::lintable:
-          doc->config_ = change.config_file ? &change.config_file->config
-                                            : &this->default_config_;
-          this->lint_javascript_and_publish_diagnostics(env, doc);
-          break;
-        }
-      }
+    case document_type::config:
+      this->check_for_config_file_changes(env);
       break;
-    }
 
     case document_type::lintable:
       this->lint_javascript_and_publish_diagnostics(env, doc);
       break;
+    }
+  }
+
+  // This function is called on the main JS thread.
+  static void check_for_config_file_changes_from_thread(
+      ::Napi::Env env, ::Napi::Function, void* context,
+      [[maybe_unused]] void* data) {
+    if (!env) {
+      return;
+    }
+
+    ::napi_value raw_workspace_object;
+    ::napi_status status = ::napi_get_reference_value(
+        env, reinterpret_cast<::napi_ref>(context), &raw_workspace_object);
+    QLJS_ASSERT(status == ::napi_ok);
+    ::Napi::Object workspace_object(env, raw_workspace_object);
+
+    if (workspace_object.IsEmpty()) {
+      // See NOTE[workspace-cleanup].
+      QLJS_DEBUG_LOG(
+          "check_for_config_file_changes_from_thread: workspace object has "
+          "been garbage-collected\n");
+    } else {
+      qljs_workspace* workspace = qljs_workspace::Unwrap(workspace_object);
+      workspace->check_for_config_file_changes(env);
+    }
+  }
+
+  void check_for_config_file_changes(::Napi::Env env) {
+    std::vector<configuration_change> changes = this->config_loader_.refresh();
+    for (const configuration_change& change : changes) {
+      QLJS_DEBUG_LOG("Configuration changed for %s\n",
+                     change.watched_path->c_str());
+      qljs_document* doc = reinterpret_cast<qljs_document*>(change.token);
+      switch (doc->type_) {
+      case document_type::config:
+        this->lint_config_and_publish_diagnostics(env, doc, change.config_file);
+        break;
+
+      case document_type::lintable:
+        doc->config_ = change.config_file ? &change.config_file->config
+                                          : &this->default_config_;
+        this->lint_javascript_and_publish_diagnostics(env, doc);
+        break;
+      }
     }
   }
 
@@ -612,10 +747,138 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         doc, doc->lint_config(env, &this->vscode_, loaded_config));
   }
 
+  // This function runs on a background thread.
+  void run_fs_change_detection_thread() {
+    QLJS_DEBUG_LOG("Workspace %p: starting run_fs_change_detection_thread\n",
+                   this);
+    this->fs_change_detection_event_loop_.run();
+    this->check_for_config_file_changes_on_js_thread_.Release();
+    QLJS_DEBUG_LOG("Workspace %p: stopping run_fs_change_detection_thread\n",
+                   this);
+  }
+
+  ::napi_ref create_weak_reference_to_self(::Napi::Env env) {
+    ::napi_ref result;
+    ::napi_status status = ::napi_create_reference(
+        /*env=*/env,
+        /*value=*/this->Value(),
+        /*initial_refcount=*/0,
+        /*result=*/&result);
+    QLJS_ASSERT(status == ::napi_ok);
+    return result;
+  }
+
+  class fs_change_detection_event_loop
+      : public event_loop<fs_change_detection_event_loop> {
+   public:
+    explicit fs_change_detection_event_loop(qljs_workspace* workspace)
+        :
+#if QLJS_HAVE_KQUEUE
+          fs_(this->kqueue_fd(),
+              reinterpret_cast<void*>(event_udata_fs_changed)),
+#elif QLJS_HAVE_INOTIFY
+          fs_(),
+#elif defined(_WIN32)
+          fs_(this->io_completion_port(), completion_key_fs_changed),
+#else
+#error "Unsupported platform"
+#endif
+          workspace_(workspace) {
+#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+      this->stop_pipe_.reader.set_pipe_non_blocking();
+#endif
+    }
+
+    void stop() { this->stop_pipe_.writer.close(); }
+
+    platform_file_ref get_readable_pipe() const {
+      return this->stop_pipe_.reader.ref();
+    }
+
+    void append(string8_view) { QLJS_UNREACHABLE(); }
+
+#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
+    std::optional<posix_fd_file_ref> get_pipe_write_fd() {
+      return std::nullopt;
+    }
+#endif
+
+#if QLJS_HAVE_KQUEUE
+    void on_pipe_write_event(const struct ::kevent&) { QLJS_UNREACHABLE(); }
+#elif QLJS_HAVE_POLL
+    void on_pipe_write_event(const ::pollfd&) { QLJS_UNREACHABLE(); }
+#endif
+
+    void filesystem_changed() {
+      QLJS_DEBUG_LOG("Workspace %p: filesystem changed detected\n",
+                     this->workspace_);
+      ::napi_status status =
+          this->workspace_->check_for_config_file_changes_on_js_thread_
+              .BlockingCall();
+      // BlockingCall should not return napi_closing because we never call
+      // Abort.
+      QLJS_ASSERT(status == ::napi_ok);
+    }
+
+#if QLJS_HAVE_KQUEUE
+    void on_fs_changed_kevents() { this->filesystem_changed(); }
+#endif
+
+#if QLJS_HAVE_INOTIFY
+    std::optional<posix_fd_file_ref> get_inotify_fd() {
+      return this->fs_.get_inotify_fd();
+    }
+
+    void on_fs_changed_event(const ::pollfd& event) {
+      this->fs_.handle_poll_event(event);
+      this->filesystem_changed();
+    }
+#endif
+
+#if defined(_WIN32)
+    void on_fs_changed_event(::OVERLAPPED* overlapped,
+                             ::DWORD number_of_bytes_transferred,
+                             ::DWORD error) {
+      bool fs_changed = this->fs_.handle_event(
+          overlapped, number_of_bytes_transferred, error);
+      if (fs_changed) {
+        this->filesystem_changed();
+      }
+    }
+#endif
+
+    configuration_filesystem* fs() noexcept { return &this->fs_; }
+
+   private:
+    using underlying_fs_type =
+#if QLJS_HAVE_KQUEUE
+        change_detecting_filesystem_kqueue
+#elif QLJS_HAVE_INOTIFY
+        change_detecting_filesystem_inotify
+#elif defined(_WIN32)
+        change_detecting_filesystem_win32;
+#else
+#error "Unsupported platform"
+#endif
+        ;
+
+    thread_safe_configuration_filesystem<underlying_fs_type> fs_;
+    pipe_fds stop_pipe_ = make_pipe();
+    qljs_workspace* workspace_;
+  };
+
   vscode_module vscode_;
-  vscode_configuration_filesystem fs_;
+  fs_change_detection_event_loop fs_change_detection_event_loop_{this};
+  vscode_configuration_filesystem fs_{fs_change_detection_event_loop_.fs()};
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
+  std::thread fs_change_detection_thread_;
+
+  // See NOTE[workspace-cleanup].
+  ::Napi::TypedThreadSafeFunction<void, void,
+                                  check_for_config_file_changes_from_thread>
+      check_for_config_file_changes_on_js_thread_;
+
   // Mapping from vscode.Document to qljs.QLJSDocument (qljs_document).
   js_map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
@@ -639,9 +902,17 @@ void debug_log_to_file(const char* format, Args&&... args) {
   static FILE* file = std::fopen(QLJS_DEBUG_LOGGING_FILE, "a");
   if (file) {
 #if QLJS_HAVE_GETPID
+#if QLJS_HAVE_GETTID
+    std::fprintf(file, "[%d.%d] ", ::getpid(), ::gettid());
+#else
     std::fprintf(file, "[%d] ", ::getpid());
 #endif
+#endif
+    QLJS_WARNING_PUSH
+    QLJS_WARNING_IGNORE_CLANG("-Wformat-security")
+    QLJS_WARNING_IGNORE_GCC("-Wformat-security")
     std::fprintf(file, format, args...);
+    QLJS_WARNING_POP
     std::fflush(file);
   }
 }

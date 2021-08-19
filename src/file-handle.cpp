@@ -190,7 +190,9 @@ void windows_handle_file::close() {
   this->handle_ = this->invalid_handle_1;
 }
 
-windows_handle_file_ref windows_handle_file::ref() noexcept { return *this; }
+windows_handle_file_ref windows_handle_file::ref() const noexcept {
+  return *this;
+}
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -205,7 +207,7 @@ bool posix_fd_file_ref::valid() const noexcept {
   return this->fd_ != this->invalid_fd;
 }
 
-int posix_fd_file_ref::get() noexcept { return this->fd_; }
+int posix_fd_file_ref::get() const noexcept { return this->fd_; }
 
 file_read_result posix_fd_file_ref::read(void *buffer,
                                          int buffer_size) noexcept {
@@ -308,7 +310,7 @@ void posix_fd_file::close() {
   this->fd_ = invalid_fd;
 }
 
-posix_fd_file_ref posix_fd_file::ref() noexcept { return *this; }
+posix_fd_file_ref posix_fd_file::ref() const noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
