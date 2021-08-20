@@ -190,6 +190,10 @@ class Error(Exception):
         display_error_message(self.message)
 
 
+def is_ctypes_pointer_null(ctypes_pointer):
+    return not bool(ctypes_pointer)
+
+
 class Parser:
     """Parser layer used to communicate with the plugin."""
 
@@ -216,11 +220,11 @@ class Parser:
         self.view = view
         self.diagnostics = []
         self._ctypes_parser_pointer = Parser.lib.qljs_sublime_text_4_create_parser()
-        if self._ctypes_parser_pointer is None:
+        if is_ctypes_pointer_null(self._ctypes_parser_pointer):
             raise MemoryError()
 
     def __del__(self):
-        if self._ctypes_parser_pointer is not None:
+        if not is_ctypes_pointer_null(self._ctypes_parser_pointer):
             Parser.lib.qljs_sublime_text_4_destroy_parser(self._ctypes_parser_pointer)
             self._ctypes_parser_pointer = None
 
@@ -233,7 +237,7 @@ class Parser:
         ctypes_error = Parser.lib.qljs_sublime_text_4_replace_text(
             self._ctypes_parser_pointer, 0, 0, 0, 0, text_utf8, text_len_utf8
         )
-        if ctypes_error.message is not None:
+        if not is_ctypes_pointer_null(ctypes_error.message):
             raise Error(ctypes_error)
 
     def replace_text(self, change):
@@ -248,7 +252,7 @@ class Parser:
             replacement_text_utf8,
             replacement_text_len_utf8,
         )
-        if ctypes_error.message is not None:
+        if not is_ctypes_pointer_null(ctypes_error.message):
             raise Error(ctypes_error)
 
     def lint(self):
@@ -260,7 +264,7 @@ class Parser:
             ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
             diagnostics = []
             for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                if ctypes_diagnostic.message is None:
+                if is_ctypes_pointer_null(ctypes_diagnostic.message):
                     break
                 diagnostics.append(Diagnostic(ctypes_diagnostic, self.view))
             self.diagnostics = diagnostics
