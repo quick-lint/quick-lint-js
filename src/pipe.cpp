@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cerrno>
 #include <cstddef>
 #include <cstring>
 #include <iostream>
@@ -9,6 +10,10 @@
 
 #if QLJS_HAVE_PIPE
 #include <unistd.h>
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
+#include <Windows.h>
 #endif
 
 namespace quick_lint_js {

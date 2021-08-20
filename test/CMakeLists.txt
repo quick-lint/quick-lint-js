@@ -10,7 +10,6 @@ quick_lint_js_add_executable(
   error-matcher.cpp
   parse-json.cpp
   parse-support.cpp
-  pipe.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h
   quick-lint-js/error-matcher.h
@@ -18,7 +17,6 @@ quick_lint_js_add_executable(
   quick-lint-js/gtest.h
   quick-lint-js/parse-json.h
   quick-lint-js/parse-support.h
-  quick-lint-js/pipe.h
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
