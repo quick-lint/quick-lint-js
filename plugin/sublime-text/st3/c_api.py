@@ -53,8 +53,8 @@ class ResultStructure(ctypes.Structure):
 
     # struct qljs_sublime_text_3_result {
     #   union {
-    #     qljs_sublime_text_4_diagnostic* diagnostics;
-    #     qljs_sublime_text_4_error error;
+    #     const qljs_sublime_text_3_diagnostic* diagnostics;
+    #     const qljs_sublime_text_3_error error;
     #   } value;
     #   bool is_diagnostics;
     # };
