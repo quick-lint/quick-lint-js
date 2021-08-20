@@ -7,14 +7,6 @@
 #include <cstring>
 #include <quick-lint-js/string-utilities.h>
 
-// Define the following, and this will work with MSVC or other platforms that
-// lack va_copy, but a simple copying of va_list does the trick.
-#ifndef va_copy
-#define QLJS_ASPRINTF_VA_COPY(dest, src) dest = src
-#else
-#define QLJS_ASPRINTF_VA_COPY(dest, src) va_copy(dest, src)
-#endif
-
 namespace quick_lint_js {
 // Memory management in C and auto allocating sprintf() - asprintf():
 // https://insanecoding.blogspot.com/2014/06/memory-management-in-c-and-auto.html
@@ -33,10 +25,10 @@ int vasprintf(char **strp, const char *fmt, va_list argptr) {
 #else
   int ret = -1, size;
 
-  va_list argptr2;
   // Since vsnprintf() being passed the original va_list may modify its
   // contents, a copy is needed because the function is called twice.
-  QLJS_ASPRINTF_VA_COPY(argptr2, argptr);
+  va_list argptr2;
+  va_copy(argptr2, argptr);
 
   size = vsnprintf(nullptr, 0, fmt, argptr2);
 #endif
