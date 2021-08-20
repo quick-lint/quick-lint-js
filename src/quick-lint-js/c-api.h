@@ -59,7 +59,7 @@ struct qljs_sublime_text_3_diagnostic {
   int end_offset;
 };
 struct qljs_sublime_text_3_error {
-  const char* assertion_failure_report;
+  const char* message;
 };
 struct qljs_sublime_text_3_result {
   union {
@@ -87,7 +87,7 @@ struct qljs_sublime_text_4_diagnostic {
   int end_character;
 };
 struct qljs_sublime_text_4_error {
-  const char* assertion_failure_report;
+  const char* message;
 };
 struct qljs_sublime_text_4_result {
   union {

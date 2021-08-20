@@ -15,7 +15,7 @@
 #include <quick-lint-js/web-demo-location.h>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
-#include <quick-lint-js/program-error.h>
+#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/sublime-text.h>
 #endif
@@ -150,10 +150,9 @@ const qljs_sublime_text_3_error* qljs_sublime_text_3_set_text(
     return nullptr;
   }
   QLJS_SUBLIME_TEXT_CATCH() {
-    const qljs_sublime_text_3_error* error =
-        new qljs_sublime_text_3_error{qljs_sublime_text_program_error_reports};
-    QLJS_CLEAR_PROGRAM_ERROR();
-    return error;
+    const char* message = QLJS_SUBLIME_TEXT_COPY_PROGRAM_REPORT();
+    QLJS_SUBLIME_TEXT_CLEAR_PROGRAM_REPORT();
+    return new qljs_sublime_text_3_error{message};
   }
 }
 
@@ -164,11 +163,11 @@ const qljs_sublime_text_3_result* qljs_sublime_text_3_lint(
                                           .is_diagnostics = true};
   }
   QLJS_SUBLIME_TEXT_CATCH() {
-    const qljs_sublime_text_3_error* error =
-        new qljs_sublime_text_3_error{qljs_sublime_text_program_error_reports};
-    QLJS_CLEAR_PROGRAM_ERROR();
-    return new qljs_sublime_text_3_result{.value = {.error = error},
-                                          .is_diagnostics = false};
+    const char* message = QLJS_SUBLIME_TEXT_COPY_PROGRAM_REPORT();
+    QLJS_SUBLIME_TEXT_CLEAR_PROGRAM_REPORT();
+    return new qljs_sublime_text_3_result{
+        .value = {.error = new qljs_sublime_text_3_error{message}},
+        .is_diagnostics = false};
   }
 }
 
@@ -215,10 +214,9 @@ const qljs_sublime_text_4_error* qljs_sublime_text_4_replace_text(
     return nullptr;
   }
   QLJS_SUBLIME_TEXT_CATCH() {
-    const qljs_sublime_text_4_error* error =
-        new qljs_sublime_text_4_error{qljs_sublime_text_program_error_reports};
-    QLJS_CLEAR_PROGRAM_ERROR();
-    return error;
+    char* message = QLJS_SUBLIME_TEXT_COPY_PROGRAM_REPORT();
+    QLJS_SUBLIME_TEXT_CLEAR_PROGRAM_REPORT();
+    return new qljs_sublime_text_4_error{message};
   }
 }
 
@@ -229,11 +227,11 @@ const qljs_sublime_text_4_result* qljs_sublime_text_4_lint(
                                           .is_diagnostics = true};
   }
   QLJS_SUBLIME_TEXT_CATCH() {
-    const qljs_sublime_text_4_error* error =
-        new qljs_sublime_text_4_error{qljs_sublime_text_program_error_reports};
-    QLJS_CLEAR_PROGRAM_ERROR();
-    return new qljs_sublime_text_4_result{.value = {.error = error},
-                                          .is_diagnostics = false};
+    const char* message = QLJS_SUBLIME_TEXT_COPY_PROGRAM_REPORT();
+    QLJS_SUBLIME_TEXT_CLEAR_PROGRAM_REPORT();
+    return new qljs_sublime_text_4_result{
+        .value = {.error = new qljs_sublime_text_4_error{message}},
+        .is_diagnostics = false};
   }
 }
 #endif

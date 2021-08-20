@@ -52,7 +52,7 @@
 namespace quick_lint_js {
 void read_file_result::exit_if_not_ok() const {
   if (!this->ok()) {
-    std::fprintf(stderr, "error: %s\n", this->error.c_str());
+    QLJS_REPORT_PROGRAM_ERROR("error: %s\n", this->error.c_str());
     std::exit(1);
   }
 }
@@ -280,7 +280,7 @@ padded_string read_file_or_exit(const char *path) {
       exit_on_read_file_error_handlers<padded_string>(),
       []() -> padded_string {
         QLJS_ASSERT(false);
-        std::fprintf(stderr, "error: unknown error\n");
+        QLJS_REPORT_PROGRAM_ERROR("error: unknown error\n");
         std::exit(1);
       });
 }
@@ -292,20 +292,22 @@ void write_file(const std::string &path, string8_view content) {
 void write_file(const char *path, string8_view content) {
   FILE *file = std::fopen(path, "wb");
   if (!file) {
-    std::fprintf(stderr, "fatal: failed to open file %s for writing: %s\n",
-                 path, std::strerror(errno));
+    QLJS_REPORT_PROGRAM_FATAL_ERROR(
+        "fatal: failed to open file %s for writing: %s\n", path,
+        std::strerror(errno));
     std::abort();
   }
 
   std::size_t written = std::fwrite(content.data(), 1, content.size(), file);
   if (written != content.size()) {
-    std::fprintf(stderr, "fatal: failed to write entirely of file %s\n", path);
+    QLJS_REPORT_PROGRAM_FATAL_ERROR(
+        "fatal: failed to write entirely of file %s\n", path);
     std::abort();
   }
   std::fflush(file);
   if (std::ferror(file)) {
-    std::fprintf(stderr, "fatal: failed to write file %s: %s\n", path,
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_FATAL_ERROR("fatal: failed to write file %s: %s\n",
+                                    path, std::strerror(errno));
     std::abort();
   }
 

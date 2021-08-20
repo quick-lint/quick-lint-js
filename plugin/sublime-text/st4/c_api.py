@@ -176,7 +176,7 @@ class Diagnostic:
 
 
 def display_error_message(message):
-    sublime.error_message("error: quick-lint-js:\n" + message)
+    sublime.error_message("Error Message: quick-lint-js:\n" + message)
 
 
 class Error(Exception):

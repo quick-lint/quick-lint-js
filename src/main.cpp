@@ -26,6 +26,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe-writer.h>
+#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -171,7 +172,7 @@ void handle_options(quick_lint_js::options o) {
   for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
     configuration_or_error config = config_loader.load_for_file(file);
     if (!config.ok()) {
-      std::fprintf(stderr, "error: %s\n", config.error.c_str());
+      QLJS_REPORT_PROGRAM_ERROR("error: %s\n", config.error.c_str());
       std::exit(1);
     }
     boost::leaf::try_handle_all(
@@ -188,7 +189,7 @@ void handle_options(quick_lint_js::options o) {
         exit_on_read_file_error_handlers<void>(),
         []() {
           QLJS_ASSERT(false);
-          std::fprintf(stderr, "error: unknown error\n");
+          QLJS_REPORT_PROGRAM_ERROR("error: unknown error\n");
           std::exit(1);
         });
   }

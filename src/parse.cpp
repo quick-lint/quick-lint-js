@@ -13,7 +13,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/program-error.h>
+#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
@@ -2158,14 +2158,15 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   qljs_sublime_text_test_crash();
 #endif
 
-  QLJS_REPORT_PROGRAM_ERROR("%s:%d: fatal: token not implemented in %s: %s",
-                            qljs_file_name, qljs_line, qljs_function_name,
-                            to_string(this->peek().type));
+  QLJS_REPORT_PROGRAM_FATAL_ERROR(
+      "%s:%d: fatal: token not implemented in %s: %s", qljs_file_name,
+      qljs_line, qljs_function_name, to_string(this->peek().type));
   cli_locator locator(this->lexer_.original_input());
   cli_source_position token_position = locator.position(this->peek().begin);
-  QLJS_REPORT_PROGRAM_ERROR(" on line %d column %d", token_position.line_number,
-                            token_position.column_number);
-  QLJS_REPORT_PROGRAM_ERROR("\n");
+  QLJS_REPORT_PROGRAM_FATAL_ERROR(" on line %d column %d",
+                                  token_position.line_number,
+                                  token_position.column_number);
+  QLJS_REPORT_PROGRAM_FATAL_ERROR("\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
@@ -2181,7 +2182,7 @@ void parser::crash_on_depth_limit_exceeded() {
   }
 #endif
 
-  QLJS_REPORT_PROGRAM_ERROR("Error: parser depth limit exceeded\n");
+  QLJS_REPORT_PROGRAM_FATAL_ERROR("Error: parser depth limit exceeded\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }

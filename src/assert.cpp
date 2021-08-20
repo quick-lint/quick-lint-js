@@ -3,21 +3,15 @@
 
 #include <cstdio>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/program-error.h>
+#include <quick-lint-js/program-report.h>
 
 namespace quick_lint_js {
 void report_assertion_failure(const char *qljs_file_name, int qljs_line,
                               const char *qljs_function_name,
                               const char *message) {
-#if QLJS_SUBLIME_TEXT_PLUGIN
-  QLJS_REPORT_PROGRAM_ERROR(
-      "Assertion Failure: %s:%d: internal check failed in %s: %s\n",
-      qljs_file_name, qljs_line, qljs_function_name, message);
-#else
-  QLJS_REPORT_PROGRAM_ERROR("%s:%d: internal check failed in %s: %s\n",
-                            qljs_file_name, qljs_line, qljs_function_name,
-                            message);
-#endif
+  QLJS_REPORT_PROGRAM_FATAL_ERROR("%s:%d: internal check failed in %s: %s\n",
+                                  qljs_file_name, qljs_line, qljs_function_name,
+                                  message);
 }
 }
 

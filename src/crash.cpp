@@ -12,6 +12,7 @@
 #include <quick-lint-js/crash.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/program-report.h>
 
 #if QLJS_HAVE_SETRLIMIT
 #include <sys/resource.h>
@@ -42,10 +43,10 @@ core_style linux_detect_core_style() {
       [&]() -> boost::leaf::result<core_style> {
         int fd = ::open("/proc/sys/kernel/core_pattern", O_CLOEXEC | O_RDONLY);
         if (fd == -1) {
-          std::fprintf(stderr,
-                       "warning: failed to determine method to disable core "
-                       "dumping: %s\n",
-                       std::strerror(errno));
+          QLJS_REPORT_PROGRAM_WARNING(
+              "warning: failed to determine method to disable core "
+              "dumping: %s\n",
+              std::strerror(errno));
           return core_style::unknown;
         }
         posix_fd_file file(fd);
@@ -65,15 +66,13 @@ core_style linux_detect_core_style() {
         }
       },
       [](boost::leaf::e_errno error) {
-        std::fprintf(
-            stderr,
+        QLJS_REPORT_PROGRAM_WARNING(
             "warning: failed to determine method to disable core dumping: %s\n",
             std::strerror(error.value));
         return core_style::unknown;
       },
       []() {
-        std::fprintf(
-            stderr,
+        QLJS_REPORT_PROGRAM_WARNING(
             "warning: failed to determine method to disable core dumping\n");
         return core_style::unknown;
       });
@@ -92,8 +91,8 @@ void disable_core_dumping() {
   ::rlimit limits;
   rc = ::getrlimit(RLIMIT_CORE, &limits);
   if (rc == -1) {
-    std::fprintf(stderr, "warning: failed to disable core dumping: %s\n",
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_WARNING("warning: failed to disable core dumping: %s\n",
+                                std::strerror(errno));
     return;
   }
 
@@ -119,8 +118,8 @@ void disable_core_dumping() {
 
   rc = ::setrlimit(RLIMIT_CORE, &limits);
   if (rc == -1) {
-    std::fprintf(stderr, "warning: failed to disable core dumping: %s\n",
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_WARNING("warning: failed to disable core dumping: %s\n",
+                                std::strerror(errno));
   }
 }
 #elif defined(_WIN32)

@@ -117,7 +117,6 @@ def load_library():
     else:
         raise OSError("Operating system not supported.")
 
-
     lib_directory_path = get_script_directory_path()
     lib_path = lib_directory_path + directory_separator + lib_path_file
     # For the Python loading the library (through ctypes) on Windows,
@@ -166,7 +165,7 @@ class Diagnostic:
 
 
 def display_error_message(message):
-    sublime.error_message("error: quick-lint-js:\n" + message)
+    sublime.error_message("Error Message: quick-lint-js:\n" + message)
 
 
 class Error(Exception):
