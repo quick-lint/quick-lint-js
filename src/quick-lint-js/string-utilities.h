@@ -7,7 +7,10 @@
 #include <cstdarg>
 #include <cstdlib>
 
-// More details:
+// The parameter *string-index* specifies which argument is the format
+// string argument (starting from 1), while *first-to-check* is the number
+// of the first argument to check against the format string.
+//
 // https://clang.llvm.org/docs/AttributeReference.html#format
 // https://gcc.gnu.org/onlinedocs/gcc-11.1.0/gcc/Common-Function-Attributes.html#Common-Function-Attributes
 #if defined(__GNUC__) || defined(__clang__)
