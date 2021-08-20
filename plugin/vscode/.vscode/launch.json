@@ -13,6 +13,9 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "type": "extensionHost",
+      "env": {
+        "QLJS_TEST_FILTER": ""
+      },
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/test/vscode-tests.js",
