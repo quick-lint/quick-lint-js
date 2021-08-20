@@ -6,12 +6,6 @@
 
 #include <cstdarg>
 
-#define QLJS_SAFE_FREE(ptr) \
-  do {                      \
-    free(ptr);              \
-    ptr = nullptr;          \
-  } while (false)
-
 // More details:
 // https://clang.llvm.org/docs/AttributeReference.html#format
 // https://gcc.gnu.org/onlinedocs/gcc-11.1.0/gcc/Common-Function-Attributes.html#Common-Function-Attributes
@@ -21,6 +15,12 @@
 #else
 #define QLJS_PRINTF_FORMAT_ATTRIBUTE(string_index, first_to_check) /* empty */
 #endif
+
+#define QLJS_SAFE_FREE(ptr) \
+  do {                      \
+    ::std::free(ptr);       \
+    ptr = nullptr;          \
+  } while (false)
 
 namespace quick_lint_js {
 // Name:
