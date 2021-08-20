@@ -4,7 +4,6 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <quick-lint-js/string-utilities.h>
 
 namespace quick_lint_js {

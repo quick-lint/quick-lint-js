@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_STRING_UTILITIES_H
 
 #include <cstdarg>
+#include <cstdlib>
 
 // More details:
 // https://clang.llvm.org/docs/AttributeReference.html#format
