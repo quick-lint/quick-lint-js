@@ -52,20 +52,23 @@ class ErrorStructure(ctypes.Structure):
     ]
 
 
+ErrorStructurePointer = ctypes.POINTER(ErrorStructure)
+
+
 class ResultStructure(ctypes.Structure):
     """Result layer used to communicate with the C++ code."""
 
     # struct qljs_sublime_text_4_result {
     #   union {
     #     const qljs_sublime_text_4_diagnostic* diagnostics;
-    #     const qljs_sublime_text_4_error error;
+    #     const qljs_sublime_text_4_error* error;
     #   } value;
     #   bool is_diagnostics;
     # };
     class ValueUnion(ctypes.Union):
         _fields_ = [
             ("diagnostics", DiagnosticStructurePointer),
-            ("error", ErrorStructure),
+            ("error", ErrorStructurePointer),
         ]
 
     _fields_ = [
@@ -148,7 +151,7 @@ def create_library():
         ctypes.c_void_p,
         ctypes.c_size_t,
     ]
-    lib.qljs_sublime_text_4_replace_text.restype = ErrorStructure
+    lib.qljs_sublime_text_4_replace_text.restype = ErrorStructurePointer
 
     lib.qljs_sublime_text_4_lint.argtypes = [ParserStructurePointer]
     lib.qljs_sublime_text_4_lint.restype = ResultStructurePointer
@@ -234,16 +237,17 @@ class Parser:
         all_content = self.view.substr(all_region)
         text_utf8 = all_content.encode(encoding="utf-8")
         text_len_utf8 = len(text_utf8)
-        ctypes_error = Parser.lib.qljs_sublime_text_4_replace_text(
+        ctypes_error_pointer = Parser.lib.qljs_sublime_text_4_replace_text(
             self._ctypes_parser_pointer, 0, 0, 0, 0, text_utf8, text_len_utf8
         )
-        if not is_ctypes_pointer_null(ctypes_error.message):
+        if not is_ctypes_pointer_null(ctypes_error_pointer):
+            ctypes_error = ctypes_error_pointer.contents
             raise Error(ctypes_error)
 
     def replace_text(self, change):
         replacement_text_utf8 = change.str.encode(encoding="utf-8")
         replacement_text_len_utf8 = len(replacement_text_utf8)
-        ctypes_error = Parser.lib.qljs_sublime_text_4_replace_text(
+        ctypes_error_pointer = Parser.lib.qljs_sublime_text_4_replace_text(
             self._ctypes_parser_pointer,
             change.a.row,
             change.a.col_utf16,
@@ -252,7 +256,8 @@ class Parser:
             replacement_text_utf8,
             replacement_text_len_utf8,
         )
-        if not is_ctypes_pointer_null(ctypes_error.message):
+        if not is_ctypes_pointer_null(ctypes_error_pointer):
+            ctypes_error = ctypes_error_pointer.contents
             raise Error(ctypes_error)
 
     def lint(self):
@@ -270,7 +275,9 @@ class Parser:
             self.diagnostics = diagnostics
         else:
             self.diagnostics = []
-            raise Error(ctypes_result.value.error)
+            ctypes_error_pointer = ctypes_result.value.error
+            ctypes_error = ctypes_error_pointer.contents
+            raise Error(ctypes_error)
 
 
 # quick-lint-js finds bugs in JavaScript programs.
