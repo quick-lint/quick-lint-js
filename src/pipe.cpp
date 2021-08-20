@@ -3,8 +3,8 @@
 
 #include <cerrno>
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
 
@@ -22,7 +22,8 @@ pipe_fds make_pipe() {
   int fds[2];
   int rc = ::pipe(fds);
   if (rc == -1) {
-    std::cerr << "failed to create pipe: " << std::strerror(errno) << '\n';
+    std::fprintf(stderr, "error: failed to create pipe: %s\n",
+                 std::strerror(errno));
     std::abort();
   }
   return pipe_fds{
@@ -36,8 +37,8 @@ pipe_fds make_pipe() {
   HANDLE writePipe;
   if (!::CreatePipe(&readPipe, &writePipe, /*lpPipeAttributes=*/nullptr,
                     /*nSize=*/0)) {
-    std::cerr << "error: failed to create pipe: "
-              << windows_handle_file::get_last_error_message() << '\n';
+    std::fprintf(stderr, "error: failed to create pipe: %s\n",
+                 windows_handle_file::get_last_error_message());
     std::abort();
   }
   return pipe_fds{
