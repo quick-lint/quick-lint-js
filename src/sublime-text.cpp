@@ -1,6 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 #include <quick-lint-js/sublime-text.h>
 
 #if QLJS_HAVE_SIGSETJMP
@@ -12,6 +15,29 @@ jmp_buf qljs_sublime_text_jmp_buf;
 void qljs_sublime_text_signal_handler(int signal_number) {
   QLJS_SUBLIME_TEXT_THROW();
 }
+
+#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
+void qljs_sublime_text_test_crash() {
+  static int num = 0;
+  if (num > 3) {
+    num = 0;
+  }
+  switch (num++) {
+  case 0:
+    std::fputs("case 0: std::abort();", stderr);
+    std::abort();
+  case 1:
+    std::fputs("case 1: assert(false);", stderr);
+    assert(false);
+  case 2:
+    std::fputs("case 2: *((unsigned int*)0) = 0xDEAD;", stderr);
+    *((unsigned int*)0) = 0xDEAD;
+  case 3:
+    std::fputs("case 3: raise(SIGSEGV);", stderr);
+    raise(SIGSEGV);
+  }
+}
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

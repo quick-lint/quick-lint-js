@@ -64,34 +64,7 @@ void qljs_sublime_text_signal_handler(int signal_number);
 
 // For testing purposes only.
 #if QLJS_SUBLIME_TEXT_PLUGIN_TEST
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-
-#define QLJS_RANDRANGE(start, stop) \
-  ((::std::rand() % (stop - start + 1)) + start)
-
-#define QLJS_SUBLIME_INITILIZE_TEST_CRASH() \
-  ::std::srand(static_cast<unsigned int>(::std::time(nullptr)))
-
-#define QLJS_SUBLIME_EXECUTE_TEST_CRASH()                            \
-  do {                                                               \
-    switch (static_cast<int>(QLJS_RANDRANGE(0, 3))) {                \
-    case 0:                                                          \
-      ::std::fputs("case 0: ::std::abort();", stderr);               \
-      ::std::abort();                                                \
-    case 1:                                                          \
-      ::std::fputs("case 1: assert(false);", stderr);                \
-      assert(false);                                                 \
-    case 2:                                                          \
-      ::std::fputs("case 2: *((unsigned int*)0) = 0xDEAD;", stderr); \
-      *((unsigned int*)0) = 0xDEAD;                                  \
-    case 3:                                                          \
-      ::std::fputs("case 3: raise(SIGSEGV);", stderr);               \
-      raise(SIGSEGV);                                                \
-    }                                                                \
-  } while (false)
+void qljs_sublime_text_test_crash();
 #endif
 
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_H
