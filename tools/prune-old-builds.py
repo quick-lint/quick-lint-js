@@ -4,6 +4,7 @@
 # See end of file for extended copyright information.
 
 import os
+import sys
 import shutil
 import argparse
 import subprocess
@@ -58,7 +59,7 @@ if __name__ == '__main__':
     repo_name = 'quick-lint-js'
 
     if not os.path.exists(builds_path):
-        print(
+        error_print(
             f"error: The directory \033[1m{builds_path}\033[0m does not exists.")
         exit(1)
 
