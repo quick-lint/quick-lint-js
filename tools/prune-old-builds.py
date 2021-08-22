@@ -19,6 +19,10 @@ def how_old(date: datetime) -> int:
     return (datetime.now() - date).days
 
 
+def error_print(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Prune old builds")
     parser.add_argument(
