@@ -35,6 +35,8 @@ if __name__ == '__main__':
         help="The url to the repository.",
         nargs=1,
         type=str)
+    parser.add_argument("-f", "--delete", action="store_true",
+                        help="Delete folders.")
     args, _ = parser.parse_known_args()
 
     builds_path = Path(args.builds_path[0])
@@ -59,17 +61,27 @@ if __name__ == '__main__':
         && git rev-list --all --remotes"
     ).split('\n')
 
+    to_be_deleted = []
     for folder in os.listdir(builds_path):
         folder_path = builds_path / folder
         created_at = datetime.fromtimestamp(os.path.getctime(folder_path))
 
         if not folder in commits and how_old(created_at) > FOURTEEN_DAYS:
-            print(
+            error_print(
                 f"""Build \033[93m{folder}\033[0m accomplish the following criteria:\n* Is not part of the repo/PR\n* Has more then fourteen days\n\033[1;31mThis build will be deleted.\033[0m\n""")
+
+            to_be_deleted.append(folder_path)
+
+    if args.delete:
+        for folder_path in to_be_deleted:
             try:
                 shutil.rmtree(folder_path)
-            except OSError as e:
-                print("Error: %s : %s" % (folder_path, e.strerror))
+            except FileNotFoundError:
+                error_print("Build folder not found")
+                exit(2)
+            except Exception as err:
+                error_print(err)
+                exit(1)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
