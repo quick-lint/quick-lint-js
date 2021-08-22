@@ -23,6 +23,19 @@ def error_print(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
+def get_commits(repo_name: str, repository_url: str) -> list:
+    try:
+        return subprocess.check_output(
+            f"cd {repo_name} \
+            && git fetch --prune {repository_url} '+refs/pull/*/head:refs/remotes/github-pr/*' \
+            && git rev-list --all --remotes",
+            stderr=subprocess.STDOUT, shell=True
+        ).decode('utf-8').split('\n')
+    except subprocess.CalledProcessError as err:
+        error_print(err.output.decode())
+        exit(err.returncode)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Prune old builds")
     parser.add_argument(
@@ -50,16 +63,12 @@ if __name__ == '__main__':
         exit(1)
 
     if not os.path.exists(repo_name):
-        print("Cloning repository")
-        subprocess.run(['git', 'clone', '-q', repository_url])
+        error_print("Cloning repository")
+        subprocess.check_call(
+            ['git', 'clone', '-q', '--bare', repository_url, repo_name])
 
-    print('Getting all commits of the repository\n')
-    commits = subprocess.getoutput(
-        f"cd {repo_name} \
-        && git pull origin master \
-        && git fetch origin 'refs/pull/*/head:refs/remotes/github-pr/*' \
-        && git rev-list --all --remotes"
-    ).split('\n')
+    error_print('Getting all commits of the repository\n')
+    commits = get_commits(repo_name, repository_url)
 
     to_be_deleted = []
     for folder in os.listdir(builds_path):
