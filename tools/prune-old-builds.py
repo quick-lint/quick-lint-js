@@ -29,7 +29,7 @@ def error_print(*args, **kwargs):
 def get_commits(repo_name: str, repository_url: str) -> list:
     try:
         return subprocess.check_output(
-            f"cd {repo_name} \
+            f"cd {pipes.quote(repo_name)} \
             && git fetch --prune --all \
             && git rev-list --all --remotes", shell=True
         ).decode('utf-8').split('\n')
@@ -44,6 +44,7 @@ def has_valid_name(folder_name: str) -> bool:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Prune old builds")
+    parser.add_argument("repo_name", help="Repository name.", type=str)
     parser.add_argument(
         "builds_path",
         help="The path where the builds are stored.",
@@ -57,9 +58,8 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
 
     builds_path = Path(args.builds_path)
-    # https://github.com/quick-lint/quick-lint-js.git
     repository_url = args.repository_url
-    repo_name = 'quick-lint-js'
+    repo_name = args.repo_name
 
     if not os.path.exists(builds_path):
         error_print(
