@@ -30,8 +30,7 @@ def get_commits(repo_name: str, repository_url: str) -> list:
         return subprocess.check_output(
             f"cd {repo_name} \
             && git fetch --prune {repository_url} '+refs/pull/*/head:refs/remotes/github-pr/*' \
-            && git rev-list --all --remotes",
-            stderr=subprocess.STDOUT, shell=True
+            && git rev-list --all --remotes", shell=True
         ).decode('utf-8').split('\n')
     except subprocess.CalledProcessError as err:
         error_print(err.output.decode())
