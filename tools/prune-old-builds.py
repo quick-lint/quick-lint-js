@@ -3,6 +3,7 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+import pipes
 import re
 import os
 import sys
@@ -29,7 +30,7 @@ def get_commits(repo_name: str, repository_url: str) -> list:
     try:
         return subprocess.check_output(
             f"cd {repo_name} \
-            && git fetch --prune {repository_url} '+refs/pull/*/head:refs/remotes/github-pr/*' \
+            && git fetch --prune {pipes.quote(repository_url)} '+refs/pull/*/head:refs/remotes/github-pr/*' \
             && git rev-list --all --remotes", shell=True
         ).decode('utf-8').split('\n')
     except subprocess.CalledProcessError as err:
