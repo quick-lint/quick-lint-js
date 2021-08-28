@@ -46,20 +46,18 @@ if __name__ == '__main__':
     parser.add_argument(
         "builds_path",
         help="The path where the builds are stored.",
-        nargs=1,
         type=str)
     parser.add_argument(
         "repository_url",
         help="The url to the repository.",
-        nargs=1,
         type=str)
     parser.add_argument("-f", "--delete", action="store_true",
                         help="Delete folders.")
     args, _ = parser.parse_known_args()
 
-    builds_path = Path(args.builds_path[0])
+    builds_path = Path(args.builds_path)
     # https://github.com/quick-lint/quick-lint-js.git
-    repository_url = args.repository_url[0]
+    repository_url = args.repository_url
     repo_name = 'quick-lint-js'
 
     if not os.path.exists(builds_path):
