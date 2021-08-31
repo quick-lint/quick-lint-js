@@ -555,6 +555,20 @@ TEST(test_parse, for_in_loop) {
                             spy_visitor::visited_variable_use{u8"body"}));
   }
 
+  {
+    padded_string code(u8"for (const x in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
   // TODO(strager): Report error for the following code:
   //
   //   for (let x = init in xs) {}
@@ -643,6 +657,20 @@ TEST(test_parse, for_of_loop) {
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_let_with_no_bindings, where,
                     offsets_matcher(&code, strlen(u8"for ("), u8"let"))));
+  }
+
+  {
+    padded_string code(u8"for (const x of []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 

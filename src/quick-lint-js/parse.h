@@ -2263,8 +2263,10 @@ class parser {
         // for (let i = 0; i < length; ++length) {}
         // for (let x of xs) {}
         this->lexer_.commit_transaction(std::move(transaction));
-        this->parse_and_visit_let_bindings(lhs, declaring_token,
-                                           /*allow_in_operator=*/false);
+        this->parse_and_visit_let_bindings(
+            lhs, declaring_token,
+            /*allow_in_operator=*/false,
+            /*allow_const_without_initializer=*/true);
       }
       switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
@@ -3066,8 +3068,9 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
-                                    bool allow_in_operator) {
+  void parse_and_visit_let_bindings(
+      Visitor &v, token declaring_token, bool allow_in_operator,
+      bool allow_const_without_initializer = false) {
     variable_kind declaration_kind;
     switch (declaring_token.type) {
     case token_type::kw_const:
@@ -3084,8 +3087,10 @@ class parser {
       declaration_kind = variable_kind::_let;
       break;
     }
-    this->parse_and_visit_let_bindings(v, declaring_token, declaration_kind,
-                                       /*allow_in_operator=*/allow_in_operator);
+    this->parse_and_visit_let_bindings(
+        v, declaring_token, declaration_kind,
+        /*allow_in_operator=*/allow_in_operator,
+        /*allow_const_without_initializer=*/allow_const_without_initializer);
   }
 
   QLJS_WARNING_PUSH
@@ -3094,7 +3099,8 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
                                     variable_kind declaration_kind,
-                                    bool allow_in_operator) {
+                                    bool allow_in_operator,
+                                    bool allow_const_without_initializer) {
     source_code_span let_span = declaring_token.span();
     bool first_binding = true;
     for (;;) {
@@ -3219,9 +3225,11 @@ class parser {
         // let x, y;
         default:
           if (declaration_kind == variable_kind::_const) {
-            this->error_reporter_->report(
-                error_missing_initializer_in_const_declaration{
-                    .variable_name = variable->span()});
+            if (!allow_const_without_initializer) {
+              this->error_reporter_->report(
+                  error_missing_initializer_in_const_declaration{
+                      .variable_name = variable->span()});
+            }
           }
           this->visit_binding_element(variable, v, declaration_kind);
           break;
