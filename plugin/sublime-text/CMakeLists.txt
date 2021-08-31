@@ -139,6 +139,7 @@ ${SUBLIME_TEXT_VERSION_TAG}-${SUBLIME_TEXT_PACKAGE_PLATFORM}"
     COMMAND "${CMAKE_COMMAND}" -E copy
     ${SUBLIME_TEXT_PACKAGE_FILES}
     "${SUBLIME_TEXT_PACKAGE_PATH}"
+    VERBATIM
   )
   add_dependencies(quick-lint-js-sublime-text quick-lint-js-lib)
 
