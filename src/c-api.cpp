@@ -17,7 +17,7 @@
 #if QLJS_SUBLIME_TEXT_PLUGIN
 #include <quick-lint-js/program-report.h>
 #include <quick-lint-js/sublime-text-3-location.h>
-#include <quick-lint-js/sublime-text.h>
+#include <quick-lint-js/crash-handling.h>
 #endif
 
 namespace quick_lint_js {

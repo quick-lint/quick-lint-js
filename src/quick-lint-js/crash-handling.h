@@ -1,8 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
-#define QUICK_LINT_JS_SUBLIME_TEXT_H
+#ifndef QUICK_LINT_JS_CRASH_HANDLING_H
+#define QUICK_LINT_JS_CRASH_HANDLING_H
+
+#if QLJS_SUBLIME_TEXT_PLUGIN
 
 // If there is for example a program's segmentation fault, the OS will
 // send a signal to the program's process.
@@ -67,7 +69,9 @@ void qljs_sublime_text_signal_handler(int signal_number);
 void qljs_sublime_text_test_crash();
 #endif
 
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_H
+#endif  // QLJS_SUBLIME_TEXT_PLUGIN
+
+#endif  // QUICK_LINT_JS_CRASH_HANDLING_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

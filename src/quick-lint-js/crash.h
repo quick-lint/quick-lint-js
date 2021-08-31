@@ -8,7 +8,7 @@
 #include <quick-lint-js/have.h>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
-#include <quick-lint-js/sublime-text.h>
+#include <quick-lint-js/crash-handling.h>
 #endif
 
 #if QLJS_HAVE_DEBUGBREAK

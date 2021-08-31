@@ -4,7 +4,9 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/sublime-text.h>
+#include <quick-lint-js/crash-handling.h>
+
+#if QLJS_SUBLIME_TEXT_PLUGIN
 
 #if QLJS_HAVE_SIGSETJMP
 sigjmp_buf qljs_sublime_text_sigjmp_buf;
@@ -38,6 +40,8 @@ void qljs_sublime_text_test_crash() {
   }
 }
 #endif
+
+#endif  // QLJS_SUBLIME_TEXT_PLUGIN
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

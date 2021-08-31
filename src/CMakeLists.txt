@@ -46,6 +46,7 @@ quick_lint_js_add_library(
   configuration-loader.cpp
   configuration.cpp
   crash.cpp
+  crash-handling.cpp
   document.cpp
   error-collector.cpp
   error-formatter.cpp
@@ -90,6 +91,7 @@ quick_lint_js_add_library(
   quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/crash-handling.h
   quick-lint-js/document.h
   quick-lint-js/error-collector.h
   quick-lint-js/error-formatter.h
@@ -134,7 +136,6 @@ quick_lint_js_add_library(
   quick-lint-js/sloppy-result.h
   quick-lint-js/string-utilities.h
   quick-lint-js/sublime-text-3-location.h
-  quick-lint-js/sublime-text.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
@@ -151,7 +152,6 @@ quick_lint_js_add_library(
   quick-lint-js/web-demo-location.h
   string-utilities.cpp
   sublime-text-3-location.cpp
-  sublime-text.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
   translation-data.cpp
