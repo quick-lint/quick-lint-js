@@ -63,9 +63,9 @@ class QuickLintJsListener:
     # they will all apply the same changes (have squiggly underlines
     # and pop-ups available).
     #
-    # For more information:
-    #   Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
-    #   https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
+    # More details:
+    #     Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
+    #     https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
     plugin_buffers_manager = PluginBuffersManager()
 
@@ -126,8 +126,8 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
     # in __init__?
     #
     # Answer:
-    #   Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
-    #   https://github.com/quick-lint/quick-lint-js/pull/328#discussion_r670077226
+    #     Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
+    #     https://github.com/quick-lint/quick-lint-js/pull/328#discussion_r670077226
 
     def __init__(self, view):
         """Called when the view is finished loading."""
@@ -149,16 +149,16 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
     def on_reload(self):
         """Called, for example, when a file is changed outside of the editor.
 
-        For more information:
-          https://github.com/sublimehq/sublime_text/issues/9#issuecomment-16922940
+        More details:
+            https://github.com/sublimehq/sublime_text/issues/9#issuecomment-16922940
         """
         self.on_load()
 
     def on_revert(self):
         """Called, for example, through menu entry under `File | Revert file`.
 
-        For more information:
-          https://superuser.com/q/815045
+        More details:
+            https://superuser.com/q/815045
         """
         self.on_load()
 

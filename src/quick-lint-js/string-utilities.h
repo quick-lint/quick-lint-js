@@ -29,14 +29,17 @@
 namespace quick_lint_js {
 // Name:
 //   asprintf, vasprintf - print to allocated string
+//
 // Description:
 //   The functions asprintf() and vasprintf() are analogs of sprintf(3) and
-// vsprintf(3), except that they allocate a string large enough to hold the
-// output including the terminating null byte, and return a pointer to it via
-// the first argument. This pointer should be passed to free(3) to release the
-// allocated storage when it is no longer needed.
+//   vsprintf(3), except that they allocate a string large enough to hold the
+//   output including the terminating null byte, and return a pointer to it via
+//   the first argument. This pointer should be passed to free(3) to release the
+//   allocated storage when it is no longer needed.
+//
 // More details:
-// https://linux.die.net/man/3/asprintf
+//   https://linux.die.net/man/3/asprintf
+
 QLJS_PRINTF_FORMAT_ATTRIBUTE(2, 3)
 int asprintf(char **strp, const char *fmt, ...);
 

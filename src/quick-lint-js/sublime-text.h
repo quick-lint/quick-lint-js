@@ -4,11 +4,11 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
-// In Linux, if there is for example a program's segmentation fault,
-// the OS will send a signal to the program's process.
+// If there is for example a program's segmentation fault, the OS will
+// send a signal to the program's process.
 //
 // The program has predefined signal handlers for each type of signal.
-// These signal handlers are called when your specified signal is sent.
+// These signal handlers are called when your specified signal is received.
 // The program can set your own signal handlers.
 //
 // If one of these handlers is called, and inside it, there is a longjmp
@@ -16,17 +16,17 @@
 // signal handler be called, the program's process will be killed
 // (or the program will have undefined behavior), but if instead of
 // longjmp a siglongjmp be used, the next time this signal handler
-// be called, the process will not be killed.
+// be called, the process will not be killed (at least on linux).
 //
 // It's because the signal mask of the process not be restored when the
 // longjmp is called but be restored when siglongjmp is called, so for
 // the code to work as expected there will be a preference in
-// sigsetjmp/siglongjmp over setjmp/longjmp (at least on linux).
+// sigsetjmp/siglongjmp over setjmp/longjmp.
 //
-// For more details:
-// https://stackoverflow.com/q/7334595  | https://stackoverflow.com/q/1715413
-// https://stackoverflow.com/q/14233464 | https://stackoverflow.com/q/20755260
-// http://poincare.matf.bg.ac.rs/~ivana/courses/ps/sistemi_knjige/pomocno/apue/APUE/0201433079/ch10lev1sec15.html
+// More details:
+//   https://stackoverflow.com/q/7334595  | https://stackoverflow.com/q/1715413
+//   https://stackoverflow.com/q/14233464 | https://stackoverflow.com/q/20755260
+//   http://poincare.matf.bg.ac.rs/~ivana/courses/ps/sistemi_knjige/pomocno/apue/APUE/0201433079/ch10lev1sec15.html
 
 #include <csetjmp>
 #include <csignal>

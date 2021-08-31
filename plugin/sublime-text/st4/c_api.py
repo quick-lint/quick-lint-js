@@ -122,12 +122,12 @@ def load_library():
 
     lib_directory_path = get_script_directory_path()
     lib_path = lib_directory_path + directory_separator + lib_path_file
-    # For the Python loading the library (through ctypes) on Windows,
-    # it needs to load the DLLs (other libraries) that this library
-    # depends on, to Python do it, we need to change the current
-    # working directory (temporarily) to the directory containing
-    # these dependencies. This directory, in this case, is the same
-    # as the library we are trying to load.
+
+    # On Windows, for ctypes to load a library, it also needs to load
+    # the dependencies of that library in case the library we want to
+    # load, all its dependencies are in the same directory. For ctypes
+    # to find these dependencies, we will need to temporarily change
+    # the current working directory to the same location of these dependencies.
     with set_directory(lib_directory_path):
         lib = ctypes.CDLL(lib_path)
     return lib
