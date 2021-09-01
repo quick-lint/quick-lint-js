@@ -62,7 +62,7 @@ extern sigjmp_buf qljs_sublime_text_sigjmp_buf;
 extern jmp_buf qljs_sublime_text_jmp_buf;
 #endif
 
-void qljs_sublime_text_signal_handler(int signal_number);
+[[noreturn]] void qljs_sublime_text_signal_handler(int signal_number);
 
 // For testing purposes only.
 #if QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST

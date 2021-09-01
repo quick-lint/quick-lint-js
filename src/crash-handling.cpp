@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/crash-handling.h>
+#include <quick-lint-js/warning.h>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
 
@@ -14,6 +15,8 @@ sigjmp_buf qljs_sublime_text_sigjmp_buf;
 jmp_buf qljs_sublime_text_jmp_buf;
 #endif
 
+QLJS_WARNING_IGNORE_CLANG("-Wunused-parameter")
+QLJS_WARNING_IGNORE_GCC("-Wunused-parameter")
 void qljs_sublime_text_signal_handler(int signal_number) {
   QLJS_SUBLIME_TEXT_THROW();
 }
