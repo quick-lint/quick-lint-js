@@ -116,7 +116,7 @@ class QuickLintJsViewEventListener(ViewEventListener, QuickLintJsListener):
         if not c_api.Parser.is_working():
             return False
         syntax = settings.get("syntax", "")
-        return "JavaScript" in syntax
+        return "JavaScript.sublime-syntax" in syntax
 
     @classmethod
     def applies_to_primary_view_only(cls):
@@ -199,7 +199,7 @@ class QuickLintJsTextChangeListener(TextChangeListener, QuickLintJsListener):
             return False
         settings = buffer.primary_view().settings()
         syntax = settings.get("syntax", "")
-        return "JavaScript" in syntax
+        return "JavaScript.sublime-syntax" in syntax
 
     def __init__(self):
         TextChangeListener.__init__(self)

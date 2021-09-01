@@ -67,7 +67,7 @@ class QuickLintJsListener(sublime_plugin.ViewEventListener):
         if not c_api.Parser.is_working():
             return False
         syntax = settings.get("syntax", "")
-        return "JavaScript" in syntax
+        return "JavaScript.sublime-syntax" in syntax
 
     @classmethod
     def applies_to_primary_view_only(cls):
