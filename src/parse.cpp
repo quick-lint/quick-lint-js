@@ -2154,8 +2154,8 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   }
 #endif
 
-#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
-  qljs_sublime_text_test_crash();
+#if QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST
+  qljs_sublime_text_test_crash_handling();
 #endif
 
   QLJS_REPORT_PROGRAM_FATAL_ERROR(

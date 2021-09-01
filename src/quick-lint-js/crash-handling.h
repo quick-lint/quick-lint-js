@@ -65,8 +65,8 @@ extern jmp_buf qljs_sublime_text_jmp_buf;
 void qljs_sublime_text_signal_handler(int signal_number);
 
 // For testing purposes only.
-#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
-void qljs_sublime_text_test_crash();
+#if QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST
+void qljs_sublime_text_test_crash_handling();
 #endif
 
 #endif  // QLJS_SUBLIME_TEXT_PLUGIN

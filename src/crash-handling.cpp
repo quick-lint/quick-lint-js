@@ -18,8 +18,8 @@ void qljs_sublime_text_signal_handler(int signal_number) {
   QLJS_SUBLIME_TEXT_THROW();
 }
 
-#if QLJS_SUBLIME_TEXT_PLUGIN_TEST
-void qljs_sublime_text_test_crash() {
+#if QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST
+void qljs_sublime_text_test_crash_handling() {
   static int num = 0;
   if (num > 3) {
     num = 0;
