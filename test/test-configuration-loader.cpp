@@ -790,6 +790,25 @@ TEST_F(test_configuration_loader,
   EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
+TEST_F(test_configuration_loader,
+       deleting_parent_of_missing_file_is_not_detected_as_a_change) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string parent_dir = temp_dir + "/dir";
+  create_directory(parent_dir);
+
+  std::string js_file = parent_dir + "/hello.js";
+  change_detecting_configuration_loader loader;
+  auto loaded_config = loader.watch_and_load_for_file(js_file, &js_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  EXPECT_EQ(::rmdir(parent_dir.c_str()), 0)
+      << "failed to delete " << parent_dir << ": " << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  EXPECT_THAT(changes, IsEmpty());
+}
+
 TEST_F(test_configuration_loader, config_found_initially_is_unchanged) {
   for (const char* config_file_name :
        {"quick-lint-js.config", ".quick-lint-js.config"}) {

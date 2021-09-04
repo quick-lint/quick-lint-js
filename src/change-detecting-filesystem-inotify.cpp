@@ -46,8 +46,14 @@ change_detecting_filesystem_inotify::~change_detecting_filesystem_inotify() {
   // inotify.
   for (int watch_descriptor : this->watch_descriptors_) {
     int rc = ::inotify_rm_watch(this->inotify_fd_.get(), watch_descriptor);
-    QLJS_ASSERT(rc == 0);
+    if (rc == -1) {
+      // HACK(strager): Sometimes, when a directory is deleted, we don't get
+      // IN_IGNORED events. In these cases, inotify_rm_watch fails with EINVAL.
+      // Ignore these errors.
+      QLJS_ASSERT(errno == EINVAL);
+    }
   }
+
   constexpr std::size_t closes_to_defer = 10;
   if (garbage_inotify_fds.size() > closes_to_defer) {
     garbage_inotify_fds.clear();  // Closes each fd.
@@ -117,6 +123,13 @@ void change_detecting_filesystem_inotify::read_inotify() {
     }
     if (rc == 0) {
       QLJS_UNIMPLEMENTED();
+    }
+    if (buffer.event.mask & IN_IGNORED) {
+      QLJS_ASSERT(buffer.event.wd != -1);
+      this->watch_descriptors_.erase(
+          std::remove(this->watch_descriptors_.begin(),
+                      this->watch_descriptors_.end(), buffer.event.wd),
+          this->watch_descriptors_.end());
     }
   }
 }
