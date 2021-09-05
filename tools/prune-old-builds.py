@@ -57,7 +57,7 @@ if __name__ == '__main__':
                         help="Delete folders.")
     args, _ = parser.parse_known_args()
 
-    builds_path = Path(pipes.quote(args.builds_path))
+    builds_path = Path(args.builds_path)
     repository_url = pipes.quote(args.repository_url)
     repo_name = pipes.quote(args.repo_name)
 
