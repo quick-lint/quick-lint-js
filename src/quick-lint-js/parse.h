@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_PARSE_H
 
 #include <cstdlib>
-#include <iostream>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
