@@ -416,6 +416,8 @@ tests = {
   "opened .js file uses quick-lint-js.config from disk": async ({
     addCleanup,
   }) => {
+    let messageSpy = VSCodeMessageSpy.spy({ addCleanup });
+
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let jsFilePath = path.join(scratchDirectory, "hello.js");
     fs.writeFileSync(jsFilePath, "testGlobalVariable;\ndocument;");
@@ -441,6 +443,8 @@ tests = {
         },
       ]
     );
+
+    messageSpy.assertNoMessages();
   },
 
   "I/O error loading quick-lint-js.config shows pop-up": async ({
@@ -463,6 +467,29 @@ tests = {
 
     messageSpy.assertAnyErrorMessageMatches(
       /Failed to load configuration file for .*hello\.js\. Using default configuration\.\nError details: failed to read from .*quick-lint-js\.config: .*/
+    );
+  },
+
+  "opening .js file with error in quick-lint-js.config shows pop-up": async ({
+    addCleanup,
+  }) => {
+    let messageSpy = VSCodeMessageSpy.spy({ addCleanup });
+
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(jsFilePath, "variableDoesNotExist;");
+    let jsURI = vscode.Uri.file(jsFilePath);
+    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+    fs.writeFileSync(configFilePath, "{SYNTAX ERROR}");
+
+    await loadExtensionAsync({ addCleanup });
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+    await waitUntilAnyDiagnosticsAsync(jsURI);
+
+    messageSpy.assertAnyErrorMessageMatches(
+      /Problems found in the config file for .*hello\.js \(.*quick-lint-js\.config\)./
     );
   },
 
@@ -744,6 +771,10 @@ class VSCodeMessageSpy {
 
   getErrorMessages() {
     return this._messages.filter((m) => m.method === "showErrorMessage");
+  }
+
+  assertNoMessages() {
+    assert.deepStrictEqual(this._messages, []);
   }
 
   assertAnyErrorMessageMatches(regExp) {

@@ -621,7 +621,18 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         if (loaded_config_result.ok()) {
           loaded_config_file* loaded_config = *loaded_config_result;
           if (loaded_config) {
-            // TODO(strager): Show config parse errors.
+            if (!loaded_config->errors.empty()) {
+              QLJS_ASSERT(loaded_config->config_path);
+              std::string message = "Problems found in the config file for " +
+                                    *file_path + " (" +
+                                    loaded_config->config_path->c_str() + ").";
+              call_on_next_tick(env,
+                                this->vscode_.window_show_error_message.Value(),
+                                /*this=*/this->vscode_.window_namespace.Value(),
+                                {
+                                    ::Napi::String::New(env, message),
+                                });
+            }
             doc->config_ = &loaded_config->config;
           }
         } else {
