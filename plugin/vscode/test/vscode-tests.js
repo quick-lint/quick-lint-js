@@ -682,28 +682,30 @@ tests = {
     await waitUntilNoDiagnosticsAsync(jsURI);
   },
 
-  "opened .js re-lints when changing unopened quick-lint-js.config on disk": async ({
-    addCleanup,
-  }) => {
-    let scratchDirectory = makeScratchDirectory({ addCleanup });
-    let jsFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(jsFilePath, "testGlobalVariableFromDisk;");
-    let jsURI = vscode.Uri.file(jsFilePath);
-    let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
-    fs.writeFileSync(configFilePath, "{}");
-    let configURI = vscode.Uri.file(configFilePath);
+  "opened .js re-lints when changing unopened quick-lint-js.config on disk":
+    async ({ addCleanup }) => {
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "testGlobalVariableFromDisk;");
+      let jsURI = vscode.Uri.file(jsFilePath);
+      let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+      fs.writeFileSync(configFilePath, "{}");
+      let configURI = vscode.Uri.file(configFilePath);
 
-    await loadExtensionAsync({ addCleanup });
-    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
-    let jsEditor = await vscode.window.showTextDocument(
-      jsDocument,
-      vscode.ViewColumn.One
-    );
-    await waitUntilAnyDiagnosticsAsync(jsURI);
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(
+        jsDocument,
+        vscode.ViewColumn.One
+      );
+      await waitUntilAnyDiagnosticsAsync(jsURI);
 
-    fs.writeFileSync(configFilePath, '{"globals": {"testGlobalVariableFromDisk": true}}');
-    await waitUntilNoDiagnosticsAsync(jsURI);
-  },
+      fs.writeFileSync(
+        configFilePath,
+        '{"globals": {"testGlobalVariableFromDisk": true}}'
+      );
+      await waitUntilNoDiagnosticsAsync(jsURI);
+    },
 };
 
 async function waitUntilAnyDiagnosticsAsync(documentURI) {
