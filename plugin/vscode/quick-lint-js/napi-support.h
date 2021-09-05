@@ -40,6 +40,12 @@ inline void call_on_next_tick(::Napi::Env env, ::Napi::Function func,
       .Call({next_tick_callback});
 }
 
+template <class Func>
+::Napi::Value promise_then(::Napi::Value promise, Func&& callback) {
+  return promise.As<::Napi::Object>().Get("then").As<::Napi::Function>().Call(
+      /*this=*/promise, {::Napi::Function::New(promise.Env(), callback)});
+}
+
 // The JavaScript Map class.
 class js_map {
  public:

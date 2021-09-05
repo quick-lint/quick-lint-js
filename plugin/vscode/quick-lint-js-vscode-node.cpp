@@ -86,12 +86,23 @@ struct vscode_module {
             ::Napi::Persistent(module.Get("Position").As<::Napi::Function>())),
         range_class(
             ::Napi::Persistent(module.Get("Range").As<::Napi::Function>())),
+        uri_class(::Napi::Persistent(module.Get("Uri").As<::Napi::Function>())),
+        uri_file(::Napi::Persistent(
+            this->uri_class.Value().Get("file").As<::Napi::Function>())),
         diagnostic_severity_enum(::Napi::Persistent(
             module.Get("DiagnosticSeverity").As<::Napi::Object>())),
         window_namespace(
             ::Napi::Persistent(module.Get("window").As<::Napi::Object>())),
         window_show_error_message(
             ::Napi::Persistent(this->window_namespace.Get("showErrorMessage")
+                                   .As<::Napi::Function>())),
+        window_show_text_document(
+            ::Napi::Persistent(this->window_namespace.Get("showTextDocument")
+                                   .As<::Napi::Function>())),
+        workspace_namespace(
+            ::Napi::Persistent(module.Get("workspace").As<::Napi::Object>())),
+        workspace_open_text_document(
+            ::Napi::Persistent(this->workspace_namespace.Get("openTextDocument")
                                    .As<::Napi::Function>())) {}
 
   void load_non_persistent(::Napi::Env) {
@@ -101,12 +112,148 @@ struct vscode_module {
         this->diagnostic_severity_enum.Get("Warning").As<::Napi::Number>();
   }
 
+  // Calls window.workspace.openTextDocument(vscode.Uri.file(path))
+  //       .then(callback).
+  //
+  // Note: to avoid use-after-free errors, 'callback' should capture a
+  // ::Napi::Reference to each object it uses.
+  //
+  // Signature of callback:
+  // void callback(::Napi::Env, ::Napi::Value document);
+  template <class Func>
+  void open_text_document_by_path(::Napi::Env env, const std::string& path,
+                                  Func&& callback) {
+    struct async_state {
+      ::Napi::ObjectReference workspace_namespace;
+      ::Napi::FunctionReference workspace_open_text_document;
+      ::Napi::FunctionReference uri_class;
+      ::Napi::FunctionReference uri_file;
+      Func callback;
+      std::string path;
+    };
+    std::shared_ptr<async_state> state(new async_state{
+        .workspace_namespace =
+            ::Napi::Persistent(this->workspace_namespace.Value()),
+        .workspace_open_text_document =
+            ::Napi::Persistent(this->workspace_open_text_document.Value()),
+        .uri_class = ::Napi::Persistent(this->uri_class.Value()),
+        .uri_file = ::Napi::Persistent(this->uri_file.Value()),
+        .callback = std::forward<Func>(callback),
+        .path = path,
+    });
+
+    ::Napi::Function open_text_document_func = ::Napi::Function::New(
+        env,
+        [state = std::move(state)](const ::Napi::CallbackInfo& info) -> void {
+          ::Napi::Env env = info.Env();
+
+          ::Napi::Value uri = state->uri_file.Value().Call(
+              /*this=*/state->uri_class.Value(),
+              {::Napi::String::New(env, state->path)});
+          ::Napi::Value promise =
+              state->workspace_open_text_document.Value().Call(
+                  /*this=*/state->workspace_namespace.Value(), {uri});
+
+          promise_then(promise,
+                       [state](const ::Napi::CallbackInfo& info) -> void {
+                         std::move(state->callback)(info.Env(), info[0]);
+                       });
+
+          state->workspace_namespace.Reset();
+          state->workspace_open_text_document.Reset();
+          state->uri_class.Reset();
+          state->uri_file.Reset();
+          state->path.clear();
+        });
+    call_on_next_tick(env, open_text_document_func,
+                      /*this=*/env.Undefined(), {});
+  }
+
+  void open_and_show_text_document_by_path(::Napi::Env env,
+                                           const std::string& path) {
+    struct async_state {
+      ::Napi::ObjectReference window_namespace;
+      ::Napi::FunctionReference window_show_text_document;
+    };
+    std::shared_ptr<async_state> state(new async_state{
+        .window_namespace = ::Napi::Persistent(this->window_namespace.Value()),
+        .window_show_text_document =
+            ::Napi::Persistent(this->window_show_text_document.Value()),
+    });
+
+    this->open_text_document_by_path(
+        env, path,
+        [state = std::move(state)](::Napi::Env, ::Napi::Value document) {
+          state->window_show_text_document.Value().Call(
+              /*this=*/state->window_namespace.Value(), {document});
+        });
+  }
+
+  // Calls window.showErrorMessage(message, ...button_labels).then(callback).
+  //
+  // Note: to avoid use-after-free errors, 'callback' should capture a
+  // ::Napi::Reference to each object it uses.
+  //
+  // Signature of callback:
+  // void callback(::Napi::Env, ::Napi::Value);
+  template <class Func>
+  void show_error_message(::Napi::Env env, const std::string& message,
+                          std::vector<std::string> button_labels,
+                          Func&& callback) {
+    struct async_state {
+      ::Napi::ObjectReference window_namespace;
+      ::Napi::FunctionReference window_show_error_message;
+      Func callback;
+      std::string message;
+      std::vector<std::string> button_labels;
+    };
+    std::shared_ptr<async_state> state(new async_state{
+        .window_namespace = ::Napi::Persistent(this->window_namespace.Value()),
+        .window_show_error_message =
+            ::Napi::Persistent(this->window_show_error_message.Value()),
+        .callback = std::forward<Func>(callback),
+        .message = message,
+        .button_labels = std::move(button_labels),
+    });
+
+    ::Napi::Function show_error_message_func = ::Napi::Function::New(
+        env,
+        [state = std::move(state)](const ::Napi::CallbackInfo& info) -> void {
+          ::Napi::Env env = info.Env();
+
+          std::vector<::napi_value> args;
+          args.push_back(::Napi::String::New(env, std::move(state->message)));
+          for (std::string& label : state->button_labels) {
+            args.push_back(::Napi::String::New(env, std::move(label)));
+          }
+          ::Napi::Value promise = state->window_show_error_message.Value().Call(
+              /*this=*/state->window_namespace.Value(), std::move(args));
+
+          promise_then(promise,
+                       [state](const ::Napi::CallbackInfo& info) -> void {
+                         std::move(state->callback)(info.Env(), info[0]);
+                       });
+
+          state->window_namespace.Reset();
+          state->window_show_error_message.Reset();
+          state->message.clear();
+          state->button_labels.clear();
+        });
+    call_on_next_tick(env, show_error_message_func,
+                      /*this=*/env.Undefined(), {});
+  }
+
   // vscode.Diagnostic
   ::Napi::FunctionReference diagnostic_class;
   // vscode.Position
   ::Napi::FunctionReference position_class;
   // vscode.Range
   ::Napi::FunctionReference range_class;
+
+  // vscode.Uri
+  ::Napi::FunctionReference uri_class;
+  // vscode.Uri.file
+  ::Napi::FunctionReference uri_file;
 
   // vscode.DiagnosticSeverity
   ::Napi::ObjectReference diagnostic_severity_enum;
@@ -119,6 +266,13 @@ struct vscode_module {
   ::Napi::ObjectReference window_namespace;
   // vscode.window.showErrorMessage
   ::Napi::FunctionReference window_show_error_message;
+  // vscode.window.showTextDocument
+  ::Napi::FunctionReference window_show_text_document;
+
+  // vscode.workspace
+  ::Napi::ObjectReference workspace_namespace;
+  // vscode.workspace.openTextDocument
+  ::Napi::FunctionReference workspace_open_text_document;
 };
 
 // A non-owning wrapper around a vscode.Document.
@@ -623,15 +777,25 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
           if (loaded_config) {
             if (!loaded_config->errors.empty()) {
               QLJS_ASSERT(loaded_config->config_path);
+              std::string config_file_path(loaded_config->config_path->path());
               std::string message = "Problems found in the config file for " +
-                                    *file_path + " (" +
-                                    loaded_config->config_path->c_str() + ").";
-              call_on_next_tick(env,
-                                this->vscode_.window_show_error_message.Value(),
-                                /*this=*/this->vscode_.window_namespace.Value(),
-                                {
-                                    ::Napi::String::New(env, message),
-                                });
+                                    *file_path + " (" + config_file_path + ").";
+              this->vscode_.show_error_message(
+                  env, message, {"Open config"},
+                  [this, self = ::Napi::Persistent(this->Value()),
+                   config_file_path](
+                      ::Napi::Env env,
+                      ::Napi::Value clicked_button_label) -> void {
+                    bool popup_dismissed = clicked_button_label.IsUndefined();
+                    if (popup_dismissed) {
+                      return;
+                    }
+                    std::string clicked_button_label_string =
+                        clicked_button_label.As<::Napi::String>().Utf8Value();
+                    QLJS_ASSERT(clicked_button_label_string == "Open config");
+                    this->vscode_.open_and_show_text_document_by_path(
+                        env, config_file_path);
+                  });
             }
             doc->config_ = &loaded_config->config;
           }

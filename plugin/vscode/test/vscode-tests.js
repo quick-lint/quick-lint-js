@@ -493,6 +493,61 @@ tests = {
     );
   },
 
+  "clicking Open-Config button in quick-lint-js.config error pop-up opens config file":
+    async ({ addCleanup }) => {
+      let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "variableDoesNotExist;");
+      let jsURI = vscode.Uri.file(jsFilePath);
+      let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+      fs.writeFileSync(configFilePath, "{SYNTAX ERROR}");
+
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+      await messageMocker.waitUntilAnyMessageAsync();
+      assert.strictEqual(
+        path.basename(vscode.window.activeTextEditor.document.fileName),
+        "hello.js"
+      );
+
+      messageMocker.getErrorMessages()[0].clickButton("Open config");
+      await pollAsync(async () => {
+        assert.strictEqual(
+          path.basename(vscode.window.activeTextEditor.document.fileName),
+          "quick-lint-js.config"
+        );
+      }, 1000);
+    },
+
+  "dismissing quick-lint-js.config error pop-up does not open config file":
+    async ({ addCleanup }) => {
+      let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "variableDoesNotExist;");
+      let jsURI = vscode.Uri.file(jsFilePath);
+      let configFilePath = path.join(scratchDirectory, "quick-lint-js.config");
+      fs.writeFileSync(configFilePath, "{SYNTAX ERROR}");
+
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+      await messageMocker.waitUntilAnyMessageAsync();
+      messageMocker.getErrorMessages()[0].dismiss();
+      // Wait for possible opening of quick-lint-js.config to take effect.
+      await sleepAsync(100);
+      assert.strictEqual(
+        path.basename(vscode.window.activeTextEditor.document.fileName),
+        "hello.js"
+      );
+    },
+
   "opened .js file uses opened quick-lint-js.config (not from disk)": async ({
     addCleanup,
   }) => {
@@ -787,6 +842,12 @@ class VSCodeMessageMocker {
     );
   }
 
+  async waitUntilAnyMessageAsync() {
+    await pollAsync(async () => {
+      assert.ok(this._messages.length >= 1);
+    });
+  }
+
   _mockMethod(methodToMock, { addCleanup }) {
     let originalMethod = vscode.window[methodToMock];
     addCleanup(() => {
@@ -798,11 +859,25 @@ class VSCodeMessageMocker {
       console.log(
         `called: vscode.window.${methodToMock}(${JSON.stringify(message)}, ...)`
       );
-      self._messages.push({
-        message: message,
-        method: methodToMock,
+      let buttons = args;
+      return new Promise((resolve, _reject) => {
+        self._messages.push({
+          message: message,
+          method: methodToMock,
+          clickButton(buttonLabel) {
+            assert.ok(
+              buttons.includes(buttonLabel),
+              `Cannot click button ${JSON.stringify(
+                buttonLabel
+              )}; available buttons are: ${JSON.stringify(buttons)}`
+            );
+            resolve(buttonLabel);
+          },
+          dismiss() {
+            resolve(undefined);
+          },
+        });
       });
-      return originalMethod.call(this, message, ...args);
     };
   }
 }
