@@ -252,6 +252,7 @@ void configuration::reset() {
   // TODO(strager): Make this more efficient by avoiding reallocations.
   this->globals_ = global_declared_variable_set();
   this->globals_to_remove_.clear();
+  this->did_add_globals_from_groups_ = false;
   this->add_global_group_node_js_ = true;
   this->add_global_group_ecmascript_ = true;
   this->string_allocator_.memory_resource()->release();

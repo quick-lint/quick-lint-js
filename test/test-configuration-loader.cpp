@@ -2383,6 +2383,25 @@ TEST(test_configuration_loader_fake, find_config_in_parent_directory) {
   }
 }
 
+TEST(test_configuration_loader_fake,
+     adding_json_syntax_error_makes_config_default) {
+  fake_configuration_filesystem fs;
+  fs.create_file(fs.rooted("hello.js"), u8""sv);
+  fs.create_file(fs.rooted("quick-lint-js.config"), u8"{}"sv);
+
+  configuration_loader loader(&fs);
+  auto loaded_config =
+      loader.watch_and_load_for_file(fs.rooted("hello.js").path(), nullptr);
+  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  ASSERT_TRUE(*loaded_config);
+  ASSERT_TRUE((*loaded_config)->config.globals().find(u8"console"));
+
+  fs.create_file(fs.rooted("quick-lint-js.config"), u8"{\\}"sv);
+  std::vector<configuration_change> changes = loader.refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"console"));
+}
+
 std::vector<configuration_change>
 change_detecting_configuration_loader::detect_changes_and_refresh() {
   bool fs_changed = this->detect_changes();
