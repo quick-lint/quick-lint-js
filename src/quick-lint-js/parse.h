@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_PARSE_H
 
 #include <cstdlib>
+#include <iostream>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
@@ -3172,10 +3173,21 @@ class parser {
         // let x = 3;
         initialize_variable:
         case token_type::equal: {
+          token equal_token = this->peek();
           expression *ast = this->parse_expression_remainder(
               variable,
               precedence{.commas = false, .in_operator = allow_in_operator});
           this->visit_binding_element(ast, v, declaration_kind);
+          bool is_assignment_not_allowed =
+              this->in_loop_statement_ &&
+              (this->peek().type == token_type::kw_of ||
+               (this->peek().type == token_type::kw_in &&
+                declaration_kind != variable_kind::_var));
+          if (is_assignment_not_allowed) {
+            this->error_reporter_->report(
+                error_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
+                    .equal_token = equal_token.span()});
+          }
           break;
         }
 
@@ -3401,7 +3413,8 @@ class parser {
            declaration_kind == variable_kind::_import ||
            declaration_kind == variable_kind::_let) &&
           ast->variable_identifier_token_type() == token_type::kw_let) {
-        // If this is an import, we would emit error_cannot_import_let instead.
+        // If this is an import, we would emit error_cannot_import_let
+        // instead.
         QLJS_ASSERT(declaration_kind != variable_kind::_import);
         this->error_reporter_->report(
             error_cannot_declare_variable_named_let_with_let{.name =
@@ -3466,8 +3479,8 @@ class parser {
     bool commas = true;
     bool in_operator = true;
 
-    // If true, parse unexpected trailing identifiers as part of the expression
-    // (and emit an error).
+    // If true, parse unexpected trailing identifiers as part of the
+    // expression (and emit an error).
     bool trailing_identifiers = false;
     bool is_typeof = false;
   };
