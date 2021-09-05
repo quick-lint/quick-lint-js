@@ -416,7 +416,7 @@ tests = {
   "opened .js file uses quick-lint-js.config from disk": async ({
     addCleanup,
   }) => {
-    let messageSpy = VSCodeMessageSpy.spy({ addCleanup });
+    let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
 
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let jsFilePath = path.join(scratchDirectory, "hello.js");
@@ -444,13 +444,13 @@ tests = {
       ]
     );
 
-    messageSpy.assertNoMessages();
+    messageMocker.assertNoMessages();
   },
 
   "I/O error loading quick-lint-js.config shows pop-up": async ({
     addCleanup,
   }) => {
-    let messageSpy = VSCodeMessageSpy.spy({ addCleanup });
+    let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
 
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let jsFilePath = path.join(scratchDirectory, "hello.js");
@@ -465,7 +465,7 @@ tests = {
 
     await waitUntilAnyDiagnosticsAsync(jsURI);
 
-    messageSpy.assertAnyErrorMessageMatches(
+    messageMocker.assertAnyErrorMessageMatches(
       /Failed to load configuration file for .*hello\.js\. Using default configuration\.\nError details: failed to read from .*quick-lint-js\.config: .*/
     );
   },
@@ -473,7 +473,7 @@ tests = {
   "opening .js file with error in quick-lint-js.config shows pop-up": async ({
     addCleanup,
   }) => {
-    let messageSpy = VSCodeMessageSpy.spy({ addCleanup });
+    let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
 
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let jsFilePath = path.join(scratchDirectory, "hello.js");
@@ -488,7 +488,7 @@ tests = {
 
     await waitUntilAnyDiagnosticsAsync(jsURI);
 
-    messageSpy.assertAnyErrorMessageMatches(
+    messageMocker.assertAnyErrorMessageMatches(
       /Problems found in the config file for .*hello\.js \(.*quick-lint-js\.config\)./
     );
   },
@@ -749,20 +749,20 @@ async function waitUntilNoDiagnosticsAsync(documentURI) {
   });
 }
 
-class VSCodeMessageSpy {
-  static spy({ addCleanup }) {
-    let spy = new VSCodeMessageSpy();
+class VSCodeMessageMocker {
+  static mock({ addCleanup }) {
+    let mocker = new VSCodeMessageMocker();
 
-    let methodsToSpy = [
+    let methodsToMock = [
       "showErrorMessage",
       "showInformationMessage",
       "showWarningMessage",
     ];
-    for (let methodToSpy of methodsToSpy) {
-      spy._spyMethod(methodToSpy, { addCleanup });
+    for (let methodToMock of methodsToMock) {
+      mocker._mockMethod(methodToMock, { addCleanup });
     }
 
-    return spy;
+    return mocker;
   }
 
   constructor() {
@@ -787,20 +787,20 @@ class VSCodeMessageSpy {
     );
   }
 
-  _spyMethod(methodToSpy, { addCleanup }) {
-    let originalMethod = vscode.window[methodToSpy];
+  _mockMethod(methodToMock, { addCleanup }) {
+    let originalMethod = vscode.window[methodToMock];
     addCleanup(() => {
-      vscode.window[methodToSpy] = originalMethod;
+      vscode.window[methodToMock] = originalMethod;
     });
 
     let self = this;
-    vscode.window[methodToSpy] = function showMessageSpy(message, ...args) {
+    vscode.window[methodToMock] = function showMessageMock(message, ...args) {
       console.log(
-        `called: vscode.window.${methodToSpy}(${JSON.stringify(message)}, ...)`
+        `called: vscode.window.${methodToMock}(${JSON.stringify(message)}, ...)`
       );
       self._messages.push({
         message: message,
-        method: methodToSpy,
+        method: methodToMock,
       });
       return originalMethod.call(this, message, ...args);
     };
