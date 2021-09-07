@@ -117,6 +117,13 @@
             expected_last_component))                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_cannot_assign_to_loop_variable_in_for_of_or_in_loop, "E173",       \
+      { source_code_span equal_token; },                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "cannot assign to loop variable in for of/in loop"),           \
+            equal_token))                                                      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_cannot_access_private_identifier_outside_class, "E208",            \
       { identifier private_identifier; },                                      \
       ERROR(                                                                   \
