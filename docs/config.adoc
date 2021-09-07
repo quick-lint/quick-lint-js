@@ -29,10 +29,10 @@ ifdef::backend-manpage[]
 *quick-lint-js*(1) program,
 endif::[]
 ifdef::backend-html5[]
-link:../cli/[quick-lint-js CLI]
+link:../cli/[quick-lint-js CLI],
 endif::[]
 ifndef::backend-html5,backend-manpage[]
-quick-lint-js CLI
+quick-lint-js CLI,
 endif::[]
 and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.config` file.
 
@@ -122,7 +122,7 @@ The quick-lint-js configuration object can contain one or more of the following 
 Global variables which programs can use.
 *This configuration property is not yet implemented.*
 +
-*globals* is an object
+*globals* is an object.
 Its format is described in the <<Globals>> section below.
 
 *global-groups*:: Optional.
