@@ -570,6 +570,19 @@ TEST(test_parse, for_in_loop) {
   }
 
   {
+    padded_string code(u8"for (var x = 10 in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, invalid_for_in_loop) {
+  {
     padded_string code(u8"for (const x = 10 in []) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -603,17 +616,6 @@ TEST(test_parse, for_in_loop) {
                     error_cannot_assign_to_loop_variable_in_for_of_or_in_loop,
                     equal_token,
                     offsets_matcher(&code, strlen(u8"for (let x "), u8"="))));
-  }
-
-  {
-    padded_string code(u8"for (var x = 10 in []) {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
-                                      "visit_enter_block_scope",     //
-                                      "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
@@ -707,7 +709,9 @@ TEST(test_parse, for_of_loop) {
                             "visit_exit_for_scope"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
+}
 
+TEST(test_parse, invalid_for_of_loop) {
   {
     padded_string code(u8"for (const x = 10 of []) {}"_sv);
     spy_visitor v;
