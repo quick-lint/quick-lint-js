@@ -76,6 +76,43 @@ constexpr const char8* global_variables_ecmascript_non_writable[] = {
     nullptr,
 };
 
+constexpr const char8* global_variables_jasmine[] = {
+    u8"afterAll",
+    u8"afterEach",
+    u8"beforeAll",
+    u8"beforeEach",
+    u8"describe",
+    u8"expect",
+    u8"expectAsync",
+    u8"fail",
+    u8"fdescribe",
+    u8"fit",
+    u8"it",
+    u8"jasmine"
+    u8"jsApiReporter",
+    u8"pending",
+    u8"setSpecProperty",
+    u8"setSuiteProperty",
+    u8"spyOn",
+    u8"spyOnAllFunctions",
+    u8"spyOnProperty",
+    u8"xdescribe",
+    u8"xit",
+    nullptr,
+};
+
+constexpr const char8* global_variables_jest[] = {
+    u8"afterAll",  u8"afterEach", u8"beforeAll", u8"beforeEach", u8"describe",
+    u8"expect",    u8"fdescribe", u8"fit",       u8"it",         u8"test",
+    u8"xdescribe", u8"xit",       u8"xtest",     nullptr,
+};
+
+constexpr const char8* global_variables_jquery[] = {
+    u8"$",
+    u8"jQuery",
+    nullptr,
+};
+
 constexpr const char8* global_variables_node_js[] = {
     u8"Buffer",
     u8"GLOBAL",  // Removed in v14.16.1 (or earlier?).
@@ -120,10 +157,34 @@ const global_group global_groups[] = {
         .non_shadowable_globals = nullptr,
     },
     {
+        .name = u8"jasmine",
+        .globals = global_variables_jasmine,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+    },
+    {
+        .name = u8"jest",
+        .globals = global_variables_jest,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+    },
+    {
+        .name = u8"jquery",
+        .globals = global_variables_jquery,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+    },
+    {
         .name = u8"node.js",
         .globals = global_variables_node_js,
         .non_writable_globals = nullptr,
         .non_shadowable_globals = global_variables_node_js_non_shadowable,
+    },
+    {
+        .name = u8"node.js-es",
+        .globals = global_variables_node_js,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
     },
 };
 static_assert(global_group_count == std::size(global_groups),
