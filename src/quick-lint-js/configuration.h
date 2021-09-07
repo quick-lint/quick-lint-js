@@ -4,6 +4,8 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_H
 #define QUICK_LINT_JS_CONFIGURATION_H
 
+#include <array>
+#include <cstddef>
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-canonical.h>
@@ -18,6 +20,10 @@ class error_reporter;
 
 class configuration {
  public:
+  static inline constexpr std::size_t global_group_count = 3;
+
+  explicit configuration();
+
   const global_declared_variable_set& globals() noexcept;
 
   void reset_global_groups();
@@ -52,9 +58,7 @@ class configuration {
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
   bool did_add_globals_from_groups_ = false;
-  bool add_global_group_browser_ = true;
-  bool add_global_group_node_js_ = true;
-  bool add_global_group_ecmascript_ = true;
+  std::array<bool, global_group_count> enabled_global_groups_;
   monotonic_allocator string_allocator_;
 
   string8_view save_string(std::string_view s);
