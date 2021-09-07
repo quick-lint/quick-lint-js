@@ -36,8 +36,6 @@ quick-lint-js CLI,
 endif::[]
 and also quick-lint-js editor plugins, can be configured using a `quick-lint-js.config` file.
 
-*These configuration options are not yet implemented.*
-
 == Files
 
 quick-lint-js uses the following algorithm to find its configuration:
@@ -120,14 +118,12 @@ The quick-lint-js configuration object can contain one or more of the following 
 
 *globals*:: Optional.
 Global variables which programs can use.
-*This configuration property is not yet implemented.*
 +
 *globals* is an object.
 Its format is described in the <<Globals>> section below.
 
 *global-groups*:: Optional.
 Pre-defined categories of global variables which programs can use.
-*This configuration property is not yet implemented.*
 +
 --
 *global-groups* is either an array or a boolean.
@@ -177,20 +173,25 @@ The following groups are supported for the *global-groups* configuration propert
 All global variables are defined as shadowable and writable.
 This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the *globals* configuration property).
 This group is not enabled by default.
+*This global group is not yet implemented.*
 *browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
 This group is enabled by default.
 *ecmascript*:: globals defined by the latest ECMAScript (JavaScript) standard, including *Object* and *NaN*.
 This group is enabled by default.
 *jasmine*:: globals defined by the Jasmine test framework, including *describe*, *it*, and *expect*.
 This group is enabled by default.
+*This global group is not yet implemented.*
 *jest*:: globals defined by the Jest test framework, including *describe*, *test*, and *expect*.
 This group is enabled by default.
+*This global group is not yet implemented.*
 *jquery*:: globals defined by the jQuery library, including *$*.
 This group is enabled by default.
+*This global group is not yet implemented.*
 *node.js*:: globals defined by Node.js for CommonJS modules, including *require*, *console*, and *__dirname*.
 This group is enabled by default.
 *node.js-es*:: globals defined by Node.js for ES modules, including *console* and *process*.
 This group is enabled by default.
+*This global group is not yet implemented.*
 
 == Examples
 

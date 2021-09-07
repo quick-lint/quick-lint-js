@@ -45,8 +45,6 @@ quick-lint-js.config \- configuration file for *quick\-lint\-js*(1)
 The
 \fBquick\-lint\-js\fP(1) program,
 and also quick\-lint\-js editor plugins, can be configured using a \f(CRquick\-lint\-js.config\fP file.
-.sp
-\fBThese configuration options are not yet implemented.\fP
 .SH "FILES"
 .sp
 quick\-lint\-js uses the following algorithm to find its configuration:
@@ -244,7 +242,6 @@ The quick\-lint\-js configuration object can contain one or more of the followin
 .RS 4
 Optional.
 Global variables which programs can use.
-\fBThis configuration property is not yet implemented.\fP
 .sp
 \fBglobals\fP is an object.
 Its format is described in the Globals section below.
@@ -254,7 +251,6 @@ Its format is described in the Globals section below.
 .RS 4
 Optional.
 Pre\-defined categories of global variables which programs can use.
-\fBThis configuration property is not yet implemented.\fP
 .sp
 \fBglobal\-groups\fP is either an array or a boolean.
 .sp
@@ -347,6 +343,7 @@ all possible global variables.
 All global variables are defined as shadowable and writable.
 This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the \fBglobals\fP configuration property).
 This group is not enabled by default.
+\fBThis global group is not yet implemented.\fP
 .RE
 .sp
 \fBbrowser\fP
@@ -365,18 +362,21 @@ This group is enabled by default.
 .RS 4
 globals defined by the Jasmine test framework, including \fBdescribe\fP, \fBit\fP, and \fBexpect\fP.
 This group is enabled by default.
+\fBThis global group is not yet implemented.\fP
 .RE
 .sp
 \fBjest\fP
 .RS 4
 globals defined by the Jest test framework, including \fBdescribe\fP, \fBtest\fP, and \fBexpect\fP.
 This group is enabled by default.
+\fBThis global group is not yet implemented.\fP
 .RE
 .sp
 \fBjquery\fP
 .RS 4
 globals defined by the jQuery library, including \fB$\fP.
 This group is enabled by default.
+\fBThis global group is not yet implemented.\fP
 .RE
 .sp
 \fBnode.js\fP
@@ -389,6 +389,7 @@ This group is enabled by default.
 .RS 4
 globals defined by Node.js for ES modules, including \fBconsole\fP and \fBprocess\fP.
 This group is enabled by default.
+\fBThis global group is not yet implemented.\fP
 .RE
 .SH "EXAMPLES"
 .sp
