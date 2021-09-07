@@ -7,6 +7,16 @@
 #include <quick-lint-js/char8.h>
 
 namespace quick_lint_js {
+inline constexpr std::size_t global_group_count = 3;
+
+struct global_group {
+  const char8* name;
+  const char8* const* globals;
+  const char8* const* non_writable_globals;
+  const char8* const* non_shadowable_globals;
+};
+extern const global_group global_groups[];
+
 extern const char8* global_variables_browser[];
 }
 

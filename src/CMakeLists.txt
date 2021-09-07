@@ -58,6 +58,7 @@ quick_lint_js_add_library(
   file-path.cpp
   file.cpp
   global-variables-browser.cpp
+  global-variables.cpp
   gmo.cpp
   integer.cpp
   json.cpp

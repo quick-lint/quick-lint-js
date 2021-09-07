@@ -9,6 +9,7 @@
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-canonical.h>
+#include <quick-lint-js/global-variables.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
@@ -20,8 +21,6 @@ class error_reporter;
 
 class configuration {
  public:
-  static inline constexpr std::size_t global_group_count = 3;
-
   explicit configuration();
 
   const global_declared_variable_set& globals() noexcept;
