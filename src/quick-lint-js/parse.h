@@ -2255,8 +2255,11 @@ class parser {
         default:
           this->lexer_.roll_back_transaction(std::move(transaction));
           this->skip();  // Re-parse 'let'.
-          this->parse_and_visit_let_bindings(lhs, declaring_token,
-                                             /*allow_in_operator=*/false);
+          this->parse_and_visit_let_bindings(
+              lhs, declaring_token,
+              /*allow_in_operator=*/false,
+              /*allow_const_without_initializer=*/false,
+              /*is_in_for_initializer=*/true);
           break;
         }
       } else {
@@ -2266,7 +2269,8 @@ class parser {
         this->parse_and_visit_let_bindings(
             lhs, declaring_token,
             /*allow_in_operator=*/false,
-            /*allow_const_without_initializer=*/true);
+            /*allow_const_without_initializer=*/true,
+            /*is_in_for_initializer=*/true);
       }
       switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
@@ -3070,7 +3074,8 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_let_bindings(
       Visitor &v, token declaring_token, bool allow_in_operator,
-      bool allow_const_without_initializer = false) {
+      bool allow_const_without_initializer = false,
+      bool is_in_for_initializer = false) {
     variable_kind declaration_kind;
     switch (declaring_token.type) {
     case token_type::kw_const:
@@ -3090,7 +3095,8 @@ class parser {
     this->parse_and_visit_let_bindings(
         v, declaring_token, declaration_kind,
         /*allow_in_operator=*/allow_in_operator,
-        /*allow_const_without_initializer=*/allow_const_without_initializer);
+        /*allow_const_without_initializer=*/allow_const_without_initializer,
+        /*is_in_for_initializer=*/is_in_for_initializer);
   }
 
   QLJS_WARNING_PUSH
@@ -3100,7 +3106,8 @@ class parser {
   void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
                                     variable_kind declaration_kind,
                                     bool allow_in_operator,
-                                    bool allow_const_without_initializer) {
+                                    bool allow_const_without_initializer,
+                                    bool is_in_for_initializer) {
     source_code_span let_span = declaring_token.span();
     bool first_binding = true;
     for (;;) {
@@ -3178,7 +3185,7 @@ class parser {
               precedence{.commas = false, .in_operator = allow_in_operator});
           this->visit_binding_element(ast, v, declaration_kind);
           bool is_assignment_not_allowed =
-              this->in_loop_statement_ &&
+              is_in_for_initializer &&
               (this->peek().type == token_type::kw_of ||
                (this->peek().type == token_type::kw_in &&
                 declaration_kind != variable_kind::_var));
