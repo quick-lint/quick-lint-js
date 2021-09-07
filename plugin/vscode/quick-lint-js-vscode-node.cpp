@@ -37,7 +37,7 @@
 #endif
 
 // Define this macro to a non-empty string to log to the specified file:
-#define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
+// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
 
 #if defined(QLJS_DEBUG_LOGGING_FILE)
 #define QLJS_DEBUG_LOG(...)                          \
