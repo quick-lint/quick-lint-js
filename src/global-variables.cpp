@@ -78,13 +78,13 @@ constexpr const char8* global_variables_ecmascript_non_writable[] = {
 
 constexpr const char8* global_variables_node_js[] = {
     u8"Buffer",
-    u8"GLOBAL",
+    u8"GLOBAL",  // Removed in v14.16.1 (or earlier?).
     u8"Intl",
-    u8"TextDecoder",
-    u8"TextEncoder",
-    u8"URL",
-    u8"URLSearchParams",
-    u8"WebAssembly",
+    u8"TextDecoder",      // Added in v12.22.1 (or earlier?).
+    u8"TextEncoder",      // Added in v12.22.1 (or earlier?).
+    u8"URL",              // Added in v10.24.1 (or earlier?).
+    u8"URLSearchParams",  // Added in v10.24.1 (or earlier?).
+    u8"WebAssembly",      // Added in v8.17.0 (or earlier?).
     u8"clearImmediate",
     u8"clearInterval",
     u8"clearTimeout",
@@ -92,8 +92,8 @@ constexpr const char8* global_variables_node_js[] = {
     u8"escape",
     u8"global",
     u8"process",
-    u8"queueMicrotask",
-    u8"root",
+    u8"queueMicrotask",  // Added in v12.22.1 (or earlier?).
+    u8"root",            // Removed in v14.16.1 (or earlier?).
     u8"setImmediate",
     u8"setInterval",
     u8"setTimeout",
