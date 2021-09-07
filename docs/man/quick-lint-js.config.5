@@ -8,7 +8,7 @@
 '\" t
 .\"     Title: quick-lint-js.config
 .\"    Author: [see the "AUTHOR(S)" section]
-.\" Generator: Asciidoctor 2.0.12
+.\" Generator: Asciidoctor 2.0.15
 .\"    Manual: \ \&
 .\"    Source: quick-lint-js version 0.3.0
 .\"  Language: English
@@ -34,14 +34,12 @@
 .  LINKSTYLE blue R < >
 .\}
 .SH "NAME"
-quick\-lint\-js.config \- configuration file for *quick\-lint\-js*(1)
+quick-lint-js.config \- configuration file for *quick\-lint\-js*(1)
 .SH "SYNOPSIS"
 .sp
 \f(CRquick\-lint\-js.config\fP
 .br
 \f(CR.quick\-lint\-js.config\fP
-.br
-\f(CRpackage.json\fP\(cqs \fBquick\-lint\-js.config\fP property
 .SH "DESCRIPTION"
 .sp
 The
@@ -154,18 +152,6 @@ If so, use it as the configuration file and stop.
 .  sp -1
 .  IP " 3." 4.2
 .\}
-Check if the file \f(CRpackage.json\fP exists.
-If so, use it as the configuration file and stop.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04' 4.\h'+01'\c
-.\}
-.el \{\
-.  sp -1
-.  IP " 4." 4.2
-.\}
 Go to step 5.
 .RE
 .RE
@@ -203,7 +189,7 @@ Remove the last component of the \fIcurrent directory\fP.
 Go to step 4.
 .RE
 .sp
-In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP, \f(CR.quick\-lint\-js.config\fP, or \f(CRpackage.json\fP in ancestor directories.
+In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP in ancestor directories.
 If multiple files are found, \f(CRquick\-lint\-js.config\fP is used if present, otherwise \f(CR.quick\-lint\-js.config\fP is used if present.
 .sp
 If no configuration file is found, quick\-lint\-js behaves as if a \f(CRquick\-lint\-js.config\fP file was found with contents \f(CR{}\fP.
@@ -245,27 +231,6 @@ For example:
 
     " exported by Google Charts": null,
     "chart": true
-  }
-}
-.fam
-.fi
-.if n .RE
-.sp
-\f(CRpackage.json\fP files contain UTF\-8\-encoded JSON.
-The \fBquick\-lint\-js.config\fP property of the top\-level object contains quick\-lint\-js configuration properties.
-If the \fBquick\-lint\-js.config\fP property is missing, it is assumed to be an empty object ({}).
-A \f(CRpackage.json\fP file might look like this:
-.sp
-.if n .RS 4
-.nf
-.fam C
-{
-  "name": "my\-npm\-package",
-  "version": "0.1.0",
-  "quick\-lint\-js.config": {
-    "globals": {
-      "YUI": {"writable": false}
-    }
   }
 }
 .fam
@@ -439,29 +404,6 @@ Such an application might have the following \f(CRquick\-lint\-js.config\fP file
   "global\-groups": ["browser", "ecmascript", "jest"],
   "globals": {
     "google": {"writable": false}
-  }
-}
-.fam
-.fi
-.if n .RE
-.sp
-Alternatively, the application might prefer to have fewer files in the project.
-In this case, the application configures quick\-lint\-js in its \f(CRpackage.json\fP file:
-.sp
-.if n .RS 4
-.nf
-.fam C
-{
-  "name": "acme",
-  "version": "1.2.1",
-  "devDependencies": {
-    "jest": "3.0.1"
-  },
-  "quick\-lint\-js.config": {
-    "global\-groups": ["browser", "ecmascript", "jest"],
-    "globals": {
-      "google": {"writable": false}
-    }
   }
 }
 .fam
