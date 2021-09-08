@@ -514,6 +514,11 @@ class thread_safe_configuration_filesystem : public configuration_filesystem {
         overlapped, number_of_bytes_transferred, error);
   }
 
+  void clear_watches() {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.clear_watches();
+  }
+
  private:
   std::mutex lock_;
   UnderlyingFilesystem underlying_fs_;
@@ -971,7 +976,12 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 #endif
     }
 
-    void stop() { this->stop_pipe_.writer.close(); }
+    void stop() {
+      this->stop_pipe_.writer.close();
+#if defined(_WIN32)
+      this->fs_.clear_watches();
+#endif
+    }
 
     platform_file_ref get_readable_pipe() const {
       return this->stop_pipe_.reader.ref();

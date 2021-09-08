@@ -126,6 +126,14 @@ bool change_detecting_filesystem_win32::handle_event(
   }
 }
 
+void change_detecting_filesystem_win32::clear_watches() {
+  while (!this->watched_directories_.empty()) {
+    auto it = this->watched_directories_.begin();
+    this->cancel_watch(std::move(it->second));
+    this->watched_directories_.erase(it);
+  }
+}
+
 void change_detecting_filesystem_win32::cancel_watch(
     std::unique_ptr<watched_directory>&& dir) {
   BOOL ok = ::CancelIoEx(dir->directory_handle.get(), nullptr);

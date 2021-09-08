@@ -127,6 +127,8 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
   bool handle_event(::OVERLAPPED*, ::DWORD number_of_bytes_transferred,
                     ::DWORD error);
 
+  void clear_watches();
+
  private:
   struct watched_directory {
     explicit watched_directory(windows_handle_file&& directory_handle,
