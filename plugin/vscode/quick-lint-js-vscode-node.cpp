@@ -451,12 +451,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                    config_file_path](
                       ::Napi::Env env,
                       ::Napi::Value clicked_button_label) -> void {
-                    if (this->disposed_) {
-                      QLJS_DEBUG_LOG(
-                          "Workspace %p: suppressing popup because disposed\n",
-                          this);
-                      return;
-                    }
                     bool popup_dismissed = clicked_button_label.IsUndefined();
                     if (popup_dismissed) {
                       return;
