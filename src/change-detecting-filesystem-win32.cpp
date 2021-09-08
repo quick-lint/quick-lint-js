@@ -238,7 +238,19 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
   auto directory_it = std::find_if(
       this->watched_directories_.begin(), this->watched_directories_.end(),
       [&](const auto& entry) { return entry.second.get() == dir; });
-  QLJS_ASSERT(directory_it != this->watched_directories_.end());
+  bool is_watched = directory_it != this->watched_directories_.end();
+  if (!is_watched) {
+    // An oplock broke, then someone called cancel_watch, then we polled the I/O
+    // Completion Port and saw that the oplock broke. We think the watch is in a
+    // cancelled state; the watched_directory is in
+    // cancelling_watched_directories_. Treat the event as a successful
+    // cancellation. This will close dir.directory_handle, releasing the held
+    // oplock.
+    QLJS_LOG("note: Directory handle %#llx: Oplock broke for cancelled watch\n",
+             reinterpret_cast<unsigned long long>(dir->directory_handle.get()));
+    this->handle_oplock_aborted_event(dir);
+    return;
+  }
 
   // A directory oplock breaks if any of the following happens:
   //
