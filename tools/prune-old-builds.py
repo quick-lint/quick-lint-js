@@ -29,8 +29,8 @@ def error_print(*args, **kwargs):
 def get_commits(repo_name: str, repository_url: str) -> list:
     try:
         return subprocess.check_output(
-            f"cd {repo_name} \
-            && git fetch --prune {repository_url} '+refs/pull/*/head:refs/remotes/prs/*' '+refs/heads/*:refs/remotes/origin/*' \
+            f"cd {pipes.quote(repo_name)} \
+            && git fetch --prune {pipes.quote(repository_url)} '+refs/pull/*/head:refs/remotes/prs/*' '+refs/heads/*:refs/remotes/origin/*' \
             && git rev-list --all --remotes", shell=True
         ).decode('utf-8').split('\n')
     except subprocess.CalledProcessError as err:
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
 
     builds_path = Path(args.builds_path)
-    repository_url = pipes.quote(args.repository_url)
-    repo_name = pipes.quote(args.repo_name)
+    repository_url = args.repository_url
+    repo_name = args.repo_name
 
     if not os.path.exists(builds_path):
         error_print(
