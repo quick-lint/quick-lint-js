@@ -49,7 +49,7 @@ pipe_fds make_pipe() {
   if (!::CreatePipe(&readPipe, &writePipe, /*lpPipeAttributes=*/nullptr,
                     /*nSize=*/0)) {
     std::fprintf(stderr, "error: failed to create pipe: %s\n",
-                 windows_handle_file::get_last_error_message());
+                 windows_handle_file::get_last_error_message().c_str());
     std::abort();
   }
   return pipe_fds{
