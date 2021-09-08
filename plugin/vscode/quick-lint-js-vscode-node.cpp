@@ -754,8 +754,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       QLJS_DEBUG_LOG("Document %p: Opened document: %s\n", doc,
                      file_path->c_str());
     } else {
-      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc,
-                     file_path->c_str());
+      QLJS_DEBUG_LOG("Document %p: Opened unnamed document\n", doc);
     }
     doc->type_ = type;
     doc->document_.set_text(text);
