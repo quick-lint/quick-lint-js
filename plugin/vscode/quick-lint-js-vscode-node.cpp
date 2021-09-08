@@ -798,6 +798,12 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                    config_file_path](
                       ::Napi::Env env,
                       ::Napi::Value clicked_button_label) -> void {
+                    if (this->disposed_) {
+                      QLJS_DEBUG_LOG(
+                          "Workspace %p: suppressing popup because disposed\n",
+                          this);
+                      return;
+                    }
                     bool popup_dismissed = clicked_button_label.IsUndefined();
                     if (popup_dismissed) {
                       return;
@@ -897,10 +903,17 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       QLJS_DEBUG_LOG(
           "check_for_config_file_changes_from_thread: workspace object has "
           "been garbage-collected\n");
-    } else {
-      qljs_workspace* workspace = qljs_workspace::Unwrap(workspace_object);
-      workspace->check_for_config_file_changes(env);
+      return;
     }
+    qljs_workspace* workspace = qljs_workspace::Unwrap(workspace_object);
+    if (workspace->disposed_) {
+      QLJS_DEBUG_LOG(
+          "Workspace %p: check_for_config_file_changes_from_thread: workspace "
+          "object has been disposed\n",
+          this);
+      return;
+    }
+    workspace->check_for_config_file_changes(env);
   }
 
   void check_for_config_file_changes(::Napi::Env env) {
