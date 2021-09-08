@@ -136,39 +136,20 @@ struct vscode_module {
   template <class Func>
   void show_error_message(::Napi::Env env, const std::string& message,
                           std::vector<std::string> button_labels,
-                          Func&& callback) {
-    struct async_state {
-      ::Napi::ObjectReference window_namespace;
-      ::Napi::FunctionReference window_show_error_message;
-      Func callback;
-      std::string message;
-      std::vector<std::string> button_labels;
-    };
-    std::shared_ptr<async_state> state(new async_state{
-        .window_namespace = ::Napi::Persistent(this->window_namespace.Value()),
-        .window_show_error_message =
-            ::Napi::Persistent(this->window_show_error_message.Value()),
-        .callback = std::forward<Func>(callback),
-        .message = message,
-        .button_labels = std::move(button_labels),
-    });
-
+                          Func callback) {
     std::vector<::napi_value> args;
-    args.push_back(::Napi::String::New(env, std::move(state->message)));
-    for (std::string& label : state->button_labels) {
+    args.push_back(::Napi::String::New(env, message));
+    for (std::string& label : button_labels) {
       args.push_back(::Napi::String::New(env, std::move(label)));
     }
-    ::Napi::Value promise = state->window_show_error_message.Value().Call(
-        /*this=*/state->window_namespace.Value(), std::move(args));
+    ::Napi::Value promise = this->window_show_error_message.Value().Call(
+        /*this=*/this->window_namespace.Value(), std::move(args));
 
-    promise_then(promise, [state](const ::Napi::CallbackInfo& info) -> void {
-      std::move(state->callback)(info.Env(), info[0]);
-    });
-
-    state->window_namespace.Reset();
-    state->window_show_error_message.Reset();
-    state->message.clear();
-    state->button_labels.clear();
+    promise_then(promise,
+                 [shared_callback = std::make_shared<Func>(std::move(
+                      callback))](const ::Napi::CallbackInfo& info) -> void {
+                   std::move (*shared_callback)(info.Env(), info[0]);
+                 });
   }
 
   // vscode.Diagnostic
