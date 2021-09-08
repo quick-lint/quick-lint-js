@@ -23,6 +23,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/vscode-error-reporter.h>
 #include <quick-lint-js/vscode.h>
 #include <string>
 #include <string_view>
@@ -47,94 +48,6 @@ class addon_state {
 
   ::Napi::FunctionReference qljs_document_class;
   ::Napi::FunctionReference qljs_workspace_class;
-};
-
-class vscode_error_formatter
-    : public diagnostic_formatter<vscode_error_formatter> {
- public:
-  explicit vscode_error_formatter(vscode_module* vscode, ::Napi::Env env,
-                                  ::Napi::Array diagnostics,
-                                  const lsp_locator* locator)
-      : vscode_(vscode),
-        env_(env),
-        diagnostics_(diagnostics),
-        locator_(locator) {}
-
-  void write_before_message([[maybe_unused]] std::string_view code,
-                            diagnostic_severity, const source_code_span&) {}
-
-  void write_message_part([[maybe_unused]] std::string_view code,
-                          diagnostic_severity, string8_view message_part) {
-    this->message_.append(message_part);
-  }
-
-  void write_after_message(std::string_view code, diagnostic_severity sev,
-                           const source_code_span& origin) {
-    ::Napi::Value severity;
-    switch (sev) {
-    case diagnostic_severity::error:
-      severity = this->vscode_->diagnostic_severity_error;
-      break;
-    case diagnostic_severity::warning:
-      severity = this->vscode_->diagnostic_severity_warning;
-      break;
-    case diagnostic_severity::note:
-      // Don't write notes. Only write the main message.
-      return;
-    }
-
-    lsp_range r = this->locator_->range(origin);
-    ::Napi::Value start = this->vscode_->position_class.New(
-        {::Napi::Number::New(this->env_, r.start.line),
-         ::Napi::Number::New(this->env_, r.start.character)});
-    ::Napi::Value end = this->vscode_->position_class.New(
-        {::Napi::Number::New(this->env_, r.end.line),
-         ::Napi::Number::New(this->env_, r.end.character)});
-    ::Napi::Object diag = this->vscode_->diagnostic_class.New({
-        /*range=*/this->vscode_->range_class.New({start, end}),
-        /*message=*/
-        ::Napi::String::New(
-            this->env_, reinterpret_cast<const char*>(this->message_.data())),
-        /*severity=*/severity,
-    });
-    diag.Set("code", ::Napi::String::New(this->env_, code.data(), code.size()));
-    diag.Set("source", ::Napi::String::New(this->env_, "quick-lint-js"));
-    this->diagnostics_.Set(this->diagnostics_.Length(), diag);
-  }
-
- private:
-  vscode_module* vscode_;
-  ::Napi::Env env_;
-  ::Napi::Array diagnostics_;
-  const lsp_locator* locator_;
-  string8 message_;
-};
-
-class vscode_error_reporter final : public error_reporter {
- public:
-  explicit vscode_error_reporter(vscode_module* vscode, ::Napi::Env env,
-                                 const lsp_locator* locator) noexcept
-      : vscode_(vscode),
-        env_(env),
-        diagnostics_(::Napi::Array::New(env)),
-        locator_(locator) {}
-
-  ::Napi::Array diagnostics() const { return this->diagnostics_; }
-
-  void report_impl(error_type type, void* error) override {
-    vscode_error_formatter formatter(
-        /*vscode=*/this->vscode_,
-        /*env=*/this->env_,
-        /*diagnostics=*/this->diagnostics_,
-        /*locator=*/this->locator_);
-    formatter.format(get_diagnostic_info(type), error);
-  }
-
- private:
-  vscode_module* vscode_;
-  ::Napi::Env env_;
-  ::Napi::Array diagnostics_;
-  const lsp_locator* locator_;
 };
 
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
