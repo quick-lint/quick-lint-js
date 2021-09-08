@@ -17,6 +17,7 @@
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/padded-string.h>
@@ -28,35 +29,8 @@
 #include <unordered_map>
 #include <vector>
 
-#if QLJS_HAVE_GETTID
-#include <sys/types.h>
-#endif
-
-#if QLJS_HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-// Define this macro to a non-empty string to log to the specified file:
-// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
-
-#if defined(QLJS_DEBUG_LOGGING_FILE)
-#define QLJS_DEBUG_LOG(...)                          \
-  do {                                               \
-    ::quick_lint_js::debug_log_to_file(__VA_ARGS__); \
-  } while (false)
-#else
-#define QLJS_DEBUG_LOG(...) \
-  do {                      \
-  } while (false)
-#endif
-
 namespace quick_lint_js {
 namespace {
-#if defined(QLJS_DEBUG_LOGGING_FILE)
-template <class... Args>
-void debug_log_to_file(const char* format, Args&&...);
-#endif
-
 class qljs_document;
 class qljs_workspace;
 
@@ -1101,28 +1075,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       options.Get("vscodeDiagnosticCollection"),
   });
 }
-
-#if defined(QLJS_DEBUG_LOGGING_FILE)
-template <class... Args>
-void debug_log_to_file(const char* format, Args&&... args) {
-  static FILE* file = std::fopen(QLJS_DEBUG_LOGGING_FILE, "a");
-  if (file) {
-#if QLJS_HAVE_GETPID
-#if QLJS_HAVE_GETTID
-    std::fprintf(file, "[%d.%d] ", ::getpid(), ::gettid());
-#else
-    std::fprintf(file, "[%d] ", ::getpid());
-#endif
-#endif
-    QLJS_WARNING_PUSH
-    QLJS_WARNING_IGNORE_CLANG("-Wformat-security")
-    QLJS_WARNING_IGNORE_GCC("-Wformat-security")
-    std::fprintf(file, format, args...);
-    QLJS_WARNING_POP
-    std::fflush(file);
-  }
-}
-#endif
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   return std::unique_ptr<addon_state>(new addon_state{
