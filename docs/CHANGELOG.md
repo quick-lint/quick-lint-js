@@ -20,17 +20,23 @@ Beta release.
 * Vim: For unnamed buffers, the ALE plugin no longer searches for configuration
   files in the current working directory's parent and ancestors. Name the buffer
   using the `:file` command if you want a configuration file to take effect.
+* VS Code: The plugin has been rewritten. Performance should be better, but
+  stability and compatibility might suffer. For example, VS Code on Apple
+  silicon (AArch64 CPUs) has not been tested and will likely no longer work.
+  Please report compatibility issues.
 
 ### Added
 
 * Various new errors (implemented by [Himanshu][])
 * CLI: `--path-for-config-search` allows customizing where configuration files
   are found for `--stdin`
-* Partially implemented: Global variables can be configured using a
-  `quick-lint-js.config` file
+* Global variables for several popular libraries are now recognized by default,
+  including jQuery, Jasmine, and Jest
 * Syntax and schema errors in `quick-lint-js.config` no longer crash
   quick-lint-js. Instead, these errors are highlighted similar to errors in
   JavaScript files.
+* VS Code: `quick-lint-js.config` is now used when linting opened JavaScript
+  files.
 
 ### Fixed
 
@@ -39,7 +45,11 @@ Beta release.
 * Building quick-lint-js no longer fails if a directory called `brew` exists
   anywhere in `$PATH`
 * Various crashes given invalid JavaScript no longer happen (implemented by
-  [wagner riffel][])
+  [wagner riffel][] and [David Vasileff][])
+* `for (const x of xs)` no longer incorrectly reports E205 (missing initializer
+  in const declaration) (fixed by [Himanshu][])
+* Windows: `quick-lint-js.config` files are now recognized if the containing
+  directory contains non-ASCII characters
 
 ## 0.3.0 (2021-07-02)
 
@@ -94,6 +104,7 @@ Beta release.
 
 [AidenThing]: https://github.com/AidenThing
 [Daniel La Rocque]: https://github.com/dlarocque
+[David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
 [Jimmy Qiu]: https://github.com/lifeinData
