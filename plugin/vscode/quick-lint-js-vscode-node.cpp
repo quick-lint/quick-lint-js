@@ -645,18 +645,26 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   ~qljs_workspace() {
     // See NOTE[workspace-cleanup].
-    QLJS_DEBUG_LOG("Workspace %p: destroying\n", this);
-    this->fs_change_detection_event_loop_.stop();
-    this->fs_change_detection_thread_.join();
+    this->dispose();
   }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
-
-    this->dispose_documents();
-    // TODO(strager): Reduce memory usage.
-
+    this->dispose();
     return env.Undefined();
+  }
+
+  void dispose() {
+    if (this->disposed_) {
+      return;
+    }
+
+    QLJS_DEBUG_LOG("Workspace %p: disposing\n", this);
+    this->fs_change_detection_event_loop_.stop();
+    this->fs_change_detection_thread_.join();
+    this->dispose_documents();
+
+    this->disposed_ = true;
   }
 
   void dispose_documents() {
@@ -1041,6 +1049,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     qljs_workspace* workspace_;
   };
 
+  bool disposed_ = false;
   vscode_module vscode_;
   fs_change_detection_event_loop fs_change_detection_event_loop_{this};
   vscode_configuration_filesystem fs_{fs_change_detection_event_loop_.fs()};
