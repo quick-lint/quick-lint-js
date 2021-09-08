@@ -153,31 +153,22 @@ struct vscode_module {
         .button_labels = std::move(button_labels),
     });
 
-    ::Napi::Function show_error_message_func = ::Napi::Function::New(
-        env,
-        [state = std::move(state)](const ::Napi::CallbackInfo& info) -> void {
-          ::Napi::Env env = info.Env();
+    std::vector<::napi_value> args;
+    args.push_back(::Napi::String::New(env, std::move(state->message)));
+    for (std::string& label : state->button_labels) {
+      args.push_back(::Napi::String::New(env, std::move(label)));
+    }
+    ::Napi::Value promise = state->window_show_error_message.Value().Call(
+        /*this=*/state->window_namespace.Value(), std::move(args));
 
-          std::vector<::napi_value> args;
-          args.push_back(::Napi::String::New(env, std::move(state->message)));
-          for (std::string& label : state->button_labels) {
-            args.push_back(::Napi::String::New(env, std::move(label)));
-          }
-          ::Napi::Value promise = state->window_show_error_message.Value().Call(
-              /*this=*/state->window_namespace.Value(), std::move(args));
+    promise_then(promise, [state](const ::Napi::CallbackInfo& info) -> void {
+      std::move(state->callback)(info.Env(), info[0]);
+    });
 
-          promise_then(promise,
-                       [state](const ::Napi::CallbackInfo& info) -> void {
-                         std::move(state->callback)(info.Env(), info[0]);
-                       });
-
-          state->window_namespace.Reset();
-          state->window_show_error_message.Reset();
-          state->message.clear();
-          state->button_labels.clear();
-        });
-    call_on_next_tick(env, show_error_message_func,
-                      /*this=*/env.Undefined(), {});
+    state->window_namespace.Reset();
+    state->window_show_error_message.Reset();
+    state->message.clear();
+    state->button_labels.clear();
   }
 
   // vscode.Diagnostic

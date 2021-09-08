@@ -469,12 +469,11 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
               "Failed to load configuration file for " + *file_path +
               ". Using default configuration.\nError details: " +
               loaded_config_result.error_to_string();
-          call_on_next_tick(env,
-                            this->vscode_.window_show_error_message.Value(),
-                            /*this=*/this->vscode_.window_namespace.Value(),
-                            {
-                                ::Napi::String::New(env, message),
-                            });
+          this->vscode_.window_show_error_message.Value().Call(
+              /*this=*/this->vscode_.window_namespace.Value(),
+              {
+                  ::Napi::String::New(env, message),
+              });
         }
       }
       break;
