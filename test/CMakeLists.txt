@@ -74,6 +74,7 @@ quick_lint_js_add_executable(
   test-parse.cpp
   test-pipe-writer.cpp
   test-result.cpp
+  test-simd.cpp
   test-string-view.cpp
   test-temporary-directory.cpp
   test-text-error-reporter.cpp

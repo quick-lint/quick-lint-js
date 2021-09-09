@@ -50,6 +50,7 @@ Beta release.
   in const declaration) (fixed by [Himanshu][])
 * Windows: `quick-lint-js.config` files are now recognized if the containing
   directory contains non-ASCII characters
+* Fix SSE2 corruption on 32-bit Windows builds with MSVC.
 
 ## 0.3.0 (2021-07-02)
 

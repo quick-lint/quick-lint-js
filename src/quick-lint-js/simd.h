@@ -17,7 +17,7 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_X86_SSE2
-class bool_vector_16_sse2 {
+class alignas(__m128i) bool_vector_16_sse2 {
  public:
   static constexpr int size = 16;
 
@@ -52,7 +52,7 @@ class bool_vector_16_sse2 {
   __m128i data_;
 };
 
-class char_vector_16_sse2 {
+class alignas(__m128i) char_vector_16_sse2 {
  public:
   static constexpr int size = 16;
 
