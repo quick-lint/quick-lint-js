@@ -30,18 +30,19 @@ const global_declared_variable_set& configuration::globals() noexcept {
     return this->globals_;
   }
 
-  auto add_globals = [&](const char8* const* group_globals, bool shadowable,
+  auto add_globals = [&](const char8* group_globals, bool shadowable,
                          bool writable) -> void {
     if (!group_globals) {
       return;
     }
-    for (const char8* const* it = group_globals; *it; ++it) {
-      string8_view global(*it);
+    for (const char8* it = group_globals; *it != '\0';) {
+      string8_view global(it);
       if (!this->should_remove_global_variable(global)) {
         global_declared_variable* var = this->globals_.add_variable(global);
         var->is_shadowable = shadowable;
         var->is_writable = writable;
       }
+      it += global.size() + 1;
     }
   };
   for (std::size_t i = 0; i < this->enabled_global_groups_.size(); ++i) {

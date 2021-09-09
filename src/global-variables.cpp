@@ -5,143 +5,143 @@
 #include <quick-lint-js/global-variables.h>
 
 namespace quick_lint_js {
-constexpr const char8* global_variables_ecmascript[] = {
+constexpr const char8 global_variables_ecmascript[] =
     // ECMA-262 18.1 Value Properties of the Global Object
-    u8"globalThis",
+    u8"globalThis\0"
 
     // ECMA-262 18.2 Function Properties of the Global Object
-    u8"decodeURI",
-    u8"decodeURIComponent",
-    u8"encodeURI",
-    u8"encodeURIComponent",
-    u8"eval",
-    u8"isFinite",
-    u8"isNaN",
-    u8"parseFloat",
-    u8"parseInt",
+    u8"decodeURI\0"
+    u8"decodeURIComponent\0"
+    u8"encodeURI\0"
+    u8"encodeURIComponent\0"
+    u8"eval\0"
+    u8"isFinite\0"
+    u8"isNaN\0"
+    u8"parseFloat\0"
+    u8"parseInt\0"
 
     // ECMA-262 18.3 Constructor Properties of the Global Object
-    u8"Array",
-    u8"ArrayBuffer",
-    u8"BigInt",
-    u8"BigInt64Array",
-    u8"BigUint64Array",
-    u8"Boolean",
-    u8"DataView",
-    u8"Date",
-    u8"Error",
-    u8"EvalError",
-    u8"Float32Array",
-    u8"Float64Array",
-    u8"Function",
-    u8"Int16Array",
-    u8"Int32Array",
-    u8"Int8Array",
-    u8"Map",
-    u8"Number",
-    u8"Object",
-    u8"Promise",
-    u8"Proxy",
-    u8"RangeError",
-    u8"ReferenceError",
-    u8"RegExp",
-    u8"Set",
-    u8"SharedArrayBuffer",
-    u8"String",
-    u8"Symbol",
-    u8"SyntaxError",
-    u8"TypeError",
-    u8"URIError",
-    u8"Uint16Array",
-    u8"Uint32Array",
-    u8"Uint8Array",
-    u8"Uint8ClampedArray",
-    u8"WeakMap",
-    u8"WeakSet",
+    u8"Array\0"
+    u8"ArrayBuffer\0"
+    u8"BigInt\0"
+    u8"BigInt64Array\0"
+    u8"BigUint64Array\0"
+    u8"Boolean\0"
+    u8"DataView\0"
+    u8"Date\0"
+    u8"Error\0"
+    u8"EvalError\0"
+    u8"Float32Array\0"
+    u8"Float64Array\0"
+    u8"Function\0"
+    u8"Int16Array\0"
+    u8"Int32Array\0"
+    u8"Int8Array\0"
+    u8"Map\0"
+    u8"Number\0"
+    u8"Object\0"
+    u8"Promise\0"
+    u8"Proxy\0"
+    u8"RangeError\0"
+    u8"ReferenceError\0"
+    u8"RegExp\0"
+    u8"Set\0"
+    u8"SharedArrayBuffer\0"
+    u8"String\0"
+    u8"Symbol\0"
+    u8"SyntaxError\0"
+    u8"TypeError\0"
+    u8"URIError\0"
+    u8"Uint16Array\0"
+    u8"Uint32Array\0"
+    u8"Uint8Array\0"
+    u8"Uint8ClampedArray\0"
+    u8"WeakMap\0"
+    u8"WeakSet\0"
 
     // ECMA-262 18.4 Other Properties of the Global Object
-    u8"Atomics",
-    u8"JSON",
-    u8"Math",
-    u8"Reflect",
+    u8"Atomics\0"
+    u8"JSON\0"
+    u8"Math\0"
+    u8"Reflect\0";
 
-    nullptr,
-};
-
-constexpr const char8* global_variables_ecmascript_non_writable[] = {
+constexpr const char8 global_variables_ecmascript_non_writable[] =
     // ECMA-262 18.1 Value Properties of the Global Object
-    u8"Infinity",
-    u8"NaN",
-    u8"undefined",
-    nullptr,
-};
+    u8"Infinity\0"
+    u8"NaN\0"
+    u8"undefined\0";
 
-constexpr const char8* global_variables_jasmine[] = {
-    u8"afterAll",
-    u8"afterEach",
-    u8"beforeAll",
-    u8"beforeEach",
-    u8"describe",
-    u8"expect",
-    u8"expectAsync",
-    u8"fail",
-    u8"fdescribe",
-    u8"fit",
-    u8"it",
+constexpr const char8 global_variables_jasmine[] =
+    u8"afterAll\0"
+    u8"afterEach\0"
+    u8"beforeAll\0"
+    u8"beforeEach\0"
+    u8"describe\0"
+    u8"expect\0"
+    u8"expectAsync\0"
+    u8"fail\0"
+    u8"fdescribe\0"
+    u8"fit\0"
+    u8"it\0"
     u8"jasmine"
-    u8"jsApiReporter",
-    u8"pending",
-    u8"setSpecProperty",
-    u8"setSuiteProperty",
-    u8"spyOn",
-    u8"spyOnAllFunctions",
-    u8"spyOnProperty",
-    u8"xdescribe",
-    u8"xit",
-    nullptr,
-};
+    u8"jsApiReporter\0"
+    u8"pending\0"
+    u8"setSpecProperty\0"
+    u8"setSuiteProperty\0"
+    u8"spyOn\0"
+    u8"spyOnAllFunctions\0"
+    u8"spyOnProperty\0"
+    u8"xdescribe\0"
+    u8"xit\0";
 
-constexpr const char8* global_variables_jest[] = {
-    u8"afterAll",  u8"afterEach", u8"beforeAll", u8"beforeEach", u8"describe",
-    u8"expect",    u8"fdescribe", u8"fit",       u8"it",         u8"test",
-    u8"xdescribe", u8"xit",       u8"xtest",     nullptr,
-};
+constexpr const char8 global_variables_jest[] =
+    u8"afterAll\0"
+    u8"afterEach\0"
+    u8"beforeAll\0"
+    u8"beforeEach\0"
+    u8"describe\0"
+    u8"expect\0"
+    u8"fdescribe\0"
+    u8"fit\0"
+    u8"it\0"
+    u8"test\0"
+    u8"xdescribe\0"
+    u8"xit\0"
+    u8"xtest\0";
 
-constexpr const char8* global_variables_jquery[] = {
-    u8"$",
-    u8"jQuery",
-    nullptr,
-};
+constexpr const char8 global_variables_jquery[] =
+    u8"$\0"
+    u8"jQuery\0";
 
-constexpr const char8* global_variables_node_js[] = {
-    u8"Buffer",
-    u8"GLOBAL",  // Removed in v14.16.1 (or earlier?).
-    u8"Intl",
-    u8"TextDecoder",      // Added in v12.22.1 (or earlier?).
-    u8"TextEncoder",      // Added in v12.22.1 (or earlier?).
-    u8"URL",              // Added in v10.24.1 (or earlier?).
-    u8"URLSearchParams",  // Added in v10.24.1 (or earlier?).
-    u8"WebAssembly",      // Added in v8.17.0 (or earlier?).
-    u8"clearImmediate",
-    u8"clearInterval",
-    u8"clearTimeout",
-    u8"console",
-    u8"escape",
-    u8"global",
-    u8"process",
-    u8"queueMicrotask",  // Added in v12.22.1 (or earlier?).
-    u8"root",            // Removed in v14.16.1 (or earlier?).
-    u8"setImmediate",
-    u8"setInterval",
-    u8"setTimeout",
-    u8"unescape",
-    nullptr,
-};
+constexpr const char8 global_variables_node_js[] =
+    u8"Buffer\0"
+    u8"GLOBAL\0"  // Removed in v14.16.1 (or earlier?).
+    u8"Intl\0"
+    u8"TextDecoder\0"      // Added in v12.22.1 (or earlier?).
+    u8"TextEncoder\0"      // Added in v12.22.1 (or earlier?).
+    u8"URL\0"              // Added in v10.24.1 (or earlier?).
+    u8"URLSearchParams\0"  // Added in v10.24.1 (or earlier?).
+    u8"WebAssembly\0"      // Added in v8.17.0 (or earlier?).
+    u8"clearImmediate\0"
+    u8"clearInterval\0"
+    u8"clearTimeout\0"
+    u8"console\0"
+    u8"escape\0"
+    u8"global\0"
+    u8"process\0"
+    u8"queueMicrotask\0"  // Added in v12.22.1 (or earlier?).
+    u8"root\0"            // Removed in v14.16.1 (or earlier?).
+    u8"setImmediate\0"
+    u8"setInterval\0"
+    u8"setTimeout\0"
+    u8"unescape\0";
 
-constexpr const char8* global_variables_node_js_non_shadowable[] = {
-    u8"__dirname", u8"__filename", u8"exports",
-    u8"module",    u8"require",    nullptr,
-};
+constexpr const char8 global_variables_node_js_non_shadowable[] =
+    u8"__dirname\0"
+    u8"__filename\0"
+    u8"exports\0"
+    u8"module\0"
+    u8"require\0";
 
 const global_group global_groups[] = {
     {

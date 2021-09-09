@@ -321,8 +321,7 @@ function writeCPPFile(globals, outputStream) {
 #include <quick-lint-js/global-variables.h>
 
 namespace quick_lint_js {
-const char8* global_variables_browser[] = {
-`);
+const char8 global_variables_browser[] =`);
 
   for (let global of globals) {
     if (!/^[A-Za-z0-9_$]+$/g.test(global)) {
@@ -330,12 +329,10 @@ const char8* global_variables_browser[] = {
         `Global variable name doesn't look like an identifier: ${global}`
       );
     }
-    outputStream.write(`    u8"${global}",\n`);
+    outputStream.write(`\n    u8"${global}\\0"`);
   }
 
-  outputStream.write(`\
-    nullptr,
-};
+  outputStream.write(`;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
