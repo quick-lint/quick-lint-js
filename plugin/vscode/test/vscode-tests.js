@@ -790,6 +790,20 @@ tests = {
     },
 };
 
+for (let testName in tests) {
+  let realTestFunction = tests[testName];
+  tests[testName] = (fixture) => {
+    fixture.addCleanup(async () => {
+      await cleanUpVSCodeEditorsAsync();
+    });
+    return realTestFunction(fixture);
+  };
+}
+
+async function cleanUpVSCodeEditorsAsync() {
+  await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+}
+
 async function waitUntilAnyDiagnosticsAsync(documentURI) {
   await pollAsync(async () => {
     let diags = normalizeDiagnostics(documentURI);
