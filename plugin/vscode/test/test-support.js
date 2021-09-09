@@ -59,6 +59,7 @@ async function runTestAsync(testName, test) {
       console.error(error);
     }
   } finally {
+    cleanupFunctions.reverse();
     for (let cleanupFunction of cleanupFunctions) {
       await cleanupFunction();
     }
