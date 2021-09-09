@@ -12,10 +12,13 @@ if (APPLE)
 endif ()
 if (WIN32)
   # Create a .lib file for linking based on the symbol list in node.def.
+  set(LIB_MACHINE)
   if (CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
-    set(LIB_MACHINE /MACHINE:X64)
-  else ()
-    set(LIB_MACHINE)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set(LIB_MACHINE /MACHINE:X64)
+    elseif (CMAKE_SIZEOF_VOID_P EQUAL 4)
+      set(LIB_MACHINE /MACHINE:X86)
+    endif ()
   endif ()
   add_custom_command(
     OUTPUT node-napi.lib node-napi.exp
