@@ -56,14 +56,7 @@ void buffering_error_reporter::report_impl(error_type type, void *error) {
 
 void buffering_error_reporter::copy_into(error_reporter *other) const {
   for (impl::any_error &error : this->impl_->errors_) {
-    switch (error.type) {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  case error_type::name:                                 \
-    other->report(error.error.name);                     \
-    break;
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-    }
+    other->report_impl(error.type, &error.error);
   }
 }
 
