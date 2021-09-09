@@ -13,6 +13,8 @@ namespace quick_lint_js {
 struct buffering_error_reporter::impl {
   struct any_error {
     union underlying_error {
+      explicit underlying_error() noexcept {}
+
 #define QLJS_ERROR_TYPE(name, code, struct_body, format)             \
   ::quick_lint_js::name name;                                        \
   static_assert(std::is_trivially_copyable_v<::quick_lint_js::name>, \
@@ -40,18 +42,16 @@ buffering_error_reporter &buffering_error_reporter::operator=(
 buffering_error_reporter::~buffering_error_reporter() = default;
 
 void buffering_error_reporter::report_impl(error_type type, void *error) {
-  // TODO(strager): memcpy instead of switching.
-  switch (type) {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format)           \
-  case error_type::name:                                           \
-    this->impl_->errors_.push_back(impl::any_error{                \
-        .type = error_type::name,                                  \
-        .error = {.name = *reinterpret_cast<const name *>(error)}, \
-    });                                                            \
-    break;
-    QLJS_X_ERROR_TYPES
+  static constexpr unsigned char error_sizes[] = {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
+  sizeof(::quick_lint_js::name),
+      QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-  }
+  };
+
+  impl::any_error &e = this->impl_->errors_.emplace_back();
+  e.type = type;
+  std::memcpy(&e.error, error, error_sizes[static_cast<std::ptrdiff_t>(type)]);
 }
 
 void buffering_error_reporter::copy_into(error_reporter *other) const {
