@@ -56,6 +56,7 @@ def classify_path(path: typing.Union[pathlib.Path, pathlib.PureWindowsPath]):
         ".deb": DebianPackageRecorder,
         ".exe": LLVMSizeRecorder,
         ".js": RegularFileRecorder,
+        ".node": LLVMSizeRecorder,
         ".tgz": TarFileRecorder,
         ".vsix": ZIPFileRecorder,
         ".wasm": LLVMSizeRecorder,
