@@ -64,8 +64,10 @@ endfunction ()
 
 function (quick_lint_js_configure_exception_handling)
   if (MSVC)
-    add_compile_options(/EHcs)
+    add_compile_options(/EHc-s-)
+    add_definitions(-D_HAS_EXCEPTIONS=0)
   endif ()
+  quick_lint_js_add_cxx_flag_if_supported(-fno-exceptions QUICK_LINT_JS_HAVE_FNO_EXCEPTIONS)
 endfunction ()
 
 # RTTI stands for Run-Time Type Information.
