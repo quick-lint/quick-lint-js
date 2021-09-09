@@ -51,6 +51,14 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
         -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js-vscode-node.map
       )
     endif ()
+    if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
+      target_link_libraries(
+        quick-lint-js-vscode-node
+        PRIVATE
+        -Wl,-dead_strip
+        -Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js-vscode-node.exports
+      )
+    endif ()
 
     quick_lint_js_collect_copyright(
       quick-lint-js-vscode-node-licenses
