@@ -257,8 +257,8 @@ To lint a temporary file, but use the configuration file of a project:
 ____
 [subs=+quotes]
 ----
-$ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved/unsaved12m1uz.js
-/tmp/unsaved/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E057]
+$ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved12m1uz.js
+/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E057]
 ----
 ____
 
