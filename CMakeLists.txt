@@ -5,6 +5,10 @@ cmake_minimum_required(VERSION 3.10)
 if (POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif ()
+
+file(READ version QUICK_LINT_JS_VERSION)
+string(REGEX MATCH "^[^\n]+" QUICK_LINT_JS_VERSION "${QUICK_LINT_JS_VERSION}")
+
 project(quick-lint-js)
 
 include(GNUInstallDirs)

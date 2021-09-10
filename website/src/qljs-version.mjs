@@ -1,21 +1,24 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VERSION_H
-#define QUICK_LINT_JS_VERSION_H
+import fs from "fs";
+import path from "path";
+import url from "url";
 
-#include <quick-lint-js/cpp.h>
+let __filename = url.fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
 
-// QUICK_LINT_JS_VERSION is normally defined by the build system (CMake).
-#if !defined(QUICK_LINT_JS_VERSION)
-#define QUICK_LINT_JS_VERSION UNKNOWN
-#endif
-
-#define QUICK_LINT_JS_VERSION_STRING QLJS_CPP_QUOTE(QUICK_LINT_JS_VERSION)
-#define QUICK_LINT_JS_VERSION_STRING_U8 \
-  QLJS_CPP_CONCAT(u8, QUICK_LINT_JS_VERSION_STRING)
-
-#endif
+export async function getQuickLintJSVersionInfo() {
+  let data = await fs.promises.readFile(
+    path.join(__dirname, "..", "..", "version"),
+    "utf-8"
+  );
+  let lines = data.split("\n");
+  return {
+    version: lines[0],
+    releaseDate: lines[1],
+  };
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

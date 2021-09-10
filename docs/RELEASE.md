@@ -6,27 +6,19 @@ Follow the following steps to release a new version of quick-lint-js:
 
 2. Update version number and release date. Change these files containing version
    numbers:
-   * .github/workflows/tag-build.yml
-   * Formula/quick-lint-js.rb
    * dist/arch/PKGBUILD-dev
    * dist/arch/PKGBUILD-git
    * dist/arch/PKGBUILD-release
    * dist/debian/README.md
-   * dist/debian/build.sh
    * dist/debian/debian/changelog
-   * dist/nix/quick-lint-js.nix
    * dist/npm/BUILDING.md
    * dist/npm/package.json
-   * docs/cli.adoc
-   * docs/config.adoc
    * plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt
    * plugin/vscode-lsp/README.md
    * plugin/vscode-lsp/package.json
    * plugin/vscode/BUILDING.md
    * plugin/vscode/package.json
-   * src/quick-lint-js/version.h
-   * website/public/index.ejs.html
-   * website/public/install/index.ejs.html
+   * version
 
 3. Re-generate man pages to include the updated version number by running
    `./docs/man/generate-man-pages`.

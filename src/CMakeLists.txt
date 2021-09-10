@@ -169,6 +169,11 @@ quick_lint_js_add_library(
   vim-qflist-json-error-reporter.cpp
   web-demo-location.cpp
 )
+target_compile_definitions(
+  quick-lint-js-lib
+  PUBLIC
+  "QUICK_LINT_JS_VERSION=${QUICK_LINT_JS_VERSION}"
+)
 target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(quick-lint-js-lib PUBLIC boost simdjson)
 if (WIN32)

@@ -4,6 +4,16 @@
 <html>
   <head>
     <%- await include("./common-head.ejs.html") %>
+    <script>
+      //<%
+      let url = await import("url");
+      let { getQuickLintJSVersionInfo } = await import(
+        url.pathToFileURL("../src/qljs-version.mjs")
+      );
+
+      let qljsVersionInfo = await getQuickLintJSVersionInfo();
+      //%>
+    </script>
     <title>quick-lint-js: find JavaScript bugs</title>
     <meta
       name="description"
@@ -147,8 +157,11 @@
 
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: 0.3.0 (beta) (released
-        <time datetime="2021-07-02">July 2, 2021</time>)
+        Latest version: <%= qljsVersionInfo.version %> (beta) (released
+        <time datetime="<%= qljsVersionInfo.releaseDate %>"
+          ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
+          "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
+        >)
       </p>
 
       <ul class="install-options">

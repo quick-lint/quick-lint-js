@@ -9,7 +9,7 @@ set -x
 
 cd "$(dirname "${0}")/../.."
 
-package_version=0.3.0
+package_version="$(head -n1 version)"
 
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
