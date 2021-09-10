@@ -17,6 +17,7 @@
         "QLJS_TEST_FILTER": ""
       },
       "args": [
+        "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/test/vscode-tests.js",
         "${workspaceRoot}/test/empty_test_workspace"
