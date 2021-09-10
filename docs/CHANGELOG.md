@@ -10,6 +10,16 @@ Semantic Versioning.
 
 Beta release.
 
+### Fixed
+
+* Nothing yet!
+
+## 0.4.0 (2021-09-09)
+
+Beta release.
+
+[Downloads](https://c.quick-lint-js.com/releases/0.4.0/)
+
 ### Changed
 
 * CLI: The `--stdin` option (and `-`) no longer search for configuration files
