@@ -5,7 +5,9 @@
 
 // TODO(strager): Make this configurable.
 // For build instructions, see website/wasm/README.md.
-let VSCODE_WASM_MODULE_PATH = "../public/demo/dist/quick-lint-js-vscode.wasm";
+let VSCODE_WASM_MODULE_PATH_BROWSER = "dist/quick-lint-js-vscode.wasm";
+let VSCODE_WASM_MODULE_PATH_NODE_JS =
+  "../public/demo/dist/quick-lint-js-vscode.wasm";
 
 class LintingCrashed extends Error {
   constructor(originalError) {
@@ -25,14 +27,14 @@ async function createProcessFactoryAsync() {
     let path = require("path");
 
     let wasmCode = await fs.promises.readFile(
-      path.join(__dirname, VSCODE_WASM_MODULE_PATH)
+      path.join(__dirname, VSCODE_WASM_MODULE_PATH_NODE_JS)
     );
     let wasmModule = await WebAssembly.compile(wasmCode);
     return new ProcessFactory(wasmModule);
   } else {
     // Browser.
     let wasmModule = await WebAssembly.compileStreaming(
-      fetch(VSCODE_WASM_MODULE_PATH)
+      fetch(VSCODE_WASM_MODULE_PATH_BROWSER)
     );
     return new ProcessFactory(wasmModule);
   }
