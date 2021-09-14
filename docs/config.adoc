@@ -92,26 +92,6 @@ A `quick-lint-js.config` or `.quick-lint-js.config` file with no configuration l
 ----
 
 `quick-lint-js.config` and `.quick-lint-js.config` do not support a dedicated comment syntax.
-To write a comment, you can create an object key starting a space character.
-quick-lint-js will ignore an object property if its key starts with a space.
-For example:
-
-[source,json]
-----
-{
-  " ": "this file configures quick-lint-js",
-  "globals": {
-    " exported by Prototype.js": null,
-    "$": true,
-    "Ajax": true,
-    "Class": true,
-    "Element": true,
-
-    " exported by Google Charts": null,
-    "chart": true
-  }
-}
-----
 
 == Options
 

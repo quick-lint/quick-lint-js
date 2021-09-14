@@ -211,29 +211,6 @@ A \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP file with no
 .if n .RE
 .sp
 \f(CRquick\-lint\-js.config\fP and \f(CR.quick\-lint\-js.config\fP do not support a dedicated comment syntax.
-To write a comment, you can create an object key starting a space character.
-quick\-lint\-js will ignore an object property if its key starts with a space.
-For example:
-.sp
-.if n .RS 4
-.nf
-.fam C
-{
-  " ": "this file configures quick\-lint\-js",
-  "globals": {
-    " exported by Prototype.js": null,
-    "$": true,
-    "Ajax": true,
-    "Class": true,
-    "Element": true,
-
-    " exported by Google Charts": null,
-    "chart": true
-  }
-}
-.fam
-.fi
-.if n .RE
 .SH "OPTIONS"
 .sp
 The quick\-lint\-js configuration object can contain one or more of the following keys:
