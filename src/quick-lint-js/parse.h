@@ -3502,20 +3502,24 @@ class parser {
   expression *parse_primary_expression(precedence);
 
   expression *parse_async_expression(token async_token, precedence);
-  expression *parse_async_expression_only(token async_token);
+  expression *parse_async_expression_only(token async_token,
+                                          bool allow_in_operator);
   expression *parse_await_expression(token await_token, precedence prec);
 
   expression *parse_expression_remainder(expression *, precedence);
 
   void parse_arrow_function_expression_remainder(
-      vector<expression *, /*InSituCapacity=*/2> &children);
+      vector<expression *, /*InSituCapacity=*/2> &children,
+      bool allow_in_operator);
   expression *parse_call_expression_remainder(expression *callee);
   expression *parse_index_expression_remainder(expression *lhs);
 
   expression *parse_arrow_function_body(function_attributes,
-                                        const char8 *parameter_list_begin);
+                                        const char8 *parameter_list_begin,
+                                        bool allow_in_operator);
   expression *parse_arrow_function_body(
       function_attributes, const char8 *parameter_list_begin,
+      bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters);
   // Args is either of the following:
   // * expression_arena::array_ptr<expression*> &&parameters
@@ -3523,6 +3527,7 @@ class parser {
   template <class... Args>
   expression *parse_arrow_function_body_impl(function_attributes,
                                              const char8 *parameter_list_begin,
+                                             bool allow_in_operator,
                                              Args &&... args);
 
   expression *parse_function_expression(function_attributes,

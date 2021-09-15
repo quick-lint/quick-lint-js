@@ -538,6 +538,22 @@ TEST(test_parse, for_in_loop) {
   }
 
   {
+    padded_string code(u8"for (const x in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, for_in_loop_with_var_initializer) {
+  {
     spy_visitor v =
         parse_and_visit_statement(u8"for (var x = init in xs) { body; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // init
@@ -556,25 +572,113 @@ TEST(test_parse, for_in_loop) {
   }
 
   {
-    padded_string code(u8"for (const x in []) {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_enter_for_scope",       //
-                            "visit_variable_declaration",  // x
-                            "visit_enter_block_scope",     //
-                            "visit_exit_block_scope",      //
-                            "visit_exit_for_scope"));
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
     padded_string code(u8"for (var x = 10 in []) {}"_sv);
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = ++y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_assignment",   // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (var x = -y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = y + z in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_use",          // z
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = () => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = (z) => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // z
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = async () => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = async (z) => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // z
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = y ? z : w in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_use",          // z
+                                      "visit_variable_use",          // w
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    padded_string code(u8"for (var x = yield y in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
                                       "visit_enter_block_scope",     //
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors, IsEmpty());

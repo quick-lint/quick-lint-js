@@ -223,11 +223,13 @@ expression* parser::parse_primary_expression(precedence prec) {
     token_type type = this->peek().type;
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* child = this->parse_expression(
-        precedence{.binary_operators = true,
-                   .math_or_logical_or_assignment = false,
-                   .commas = false,
-                   .is_typeof = (type == token_type::kw_typeof)});
+    expression* child = this->parse_expression(precedence{
+        .binary_operators = true,
+        .math_or_logical_or_assignment = false,
+        .commas = false,
+        .in_operator = prec.in_operator,
+        .is_typeof = (type == token_type::kw_typeof),
+    });
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -253,10 +255,12 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::plus_plus: {
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* child = this->parse_expression(
-        precedence{.binary_operators = false,
-                   .math_or_logical_or_assignment = false,
-                   .commas = false});
+    expression* child = this->parse_expression(precedence{
+        .binary_operators = false,
+        .math_or_logical_or_assignment = false,
+        .commas = false,
+        .in_operator = prec.in_operator,
+    });
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -280,7 +284,8 @@ expression* parser::parse_primary_expression(precedence prec) {
         this->skip();
         // Arrow function: () => expression-or-block
         expression* ast = this->parse_arrow_function_body(
-            function_attributes::normal, left_paren_span.begin());
+            function_attributes::normal, left_paren_span.begin(),
+            /*allow_in_operator=*/prec.in_operator);
         return ast;
       } else {
         // ()  // Invalid.
@@ -469,7 +474,8 @@ expression* parser::parse_primary_expression(precedence prec) {
 
     expression* arrow_function = this->parse_arrow_function_body(
         function_attributes::normal,
-        /*parameter_list_begin=*/arrow_span.begin());
+        /*parameter_list_begin=*/arrow_span.begin(),
+        /*allow_in_operator=*/prec.in_operator);
     return arrow_function;
   }
 
@@ -527,23 +533,26 @@ expression* parser::parse_primary_expression(precedence prec) {
 }
 
 expression* parser::parse_async_expression(token async_token, precedence prec) {
-  expression* ast = this->parse_async_expression_only(async_token);
+  expression* ast = this->parse_async_expression_only(
+      async_token, /*allow_in_operator=*/prec.in_operator);
   if (!prec.binary_operators) {
     return ast;
   }
   return this->parse_expression_remainder(ast, prec);
 }
 
-expression* parser::parse_async_expression_only(token async_token) {
+expression* parser::parse_async_expression_only(token async_token,
+                                                bool allow_in_operator) {
   const char8* async_begin = async_token.begin;
 
-  auto parse_arrow_function_arrow_and_body = [this,
+  auto parse_arrow_function_arrow_and_body = [this, allow_in_operator,
                                               async_begin](auto&& parameters) {
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
     this->skip();
 
     expression* ast = this->parse_arrow_function_body(
         function_attributes::async, async_begin,
+        /*allow_in_operator=*/allow_in_operator,
         this->expressions_.make_array(std::move(parameters)));
     return ast;
   };
@@ -1101,7 +1110,8 @@ next:
 
   // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
-    this->parse_arrow_function_expression_remainder(children);
+    this->parse_arrow_function_expression_remainder(
+        children, /*allow_in_operator=*/prec.in_operator);
     goto next;
   }
 
@@ -1195,7 +1205,8 @@ next:
 }
 
 void parser::parse_arrow_function_expression_remainder(
-    vector<expression*, /*InSituCapacity=*/2>& children) {
+    vector<expression*, /*InSituCapacity=*/2>& children,
+    bool allow_in_operator) {
   source_code_span arrow_span = this->peek().span();
   this->skip();
   if (children.size() != 1) {
@@ -1292,6 +1303,7 @@ void parser::parse_arrow_function_expression_remainder(
   expression* arrow_function = this->parse_arrow_function_body(
       function_attributes::normal,
       /*parameter_list_begin=*/left_paren_begin,
+      /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)));
   children.back() =
       this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
@@ -1369,22 +1381,26 @@ expression* parser::parse_index_expression_remainder(expression* lhs) {
   return this->make_expression<expression::index>(lhs, subscript, end);
 }
 
-expression* parser::parse_arrow_function_body(
-    function_attributes attributes, const char8* parameter_list_begin) {
-  return this->parse_arrow_function_body_impl(attributes, parameter_list_begin);
+expression* parser::parse_arrow_function_body(function_attributes attributes,
+                                              const char8* parameter_list_begin,
+                                              bool allow_in_operator) {
+  return this->parse_arrow_function_body_impl(attributes, parameter_list_begin,
+                                              allow_in_operator);
 }
 
 expression* parser::parse_arrow_function_body(
     function_attributes attributes, const char8* parameter_list_begin,
+    bool allow_in_operator,
     expression_arena::array_ptr<expression*>&& parameters) {
   return this->parse_arrow_function_body_impl(attributes, parameter_list_begin,
+                                              allow_in_operator,
                                               std::move(parameters));
 }
 
 template <class... Args>
 expression* parser::parse_arrow_function_body_impl(
     function_attributes attributes, const char8* parameter_list_begin,
-    Args&&... args) {
+    bool allow_in_operator, Args&&... args) {
   function_guard guard = this->enter_function(attributes);
   if (this->peek().type == token_type::left_curly) {
     buffering_visitor* v = this->expressions_.make_buffering_visitor();
@@ -1394,7 +1410,10 @@ expression* parser::parse_arrow_function_body_impl(
         attributes, std::forward<Args>(args)..., v, parameter_list_begin,
         span_end);
   } else {
-    expression* body = this->parse_expression(precedence{.commas = false});
+    expression* body = this->parse_expression(precedence{
+        .commas = false,
+        .in_operator = allow_in_operator,
+    });
     return this->make_expression<expression::arrow_function_with_expression>(
         attributes, std::forward<Args>(args)..., body, parameter_list_begin);
   }
