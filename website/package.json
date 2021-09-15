@@ -9,18 +9,18 @@
     "node": ">=14.14.0"
   },
   "dependencies": {
-    "asciidoctor": "^2.2.4",
+    "asciidoctor": "^2.2.5",
     "ejs": "^3.1.6",
-    "esbuild-wasm": "^0.12.5",
+    "esbuild-wasm": "^0.12.28",
     "express": "^4.17.1",
-    "jsdom": "16.6.0",
-    "markdown-it": "^12.0.6",
+    "jsdom": "17.0.0",
+    "markdown-it": "^12.2.0",
     "mime": "^2.5.2",
     "morgan": "^1.10.0",
     "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/"
   },
   "devDependencies": {
-    "axios": "^0.21.1",
-    "prettier": "^2.3.0"
+    "axios": "^0.21.4",
+    "prettier": "^2.4.0"
   }
 }
