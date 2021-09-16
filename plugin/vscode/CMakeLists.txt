@@ -2,6 +2,7 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
+include(QuickLintJSAppleCodesign)
 include(QuickLintJSCopyright)
 include(QuickLintJSNodeJS)
 include(QuickLintJSTarget)
@@ -32,17 +33,27 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       node-addon-api
       quick-lint-js-lib
     )
-    install(
-      TARGETS quick-lint-js-vscode-node
-      LIBRARY  # Linux DSO; macOS dylib
+
+    if (QUICK_LINT_JS_ENABLE_APPLE_CODESIGN)
+      quick_lint_js_apple_codesign(quick-lint-js-vscode-node)
+      quick_lint_js_apple_codesign_install(
+        TARGETS quick-lint-js-vscode-node
         COMPONENT vscode-node
-        EXCLUDE_FROM_ALL
         DESTINATION "${VSCODE_DIST_DIR}"
-      RUNTIME  # Windows DLL
-        COMPONENT vscode-node
-        EXCLUDE_FROM_ALL
-        DESTINATION "${VSCODE_DIST_DIR}"
-    )
+      )
+    else ()
+      install(
+        TARGETS quick-lint-js-vscode-node
+        LIBRARY  # Linux DSO; macOS dylib
+          COMPONENT vscode-node
+          EXCLUDE_FROM_ALL
+          DESTINATION "${VSCODE_DIST_DIR}"
+        RUNTIME  # Windows DLL
+          COMPONENT vscode-node
+          EXCLUDE_FROM_ALL
+          DESTINATION "${VSCODE_DIST_DIR}"
+      )
+    endif ()
 
     if (CMAKE_SYSTEM_NAME STREQUAL Linux)
       target_link_libraries(
