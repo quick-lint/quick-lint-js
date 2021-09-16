@@ -3,6 +3,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
+include(QuickLintJSAppleCodesign)
 include(QuickLintJSCompiler)
 include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
@@ -25,6 +26,10 @@ quick_lint_js_add_executable(
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
+
+if (QUICK_LINT_JS_ENABLE_APPLE_CODESIGN)
+  quick_lint_js_apple_codesign(quick-lint-js)
+endif ()
 
 # TODO(strager): Use the default DESTINATION for CMake versions which have a
 # default. (3.18.0 has a default; 3.12.4 doesn't have a default.)

@@ -38,6 +38,22 @@ set(
   "Install Vim files into this directory relative to CMAKE_INSTALL_PREFIX"
 )
 
+option(QUICK_LINT_JS_ENABLE_APPLE_CODESIGN "Sign macOS programs" OFF)
+set(
+  QUICK_LINT_JS_APPLE_CODESIGN_IDENTITY
+  "-"
+  CACHE
+  STRING
+  "Code signing identity to sign macOS programs with"
+)
+set(
+  QUICK_LINT_JS_APPLE_CODESIGN_KEYCHAIN
+  ""
+  CACHE
+  STRING
+  "Keychain to find QUICK_LINT_JS_APPLE_CODESIGN_IDENTITY in"
+)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(QuickLintJSCompiler)
@@ -48,6 +64,10 @@ quick_lint_js_configure_exception_handling()
 quick_lint_js_configure_rtti()
 quick_lint_js_work_around_implicit_link_directories()
 quick_lint_js_enable_dead_code_stripping()
+
+# Setting an rpath changes the executable during installation, breaking code
+# signing. Disable tweaking rpaths so build-time code signing works.
+set(CMAKE_SKIP_RPATH TRUE)
 
 # HACK(strager): Work around issues with CI. We should consider using
 # find_package(Python3) instead.
