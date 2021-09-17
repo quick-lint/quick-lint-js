@@ -155,7 +155,6 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
   }
 }
 
-
 TEST(test_lint, use_await_label_in_non_async_function) {
   padded_string input(u8"function f() {await: for(;;){break await;}}"_sv);
   error_collector v;
@@ -166,7 +165,6 @@ TEST(test_lint, use_await_label_in_non_async_function) {
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
-
 }
 }
 
