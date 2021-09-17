@@ -1,0 +1,93 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<script>
+  //<%
+  let url = await import("url");
+  let { getQuickLintJSVersionInfo } = await import(
+    url.pathToFileURL("../../src/qljs-version.mjs")
+  );
+
+  let qljsVersionInfo = await getQuickLintJSVersionInfo();
+  //%>
+</script>
+
+<!-- TODO(strager): Include installation instructions within the archive. -->
+<ol>
+  <li>
+    <p>Download the latest release of quick-lint-js for your platform:</p>
+    <ul>
+      <% if (os === "linux") { %>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/linux.tar.gz"
+          >GNU/Linux</a
+        >
+      </li>
+      <% } else if (os === "macos") { %>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/macos.tar.gz"
+          >macOS</a
+        >
+      </li>
+      <% } else if (os === "windows") { %>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows.zip"
+          >Windows</a
+        >
+      </li>
+      <% } %>
+    </ul>
+  </li>
+  <li><p>Extract the downloaded archive.</p></li>
+  <li>
+    <p>
+      Copy the extracted <% if (os === "windows") { %>
+      <code>bin\quick-lint-js.exe</code>
+      <% } else { %>
+      <code>quick-lint-js/bin/quick-lint-js</code>
+      <% } %> file into a directory in your <code>PATH</code>.
+    </p>
+    <p>
+      For example, copy it into the <% if (os === "windows") { %>
+      <code>C:\Windows\System32\</code>
+      <% } else { %>
+      <code>/usr/local/bin</code>
+      <% } %> directory.
+    </p>
+  </li>
+  <li>
+    <p>
+      Open a <% if (os === "windows") { %> PowerShell window or Command Prompt
+      window. <% } else { %> terminal window. <% } %> Type
+      <kbd>quick-lint-js --version</kbd> and press enter to verify the
+      installation succeeded.
+    </p>
+  </li>
+</ol>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>

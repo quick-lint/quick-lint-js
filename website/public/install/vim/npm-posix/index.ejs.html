@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <%- await include("../../../common-head.ejs.html") %>
+    <script>
+      //<%
+      let url = await import("url");
+      let { getQuickLintJSVersionInfo } = await import(
+        url.pathToFileURL("../../../../src/qljs-version.mjs")
+      );
+
+      let qljsVersionInfo = await getQuickLintJSVersionInfo();
+      //%>
+    </script>
+    <title>
+      quick-lint-js: install for Vim with npm on GNU/Linux and macOS
+    </title>
+    <meta
+      name="description"
+      content="Install quick-lint-js's Vim plugin with npm on GNU/Linux and macOS"
+    />
+    <link href="../../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header>
+      <h1><a href="../..">quick-lint-js</a></h1>
+      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+      <%- await include("../../../common-nav.ejs.html") %>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="../../">Install</a></li>
+          <li><a href="../">Vim</a></li>
+          <li>npm (GNU/Linux and macOS)</li>
+        </ol>
+      </nav>
+    </header>
+
+    <main>
+      <h2>
+        <img
+          class="install-logo"
+          src="../../../vim.gif"
+          alt=""
+          title="Vim"
+        /><img class="os-logo" src="../../../npm.svg" alt="" title="npm" />
+        Install for Vim with npm
+      </h2>
+      <p>
+        Supported operating systems:
+        <img
+          class="os-logo"
+          src="../../../linux.svg"
+          alt="GNU/Linux"
+          title="GNU/Linux"
+        />
+        <img
+          class="os-logo"
+          src="../../../macos.svg"
+          alt="macOS"
+          title="macOS"
+        />
+      </p>
+      <p>
+        <a href="../npm-windows/"
+          ><img
+            class="os-logo"
+            src="../../../windows.svg"
+            alt=""
+            title="Windows"
+          />
+          Windows instructions</a
+        >
+      </p>
+
+      <p>
+        quick-lint-js has an
+        <a href="https://www.npmjs.com/package/quick-lint-js">npm package</a>,
+        making it easy to install the LSP server for use by the Vim plugin.
+      </p>
+
+      <h3>Install prerequisites</h3>
+      <p>
+        In order to install quick-lint-js' npm package, you must first install
+        the
+        <a
+          href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm"
+          >npm client</a
+        >.
+      </p>
+      <%- await include("../common-prerequisites.ejs.html") %>
+
+      <h3>Install quick-lint-js</h3>
+      <p>
+        Install quick-lint-js globally (on your machine) for use anywhere,
+        including the Vim plugin:
+      </p>
+      <blockquote>
+        <pre><code class="shell-session"><kbd>sudo npm install --global --unsafe-perm quick-lint-js</kbd></code></pre>
+      </blockquote>
+      <p>
+        Note: The Vim plugin does not use quick-lint-js if it is installed
+        locally within your project. The Vim plugin only uses quick-lint-js if
+        it is globally installed.
+      </p>
+
+      <%- await include("../common-manual.ejs.html", {os: "posix"}) %> <%- await
+      include("../common-configure.ejs.html") %>
+    </main>
+
+    <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!--
+Other files may have different copyright and may be licensed under different
+licenses. See license/ for details.
+-->

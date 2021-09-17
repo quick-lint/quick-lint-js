@@ -115,7 +115,8 @@ header {
   display: grid;
   grid-template-areas:
     "title main-nav"
-    "tag-line main-nav";
+    "tag-line main-nav"
+    "breadcrumbs main-nav";
 }
 header > h1 {
   grid-area: title;
@@ -125,6 +126,9 @@ header > .tag-line {
 }
 header > nav.main-nav {
   grid-area: main-nav;
+}
+header > nav.breadcrumbs {
+  grid-area: breadcrumbs;
 }
 
 footer,
@@ -136,6 +140,24 @@ h2 {
 main > h2:first-child {
   border-top: 0;
   padding-top: 0;
+}
+
+nav.breadcrumbs ol {
+  display: flex;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+}
+nav.breadcrumbs ol > li {
+  margin: 0 0.125em;
+  padding: 0;
+}
+
+nav.breadcrumbs ol > li {
+  list-style-type: none;
+}
+nav.breadcrumbs ol > li:not(:first-child)::before {
+  content: "➤ ";
 }
 
 @media (prefers-color-scheme: dark) {
@@ -213,6 +235,70 @@ pre mark:empty::before {
 @media (prefers-color-scheme: dark) {
   pre mark {
     background-color: #7a1965;
+  }
+}
+
+.install-logo,
+.os-logo {
+  height: 1.2em;
+  vertical-align: text-bottom;
+}
+
+.os-column-table {
+  display: grid;
+  grid-template-areas: "linux macos windows";
+}
+.os-column-table h3 {
+  margin-top: 0;
+}
+.os-column-table {
+  margin-bottom: 1em;
+  margin-top: 1em;
+}
+
+.os-column-table > * {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.os-column-table > .linux {
+  border-left-color: transparent;
+  grid-area: linux;
+}
+.os-column-table > .macos {
+  grid-area: macos;
+}
+.os-column-table > .windows {
+  grid-area: windows;
+}
+
+code.shell-session .long-shell-command-line {
+  /* 6 = "$ ".length + 4 spaces of indentation */
+  display: inline-block;
+  padding-left: 6ch;
+  text-indent: -6ch;
+  white-space: normal;
+}
+
+code.shell-session kbd::before {
+  content: "$ ";
+}
+
+@media only screen and (min-width: 34em) and (max-width: 40em) {
+  .os-column-table ul {
+    margin-left: 0;
+    padding-left: 1em;
+  }
+}
+
+/* Stack items on top of each other if the screen isn't wide enough to
+         arrange them horizontally. */
+@media only screen and (max-width: 34em) {
+  .os-column-table {
+    grid-template-areas: "linux" "macos" "windows";
+  }
+  .os-column-table > * {
+    border-left: 0;
   }
 }
 

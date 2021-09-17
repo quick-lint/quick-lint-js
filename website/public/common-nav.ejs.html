@@ -21,7 +21,46 @@
     {
       uri: "/install/",
       title: "Install",
-      subpages: [{ uri: "/releases/", title: "Releases" }],
+      subpages: [
+        { uri: "/install/vscode/", title: "VS Code", hidden: true },
+        { uri: "/install/vscodium/", title: "VSCodium", hidden: true },
+        { uri: "/install/vim/", title: "Vim", hidden: true },
+        {
+          uri: "/install/vim/arch-linux/",
+          title: "Vim Arch Linux",
+          hidden: true,
+        },
+        { uri: "/install/vim/debian/", title: "Vim Debian", hidden: true },
+        { uri: "/install/vim/homebrew/", title: "Vim Homebrew", hidden: true },
+        { uri: "/install/vim/nix/", title: "Vim Nix", hidden: true },
+        { uri: "/install/vim/npm-posix/", title: "Vim npm", hidden: true },
+        { uri: "/install/vim/npm-windows/", title: "Vim npm", hidden: true },
+        { uri: "/install/vim/static-linux/", title: "Vim Linux", hidden: true },
+        { uri: "/install/vim/static-macos/", title: "Vim macOS", hidden: true },
+        {
+          uri: "/install/vim/static-windows/",
+          title: "Vim Windows",
+          hidden: true,
+        },
+        { uri: "/install/cli/", title: "CLI", hidden: true },
+        {
+          uri: "/install/cli/arch-linux/",
+          title: "CLI Arch Linux",
+          hidden: true,
+        },
+        { uri: "/install/cli/debian/", title: "CLI Debian", hidden: true },
+        { uri: "/install/cli/homebrew/", title: "CLI Homebrew", hidden: true },
+        { uri: "/install/cli/nix/", title: "CLI Nix", hidden: true },
+        { uri: "/install/cli/npm/", title: "CLI npm", hidden: true },
+        { uri: "/install/cli/static-linux/", title: "CLI Linux", hidden: true },
+        { uri: "/install/cli/static-macos/", title: "CLI macOS", hidden: true },
+        {
+          uri: "/install/cli/static-windows/",
+          title: "CLI Windows",
+          hidden: true,
+        },
+        { uri: "/releases/", title: "Releases" },
+      ],
     },
     { uri: "/demo/", title: "Try online" },
     {
@@ -66,8 +105,9 @@
       currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
       %>
       <ul>
-        <% for (let subpage of page.subpages) { %> <%- pageLinkHTML(subpage) %>
-        <% } %>
+        <% for (let subpage of page.subpages) { %> <% if (!subpage.hidden ||
+        subpage.uri === currentURI) { %> <%- pageLinkHTML(subpage) %> <% } %> <%
+        } %>
       </ul>
       <% } %>
     </li>
