@@ -577,6 +577,8 @@ class parser {
       switch (this->peek().type) {
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
+      case token_type::kw_await:
+      case token_type::kw_yield:
         if (this->peek().has_leading_newline) {
           // ASI.
           this->lexer_.insert_semicolon();

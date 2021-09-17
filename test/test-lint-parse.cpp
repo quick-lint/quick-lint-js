@@ -154,6 +154,28 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
                               offsets_matcher(&input, 6, 6 + 1))));
   }
 }
+
+TEST(test_lint, use_await_label_in_non_async_function) {
+  padded_string input(u8"function f() {await: for(;;){break await;}}"_sv);
+  error_collector v;
+  linter l(&v, &default_globals);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, use_yield_label_in_non_generator_function) {
+  padded_string input(u8"function f() {yield: for(;;){break yield;}}"_sv);
+  error_collector v;
+  linter l(&v, &default_globals);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
 }
 
