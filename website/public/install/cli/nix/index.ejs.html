@@ -4,16 +4,6 @@
 <html lang="en">
   <head>
     <%- await include("../../../common-head.ejs.html") %>
-    <script>
-      //<%
-      let url = await import("url");
-      let { getQuickLintJSVersionInfo } = await import(
-        url.pathToFileURL("../../../../src/qljs-version.mjs")
-      );
-
-      let qljsVersionInfo = await getQuickLintJSVersionInfo();
-      //%>
-    </script>
     <title>quick-lint-js: install CLI with Nix</title>
     <meta name="description" content="Install quick-lint-js's CLI with Nix" />
     <link href="../../../main.css" rel="stylesheet" />

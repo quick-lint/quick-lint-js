@@ -6,6 +6,7 @@ import esbuild from "esbuild-wasm";
 import fs from "fs";
 import mime from "mime";
 import path from "path";
+import { getQuickLintJSVersionInfo } from "./qljs-version.mjs";
 
 export class Router {
   constructor({ esbuildBundles, htmlRedirects, wwwRootPath }) {
@@ -158,6 +159,7 @@ export class Router {
         `<% ${prelude} %>${ejsHTML}`,
         {
           currentURI: currentURI,
+          qljsVersionInfo: await getQuickLintJSVersionInfo(),
         },
         {
           async: true,

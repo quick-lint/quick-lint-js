@@ -1,20 +1,7 @@
 <%#
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
-%>
-
-<script>
-  //<%
-  let url = await import("url");
-  let { getQuickLintJSVersionInfo } = await import(
-    url.pathToFileURL("../../src/qljs-version.mjs")
-  );
-
-  let qljsVersionInfo = await getQuickLintJSVersionInfo();
-  //%>
-</script>
-
-<% if (!locals.excludePrerequisites) { %>
+%> <% if (!locals.excludePrerequisites) { %>
 <p>
   In order to install quick-lint-js' Nix package, you must first install
   <a href="https://nixos.org/download.html#nix-quick-install">Nix</a> or NixOS.
