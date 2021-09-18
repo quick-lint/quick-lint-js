@@ -1271,13 +1271,13 @@
           NOTE(QLJS_TRANSLATABLE("variable declared here"), declaration))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_function_call_before_declaration_in_blocked_scope, "E077",         \
+      error_function_call_before_declaration_in_block_scope, "E077",           \
       {                                                                        \
         identifier use;                                                        \
         identifier declaration;                                                \
       },                                                                       \
       WARNING(QLJS_TRANSLATABLE(                                               \
-                  "function called before declaration in blocked scope: {0}"), \
+                  "function called before declaration in block scope: {0}"),   \
               use)                                                             \
           NOTE(QLJS_TRANSLATABLE("function declared here"), declaration))      \
                                                                                \

@@ -52,18 +52,18 @@ TEST(test_diagnostic, diagnostic_info) {
 
   {
     const diagnostic_info& info = diagnostic_info_for_error<
-        error_function_call_before_declaration_in_blocked_scope>;
+        error_function_call_before_declaration_in_block_scope>;
     EXPECT_EQ(info.code, "E077"sv);
     EXPECT_EQ(info.messages[0].format.message(),
-              "function called before declaration in blocked scope: {0}"sv);
+              "function called before declaration in block scope: {0}"sv);
     EXPECT_EQ(info.messages[0].severity, diagnostic_severity::warning);
     EXPECT_EQ(
         info.messages[0].args[0].offset,
-        offsetof(error_function_call_before_declaration_in_blocked_scope, use));
+        offsetof(error_function_call_before_declaration_in_block_scope, use));
     EXPECT_EQ(info.messages[0].args[0].type, diagnostic_arg_type::identifier);
     EXPECT_EQ(info.messages[1].format.message(), "function declared here"sv);
     EXPECT_EQ(info.messages[1].args[0].offset,
-              offsetof(error_function_call_before_declaration_in_blocked_scope,
+              offsetof(error_function_call_before_declaration_in_block_scope,
                        declaration));
     EXPECT_EQ(info.messages[1].args[0].type, diagnostic_arg_type::identifier);
   }

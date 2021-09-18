@@ -567,8 +567,8 @@ TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
 
   EXPECT_THAT(v.errors,
               ElementsAre(ERROR_TYPE_2_FIELDS(
-                  error_function_call_before_declaration_in_blocked_scope,  //
-                  use, span_matcher(use),                                   //
+                  error_function_call_before_declaration_in_block_scope,  //
+                  use, span_matcher(use),                                 //
                   declaration, span_matcher(declaration))));
 }
 
@@ -625,8 +625,8 @@ TEST(test_lint,
 
   EXPECT_THAT(v.errors,
               ElementsAre(ERROR_TYPE_2_FIELDS(
-                  error_function_call_before_declaration_in_blocked_scope,  //
-                  use, span_matcher(use),                                   //
+                  error_function_call_before_declaration_in_block_scope,  //
+                  use, span_matcher(use),                                 //
                   declaration, span_matcher(declaration))));
 }
 
