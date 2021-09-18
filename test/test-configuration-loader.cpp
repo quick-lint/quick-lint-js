@@ -2402,6 +2402,29 @@ TEST(test_configuration_loader_fake,
   EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"console"));
 }
 
+TEST(test_configuration_loader_fake,
+     multiple_watches_for_same_token_are_notified_together) {
+  fake_configuration_filesystem fs;
+  fs.create_file(fs.rooted("quick-lint-js.config"), u8"{}"sv);
+  char token_1;
+  char token_2;
+
+  configuration_loader loader(&fs);
+  loader.watch_and_load_config_file(fs.rooted("quick-lint-js.config").path(),
+                                    &token_1);
+  loader.watch_and_load_config_file(fs.rooted("quick-lint-js.config").path(),
+                                    &token_2);
+
+  fs.create_file(fs.rooted("quick-lint-js.config"),
+                 u8"{\"global-groups\": false}"sv);
+  std::vector<configuration_change> changes = loader.refresh();
+  std::vector<void*> tokens;
+  for (configuration_change& change : changes) {
+    tokens.push_back(change.token);
+  }
+  ASSERT_THAT(tokens, ::testing::UnorderedElementsAre(&token_1, &token_2));
+}
+
 std::vector<configuration_change>
 change_detecting_configuration_loader::detect_changes_and_refresh() {
   bool fs_changed = this->detect_changes();

@@ -479,7 +479,8 @@ std::vector<configuration_change> configuration_loader::refresh() {
           auto existing_change_it = std::find_if(
               changes.begin(), changes.end(),
               [&](const configuration_change& change) {
-                return *change.watched_path == watch.input_config_path;
+                return *change.watched_path == watch.input_config_path &&
+                       change.token == watch.token;
               });
           bool already_changed = existing_change_it != changes.end();
           if (!already_changed) {
