@@ -16,12 +16,27 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+template <class Char, class Predicate>
+typename std::basic_string_view<Char>::size_type find_first_if(
+    std::basic_string_view<Char> string, Predicate &&predicate) {
+  using string_view_type = std::basic_string_view<Char>;
+  using size_type = typename string_view_type::size_type;
+  for (size_type i = 0; i < string.size(); ++i) {
+    if (predicate(string[i])) {
+      return i;
+    }
+  }
+  return string_view_type::npos;
+}
+
 template <class Char, class WriteFunc>
 void write_json_escaped_string_impl(WriteFunc &&write_string,
                                     std::basic_string_view<Char> string) {
   for (;;) {
     auto special_character_index =
-        string.find_first_of(reinterpret_cast<const Char *>(u8"\\\"\n\t"));
+        find_first_if<Char>(string, [](Char c) -> bool {
+          return (0x00 <= c && c < 0x20) || c == u8'\\' || c == u8'"';
+        });
     if (special_character_index == string.npos) {
       break;
     }
@@ -34,14 +49,32 @@ void write_json_escaped_string_impl(WriteFunc &&write_string,
     case u8'"':
       write_string(u8"\\\""sv);
       break;
+    case u8'\b':
+      write_string(u8"\\b"sv);
+      break;
+    case u8'\f':
+      write_string(u8"\\f"sv);
+      break;
     case u8'\n':
       write_string(u8"\\n"sv);
+      break;
+    case u8'\r':
+      write_string(u8"\\r"sv);
       break;
     case u8'\t':
       write_string(u8"\\t"sv);
       break;
-    default:
-      QLJS_UNREACHABLE();
+    default: {
+      QLJS_ASSERT(special_character >= u8'\x00');
+      QLJS_ASSERT(special_character < u8'\x20');
+      char8 buffer[6] = u8"\\u00";
+      buffer[4] = narrow_cast<char8>(
+          u8'0' + ((narrow_cast<int>(special_character) & 0xf0) >> 4));
+      buffer[5] =
+          u8"0123456789abcdef"[narrow_cast<int>(special_character) & 0x0f];
+      write_string(string8_view(buffer, std::size(buffer)));
+      break;
+    }
     }
     string = string.substr(special_character_index + 1);
   }
