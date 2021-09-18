@@ -34,6 +34,7 @@ quick_lint_js_add_library(
   quick-lint-js-lib
   assert.cpp
   basic-configuration-filesystem.cpp
+  boost.cpp
   buffering-error-reporter.cpp
   byte-buffer.cpp
   c-api-error-reporter.cpp

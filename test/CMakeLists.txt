@@ -93,6 +93,7 @@ target_link_libraries(
   quick-lint-js-test
   PRIVATE
   boost
+  boost_json
   gmock
   gmock_main
   gtest

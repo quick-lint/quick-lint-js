@@ -5,6 +5,7 @@
 // No LSP on the web.
 #else
 
+#include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <json/value.h>
@@ -114,16 +115,18 @@ TEST_F(test_linting_lsp_server, initialize) {
       })"));
 
   ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
+  ::boost::json::object response = this->client.messages[0].as_object();
   EXPECT_EQ(response["id"], 1);
-  EXPECT_FALSE(response.isMember("error"));
+  EXPECT_FALSE(response.contains("error"));
   // LSP InitializeResult:
-  EXPECT_THAT(response["result"]["capabilities"]["textDocumentSync"]["change"],
-              2);
-  EXPECT_EQ(response["result"]["capabilities"]["textDocumentSync"]["openClose"],
+  EXPECT_THAT(
+      look_up(response, "result", "capabilities", "textDocumentSync", "change"),
+      2);
+  EXPECT_EQ(look_up(response, "result", "capabilities", "textDocumentSync",
+                    "openClose"),
             true);
-  EXPECT_EQ(response["result"]["serverInfo"]["name"], "quick-lint-js");
-  EXPECT_EQ(response["result"]["serverInfo"]["version"],
+  EXPECT_EQ(look_up(response, "result", "serverInfo", "name"), "quick-lint-js");
+  EXPECT_EQ(look_up(response, "result", "serverInfo", "version"),
             QUICK_LINT_JS_VERSION_STRING);
 }
 
@@ -131,24 +134,24 @@ TEST_F(test_linting_lsp_server, initialize) {
 TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
   struct test_case {
     string8_view id_json;
-    ::Json::Value id;
+    ::boost::json::value id;
   };
 
   // TODO(strager): Support numbers with fractional parts, such as 12.34.
   for (const test_case& test : {
-           test_case{u8"null", ::Json::Value::nullSingleton()},
-           test_case{u8"1", ::Json::Value(1)},
+           test_case{u8"null", ::boost::json::value()},
+           test_case{u8"1", ::boost::json::value(1)},
            test_case{u8"9007199254740991",
-                     ::Json::Value(std::int64_t{9007199254740991LL})},
-           test_case{u8"-12345", ::Json::Value(-12345)},
-           test_case{u8R"("A")", ::Json::Value("A")},
+                     ::boost::json::value(std::int64_t{9007199254740991LL})},
+           test_case{u8"-12345", ::boost::json::value(-12345)},
+           test_case{u8R"("A")", ::boost::json::value("A")},
            test_case{u8R"("id value goes \"here\"")",
-                     ::Json::Value("id value goes \"here\"")},
+                     ::boost::json::value("id value goes \"here\"")},
            test_case{u8R"("id value goes \"here\"")",
-                     ::Json::Value("id value goes \"here\"")},
+                     ::boost::json::value("id value goes \"here\"")},
        }) {
     fake_configuration_filesystem fs;
-    auto server = make_endpoint(&fs);
+    endpoint server = make_endpoint(&fs);
     spy_lsp_endpoint_remote& client = server.remote();
 
     server.append(
@@ -165,7 +168,7 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
         })"));
 
     ASSERT_EQ(client.messages.size(), 1);
-    EXPECT_EQ(client.messages[0]["id"], test.id);
+    EXPECT_EQ(client.messages[0].as_object()["id"], test.id);
   }
 }
 
@@ -190,10 +193,10 @@ TEST_F(test_linting_lsp_server, shutdown) {
       })"));
 
   ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
+  ::boost::json::object response = this->client.messages[0].as_object();
   EXPECT_EQ(response["id"], 10);
-  EXPECT_FALSE(response.isMember("error"));
-  EXPECT_EQ(response["result"], ::Json::Value::nullSingleton());
+  EXPECT_FALSE(response.contains("error"));
+  EXPECT_EQ(response["result"], ::boost::json::value());
 }
 
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
@@ -292,20 +295,22 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
       })"));
 
   ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
+  ::boost::json::object response = this->client.messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.isMember("error"));
+  EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(response["params"]["uri"], "file:///test.js");
-  EXPECT_EQ(response["params"]["version"], 10);
-  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(look_up(response, "params", "uri"), "file:///test.js");
+  EXPECT_EQ(look_up(response, "params", "version"), 10);
+  ::boost::json::array diagnostics =
+      look_up(response, "params", "diagnostics").as_array();
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 8);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
-  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
-  EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
+  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
+  EXPECT_EQ(look_up(diagnostics, 0, "message"),
+            "variable used before declaration: x");
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
 }
@@ -355,20 +360,22 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
       })"));
 
   ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
+  ::boost::json::object response = this->client.messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.isMember("error"));
+  EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(response["params"]["uri"], "file:///test.js");
-  EXPECT_EQ(response["params"]["version"], 10);
-  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(look_up(response, "params", "uri"), "file:///test.js");
+  EXPECT_EQ(look_up(response, "params", "version"), 10);
+  ::boost::json::array diagnostics =
+      look_up(response, "params", "diagnostics").as_array();
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 8);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
-  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
-  EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
+  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
+  EXPECT_EQ(look_up(diagnostics, 0, "message"),
+            "variable used before declaration: x");
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
 }
@@ -982,9 +989,11 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
                                               u8"/* c.js */"));
 
   std::vector<std::string> linted_uris;
-  for (::Json::Value& notification : this->client.messages) {
-    EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
-    std::string uri = notification["params"]["uri"].asString();
+  for (::boost::json::value notification : this->client.messages) {
+    EXPECT_EQ(look_up(notification, "method"),
+              "textDocument/publishDiagnostics");
+    std::string uri(
+        std::string_view(look_up(notification, "params", "uri").get_string()));
     if (uri ==
         to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config")) {
       // Ignore.
@@ -1100,9 +1109,11 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"/* dir-a/test.js */"));
 
   std::vector<std::string> linted_uris;
-  for (::Json::Value& notification : this->client.messages) {
-    EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
-    std::string uri = notification["params"]["uri"].asString();
+  for (::boost::json::value notification : this->client.messages) {
+    EXPECT_EQ(look_up(notification, "method"),
+              "textDocument/publishDiagnostics");
+    std::string uri(
+        std::string_view(look_up(notification, "params", "uri").get_string()));
     if (uri == to_string(this->fs.file_uri_prefix_8() +
                          u8"dir-a/quick-lint-js.config") ||
         uri == to_string(this->fs.file_uri_prefix_8() +
@@ -1294,7 +1305,7 @@ TEST_F(test_linting_lsp_server,
   EXPECT_TRUE(after_config_was_loaded);
 
   ASSERT_THAT(this->client.messages, ElementsAre(::testing::_));
-  ::Json::Value& notification = this->client.messages[0];
+  ::boost::json::object notification = this->client.messages[0].as_object();
   EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
 }
 
@@ -1472,13 +1483,16 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
 
   ASSERT_EQ(this->client.messages.size(), 2);
   std::size_t showMessageIndex =
-      this->client.messages[0]["method"] == "window/showMessage" ? 0 : 1;
-  ::Json::Value& showMessageMessage = this->client.messages[showMessageIndex];
-  EXPECT_EQ(showMessageMessage["method"], "window/showMessage");
-  EXPECT_EQ(showMessageMessage["params"]["type"], lsp_warning_message_type);
-  EXPECT_EQ(
-      showMessageMessage["params"]["message"],
-      this->config_file_load_error_message("test.js", "quick-lint-js.config"));
+      look_up(this->client.messages[0], "method") == "window/showMessage" ? 0
+                                                                          : 1;
+  ::boost::json::object showMessageMessage =
+      this->client.messages[showMessageIndex].as_object();
+  EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
+  EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
+            lsp_warning_message_type);
+  EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
+            std::string_view(this->config_file_load_error_message(
+                "test.js", "quick-lint-js.config")));
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1528,14 +1542,18 @@ TEST_F(test_linting_lsp_server,
 
   ASSERT_EQ(this->client.messages.size(), 2);
   std::size_t showMessageIndex =
-      this->client.messages[0]["method"] == "window/showMessage" ? 0 : 1;
-  ::Json::Value& showMessageMessage = this->client.messages[showMessageIndex];
-  EXPECT_EQ(showMessageMessage["method"], "window/showMessage");
-  EXPECT_EQ(showMessageMessage["params"]["type"], lsp_warning_message_type);
-  EXPECT_EQ(showMessageMessage["params"]["message"],
-            "Problems found in the config file for "s +
-                this->fs.rooted("test.js").c_str() + " (" +
-                this->fs.rooted("quick-lint-js.config").c_str() + ").");
+      look_up(this->client.messages[0], "method") == "window/showMessage" ? 0
+                                                                          : 1;
+  ::boost::json::object showMessageMessage =
+      this->client.messages[showMessageIndex].as_object();
+  EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
+  EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
+            lsp_warning_message_type);
+  EXPECT_EQ(
+      look_up(showMessageMessage, "params", "message"),
+      std::string_view("Problems found in the config file for "s +
+                       this->fs.rooted("test.js").c_str() + " (" +
+                       this->fs.rooted("quick-lint-js.config").c_str() + ")."));
 }
 
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
@@ -1595,13 +1613,16 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
 
   ASSERT_EQ(this->client.messages.size(), 2);
   std::size_t showMessageIndex =
-      this->client.messages[0]["method"] == "window/showMessage" ? 0 : 1;
-  ::Json::Value& showMessageMessage = this->client.messages[showMessageIndex];
-  EXPECT_EQ(showMessageMessage["method"], "window/showMessage");
-  EXPECT_EQ(showMessageMessage["params"]["type"], lsp_warning_message_type);
-  EXPECT_EQ(
-      showMessageMessage["params"]["message"],
-      this->config_file_load_error_message("test.js", "quick-lint-js.config"));
+      look_up(this->client.messages[0], "method") == "window/showMessage" ? 0
+                                                                          : 1;
+  ::boost::json::object showMessageMessage =
+      this->client.messages[showMessageIndex].as_object();
+  EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
+  EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
+            lsp_warning_message_type);
+  EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
+            std::string_view(this->config_file_load_error_message(
+                "test.js", "quick-lint-js.config")));
 }
 
 TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
@@ -1621,20 +1642,22 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
       })"));
 
   ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
+  ::boost::json::object response = this->client.messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.isMember("error"));
+  EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(response["params"]["uri"],
-            to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
-  EXPECT_EQ(response["params"]["version"], 1);
-  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(
+      look_up(response, "params", "uri"),
+      to_string_view(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
+  EXPECT_EQ(look_up(response, "params", "version"), 1);
+  ::boost::json::array diagnostics =
+      look_up(response, "params", "diagnostics").as_array();
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
-  EXPECT_EQ(diagnostics[0]["message"], "JSON syntax error");
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
+  EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1674,20 +1697,22 @@ TEST_F(test_linting_lsp_server,
       })"));
 
   ASSERT_EQ(this->client.messages.size(), 1);
-  ::Json::Value& response = this->client.messages[0];
+  ::boost::json::object response = this->client.messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.isMember("error"));
+  EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(response["params"]["uri"],
-            to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
-  EXPECT_EQ(response["params"]["version"], 2);
-  ::Json::Value& diagnostics = response["params"]["diagnostics"];
+  EXPECT_EQ(
+      look_up(response, "params", "uri"),
+      to_string_view(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
+  EXPECT_EQ(look_up(response, "params", "version"), 2);
+  ::boost::json::array diagnostics =
+      look_up(response, "params", "diagnostics").as_array();
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
-  EXPECT_EQ(diagnostics[0]["message"], "JSON syntax error");
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
+  EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1898,21 +1923,23 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   notification_json.resize(notification_json_buffer.size());
   notification_json_buffer.copy_to(notification_json.data());
 
-  ::Json::Value notification = parse_json(notification_json);
-  EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(notification.isMember("error"));
+  ::boost::json::value notification = parse_boost_json(notification_json);
+  EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
+  EXPECT_FALSE(notification.as_object().contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(notification["params"]["uri"], "file:///test.js");
-  EXPECT_EQ(notification["params"]["version"], 10);
-  ::Json::Value& diagnostics = notification["params"]["diagnostics"];
-  EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["start"]["character"], 8);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["line"], 0);
-  EXPECT_EQ(diagnostics[0]["range"]["end"]["character"], 9);
-  EXPECT_EQ(diagnostics[0]["severity"], lsp_error_severity);
-  EXPECT_EQ(diagnostics[0]["message"], "variable used before declaration: x");
-  EXPECT_EQ(diagnostics[0]["source"], "quick-lint-js");
+  EXPECT_EQ(look_up(notification, "params", "uri"), "file:///test.js");
+  EXPECT_EQ(look_up(notification, "params", "version"), 10);
+  ::boost::json::value diagnostics =
+      look_up(notification, "params", "diagnostics");
+  EXPECT_EQ(diagnostics.as_array().size(), 1);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
+  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
+  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
+  EXPECT_EQ(look_up(diagnostics, 0, "message"),
+            "variable used before declaration: x");
+  EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
 }
 
 TEST(test_lsp_javascript_linter, linting_does_not_desync) {
@@ -1942,10 +1969,11 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
 
   {
     ASSERT_EQ(server.remote().messages.size(), 1);
-    ::Json::Value& response = server.remote().messages[0];
+    ::boost::json::object response = server.remote().messages[0].as_object();
     EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
     // LSP PublishDiagnosticsParams:
-    ::Json::Value& diagnostics = response["params"]["diagnostics"];
+    ::boost::json::array diagnostics =
+        look_up(response, "params", "diagnostics").as_array();
     EXPECT_EQ(diagnostics.size(), 1) << "'x' should be undeclared";
   }
 
@@ -1975,10 +2003,11 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
 
   {
     ASSERT_EQ(server.remote().messages.size(), 1);
-    ::Json::Value& response = server.remote().messages[0];
+    ::boost::json::object response = server.remote().messages[0].as_object();
     EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
     // LSP PublishDiagnosticsParams:
-    ::Json::Value& diagnostics = response["params"]["diagnostics"];
+    ::boost::json::array diagnostics =
+        look_up(response, "params", "diagnostics").as_array();
     EXPECT_EQ(diagnostics.size(), 0) << "'x' should be declared";
   }
 }

@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_SPY_LSP_ENDPOINT_REMOTE_H
 #define QUICK_LINT_JS_SPY_LSP_ENDPOINT_REMOTE_H
 
+#include <boost/json/value.hpp>
 #include <gtest/gtest.h>
 #include <json/value.h>
 #include <quick-lint-js/byte-buffer.h>
@@ -20,14 +21,10 @@ class spy_lsp_endpoint_remote {
     message.copy_to(message_json.data());
     SCOPED_TRACE(out_string8(message_json));
 
-    ::Json::Value parsed_message;
-    ::Json::String errors;
-    bool ok = parse_json(message_json, &parsed_message, &errors);
-    EXPECT_TRUE(ok) << errors;
-
-    if (parsed_message.isObject()) {
-      EXPECT_EQ(parsed_message["jsonrpc"], "2.0");
-    } else if (parsed_message.isArray()) {
+    ::boost::json::value parsed_message = parse_boost_json(message_json);
+    if (auto object = parsed_message.if_object()) {
+      EXPECT_EQ((*object)["jsonrpc"], "2.0");
+    } else if (auto array = parsed_message.if_array()) {
       // Visual Studio Code's LSP client does not support batch JSON-RPC
       // messages (as of vscode-jsonrpc version 6.0.0):
       // https://github.com/microsoft/vscode-languageserver-node/issues/781
@@ -37,15 +34,15 @@ class spy_lsp_endpoint_remote {
                          "message. Send multiple messages instead.";
       }
 
-      for (::Json::Value& sub_message : parsed_message) {
-        EXPECT_EQ(sub_message["jsonrpc"], "2.0");
+      for (::boost::json::value& sub_message : *array) {
+        EXPECT_EQ(look_up(sub_message, "jsonrpc"), "2.0");
       }
     }
 
     this->messages.push_back(parsed_message);
   }
 
-  std::vector<::Json::Value> messages;
+  std::vector<::boost::json::value> messages;
   bool allow_batch_messages = false;
 };
 }

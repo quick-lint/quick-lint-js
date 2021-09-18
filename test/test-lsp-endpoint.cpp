@@ -5,6 +5,8 @@
 // No LSP on the web.
 #else
 
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <json/value.h>
@@ -17,6 +19,8 @@
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
 
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+
 using ::testing::IsEmpty;
 
 namespace quick_lint_js {
@@ -27,8 +31,8 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-string8 json_to_string(::Json::Value& value) {
-  return to_string8(::Json::writeString(::Json::StreamWriterBuilder(), value));
+string8 json_to_string(const ::boost::json::value& value) {
+  return to_string8(::boost::json::serialize(value));
 }
 
 std::string json_get_string(
@@ -44,10 +48,11 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
                         byte_buffer& response_json) {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
 
-      ::Json::Value response;
-      response["jsonrpc"] = "2.0";
-      response["id"] = simdjson_to_jsoncpp(request["id"]);
-      response["params"] = "testresponse";
+      ::boost::json::value response = {
+          {"jsonrpc", "2.0"},
+          {"id", simdjson_to_boost_json(request["id"])},
+          {"params", "testresponse"},
+      };
       response_json.append_copy(json_to_string(response));
     }
 
@@ -68,8 +73,8 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       })"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(remote.messages[0]["id"], 3);
-  EXPECT_EQ(remote.messages[0]["params"], "testresponse");
+  EXPECT_EQ(look_up(remote.messages[0], "id"), 3);
+  EXPECT_EQ(look_up(remote.messages[0], "params"), "testresponse");
 }
 
 TEST(test_lsp_endpoint, batched_request) {
@@ -79,10 +84,11 @@ TEST(test_lsp_endpoint, batched_request) {
       EXPECT_THAT(json_get_string(request["method"]),
                   ::testing::AnyOf("testmethod A", "testmethod B"));
 
-      ::Json::Value response;
-      response["jsonrpc"] = "2.0";
-      response["id"] = simdjson_to_jsoncpp(request["id"]);
-      response["params"] = "testresponse";
+      ::boost::json::value response = {
+          {"jsonrpc", "2.0"},
+          {"id", simdjson_to_boost_json(request["id"])},
+          {"params", "testresponse"},
+      };
       response_json.append_copy(json_to_string(response));
     }
 
@@ -111,9 +117,9 @@ TEST(test_lsp_endpoint, batched_request) {
       ])"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  ASSERT_EQ(remote.messages[0].size(), 2);
-  EXPECT_EQ(remote.messages[0][0]["id"], 3);
-  EXPECT_EQ(remote.messages[0][1]["id"], 4);
+  ASSERT_EQ(remote.messages[0].as_array().size(), 2);
+  EXPECT_EQ(look_up(remote.messages[0], 0, "id"), 3);
+  EXPECT_EQ(look_up(remote.messages[0], 1, "id"), 4);
 }
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
@@ -155,10 +161,11 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
                              std::vector<byte_buffer>& notification_jsons) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
-      ::Json::Value reply;
-      reply["jsonrpc"] = "2.0";
-      reply["method"] = "testreply";
-      reply["params"] = "testparams";
+      ::boost::json::value reply = {
+          {"jsonrpc", "2.0"},
+          {"method", "testreply"},
+          {"params", "testparams"},
+      };
       byte_buffer& notification_json = notification_jsons.emplace_back();
       notification_json.append_copy(json_to_string(reply));
     }
@@ -174,8 +181,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
       })"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(remote.messages[0]["method"], "testreply");
-  EXPECT_EQ(remote.messages[0]["params"], "testparams");
+  EXPECT_EQ(look_up(remote.messages[0], "method"), "testreply");
+  EXPECT_EQ(look_up(remote.messages[0], "params"), "testparams");
 }
 
 TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
@@ -205,7 +212,7 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
       }])"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_THAT(remote.messages[0], IsEmpty());
+  EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
   EXPECT_EQ(handle_notification_count, 1);
 }
 
@@ -219,10 +226,11 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
                              std::vector<byte_buffer>& notification_jsons) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
-      ::Json::Value reply;
-      reply["jsonrpc"] = "2.0";
-      reply["method"] = "testreply";
-      reply["params"] = "testparams";
+      ::boost::json::value reply = {
+          {"jsonrpc", "2.0"},
+          {"method", "testreply"},
+          {"params", "testparams"},
+      };
       byte_buffer& notification_json = notification_jsons.emplace_back();
       notification_json.append_copy(json_to_string(reply));
     }
@@ -239,9 +247,9 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
       }])"));
 
   ASSERT_EQ(remote.messages.size(), 2);
-  EXPECT_THAT(remote.messages[0], IsEmpty());
-  EXPECT_EQ(remote.messages[1]["method"], "testreply");
-  EXPECT_EQ(remote.messages[1]["params"], "testparams");
+  EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
+  EXPECT_EQ(look_up(remote.messages[1], "method"), "testreply");
+  EXPECT_EQ(look_up(remote.messages[1], "params"), "testparams");
 }
 
 // https://www.jsonrpc.org/specification#error_object
@@ -262,12 +270,12 @@ TEST(test_lsp_endpoint, malformed_json) {
   server.append(make_message(u8"{ malformed json! }"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(remote.messages[0]["jsonrpc"], "2.0");
-  EXPECT_EQ(remote.messages[0]["id"], ::Json::Value::nullSingleton());
-  EXPECT_FALSE(remote.messages[0].isMember("result"));
-  ASSERT_TRUE(remote.messages[0].isMember("error"));
-  EXPECT_EQ(remote.messages[0]["error"]["code"], -32700);
-  EXPECT_EQ(remote.messages[0]["error"]["message"], "Parse error");
+  EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");
+  EXPECT_EQ(look_up(remote.messages[0], "id"), ::boost::json::value());
+  EXPECT_FALSE(look_up(remote.messages[0]).as_object().contains("result"));
+  ASSERT_TRUE(look_up(remote.messages[0]).as_object().contains("error"));
+  EXPECT_EQ(look_up(remote.messages[0], "error", "code"), -32700);
+  EXPECT_EQ(look_up(remote.messages[0], "error", "message"), "Parse error");
 }
 }
 }
