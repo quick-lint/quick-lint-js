@@ -59,7 +59,7 @@ bool parse_json(string8_view json, ::Json::Value *result,
 ::boost::json::value parse_boost_json(std::string_view json) {
   std::error_code error;
   ::boost::json::value root = ::boost::json::parse(json, error);
-  EXPECT_FALSE(error);
+  EXPECT_FALSE(error) << json;
   return root;
 }
 

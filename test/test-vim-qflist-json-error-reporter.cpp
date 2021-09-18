@@ -34,8 +34,8 @@ class test_vim_qflist_json_error_reporter : public ::testing::Test {
     return reporter;
   }
 
-  ::Json::Value parse_json() {
-    ::Json::Value root = quick_lint_js::parse_json(this->stream_);
+  ::boost::json::value parse_json() {
+    ::boost::json::value root = parse_boost_json(this->stream_.str());
     this->stream_ = std::stringstream();
     return root;
   }
@@ -58,15 +58,17 @@ TEST_F(test_vim_qflist_json_error_reporter,
       .declaration = identifier(declaration_span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["col"], 1);
-  EXPECT_EQ(qflist[0]["end_col"], 1);
-  EXPECT_EQ(qflist[0]["end_lnum"], 1);
-  EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["nr"], "E001");
-  EXPECT_EQ(qflist[0]["type"], "E");
-  EXPECT_EQ(qflist[0]["text"], "variable assigned before its declaration");
+  EXPECT_EQ(look_up(qflist, 0, "col"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "end_col"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E001");
+  EXPECT_EQ(look_up(qflist, 0, "type"), "E");
+  EXPECT_EQ(look_up(qflist, 0, "text"),
+            "variable assigned before its declaration");
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
@@ -85,7 +87,8 @@ TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
       error_assignment_to_const_global_variable{identifier(c_span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 3);
 }
 
@@ -99,10 +102,11 @@ TEST_F(test_vim_qflist_json_error_reporter,
   reporter.report(error_assignment_to_const_global_variable{identifier(span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["bufnr"], 42);
-  EXPECT_FALSE(qflist[0].isMember("filename"));
+  EXPECT_EQ(look_up(qflist, 0, "bufnr"), 42);
+  EXPECT_FALSE(qflist[0].as_object().contains("filename"));
 }
 
 TEST_F(test_vim_qflist_json_error_reporter,
@@ -120,7 +124,9 @@ TEST_F(test_vim_qflist_json_error_reporter,
         error_assignment_to_const_global_variable{identifier(span)});
     reporter.finish();
 
-    ::Json::Value qflist = this->parse_json()["qflist"];
+    ::Json::Value root = quick_lint_js::parse_json(this->stream_);
+    this->stream_ = std::stringstream();
+    ::Json::Value qflist = root["qflist"];
     ASSERT_EQ(qflist.size(), 1);
     EXPECT_EQ(qflist[0]["filename"], file_name);
     EXPECT_FALSE(qflist[0].isMember("bufnr"));
@@ -137,10 +143,11 @@ TEST_F(test_vim_qflist_json_error_reporter,
   reporter.report(error_assignment_to_const_global_variable{identifier(span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["bufnr"], 1337);
-  EXPECT_EQ(qflist[0]["filename"], "hello.js");
+  EXPECT_EQ(look_up(qflist, 0, "bufnr"), 1337);
+  EXPECT_EQ(look_up(qflist, 0, "filename"), "hello.js");
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, change_source) {
@@ -163,20 +170,21 @@ TEST_F(test_vim_qflist_json_error_reporter, change_source) {
 
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 3);
 
-  EXPECT_EQ(qflist[0]["bufnr"], 1);
-  EXPECT_EQ(qflist[0]["col"], 4);
-  EXPECT_EQ(qflist[0]["filename"], "hello.js");
+  EXPECT_EQ(look_up(qflist, 0, "bufnr"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "col"), 4);
+  EXPECT_EQ(look_up(qflist, 0, "filename"), "hello.js");
 
-  EXPECT_FALSE(qflist[1].isMember("bufnr"));
-  EXPECT_EQ(qflist[1]["col"], 5);
-  EXPECT_EQ(qflist[1]["filename"], "world.js");
+  EXPECT_FALSE(qflist[1].as_object().contains("bufnr"));
+  EXPECT_EQ(look_up(qflist, 1, "col"), 5);
+  EXPECT_EQ(look_up(qflist, 1, "filename"), "world.js");
 
-  EXPECT_EQ(qflist[2]["bufnr"], 2);
-  EXPECT_EQ(qflist[2]["col"], 6);
-  EXPECT_FALSE(qflist[2].isMember("filename"));
+  EXPECT_EQ(look_up(qflist, 2, "bufnr"), 2);
+  EXPECT_EQ(look_up(qflist, 2, "col"), 6);
+  EXPECT_FALSE(qflist[2].as_object().contains("filename"));
 }
 
 TEST_F(test_vim_qflist_json_error_reporter,
@@ -191,16 +199,17 @@ TEST_F(test_vim_qflist_json_error_reporter,
       error_assignment_to_const_global_variable{identifier(infinity_span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["col"], 4);
-  EXPECT_EQ(qflist[0]["end_col"], 11);
-  EXPECT_EQ(qflist[0]["end_lnum"], 1);
-  EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["nr"], "E002");
-  EXPECT_EQ(qflist[0]["type"], "E");
-  EXPECT_EQ(qflist[0]["text"], "assignment to const global variable");
-  EXPECT_EQ(qflist[0]["vcol"], 0);
+  EXPECT_EQ(look_up(qflist, 0, "col"), 4);
+  EXPECT_EQ(look_up(qflist, 0, "end_col"), 11);
+  EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E002");
+  EXPECT_EQ(look_up(qflist, 0, "type"), "E");
+  EXPECT_EQ(look_up(qflist, 0, "text"), "assignment to const global variable");
+  EXPECT_EQ(look_up(qflist, 0, "vcol"), 0);
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
@@ -216,15 +225,16 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
       identifier(redeclaration_span), identifier(original_declaration_span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["col"], 16);
-  EXPECT_EQ(qflist[0]["end_col"], 20);
-  EXPECT_EQ(qflist[0]["end_lnum"], 1);
-  EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["nr"], "E034");
-  EXPECT_EQ(qflist[0]["type"], "E");
-  EXPECT_EQ(qflist[0]["text"], "redeclaration of variable: myvar");
+  EXPECT_EQ(look_up(qflist, 0, "col"), 16);
+  EXPECT_EQ(look_up(qflist, 0, "end_col"), 20);
+  EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E034");
+  EXPECT_EQ(look_up(qflist, 0, "type"), "E");
+  EXPECT_EQ(look_up(qflist, 0, "text"), "redeclaration of variable: myvar");
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
@@ -237,15 +247,16 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
   reporter.report(error_unexpected_hash_character{hash_span});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["col"], 1);
-  EXPECT_EQ(qflist[0]["end_col"], 1);
-  EXPECT_EQ(qflist[0]["end_lnum"], 1);
-  EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["nr"], "E052");
-  EXPECT_EQ(qflist[0]["type"], "E");
-  EXPECT_EQ(qflist[0]["text"], "unexpected '#'");
+  EXPECT_EQ(look_up(qflist, 0, "col"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "end_col"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E052");
+  EXPECT_EQ(look_up(qflist, 0, "type"), "E");
+  EXPECT_EQ(look_up(qflist, 0, "text"), "unexpected '#'");
 }
 
 TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
@@ -258,15 +269,16 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
   reporter.report(error_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
 
-  ::Json::Value qflist = this->parse_json()["qflist"];
+  ::boost::json::array qflist =
+      look_up(this->parse_json(), "qflist").as_array();
   ASSERT_EQ(qflist.size(), 1);
-  EXPECT_EQ(qflist[0]["col"], 1);
-  EXPECT_EQ(qflist[0]["end_col"], 5);
-  EXPECT_EQ(qflist[0]["end_lnum"], 1);
-  EXPECT_EQ(qflist[0]["lnum"], 1);
-  EXPECT_EQ(qflist[0]["nr"], "E057");
-  EXPECT_EQ(qflist[0]["text"], "use of undeclared variable: myvar");
-  EXPECT_EQ(qflist[0]["type"], "W");
+  EXPECT_EQ(look_up(qflist, 0, "col"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "end_col"), 5);
+  EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E057");
+  EXPECT_EQ(look_up(qflist, 0, "text"), "use of undeclared variable: myvar");
+  EXPECT_EQ(look_up(qflist, 0, "type"), "W");
 }
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
@@ -294,7 +306,7 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
                                             /*bufnr=*/std::string_view());
   formatter.format(diag_info, &hello_span);
 
-  ::Json::Value object = parse_json(stream);
+  ::boost::json::object object = parse_boost_json(stream.str()).as_object();
   EXPECT_EQ(object["col"], 1);
   EXPECT_EQ(object["end_col"], 5);
   EXPECT_EQ(object["end_lnum"], 1);
@@ -344,7 +356,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
                                             /*bufnr=*/std::string_view());
   formatter.format(diag_info, &diag);
 
-  ::Json::Value object = parse_json(stream);
+  ::boost::json::object object = parse_boost_json(stream.str()).as_object();
   EXPECT_EQ(object["col"], 1);
   EXPECT_EQ(object["end_col"], 5);
   EXPECT_EQ(object["end_lnum"], 1);
