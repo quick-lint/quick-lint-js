@@ -124,12 +124,11 @@ TEST_F(test_vim_qflist_json_error_reporter,
         error_assignment_to_const_global_variable{identifier(span)});
     reporter.finish();
 
-    ::Json::Value root = quick_lint_js::parse_json(this->stream_);
-    this->stream_ = std::stringstream();
-    ::Json::Value qflist = root["qflist"];
+    ::boost::json::array qflist =
+        look_up(this->parse_json(), "qflist").as_array();
     ASSERT_EQ(qflist.size(), 1);
-    EXPECT_EQ(qflist[0]["filename"], file_name);
-    EXPECT_FALSE(qflist[0].isMember("bufnr"));
+    EXPECT_EQ(look_up(qflist, 0, "filename"), file_name);
+    EXPECT_FALSE(qflist[0].as_object().contains("bufnr"));
   }
 }
 

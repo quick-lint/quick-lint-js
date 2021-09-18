@@ -25,6 +25,12 @@ TEST(test_json, escapes_newlines) {
   write_json_escaped_string(json, string8_view(u8"hello\nworld"));
   EXPECT_EQ(json.str(), R"(hello\nworld)");
 }
+
+TEST(test_json, escapes_tabs) {
+  std::ostringstream json;
+  write_json_escaped_string(json, string8_view(u8"hello\tworld"));
+  EXPECT_EQ(json.str(), R"(hello\tworld)");
+}
 }
 }
 

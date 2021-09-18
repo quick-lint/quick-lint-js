@@ -21,7 +21,7 @@ void write_json_escaped_string_impl(WriteFunc &&write_string,
                                     std::basic_string_view<Char> string) {
   for (;;) {
     auto special_character_index =
-        string.find_first_of(reinterpret_cast<const Char *>(u8"\\\"\n"));
+        string.find_first_of(reinterpret_cast<const Char *>(u8"\\\"\n\t"));
     if (special_character_index == string.npos) {
       break;
     }
@@ -36,6 +36,9 @@ void write_json_escaped_string_impl(WriteFunc &&write_string,
       break;
     case u8'\n':
       write_string(u8"\\n"sv);
+      break;
+    case u8'\t':
+      write_string(u8"\\t"sv);
       break;
     default:
       QLJS_UNREACHABLE();
