@@ -24,10 +24,20 @@ cp -a debian "quick-lint-js-${package_version}/debian"
 cd "quick-lint-js-${package_version}/"
 dpkg-buildpackage -rfakeroot -uc -us
 
+errors="$(mktemp)"
+trap 'rm -f "${errors}"' EXIT
+strict_lintian() {
+  lintian "${@}" | tee "${errors}"
+  if [ -s "${errors}" ]; then
+    printf 'error: lintian reported an error\n' >&2
+    exit 1
+  fi
+}
+
 cd ../
-lintian "quick-lint-js_${package_version}-1_amd64.deb"
-lintian "quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
-lintian "quick-lint-js-vim_${package_version}-1_all.deb"
+strict_lintian "quick-lint-js_${package_version}-1_amd64.deb"
+strict_lintian "quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
+strict_lintian "quick-lint-js-vim_${package_version}-1_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
