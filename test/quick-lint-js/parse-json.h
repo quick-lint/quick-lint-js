@@ -7,7 +7,6 @@
 #include <boost/json/value.hpp>
 #include <cstddef>
 #include <iosfwd>
-#include <json/value.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <simdjson.h>
@@ -16,23 +15,10 @@
 #include <utility>
 
 namespace quick_lint_js {
-::Json::Value parse_json(std::stringstream &);
-::Json::Value parse_json(const std::string &);
-bool parse_json(std::string_view json, ::Json::Value *result,
-                ::Json::String *errors);
-#if QLJS_HAVE_CHAR8_T
-bool parse_json(string8_view json, ::Json::Value *result,
-                ::Json::String *errors);
-#endif
-
 ::boost::json::value parse_boost_json(std::string_view);
 #if QLJS_HAVE_CHAR8_T
 ::boost::json::value parse_boost_json(string8_view);
 #endif
-
-::Json::Value simdjson_to_jsoncpp(::simdjson::ondemand::value &);
-::Json::Value simdjson_to_jsoncpp(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value> &&);
 
 ::boost::json::value simdjson_to_boost_json(::simdjson::ondemand::value &);
 ::boost::json::value simdjson_to_boost_json(

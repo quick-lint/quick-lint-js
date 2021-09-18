@@ -97,7 +97,6 @@ target_link_libraries(
   gmock
   gmock_main
   gtest
-  jsoncpp_static
   quick-lint-js-lib
 )
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
@@ -110,9 +109,6 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>
-    <json/reader.h>
-    <json/value.h>
-    <json/writer.h>
     <simdjson.h>
   )
 endif ()

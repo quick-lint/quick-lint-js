@@ -8,8 +8,6 @@
 #include <boost/json/parse.hpp>
 #include <boost/json/value.hpp>
 #include <gtest/gtest.h>
-#include <json/reader.h>
-#include <json/value.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp-error-reporter.h>

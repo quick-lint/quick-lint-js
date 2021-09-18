@@ -6,7 +6,6 @@
 
 #include <boost/json/value.hpp>
 #include <gtest/gtest.h>
-#include <json/value.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/parse-json.h>

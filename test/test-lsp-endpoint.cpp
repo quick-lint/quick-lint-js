@@ -9,8 +9,6 @@
 #include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <json/value.h>
-#include <json/writer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-endpoint.h>

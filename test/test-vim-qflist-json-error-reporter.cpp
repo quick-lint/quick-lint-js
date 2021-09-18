@@ -2,9 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <json/reader.h>
-#include <json/value.h>
-#include <json/writer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-json.h>
