@@ -43,27 +43,15 @@ void write_json_escaped_string_impl(WriteFunc &&write_string,
     write_string(string.substr(0, special_character_index));
     Char special_character = string[special_character_index];
     switch (special_character) {
-    case u8'\\':
-      write_string(u8"\\\\"sv);
-      break;
-    case u8'"':
-      write_string(u8"\\\""sv);
-      break;
-    case u8'\b':
-      write_string(u8"\\b"sv);
-      break;
-    case u8'\f':
-      write_string(u8"\\f"sv);
-      break;
-    case u8'\n':
-      write_string(u8"\\n"sv);
-      break;
-    case u8'\r':
-      write_string(u8"\\r"sv);
-      break;
-    case u8'\t':
-      write_string(u8"\\t"sv);
-      break;
+      // clang-format off
+    case u8'\\': write_string(u8"\\\\"sv); break;
+    case u8'"':  write_string(u8"\\\""sv); break;
+    case u8'\b': write_string(u8"\\b"sv);  break;
+    case u8'\f': write_string(u8"\\f"sv);  break;
+    case u8'\n': write_string(u8"\\n"sv);  break;
+    case u8'\r': write_string(u8"\\r"sv);  break;
+    case u8'\t': write_string(u8"\\t"sv);  break;
+      // clang-format on
     default: {
       QLJS_ASSERT(special_character >= u8'\x00');
       QLJS_ASSERT(special_character < u8'\x20');
