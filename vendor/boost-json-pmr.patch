@@ -1,0 +1,30 @@
+We use BOOST_JSON_STANDALONE to reduce the amount of headers required in our
+repository. However, using BOOST_JSON_STANDALONE means Boost JSON will use
+<memory_resource> or <experimental/memory_resource>. These headers often don't
+work well with older compilers.
+
+Allow Boost JSON to use Boost's memory_resource implementation even when using
+BOOST_JSON_STANDALONE.
+
+diff --git vendor/boost/boost/json/memory_resource.hpp vendor/boost/boost/json/memory_resource.hpp
+index 992f8154..062fc0c7 100644
+--- vendor/boost/boost/json/memory_resource.hpp
++++ vendor/boost/boost/json/memory_resource.hpp
+@@ -12,7 +12,7 @@
+
+ #include <boost/json/detail/config.hpp>
+
+-#ifdef BOOST_JSON_STANDALONE
++#if defined(BOOST_JSON_STANDALONE) && !defined(BOOST_JSON_USE_BOOST_PMR)
+ # if __has_include(<memory_resource>)
+ #  include <memory_resource>
+ #  ifndef __cpp_lib_memory_resource
+@@ -93,7 +93,7 @@ class polymorphic_allocator;
+ // VFALCO Bug: doc toolchain won't make this a ref
+ //using memory_resource = __see_below__;
+
+-#elif defined(BOOST_JSON_STANDALONE)
++#elif defined(BOOST_JSON_STANDALONE) && !defined(BOOST_JSON_USE_BOOST_PMR)
+
+ # if __has_include(<memory_resource>)
+ using memory_resource = std::pmr::memory_resource;
