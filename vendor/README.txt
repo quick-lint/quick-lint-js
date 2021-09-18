@@ -97,28 +97,6 @@ Release URL: https://github.com/google/googletest/releases/tag/release-1.10.0
 Release date: October 3, 2019
 Version: 1.10.0
 
-## jsoncpp
-
-The jsoncpp directory contains JsonCpp, a C++ library that allows manipulating
-JSON values.
-
-The following directories have been deleted to reduce storage consumption:
-
-* jsoncpp/src/test_lib_json/
-* jsoncpp/test/
-
-Copyright: Public Domain; Copyright (c) 2007-2010 Baptiste Lepilleur and The JsonCpp Authors
-Download URL: https://github.com/open-source-parsers/jsoncpp/archive/1.9.4.tar.gz
-Download date: October 18, 2020
-Git commit: 9059f5cad030ba11d37818847443a53918c327b1
-License file: jsoncpp/LICENSE
-License type: Public Domain; MIT
-Location: jsoncpp
-Project URL: https://github.com/open-source-parsers/jsoncpp
-Release URL: https://github.com/open-source-parsers/jsoncpp/releases/tag/1.9.4
-Release date: September 25, 2020
-Version: 1.9.4
-
 ## node
 
 The node directory contains Node.js, a JavaScript runtime environment.
