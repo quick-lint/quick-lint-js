@@ -38,9 +38,11 @@ const global_declared_variable_set& configuration::globals() noexcept {
     for (const char8* it = group_globals; *it != '\0';) {
       string8_view global(it);
       if (!this->should_remove_global_variable(global)) {
-        global_declared_variable* var = this->globals_.add_variable(global);
-        var->is_shadowable = shadowable;
-        var->is_writable = writable;
+        this->globals_.add_global_variable(global_declared_variable{
+            .name = global,
+            .is_writable = writable,
+            .is_shadowable = shadowable,
+        });
       }
       it += global.size() + 1;
     }
@@ -75,9 +77,9 @@ bool configuration::add_global_group(string8_view group_name) {
   return false;
 }
 
-global_declared_variable* configuration::add_global_variable(
-    string8_view name) {
-  return this->globals_.add_variable(name);
+void configuration::add_global_variable(
+    global_declared_variable global_variable) {
+  this->globals_.add_global_variable(global_variable);
 }
 
 void configuration::remove_global_variable(string8_view name) {
@@ -262,7 +264,11 @@ bool configuration::load_globals_from_json(
         return false;
       }
       if (descriptor_bool) {
-        add_global_variable(global_name);
+        add_global_variable(global_declared_variable{
+            .name = global_name,
+            .is_writable = true,
+            .is_shadowable = true,
+        });
       } else {
         remove_global_variable(global_name);
       }
@@ -275,17 +281,26 @@ bool configuration::load_globals_from_json(
         QLJS_UNIMPLEMENTED();
       }
 
-      global_declared_variable* var = add_global_variable(global_name);
+      bool is_shadowable;
+      bool is_writable;
+      bool ok = true;
       if (!this->get_bool_or_default<
               error_config_globals_descriptor_shadowable_type_mismatch>(
-              descriptor_object["shadowable"], &var->is_shadowable, true,
+              descriptor_object["shadowable"], &is_shadowable, true,
               reporter)) {
-        return false;
+        ok = false;
       }
       if (!this->get_bool_or_default<
               error_config_globals_descriptor_writable_type_mismatch>(
-              descriptor_object["writable"], &var->is_writable, true,
-              reporter)) {
+              descriptor_object["writable"], &is_writable, true, reporter)) {
+        ok = false;
+      }
+      this->add_global_variable(global_declared_variable{
+          .name = global_name,
+          .is_writable = is_writable,
+          .is_shadowable = is_shadowable,
+      });
+      if (!ok) {
         return false;
       }
 
@@ -326,6 +341,7 @@ bool configuration::get_bool_or_default(
   case ::simdjson::SUCCESS: {
     ::simdjson::fallback::ondemand::json_type type;
     if (v.type().get(type) != ::simdjson::SUCCESS) {
+      *out = default_value;
       return false;
     }
     if (type != ::simdjson::fallback::ondemand::json_type::boolean) {
@@ -340,6 +356,7 @@ bool configuration::get_bool_or_default(
   }
 
   default:
+    *out = default_value;
     return false;
 
   case ::simdjson::NO_SUCH_FIELD:

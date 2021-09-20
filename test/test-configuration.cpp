@@ -171,23 +171,28 @@ TEST(test_configuration, missing_global_variable_does_not_exist_by_default) {
 TEST(test_configuration, add_new_global_variable) {
   configuration c;
 
-  global_declared_variable* var =
-      c.add_global_variable(u8"myGlobalVariable"_sv);
-  EXPECT_EQ(var->name, u8"myGlobalVariable"_sv);
-  EXPECT_TRUE(var->is_shadowable);
-  EXPECT_TRUE(var->is_writable);
+  c.add_global_variable(global_declared_variable{
+      .name = u8"myGlobalVariable"_sv,
+      .is_writable = true,
+      .is_shadowable = true,
+  });
 
   const global_declared_variable* found_var =
       c.globals().find(u8"myGlobalVariable"_sv);
   EXPECT_TRUE(found_var);
+  EXPECT_EQ(found_var->name, u8"myGlobalVariable"_sv);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
 }
 
 TEST(test_configuration, added_global_variable_shadows_default) {
   configuration c;
 
-  global_declared_variable* var = c.add_global_variable(u8"Array"_sv);
-  var->is_shadowable = false;
-  var->is_writable = false;
+  c.add_global_variable(global_declared_variable{
+      .name = u8"Array"_sv,
+      .is_writable = false,
+      .is_shadowable = false,
+  });
 
   const global_declared_variable* found_var = c.globals().find(u8"Array"_sv);
   ASSERT_TRUE(found_var);
@@ -199,7 +204,11 @@ TEST(test_configuration,
      adding_global_variable_does_not_disable_default_groups) {
   configuration c;
 
-  c.add_global_variable(u8"testGlobalVariable"_sv);
+  c.add_global_variable(global_declared_variable{
+      .name = u8"testGlobalVariable"_sv,
+      .is_writable = true,
+      .is_shadowable = true,
+  });
 
   EXPECT_TRUE(c.globals().find(u8"Array"_sv));
   EXPECT_TRUE(c.globals().find(u8"console"_sv));

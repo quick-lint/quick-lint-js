@@ -28,7 +28,7 @@ class configuration {
   void reset_global_groups();
   bool add_global_group(string8_view group_name);
 
-  global_declared_variable* add_global_variable(string8_view name);
+  void add_global_variable(global_declared_variable);
   void remove_global_variable(string8_view name);
 
   void load_from_json(padded_string_view, error_reporter*);

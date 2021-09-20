@@ -26,7 +26,7 @@ struct global_declared_variable {
 class global_declared_variable_set {
  public:
   void add_predefined_global_variable(const char8 *name, bool is_writable);
-  global_declared_variable *add_variable(string8_view name);
+  void add_global_variable(global_declared_variable);
 
   const global_declared_variable *find(identifier name) const noexcept;
   const global_declared_variable *find(string8_view name) const noexcept;
