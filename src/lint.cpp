@@ -102,13 +102,14 @@ variable_kind global_declared_variable::kind() const noexcept {
 
 void global_declared_variable_set::add_predefined_global_variable(
     const char8 *name, bool is_writable) {
-  this->variables_.emplace_back(global_declared_variable{
+  this->add_global_variable(global_declared_variable{
       .name = name, .is_writable = is_writable, .is_shadowable = true});
 }
 
 void global_declared_variable_set::add_global_variable(
     global_declared_variable global_variable) {
-  this->variables_.emplace_back(global_variable);
+  this->variables_[global_variable.is_shadowable][global_variable.is_writable]
+      .emplace(global_variable.name);
 }
 
 std::optional<global_declared_variable> global_declared_variable_set::find(
@@ -118,9 +119,15 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
 
 std::optional<global_declared_variable> global_declared_variable_set::find(
     string8_view name) const noexcept {
-  for (const global_declared_variable &var : this->variables_) {
-    if (var.name == name) {
-      return var;
+  for (bool is_shadowable : {false, true}) {
+    for (bool is_writable : {false, true}) {
+      if (this->variables_[is_shadowable][is_writable].count(name)) {
+        return global_declared_variable{
+            .name = name,
+            .is_writable = is_writable,
+            .is_shadowable = is_shadowable,
+        };
+      }
     }
   }
   return std::nullopt;

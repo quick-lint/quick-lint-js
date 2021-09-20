@@ -10,6 +10,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace quick_lint_js {
@@ -26,6 +27,10 @@ struct global_declared_variable {
 class global_declared_variable_set {
  public:
   void add_predefined_global_variable(const char8 *name, bool is_writable);
+
+  // FIXME(strager): Bug: if we add a variable with one set of flags (e.g.
+  // is_writable=false), then add it with a different set of flags (e.g.
+  // is_writable=true), then bad things might happen.
   void add_global_variable(global_declared_variable);
 
   std::optional<global_declared_variable> find(identifier name) const noexcept;
@@ -33,7 +38,9 @@ class global_declared_variable_set {
       noexcept;
 
  private:
-  std::vector<global_declared_variable> variables_;
+  // First index: is_shadowable
+  // Second index: is_writable
+  std::unordered_set<string8_view> variables_[2][2];
 };
 
 // A linter is a parse_visitor which finds non-syntax bugs.
