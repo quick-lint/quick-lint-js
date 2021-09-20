@@ -106,12 +106,6 @@ void global_declared_variable_set::add_predefined_global_variable(
       .name = name, .is_writable = is_writable, .is_shadowable = true});
 }
 
-void global_declared_variable_set::add_predefined_module_variable(
-    const char8 *name, bool is_writable) {
-  this->variables_.emplace_back(global_declared_variable{
-      .name = name, .is_writable = is_writable, .is_shadowable = false});
-}
-
 global_declared_variable *global_declared_variable_set::add_variable(
     string8_view name) {
   return &this->variables_.emplace_back(global_declared_variable{
