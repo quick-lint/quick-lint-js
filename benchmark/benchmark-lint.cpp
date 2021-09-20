@@ -64,6 +64,47 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_parse_and_lint);
+
+void benchmark_undeclared_variable_references(benchmark::State &state) {
+  int global_variable_count = 1000;
+  int variable_use_count = 1000;
+
+  global_declared_variable_set globals;
+  for (int i = 0; i < global_variable_count; ++i) {
+    globals.add_predefined_global_variable(
+        to_string8("global" + std::to_string(i)).c_str(), /*is_writable=*/true);
+  }
+
+  std::vector<std::pair<std::size_t, std::size_t>> variable_use_ranges;
+  string8 variable_uses;
+  for (int i = 0; i < variable_use_count; ++i) {
+    // NOTE(strager): The implementation might short circuit based on identifier
+    // length. Use the same prefix so more work needs to be done.
+    string8 variable_name = to_string8("usage_" + std::to_string(i));
+    std::size_t use_begin = variable_uses.size();
+    variable_uses += variable_name;
+    std::size_t use_end = variable_uses.size();
+    variable_use_ranges.emplace_back(use_begin, use_end);
+  }
+
+  std::vector<identifier> variable_use_identifiers;
+  for (auto [begin_index, end_index] : variable_use_ranges) {
+    const char8 *begin = &variable_uses[begin_index];
+    const char8 *end = &variable_uses[end_index];
+    variable_use_identifiers.emplace_back(
+        source_code_span(begin, end),
+        string8_view(begin, end_index - begin_index));
+  }
+
+  for (auto _ : state) {
+    linter l(&null_error_reporter::instance, &globals);
+    for (identifier &variable_use : variable_use_identifiers) {
+      l.visit_variable_use(variable_use);
+    }
+    l.visit_end_of_module();
+  }
+}
+BENCHMARK(benchmark_undeclared_variable_references);
 }  // namespace
 }  // namespace quick_lint_js
 
