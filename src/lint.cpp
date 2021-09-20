@@ -111,19 +111,19 @@ void global_declared_variable_set::add_global_variable(
   this->variables_.emplace_back(global_variable);
 }
 
-const global_declared_variable *global_declared_variable_set::find(
+std::optional<global_declared_variable> global_declared_variable_set::find(
     identifier name) const noexcept {
   return this->find(name.normalized_name());
 }
 
-const global_declared_variable *global_declared_variable_set::find(
+std::optional<global_declared_variable> global_declared_variable_set::find(
     string8_view name) const noexcept {
   for (const global_declared_variable &var : this->variables_) {
     if (var.name == name) {
-      return &var;
+      return var;
     }
   }
-  return nullptr;
+  return std::nullopt;
 }
 
 linter::linter(error_reporter *error_reporter,
@@ -453,7 +453,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   if (!has_eval_in_current_scope) {
     for (const used_variable &used_var : current_scope.variables_used) {
       QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
-      const auto *var = parent_scope.declared_variables.find(used_var.name);
+      const auto var = parent_scope.declared_variables.find(used_var.name);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -481,7 +481,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   if (!has_eval_in_descendant_scope) {
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      const auto *var = parent_scope.declared_variables.find(used_var.name);
+      const auto var = parent_scope.declared_variables.find(used_var.name);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -527,8 +527,9 @@ void linter::report_error_if_assignment_is_illegal(
 }
 
 void linter::report_error_if_assignment_is_illegal(
-    const global_declared_variable *var, const identifier &assignment,
-    bool is_assigned_before_declaration) const {
+    const std::optional<global_declared_variable> &var,
+    const identifier &assignment, bool is_assigned_before_declaration) const {
+  QLJS_ASSERT(var.has_value());
   this->report_error_if_assignment_is_illegal(
       /*kind=*/var->kind(),
       /*is_global_variable=*/true,
@@ -603,7 +604,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
 
 void linter::report_error_if_variable_declaration_conflicts_in_scope(
     const global_scope &scope, const declared_variable &var) const {
-  const global_declared_variable *already_declared_variable =
+  std::optional<global_declared_variable> already_declared_variable =
       scope.declared_variables.find(var.declaration);
   if (already_declared_variable) {
     if (!already_declared_variable->is_shadowable) {

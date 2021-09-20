@@ -28,8 +28,9 @@ class global_declared_variable_set {
   void add_predefined_global_variable(const char8 *name, bool is_writable);
   void add_global_variable(global_declared_variable);
 
-  const global_declared_variable *find(identifier name) const noexcept;
-  const global_declared_variable *find(string8_view name) const noexcept;
+  std::optional<global_declared_variable> find(identifier name) const noexcept;
+  std::optional<global_declared_variable> find(string8_view name) const
+      noexcept;
 
  private:
   std::vector<global_declared_variable> variables_;
@@ -189,8 +190,8 @@ class linter {
       const declared_variable *var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
-      const global_declared_variable *var, const identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      const std::optional<global_declared_variable> &var,
+      const identifier &assignment, bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
       variable_kind kind, bool is_global_variable,
       const identifier *declaration, const identifier &assignment,

@@ -57,8 +57,9 @@ TEST(test_configuration, browser_globals_are_present_by_default) {
   };
   for (string8_view variable_name : global_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
   }
 }
 
@@ -127,8 +128,9 @@ TEST(test_configuration, ecmascript_globals_are_present_by_default) {
   };
   for (string8_view variable_name : writable_global_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
     EXPECT_TRUE(var->is_writable);
     EXPECT_TRUE(var->is_shadowable);
   }
@@ -141,8 +143,9 @@ TEST(test_configuration, ecmascript_globals_are_present_by_default) {
   };
   for (string8_view variable_name : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
     EXPECT_FALSE(var->is_writable);
     EXPECT_TRUE(var->is_shadowable);
   }
@@ -156,8 +159,9 @@ TEST(test_configuration, node_js_globals_are_present_by_default) {
   };
   for (string8_view variable_name : writable_commonjs_module_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
     EXPECT_TRUE(var->is_writable);
     EXPECT_FALSE(var->is_shadowable);
   }
@@ -177,9 +181,9 @@ TEST(test_configuration, add_new_global_variable) {
       .is_shadowable = true,
   });
 
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myGlobalVariable"_sv);
-  EXPECT_TRUE(found_var);
+  EXPECT_TRUE(found_var.has_value());
   EXPECT_EQ(found_var->name, u8"myGlobalVariable"_sv);
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
@@ -194,8 +198,9 @@ TEST(test_configuration, added_global_variable_shadows_default) {
       .is_shadowable = false,
   });
 
-  const global_declared_variable* found_var = c.globals().find(u8"Array"_sv);
-  ASSERT_TRUE(found_var);
+  std::optional<global_declared_variable> found_var =
+      c.globals().find(u8"Array"_sv);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_FALSE(found_var->is_shadowable);
   EXPECT_FALSE(found_var->is_writable);
 }
@@ -327,9 +332,9 @@ TEST(test_configuration_json, true_global_is_usable) {
   configuration c;
   load_from_json(c, u8R"({"globals": {"myTestGlobalVariable": true}})"sv);
 
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
 }
@@ -338,9 +343,9 @@ TEST(test_configuration_json, empty_object_global_is_usable) {
   configuration c;
   load_from_json(c, u8R"({"globals": {"myTestGlobalVariable": {}}})"sv);
 
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
 }
@@ -350,9 +355,9 @@ TEST(test_configuration_json, unwritable_global_is_not_writable) {
   load_from_json(
       c, u8R"({"globals": {"myTestGlobalVariable": {"writable": false}}})"sv);
 
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_FALSE(found_var->is_writable);
 }
@@ -362,9 +367,9 @@ TEST(test_configuration_json, unshadowable_global_is_not_shadowable) {
   load_from_json(
       c, u8R"({"globals": {"myTestGlobalVariable": {"shadowable": false}}})"sv);
 
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_FALSE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
 }
@@ -472,8 +477,9 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
         << "valid globals before should work";
     EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
         << "valid globals after should work";
-    auto* var = c.globals().find(u8"testBad"_sv);
-    ASSERT_TRUE(var) << "broken global should be present";
+    std::optional<global_declared_variable> var =
+        c.globals().find(u8"testBad"_sv);
+    ASSERT_TRUE(var.has_value()) << "broken global should be present";
     EXPECT_FALSE(var->is_writable)
         << "valid property on broken global should work";
     EXPECT_TRUE(var->is_shadowable)
@@ -500,8 +506,9 @@ TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
         << "valid globals before should work";
     EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
         << "valid globals after should work";
-    auto* var = c.globals().find(u8"testBad"_sv);
-    ASSERT_TRUE(var) << "broken global should be present";
+    std::optional<global_declared_variable> var =
+        c.globals().find(u8"testBad"_sv);
+    ASSERT_TRUE(var.has_value()) << "broken global should be present";
     EXPECT_TRUE(var->is_writable)
         << "invalid global property should be ignored (default)";
     EXPECT_FALSE(var->is_shadowable)
