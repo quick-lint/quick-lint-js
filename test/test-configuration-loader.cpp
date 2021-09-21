@@ -55,16 +55,6 @@
 
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
-// FIXME(strager): On Linux (inotify) and macOS (kqueue), this test fails when
-// using change_detecting_configuration_loader because we don't watch all the
-// way up to the root. We can fix this test by adding directory watches during
-// path canonicalization.
-#if defined(_WIN32)
-#define BUGGY 0
-#else
-#define BUGGY 1
-#endif
-
 #define IS_POINTER_TO_POSIX_READ_FILE_IO_ERROR(expected_path,        \
                                                expected_posix_error) \
   ::testing::Pointee(                                                \
@@ -1393,21 +1383,13 @@ TEST_F(test_configuration_loader,
   std::string config_file = project_dir + "/olddir/subdir/quick-lint-js.config";
   write_file(config_file, u8"{}");
 
-#if BUGGY
-  configuration_loader loader(basic_configuration_filesystem::instance());
-#else
   change_detecting_configuration_loader loader;
-#endif
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
-#if BUGGY
-  std::vector<configuration_change> changes = loader.refresh();
-#else
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
-#endif
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
@@ -2083,11 +2065,7 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
-#if BUGGY
-  configuration_loader loader(basic_configuration_filesystem::instance());
-#else
   change_detecting_configuration_loader loader;
-#endif
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
@@ -2099,12 +2077,8 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
       << "failed to make " << dir << " readable: " << std::strerror(errno);
 
-#if BUGGY
-  std::vector<configuration_change> changes = loader.refresh();
-#else
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
-#endif
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(
@@ -2129,11 +2103,7 @@ TEST_F(
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
-#if BUGGY
-  configuration_loader loader(basic_configuration_filesystem::instance());
-#else
   change_detecting_configuration_loader loader;
-#endif
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
@@ -2145,12 +2115,8 @@ TEST_F(
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
       << "failed to make " << dir << " readable: " << std::strerror(errno);
 
-#if BUGGY
-  std::vector<configuration_change> changes = loader.refresh();
-#else
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
-#endif
   ASSERT_THAT(changes, ElementsAre(::testing::_));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_TRUE(
@@ -2296,10 +2262,6 @@ TEST_F(test_configuration_loader,
 #if QLJS_HAVE_UNISTD_H
 TEST_F(test_configuration_loader,
        changing_direct_config_path_symlink_is_detected_as_change) {
-  if (process_ignores_filesystem_permissions()) {
-    GTEST_SKIP() << "cannot run test as root";
-  }
-
   std::string project_dir = this->make_temporary_directory();
   std::string before_config_file = project_dir + "/before.config";
   write_file(before_config_file, u8R"({"globals": {"before": true}})");
@@ -2328,7 +2290,71 @@ TEST_F(test_configuration_loader,
 
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
+
+TEST_F(test_configuration_loader,
+       changing_parent_directory_symlink_is_detected_as_change) {
+  std::string project_dir = this->make_temporary_directory();
+  create_directory(project_dir + "/before");
+  create_directory(project_dir + "/after");
+  std::string before_config_file = project_dir + "/before/quick-lint-js.config";
+  write_file(before_config_file, u8R"({"globals": {"before": true}})");
+  std::string after_config_file = project_dir + "/after/quick-lint-js.config";
+  write_file(after_config_file, u8R"({"globals": {"after": true}})");
+  std::string subdir_symlink = project_dir + "/subdir";
+  ASSERT_EQ(::symlink("before", subdir_symlink.c_str()), 0)
+      << std::strerror(errno);
+
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(subdir_symlink + "/quick-lint-js.config",
+                                    /*token=*/nullptr);
+
+  ASSERT_EQ(std::remove(subdir_symlink.c_str()), 0) << std::strerror(errno);
+  ASSERT_EQ(::symlink("after", subdir_symlink.c_str()), 0)
+      << std::strerror(errno);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(*changes[0].config_file->config_path,
+            canonicalize_path(after_config_file)->canonical());
+  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"));
+  EXPECT_EQ(changes[0].error, nullptr);
+
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+}
 #endif
+
+TEST_F(test_configuration_loader,
+       swapping_parent_directory_with_another_is_detected_as_change) {
+  std::string project_dir = this->make_temporary_directory();
+  create_directory(project_dir + "/before");
+  create_directory(project_dir + "/after");
+  write_file(project_dir + "/before/quick-lint-js.config",
+             u8R"({"globals": {"before": true}})");
+  write_file(project_dir + "/after/quick-lint-js.config",
+             u8R"({"globals": {"after": true}})");
+
+  std::string subdir = project_dir + "/subdir";
+  move_file(project_dir + "/before", subdir);
+  change_detecting_configuration_loader loader;
+  loader.watch_and_load_config_file(subdir + "/quick-lint-js.config",
+                                    /*token=*/nullptr);
+
+  move_file(subdir, project_dir + "/before");
+  move_file(project_dir + "/after", subdir);
+
+  std::vector<configuration_change> changes =
+      loader.detect_changes_and_refresh();
+  ASSERT_THAT(changes, ElementsAre(::testing::_));
+  EXPECT_EQ(*changes[0].config_file->config_path,
+            canonicalize_path(subdir + "/quick-lint-js.config")->canonical());
+  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"));
+  EXPECT_EQ(changes[0].error, nullptr);
+
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+}
 
 TEST(test_configuration_loader_fake,
      file_with_no_config_file_gets_default_config) {

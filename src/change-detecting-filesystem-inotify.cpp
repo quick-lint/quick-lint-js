@@ -19,6 +19,7 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
 #include <sys/inotify.h>
@@ -64,7 +65,7 @@ change_detecting_filesystem_inotify::~change_detecting_filesystem_inotify() {
 result<canonical_path_result, canonicalize_path_io_error>
 change_detecting_filesystem_inotify::canonicalize_path(
     const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
+  return quick_lint_js::canonicalize_path(path, this);
 }
 
 result<padded_string, read_file_io_error, watch_io_error>
@@ -85,6 +86,25 @@ change_detecting_filesystem_inotify::read_file(const canonical_path& path) {
   if (!r.ok()) return r.propagate();
   return *std::move(r);
 }
+
+void change_detecting_filesystem_inotify::on_canonicalize_child_of_directory(
+    const char* path) {
+  bool ok = this->watch_directory(path);
+  if (!ok) {
+    // Ignore.
+    std::fprintf(stderr, "warning: failed to watch directory %s: %s\n", path,
+                 std::strerror(errno));
+  }
+}
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
+void change_detecting_filesystem_inotify::on_canonicalize_child_of_directory(
+    const wchar_t*) {
+  // We don't use wchar_t paths on Linux.
+  QLJS_UNREACHABLE();
+}
+QLJS_WARNING_POP
 
 posix_fd_file_ref
 change_detecting_filesystem_inotify::get_inotify_fd() noexcept {
@@ -136,8 +156,13 @@ void change_detecting_filesystem_inotify::read_inotify() {
 
 bool change_detecting_filesystem_inotify::watch_directory(
     const canonical_path& directory) {
+  return this->watch_directory(directory.c_str());
+}
+
+bool change_detecting_filesystem_inotify::watch_directory(
+    const char* directory) {
   int watch_descriptor =
-      ::inotify_add_watch(this->inotify_fd_.get(), directory.c_str(),
+      ::inotify_add_watch(this->inotify_fd_.get(), directory,
                           IN_ATTRIB | IN_CLOSE_WRITE | IN_CREATE | IN_DELETE |
                               IN_MOVED_TO | IN_MOVE_SELF);
   if (watch_descriptor == -1) {

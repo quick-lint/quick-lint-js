@@ -94,6 +94,17 @@ struct canonicalizing_path_io_error {
   path_string canonicalizing_path;
   platform_file_io_error io_error;
 };
+
+class null_canonicalize_observer : public canonicalize_observer {
+ public:
+  static null_canonicalize_observer *instance() {
+    static null_canonicalize_observer singleton;
+    return &singleton;
+  }
+
+  void on_canonicalize_child_of_directory(const char *) override {}
+  void on_canonicalize_child_of_directory(const wchar_t *) override {}
+};
 }
 
 canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
@@ -249,8 +260,9 @@ namespace {
 template <class Derived>
 class path_canonicalizer_base {
  public:
-  explicit path_canonicalizer_base(path_string_view path)
-      : original_path_(path) {}
+  explicit path_canonicalizer_base(path_string_view path,
+                                   canonicalize_observer *observer)
+      : observer_(observer), original_path_(path) {}
 
   result<void, canonicalizing_path_io_error> canonicalize() {
     if (original_path_.empty()) {
@@ -318,11 +330,16 @@ class path_canonicalizer_base {
     } else {
       std::size_t canonical_length_without_component = canonical_.size();
 
+      bool parent_path_exists = existing_path_length_ == 0;
+      if (parent_path_exists && canonical_length_without_component > 0) {
+        this->observer_->on_canonicalize_child_of_directory(canonical_.c_str());
+      }
+
       canonical_ += preferred_component_separator;
       canonical_ += component;
       need_root_slash_ = false;
 
-      if (existing_path_length_ != 0) {
+      if (!parent_path_exists) {
         // A parent path did not exist, so this path certainly does not exist.
         // Don't bother checking.
         skip_to_next_component();
@@ -406,6 +423,7 @@ class path_canonicalizer_base {
     path_to_process_ = path_to_process_.substr(next_component_index);
   }
 
+  canonicalize_observer *observer_;
   path_string_view original_path_;
 
   // path_to_process_ points either to path (caller's input) or
@@ -705,14 +723,24 @@ class windows_path_canonicalizer
 
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path) {
+  return canonicalize_path(path, null_canonicalize_observer::instance());
+}
+
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const std::string &path) {
+  return canonicalize_path(path.c_str());
+}
+
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const char *path, canonicalize_observer *observer) {
 #if defined(_WIN32)
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
-  windows_path_canonicalizer canonicalizer(*wpath);
+  windows_path_canonicalizer canonicalizer(*wpath, observer);
 #else
-  posix_path_canonicalizer canonicalizer(path);
+  posix_path_canonicalizer canonicalizer(path, observer);
 #endif
   result<void, canonicalizing_path_io_error> r = canonicalizer.canonicalize();
   if (!r.ok()) {
@@ -728,8 +756,8 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
 }
 
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
-    const std::string &path) {
-  return canonicalize_path(path.c_str());
+    const std::string &path, canonicalize_observer *observer) {
+  return canonicalize_path(path.c_str(), observer);
 }
 
 namespace {

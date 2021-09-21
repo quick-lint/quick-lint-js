@@ -40,7 +40,7 @@ change_detecting_filesystem_kqueue::~change_detecting_filesystem_kqueue() {
 
 result<canonical_path_result, canonicalize_path_io_error>
 change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
+  return quick_lint_js::canonicalize_path(path, this);
 }
 
 result<padded_string, read_file_io_error, watch_io_error>
@@ -71,6 +71,22 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
       quick_lint_js::read_file(path.c_str(), watch_it->second.fd.ref());
   if (!r.ok()) return r.propagate();
   return *std::move(r);
+}
+
+void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
+    const char* path) {
+  bool ok = this->watch_directory(canonical_path(path));
+  if (!ok) {
+    // Ignore.
+    std::fprintf(stderr, "warning: failed to watch directory %s: %s\n", path,
+                 std::strerror(errno));
+  }
+}
+
+void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
+    const wchar_t*) {
+  // We don't use wchar_t paths on BSDs.
+  QLJS_UNREACHABLE();
 }
 
 bool change_detecting_filesystem_kqueue::watch_directory(

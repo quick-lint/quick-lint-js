@@ -118,10 +118,22 @@ struct canonicalize_path_io_error {
                          const canonicalize_path_io_error &) noexcept;
 };
 
+class canonicalize_observer {
+ public:
+  virtual ~canonicalize_observer() = default;
+
+  virtual void on_canonicalize_child_of_directory(const char *) = 0;
+  virtual void on_canonicalize_child_of_directory(const wchar_t *) = 0;
+};
+
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path);
 result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const std::string &path);
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const char *path, canonicalize_observer *);
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const std::string &path, canonicalize_observer *);
 }
 
 namespace std {

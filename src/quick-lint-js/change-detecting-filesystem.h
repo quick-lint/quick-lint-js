@@ -10,6 +10,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -32,9 +33,12 @@ struct kevent;
 #endif
 
 namespace quick_lint_js {
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 #if QLJS_HAVE_INOTIFY
 // Not thread-safe.
-class change_detecting_filesystem_inotify : public configuration_filesystem {
+class change_detecting_filesystem_inotify : public configuration_filesystem,
+                                            public canonicalize_observer {
  public:
   explicit change_detecting_filesystem_inotify();
   ~change_detecting_filesystem_inotify() override;
@@ -44,11 +48,15 @@ class change_detecting_filesystem_inotify : public configuration_filesystem {
   result<padded_string, read_file_io_error, watch_io_error> read_file(
       const canonical_path&) override;
 
+  void on_canonicalize_child_of_directory(const char*) override;
+  void on_canonicalize_child_of_directory(const wchar_t*) override;
+
   posix_fd_file_ref get_inotify_fd() noexcept;
   void handle_poll_event(const ::pollfd& event);
 
  private:
   // Sets errno and returns false on failure.
+  bool watch_directory(const char*);
   bool watch_directory(const canonical_path&);
 
   void read_inotify();
@@ -60,7 +68,8 @@ class change_detecting_filesystem_inotify : public configuration_filesystem {
 
 #if QLJS_HAVE_KQUEUE
 // Not thread-safe.
-class change_detecting_filesystem_kqueue : public configuration_filesystem {
+class change_detecting_filesystem_kqueue : public configuration_filesystem,
+                                           canonicalize_observer {
  public:
   explicit change_detecting_filesystem_kqueue(posix_fd_file_ref kqueue_fd,
                                               void* udata);
@@ -70,6 +79,9 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem {
       const std::string&) override;
   result<padded_string, read_file_io_error, watch_io_error> read_file(
       const canonical_path&) override;
+
+  void on_canonicalize_child_of_directory(const char*) override;
+  void on_canonicalize_child_of_directory(const wchar_t*) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
 
@@ -168,6 +180,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
       cancelling_watched_directories_;
 };
 #endif
+QLJS_WARNING_POP
 }
 
 #endif
