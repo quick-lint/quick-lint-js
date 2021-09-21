@@ -10,6 +10,12 @@ set(gtest_force_shared_crt TRUE CACHE INTERNAL "")
 
 add_subdirectory(googletest)
 
+# HACK(strager): googletest forces C++11. This causes problems with their
+# std::string_view feature detection. Force C++17.
+foreach (TARGET gmock gmock_main gtest gtest_main)
+  target_compile_features("${TARGET}" PUBLIC cxx_std_17)
+endforeach ()
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

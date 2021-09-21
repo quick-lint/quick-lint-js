@@ -82,20 +82,19 @@ applications, and Google Mock, its companion mocking framework.
 
 The following patches have been manually applied:
 
-* googletest-result-of.patch
 * googletest-werror.patch
 
 Copyright: Copyright 2008, Google Inc.
-Download URL: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
-Download date: July 27, 2020
-Git commit: 703bd9caab50b139428cea1aaff9974ebee5742e + patches
-License file: googletest/LICENSE, googletest/googlemock/LICENSE, googletest/googlemock/scripts/generator/LICENSE, googletest/googletest/LICENSE
+Download URL: https://codeload.github.com/google/googletest/tar.gz/refs/tags/release-1.11.0
+Download date: September 20, 2021
+Git commit: e2239ee6043f73722e7aa812a459f54a28552929
+License file: googletest/LICENSE, googletest/googlemock/scripts/generator/LICENSE
 License type: Apache-2.0, BSD-3-Clause
 Location: googletest
 Project URL: https://github.com/google/googletest
-Release URL: https://github.com/google/googletest/releases/tag/release-1.10.0
-Release date: October 3, 2019
-Version: 1.10.0
+Release URL: https://github.com/google/googletest/releases/tag/release-1.11.0
+Release date: June 11, 2021
+Version: 1.11.0
 
 ## node
 
