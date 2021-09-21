@@ -10,9 +10,11 @@ Semantic Versioning.
 
 Beta release.
 
-### Fixed
+### Added
 
-* Nothing yet!
+* `quick-lint-js.config` now supports the [**literally-anything** global
+  group][config-global-groups]. Use this option to disable all
+  use-of-undeclared-variable warnings.
 
 ## 0.4.0 (2021-09-09)
 
@@ -123,4 +125,5 @@ Beta release.
 [Lee Wannacott]: https://github.com/LeeWannacott
 [Matheus Sousa]: https://github.com/keyehzy
 [Shivam Mehta]: https://github.com/maniac-en
+[config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [wagner riffel]: https://github.com/wgrr

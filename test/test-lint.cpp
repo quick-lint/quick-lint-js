@@ -279,6 +279,30 @@ TEST(test_lint, nodejs_commonjs_module_variables_cannot_be_redeclared) {
   }
 }
 
+TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
+  // This tests the "literally-anything" global group.
+
+  configuration config;
+  config.allow_literally_any_global_variable();
+
+  const char8 builtin_1_declaration[] = u8"Object";
+  const char8 builtin_2_use[] = u8"Array";
+  const char8 anything_1_declaration[] = u8"thisVariableDoesNotExistInAnyList";
+  const char8 anything_2_use[] = u8"iDoNotExistInAnyList";
+
+  error_collector v;
+  linter l(&v, &config.globals());
+  l.visit_variable_declaration(identifier_of(builtin_1_declaration),
+                               variable_kind::_let);
+  l.visit_variable_use(identifier_of(builtin_2_use));
+  l.visit_variable_declaration(identifier_of(anything_1_declaration),
+                               variable_kind::_let);
+  l.visit_variable_use(identifier_of(anything_2_use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
   for (variable_kind kind :
        {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {

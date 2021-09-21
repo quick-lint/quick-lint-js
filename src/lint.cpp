@@ -112,6 +112,10 @@ void global_declared_variable_set::add_global_variable(
       .emplace(global_variable.name);
 }
 
+void global_declared_variable_set::add_literally_everything() {
+  this->all_variables_declared_ = true;
+}
+
 void global_declared_variable_set::reserve_more_global_variables(
     std::size_t extra_count, bool is_shadowable, bool is_writable) {
   auto &vars = this->variables_[is_shadowable][is_writable];
@@ -135,6 +139,13 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
         };
       }
     }
+  }
+  if (this->all_variables_declared_) {
+    return global_declared_variable{
+        .name = name,
+        .is_writable = true,
+        .is_shadowable = true,
+    };
   }
   return std::nullopt;
 }

@@ -26,6 +26,7 @@ class configuration {
   const global_declared_variable_set& globals() noexcept;
 
   void reset_global_groups();
+  void allow_literally_any_global_variable();
   bool add_global_group(string8_view group_name);
 
   void add_global_variable(global_declared_variable);
@@ -60,6 +61,7 @@ class configuration {
   std::vector<string8> globals_to_remove_;
   bool did_add_globals_from_groups_ = false;
   std::array<bool, global_group_count> enabled_global_groups_;
+  bool literally_anything_global_group_enabled_ = false;
   monotonic_allocator string_allocator_;
 
   string8_view save_string(std::string_view s);

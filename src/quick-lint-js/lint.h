@@ -33,6 +33,8 @@ class global_declared_variable_set {
   // is_writable=true), then bad things might happen.
   void add_global_variable(global_declared_variable);
 
+  void add_literally_everything();
+
   void reserve_more_global_variables(std::size_t extra_count,
                                      bool is_shadowable, bool is_writable);
 
@@ -44,6 +46,7 @@ class global_declared_variable_set {
   // First index: is_shadowable
   // Second index: is_writable
   std::unordered_set<string8_view> variables_[2][2];
+  bool all_variables_declared_ = false;
 };
 
 // A linter is a parse_visitor which finds non-syntax bugs.

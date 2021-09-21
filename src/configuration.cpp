@@ -38,7 +38,15 @@ void configuration::reset_global_groups() {
   }
 }
 
+void configuration::allow_literally_any_global_variable() {
+  this->literally_anything_global_group_enabled_ = true;
+}
+
 bool configuration::add_global_group(string8_view group_name) {
+  if (group_name == u8"literally-anything"sv) {
+    this->literally_anything_global_group_enabled_ = true;
+    return true;
+  }
   for (std::size_t i = 0; i < this->enabled_global_groups_.size(); ++i) {
     if (group_name == global_groups[i].name) {
       this->enabled_global_groups_[i] = true;
@@ -132,6 +140,7 @@ void configuration::reset() {
   for (bool& enabled : this->enabled_global_groups_) {
     enabled = true;
   }
+  this->literally_anything_global_group_enabled_ = false;
   this->string_allocator_.memory_resource()->release();
 }
 
@@ -304,6 +313,10 @@ bool configuration::should_remove_global_variable(string8_view name) {
 
 [[gnu::noinline]] void configuration::build_globals_from_groups() {
   QLJS_ASSERT(!this->did_add_globals_from_groups_);
+
+  if (this->literally_anything_global_group_enabled_) {
+    this->globals_.add_literally_everything();
+  }
 
   auto iterate_globals = [](const char8* globals, auto&& func) -> void {
     for (const char8* it = globals; *it != '\0';) {

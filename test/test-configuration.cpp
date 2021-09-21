@@ -283,6 +283,52 @@ TEST(test_configuration, add_ecmascript_and_node_js_groups) {
   }
 }
 
+TEST(test_configuration, literally_anything_group_by_name) {
+  configuration c;
+  c.reset_global_groups();
+  EXPECT_TRUE(c.add_global_group(u8"literally-anything"sv));
+
+  EXPECT_TRUE(c.globals().find(u8"Array"sv));
+  EXPECT_TRUE(c.globals().find(u8"console"sv));
+  std::optional<global_declared_variable> found_var =
+      c.globals().find(u8"thisVariableWasNeverSpecifiedButStillExists"sv);
+  ASSERT_TRUE(found_var.has_value());
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+}
+
+TEST(test_configuration,
+     literally_anything_group_preserves_other_global_properties) {
+  configuration c;
+  c.reset_global_groups();
+  EXPECT_TRUE(c.add_global_group(u8"ecmascript"sv));
+  EXPECT_TRUE(c.add_global_group(u8"literally-anything"sv));
+  EXPECT_TRUE(c.add_global_group(u8"node.js"sv));
+  c.add_global_variable(global_declared_variable{
+      .name = u8"testGlobalVariable"sv,
+      .is_writable = false,
+      .is_shadowable = false,
+  });
+
+  std::optional<global_declared_variable> found_var;
+
+  found_var = c.globals().find(u8"Array"sv);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+
+  found_var = c.globals().find(u8"require"sv);
+  EXPECT_FALSE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+
+  found_var = c.globals().find(u8"Infinity"sv);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_FALSE(found_var->is_writable);
+
+  found_var = c.globals().find(u8"testGlobalVariable"sv);
+  EXPECT_FALSE(found_var->is_shadowable);
+  EXPECT_FALSE(found_var->is_writable);
+}
+
 TEST(test_configuration_json, empty_json_creates_default_config) {
   configuration c;
   load_from_json(c, u8"{}"sv);

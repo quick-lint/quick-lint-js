@@ -154,7 +154,6 @@ The following groups are supported for the *global-groups* configuration propert
 All global variables are defined as shadowable and writable.
 This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the *globals* configuration property).
 This group is not enabled by default.
-*This global group is not yet implemented.*
 *browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
 This group is enabled by default.
 *ecmascript*:: globals defined by the latest ECMAScript (JavaScript) standard, including *Object* and *NaN*.
