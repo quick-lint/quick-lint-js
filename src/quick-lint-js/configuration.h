@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_CONFIGURATION_H
 
 #include <array>
+#include <boost/json/value.hpp>
 #include <cstddef>
 #include <optional>
 #include <quick-lint-js/char8.h>
@@ -40,9 +41,9 @@ class configuration {
   bool errors_were_reported = false;
 
  private:
-  bool load_global_groups_from_json(simdjson::ondemand::value&,
+  bool load_global_groups_from_json(::boost::json::value&,
                                     error_reporter*);
-  bool load_globals_from_json(simdjson::ondemand::object&, error_reporter*);
+  bool load_globals_from_json(::boost::json::object&, error_reporter*);
 
   bool should_remove_global_variable(string8_view name);
 
@@ -51,7 +52,7 @@ class configuration {
   // Returns false on parse error, and true otherwise.
   template <class Error>
   bool get_bool_or_default(
-      ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
+      ::boost::json::value* value,
       bool* out, bool default_value, error_reporter*);
 
   void report_json_error(padded_string_view json, error_reporter*);

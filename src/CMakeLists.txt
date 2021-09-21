@@ -176,7 +176,7 @@ target_compile_definitions(
   "QUICK_LINT_JS_VERSION=${QUICK_LINT_JS_VERSION}"
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
-target_link_libraries(quick-lint-js-lib PUBLIC boost simdjson)
+target_link_libraries(quick-lint-js-lib PUBLIC boost boost_json simdjson)
 if (WIN32)
   target_link_libraries(quick-lint-js-lib PUBLIC Pathcch)
 endif ()

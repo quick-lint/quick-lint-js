@@ -59,7 +59,7 @@ endif ()
 
 # Keep boost_json as a separate library so we can use it only in tests (and not
 # compile and link it into production executables).
-add_library(boost_json STATIC boost-json.cpp)
+add_library(boost_json STATIC boost-json.cpp ../src/boost.cpp)
 target_link_libraries(boost_json PUBLIC boost)
 
 # quick-lint-js finds bugs in JavaScript programs.

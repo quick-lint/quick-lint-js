@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <array>
+#include <boost/json/parse.hpp>
+#include <boost/json/value.hpp>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/error-reporter.h>
@@ -12,6 +14,7 @@
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
+#include <system_error>
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
@@ -59,68 +62,42 @@ void configuration::remove_global_variable(string8_view name) {
 
 void configuration::load_from_json(padded_string_view json,
                                    error_reporter* reporter) {
-  ::simdjson::ondemand::parser json_parser;
-  ::simdjson::ondemand::document document;
-  ::simdjson::error_code parse_error =
-      json_parser
-          .iterate(reinterpret_cast<const char*>(json.data()),
-                   narrow_cast<std::size_t>(json.size()),
-                   narrow_cast<std::size_t>(json.padded_size()))
-          .get(document);
-  if (parse_error != ::simdjson::error_code::SUCCESS) {
+  std::error_code error;
+  ::boost::json::value root = ::boost::json::parse(
+      to_string_view(json.string_view()),
+      error);
+  if (error) {
     this->report_json_error(json, reporter);
     return;
   }
 
-  ::simdjson::ondemand::value global_groups_value;
-  switch (document["global-groups"].get(global_groups_value)) {
-  case ::simdjson::error_code::SUCCESS:
-    if (!this->load_global_groups_from_json(global_groups_value, reporter)) {
-      this->report_json_error(json, reporter);
-      return;
-    }
-    break;
-
-  case ::simdjson::error_code::NO_SUCH_FIELD:
-    break;
-
-  default:
+  if (!root.is_object()) {
+    // TODO(strager): Report a more helpful error.
     this->report_json_error(json, reporter);
     return;
   }
+  ::boost::json::object& root_object = root.as_object();
 
-  auto globals = document["globals"];
-  ::simdjson::ondemand::object globals_value;
-  switch (globals.get(globals_value)) {
-  case ::simdjson::error_code::SUCCESS:
-    if (!this->load_globals_from_json(globals_value, reporter)) {
+  if (::boost::json::value *global_groups_value = root_object.if_contains("global-groups")) {
+    if (!this->load_global_groups_from_json(*global_groups_value, reporter)) {
       this->report_json_error(json, reporter);
       return;
     }
-    break;
+  }
 
-  case ::simdjson::error_code::INCORRECT_TYPE: {
-    // Either "globals" has the wrong type or there is a syntax error. simdjson
-    // gives us INCORRECT_TYPE in both cases.
-    ::simdjson::ondemand::value v;
-    if (globals.get(v) == ::simdjson::SUCCESS &&
-        v.type().error() == ::simdjson::SUCCESS) {
+  if (::boost::json::value *globals_value = root_object.if_contains("globals")) {
+    if (::boost::json::object *globals_object = globals_value->if_object()) {
+      if (!this->load_globals_from_json(*globals_object, reporter)) {
+        this->report_json_error(json, reporter);
+        return;
+      }
+    } else {
+      /*@@@
       reporter->report(error_config_globals_type_mismatch{
           .value = span_of_json_value(v),
       });
-    } else {
-      this->report_json_error(json, reporter);
-      return;
+      */
     }
-    break;
-  }
-
-  case ::simdjson::error_code::NO_SUCH_FIELD:
-    break;
-
-  default:
-    this->report_json_error(json, reporter);
-    return;
   }
 }
 
@@ -136,105 +113,47 @@ void configuration::reset() {
 }
 
 bool configuration::load_global_groups_from_json(
-    ::simdjson::ondemand::value& global_groups_value,
+    ::boost::json::value& global_groups_value,
     error_reporter* reporter) {
-  ::simdjson::fallback::ondemand::json_type global_groups_value_type;
-  if (global_groups_value.type().get(global_groups_value_type) !=
-      ::simdjson::SUCCESS) {
-    return false;
-  }
-  switch (global_groups_value_type) {
-  case ::simdjson::fallback::ondemand::json_type::boolean: {
-    bool global_groups_bool_value;
-    if (global_groups_value.get_bool().get(global_groups_bool_value) !=
-        ::simdjson::SUCCESS) {
-      return false;
-    }
-    if (global_groups_bool_value) {
+  if (bool* global_groups_bool_value = global_groups_value.if_bool()) {
+    if (*global_groups_bool_value) {
       // Do nothing.
     } else {
       reset_global_groups();
     }
-    break;
-  }
-
-  case ::simdjson::fallback::ondemand::json_type::array: {
-    ::simdjson::fallback::ondemand::array global_groups_array_value;
-    if (global_groups_value.get(global_groups_array_value) !=
-        ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
-    }
-
+  } else if (::boost::json::array* global_groups_array_value = global_groups_value.if_array()) {
     this->reset_global_groups();
-    for (::simdjson::simdjson_result<::simdjson::fallback::ondemand::value>
-             global_group_value_or_error : global_groups_array_value) {
-      ::simdjson::fallback::ondemand::value global_group_value;
-      if (global_group_value_or_error.get(global_group_value) !=
-          ::simdjson::SUCCESS) {
-        return false;
-      }
-      std::string_view global_group_string_value;
-      switch (global_group_value.get(global_group_string_value)) {
-      case ::simdjson::SUCCESS:
-        this->add_global_group(to_string8_view(global_group_string_value));
-        break;
-
-      case ::simdjson::INCORRECT_TYPE:
-        // If simdjson gives us an INCORRECT_TYPE error, it's possible that we
-        // reached the end of the file. Check whether this is an incorrect
-        // type or malformed JSON.
-        if (global_group_value.type().error() != ::simdjson::SUCCESS) {
-          return false;
-        }
+    for (::boost::json::value& 
+             global_group_value : *global_groups_array_value) {
+      if (::boost::json::string* global_group_string_value = global_group_value.if_string()) {
+        this->add_global_group(to_string8_view(
+              std::string_view(*global_group_string_value)));
+      } else {
+        /*@@@
         reporter->report(error_config_global_groups_group_type_mismatch{
             .group = span_of_json_value(global_group_value),
         });
-        break;
-
-      default:
-        return false;
+        */
       }
     }
-    break;
-  }
-
-  case ::simdjson::fallback::ondemand::json_type::null:
-  case ::simdjson::fallback::ondemand::json_type::number:
-  case ::simdjson::fallback::ondemand::json_type::object:
-  case ::simdjson::fallback::ondemand::json_type::string:
+  } else {
+    /*@@@
     reporter->report(error_config_global_groups_type_mismatch{
         .value = span_of_json_value(global_groups_value),
     });
-    break;
+    */
   }
   return true;
 }
 
 bool configuration::load_globals_from_json(
-    ::simdjson::ondemand::object& globals_value, error_reporter* reporter) {
-  for (simdjson::simdjson_result<::simdjson::fallback::ondemand::field>
-           global_field : globals_value) {
-    std::string_view key;
-    if (global_field.unescaped_key().get(key) != ::simdjson::SUCCESS) {
-      return false;
-    }
-    string8_view global_name = this->save_string(key);
+    ::boost::json::object& globals_value, error_reporter* reporter) {
+  for (boost::json::key_value_pair& global_field : globals_value) {
+    string8_view global_name = this->save_string(global_field.key());
 
-    ::simdjson::fallback::ondemand::value descriptor;
-    if (global_field.value().get(descriptor) != ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
-    }
-    ::simdjson::fallback::ondemand::json_type descriptor_type;
-    if (descriptor.type().get(descriptor_type) != ::simdjson::SUCCESS) {
-      return false;
-    }
-    switch (descriptor_type) {
-    case ::simdjson::fallback::ondemand::json_type::boolean: {
-      bool descriptor_bool;
-      if (descriptor.get(descriptor_bool) != ::simdjson::SUCCESS) {
-        return false;
-      }
-      if (descriptor_bool) {
+    ::boost::json::value& descriptor = global_field.value();
+    if (bool* descriptor_bool = descriptor.if_bool()) {
+      if (*descriptor_bool) {
         add_global_variable(global_declared_variable{
             .name = global_name,
             .is_writable = true,
@@ -243,27 +162,19 @@ bool configuration::load_globals_from_json(
       } else {
         remove_global_variable(global_name);
       }
-      break;
-    }
-
-    case ::simdjson::fallback::ondemand::json_type::object: {
-      ::simdjson::fallback::ondemand::object descriptor_object;
-      if (descriptor.get(descriptor_object) != ::simdjson::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
-      }
-
+    } else if (::boost::json::object* descriptor_object = descriptor.if_object()) {
       bool is_shadowable;
       bool is_writable;
       bool ok = true;
       if (!this->get_bool_or_default<
               error_config_globals_descriptor_shadowable_type_mismatch>(
-              descriptor_object["shadowable"], &is_shadowable, true,
+              descriptor_object->if_contains("shadowable"), &is_shadowable, true,
               reporter)) {
         ok = false;
       }
       if (!this->get_bool_or_default<
               error_config_globals_descriptor_writable_type_mismatch>(
-              descriptor_object["writable"], &is_writable, true, reporter)) {
+              descriptor_object->if_contains("writable"), &is_writable, true, reporter)) {
         ok = false;
       }
       this->add_global_variable(global_declared_variable{
@@ -274,15 +185,12 @@ bool configuration::load_globals_from_json(
       if (!ok) {
         return false;
       }
-
-      break;
-    }
-
-    default:
+    } else {
+      /*@@@
       reporter->report(error_config_globals_descriptor_type_mismatch{
           .descriptor = span_of_json_value(descriptor),
       });
-      break;
+      */
     }
   }
   return true;
@@ -378,33 +286,20 @@ bool configuration::should_remove_global_variable(string8_view name) {
 
 template <class Error>
 bool configuration::get_bool_or_default(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
+    ::boost::json::value* value, bool* out,
     bool default_value, error_reporter* reporter) {
-  ::simdjson::fallback::ondemand::value v;
-  ::simdjson::error_code error = value.get(v);
-  switch (error) {
-  case ::simdjson::SUCCESS: {
-    ::simdjson::fallback::ondemand::json_type type;
-    if (v.type().get(type) != ::simdjson::SUCCESS) {
-      *out = default_value;
-      return false;
-    }
-    if (type != ::simdjson::fallback::ondemand::json_type::boolean) {
+  if (value) {
+    if (bool* bool_value = value->if_bool()) {
+      *out = *bool_value;
+      return true;
+    } else {
+      /*@@@
       reporter->report(Error{span_of_json_value(v)});
+      */
       *out = default_value;
       return true;
     }
-    if (v.get(*out) != ::simdjson::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
-    }
-    return true;
-  }
-
-  default:
-    *out = default_value;
-    return false;
-
-  case ::simdjson::NO_SUCH_FIELD:
+  } else {
     *out = default_value;
     return true;
   }
