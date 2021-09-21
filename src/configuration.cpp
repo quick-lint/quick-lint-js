@@ -26,38 +26,9 @@ source_code_span span_of_json_value(::simdjson::fallback::ondemand::value&);
 configuration::configuration() { this->reset(); }
 
 const global_declared_variable_set& configuration::globals() noexcept {
-  if (this->did_add_globals_from_groups_) {
-    return this->globals_;
+  if (!this->did_add_globals_from_groups_) {
+    this->build_globals_from_groups();
   }
-
-  auto add_globals = [&](const char8* group_globals, bool shadowable,
-                         bool writable) -> void {
-    if (!group_globals) {
-      return;
-    }
-    for (const char8* it = group_globals; *it != '\0';) {
-      string8_view global(it);
-      if (!this->should_remove_global_variable(global)) {
-        this->globals_.add_global_variable(global_declared_variable{
-            .name = global,
-            .is_writable = writable,
-            .is_shadowable = shadowable,
-        });
-      }
-      it += global.size() + 1;
-    }
-  };
-  for (std::size_t i = 0; i < this->enabled_global_groups_.size(); ++i) {
-    bool enabled = this->enabled_global_groups_[i];
-    if (enabled) {
-      const global_group& group = global_groups[i];
-      add_globals(group.globals, true, true);
-      add_globals(group.non_shadowable_globals, false, true);
-      add_globals(group.non_writable_globals, true, false);
-    }
-  }
-
-  this->did_add_globals_from_groups_ = true;
   return this->globals_;
 }
 
@@ -329,6 +300,39 @@ bool configuration::should_remove_global_variable(string8_view name) {
   return std::find(this->globals_to_remove_.begin(),
                    this->globals_to_remove_.end(),
                    name) != this->globals_to_remove_.end();
+}
+
+void configuration::build_globals_from_groups() {
+  QLJS_ASSERT(!this->did_add_globals_from_groups_);
+
+  auto add_globals = [&](const char8* group_globals, bool shadowable,
+                         bool writable) -> void {
+    if (!group_globals) {
+      return;
+    }
+    for (const char8* it = group_globals; *it != '\0';) {
+      string8_view global(it);
+      if (!this->should_remove_global_variable(global)) {
+        this->globals_.add_global_variable(global_declared_variable{
+            .name = global,
+            .is_writable = writable,
+            .is_shadowable = shadowable,
+        });
+      }
+      it += global.size() + 1;
+    }
+  };
+  for (std::size_t i = 0; i < this->enabled_global_groups_.size(); ++i) {
+    bool enabled = this->enabled_global_groups_[i];
+    if (enabled) {
+      const global_group& group = global_groups[i];
+      add_globals(group.globals, true, true);
+      add_globals(group.non_shadowable_globals, false, true);
+      add_globals(group.non_writable_globals, true, false);
+    }
+  }
+
+  this->did_add_globals_from_groups_ = true;
 }
 
 template <class Error>
