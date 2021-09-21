@@ -302,7 +302,7 @@ bool configuration::should_remove_global_variable(string8_view name) {
                    name) != this->globals_to_remove_.end();
 }
 
-void configuration::build_globals_from_groups() {
+[[gnu::noinline]] void configuration::build_globals_from_groups() {
   QLJS_ASSERT(!this->did_add_globals_from_groups_);
 
   auto add_globals = [&](const char8* group_globals, bool shadowable,

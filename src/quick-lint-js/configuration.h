@@ -46,7 +46,7 @@ class configuration {
 
   bool should_remove_global_variable(string8_view name);
 
-  void build_globals_from_groups();
+  [[gnu::noinline]] void build_globals_from_groups();
 
   // Returns false on parse error, and true otherwise.
   template <class Error>
