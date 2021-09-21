@@ -305,13 +305,28 @@ bool configuration::should_remove_global_variable(string8_view name) {
 [[gnu::noinline]] void configuration::build_globals_from_groups() {
   QLJS_ASSERT(!this->did_add_globals_from_groups_);
 
-  auto add_globals = [&](const char8* group_globals, bool shadowable,
-                         bool writable) -> void {
+  auto iterate_globals = [](const char8* globals, auto&& func) -> void {
+    for (const char8* it = globals; *it != '\0';) {
+      string8_view global(it);
+      func(global);
+      it += global.size() + 1;
+    }
+  };
+
+  auto add_globals = [&]([[maybe_unused]] const global_group& group,
+                         const char8* group_globals, bool shadowable,
+                         bool writable,
+                         std::int16_t expected_globals_count) -> void {
     if (!group_globals) {
+      QLJS_ASSERT(expected_globals_count == 0);
       return;
     }
-    for (const char8* it = group_globals; *it != '\0';) {
-      string8_view global(it);
+
+    this->globals_.reserve_more_global_variables(
+        narrow_cast<std::size_t>(expected_globals_count),
+        /*is_shadowable=*/shadowable,
+        /*is_writable=*/writable);
+    iterate_globals(group_globals, [&](string8_view global) {
       if (!this->should_remove_global_variable(global)) {
         this->globals_.add_global_variable(global_declared_variable{
             .name = global,
@@ -319,16 +334,43 @@ bool configuration::should_remove_global_variable(string8_view name) {
             .is_shadowable = shadowable,
         });
       }
-      it += global.size() + 1;
+    });
+
+#if !(defined(NDEBUG) && NDEBUG)
+    int actual_globals_count = 0;
+    iterate_globals(group_globals,
+                    [&](string8_view) { actual_globals_count += 1; });
+    if (actual_globals_count != expected_globals_count) {
+      std::ptrdiff_t group_index = &group - global_groups;
+      // clang-format off
+      const char* prefix =
+          group.globals == group_globals ? "" :
+          group.non_shadowable_globals == group_globals ? "non_shadowable_" :
+          group.non_writable_globals == group_globals ? "non_writable_" :
+          "???";
+      // clang-format on
+      std::fprintf(
+          stderr,
+          "fatal: global_groups (global-variables.cpp) is out of date.\n"
+          "       For global_groups[%zd] (.name=%s),\n"
+          "       .%sglobals contains %d strings, but\n"
+          "       .%sglobals_count is %d.\n",
+          group_index, reinterpret_cast<const char*>(group.name), prefix,
+          actual_globals_count, prefix,
+          narrow_cast<int>(expected_globals_count));
+      QLJS_ASSERT(false);
     }
+#endif
   };
   for (std::size_t i = 0; i < this->enabled_global_groups_.size(); ++i) {
     bool enabled = this->enabled_global_groups_[i];
     if (enabled) {
       const global_group& group = global_groups[i];
-      add_globals(group.globals, true, true);
-      add_globals(group.non_shadowable_globals, false, true);
-      add_globals(group.non_writable_globals, true, false);
+      add_globals(group, group.globals, true, true, group.globals_count);
+      add_globals(group, group.non_shadowable_globals, false, true,
+                  group.non_shadowable_globals_count);
+      add_globals(group, group.non_writable_globals, true, false,
+                  group.non_writable_globals_count);
     }
   }
 
