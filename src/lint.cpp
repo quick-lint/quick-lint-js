@@ -112,6 +112,12 @@ void global_declared_variable_set::add_global_variable(
       .emplace(global_variable.name);
 }
 
+void global_declared_variable_set::reserve_more_global_variables(
+    std::size_t extra_count, bool is_shadowable, bool is_writable) {
+  auto &vars = this->variables_[is_shadowable][is_writable];
+  vars.reserve(vars.size() + extra_count);
+}
+
 std::optional<global_declared_variable> global_declared_variable_set::find(
     identifier name) const noexcept {
   return this->find(name.normalized_name());

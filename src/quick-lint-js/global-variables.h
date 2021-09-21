@@ -4,6 +4,8 @@
 #ifndef QUICK_LINT_JS_GLOBAL_VARIABLES_H
 #define QUICK_LINT_JS_GLOBAL_VARIABLES_H
 
+#include <cstddef>
+#include <cstdint>
 #include <quick-lint-js/char8.h>
 
 namespace quick_lint_js {
@@ -14,6 +16,9 @@ struct global_group {
   const char8 *globals;
   const char8 *non_writable_globals;
   const char8 *non_shadowable_globals;
+  std::int16_t globals_count;
+  std::int16_t non_writable_globals_count;
+  std::int16_t non_shadowable_globals_count;
 };
 extern const global_group global_groups[];
 
