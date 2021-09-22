@@ -1299,7 +1299,8 @@ TEST_F(test_linting_lsp_server,
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"after": true}})");
-  this->server.filesystem_changed();
+  this->server.handler().filesystem_changed();
+  this->server.flush_pending_notifications();
 
   EXPECT_TRUE(after_config_was_loaded);
 
@@ -1604,7 +1605,8 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
         })");
   };
   this->client.messages.clear();
-  this->server.filesystem_changed();
+  this->server.handler().filesystem_changed();
+  this->server.flush_pending_notifications();
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
       << "should have linted twice: once on open, and once after config file "

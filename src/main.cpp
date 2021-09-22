@@ -492,7 +492,7 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-    void on_fs_changed_kevents() { this->endpoint_.filesystem_changed(); }
+    void on_fs_changed_kevents() { this->filesystem_changed(); }
 #endif
 
 #if QLJS_HAVE_INOTIFY
@@ -502,7 +502,7 @@ void run_lsp_server() {
 
     void on_fs_changed_event(const ::pollfd &event) {
       this->fs_.handle_poll_event(event);
-      this->endpoint_.filesystem_changed();
+      this->filesystem_changed();
     }
 #endif
 
@@ -513,10 +513,15 @@ void run_lsp_server() {
       bool fs_changed = this->fs_.handle_event(
           overlapped, number_of_bytes_transferred, error);
       if (fs_changed) {
-        this->endpoint_.filesystem_changed();
+        this->filesystem_changed();
       }
     }
 #endif
+
+    void filesystem_changed() {
+      this->endpoint_.handler().filesystem_changed();
+      this->endpoint_.flush_pending_notifications();
+    }
 
    private:
 #if QLJS_HAVE_KQUEUE

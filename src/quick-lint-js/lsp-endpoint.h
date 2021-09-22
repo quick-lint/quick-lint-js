@@ -75,12 +75,8 @@ class lsp_endpoint
 
   using message_parser::append;
 
+  Handler& handler() noexcept { return this->handler_; }
   Remote& remote() noexcept { return this->remote_; }
-
-  void filesystem_changed() {
-    this->handler_.filesystem_changed();
-    this->flush_pending_notifications();
-  }
 
   void flush_pending_notifications() {
     this->handler_.take_pending_notification_jsons(
