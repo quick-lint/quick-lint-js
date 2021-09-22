@@ -80,10 +80,17 @@ class linting_lsp_server_handler {
 
   void handle_request(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
-  void handle_notification(::simdjson::ondemand::object& request,
-                           std::vector<byte_buffer>& notification_jsons);
+  void handle_notification(::simdjson::ondemand::object& request);
 
-  void filesystem_changed(std::vector<byte_buffer>& notification_jsons);
+  void filesystem_changed();
+
+  template <class Func>
+  void take_pending_notification_jsons(Func&& callback) noexcept {
+    for (byte_buffer& notification_json : this->pending_notification_jsons_) {
+      callback(std::move(notification_json));
+    }
+    this->pending_notification_jsons_.clear();
+  }
 
  private:
   enum class document_type {
@@ -107,18 +114,14 @@ class linting_lsp_server_handler {
                                byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      ::simdjson::ondemand::object& request,
-      std::vector<byte_buffer>& notification_jsons);
+      ::simdjson::ondemand::object& request);
   void handle_text_document_did_close_notification(
-      ::simdjson::ondemand::object& request,
-      std::vector<byte_buffer>& notification_jsons);
+      ::simdjson::ondemand::object& request);
   void handle_text_document_did_open_notification(
-      ::simdjson::ondemand::object& request,
-      std::vector<byte_buffer>& notification_jsons);
+      ::simdjson::ondemand::object& request);
 
   void handle_config_file_changes(
-      const std::vector<configuration_change>& config_changes,
-      std::vector<byte_buffer>& notification_jsons);
+      const std::vector<configuration_change>& config_changes);
 
   void get_config_file_diagnostics_notification(loaded_config_file*,
                                                 string8_view uri_json,
@@ -140,6 +143,7 @@ class linting_lsp_server_handler {
   configuration default_config_;
   Linter linter_;
   std::unordered_map<string8, document> documents_;
+  std::vector<byte_buffer> pending_notification_jsons_;
   bool shutdown_requested_ = false;
 };
 

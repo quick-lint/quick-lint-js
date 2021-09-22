@@ -7,6 +7,7 @@
 
 #include <boost/json/serialize.hpp>
 #include <boost/json/value.hpp>
+#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
@@ -54,10 +55,12 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -90,10 +93,12 @@ TEST(test_lsp_endpoint, batched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -129,11 +134,13 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object& notification) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -155,8 +162,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>& notification_jsons) {
+    void handle_notification(::simdjson::ondemand::object& notification) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
       ::boost::json::value reply = {
@@ -164,9 +170,20 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
           {"method", "testreply"},
           {"params", "testparams"},
       };
-      byte_buffer& notification_json = notification_jsons.emplace_back();
-      notification_json.append_copy(json_to_string(reply));
+      this->pending_notifications.push_back(reply);
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)> callback) noexcept {
+      for (::boost::json::value& reply : this->pending_notifications) {
+        byte_buffer notification_json;
+        notification_json.append_copy(json_to_string(reply));
+        callback(std::move(notification_json));
+      }
+      this->pending_notifications.clear();
+    }
+
+    std::vector< ::boost::json::value> pending_notifications;
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -192,11 +209,13 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object& notification) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       handle_notification_count += 1;
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -220,8 +239,7 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>& notification_jsons) {
+    void handle_notification(::simdjson::ondemand::object& notification) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
 
       ::boost::json::value reply = {
@@ -229,9 +247,20 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
           {"method", "testreply"},
           {"params", "testparams"},
       };
-      byte_buffer& notification_json = notification_jsons.emplace_back();
-      notification_json.append_copy(json_to_string(reply));
+      this->pending_notifications.push_back(reply);
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)> callback) noexcept {
+      for (::boost::json::value& reply : this->pending_notifications) {
+        byte_buffer notification_json;
+        notification_json.append_copy(json_to_string(reply));
+        callback(std::move(notification_json));
+      }
+      this->pending_notifications.clear();
+    }
+
+    std::vector< ::boost::json::value> pending_notifications;
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -257,10 +286,12 @@ TEST(test_lsp_endpoint, malformed_json) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object&) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();

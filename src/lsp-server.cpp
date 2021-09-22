@@ -102,21 +102,17 @@ void linting_lsp_server_handler<Linter>::handle_request(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_notification(
-    ::simdjson::ondemand::object& request,
-    std::vector<byte_buffer>& notification_jsons) {
+    ::simdjson::ondemand::object& request) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
   if (method == "textDocument/didChange") {
-    this->handle_text_document_did_change_notification(request,
-                                                       notification_jsons);
+    this->handle_text_document_did_change_notification(request);
   } else if (method == "textDocument/didOpen") {
-    this->handle_text_document_did_open_notification(request,
-                                                     notification_jsons);
+    this->handle_text_document_did_open_notification(request);
   } else if (method == "textDocument/didClose") {
-    this->handle_text_document_did_close_notification(request,
-                                                      notification_jsons);
+    this->handle_text_document_did_close_notification(request);
   } else if (method == "initialized") {
     // Do nothing.
   } else if (method == "exit") {
@@ -135,11 +131,10 @@ void linting_lsp_server_handler<Linter>::handle_notification(
 }
 
 template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::filesystem_changed(
-    std::vector<byte_buffer>& notification_jsons) {
+void linting_lsp_server_handler<Linter>::filesystem_changed() {
   std::vector<configuration_change> config_changes =
       this->config_loader_.refresh();
-  this->handle_config_file_changes(config_changes, notification_jsons);
+  this->handle_config_file_changes(config_changes);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -175,8 +170,7 @@ void linting_lsp_server_handler<Linter>::handle_shutdown_request(
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_change_notification(
-        ::simdjson::ondemand::object& request,
-        std::vector<byte_buffer>& notification_jsons) {
+        ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -216,7 +210,8 @@ void linting_lsp_server_handler<Linter>::
 
   switch (doc.type) {
   case document_type::lintable: {
-    byte_buffer& notification_json = notification_jsons.emplace_back();
+    byte_buffer& notification_json =
+        this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
         *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
@@ -226,7 +221,7 @@ void linting_lsp_server_handler<Linter>::
   case document_type::config: {
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes, notification_jsons);
+    this->handle_config_file_changes(config_changes);
     break;
   }
 
@@ -239,8 +234,7 @@ void linting_lsp_server_handler<Linter>::
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
-        ::simdjson::ondemand::object& request,
-        std::vector<byte_buffer>& notification_jsons) {
+        ::simdjson::ondemand::object& request) {
   string8_view uri = make_string_view(request["params"]["textDocument"]["uri"]);
   std::string path = parse_file_from_lsp_uri(uri);
   if (path.empty()) {
@@ -255,14 +249,13 @@ void linting_lsp_server_handler<Linter>::
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
 
-  this->filesystem_changed(notification_jsons);
+  this->filesystem_changed();
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_open_notification(
-        ::simdjson::ondemand::object& request,
-        std::vector<byte_buffer>& notification_jsons) {
+        ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -305,7 +298,8 @@ void linting_lsp_server_handler<Linter>::
       if (*config_file) {
         doc.config = &(*config_file)->config;
         if (!(*config_file)->errors.empty()) {
-          byte_buffer& message_json = notification_jsons.emplace_back();
+          byte_buffer& message_json =
+              this->pending_notification_jsons_.emplace_back();
           this->write_configuration_errors_notification(
               document_path, *config_file, message_json);
         }
@@ -314,11 +308,13 @@ void linting_lsp_server_handler<Linter>::
       }
     } else {
       doc.config = &this->default_config_;
-      byte_buffer& message_json = notification_jsons.emplace_back();
+      byte_buffer& message_json =
+          this->pending_notification_jsons_.emplace_back();
       this->write_configuration_loader_error_notification(
           document_path, config_file.error_to_string(), message_json);
     }
-    byte_buffer& notification_json = notification_jsons.emplace_back();
+    byte_buffer& notification_json =
+        this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
         *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
         notification_json);
@@ -329,21 +325,21 @@ void linting_lsp_server_handler<Linter>::
         this->config_loader_.watch_and_load_config_file(document_path,
                                                         /*token=*/&doc);
     QLJS_ASSERT(config_file.ok());
-    byte_buffer& config_diagnostics_json = notification_jsons.emplace_back();
+    byte_buffer& config_diagnostics_json =
+        this->pending_notification_jsons_.emplace_back();
     this->get_config_file_diagnostics_notification(
         *config_file, get_raw_json(uri), doc.version_json,
         config_diagnostics_json);
 
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(config_changes, notification_jsons);
+    this->handle_config_file_changes(config_changes);
   }
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_config_file_changes(
-    const std::vector<configuration_change>& config_changes,
-    std::vector<byte_buffer>& notification_jsons) {
+    const std::vector<configuration_change>& config_changes) {
   for (auto& entry : this->documents_) {
     const string8& document_uri = entry.first;
     document& doc = entry.second;
@@ -363,7 +359,8 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
         QLJS_UNIMPLEMENTED();
       }
       if (change_it->error) {
-        byte_buffer& message_json = notification_jsons.emplace_back();
+        byte_buffer& message_json =
+            this->pending_notification_jsons_.emplace_back();
         this->write_configuration_loader_error_notification(
             document_path,
             std::visit([](const auto& error) { return error.to_string(); },
@@ -374,7 +371,8 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
                                   ? &change_it->config_file->config
                                   : &this->default_config_;
       doc.config = config;
-      byte_buffer& notification_json = notification_jsons.emplace_back();
+      byte_buffer& notification_json =
+          this->pending_notification_jsons_.emplace_back();
       // TODO(strager): Don't copy document_uri if it contains only non-special
       // characters.
       // TODO(strager): Cache the result of to_json_escaped_string?
@@ -395,7 +393,7 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
       QLJS_ASSERT(change_it->config_file);
       if (change_it->config_file) {
         byte_buffer& config_diagnostics_json =
-            notification_jsons.emplace_back();
+            this->pending_notification_jsons_.emplace_back();
         this->get_config_file_diagnostics_notification(
             change_it->config_file,
             to_json_escaped_string_with_quotes(document_uri), doc.version_json,
