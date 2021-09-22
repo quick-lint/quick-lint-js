@@ -172,6 +172,11 @@ class thread_safe_configuration_filesystem : public configuration_filesystem {
     return this->underlying_fs_.clear_watches();
   }
 
+  auto take_watch_errors() {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.take_watch_errors();
+  }
+
  private:
   std::mutex lock_;
   UnderlyingFilesystem underlying_fs_;
@@ -495,6 +500,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       break;
     }
 
+    this->report_pending_watch_io_errors(env);
+
     return doc;
   }
 
@@ -515,6 +522,21 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
               {
                   doc->vscode_document_.Value().uri(),
               });
+  }
+
+  void report_pending_watch_io_errors([[maybe_unused]] ::Napi::Env env) {
+#if QLJS_HAVE_INOTIFY
+    std::vector<watch_io_error> errors =
+        this->fs_change_detection_event_loop_.fs()->take_watch_errors();
+    if (!errors.empty() && !this->did_report_watch_io_error_) {
+      this->vscode_.window_show_warning_message.Value().Call(
+          /*this=*/this->vscode_.window_namespace.Value(),
+          {
+              ::Napi::String::New(env, errors[0].to_string()),
+          });
+      this->did_report_watch_io_error_ = true;
+    }
+#endif
   }
 
  private:
@@ -698,9 +720,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
 #endif
 
-    configuration_filesystem* fs() noexcept { return &this->fs_; }
-
-   private:
     using underlying_fs_type =
 #if QLJS_HAVE_KQUEUE
         change_detecting_filesystem_kqueue
@@ -713,6 +732,11 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 #endif
         ;
 
+    thread_safe_configuration_filesystem<underlying_fs_type>* fs() noexcept {
+      return &this->fs_;
+    }
+
+   private:
     thread_safe_configuration_filesystem<underlying_fs_type> fs_;
     pipe_fds stop_pipe_ = make_pipe();
     qljs_workspace* workspace_;
@@ -725,6 +749,9 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
   std::thread fs_change_detection_thread_;
+#if QLJS_HAVE_INOTIFY
+  bool did_report_watch_io_error_ = false;
+#endif
 
   // See NOTE[workspace-cleanup].
   ::Napi::TypedThreadSafeFunction<void, void,
@@ -748,6 +775,20 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   });
 }
 
+#if QLJS_HAVE_INOTIFY
+::Napi::Value mock_inotify_errors(const ::Napi::CallbackInfo& info) {
+  ::Napi::Env env = info.Env();
+
+  int init_error = narrow_cast<int>(info[0].As<::Napi::Number>().Int32Value());
+  int add_watch_error =
+      narrow_cast<int>(info[1].As<::Napi::Number>().Int32Value());
+  mock_inotify_force_init_error = init_error;
+  mock_inotify_force_add_watch_error = add_watch_error;
+
+  return env.Undefined();
+}
+#endif
+
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   return std::unique_ptr<addon_state>(new addon_state{
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
@@ -762,6 +803,11 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
 
   exports.Set("createWorkspace",
               ::Napi::Function::New(env, create_workspace, "createWorkspace"));
+#if QLJS_HAVE_INOTIFY
+  exports.Set(
+      "mockInotifyErrors",
+      ::Napi::Function::New(env, mock_inotify_errors, "mockInotifyErrors"));
+#endif
   return exports;
 }
 }

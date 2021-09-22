@@ -790,6 +790,92 @@ tests = {
     },
 };
 
+if (os.platform() === "linux") {
+  tests = {
+    ...tests,
+    "Linux: inotify watch error shows pop-up": async ({ addCleanup }) => {
+      let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
+      mockInotifyErrors({
+        addCleanup,
+        addWatchError: os.constants.errno.ENOSPC,
+      });
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "");
+      let jsURI = vscode.Uri.file(jsFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+      await messageMocker.waitUntilAnyMessageAsync();
+      messageMocker.assertAnyWarningMessageMatches(
+        /failed to watch .* for changes/i
+      );
+    },
+
+    "Linux: inotify init error shows pop-up": async ({ addCleanup }) => {
+      let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
+      mockInotifyErrors({ addCleanup, initError: os.constants.errno.EMFILE });
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "");
+      let jsURI = vscode.Uri.file(jsFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+      await messageMocker.waitUntilAnyMessageAsync();
+      // TODO(strager): Improve the message.
+      messageMocker.assertAnyWarningMessageMatches(
+        /failed to watch  for changes/i
+      );
+    },
+
+    "Linux: inotify error only shows pop-up once": async ({ addCleanup }) => {
+      let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
+      mockInotifyErrors({
+        addCleanup,
+        addWatchError: os.constants.errno.ENOSPC,
+      });
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "");
+      let jsURI = vscode.Uri.file(jsFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      await vscode.window.showTextDocument(jsDocument);
+
+      await messageMocker.waitUntilAnyMessageAsync();
+      assert.strictEqual(
+        messageMocker.getWarningMessages().length,
+        1,
+        `Expected exactly one warning message. Got messages: ${messageMocker.getMessagesDebugString()}`
+      );
+      messageMocker.clearRememberedMessages();
+
+      fs.mkdirSync(path.join(scratchDirectory, "dir"));
+      let otherJSFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(otherJSFilePath, "SYNTAX ERROR");
+      let otherJSURI = vscode.Uri.file(otherJSFilePath);
+      let otherJSDocument = await vscode.workspace.openTextDocument(otherJSURI);
+      await vscode.window.showTextDocument(otherJSDocument);
+      await waitUntilAnyDiagnosticsAsync(jsURI);
+
+      assert.deepStrictEqual(
+        messageMocker.getWarningMessages(),
+        [],
+        `Expected no more warning messages. Got messages: ${messageMocker.getMessagesDebugString()}`
+      );
+    },
+  };
+}
+
 for (let testName in tests) {
   let realTestFunction = tests[testName];
   tests[testName] = (fixture) => {
@@ -838,8 +924,20 @@ class VSCodeMessageMocker {
     this._messages = [];
   }
 
+  getMessagesDebugString() {
+    return JSON.stringify(this._messages);
+  }
+
   getErrorMessages() {
     return this._messages.filter((m) => m.method === "showErrorMessage");
+  }
+
+  getWarningMessages() {
+    return this._messages.filter((m) => m.method === "showWarningMessage");
+  }
+
+  clearRememberedMessages() {
+    this._messages.length = 0;
   }
 
   assertNoMessages() {
@@ -850,9 +948,15 @@ class VSCodeMessageMocker {
     assert.strictEqual(
       this.getErrorMessages().some((m) => regExp.test(m.message)),
       true,
-      `Expected message indicating IO error. Got messages: ${JSON.stringify(
-        this._messages
-      )}`
+      `Expected message indicating IO error. Got messages: ${this.getMessagesDebugString()}`
+    );
+  }
+
+  assertAnyWarningMessageMatches(regExp) {
+    assert.strictEqual(
+      this.getWarningMessages().some((m) => regExp.test(m.message)),
+      true,
+      `Expected warning message. Got messages: ${this.getMessagesDebugString()}`
     );
   }
 
@@ -894,6 +998,13 @@ class VSCodeMessageMocker {
       });
     };
   }
+}
+
+function mockInotifyErrors({ addCleanup, addWatchError = 0, initError = 0 }) {
+  qljsExtension.mockInotifyErrors(initError, addWatchError);
+  addCleanup(() => {
+    qljsExtension.mockInotifyErrors(0, 0);
+  });
 }
 
 // Convert an array of vscode.Diagnostic into an array of plain JavaScript

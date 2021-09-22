@@ -138,6 +138,25 @@ void linting_lsp_server_handler<Linter>::filesystem_changed() {
 }
 
 template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::add_watch_io_errors(
+    const std::vector<watch_io_error>& errors) {
+  if (!errors.empty() && !this->did_report_watch_io_error_) {
+    byte_buffer& out_json = this->pending_notification_jsons_.emplace_back();
+    // clang-format off
+    out_json.append_copy(u8R"--({)--"
+      u8R"--("jsonrpc":"2.0",)--"
+      u8R"--("method":"window/showMessage",)--"
+      u8R"--("params":{)--"
+        u8R"--("type":2,)--"
+        u8R"--("message":")--");
+    // clang-format on
+    write_json_escaped_string(out_json, to_string8_view(errors[0].to_string()));
+    out_json.append_copy(u8"\"}}");
+    this->did_report_watch_io_error_ = true;
+  }
+}
+
+template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_initialize_request(
     ::simdjson::ondemand::object& request, byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");

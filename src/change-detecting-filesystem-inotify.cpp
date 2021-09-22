@@ -28,13 +28,44 @@
 #include <vector>
 
 namespace quick_lint_js {
+int mock_inotify_force_init_error = 0;
+int mock_inotify_force_add_watch_error = 0;
+
 namespace {
 std::vector<posix_fd_file> garbage_inotify_fds;
+
+int mockable_inotify_init1(int flags) noexcept {
+  if (mock_inotify_force_init_error != 0) {
+    errno = mock_inotify_force_init_error;
+    return -1;
+  }
+  return ::inotify_init1(flags);
 }
 
-change_detecting_filesystem_inotify::change_detecting_filesystem_inotify()
-    : inotify_fd_(::inotify_init1(IN_CLOEXEC | IN_NONBLOCK)) {
-  QLJS_ASSERT(this->inotify_fd_.valid());
+int mockable_inotify_add_watch(int fd, const char* pathname,
+                               std::uint32_t mask) noexcept {
+  if (mock_inotify_force_add_watch_error != 0) {
+    errno = mock_inotify_force_add_watch_error;
+    return -1;
+  }
+  return ::inotify_add_watch(fd, pathname, mask);
+}
+}
+
+change_detecting_filesystem_inotify::change_detecting_filesystem_inotify() {
+  posix_fd_file inotify_fd(mockable_inotify_init1(IN_CLOEXEC | IN_NONBLOCK));
+  if (inotify_fd.valid()) {
+    this->inotify_fd_ =
+        result<posix_fd_file, posix_file_io_error>(std::move(inotify_fd));
+  } else {
+    posix_file_io_error error{errno};
+    this->inotify_fd_ =
+        result<posix_fd_file, posix_file_io_error>::failure(error);
+    this->watch_errors_.emplace_back(watch_io_error{
+        .path = "",
+        .io_error = error,
+    });
+  }
 }
 
 change_detecting_filesystem_inotify::~change_detecting_filesystem_inotify() {
@@ -45,21 +76,23 @@ change_detecting_filesystem_inotify::~change_detecting_filesystem_inotify() {
   //
   // Work around the slowness by deferring close() but manually clearing the
   // inotify.
-  for (int watch_descriptor : this->watch_descriptors_) {
-    int rc = ::inotify_rm_watch(this->inotify_fd_.get(), watch_descriptor);
-    if (rc == -1) {
-      // HACK(strager): Sometimes, when a directory is deleted, we don't get
-      // IN_IGNORED events. In these cases, inotify_rm_watch fails with EINVAL.
-      // Ignore these errors.
-      QLJS_ASSERT(errno == EINVAL);
+  if (this->inotify_fd_.ok()) {
+    for (int watch_descriptor : this->watch_descriptors_) {
+      int rc = ::inotify_rm_watch(this->inotify_fd_->get(), watch_descriptor);
+      if (rc == -1) {
+        // HACK(strager): Sometimes, when a directory is deleted, we don't get
+        // IN_IGNORED events. In these cases, inotify_rm_watch fails with
+        // EINVAL. Ignore these errors.
+        QLJS_ASSERT(errno == EINVAL);
+      }
     }
-  }
 
-  constexpr std::size_t closes_to_defer = 10;
-  if (garbage_inotify_fds.size() > closes_to_defer) {
-    garbage_inotify_fds.clear();  // Closes each fd.
+    constexpr std::size_t closes_to_defer = 10;
+    if (garbage_inotify_fds.size() > closes_to_defer) {
+      garbage_inotify_fds.clear();  // Closes each fd.
+    }
+    garbage_inotify_fds.push_back(std::move(*this->inotify_fd_));
   }
-  garbage_inotify_fds.push_back(std::move(this->inotify_fd_));
 }
 
 result<canonical_path_result, canonicalize_path_io_error>
@@ -74,8 +107,7 @@ change_detecting_filesystem_inotify::read_file(const canonical_path& path) {
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return result<padded_string, read_file_io_error,
-                  watch_io_error>::failure<watch_io_error>(watch_io_error{
+    this->watch_errors_.emplace_back(watch_io_error{
         .path = std::move(directory).path(),
         .io_error = posix_file_io_error{errno},
     });
@@ -91,9 +123,10 @@ void change_detecting_filesystem_inotify::on_canonicalize_child_of_directory(
     const char* path) {
   bool ok = this->watch_directory(path);
   if (!ok) {
-    // Ignore.
-    std::fprintf(stderr, "warning: failed to watch directory %s: %s\n", path,
-                 std::strerror(errno));
+    this->watch_errors_.emplace_back(watch_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{errno},
+    });
   }
 }
 
@@ -106,9 +139,12 @@ void change_detecting_filesystem_inotify::on_canonicalize_child_of_directory(
 }
 QLJS_WARNING_POP
 
-posix_fd_file_ref
+std::optional<posix_fd_file_ref>
 change_detecting_filesystem_inotify::get_inotify_fd() noexcept {
-  return this->inotify_fd_.ref();
+  if (!this->inotify_fd_.ok()) {
+    return std::nullopt;
+  }
+  return this->inotify_fd_->ref();
 }
 
 void change_detecting_filesystem_inotify::handle_poll_event(
@@ -121,17 +157,26 @@ void change_detecting_filesystem_inotify::handle_poll_event(
   }
 }
 
+std::vector<watch_io_error>
+change_detecting_filesystem_inotify::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
+}
+
 void change_detecting_filesystem_inotify::read_inotify() {
   union inotify_event_buffer {
     ::inotify_event event;
     char buffer[sizeof(::inotify_event) + NAME_MAX + 1];
   };
 
+  if (!this->inotify_fd_.ok()) {
+    return;
+  }
+
   // TODO(strager): Optimize syscall usage by calling read once with a big
   // buffer.
   for (;;) {
     inotify_event_buffer buffer;
-    ssize_t rc = ::read(this->inotify_fd_.get(), &buffer, sizeof(buffer));
+    ssize_t rc = ::read(this->inotify_fd_->get(), &buffer, sizeof(buffer));
     QLJS_ASSERT(rc <= narrow_cast<ssize_t>(sizeof(buffer)));
     if (rc == -1) {
       int error = errno;
@@ -161,10 +206,16 @@ bool change_detecting_filesystem_inotify::watch_directory(
 
 bool change_detecting_filesystem_inotify::watch_directory(
     const char* directory) {
+  if (!this->inotify_fd_.ok()) {
+    // We already reported the error after calling inotify_init1. Don't report
+    // another error.
+    return true;
+  }
+
   int watch_descriptor =
-      ::inotify_add_watch(this->inotify_fd_.get(), directory,
-                          IN_ATTRIB | IN_CLOSE_WRITE | IN_CREATE | IN_DELETE |
-                              IN_MOVED_TO | IN_MOVE_SELF);
+      mockable_inotify_add_watch(this->inotify_fd_->get(), directory,
+                                 IN_ATTRIB | IN_CLOSE_WRITE | IN_CREATE |
+                                     IN_DELETE | IN_MOVED_TO | IN_MOVE_SELF);
   if (watch_descriptor == -1) {
     return false;
   }

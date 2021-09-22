@@ -23,6 +23,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <simdjson.h>
 #include <unordered_map>
+#include <vector>
 
 #if QLJS_HAVE_CXX_CONCEPTS
 #define QLJS_LSP_LINTER ::quick_lint_js::lsp_linter
@@ -92,6 +93,8 @@ class linting_lsp_server_handler {
     this->pending_notification_jsons_.clear();
   }
 
+  void add_watch_io_errors(const std::vector<watch_io_error>&);
+
  private:
   enum class document_type {
     config,    // quick-lint-js.config
@@ -144,6 +147,7 @@ class linting_lsp_server_handler {
   Linter linter_;
   std::unordered_map<string8, document> documents_;
   std::vector<byte_buffer> pending_notification_jsons_;
+  bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
 };
 

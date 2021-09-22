@@ -89,6 +89,12 @@ function logError(error) {
   console.error("[quick-lint-js] error:", message);
 }
 
+// For testing only:
+function mockInotifyErrors(initError, addWatchError) {
+  qljs.mockInotifyErrors(initError, addWatchError);
+}
+exports.mockInotifyErrors = mockInotifyErrors;
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

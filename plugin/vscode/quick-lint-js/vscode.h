@@ -36,6 +36,9 @@ struct vscode_module {
         window_show_text_document(
             ::Napi::Persistent(this->window_namespace.Get("showTextDocument")
                                    .As<::Napi::Function>())),
+        window_show_warning_message(
+            ::Napi::Persistent(this->window_namespace.Get("showWarningMessage")
+                                   .As<::Napi::Function>())),
         workspace_namespace(
             ::Napi::Persistent(module.Get("workspace").As<::Napi::Object>())),
         workspace_open_text_document(
@@ -177,6 +180,8 @@ struct vscode_module {
   ::Napi::FunctionReference window_show_error_message;
   // vscode.window.showTextDocument
   ::Napi::FunctionReference window_show_text_document;
+  // vscode.window.showWarningMessage
+  ::Napi::FunctionReference window_show_warning_message;
 
   // vscode.workspace
   ::Napi::ObjectReference workspace_namespace;

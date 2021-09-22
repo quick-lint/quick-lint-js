@@ -1910,6 +1910,58 @@ TEST_F(test_linting_lsp_server,
   EXPECT_THAT(this->lint_calls, IsEmpty());
 }
 
+TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
+  this->server.handler().add_watch_io_errors(std::vector<watch_io_error>{
+      watch_io_error{
+          .path = "/banana",
+          .io_error = generic_file_io_error,
+      },
+      watch_io_error{
+          .path = "/orange",
+          .io_error = generic_file_io_error,
+      },
+  });
+  this->server.flush_pending_notifications();
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::boost::json::value show_message_message = this->client.messages[0];
+  EXPECT_EQ(look_up(show_message_message, "method"), "window/showMessage");
+  EXPECT_EQ(look_up(show_message_message, "params", "type"),
+            lsp_warning_message_type);
+  ::boost::json::string message =
+      look_up(show_message_message, "params", "message").as_string();
+  EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
+  EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
+}
+
+TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
+  this->server.handler().add_watch_io_errors(std::vector<watch_io_error>{
+      watch_io_error{
+          .path = "/banana",
+          .io_error = generic_file_io_error,
+      },
+  });
+  this->server.flush_pending_notifications();
+  // Separate call to add_watch_io_errors:
+  this->server.handler().add_watch_io_errors(std::vector<watch_io_error>{
+      watch_io_error{
+          .path = "/orange",
+          .io_error = generic_file_io_error,
+      },
+  });
+  this->server.flush_pending_notifications();
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::boost::json::value show_message_message = this->client.messages[0];
+  ::boost::json::string message =
+      look_up(show_message_message, "params", "message").as_string();
+  EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
+  EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
+}
+
+// TODO(strager): Per the LSP specification, lsp_server should not send messages
+// for a watch_io_error before LSP initialization completes.
+
 TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   padded_string code(u8"let x = x;"_sv);
   byte_buffer notification_json_buffer;

@@ -279,6 +279,8 @@ std::string posix_fd_file_ref::get_last_error_message() {
   return std::strerror(errno);
 }
 
+posix_fd_file::posix_fd_file() noexcept = default;
+
 posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {}
 
 posix_fd_file::posix_fd_file(posix_fd_file &&other) noexcept

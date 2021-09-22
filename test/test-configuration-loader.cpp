@@ -24,6 +24,7 @@
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/filesystem-test.h>
+#include <quick-lint-js/mock-inotify.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -171,6 +172,15 @@ class change_detecting_configuration_loader {
 #endif
     return this->loader_.unwatch_file(std::forward<Args>(args)...);
   }
+
+#if QLJS_HAVE_INOTIFY
+  auto fs_take_watch_errors() {
+#if defined(_WIN32)
+    std::lock_guard<std::mutex> lock(this->mutex_);
+#endif
+    return this->fs_.take_watch_errors();
+  }
+#endif
 
   std::vector<configuration_change> detect_changes_and_refresh();
 
@@ -2356,6 +2366,56 @@ TEST_F(test_configuration_loader,
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
 
+#if QLJS_HAVE_INOTIFY
+TEST_F(test_configuration_loader,
+       inotify_init_failure_is_reported_out_of_band) {
+  mock_inotify_init_error_guard guard(EMFILE);
+
+  std::string project_dir = this->make_temporary_directory();
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file(config_file, u8"{}");
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  std::vector<watch_io_error> errors = loader.fs_take_watch_errors();
+  ASSERT_THAT(errors, ElementsAre(::testing::_));
+  const watch_io_error& error = errors[0];
+  EXPECT_EQ(error.io_error.error, EMFILE) << error.to_string();
+  EXPECT_EQ(error.path, "") << "init error should have an empty path\n"
+                            << error.to_string();
+}
+
+TEST_F(test_configuration_loader,
+       inotify_watch_failure_is_reported_out_of_band) {
+  mock_inotify_add_watch_error_guard guard(ENOSPC);
+
+  std::string project_dir = this->make_temporary_directory();
+  create_directory(project_dir + "/subdir");
+  std::string config_file = project_dir + "/subdir/quick-lint-js.config";
+  write_file(config_file, u8"{}");
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  std::vector<watch_io_error> errors = loader.fs_take_watch_errors();
+  std::vector<std::string> error_paths;
+  for (watch_io_error& error : errors) {
+    EXPECT_EQ(error.io_error.error, ENOSPC) << error.to_string();
+    error_paths.push_back(error.path);
+  }
+  EXPECT_THAT(error_paths,
+              ::testing::IsSupersetOf({
+                  canonicalize_path(project_dir)->canonical(),
+                  canonicalize_path(project_dir + "/subdir")->canonical(),
+              }));
+}
+#endif
+
 TEST(test_configuration_loader_fake,
      file_with_no_config_file_gets_default_config) {
   fake_configuration_filesystem fs;
@@ -2468,7 +2528,7 @@ change_detecting_configuration_loader::detect_changes_and_refresh() {
 bool change_detecting_configuration_loader::detect_changes() {
 #if QLJS_HAVE_INOTIFY
   std::vector<::pollfd> pollfds{::pollfd{
-      .fd = this->fs_.get_inotify_fd().get(),
+      .fd = this->fs_.get_inotify_fd().value().get(),
       .events = POLLIN,
       .revents = 0,
   }};

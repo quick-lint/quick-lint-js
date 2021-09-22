@@ -469,11 +469,17 @@ void run_lsp_server() {
           input_pipe_(input_pipe),
           endpoint_(std::forward_as_tuple(&this->fs_),
                     std::forward_as_tuple(output_pipe)) {
+      this->report_pending_watch_io_errors();
     }
 
     platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
 
-    void append(string8_view data) { this->endpoint_.append(data); }
+    void append(string8_view data) {
+      this->endpoint_.append(data);
+      // TODO(strager): Only call report_pending_watch_io_errors after
+      // processing a full message.
+      this->report_pending_watch_io_errors();
+    }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
     std::optional<posix_fd_file_ref> get_pipe_write_fd() {
@@ -521,6 +527,14 @@ void run_lsp_server() {
     void filesystem_changed() {
       this->endpoint_.handler().filesystem_changed();
       this->endpoint_.flush_pending_notifications();
+    }
+
+    void report_pending_watch_io_errors() {
+#if QLJS_HAVE_INOTIFY
+      this->endpoint_.handler().add_watch_io_errors(
+          this->fs_.take_watch_errors());
+      this->endpoint_.flush_pending_notifications();
+#endif
     }
 
    private:

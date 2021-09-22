@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 
 #include <memory>
+#include <optional>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
@@ -36,6 +37,10 @@ namespace quick_lint_js {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 #if QLJS_HAVE_INOTIFY
+// For testing only:
+extern int mock_inotify_force_init_error;
+extern int mock_inotify_force_add_watch_error;
+
 // Not thread-safe.
 class change_detecting_filesystem_inotify : public configuration_filesystem,
                                             public canonicalize_observer {
@@ -51,8 +56,10 @@ class change_detecting_filesystem_inotify : public configuration_filesystem,
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
-  posix_fd_file_ref get_inotify_fd() noexcept;
+  std::optional<posix_fd_file_ref> get_inotify_fd() noexcept;
   void handle_poll_event(const ::pollfd& event);
+
+  std::vector<watch_io_error> take_watch_errors();
 
  private:
   // Sets errno and returns false on failure.
@@ -62,7 +69,8 @@ class change_detecting_filesystem_inotify : public configuration_filesystem,
   void read_inotify();
 
   std::vector<int> watch_descriptors_;
-  posix_fd_file inotify_fd_;
+  std::vector<watch_io_error> watch_errors_;
+  result<posix_fd_file, posix_file_io_error> inotify_fd_;
 };
 #endif
 
