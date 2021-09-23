@@ -95,6 +95,12 @@ function mockInotifyErrors(initError, addWatchError) {
 }
 exports.mockInotifyErrors = mockInotifyErrors;
 
+// For testing only:
+function mockKqueueErrors(directoryOpenError) {
+  qljs.mockKqueueErrors(directoryOpenError);
+}
+exports.mockKqueueErrors = mockKqueueErrors;
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

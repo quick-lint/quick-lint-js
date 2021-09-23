@@ -834,13 +834,55 @@ if (os.platform() === "linux") {
         /failed to watch  for changes/i
       );
     },
+  };
+}
 
-    "Linux: inotify error only shows pop-up once": async ({ addCleanup }) => {
+if (os.platform() === "darwin") {
+  tests = {
+    ...tests,
+    "BSD: directory watch error shows pop-up": async ({ addCleanup }) => {
       let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
-      mockInotifyErrors({
+      mockKqueueErrors({
         addCleanup,
-        addWatchError: os.constants.errno.ENOSPC,
+        directoryOpenError: os.constants.errno.EMFILE,
       });
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let jsFilePath = path.join(scratchDirectory, "hello.js");
+      fs.writeFileSync(jsFilePath, "");
+      let jsURI = vscode.Uri.file(jsFilePath);
+
+      await loadExtensionAsync({ addCleanup });
+      let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+      let jsEditor = await vscode.window.showTextDocument(jsDocument);
+
+      await messageMocker.waitUntilAnyMessageAsync();
+      messageMocker.assertAnyWarningMessageMatches(
+        /failed to watch .* for changes/i
+      );
+    },
+  };
+}
+
+if (["darwin", "linux"].includes(os.platform())) {
+  tests = {
+    ...tests,
+    "watch error only shows pop-up once": async ({ addCleanup }) => {
+      let messageMocker = VSCodeMessageMocker.mock({ addCleanup });
+      switch (os.platform()) {
+        case "darwin":
+          mockKqueueErrors({
+            addCleanup,
+            directoryOpenError: os.constants.errno.EMFILE,
+          });
+          break;
+        case "linux":
+          mockInotifyErrors({
+            addCleanup,
+            addWatchError: os.constants.errno.ENOSPC,
+          });
+          break;
+      }
 
       let scratchDirectory = makeScratchDirectory({ addCleanup });
       let jsFilePath = path.join(scratchDirectory, "hello.js");
@@ -1004,6 +1046,13 @@ function mockInotifyErrors({ addCleanup, addWatchError = 0, initError = 0 }) {
   qljsExtension.mockInotifyErrors(initError, addWatchError);
   addCleanup(() => {
     qljsExtension.mockInotifyErrors(0, 0);
+  });
+}
+
+function mockKqueueErrors({ addCleanup, directoryOpenError = 0 }) {
+  qljsExtension.mockKqueueErrors(directoryOpenError);
+  addCleanup(() => {
+    qljsExtension.mockKqueueErrors(0);
   });
 }
 

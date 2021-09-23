@@ -29,6 +29,18 @@
 #include <vector>
 
 namespace quick_lint_js {
+int mock_kqueue_force_directory_open_error = 0;
+
+namespace {
+int mockable_directory_open(const char* path, int flags) {
+  if (mock_kqueue_force_directory_open_error) {
+    errno = mock_kqueue_force_directory_open_error;
+    return -1;
+  }
+  return ::open(path, flags);
+}
+}
+
 change_detecting_filesystem_kqueue::change_detecting_filesystem_kqueue(
     posix_fd_file_ref kqueue_fd, void* udata)
     : kqueue_fd_(kqueue_fd), udata_(udata) {}
@@ -49,11 +61,14 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return result<padded_string, read_file_io_error, watch_io_error>::failure<
-        read_file_io_error>(read_file_io_error{
+    this->watch_errors_.emplace_back(watch_io_error{
         .path = std::move(directory).path(),
         .io_error = posix_file_io_error{errno},
     });
+    // FIXME(strager): Recovering now is probably pointless. If watch_directory
+    // failed because open() returned EMFILE, then the following open() call is
+    // going to fail too. We should probably clean up open watches to make room
+    // for more file descriptors.
   }
 
   // TODO(strager): Use openat. watch_directory opened a directory fd.
@@ -77,10 +92,16 @@ void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
     const char* path) {
   bool ok = this->watch_directory(canonical_path(path));
   if (!ok) {
-    // Ignore.
-    std::fprintf(stderr, "warning: failed to watch directory %s: %s\n", path,
-                 std::strerror(errno));
+    this->watch_errors_.emplace_back(watch_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{errno},
+    });
   }
+}
+
+std::vector<watch_io_error>
+change_detecting_filesystem_kqueue::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
 }
 
 void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
@@ -91,7 +112,8 @@ void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
 
 bool change_detecting_filesystem_kqueue::watch_directory(
     const canonical_path& directory) {
-  posix_fd_file dir(::open(directory.c_str(), O_RDONLY | O_EVTONLY));
+  posix_fd_file dir(
+      mockable_directory_open(directory.c_str(), O_RDONLY | O_EVTONLY));
   if (!dir.valid()) {
     return false;
   }

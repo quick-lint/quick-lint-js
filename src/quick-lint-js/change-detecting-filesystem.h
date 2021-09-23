@@ -75,6 +75,9 @@ class change_detecting_filesystem_inotify : public configuration_filesystem,
 #endif
 
 #if QLJS_HAVE_KQUEUE
+// For testing only:
+extern int mock_kqueue_force_directory_open_error;
+
 // Not thread-safe.
 class change_detecting_filesystem_kqueue : public configuration_filesystem,
                                            canonicalize_observer {
@@ -92,6 +95,8 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
+
+  std::vector<watch_io_error> take_watch_errors();
 
  private:
   struct file_id {
@@ -122,6 +127,7 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
   void* udata_;
 
   std::unordered_map<canonical_path, watched_file> watched_files_;
+  std::vector<watch_io_error> watch_errors_;
 };
 #endif
 

@@ -25,6 +25,7 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/mock-inotify.h>
+#include <quick-lint-js/mock-kqueue.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -173,7 +174,7 @@ class change_detecting_configuration_loader {
     return this->loader_.unwatch_file(std::forward<Args>(args)...);
   }
 
-#if QLJS_HAVE_INOTIFY
+#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
   auto fs_take_watch_errors() {
 #if defined(_WIN32)
     std::lock_guard<std::mutex> lock(this->mutex_);
@@ -2406,6 +2407,35 @@ TEST_F(test_configuration_loader,
   std::vector<std::string> error_paths;
   for (watch_io_error& error : errors) {
     EXPECT_EQ(error.io_error.error, ENOSPC) << error.to_string();
+    error_paths.push_back(error.path);
+  }
+  EXPECT_THAT(error_paths,
+              ::testing::IsSupersetOf({
+                  canonicalize_path(project_dir)->canonical(),
+                  canonicalize_path(project_dir + "/subdir")->canonical(),
+              }));
+}
+#endif
+
+#if QLJS_HAVE_KQUEUE
+TEST_F(test_configuration_loader,
+       kqueue_directory_open_failure_is_reported_out_of_band) {
+  mock_kqueue_directory_open_error_guard guard(EMFILE);
+
+  std::string project_dir = this->make_temporary_directory();
+  create_directory(project_dir + "/subdir");
+  std::string config_file = project_dir + "/subdir/quick-lint-js.config";
+  write_file(config_file, u8"{}");
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config =
+      loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+  std::vector<watch_io_error> errors = loader.fs_take_watch_errors();
+  std::vector<std::string> error_paths;
+  for (watch_io_error& error : errors) {
+    EXPECT_EQ(error.io_error.error, EMFILE) << error.to_string();
     error_paths.push_back(error.path);
   }
   EXPECT_THAT(error_paths,

@@ -530,7 +530,7 @@ void run_lsp_server() {
     }
 
     void report_pending_watch_io_errors() {
-#if QLJS_HAVE_INOTIFY
+#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
       this->endpoint_.handler().add_watch_io_errors(
           this->fs_.take_watch_errors());
       this->endpoint_.flush_pending_notifications();

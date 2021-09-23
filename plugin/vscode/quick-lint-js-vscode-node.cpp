@@ -525,7 +525,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   }
 
   void report_pending_watch_io_errors([[maybe_unused]] ::Napi::Env env) {
-#if QLJS_HAVE_INOTIFY
+#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
     std::vector<watch_io_error> errors =
         this->fs_change_detection_event_loop_.fs()->take_watch_errors();
     if (!errors.empty() && !this->did_report_watch_io_error_) {
@@ -749,7 +749,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
   std::thread fs_change_detection_thread_;
-#if QLJS_HAVE_INOTIFY
+#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
   bool did_report_watch_io_error_ = false;
 #endif
 
@@ -789,6 +789,18 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 }
 #endif
 
+#if QLJS_HAVE_KQUEUE
+::Napi::Value mock_kqueue_errors(const ::Napi::CallbackInfo& info) {
+  ::Napi::Env env = info.Env();
+
+  int directory_open_error =
+      narrow_cast<int>(info[0].As<::Napi::Number>().Int32Value());
+  mock_kqueue_force_directory_open_error = directory_open_error;
+
+  return env.Undefined();
+}
+#endif
+
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   return std::unique_ptr<addon_state>(new addon_state{
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
@@ -807,6 +819,10 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   exports.Set(
       "mockInotifyErrors",
       ::Napi::Function::New(env, mock_inotify_errors, "mockInotifyErrors"));
+#endif
+#if QLJS_HAVE_KQUEUE
+  exports.Set("mockKqueueErrors", ::Napi::Function::New(env, mock_kqueue_errors,
+                                                        "mockKqueueErrors"));
 #endif
   return exports;
 }
