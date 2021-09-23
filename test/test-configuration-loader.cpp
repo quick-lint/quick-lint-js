@@ -26,6 +26,7 @@
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/mock-inotify.h>
 #include <quick-lint-js/mock-kqueue.h>
+#include <quick-lint-js/mock-win32.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -174,14 +175,12 @@ class change_detecting_configuration_loader {
     return this->loader_.unwatch_file(std::forward<Args>(args)...);
   }
 
-#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
   auto fs_take_watch_errors() {
 #if defined(_WIN32)
     std::lock_guard<std::mutex> lock(this->mutex_);
 #endif
     return this->fs_.take_watch_errors();
   }
-#endif
 
   std::vector<configuration_change> detect_changes_and_refresh();
 
@@ -2443,6 +2442,45 @@ TEST_F(test_configuration_loader,
                   canonicalize_path(project_dir)->canonical(),
                   canonicalize_path(project_dir + "/subdir")->canonical(),
               }));
+}
+#endif
+
+#if defined(_WIN32)
+TEST_F(test_configuration_loader,
+       win32_directory_oplock_ioctl_failure_is_reported_out_of_band) {
+  for (auto [mocked_function_description, error_to_mock, mock_error] : {
+           std::make_tuple("open", &mock_win32_force_directory_file_id_error,
+                           ERROR_FILE_NOT_FOUND),
+           // For directories on SMB-mounted drives,
+           // GetFileInformationByHandleEx fails with ERROR_INVALID_PARAMETER.
+           std::make_tuple("file id", &mock_win32_force_directory_file_id_error,
+                           ERROR_INVALID_PARAMETER),
+           // For directories on SMB-mounted drives, DeviceIoControl with
+           // FSCTL_REQUEST_OPLOCK fails with ERROR_INVALID_FUNCTION.
+           std::make_tuple("ioctl", &mock_win32_force_directory_ioctl_error,
+                           ERROR_INVALID_FUNCTION),
+       }) {
+    SCOPED_TRACE(mocked_function_description);
+    mock_win32_watch_error_guard guard(error_to_mock, mock_error);
+
+    std::string project_dir = this->make_temporary_directory();
+    std::string config_file = project_dir + "/quick-lint-js.config";
+    write_file(config_file, u8"{}");
+
+    change_detecting_configuration_loader loader;
+    auto loaded_config =
+        loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
+    EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+
+    std::vector<watch_io_error> errors = loader.fs_take_watch_errors();
+    std::vector<std::string> error_paths;
+    for (watch_io_error& error : errors) {
+      EXPECT_EQ(error.io_error.error, mock_error) << error.to_string();
+      error_paths.push_back(error.path);
+    }
+    EXPECT_THAT(error_paths, ::testing::Contains(
+                                 canonicalize_path(project_dir)->canonical()));
+  }
 }
 #endif
 

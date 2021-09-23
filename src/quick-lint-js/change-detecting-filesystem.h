@@ -132,6 +132,11 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
 #endif
 
 #if defined(_WIN32)
+// For testing only:
+extern ::DWORD mock_win32_force_directory_open_error;
+extern ::DWORD mock_win32_force_directory_file_id_error;
+extern ::DWORD mock_win32_force_directory_ioctl_error;
+
 // Not thread-safe.
 class change_detecting_filesystem_win32 : public configuration_filesystem {
  public:
@@ -154,6 +159,8 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
                     ::DWORD error);
 
   void clear_watches();
+
+  std::vector<watch_io_error> take_watch_errors();
 
  private:
   struct watched_directory {
@@ -192,6 +199,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
       watched_directories_;
   std::vector<std::unique_ptr<watched_directory>>
       cancelling_watched_directories_;
+  std::vector<watch_io_error> watch_errors_;
 };
 #endif
 QLJS_WARNING_POP

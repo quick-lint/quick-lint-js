@@ -48,7 +48,36 @@ void swap_erase(Vector& v, Iterator it_to_remove) {
   std::swap(*it_to_remove, v.back());
   v.pop_back();
 }
+
+::BOOL WINAPI mockable_GetFileInformationByHandleEx(
+    ::HANDLE hFile, ::FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+    ::LPVOID lpFileInformation, ::DWORD dwBufferSize) {
+  if (mock_win32_force_directory_file_id_error != ERROR_SUCCESS) {
+    ::SetLastError(mock_win32_force_directory_file_id_error);
+    return FALSE;
+  }
+  return ::GetFileInformationByHandleEx(hFile, FileInformationClass,
+                                        lpFileInformation, dwBufferSize);
 }
+
+::BOOL mockable_DeviceIoControl(::HANDLE hDevice, ::DWORD dwIoControlCode,
+                                ::LPVOID lpInBuffer, ::DWORD nInBufferSize,
+                                ::LPVOID lpOutBuffer, ::DWORD nOutBufferSize,
+                                ::LPDWORD lpBytesReturned,
+                                ::LPOVERLAPPED lpOverlapped) {
+  if (mock_win32_force_directory_ioctl_error != ERROR_SUCCESS) {
+    ::SetLastError(mock_win32_force_directory_ioctl_error);
+    return FALSE;
+  }
+  return ::DeviceIoControl(hDevice, dwIoControlCode, lpInBuffer, nInBufferSize,
+                           lpOutBuffer, nOutBufferSize, lpBytesReturned,
+                           lpOverlapped);
+}
+}
+
+::DWORD mock_win32_force_directory_open_error = ERROR_SUCCESS;
+::DWORD mock_win32_force_directory_file_id_error = ERROR_SUCCESS;
+::DWORD mock_win32_force_directory_ioctl_error = ERROR_SUCCESS;
 
 // change_detecting_filesystem_win32 implements directory and file change
 // notifications using a little-known feature called oplocks.
@@ -92,8 +121,7 @@ change_detecting_filesystem_win32::read_file(const canonical_path& path) {
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return result<padded_string, read_file_io_error,
-                  watch_io_error>::failure<watch_io_error>(watch_io_error{
+    this->watch_errors_.emplace_back(watch_io_error{
         .path = std::move(directory).path(),
         .io_error = windows_file_io_error{::GetLastError()},
     });
@@ -134,6 +162,11 @@ void change_detecting_filesystem_win32::clear_watches() {
   }
 }
 
+std::vector<watch_io_error>
+change_detecting_filesystem_win32::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
+}
+
 void change_detecting_filesystem_win32::cancel_watch(
     std::unique_ptr<watched_directory>&& dir) {
   BOOL ok = ::CancelIoEx(dir->directory_handle.get(), nullptr);
@@ -167,9 +200,12 @@ bool change_detecting_filesystem_win32::watch_directory(
     return false;
   }
   FILE_ID_INFO directory_id;
-  if (!::GetFileInformationByHandleEx(directory_handle.get(), ::FileIdInfo,
-                                      &directory_id, sizeof(directory_id))) {
-    QLJS_UNIMPLEMENTED();
+  if (!mockable_GetFileInformationByHandleEx(directory_handle.get(),
+                                             ::FileIdInfo, &directory_id,
+                                             sizeof(directory_id))) {
+    // FIXME(strager): Should we close the directory handle? Should we continue
+    // to acquire an oplock anyway?
+    return false;
   }
 
   std::unique_ptr<watched_directory> new_dir =
@@ -204,14 +240,15 @@ bool change_detecting_filesystem_win32::watch_directory(
           OPLOCK_LEVEL_CACHE_READ | OPLOCK_LEVEL_CACHE_HANDLE,
       .Flags = REQUEST_OPLOCK_INPUT_FLAG_REQUEST,
   };
-  BOOL ok = ::DeviceIoControl(/*hDevice=*/dir->directory_handle.get(),
-                              /*dwIoControlCode=*/FSCTL_REQUEST_OPLOCK,
-                              /*lpInBuffer=*/&request,
-                              /*nInBufferSize=*/sizeof(request),
-                              /*lpOutBuffer=*/&dir->oplock_response,
-                              /*nOutBufferSize=*/sizeof(dir->oplock_response),
-                              /*lpBytesReturned=*/nullptr,
-                              /*lpOverlapped=*/&dir->oplock_overlapped);
+  BOOL ok =
+      mockable_DeviceIoControl(/*hDevice=*/dir->directory_handle.get(),
+                               /*dwIoControlCode=*/FSCTL_REQUEST_OPLOCK,
+                               /*lpInBuffer=*/&request,
+                               /*nInBufferSize=*/sizeof(request),
+                               /*lpOutBuffer=*/&dir->oplock_response,
+                               /*nOutBufferSize=*/sizeof(dir->oplock_response),
+                               /*lpBytesReturned=*/nullptr,
+                               /*lpOverlapped=*/&dir->oplock_overlapped);
   if (ok) {
     // TODO(strager): Can this happen? I assume if this happens, the oplock was
     // immediately broken.
@@ -221,7 +258,8 @@ bool change_detecting_filesystem_win32::watch_directory(
     if (error == ERROR_IO_PENDING) {
       // run_io_thread will handle the oplock breaking.
     } else {
-      QLJS_UNIMPLEMENTED();
+      // FIXME(strager): Should we close the directory handle?
+      return false;
     }
   }
 

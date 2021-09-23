@@ -16,6 +16,8 @@ quick_lint_js_add_executable(
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/mock-inotify.h
+  quick-lint-js/mock-kqueue.h
+  quick-lint-js/mock-win32.h
   quick-lint-js/parse-json.h
   quick-lint-js/parse-support.h
   quick-lint-js/spy-lsp-endpoint-remote.h

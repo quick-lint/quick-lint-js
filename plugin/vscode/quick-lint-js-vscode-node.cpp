@@ -524,8 +524,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
               });
   }
 
-  void report_pending_watch_io_errors([[maybe_unused]] ::Napi::Env env) {
-#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
+  void report_pending_watch_io_errors(::Napi::Env env) {
     std::vector<watch_io_error> errors =
         this->fs_change_detection_event_loop_.fs()->take_watch_errors();
     if (!errors.empty() && !this->did_report_watch_io_error_) {
@@ -536,7 +535,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
           });
       this->did_report_watch_io_error_ = true;
     }
-#endif
   }
 
  private:
@@ -749,9 +747,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
   std::thread fs_change_detection_thread_;
-#if QLJS_HAVE_INOTIFY || QLJS_HAVE_KQUEUE
   bool did_report_watch_io_error_ = false;
-#endif
 
   // See NOTE[workspace-cleanup].
   ::Napi::TypedThreadSafeFunction<void, void,
