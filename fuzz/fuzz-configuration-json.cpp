@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/padded-string.h>
 
 extern "C" {
@@ -13,7 +14,7 @@ int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
 
   padded_string json(string8(reinterpret_cast<const char8 *>(data), size));
   configuration c;
-  c.load_from_json(&json);
+  c.load_from_json(&json, &null_error_reporter::instance);
 
   return 0;
 }
