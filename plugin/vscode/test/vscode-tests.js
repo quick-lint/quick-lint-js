@@ -860,12 +860,12 @@ if (os.platform() === "linux") {
       messageMocker.clearRememberedMessages();
 
       fs.mkdirSync(path.join(scratchDirectory, "dir"));
-      let otherJSFilePath = path.join(scratchDirectory, "hello.js");
+      let otherJSFilePath = path.join(scratchDirectory, "other.js");
       fs.writeFileSync(otherJSFilePath, "SYNTAX ERROR");
       let otherJSURI = vscode.Uri.file(otherJSFilePath);
       let otherJSDocument = await vscode.workspace.openTextDocument(otherJSURI);
       await vscode.window.showTextDocument(otherJSDocument);
-      await waitUntilAnyDiagnosticsAsync(jsURI);
+      await waitUntilAnyDiagnosticsAsync(otherJSURI);
 
       assert.deepStrictEqual(
         messageMocker.getWarningMessages(),
