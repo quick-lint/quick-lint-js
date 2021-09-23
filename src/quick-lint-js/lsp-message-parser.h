@@ -25,7 +25,9 @@ class lsp_message_parser_base {
   struct parsed_header {
     string8_view name;
     string8_view value;
-    const char8* next;
+
+    // Data after the parsed header. Either a new header or \r\n.
+    string8_view remaining;
   };
 
   const char8* find_content_begin(const char8* headers_begin);

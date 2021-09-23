@@ -33,12 +33,10 @@ const char8* lsp_message_parser_base::find_content_begin(
 
 lsp_message_parser_base::parsed_message_headers
 lsp_message_parser_base::parse_message_headers(string8_view headers) {
-  const char8* buffer_end = headers.data() + headers.size();
   std::optional<std::size_t> content_length;
-  for (const char8* c = headers.data();;) {
-    parsed_header header =
-        parse_header(string8_view(c, narrow_cast<std::size_t>(buffer_end - c)));
-    c = header.next;
+  for (;;) {
+    parsed_header header = parse_header(headers);
+    headers = header.remaining;
 
     if (header_is(header.name, u8"content-length")) {
       const char8* header_value_end = &header.value.data()[header.value.size()];
@@ -97,19 +95,22 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
   std::size_t header_value_index = data.find_first_not_of(ows);
   QLJS_ASSERT(header_value_index != data.npos);  // We expect at least \r\n.
   data = data.substr(header_value_index);
+
   const char8* header_value_begin = data.data();
   auto header_terminator_begin =
       std::search(data.begin(), data.end(), crlf, crlf + strlen(crlf));
   QLJS_ASSERT(header_terminator_begin != data.end());
   const char8* header_value_end = &*header_terminator_begin;
+  string8_view header_value(
+      header_value_begin,
+      narrow_cast<std::size_t>(header_value_end - header_value_begin));
   // TODO(strager): Trim trailing whitespace.
+  data = data.substr(header_value.size() + strlen(crlf));
 
   return parsed_header{
       .name = header_name,
-      .value = string8_view(
-          header_value_begin,
-          narrow_cast<std::size_t>(header_value_end - header_value_begin)),
-      .next = header_value_end + strlen(crlf),
+      .value = header_value,
+      .remaining = data,
   };
 }
 
