@@ -32,10 +32,12 @@ const char8* lsp_message_parser_base::find_content_begin(
 }
 
 lsp_message_parser_base::parsed_message_headers
-lsp_message_parser_base::parse_message_headers(const char8* headers_begin) {
+lsp_message_parser_base::parse_message_headers(string8_view headers) {
+  const char8* buffer_end = headers.data() + headers.size();
   std::optional<std::size_t> content_length;
-  for (const char8* c = headers_begin;;) {
-    parsed_header header = parse_header(c);
+  for (const char8* c = headers.data();;) {
+    parsed_header header =
+        parse_header(string8_view(c, narrow_cast<std::size_t>(buffer_end - c)));
     c = header.next;
 
     if (header_is(header.name, u8"content-length")) {
@@ -63,7 +65,7 @@ lsp_message_parser_base::parse_message_headers(const char8* headers_begin) {
 }
 
 lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
-    const char8* c) {
+    string8_view data) {
   // tchar: https://tools.ietf.org/html/rfc7230#section-3.2
   // ALPHA and DIGIT: https://tools.ietf.org/html/rfc5234#appendix-B.1
   static constexpr const char8 tchar[] =
@@ -78,22 +80,28 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
   // OWS: https://tools.ietf.org/html/rfc7230#section-3.2.3
   static constexpr const char8 ows[] = u8" \t";
 
-  string8_view header_name(c, strspn(c, tchar));
-  c += header_name.size();
+  std::size_t header_name_end_index = data.find_first_not_of(tchar);
+  QLJS_ASSERT(header_name_end_index != data.npos);  // We expect at least \r\n.
+  string8_view header_name = data.substr(0, header_name_end_index);
+  data = data.substr(header_name_end_index);
   if (header_name.empty()) {
     QLJS_UNIMPLEMENTED();
   }
 
-  if (*c != u8':') {
+  QLJS_ASSERT(!data.empty());
+  if (data[0] != u8':') {
     QLJS_UNIMPLEMENTED();
   }
-  c += 1;
+  data = data.substr(1);
 
-  c += strspn(c, ows);
-  const char8* header_value_begin = c;
-  const char8* header_terminator_begin = strstr(c, crlf);
-  QLJS_ASSERT(header_terminator_begin);
-  const char8* header_value_end = header_terminator_begin;
+  std::size_t header_value_index = data.find_first_not_of(ows);
+  QLJS_ASSERT(header_value_index != data.npos);  // We expect at least \r\n.
+  data = data.substr(header_value_index);
+  const char8* header_value_begin = data.data();
+  auto header_terminator_begin =
+      std::search(data.begin(), data.end(), crlf, crlf + strlen(crlf));
+  QLJS_ASSERT(header_terminator_begin != data.end());
+  const char8* header_value_end = &*header_terminator_begin;
   // TODO(strager): Trim trailing whitespace.
 
   return parsed_header{
@@ -101,7 +109,7 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
       .value = string8_view(
           header_value_begin,
           narrow_cast<std::size_t>(header_value_end - header_value_begin)),
-      .next = header_terminator_begin + strlen(crlf),
+      .next = header_value_end + strlen(crlf),
   };
 }
 

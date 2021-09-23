@@ -30,9 +30,8 @@ class lsp_message_parser_base {
 
   const char8* find_content_begin(const char8* headers_begin);
 
-  static parsed_message_headers parse_message_headers(
-      const char8* headers_begin);
-  static parsed_header parse_header(const char8*);
+  static parsed_message_headers parse_message_headers(string8_view headers);
+  static parsed_header parse_header(string8_view headers);
   static bool header_is(string8_view header_name,
                         string8_view expected_header_name);
 
@@ -89,8 +88,9 @@ class lsp_message_parser : private lsp_message_parser_base {
         if (!content_begin) {
           break;
         }
-        parsed_message_headers headers =
-            this->parse_message_headers(/*headers_begin=*/headers_begin);
+        parsed_message_headers headers = this->parse_message_headers(
+            string8_view(headers_begin, narrow_cast<std::size_t>(
+                                            content_begin - headers_begin)));
         this->pending_message_content_length_ = headers.content_length;
         headers_or_content_begin = content_begin;
       }
