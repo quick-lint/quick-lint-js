@@ -47,8 +47,8 @@
   },
   "devDependencies": {
     "colors": "1.4.0",
-    "prettier": "^2.4.0",
-    "vsce": "^1.99.0",
+    "prettier": "^2.4.1",
+    "vsce": "^1.100.0",
     "vscode-test": "1.6.1"
   }
 }
