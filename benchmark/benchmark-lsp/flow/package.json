@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "flow-bin": "^0.148.0"
+    "flow-bin": "*"
   }
 }

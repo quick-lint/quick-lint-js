@@ -193,7 +193,7 @@ benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig
       createFileOnDiskIfNeeded serverConfig uri
       let version = 0
       sendTextDocumentDidOpenNotification uri version "javascript" originalSource
-      diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
+      diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 10)
       return (uri, batchSize, diagnostics)
     run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> LSPM ()
     run (uri, batchSize, expectedDiagnostics) =
@@ -221,7 +221,7 @@ benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig
       createFileOnDiskIfNeeded serverConfig uri
       let version = 0
       sendTextDocumentDidOpenNotification uri version "javascript" originalSource
-      diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
+      diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 10)
       return (uri, batchSize, diagnostics)
     run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> LSPM ()
     run (uri, batchSize, expectedDiagnostics) =
