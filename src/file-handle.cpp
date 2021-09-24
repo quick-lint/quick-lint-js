@@ -12,6 +12,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/pipe.h>
 #include <quick-lint-js/string-view.h>
 #include <string>
 #include <string_view>
@@ -257,6 +258,20 @@ std::size_t posix_fd_file_ref::get_pipe_buffer_size() {
 #elif defined(__APPLE__)
   // See BIG_PIPE_SIZE in <xnu>/bsd/sys/pipe.h.
   return 65536;
+#elif QLJS_HAVE_PIPE
+#warning "Size returned by get_pipe_buffer_size might be inaccurate"
+  pipe_fds pipe = make_pipe();
+  pipe.writer.set_pipe_non_blocking();
+  std::size_t pipe_buffer_size = 0;
+  for (;;) {
+    unsigned char c = 0;
+    std::optional<int> written = pipe.writer.write(&c, sizeof(c));
+    if (!written.has_value()) {
+      break;
+    }
+    pipe_buffer_size += *written;
+  }
+  return pipe_buffer_size;
 #else
 #error "Unknown platform"
 #endif

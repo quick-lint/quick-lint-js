@@ -112,8 +112,11 @@ void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
 
 bool change_detecting_filesystem_kqueue::watch_directory(
     const canonical_path& directory) {
-  posix_fd_file dir(
-      mockable_directory_open(directory.c_str(), O_RDONLY | O_EVTONLY));
+  int flags = O_RDONLY;
+#if defined(O_EVTONLY)
+  flags |= O_EVTONLY;
+#endif
+  posix_fd_file dir(mockable_directory_open(directory.c_str(), flags));
   if (!dir.valid()) {
     return false;
   }

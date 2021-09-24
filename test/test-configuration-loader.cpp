@@ -1747,7 +1747,7 @@ TEST_F(test_configuration_loader,
                   canonicalize_path(config_file)->c_str(), EACCES));
 }
 
-#if defined(__APPLE__)
+#if QLJS_HAVE_KQUEUE
 // TODO(strager): Fix on macOS+kqueue.
 TEST_F(test_configuration_loader,
        DISABLED_making_unreadable_config_file_readable_is_detected_as_change)
@@ -1791,7 +1791,7 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
-#if defined(__APPLE__)
+#if QLJS_HAVE_KQUEUE
 // TODO(strager): Fix on macOS+kqueue.
 TEST_F(
     test_configuration_loader,
@@ -1958,7 +1958,7 @@ TEST_F(
   EXPECT_EQ(changes_2[0].error, nullptr);
 }
 
-#if defined(__APPLE__)
+#if QLJS_HAVE_KQUEUE
 // TODO(strager): Fix on macOS+kqueue.
 TEST_F(
     test_configuration_loader,
@@ -2009,7 +2009,7 @@ TEST_F(
                                       config_file_canonical_path, EACCES));
 }
 
-#if defined(__APPLE__)
+#if QLJS_HAVE_KQUEUE
 // TODO(strager): Fix on macOS+kqueue.
 TEST_F(
     test_configuration_loader,

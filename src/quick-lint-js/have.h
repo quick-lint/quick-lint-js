@@ -132,8 +132,8 @@
 
 #if !defined(QLJS_HAVE_MKDTEMP)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
-     _POSIX_VERSION >= 200112L)
+    ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+     defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L)
 #define QLJS_HAVE_MKDTEMP 1
 #else
 #define QLJS_HAVE_MKDTEMP 0
@@ -175,8 +175,8 @@
 
 #if !defined(QLJS_HAVE_REALPATH)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
-     _POSIX_VERSION >= 200112L)
+    ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+     defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L)
 #define QLJS_HAVE_REALPATH 1
 #else
 #define QLJS_HAVE_REALPATH 0
@@ -193,8 +193,8 @@
 
 #if !defined(QLJS_HAVE_SETRLIMIT)
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
-     _POSIX_VERSION >= 200112L)
+    ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+     defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L)
 #define QLJS_HAVE_SETRLIMIT 1
 #else
 #define QLJS_HAVE_SETRLIMIT 0
@@ -347,7 +347,7 @@
 #endif
 
 #if !defined(QLJS_HAVE_KQUEUE)
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__)
 #define QLJS_HAVE_KQUEUE 1
 #else
 #define QLJS_HAVE_KQUEUE 0
