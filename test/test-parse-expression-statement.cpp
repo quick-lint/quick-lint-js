@@ -638,6 +638,21 @@ TEST(test_parse, object_literal) {
   }
 }
 
+TEST(test_parse, object_literal_method_with_arrow_operator) {
+  {
+    spy_visitor v;
+    padded_string code(u8"let o = {method() => {}}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_methods_should_not_have_arrow_operator, arrow_operator,
+            offsets_matcher(&code, strlen(u8"let o = {method() "), u8"=>"))));
+  }
+}
+
 TEST(test_parse, expression_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"console.log('hello');"_sv);
