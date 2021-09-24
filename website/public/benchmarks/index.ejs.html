@@ -53,6 +53,7 @@
           >
         </li>
         <li><a href="#methodology">Methodology</a></li>
+        <li><a href="#comments">Comments</a></li>
       </ul>
 
       <article class="benchmark" id="full-change-wait-express-router-js">
@@ -134,6 +135,19 @@
           </li>
           <li>Performance governor: performance; 400 MHz - 3.50 GHz</li>
         </ul>
+      </article>
+
+      <article id="comments">
+        <h2>Comments</h2>
+        <h3>Deno</h3>
+        <p>
+          Deno's LSP server (and thus its Visual Studio Code extension)
+          <a
+            href="https://github.com/denoland/deno/blob/80a9a37df1607c4713538c422309801e25024bff/cli/lsp/diagnostics.rs#L148-L151"
+            >delays processing by 200 milliseconds</a
+          >. This means that Deno appears to be much slower than it actually is,
+          but this artificial latency does affect the editing experience.
+        </p>
       </article>
     </main>
 
