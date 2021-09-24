@@ -12,6 +12,8 @@ module Main where
 import Control.DeepSeq (NFData)
 import Control.Monad (forM, forM_, unless, when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
 import Control.Monad.Trans.State.Strict
 import qualified Criterion.Main as Criterion
 import qualified Data.Aeson as Aeson
@@ -236,12 +238,12 @@ benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig
 -- LSP monad.
 newtype LSPM a =
   LSPM
-    { unLSPM :: StateT LSPClient.LSPClient IO a
+    { unLSPM :: ReaderT BenchmarkConfigServer (StateT LSPClient.LSPClient IO) a
     }
   deriving (Applicative, Functor, Monad, MonadFail, MonadIO)
 
 liftLSP :: StateT LSPClient.LSPClient IO a -> LSPM a
-liftLSP = LSPM
+liftLSP m = LSPM (lift m)
 
 -- | Like benchmarkWithLSPServer, but for LSPM.
 benchmarkWithLSPMServer ::
@@ -256,7 +258,11 @@ benchmarkWithLSPMServer ::
   -- ^ Work. Given env returned by setup.
   -> Criterion.Benchmark
 benchmarkWithLSPMServer name serverConfig setUp work =
-  benchmarkWithLSPServer name serverConfig (\batchSize -> unLSPM (setUp batchSize)) (\env -> unLSPM (work env))
+  benchmarkWithLSPServer
+    name
+    serverConfig
+    (\batchSize -> runReaderT (unLSPM $ setUp batchSize) serverConfig)
+    (\env -> runReaderT (unLSPM $ work env) serverConfig)
 
 requireServerIncrementalSyncSupport :: LSPM ()
 requireServerIncrementalSyncSupport = do
@@ -294,7 +300,18 @@ sendTextDocumentDidFullyChangeNotification uri version text = do
     LSP.DidChangeTextDocumentParams (LSP.VersionedTextDocumentIdentifier uri (Just version)) (LSP.List changes)
 
 waitForDiagnosticsOrTimeout :: Int -> LSPM (Maybe LSP.PublishDiagnosticsParams)
-waitForDiagnosticsOrTimeout timeoutMicroseconds =
+waitForDiagnosticsOrTimeout timeoutMicroseconds = do
+  diagnosticsMessagesToIgnore <- LSPM $ asks benchmarkConfigServerDiagnosticsMessagesToIgnore
+  let go seenDiagnosticMessages = do
+        maybeDiagnostics <- waitForOneDiagnosticsMessageOrTimeout timeoutMicroseconds
+        case maybeDiagnostics of
+          Just diagnostics
+            | length seenDiagnosticMessages < diagnosticsMessagesToIgnore -> go (diagnostics : seenDiagnosticMessages)
+          _ -> return maybeDiagnostics
+  go []
+
+waitForOneDiagnosticsMessageOrTimeout :: Int -> LSPM (Maybe LSP.PublishDiagnosticsParams)
+waitForOneDiagnosticsMessageOrTimeout timeoutMicroseconds =
   fix $ \loop ->
     liftLSP (LSPClient.receiveMessageWithTimeout timeoutMicroseconds) >>= \case
       Just (LSPClient.matchNotification LSP.STextDocumentPublishDiagnostics -> Just parameters) ->
