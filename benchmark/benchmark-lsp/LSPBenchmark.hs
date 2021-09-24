@@ -192,7 +192,13 @@ matchMiscMessage =
               Aeson.Object $
               HashMap.fromList
                 -- For eslint-server:
-                [("run", Aeson.String "onType"), ("validate", Aeson.String "probe")]
+                [ ("run", Aeson.String "onType")
+                , ("validate", Aeson.String "probe")
+                -- For Deno:
+                , ("enable", Aeson.Bool True)
+                , ("lint", Aeson.Bool True)
+                , ("unstable", Aeson.Bool False)
+                ]
     (LSPClient.matchAnyNotification -> True) -> Just $ return ()
     _ -> Nothing
 
