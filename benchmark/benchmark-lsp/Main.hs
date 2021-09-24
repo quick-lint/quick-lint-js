@@ -1,18 +1,22 @@
 -- Copyright 2021 Matthew "strager" Glazar
 -- See end of file for extended copyright information.
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module Main where
 
+import Control.DeepSeq (NFData)
 import Control.Monad (forM, forM_, unless, when)
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.State.Strict
 import qualified Criterion.Main as Criterion
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as BS
+import Data.Dynamic (Typeable)
 import Data.Function (fix)
 import qualified Data.HashSet as HashSet
 import Data.Int (Int64)
@@ -107,14 +111,14 @@ benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..}
 
 -- TODO(strager): Add a similar benchmark with a warmup phase.
 benchOpenWaitClose :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
-benchOpenWaitClose fileContent benchmarkName serverConfig = benchmarkWithLSPServer benchmarkName serverConfig setUp run
+benchOpenWaitClose fileContent benchmarkName serverConfig = benchmarkWithLSPMServer benchmarkName serverConfig setUp run
   where
-    setUp :: Int64 -> StateT LSPClient.LSPClient IO (Int64, LSP.Uri)
+    setUp :: Int64 -> LSPM (Int64, LSP.Uri)
     setUp batchSize = do
       uri <- makeURI "test.js"
       createFileOnDiskIfNeeded serverConfig uri
       return (batchSize, uri)
-    run :: (Int64, LSP.Uri) -> StateT LSPClient.LSPClient IO ()
+    run :: (Int64, LSP.Uri) -> LSPM ()
     run (batchSize, uri) =
       forM_ [1 .. batchSize] $ \i
         -- NOTE(strager): Deno expects version numbers to be unique, even
@@ -130,14 +134,15 @@ benchOpenWaitClose fileContent benchmarkName serverConfig = benchmarkWithLSPServ
             -- diagnostics. Make sure we skip these bogus notifications.
             Just (LSP.PublishDiagnosticsParams _ _ (LSP.List [])) -> loop
             Just _diagnostics -> return ()
-        LSPClient.sendNotification LSP.STextDocumentDidClose $
+        liftLSP $
+          LSPClient.sendNotification LSP.STextDocumentDidClose $
           LSP.DidCloseTextDocumentParams (LSP.TextDocumentIdentifier uri)
 
 benchChangeWait :: Text.Text -> String -> BenchmarkConfigServer -> Criterion.Benchmark
 benchChangeWait modifiedSource benchmarkName serverConfig@BenchmarkConfigServer {..} =
-  benchmarkWithLSPServer benchmarkName serverConfig setUp run
+  benchmarkWithLSPMServer benchmarkName serverConfig setUp run
   where
-    setUp :: Int64 -> StateT LSPClient.LSPClient IO [LSP.Uri]
+    setUp :: Int64 -> LSPM [LSP.Uri]
     setUp batchSize = do
       documentURIs <-
         forM [1 .. batchSize] $ \i -> do
@@ -148,7 +153,7 @@ benchChangeWait modifiedSource benchmarkName serverConfig@BenchmarkConfigServer 
           return uri
       when benchmarkConfigServerWaitForEmptyDiagnosticsOnOpen $ waitForAllDiagnostics (HashSet.fromList documentURIs)
       return documentURIs
-    run :: [LSP.Uri] -> StateT LSPClient.LSPClient IO ()
+    run :: [LSP.Uri] -> LSPM ()
     run documentURIs =
       forM_ documentURIs $ \uri -> do
         let version = 1
@@ -177,9 +182,9 @@ benchIncrementalChangeWait ::
   -> BenchmarkConfigServer
   -> Criterion.Benchmark
 benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig =
-  benchmarkWithLSPServer benchmarkName serverConfig setUp run
+  benchmarkWithLSPMServer benchmarkName serverConfig setUp run
   where
-    setUp :: Int64 -> StateT LSPClient.LSPClient IO (LSP.Uri, Int64, [LSP.Diagnostic])
+    setUp :: Int64 -> LSPM (LSP.Uri, Int64, [LSP.Diagnostic])
     setUp batchSize = do
       requireServerIncrementalSyncSupport
       uri <- makeURI "test.js"
@@ -188,12 +193,13 @@ benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig
       sendTextDocumentDidOpenNotification uri version "javascript" originalSource
       diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
       return (uri, batchSize, diagnostics)
-    run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> StateT LSPClient.LSPClient IO ()
+    run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> LSPM ()
     run (uri, batchSize, expectedDiagnostics) =
       forM_ [1 .. batchSize] $ \i -> do
         let version = fromIntegral i :: Int
         let changes = makeChanges (i - 1)
-        LSPClient.sendNotification LSP.STextDocumentDidChange $
+        liftLSP $
+          LSPClient.sendNotification LSP.STextDocumentDidChange $
           LSP.DidChangeTextDocumentParams (LSP.VersionedTextDocumentIdentifier uri (Just version)) (LSP.List changes)
         waitForDiagnosticsOrTimeout (secondsToMicroseconds 1) >>= \case
           Nothing -> fail "Expected diagnostics but received none"
@@ -205,9 +211,9 @@ benchIncrementalChangeWait originalSource benchmarkName makeChanges serverConfig
 
 benchFullChangeWait :: Text.Text -> String -> (Int64 -> Text.Text) -> BenchmarkConfigServer -> Criterion.Benchmark
 benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig =
-  benchmarkWithLSPServer benchmarkName serverConfig setUp run
+  benchmarkWithLSPMServer benchmarkName serverConfig setUp run
   where
-    setUp :: Int64 -> StateT LSPClient.LSPClient IO (LSP.Uri, Int64, [LSP.Diagnostic])
+    setUp :: Int64 -> LSPM (LSP.Uri, Int64, [LSP.Diagnostic])
     setUp batchSize = do
       uri <- makeURI "test.js"
       createFileOnDiskIfNeeded serverConfig uri
@@ -215,7 +221,7 @@ benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig
       sendTextDocumentDidOpenNotification uri version "javascript" originalSource
       diagnostics <- waitUntilSomeDiagnosticsWithTimeout (secondsToMicroseconds 1)
       return (uri, batchSize, diagnostics)
-    run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> StateT LSPClient.LSPClient IO ()
+    run :: (LSP.Uri, Int64, [LSP.Diagnostic]) -> LSPM ()
     run (uri, batchSize, expectedDiagnostics) =
       forM_ [1 .. batchSize] $ \i -> do
         let version = fromIntegral i :: Int
@@ -227,53 +233,80 @@ benchFullChangeWait originalSource benchmarkName makeModifiedSource serverConfig
           "Diagnostics unexpectedly changed:\nExpected: " ++
           show expectedDiagnostics ++ "\nReceived: " ++ show diagnostics
 
-requireServerIncrementalSyncSupport :: StateT LSPClient.LSPClient IO ()
+-- LSP monad.
+newtype LSPM a =
+  LSPM
+    { unLSPM :: StateT LSPClient.LSPClient IO a
+    }
+  deriving (Applicative, Functor, Monad, MonadFail, MonadIO)
+
+liftLSP :: StateT LSPClient.LSPClient IO a -> LSPM a
+liftLSP = LSPM
+
+-- | Like benchmarkWithLSPServer, but for LSPM.
+benchmarkWithLSPMServer ::
+     forall a env. (NFData a, NFData env, Typeable a, Typeable env)
+  => String
+  -- ^ Benchmark name.
+  -> BenchmarkConfigServer
+  -- ^ LSP server configuration.
+  -> (Int64 -> LSPM env)
+  -- ^ Setup. Given batch size.
+  -> (env -> LSPM a)
+  -- ^ Work. Given env returned by setup.
+  -> Criterion.Benchmark
+benchmarkWithLSPMServer name serverConfig setUp work =
+  benchmarkWithLSPServer name serverConfig (\batchSize -> unLSPM (setUp batchSize)) (\env -> unLSPM (work env))
+
+requireServerIncrementalSyncSupport :: LSPM ()
 requireServerIncrementalSyncSupport = do
-  textDocumentSyncKind <- gets LSPClient.lspClientServerSyncKind
+  textDocumentSyncKind <- liftLSP $ gets LSPClient.lspClientServerSyncKind
   case textDocumentSyncKind of
     LSP.TdSyncNone -> fail "LSP server does not support document syncing"
     LSP.TdSyncIncremental -> return ()
     LSP.TdSyncFull -> fail "LSP server does not support incremental document syncing"
 
-createFileOnDiskIfNeeded :: BenchmarkConfigServer -> LSP.Uri -> StateT LSPClient.LSPClient IO ()
+createFileOnDiskIfNeeded :: BenchmarkConfigServer -> LSP.Uri -> LSPM ()
 createFileOnDiskIfNeeded BenchmarkConfigServer {..} uri =
   when benchmarkConfigServerNeedFilesOnDisk $ liftIO $ BS.writeFile filePath BS.empty
   where
     filePath = fromJust (LSP.uriToFilePath uri)
 
-makeURI :: FilePath -> StateT LSPClient.LSPClient IO LSP.Uri
+makeURI :: FilePath -> LSPM LSP.Uri
 makeURI relativePath = LSP.filePathToUri <$> makeFilePath relativePath
 
-makeFilePath :: FilePath -> StateT LSPClient.LSPClient IO FilePath
+makeFilePath :: FilePath -> LSPM FilePath
 makeFilePath relativePath = do
-  rootPath <- gets LSPClient.lspClientRootPath
+  rootPath <- liftLSP $ gets LSPClient.lspClientRootPath
   return $ rootPath </> relativePath
 
-sendTextDocumentDidOpenNotification :: LSP.Uri -> Int -> Text.Text -> Text.Text -> StateT LSPClient.LSPClient IO ()
+sendTextDocumentDidOpenNotification :: LSP.Uri -> Int -> Text.Text -> Text.Text -> LSPM ()
 sendTextDocumentDidOpenNotification uri version language text =
+  liftLSP $
   LSPClient.sendNotification LSP.STextDocumentDidOpen $
   LSP.DidOpenTextDocumentParams $ LSP.TextDocumentItem uri language version text
 
-sendTextDocumentDidFullyChangeNotification :: LSP.Uri -> Int -> Text.Text -> StateT LSPClient.LSPClient IO ()
+sendTextDocumentDidFullyChangeNotification :: LSP.Uri -> Int -> Text.Text -> LSPM ()
 sendTextDocumentDidFullyChangeNotification uri version text = do
   let changes = [LSP.TextDocumentContentChangeEvent Nothing Nothing text]
-  LSPClient.sendNotification LSP.STextDocumentDidChange $
+  liftLSP $
+    LSPClient.sendNotification LSP.STextDocumentDidChange $
     LSP.DidChangeTextDocumentParams (LSP.VersionedTextDocumentIdentifier uri (Just version)) (LSP.List changes)
 
-waitForDiagnosticsOrTimeout :: Int -> StateT LSPClient.LSPClient IO (Maybe LSP.PublishDiagnosticsParams)
+waitForDiagnosticsOrTimeout :: Int -> LSPM (Maybe LSP.PublishDiagnosticsParams)
 waitForDiagnosticsOrTimeout timeoutMicroseconds =
   fix $ \loop ->
-    LSPClient.receiveMessageWithTimeout timeoutMicroseconds >>= \case
+    liftLSP (LSPClient.receiveMessageWithTimeout timeoutMicroseconds) >>= \case
       Just (LSPClient.matchNotification LSP.STextDocumentPublishDiagnostics -> Just parameters) ->
         return $ Just parameters
-      Just (matchMiscMessage -> Just handle) -> handle >> loop
+      Just (matchMiscMessage -> Just handle) -> liftLSP handle >> loop
       Nothing -> return Nothing
       _ -> fail "Unimplemented message"
 
 -- | HACK(strager): Some LSP servers, such as Flow and TypeScript-Theia, give us
 -- an empty list of diagnostics before giving us the real list of diagnostics.
 -- Skip the empty list and wait for the real list.
-waitUntilSomeDiagnosticsWithTimeout :: Int -> StateT LSPClient.LSPClient IO [LSP.Diagnostic]
+waitUntilSomeDiagnosticsWithTimeout :: Int -> LSPM [LSP.Diagnostic]
 waitUntilSomeDiagnosticsWithTimeout timeoutMicroseconds =
   fix $ \loop ->
     waitForDiagnosticsOrTimeout timeoutMicroseconds >>= \case
@@ -281,7 +314,7 @@ waitUntilSomeDiagnosticsWithTimeout timeoutMicroseconds =
       Just (LSP.PublishDiagnosticsParams _ _ (LSP.List diagnostics)) -> return diagnostics
       Nothing -> fail "Expected diagnostics but received none"
 
-waitForAllDiagnostics :: HashSet.HashSet LSP.Uri -> StateT LSPClient.LSPClient IO ()
+waitForAllDiagnostics :: HashSet.HashSet LSP.Uri -> LSPM ()
 waitForAllDiagnostics urisNeedingDiagnostics
   | HashSet.null urisNeedingDiagnostics = return ()
   | otherwise =
