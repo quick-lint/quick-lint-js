@@ -13,7 +13,7 @@
     },
     {
       "name": "Flow",
-      "command": ["node", "./node_modules/.bin/flow", "lsp"],
+      "command": ["./run.sh"],
       "cwd": "flow/",
       "waitForEmptyDiagnosticsOnOpen": false
     },
