@@ -29,6 +29,7 @@ executable benchmark-lsp
     , bytestring
     , criterion
     , criterion-measurement
+    , data-default
     , deepseq
     , directory
     , filepath

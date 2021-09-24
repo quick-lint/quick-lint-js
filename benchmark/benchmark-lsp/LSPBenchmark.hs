@@ -19,6 +19,7 @@ import Control.Monad.Trans.State.Strict
 import qualified Criterion.Main as Criterion
 import qualified Criterion.Measurement.Types as Criterion
 import qualified Data.Aeson as Aeson
+import Data.Default (def)
 import Data.Dynamic (Typeable)
 import Data.Function (fix)
 import qualified Data.HashMap.Strict as HashMap
@@ -126,7 +127,12 @@ initializeLSP = do
   -- Flow's LSP server requires rootURI.
   let rootURI = LSP.filePathToUri rootPath
   let workspaceFolders = [LSP.WorkspaceFolder (LSP.getUri rootURI) "benchmarks"]
-  let clientCapabilities = LSP.ClientCapabilities Nothing Nothing Nothing Nothing
+  -- PublishDiagnosticsClientCapabilities is required by the TypeScript-Theia
+  -- LSP server since version 0.6.0:
+  -- https://github.com/typescript-language-server/typescript-language-server/pull/229
+  let textDocumentClientCapabilities =
+        def {LSP._publishDiagnostics = Just (LSP.PublishDiagnosticsClientCapabilities Nothing Nothing Nothing)}
+  let clientCapabilities = LSP.ClientCapabilities Nothing (Just textDocumentClientCapabilities) Nothing Nothing
   let initializationOptions =
         Aeson.Object $
         HashMap.fromList

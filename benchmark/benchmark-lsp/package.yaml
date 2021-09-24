@@ -28,6 +28,7 @@ executables:
     - bytestring
     - criterion
     - criterion-measurement
+    - data-default
     - deepseq
     - directory
     - filepath
