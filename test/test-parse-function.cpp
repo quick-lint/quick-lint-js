@@ -135,6 +135,22 @@ TEST(test_parse, parse_function_statement) {
   }
 }
 
+TEST(test_parse, function_with_arrow_operator) {
+  {
+    spy_visitor v;
+    padded_string code(u8"function f() => {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_functions_or_methods_should_not_have_arrow_operator,
+            arrow_operator,
+            offsets_matcher(&code, strlen(u8"function f() "), u8"=>"))));
+  }
+}
+
 TEST(test_parse, function_statement_with_no_name) {
   {
     padded_string code(u8"function() {x;}"_sv);
