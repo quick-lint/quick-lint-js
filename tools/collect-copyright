@@ -379,8 +379,9 @@ def is_path_relative(root_path: str, sub_path: typing.Union[str, pathlib.Path]) 
 class Debian:
     class InstalledPackage(typing.NamedTuple):
         name: str
-        source: str
         version: str
+        source: str
+        source_version: str
         source_uris: typing.Tuple[str, ...]
 
     def packages_for_installed_files(
@@ -388,10 +389,13 @@ class Debian:
     ) -> typing.List[InstalledPackage]:
         package_names = self._dpkg_packages_for_installed_files(files)
         packages = self._get_installed_debian_packages(set(package_names))
+        logger.debug("Debian packages: %s", ", ".join(repr(p) for p in packages))
         packages = [
             p._replace(
                 source_uris=tuple(
-                    self._get_package_apt_source_uri(name=p.source, version=p.version)
+                    self._get_package_apt_source_uri(
+                        name=p.source, version=p.source_version
+                    )
                 )
             )
             for p in packages
@@ -432,7 +436,7 @@ class Debian:
             [
                 "dpkg-query",
                 "--show",
-                "--showformat=${binary:Package}\\t${Source}\\t${Version}\\t${db:Status-Status}\\n",
+                "--showformat=${binary:Package}\\t${source:Package}\\t${Version}\\t${source:Version}\\t${db:Status-Status}\\n",
                 "--",
             ]
             + list(package_names),
@@ -444,16 +448,21 @@ class Debian:
         packages = []
         for line in process.stdout.splitlines():
             parts = line.split("\t")
-            if parts[3] == "installed":
+            if parts[4] == "installed":
                 packages.append(
                     cls.InstalledPackage(
-                        name=parts[0], source=parts[1], version=parts[2], source_uris=()
+                        name=parts[0],
+                        source=parts[1],
+                        version=parts[2],
+                        source_version=parts[3],
+                        source_uris=(),
                     )
                 )
         return packages
 
     @classmethod
     def _get_package_apt_source_uri(cls, name: str, version: str) -> typing.List[str]:
+        logger.debug("getting source for package %s version %s", name, version)
         process = subprocess.run(
             ["apt-get", "source", "--print-uris", "-qq", "--", f"{name}={version}"],
             stdout=subprocess.PIPE,
