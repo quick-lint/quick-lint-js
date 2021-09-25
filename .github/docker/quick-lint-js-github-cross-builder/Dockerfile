@@ -17,6 +17,7 @@ RUN \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       cmake \
       g++-10-aarch64-linux-gnu \
+      g++-10-arm-linux-gnueabihf \
       git \
       ninja-build \
       nodejs \

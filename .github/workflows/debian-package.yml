@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  # TODO(strager): Also build an AArch64 .deb.
+  # TODO(strager): Also build ARM and AArch64 .deb-s.
   build-deb:
     name: build .deb
     runs-on: ubuntu-latest
