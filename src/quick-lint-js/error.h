@@ -638,6 +638,12 @@
               declaring_keyword, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_functions_or_methods_should_not_have_arrow_operator, "E174",       \
+      { source_code_span arrow_operator; },                                    \
+      ERROR(QLJS_TRANSLATABLE("functions/methods should not have '=>'"),       \
+            arrow_operator))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_methods_should_not_use_function_keyword, "E072",                   \
       { source_code_span function_token; },                                    \
       ERROR(                                                                   \

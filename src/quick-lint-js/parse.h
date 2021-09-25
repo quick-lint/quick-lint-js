@@ -1263,6 +1263,14 @@ class parser {
       }
       this->skip();
 
+      if (this->peek().type == token_type::equal_greater) {
+        this->error_reporter_->report(
+            error_functions_or_methods_should_not_have_arrow_operator{
+                .arrow_operator = this->peek().span(),
+            });
+        this->skip();
+      }
+
       if (this->peek().type != token_type::left_curly) {
         const char8 *expected_body = this->lexer_.end_of_previous_token();
         this->error_reporter_->report(error_missing_function_body{
