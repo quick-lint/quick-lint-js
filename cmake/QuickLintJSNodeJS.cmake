@@ -27,6 +27,8 @@ if (NOT QUICK_LINT_JS_NODEJS_OS_ARCH)
     elseif (CMAKE_SIZEOF_VOID_P EQUAL 4)
       set(NODEJS_OS_ARCH ia32)
     endif ()
+  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+    set(NODEJS_OS_ARCH arm64)
   endif ()
   set(
     QUICK_LINT_JS_NODEJS_OS_ARCH

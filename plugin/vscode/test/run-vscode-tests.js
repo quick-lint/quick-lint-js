@@ -8,6 +8,7 @@ let os = require("os");
 let path = require("path");
 let process = require("process");
 let vscodeTest = require("vscode-test");
+let vscodeTestDownload = require("vscode-test/out/download.js");
 let { testFilterEnvironmentVariable } = require("./test-support.js");
 
 async function mainAsync() {
@@ -24,10 +25,13 @@ async function mainAsync() {
   // this for us.)
   let workspacePath = path.resolve(__dirname, "empty_test_workspace");
 
+  let vscodeVersion = getVSCodeVersionForTarget(target);
+  let vscodeExePath = await installVSCodeAsync(vscodeVersion, target);
   await vscodeTest.runTests({
     extensionDevelopmentPath: path.resolve(__dirname, ".."),
     extensionTestsPath: path.resolve(__dirname, "vscode-tests.js"),
-    version: "1.49.0",
+    version: vscodeVersion,
+    vscodeExecutablePath: vscodeExePath,
     launchArgs: ["--disable-extensions", workspacePath],
     extensionTestsEnv: {
       [testFilterEnvironmentVariable]: args[0],
@@ -63,6 +67,27 @@ function getVSCodePlatform(target) {
     );
   }
   return vscodePlatformsByPlatformAndArch[platformAndArch];
+}
+
+// Returns the path to the Visual Studio Code executable (e.g. code.exe).
+async function installVSCodeAsync(version, target) {
+  let vscodePlatform = getVSCodePlatform(target);
+  let exePath = await vscodeTestDownload.downloadAndUnzipVSCode(
+    version,
+    vscodePlatform
+  );
+  // HACK(strager): downloadAndUnzipVSCode assumes x64/x86_64/amd64. Fix the path for other architectures.
+  exePath = exePath.replace("/VSCode-linux-x64/", `/VSCode-${vscodePlatform}/`);
+  return exePath;
+}
+
+function getVSCodeVersionForTarget(target) {
+  if (target.platform === "linux" && target.arch === "arm64") {
+    // HACK(strager): 1.49.x does not exist for linux-arm64.
+    return "1.50.1";
+  } else {
+    return "1.49.0";
+  }
 }
 
 function parseNodePlatformAndArchitecture(s) {
