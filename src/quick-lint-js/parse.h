@@ -1265,7 +1265,7 @@ class parser {
 
       if (this->peek().type == token_type::equal_greater) {
         this->error_reporter_->report(
-            error_methods_should_not_have_arrow_operator{
+            error_functions_or_methods_should_not_have_arrow_operator{
                 .arrow_operator = this->peek().span(),
             });
         this->skip();

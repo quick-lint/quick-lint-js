@@ -648,7 +648,8 @@ TEST(test_parse, object_literal_method_with_arrow_operator) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
-            error_methods_should_not_have_arrow_operator, arrow_operator,
+            error_functions_or_methods_should_not_have_arrow_operator,
+            arrow_operator,
             offsets_matcher(&code, strlen(u8"let o = {method() "), u8"=>"))));
   }
 }
