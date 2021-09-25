@@ -119,6 +119,34 @@ constexpr const char8 global_variables_node_js[] =
     u8"Intl\0"
     u8"TextDecoder\0"      // Added in v12.22.1 (or earlier?).
     u8"TextEncoder\0"      // Added in v12.22.1 (or earlier?).
+    u8"URLSearchParams\0"  // Added in v10.24.1 (or earlier?).
+    u8"URL\0"              // Added in v10.24.1 (or earlier?).
+    u8"WebAssembly\0"      // Added in v8.17.0 (or earlier?).
+    u8"__dirname\0"
+    u8"__filename\0"
+    u8"clearImmediate\0"
+    u8"clearInterval\0"
+    u8"clearTimeout\0"
+    u8"console\0"
+    u8"escape\0"
+    u8"exports\0"
+    u8"global\0"
+    u8"module\0"
+    u8"process\0"
+    u8"queueMicrotask\0"  // Added in v12.22.1 (or earlier?).
+    u8"require\0"
+    u8"root\0"  // Removed in v14.16.1 (or earlier?).
+    u8"setImmediate\0"
+    u8"setInterval\0"
+    u8"setTimeout\0"
+    u8"unescape\0";
+
+constexpr const char8 global_variables_node_js_es[] =
+    u8"Buffer\0"
+    u8"GLOBAL\0"  // Removed in v14.16.1 (or earlier?).
+    u8"Intl\0"
+    u8"TextDecoder\0"      // Added in v12.22.1 (or earlier?).
+    u8"TextEncoder\0"      // Added in v12.22.1 (or earlier?).
     u8"URL\0"              // Added in v10.24.1 (or earlier?).
     u8"URLSearchParams\0"  // Added in v10.24.1 (or earlier?).
     u8"WebAssembly\0"      // Added in v8.17.0 (or earlier?).
@@ -135,13 +163,6 @@ constexpr const char8 global_variables_node_js[] =
     u8"setInterval\0"
     u8"setTimeout\0"
     u8"unescape\0";
-
-constexpr const char8 global_variables_node_js_non_shadowable[] =
-    u8"__dirname\0"
-    u8"__filename\0"
-    u8"exports\0"
-    u8"module\0"
-    u8"require\0";
 
 const global_group global_groups[] = {
     {
@@ -193,14 +214,14 @@ const global_group global_groups[] = {
         .name = u8"node.js",
         .globals = global_variables_node_js,
         .non_writable_globals = nullptr,
-        .non_shadowable_globals = global_variables_node_js_non_shadowable,
-        .globals_count = 21,
+        .non_shadowable_globals = nullptr,
+        .globals_count = 26,
         .non_writable_globals_count = 0,
-        .non_shadowable_globals_count = 5,
+        .non_shadowable_globals_count = 0,
     },
     {
         .name = u8"node.js-es",
-        .globals = global_variables_node_js,
+        .globals = global_variables_node_js_es,
         .non_writable_globals = nullptr,
         .non_shadowable_globals = nullptr,
         .globals_count = 21,

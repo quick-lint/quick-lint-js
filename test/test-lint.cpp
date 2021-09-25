@@ -226,10 +226,6 @@ constexpr const char8 *nodejs_global_variables[] = {
     u8"undefined",
     u8"unescape",
 };
-
-constexpr const char8 *nodejs_commonjs_module_variables[] = {
-    u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
-};
 }
 
 TEST(test_lint, nodejs_global_variables_are_usable) {
@@ -243,9 +239,10 @@ TEST(test_lint, nodejs_global_variables_are_usable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, nodejs_global_variables_are_shadowable) {
+TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
   error_collector v;
   linter l(&v, &default_globals);
+  // Intentionally excluded: __dirname, __filename, exports, module, require
   for (const char8 *global_variable : nodejs_global_variables) {
     l.visit_variable_declaration(identifier_of(global_variable),
                                  variable_kind::_let);
@@ -253,30 +250,6 @@ TEST(test_lint, nodejs_global_variables_are_shadowable) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
-}
-
-TEST(test_lint, nodejs_commonjs_module_variables_are_usable) {
-  error_collector v;
-  linter l(&v, &default_globals);
-  for (const char8 *variable : nodejs_commonjs_module_variables) {
-    l.visit_variable_use(identifier_of(variable));
-  }
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
-}
-
-TEST(test_lint, nodejs_commonjs_module_variables_cannot_be_redeclared) {
-  for (const char8 *variable : nodejs_commonjs_module_variables) {
-    error_collector v;
-    linter l(&v, &default_globals);
-    l.visit_variable_declaration(identifier_of(variable), variable_kind::_let);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_redeclaration_of_global_variable,
-                              redeclaration, span_matcher(variable))));
-  }
 }
 
 TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {

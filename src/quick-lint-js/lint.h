@@ -42,6 +42,9 @@ class global_declared_variable_set {
   std::optional<global_declared_variable> find(string8_view name) const
       noexcept;
 
+  // For testing only:
+  std::vector<string8_view> get_all_variable_names() const;
+
  private:
   // First index: is_shadowable
   // Second index: is_writable

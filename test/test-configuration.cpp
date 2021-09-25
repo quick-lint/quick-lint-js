@@ -154,16 +154,26 @@ TEST(test_configuration, ecmascript_globals_are_present_by_default) {
 TEST(test_configuration, node_js_globals_are_present_by_default) {
   configuration c;
 
-  constexpr const char8* writable_commonjs_module_variables[] = {
+  constexpr const char8* writable_commonjs_variables[] = {
       u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
   };
-  for (string8_view variable_name : writable_commonjs_module_variables) {
+  for (string8_view variable_name : writable_commonjs_variables) {
     SCOPED_TRACE(out_string8(variable_name));
     std::optional<global_declared_variable> var =
         c.globals().find(variable_name);
     ASSERT_TRUE(var.has_value());
     EXPECT_TRUE(var->is_writable);
-    EXPECT_FALSE(var->is_shadowable);
+  }
+}
+
+TEST(test_configuration, default_globals_are_all_shadowable) {
+  configuration c;
+  for (string8_view variable_name : c.globals().get_all_variable_names()) {
+    SCOPED_TRACE(out_string8(variable_name));
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
+    EXPECT_TRUE(var->is_shadowable);
   }
 }
 
@@ -307,6 +317,11 @@ TEST(test_configuration,
   c.add_global_variable(global_declared_variable{
       .name = u8"testGlobalVariable"sv,
       .is_writable = false,
+      .is_shadowable = false,
+  });
+  c.add_global_variable(global_declared_variable{
+      .name = u8"require"sv,
+      .is_writable = true,
       .is_shadowable = false,
   });
 

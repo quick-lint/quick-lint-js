@@ -150,6 +150,18 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
   return std::nullopt;
 }
 
+std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
+    const {
+  std::vector<string8_view> result;
+  for (bool is_shadowable : {false, true}) {
+    for (bool is_writable : {false, true}) {
+      auto &vars = this->variables_[is_shadowable][is_writable];
+      result.insert(result.end(), vars.begin(), vars.end());
+    }
+  }
+  return result;
+}
+
 linter::linter(error_reporter *error_reporter,
                const global_declared_variable_set *global_variables)
     : global_scope_(global_variables), error_reporter_(error_reporter) {}
