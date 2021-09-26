@@ -79,6 +79,11 @@ export function makeServer({
         response.end();
         return;
 
+      case "forbidden":
+        response.writeHeader(403);
+        response.end();
+        return;
+
       case "static": {
         let filePath = path.join(router.wwwRootPath, request.path);
         let content = await fs.promises.readFile(filePath);

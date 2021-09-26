@@ -101,6 +101,10 @@ export class Router {
       };
     }
 
+    if (path.basename(urlPath) === ".htaccess") {
+      return { type: "forbidden", why: "server-config" };
+    }
+
     if (isHiddenPath(urlPath)) {
       return { type: "missing", why: "ignored" };
     }
