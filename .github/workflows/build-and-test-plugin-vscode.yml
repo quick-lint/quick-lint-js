@@ -19,8 +19,10 @@ jobs:
           - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", platform_arch: "linux-arm", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", platform_arch: "linux-arm64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v1", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: windows-latest, name: "Windows (32-bit)", platform_arch: "win32-ia32", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A Win32"}
-          - {runs_on: windows-latest, name: "Windows (64-bit)", platform_arch: "win32-x64", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A x64"}
+          - {runs_on: windows-latest, name: "Windows x86", platform_arch: "win32-ia32", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A Win32"}
+          - {runs_on: windows-latest, name: "Windows x64", platform_arch: "win32-x64", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A x64"}
+          - {runs_on: windows-latest, name: "Windows ARM", platform_arch: "win32-arm", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM"}
+          - {runs_on: windows-latest, name: "Windows ARM64", platform_arch: "win32-arm64", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM64"}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
     env:
@@ -93,6 +95,14 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: vscode-dist-win32-x64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-win32-arm
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-win32-arm64
           path: ./plugin/vscode/dist/
 
       - name: JS configure
