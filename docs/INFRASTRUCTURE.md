@@ -13,6 +13,8 @@ c.quick-lint-js.com is a VPS on strager's [Vultr][] account.
 * vhost: http://c.quick-lint-js.com/
 * vhost: https://admin.quick-lint-js.com/
 * vhost: http://admin.quick-lint-js.com/
+* vhost: https://quick-lint-js.com/
+* vhost: http://quick-lint-js.com/
 * vhost: https://quicklintjs.com/
 * vhost: http://quicklintjs.com/
 * Matomo analytics
@@ -43,6 +45,18 @@ Serves several services for administration:
 
 Redirects to https://admin.quick-lint-js.com/
 
+### vhost: https://quick-lint-js.com/
+
+<https://quick-lint-js.com/> is the main website for users.
+
+* Deploy script: [`website/deploy.sh`](../website/deploy.sh)
+* Source: [`website`](../website)
+* TLS certificates: Let's Encrypt
+
+### vhost: http://quick-lint-js.com/
+
+Redirects to https://quick-lint-js.com/
+
 ### vhost: https://quicklintjs.com/
 
 Redirects to https://quick-lint-js.com/
@@ -63,7 +77,6 @@ Analytics for the website is self-hosted with Matomo.
 
 ## Cloud services
 
-* HTTP: https://quick-lint-js.com/
 * Domains
 * DNS
 * Source code
@@ -72,13 +85,6 @@ Analytics for the website is self-hosted with Matomo.
 * Open VSX Registry
 * Visual Studio Marketplace
 * npm
-
-### HTTP: https://quick-lint-js.com/
-
-<https://quick-lint-js.com/> is the main website for users.
-
-* Server: GitHub Pages
-* Repo: <https://github.com/quick-lint/quick-lint-js.com>
 
 ### Domains
 

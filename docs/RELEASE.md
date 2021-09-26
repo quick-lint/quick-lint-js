@@ -45,11 +45,7 @@ Follow the following steps to release a new version of quick-lint-js:
      `npm publish ./quick-lint-js-*.tgz`
    * Run the `dist/debian/sync-releases-to-apt` script.
 
-9. Publish the website:
-   1. Visit
-      https://github.com/quick-lint/quick-lint-js/actions/workflows/deploy-website.yml?query=workflow%3A%22deploy+website%22
-   2. Click the "Run workflow" menu, select your branch, enter the commit's
-      hash, then click "Run workflow" button.
+9. Publish the website: Run `./website/deploy.sh COMMIT_HASH_HERE`.
 
 10. Create a Git tag named after the version number (e.g. `0.1.0`). Push it to
     GitHub.
