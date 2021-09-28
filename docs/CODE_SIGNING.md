@@ -11,7 +11,7 @@ create a self-signed certificate for local testing (but not distribution):
 2. [Create a certificate for code signing][macos-create-cert].
 
 In the Keychain Access app, export your code signing certificate (not CA)'s
-public key as a .cer file. We'll call this .cer file
+certificate as a .cer file. We'll call this .cer file
 `/path/to/code-sign-cert.cer`.
 
 ### Building
