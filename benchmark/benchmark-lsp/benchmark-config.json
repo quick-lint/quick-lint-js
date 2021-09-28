@@ -36,12 +36,6 @@
       "command": ["quick-lint-js", "--lsp-server"]
     },
     {
-      "name": "Rome",
-      "command": ["node", "./node_modules/.bin/rome", "lsp"],
-      "cwd": "rome/",
-      "enable": false
-    },
-    {
       "name": "RSLint",
       "command": ["rslint-lsp"],
       "allowIncrementalChanges": false
