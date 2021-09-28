@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-18.04
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
-      - uses: mymindstorm/setup-emsdk@v7
+      - uses: quick-lint/setup-emsdk@v7
         with:
           version: 2.0.4
       - uses: actions/checkout@v2

@@ -16,7 +16,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - uses: haskell/actions/setup@v1
+      - uses: quick-lint/haskell-actions/setup@v1
         with:
           enable-stack: true
           stack-no-global: true

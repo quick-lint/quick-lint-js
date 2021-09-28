@@ -15,7 +15,7 @@ jobs:
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
-      - uses: mymindstorm/setup-emsdk@v7
+      - uses: quick-lint/setup-emsdk@v7
         with:
           version: 2.0.4
       - name: checkout

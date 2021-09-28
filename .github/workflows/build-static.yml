@@ -55,7 +55,7 @@ jobs:
           tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C /tmp/ quick-lint-js
       - name: bundle build into .zip
         if: ${{ matrix.toolchain.archive_extension == '.zip' }}
-        uses: papeloto/action-zip@v1
+        uses: quick-lint/action-zip@v1
         with:
           dest: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
           files: usr/
