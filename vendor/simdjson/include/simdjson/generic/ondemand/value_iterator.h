@@ -25,8 +25,6 @@ protected:
   depth_t _depth{};
   /**
    * The starting token index for this value
-   *
-   * PERF NOTE: this is a safety check; we expect this to be elided in release builds.
    */
   token_position _start_position{};
 
@@ -48,7 +46,7 @@ public:
   /**
    * Tell whether the iterator is at the EOF mark
    */
-  simdjson_really_inline bool at_eof() const noexcept;
+  simdjson_really_inline bool at_end() const noexcept;
 
   /**
    * Tell whether the iterator is at the start of the value
@@ -85,7 +83,7 @@ public:
    *
    * @error TAPE_ERROR when the JSON value is a bad token like "}" "," or "alse".
    */
-  simdjson_really_inline simdjson_result<json_type> type() noexcept;
+  simdjson_really_inline simdjson_result<json_type> type() const noexcept;
 
   /**
    * @addtogroup object Object iteration
@@ -115,11 +113,23 @@ public:
   /**
    * Start an object iteration after the user has already checked and moved past the {.
    *
-   * Does not move the iterator.
+   * Does not move the iterator unless the object is empty ({}).
    *
    * @returns Whether the object had any fields (returns false for empty).
+   * @error INCOMPLETE_ARRAY_OR_OBJECT If there are no more tokens (implying the *parent*
+   *        array or object is incomplete).
    */
-  simdjson_warn_unused simdjson_really_inline bool started_object() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<bool> started_object() noexcept;
+  /**
+   * Start an object iteration from the root, after the user has already checked and moved past the {.
+   *
+   * Does not move the iterator unless the object is empty ({}).
+   *
+   * @returns Whether the object had any fields (returns false for empty).
+   * @error INCOMPLETE_ARRAY_OR_OBJECT If there are no more tokens (implying the *parent*
+   *        array or object is incomplete).
+   */
+  simdjson_warn_unused simdjson_really_inline simdjson_result<bool> started_root_object() noexcept;
 
   /**
    * Moves to the next field in an object.
@@ -129,6 +139,7 @@ public:
    *
    * @return whether there is another field in the object.
    * @error TAPE_ERROR If there is a comma missing between fields.
+   * @error TAPE_ERROR If there is a comma, but not enough tokens remaining to have a key, :, and value.
    */
   simdjson_warn_unused simdjson_really_inline simdjson_result<bool> has_next_field() noexcept;
 
@@ -225,13 +236,25 @@ public:
   simdjson_warn_unused simdjson_really_inline simdjson_result<bool> start_root_array() noexcept;
 
   /**
-   * Start an array iteration after the user has already checked and moved past the [.
+   * Start an array iteration, after the user has already checked and moved past the [.
    *
-   * Does not move the iterator.
+   * Does not move the iterator unless the array is empty ([]).
    *
    * @returns Whether the array had any elements (returns false for empty).
+   * @error INCOMPLETE_ARRAY_OR_OBJECT If there are no more tokens (implying the *parent*
+   *        array or object is incomplete).
    */
-  simdjson_warn_unused simdjson_really_inline bool started_array() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<bool> started_array() noexcept;
+  /**
+   * Start an array iteration from the root, after the user has already checked and moved past the [.
+   *
+   * Does not move the iterator unless the array is empty ([]).
+   *
+   * @returns Whether the array had any elements (returns false for empty).
+   * @error INCOMPLETE_ARRAY_OR_OBJECT If there are no more tokens (implying the *parent*
+   *        array or object is incomplete).
+   */
+  simdjson_warn_unused simdjson_really_inline simdjson_result<bool> started_root_array() noexcept;
 
   /**
    * Moves to the next element in an array.
@@ -260,17 +283,31 @@ public:
   simdjson_warn_unused simdjson_really_inline simdjson_result<std::string_view> get_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<raw_json_string> get_raw_json_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<uint64_t> get_uint64() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<uint64_t> get_uint64_in_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<int64_t> get_int64() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<int64_t> get_int64_in_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<double> get_double() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<double> get_double_in_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<bool> get_bool() noexcept;
   simdjson_really_inline bool is_null() noexcept;
+  simdjson_warn_unused simdjson_really_inline bool is_negative() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<bool> is_integer() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<number_type> get_number_type() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<number> get_number() noexcept;
 
   simdjson_warn_unused simdjson_really_inline simdjson_result<std::string_view> get_root_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<raw_json_string> get_root_raw_json_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<uint64_t> get_root_uint64() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<uint64_t> get_root_uint64_in_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<int64_t> get_root_int64() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<int64_t> get_root_int64_in_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<double> get_root_double() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<double> get_root_double_in_string() noexcept;
   simdjson_warn_unused simdjson_really_inline simdjson_result<bool> get_root_bool() noexcept;
+  simdjson_warn_unused simdjson_really_inline bool is_root_negative() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<bool> is_root_integer() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<number_type> get_root_number_type() noexcept;
+  simdjson_warn_unused simdjson_really_inline simdjson_result<number> get_root_number() noexcept;
   simdjson_really_inline bool is_root_null() noexcept;
 
   simdjson_really_inline error_code error() const noexcept;
@@ -282,31 +319,130 @@ public:
   simdjson_really_inline bool is_valid() const noexcept;
 
   /** @} */
-
 protected:
+  /**
+   * Restarts an array iteration.
+   * @returns Whether the array has any elements (returns false for empty).
+   */
+  simdjson_really_inline simdjson_result<bool> reset_array() noexcept;
+  /**
+   * Restarts an object iteration.
+   * @returns Whether the object has any fields (returns false for empty).
+   */
+  simdjson_really_inline simdjson_result<bool> reset_object() noexcept;
+  /**
+   * move_at_start(): moves us so that we are pointing at the beginning of
+   * the container. It updates the index so that at_start() is true and it
+   * syncs the depth. The user can then create a new container instance.
+   *
+   * Usage: used with value::count_elements().
+   **/
+  simdjson_really_inline void move_at_start() noexcept;
+
+  /**
+   * move_at_container_start(): moves us so that we are pointing at the beginning of
+   * the container so that assert_at_container_start() passes.
+   *
+   * Usage: used with reset_array() and reset_object().
+   **/
+   simdjson_really_inline void move_at_container_start() noexcept;
+  /* Useful for debugging and logging purposes. */
+  inline std::string to_string() const noexcept;
   simdjson_really_inline value_iterator(json_iterator *json_iter, depth_t depth, token_position start_index) noexcept;
 
   simdjson_really_inline bool parse_null(const uint8_t *json) const noexcept;
   simdjson_really_inline simdjson_result<bool> parse_bool(const uint8_t *json) const noexcept;
-
   simdjson_really_inline const uint8_t *peek_start() const noexcept;
   simdjson_really_inline uint32_t peek_start_length() const noexcept;
-  simdjson_really_inline const uint8_t *advance_start(const char *type) const noexcept;
-  simdjson_really_inline error_code advance_container_start(const char *type, const uint8_t *&json) const noexcept;
-  simdjson_really_inline const uint8_t *advance_root_scalar(const char *type) const noexcept;
-  simdjson_really_inline const uint8_t *advance_non_root_scalar(const char *type) const noexcept;
+
+  /**
+   * The general idea of the advance_... methods and the peek_* methods
+   * is that you first peek and check that you have desired type. If you do,
+   * and only if you do, then you advance.
+   *
+   * We used to unconditionally advance. But this made reasoning about our
+   * current state difficult.
+   * Suppose you always advance. Look at the 'value' matching the key
+   * "shadowable" in the following example...
+   *
+   * ({"globals":{"a":{"shadowable":[}}}})
+   *
+   * If the user thinks it is a Boolean and asks for it, then we check the '[',
+   * decide it is not a Boolean, but still move into the next character ('}'). Now
+   * we are left pointing at '}' right after a '['. And we have not yet reported
+   * an error, only that we do not have a Boolean.
+   *
+   * If, instead, you just stand your ground until it is content that you know, then
+   * you will only even move beyond the '[' if the user tells you that you have an
+   * array. So you will be at the '}' character inside the array and, hopefully, you
+   * will then catch the error because an array cannot start with '}', but the code
+   * processing Boolean values does not know this.
+   *
+   * So the contract is: first call 'peek_...' and then call 'advance_...' only
+   * if you have determined that it is a type you can handle.
+   *
+   * Unfortunately, it makes the code more verbose, longer and maybe more error prone.
+   */
+
+  simdjson_really_inline void advance_scalar(const char *type) noexcept;
+  simdjson_really_inline void advance_root_scalar(const char *type) noexcept;
+  simdjson_really_inline void advance_non_root_scalar(const char *type) noexcept;
+
+  simdjson_really_inline const uint8_t *peek_scalar(const char *type) noexcept;
+  simdjson_really_inline const uint8_t *peek_root_scalar(const char *type) noexcept;
+  simdjson_really_inline const uint8_t *peek_non_root_scalar(const char *type) noexcept;
+
+
+  simdjson_really_inline error_code start_container(uint8_t start_char, const char *incorrect_type_message, const char *type) noexcept;
+  simdjson_really_inline error_code end_container() noexcept;
+
+  /**
+   * Advance to a place expecting a value (increasing depth).
+   *
+   * @return The current token (the one left behind).
+   * @error TAPE_ERROR If the document ended early.
+   */
+  simdjson_really_inline simdjson_result<const uint8_t *> advance_to_value() noexcept;
 
   simdjson_really_inline error_code incorrect_type_error(const char *message) const noexcept;
+  simdjson_really_inline error_code error_unless_more_tokens(uint32_t tokens=1) const noexcept;
 
   simdjson_really_inline bool is_at_start() const noexcept;
-  simdjson_really_inline bool is_at_container_start() const noexcept;
+  /**
+   * is_at_iterator_start() returns true on an array or object after it has just been
+   * created, whether the instance is empty or not.
+   *
+   * Usage: used by array::begin() in debug mode (SIMDJSON_DEVELOPMENT_CHECKS)
+   */
   simdjson_really_inline bool is_at_iterator_start() const noexcept;
-  simdjson_really_inline void assert_at_start() const noexcept;
-  simdjson_really_inline void assert_at_container_start() const noexcept;
-  simdjson_really_inline void assert_at_root() const noexcept;
-  simdjson_really_inline void assert_at_child() const noexcept;
-  simdjson_really_inline void assert_at_next() const noexcept;
-  simdjson_really_inline void assert_at_non_root_start() const noexcept;
+
+  /**
+   * Assuming that we are within an object, this returns true if we
+   * are pointing at a key.
+   *
+   * Usage: the skip_child() method should never be used while we are pointing
+   * at a key inside an object.
+   */
+  simdjson_really_inline bool is_at_key() const noexcept;
+
+  inline void assert_at_start() const noexcept;
+  inline void assert_at_container_start() const noexcept;
+  inline void assert_at_root() const noexcept;
+  inline void assert_at_child() const noexcept;
+  inline void assert_at_next() const noexcept;
+  inline void assert_at_non_root_start() const noexcept;
+
+  /** Get the starting position of this value */
+  simdjson_really_inline token_position start_position() const noexcept;
+
+  /** @copydoc error_code json_iterator::position() const noexcept; */
+  simdjson_really_inline token_position position() const noexcept;
+  /** @copydoc error_code json_iterator::end_position() const noexcept; */
+  simdjson_really_inline token_position last_position() const noexcept;
+  /** @copydoc error_code json_iterator::end_position() const noexcept; */
+  simdjson_really_inline token_position end_position() const noexcept;
+  /** @copydoc error_code json_iterator::report_error(error_code error, const char *message) noexcept; */
+  simdjson_really_inline error_code report_error(error_code error, const char *message) noexcept;
 
   friend class document;
   friend class object;

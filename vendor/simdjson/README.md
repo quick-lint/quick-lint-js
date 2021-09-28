@@ -1,9 +1,9 @@
-[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/simdjson.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&q=proj%3Asimdjson&can=2)
+
 ![Ubuntu 18.04 CI](https://github.com/simdjson/simdjson/workflows/Ubuntu%2018.04%20CI%20(GCC%207)/badge.svg)
 [![Ubuntu 20.04 CI](https://github.com/simdjson/simdjson/workflows/Ubuntu%2020.04%20CI%20(GCC%209)/badge.svg)](https://simdjson.org/plots.html)
 ![VS16-CI](https://github.com/simdjson/simdjson/workflows/VS16-CI/badge.svg)
 ![MinGW64-CI](https://github.com/simdjson/simdjson/workflows/MinGW64-CI/badge.svg)
-[![][license img]][license]  [![Doxygen Documentation](https://img.shields.io/badge/docs-doxygen-green.svg)](https://simdjson.org/api/0.9.0/index.html)
+[![][license img]][license]  [![Doxygen Documentation](https://img.shields.io/badge/docs-doxygen-green.svg)](https://simdjson.org/api/1.0.0/index.html)
 
 simdjson : Parsing gigabytes of JSON per second
 ===============================================
@@ -27,7 +27,6 @@ Table of Contents
 -----------------
 
 * [Quick Start](#quick-start)
-  * [On Demand](#on-demand)
 * [Documentation](#documentation)
 * [Performance results](#performance-results)
 * [Real-world usage](#real-world-usage)
@@ -54,6 +53,7 @@ The simdjson library is easily consumable with a single .h and .cpp file.
 2. Create `quickstart.cpp`:
 
 ```c++
+#include <iostream>
 #include "simdjson.h"
 using namespace simdjson;
 int main(void) {
@@ -79,7 +79,7 @@ Usage documentation is available:
 * [Performance](doc/performance.md) shows some more advanced scenarios and how to tune for them.
 * [Implementation Selection](doc/implementation-selection.md) describes runtime CPU detection and
   how you can work with it.
-* [API](https://simdjson.org/api/0.9.0/annotated.html) contains the automatically generated API documentation.
+* [API](https://simdjson.org/api/1.0.0/annotated.html) contains the automatically generated API documentation.
 
 Performance results
 -------------------
@@ -137,6 +137,7 @@ We distinguish between "bindings" (which just wrap the C++ code) and a port to a
 - [simdjson-go](https://github.com/minio/simdjson-go): Go port using Golang assembly.
 - [rcppsimdjson](https://github.com/eddelbuettel/rcppsimdjson): R bindings.
 - [simdjson_erlang](https://github.com/ChomperT/simdjson_erlang): erlang bindings.
+- [lua-simdjson](https://github.com/FourierTransformer/lua-simdjson): lua bindings.
 
 
 About simdjson
@@ -152,13 +153,13 @@ and implementation of simdjson is in our research article:
 
 We have an in-depth paper focused on the UTF-8 validation:
 
-- John Keiser, Daniel Lemire, [Validating UTF-8 In Less Than One Instruction Per Byte](https://arxiv.org/abs/2010.03090), Software: Practice & Experience (to appear)
+- John Keiser, Daniel Lemire, [Validating UTF-8 In Less Than One Instruction Per Byte](https://arxiv.org/abs/2010.03090), Software: Practice & Experience 51 (5), 2021.
 
 We also have an informal [blog post providing some background and context](https://branchfree.org/2019/02/25/paper-parsing-gigabytes-of-json-per-second/).
 
 For the video inclined, <br />
 [![simdjson at QCon San Francisco 2019](http://img.youtube.com/vi/wlvKAT7SZIQ/0.jpg)](http://www.youtube.com/watch?v=wlvKAT7SZIQ)<br />
-(it was the best voted talk, we're kinda proud of it).
+(It was the best voted talk, we're kinda proud of it.)
 
 Funding
 -------
@@ -182,4 +183,8 @@ This code is made available under the [Apache License 2.0](https://www.apache.or
 
 Under Windows, we build some tools using the windows/dirent_portable.h file (which is outside our library code): it under the liberal (business-friendly) MIT license.
 
-For compilers that do not support [C++17](https://en.wikipedia.org/wiki/C%2B%2B17), we bundle the string-view library which is published under the Boost license (http://www.boost.org/LICENSE_1_0.txt). Like the Apache license, the Boost license is a permissive license allowing commercial redistribution.
+For compilers that do not support [C++17](https://en.wikipedia.org/wiki/C%2B%2B17), we bundle the string-view library which is published under the [Boost license](http://www.boost.org/LICENSE_1_0.txt). Like the Apache license, the Boost license is a permissive license allowing commercial redistribution.
+
+For efficient number serialization, we bundle Florian Loitsch's implementation of the Grisu2 algorithm for binary to decimal floating-point numbers. The implementation was slightly modified by JSON for Modern C++ library. Both Florian Loitsch's implementation and JSON for Modern C++ are provided under the MIT license.
+
+For runtime dispatching, we use some code from the PyTorch project licensed under 3-clause BSD.

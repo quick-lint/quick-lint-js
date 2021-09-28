@@ -3,6 +3,7 @@ namespace SIMDJSON_IMPLEMENTATION {
 namespace ondemand {
 
 class document;
+class document_stream;
 class object;
 class array;
 class value;
@@ -44,14 +45,27 @@ protected:
    * - 3 = key or value inside root array/object.
    */
   depth_t _depth{};
+  /**
+   * Beginning of the document indexes.
+   * Normally we have root == parser->implementation->structural_indexes.get()
+   * but this may differ, especially in streaming mode (where we have several
+   * documents);
+   */
+  token_position _root{};
+  /**
+   * Normally, a json_iterator operates over a single document, but in
+   * some cases, we may have a stream of documents. This attribute is meant
+   * as meta-data: the json_iterator works the same irrespective of the
+   * value of this attribute.
+   */
+  bool _streaming{false};
 
 public:
   simdjson_really_inline json_iterator() noexcept = default;
   simdjson_really_inline json_iterator(json_iterator &&other) noexcept;
   simdjson_really_inline json_iterator &operator=(json_iterator &&other) noexcept;
-  simdjson_really_inline json_iterator(const json_iterator &other) noexcept = delete;
-  simdjson_really_inline json_iterator &operator=(const json_iterator &other) noexcept = delete;
-
+  simdjson_really_inline explicit json_iterator(const json_iterator &other) noexcept = default;
+  simdjson_really_inline json_iterator &operator=(const json_iterator &other) noexcept = default;
   /**
    * Skips a JSON value, whether it is a scalar, array or object.
    */
@@ -63,19 +77,30 @@ public:
   simdjson_really_inline bool at_root() const noexcept;
 
   /**
-   * Get the root value iterator
+   * Tell whether we should be expected to run in streaming
+   * mode (iterating over many documents). It is pure metadata
+   * that does not affect how the iterator works. It is used by
+   * start_root_array() and start_root_object().
    */
-  simdjson_really_inline token_position root_checkpoint() const noexcept;
+  simdjson_really_inline bool streaming() const noexcept;
 
   /**
-   * Assert if the iterator is not at the start
+   * Get the root value iterator
+   */
+  simdjson_really_inline token_position root_position() const noexcept;
+  /**
+   * Assert that we are at the document depth (== 1)
+   */
+  simdjson_really_inline void assert_at_document_depth() const noexcept;
+  /**
+   * Assert that we are at the root of the document
    */
   simdjson_really_inline void assert_at_root() const noexcept;
 
   /**
    * Tell whether the iterator is at the EOF mark
    */
-  simdjson_really_inline bool at_eof() const noexcept;
+  simdjson_really_inline bool at_end() const noexcept;
 
   /**
    * Tell whether the iterator is live (has not been moved).
@@ -88,10 +113,22 @@ public:
   simdjson_really_inline void abandon() noexcept;
 
   /**
-   * Advance the current token.
+   * Advance the current token without modifying depth.
    */
-  simdjson_really_inline const uint8_t *advance() noexcept;
+  simdjson_really_inline const uint8_t *return_current_and_advance() noexcept;
 
+  /**
+   * Assert that there are at least the given number of tokens left.
+   *
+   * Has no effect in release builds.
+   */
+  simdjson_really_inline void assert_more_tokens(uint32_t required_tokens=1) const noexcept;
+  /**
+   * Assert that the given position addresses an actual token (is within bounds).
+   *
+   * Has no effect in release builds.
+   */
+  simdjson_really_inline void assert_valid_position(token_position position) const noexcept;
   /**
    * Get the JSON text for a given token (relative).
    *
@@ -112,11 +149,20 @@ public:
    */
   simdjson_really_inline uint32_t peek_length(int32_t delta=0) const noexcept;
   /**
+   * Get a pointer to the current location in the input buffer.
+   *
+   * This is not null-terminated; it is a view into the JSON.
+   *
+   * You may be pointing outside of the input buffer: it is not generally
+   * safe to derefence this pointer.
+   */
+  simdjson_really_inline const uint8_t *unsafe_pointer() const noexcept;
+  /**
    * Get the JSON text for a given token.
    *
    * This is not null-terminated; it is a view into the JSON.
    *
-   * @param index The position of the token to retrieve.
+   * @param position The position of the token to retrieve.
    *
    * TODO consider a string_view, assuming the length will get stripped out by the optimizer when
    * it isn't used ...
@@ -127,7 +173,7 @@ public:
    *
    * The length will include any whitespace at the end of the token.
    *
-   * @param index The position of the token to retrieve.
+   * @param position The position of the token to retrieve.
    */
   simdjson_really_inline uint32_t peek_length(token_position position) const noexcept;
   /**
@@ -156,8 +202,8 @@ public:
    *
    * @param child_depth the expected child depth.
    */
-  simdjson_really_inline void descend_to(depth_t parent_depth) noexcept;
-  simdjson_really_inline void descend_to(depth_t parent_depth, int32_t delta) noexcept;
+  simdjson_really_inline void descend_to(depth_t child_depth) noexcept;
+  simdjson_really_inline void descend_to(depth_t child_depth, int32_t delta) noexcept;
 
   /**
    * Get current depth.
@@ -170,7 +216,7 @@ public:
   simdjson_really_inline uint8_t *&string_buf_loc() noexcept;
 
   /**
-   * Report an error, preventing further iteration.
+   * Report an unrecoverable error, preventing further iteration.
    *
    * @param error The error to report. Must not be SUCCESS, UNINITIALIZED, INCORRECT_TYPE, or NO_SUCH_FIELD.
    * @param message An error message to report with the error.
@@ -185,8 +231,6 @@ public:
   simdjson_really_inline error_code optional_error(error_code error, const char *message) noexcept;
 
   template<int N> simdjson_warn_unused simdjson_really_inline bool copy_to_buffer(const uint8_t *json, uint32_t max_len, uint8_t (&tmpbuf)[N]) noexcept;
-  template<int N> simdjson_warn_unused simdjson_really_inline bool peek_to_buffer(uint8_t (&tmpbuf)[N]) noexcept;
-  template<int N> simdjson_warn_unused simdjson_really_inline bool advance_to_buffer(uint8_t (&tmpbuf)[N]) noexcept;
 
   simdjson_really_inline token_position position() const noexcept;
   simdjson_really_inline void reenter_child(token_position position, depth_t child_depth) noexcept;
@@ -194,12 +238,30 @@ public:
   simdjson_really_inline token_position start_position(depth_t depth) const noexcept;
   simdjson_really_inline void set_start_position(depth_t depth, token_position position) noexcept;
 #endif
+  /* Useful for debugging and logging purposes. */
+  inline std::string to_string() const noexcept;
 
+  /**
+   * Returns the current location in the document if in bounds.
+   */
+  inline simdjson_result<const char *> current_location() noexcept;
+
+  /**
+   * Updates this json iterator so that it is back at the beginning of the document,
+   * as if it had just been created.
+   */
+  inline void rewind() noexcept;
 protected:
   simdjson_really_inline json_iterator(const uint8_t *buf, ondemand::parser *parser) noexcept;
-  simdjson_really_inline token_position last_document_position() const noexcept;
+  /// The last token before the end
+  simdjson_really_inline token_position last_position() const noexcept;
+  /// The token *at* the end. This points at gibberish and should only be used for comparison.
+  simdjson_really_inline token_position end_position() const noexcept;
+  /// The end of the buffer.
+  simdjson_really_inline token_position end() const noexcept;
 
   friend class document;
+  friend class document_stream;
   friend class object;
   friend class array;
   friend class value;

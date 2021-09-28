@@ -34,21 +34,52 @@ simdjson_really_inline simdjson_result<value> object::find_field(const std::stri
 }
 
 simdjson_really_inline simdjson_result<object> object::start(value_iterator &iter) noexcept {
-  // We don't need to know if the object is empty to start iteration, but we do want to know if there
-  // is an error--thus `simdjson_unused`.
-  simdjson_unused bool has_value;
-  SIMDJSON_TRY( iter.start_object().get(has_value) );
+  SIMDJSON_TRY( iter.start_object().error() );
   return object(iter);
 }
 simdjson_really_inline simdjson_result<object> object::start_root(value_iterator &iter) noexcept {
-  simdjson_unused bool has_value;
-  SIMDJSON_TRY( iter.start_root_object().get(has_value) );
+  SIMDJSON_TRY( iter.start_root_object().error() );
   return object(iter);
 }
-simdjson_really_inline object object::started(value_iterator &iter) noexcept {
-  simdjson_unused bool has_value = iter.started_object();
-  return iter;
+simdjson_really_inline error_code object::consume() noexcept {
+  if(iter.is_at_key()) {
+    /**
+     * whenever you are pointing at a key, calling skip_child() is
+     * unsafe because you will hit a string and you will assume that
+     * it is string value, and this mistake will lead you to make bad
+     * depth computation.
+     */
+    /**
+     * We want to 'consume' the key. We could really
+     * just do _json_iter->return_current_and_advance(); at this
+     * point, but, for clarity, we will use the high-level API to
+     * eat the key. We assume that the compiler optimizes away
+     * most of the work.
+     */
+    simdjson_unused raw_json_string actual_key;
+    auto error = iter.field_key().get(actual_key);
+    if (error) { iter.abandon(); return error; };
+    // Let us move to the value while we are at it.
+    if ((error = iter.field_value())) { iter.abandon(); return error; }
+  }
+  auto error_skip = iter.json_iter().skip_child(iter.depth()-1);
+  if(error_skip) { iter.abandon(); }
+  return error_skip;
 }
+
+simdjson_really_inline simdjson_result<std::string_view> object::raw_json() noexcept {
+  const uint8_t * starting_point{iter.peek_start()};
+  auto error = consume();
+  if(error) { return error; }
+  const uint8_t * final_point{iter._json_iter->peek(0)};
+  return std::string_view(reinterpret_cast<const char*>(starting_point), size_t(final_point - starting_point));
+}
+
+simdjson_really_inline simdjson_result<object> object::started(value_iterator &iter) noexcept {
+  SIMDJSON_TRY( iter.started_object().error() );
+  return object(iter);
+}
+
 simdjson_really_inline object object::resume(const value_iterator &iter) noexcept {
   return iter;
 }
@@ -66,6 +97,69 @@ simdjson_really_inline simdjson_result<object_iterator> object::begin() noexcept
 }
 simdjson_really_inline simdjson_result<object_iterator> object::end() noexcept {
   return object_iterator(iter);
+}
+
+inline simdjson_result<value> object::at_pointer(std::string_view json_pointer) noexcept {
+  if (json_pointer[0] != '/') { return INVALID_JSON_POINTER; }
+  json_pointer = json_pointer.substr(1);
+  size_t slash = json_pointer.find('/');
+  std::string_view key = json_pointer.substr(0, slash);
+  // Grab the child with the given key
+  simdjson_result<value> child;
+
+  // If there is an escape character in the key, unescape it and then get the child.
+  size_t escape = key.find('~');
+  if (escape != std::string_view::npos) {
+    // Unescape the key
+    std::string unescaped(key);
+    do {
+      switch (unescaped[escape+1]) {
+        case '0':
+          unescaped.replace(escape, 2, "~");
+          break;
+        case '1':
+          unescaped.replace(escape, 2, "/");
+          break;
+        default:
+          return INVALID_JSON_POINTER; // "Unexpected ~ escape character in JSON pointer");
+      }
+      escape = unescaped.find('~', escape+1);
+    } while (escape != std::string::npos);
+    child = find_field(unescaped);  // Take note find_field does not unescape keys when matching
+  } else {
+    child = find_field(key);
+  }
+  if(child.error()) {
+    return child; // we do not continue if there was an error
+  }
+  // If there is a /, we have to recurse and look up more of the path
+  if (slash != std::string_view::npos) {
+    child = child.at_pointer(json_pointer.substr(slash));
+  }
+  return child;
+}
+
+simdjson_really_inline simdjson_result<size_t> object::count_fields() & noexcept {
+  size_t count{0};
+  // Important: we do not consume any of the values.
+  for(simdjson_unused auto v : *this) { count++; }
+  // The above loop will always succeed, but we want to report errors.
+  if(iter.error()) { return iter.error(); }
+  // We need to move back at the start because we expect users to iterate through
+  // the object after counting the number of elements.
+  iter.reset_object();
+  return count;
+}
+
+simdjson_really_inline simdjson_result<bool> object::is_empty() & noexcept {
+  bool is_not_empty;
+  auto error = iter.reset_object().get(is_not_empty);
+  if(error) { return error; }
+  return !is_not_empty;
+}
+
+simdjson_really_inline simdjson_result<bool> object::reset() & noexcept {
+  return iter.reset_object();
 }
 
 } // namespace ondemand
@@ -110,6 +204,26 @@ simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value>
 simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::find_field(std::string_view key) && noexcept {
   if (error()) { return error(); }
   return std::forward<SIMDJSON_IMPLEMENTATION::ondemand::object>(first).find_field(key);
+}
+
+simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::at_pointer(std::string_view json_pointer) noexcept {
+  if (error()) { return error(); }
+  return first.at_pointer(json_pointer);
+}
+
+inline simdjson_result<bool> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::reset() noexcept {
+  if (error()) { return error(); }
+  return first.reset();
+}
+
+inline simdjson_result<bool> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::is_empty() noexcept {
+  if (error()) { return error(); }
+  return first.is_empty();
+}
+
+simdjson_really_inline  simdjson_result<size_t> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::count_fields() & noexcept {
+  if (error()) { return error(); }
+  return first.count_fields();
 }
 
 } // namespace simdjson
