@@ -28,6 +28,18 @@ jobs:
           printf 'Set disable_coredump false\n' >> /etc/sudo.conf
           chown -R arch-builder .
 
+        # If we are releasing a new version, we won't have a Git tag yet.
+        # However, the 'version' file will be updated. Create a tag based on
+        # 'version' if such a tag doesn't already exist. This will make the
+        # package's version info correctly state the new quick-lint-js version
+        # number.
+        #
+        # If we are not releasing a new version, a tag will already exist, so
+        # the 'git tag' command will fail. We ignore such failures.
+      - name: set up tags
+        run: |
+          git tag -- "$(head -n1 version)" || :
+
       - name: build PKGBUILD-dev
         run: |
           cd dist/arch/
