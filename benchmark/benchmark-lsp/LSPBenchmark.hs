@@ -69,7 +69,7 @@ benchmarkWithLSPServer name serverConfig setUp work =
     clean :: Int64 -> LSPServerBenchmarkEnv env -> IO ()
     clean _batchSize (LSPServerBenchmarkEnv _env lspClientIORef lspServerProcess) = do
       lspClient <- IORef.readIORef lspClientIORef
-      shutDownLSPServer lspClient lspServerProcess
+      shutDownLSPServer lspClient serverConfig lspServerProcess
     cleanUpEachRun = False
 
 data LSPServerBenchmarkEnv userEnv =
@@ -88,7 +88,7 @@ spawnLSPServerForBenchmarking BenchmarkConfigServer {..} = do
       (Process.proc (head benchmarkConfigServerCommand) (tail benchmarkConfigServerCommand))
         {Process.cwd = benchmarkConfigServerCWD, Process.std_err = Process.Inherit}
       logging
-  lspClient' <- execStateT initializeLSP lspClient
+  lspClient' <- execStateT (initializeLSP benchmarkConfigServerInitializationOptions) lspClient
   return (lspClient', lspServerProcess)
 
 spawnLSPServer :: Process.CreateProcess -> LSPClient.Logging -> IO (LSPClient.LSPClient, SpawnedProcess)
@@ -112,17 +112,20 @@ getLoggingOptions = do
 
 type SpawnedProcess = (Maybe IO.Handle, Maybe IO.Handle, Maybe IO.Handle, Process.ProcessHandle)
 
-shutDownLSPServer :: LSPClient.LSPClient -> SpawnedProcess -> IO ()
-shutDownLSPServer lspClient lspServerProcess@(_, _, _, lspServerProcessHandle) = do
-  lspClient' <- execStateT shutDownLSP lspClient
+shutDownLSPServer :: LSPClient.LSPClient -> BenchmarkConfigServer -> SpawnedProcess -> IO ()
+shutDownLSPServer lspClient serverConfig lspServerProcess@(_, _, _, lspServerProcessHandle) = do
+  lspClient' <- execStateT (shutDownLSP serverConfig) lspClient
   -- Some servers don't implement 'exit', so terminate the server manually.
   Process.terminateProcess lspServerProcessHandle
   _ <- Timeout.timeout (secondsToMicroseconds 1) $ Process.waitForProcess lspServerProcessHandle
   Process.cleanupProcess lspServerProcess
   Async.wait $ LSPClient.lspClientReadMessagesThread lspClient'
 
-initializeLSP :: StateT LSPClient.LSPClient IO ()
-initializeLSP = do
+initializeLSP ::
+     Aeson.Value
+  -- ^ Initialization options.
+  -> StateT LSPClient.LSPClient IO ()
+initializeLSP initializationOptions = do
   rootPath <- gets LSPClient.lspClientRootPath
   -- Flow's LSP server requires rootURI.
   let rootURI = LSP.filePathToUri rootPath
@@ -133,11 +136,6 @@ initializeLSP = do
   let textDocumentClientCapabilities =
         def {LSP._publishDiagnostics = Just (LSP.PublishDiagnosticsClientCapabilities Nothing Nothing Nothing)}
   let clientCapabilities = LSP.ClientCapabilities Nothing (Just textDocumentClientCapabilities) Nothing Nothing
-  let initializationOptions =
-        Aeson.Object $
-        HashMap.fromList
-          -- For Deno:
-          [("enable", Aeson.Bool True), ("lint", Aeson.Bool True), ("unstable", Aeson.Bool False)]
   initializeID <-
     LSPClient.sendRequest LSP.SInitialize $
     LSP.InitializeParams
@@ -175,36 +173,25 @@ checkTextDocumentSyncKind initializeResult = do
         Just (LSP.InL ((^. LSP.change) -> Just kind)) -> kind
         _ -> LSP.TdSyncNone
 
-shutDownLSP :: StateT LSPClient.LSPClient IO ()
-shutDownLSP = do
+shutDownLSP :: BenchmarkConfigServer -> StateT LSPClient.LSPClient IO ()
+shutDownLSP serverConfig = do
   shutdownID <- LSPClient.sendRequest LSP.SShutdown LSP.Empty
   fix $ \loop ->
     LSPClient.receiveMessage >>= \case
       (LSPClient.matchResponse LSP.SShutdown shutdownID -> Just (Right _)) -> return ()
-      (matchMiscMessage -> Just handle) -> handle >> loop
+      (matchMiscMessage serverConfig -> Just handle) -> handle >> loop
       _ -> fail "Unimplemented message"
   LSPClient.sendNotification LSP.SExit LSP.Empty
 
-matchMiscMessage :: LSP.FromServerMessage -> Maybe (StateT LSPClient.LSPClient IO ())
-matchMiscMessage =
+matchMiscMessage :: BenchmarkConfigServer -> LSP.FromServerMessage -> Maybe (StateT LSPClient.LSPClient IO ())
+matchMiscMessage BenchmarkConfigServer {..} =
   \case
     (LSPClient.matchRequest LSP.SClientRegisterCapability -> Just (requestID, _request)) ->
       Just $ do LSPClient.sendResponse requestID LSP.Empty
     (LSPClient.matchRequest LSP.SWorkspaceConfiguration -> Just (requestID, request)) ->
       Just $ LSPClient.sendResponse requestID (LSP.List configurations)
       where (LSP.List requestedItems) = request ^. LSP.items
-            configurations = map (\_item -> configurationOptions) requestedItems
-            configurationOptions =
-              Aeson.Object $
-              HashMap.fromList
-                -- For eslint-server:
-                [ ("run", Aeson.String "onType")
-                , ("validate", Aeson.String "probe")
-                -- For Deno:
-                , ("enable", Aeson.Bool True)
-                , ("lint", Aeson.Bool True)
-                , ("unstable", Aeson.Bool False)
-                ]
+            configurations = map (\_item -> benchmarkConfigServerWorkspaceConfiguration) requestedItems
     (LSPClient.matchAnyNotification -> True) -> Just $ return ()
     _ -> Nothing
 
@@ -224,8 +211,10 @@ data BenchmarkConfigServer =
     , benchmarkConfigServerAllowIncrementalChanges :: Bool
     , benchmarkConfigServerDiagnosticsMessagesToIgnore :: Int
     , benchmarkConfigServerEnable :: Bool
+    , benchmarkConfigServerInitializationOptions :: Aeson.Value
     , benchmarkConfigServerNeedFilesOnDisk :: Bool
     , benchmarkConfigServerWaitForEmptyDiagnosticsOnOpen :: Bool
+    , benchmarkConfigServerWorkspaceConfiguration :: Aeson.Value
     }
 
 instance Aeson.FromJSON BenchmarkConfig where
@@ -238,8 +227,10 @@ instance Aeson.FromJSON BenchmarkConfigServer where
       (fromMaybe True <$> v Aeson..:? "allowIncrementalChanges") <*>
       (fromMaybe 0 <$> v Aeson..:? "diagnosticsMessagesToIgnore") <*>
       (fromMaybe True <$> v Aeson..:? "enable") <*>
+      (fromMaybe (Aeson.Object HashMap.empty) <$> v Aeson..:? "initializationOptions") <*>
       (fromMaybe False <$> v Aeson..:? "needFilesOnDisk") <*>
-      (fromMaybe True <$> v Aeson..:? "waitForEmptyDiagnosticsOnOpen")
+      (fromMaybe True <$> v Aeson..:? "waitForEmptyDiagnosticsOnOpen") <*>
+      (fromMaybe (Aeson.Object HashMap.empty) <$> v Aeson..:? "workspaceConfiguration")
 
 instance NFData IO.Handle where
   rnf x = x `seq` ()

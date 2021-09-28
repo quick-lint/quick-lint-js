@@ -13,7 +13,7 @@ import Control.DeepSeq (NFData)
 import Control.Monad (forM, forM_, unless, when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
+import Control.Monad.Trans.Reader (ReaderT, ask, asks, runReaderT)
 import Control.Monad.Trans.State.Strict
 import qualified Criterion.Main as Criterion
 import qualified Data.Aeson as Aeson
@@ -311,12 +311,13 @@ waitForDiagnosticsOrTimeout timeoutMicroseconds = do
   go []
 
 waitForOneDiagnosticsMessageOrTimeout :: Int -> LSPM (Maybe LSP.PublishDiagnosticsParams)
-waitForOneDiagnosticsMessageOrTimeout timeoutMicroseconds =
+waitForOneDiagnosticsMessageOrTimeout timeoutMicroseconds = do
+  serverConfig <- LSPM ask
   fix $ \loop ->
     liftLSP (LSPClient.receiveMessageWithTimeout timeoutMicroseconds) >>= \case
       Just (LSPClient.matchNotification LSP.STextDocumentPublishDiagnostics -> Just parameters) ->
         return $ Just parameters
-      Just (matchMiscMessage -> Just handle) -> liftLSP handle >> loop
+      Just (matchMiscMessage serverConfig -> Just handle) -> liftLSP handle >> loop
       Nothing -> return Nothing
       _ -> fail "Unimplemented message"
 

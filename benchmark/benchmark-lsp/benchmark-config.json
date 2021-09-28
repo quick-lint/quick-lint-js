@@ -4,12 +4,26 @@
       "name": "eslint-server",
       "command": ["node", "./node_modules/eslint-server/lib/index.js", "--stdio"],
       "cwd": "eslint/",
-      "allowIncrementalChanges": false
+      "allowIncrementalChanges": false,
+      "workspaceConfiguration": {
+        "run": "onType",
+        "validate": "probe"
+      }
     },
     {
       "name": "Deno",
       "command": ["deno", "lsp"],
-      "diagnosticsMessagesToIgnore": 2
+      "diagnosticsMessagesToIgnore": 2,
+      "initializationOptions": {
+        "enable": true,
+        "lint": true,
+        "unstable": true
+      },
+      "workspaceConfiguration": {
+        "enable": true,
+        "lint": true,
+        "unstable": true
+      }
     },
     {
       "name": "Flow",
