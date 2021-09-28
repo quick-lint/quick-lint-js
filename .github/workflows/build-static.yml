@@ -143,11 +143,23 @@ jobs:
           path: ./
       - uses: actions/download-artifact@v2
         with:
+          name: quick-lint-js-linux-armhf-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-linux-aarch64-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
           name: quick-lint-js-macos-${{ github.sha }}
           path: ./
       - uses: actions/download-artifact@v2
         with:
           name: quick-lint-js-windows-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-arm64-${{ github.sha }}
           path: ./
       - name: extract downloaded archives
         run: |
@@ -156,11 +168,20 @@ jobs:
           tar xf linux.tar.gz
           mv quick-lint-js dist/npm/linux-x64
 
+          tar xf linux-armhf.tar.gz
+          mv quick-lint-js dist/npm/linux-arm
+
+          tar xf linux-aarch64.tar.gz
+          mv quick-lint-js dist/npm/linux-arm64
+
           tar xf macos.tar.gz
           mv quick-lint-js dist/npm/darwin-x64
 
-          mkdir dist/npm/windows
+          mkdir dist/npm/win32-x64
           unzip windows.zip -d dist/npm/win32-x64/
+
+          mkdir dist/npm/win32-arm64
+          unzip windows-arm64.zip -d dist/npm/win32-arm64/
 
       - name: package
         run: npm pack ./dist/npm
