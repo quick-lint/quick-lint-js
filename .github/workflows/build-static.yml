@@ -154,13 +154,13 @@ jobs:
           set -x
 
           tar xf linux.tar.gz
-          mv quick-lint-js dist/npm/linux
+          mv quick-lint-js dist/npm/linux-x64
 
           tar xf macos.tar.gz
-          mv quick-lint-js dist/npm/macos
+          mv quick-lint-js dist/npm/darwin-x64
 
           mkdir dist/npm/windows
-          unzip windows.zip -d dist/npm/windows/
+          unzip windows.zip -d dist/npm/win32-x64/
 
       - name: package
         run: npm pack ./dist/npm
