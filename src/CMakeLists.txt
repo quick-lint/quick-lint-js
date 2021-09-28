@@ -27,7 +27,7 @@ quick_lint_js_add_executable(
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
 
-if (QUICK_LINT_JS_ENABLE_APPLE_CODESIGN)
+if (QUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN)
   quick_lint_js_apple_codesign(quick-lint-js)
 endif ()
 

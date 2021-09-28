@@ -16,14 +16,14 @@ certificate as a .cer file. We'll call this .cer file
 
 ### Building
 
-When running CMake, set the `QUICK_LINT_JS_ENABLE_APPLE_CODESIGN` option to
-`TRUE`, and set the `QUICK_LINT_JS_APPLE_CODESIGN_IDENTITY` option to your
+When running CMake, set the `QUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN` option to
+`TRUE`, and set the `QUICK_LINT_JS_APPLE_CODE_SIGN_IDENTITY` option to your
 certificate's Common Name (CN). For example:
 
     $ cmake -G Ninja \
       -DCMAKE_BUILD_TYPE=Debug \
-      -DQUICK_LINT_JS_ENABLE_APPLE_CODESIGN=TRUE \
-      -DQUICK_LINT_JS_APPLE_CODESIGN_IDENTITY="quick-lint-js dev (DO NOT TRUST)" \
+      -DQUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN=TRUE \
+      -DQUICK_LINT_JS_APPLE_CODE_SIGN_IDENTITY="quick-lint-js dev (DO NOT TRUST)" \
       -S . -B build
 
 Build the `quick-lint-js` target. The signed CLI executable should be

@@ -38,20 +38,13 @@ set(
   "Install Vim files into this directory relative to CMAKE_INSTALL_PREFIX"
 )
 
-option(QUICK_LINT_JS_ENABLE_APPLE_CODESIGN "Sign macOS programs" OFF)
+option(QUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN "Sign macOS programs" OFF)
 set(
-  QUICK_LINT_JS_APPLE_CODESIGN_IDENTITY
+  QUICK_LINT_JS_APPLE_CODE_SIGN_IDENTITY
   "-"
   CACHE
   STRING
   "Code signing identity to sign macOS programs with"
-)
-set(
-  QUICK_LINT_JS_APPLE_CODESIGN_KEYCHAIN
-  ""
-  CACHE
-  STRING
-  "Keychain to find QUICK_LINT_JS_APPLE_CODESIGN_IDENTITY in"
 )
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")

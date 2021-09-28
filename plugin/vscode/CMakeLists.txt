@@ -34,7 +34,7 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
       quick-lint-js-lib
     )
 
-    if (QUICK_LINT_JS_ENABLE_APPLE_CODESIGN)
+    if (QUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN)
       quick_lint_js_apple_codesign(quick-lint-js-vscode-node)
     endif ()
 

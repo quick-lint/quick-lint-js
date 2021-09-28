@@ -2,31 +2,34 @@
 # See end of file for extended copyright information.
 
 function (quick_lint_js_apple_codesign TARGET)
-  find_program(
-    QUICK_LINT_JS_APPLE_CODESIGN
-    NAMES codesign
-    DOC "Program to sign macOS programs"
-  )
-  if (NOT QUICK_LINT_JS_APPLE_CODESIGN)
-    message(FATAL_ERROR "Cannot find codesign utility for QUICK_LINT_JS_ENABLE_APPLE_CODESIGN")
-  endif ()
+  if (CMAKE_GENERATOR STREQUAL Xcode)
+    set_target_properties(
+      "${TARGET}"
+      PROPERTIES
+      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY
+      "${QUICK_LINT_JS_APPLE_CODE_SIGN_IDENTITY}"
+    )
+  else ()
+    find_program(
+      QUICK_LINT_JS_APPLE_CODESIGN
+      NAMES codesign
+      DOC "Program to sign macOS programs"
+    )
+    if (NOT QUICK_LINT_JS_APPLE_CODESIGN)
+      message(FATAL_ERROR "Cannot find codesign utility for QUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN")
+    endif ()
 
-  set(EXTRA_OPTIONS)
-  if (QUICK_LINT_JS_APPLE_CODESIGN_KEYCHAIN)
-    list(APPEND EXTRA_OPTIONS --keychain "${QUICK_LINT_JS_APPLE_CODESIGN_KEYCHAIN}")
+    add_custom_command(
+      TARGET "${TARGET}"
+      POST_BUILD
+      COMMAND
+        "${QUICK_LINT_JS_APPLE_CODESIGN}"
+        --sign "${QUICK_LINT_JS_APPLE_CODE_SIGN_IDENTITY}"
+        "$<TARGET_FILE:${TARGET}>"
+      COMMENT "Signing ${TARGET}"
+      VERBATIM
+    )
   endif ()
-  # @@@ set the Xcode option
-  add_custom_command(
-    TARGET "${TARGET}"
-    POST_BUILD
-    COMMAND
-      "${QUICK_LINT_JS_APPLE_CODESIGN}"
-      ${EXTRA_OPTIONS}
-      --sign "${QUICK_LINT_JS_APPLE_CODESIGN_IDENTITY}"
-      "$<TARGET_FILE:${TARGET}>"
-    COMMENT "Signing ${TARGET}"
-    VERBATIM
-  )
 endfunction ()
 
 # quick-lint-js finds bugs in JavaScript programs.

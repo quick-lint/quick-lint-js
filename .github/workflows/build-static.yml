@@ -14,8 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", archive_extension: ".tar.gz", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a", CMAKE_FLAGS: "-DQUICK_LINT_JS_APPLE_CODESIGN_IDENTITY=quick-lint-js ${{ fromJSON('[\"\", \"-DQUICK_LINT_JS_ENABLE_APPLE_CODESIGN=TRUE\"]')[github.event_name == 'push' && github.repository_owner == 'quick-lint'] }}", CODE_SIGN_APPLE: "${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' }}"}
-            # @@@ clean up above
+          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", archive_extension: ".tar.gz", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a", CMAKE_FLAGS: "-DQUICK_LINT_JS_APPLE_CODE_SIGN_IDENTITY=quick-lint-js", CODE_SIGN_APPLE: "${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' }}"}
           - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v1", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
@@ -49,7 +48,7 @@ jobs:
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
+          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_APPLE_CODE_SIGN=${{ toolchain.matrix.CODE_SIGN_APPLE }} ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
       - name: build
         run: cmake --build build --config Release --target quick-lint-js quick-lint-js-licenses
@@ -59,8 +58,7 @@ jobs:
       - name: check code signature
         if: ${{ matrix.toolchain.CODE_SIGN_APPLE }}
         run: |
-          codesign -vvv -R="anchor trusted" usr/bin/quick-lint-js
-          codesign -vvv -R="$(csreq -r='certificate leaf = "./dist/certificates/quick-lint-js.cer"' -t)" usr/bin/quick-lint-js
+          codesign -vvv -R="$(csreq -r='certificate leaf = "./dist/certificates/quick-lint-js.cer"' -t)" ./usr/bin/quick-lint-js
 
       - name: bundle build into .tar.gz
         if: ${{ matrix.toolchain.archive_extension == '.tar.gz' }}
