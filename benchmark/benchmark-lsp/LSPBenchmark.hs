@@ -209,6 +209,7 @@ data BenchmarkConfigServer =
     , benchmarkConfigServerCommand :: [String]
     , benchmarkConfigServerCWD :: Maybe FilePath
     , benchmarkConfigServerAllowIncrementalChanges :: Bool
+    , benchmarkConfigServerBrokenBenchmarkNames :: [String]
     , benchmarkConfigServerDiagnosticsMessagesToIgnore :: Int
     , benchmarkConfigServerInitializationOptions :: Aeson.Value
     , benchmarkConfigServerNeedFilesOnDisk :: Bool
@@ -224,6 +225,7 @@ instance Aeson.FromJSON BenchmarkConfigServer where
     Aeson.withObject "BenchmarkConfigServer" $ \v ->
       BenchmarkConfigServer <$> v Aeson..: "name" <*> v Aeson..: "command" <*> v Aeson..:? "cwd" <*>
       (fromMaybe True <$> v Aeson..:? "allowIncrementalChanges") <*>
+      (fromMaybe [] <$> v Aeson..:? "broken") <*>
       (fromMaybe 0 <$> v Aeson..:? "diagnosticsMessagesToIgnore") <*>
       (fromMaybe (Aeson.Object HashMap.empty) <$> v Aeson..:? "initializationOptions") <*>
       (fromMaybe False <$> v Aeson..:? "needFilesOnDisk") <*>

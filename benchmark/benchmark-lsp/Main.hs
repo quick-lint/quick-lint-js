@@ -16,12 +16,14 @@ import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, asks, runReaderT)
 import Control.Monad.Trans.State.Strict
 import qualified Criterion.Main as Criterion
+import qualified Criterion.Measurement.Types as Criterion
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as BS
 import Data.Dynamic (Typeable)
 import Data.Function (fix)
 import qualified Data.HashSet as HashSet
 import Data.Int (Int64)
+import qualified Data.Maybe
 import Data.Maybe (fromJust)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -60,8 +62,8 @@ data JavaScriptCorpus =
 
 benchmarkLSPServer :: JavaScriptCorpus -> BenchmarkConfigServer -> Criterion.Benchmark
 benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..} =
-  Criterion.bgroup
-    benchmarkConfigServerName
+  Criterion.bgroup benchmarkConfigServerName $
+  removeBrokenBenchmarks
     [ Criterion.bgroup
         "open-wait-close"
         [ benchOpenWaitClose javaScriptCorpusTiny "tiny.js" serverConfig
@@ -91,6 +93,10 @@ benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..}
       -- express-router.js, replace 'method' (declaration and references) with
       -- 'm00001', then 'm00002', etc.
   where
+    removeBrokenBenchmarks :: [Criterion.Benchmark] -> [Criterion.Benchmark]
+    removeBrokenBenchmarks = map (filterBenchmarks isBenchmarkGood)
+      where
+        isBenchmarkGood benchmarkName = not (benchmarkName `elem` benchmarkConfigServerBrokenBenchmarkNames)
     expressRouterJSChanges i = [makeChange 506 39, makeChange 507 8, makeChange 509 10]
       where
         newVariableName = Text.pack $ Printf.printf "m%05d" i
@@ -350,6 +356,19 @@ bgroupIf condition groupName benchmarks =
   if condition
     then benchmarks
     else []
+
+filterBenchmarks :: (String -> Bool) -> Criterion.Benchmark -> Criterion.Benchmark
+filterBenchmarks predicate = fromJust . go []
+  where
+    go :: [String] -> Criterion.Benchmark -> Maybe Criterion.Benchmark
+    go nameStack =
+      \case
+        Criterion.BenchGroup groupName benchmarks -> Just $ Criterion.BenchGroup groupName benchmarks'
+          where benchmarks' = Data.Maybe.mapMaybe (go (nameStack ++ [groupName])) benchmarks
+        Criterion.Benchmark benchmarkName _
+          | not (predicate fullBenchmarkName) -> Nothing
+          where fullBenchmarkName = foldl Criterion.addPrefix "" (nameStack ++ [benchmarkName])
+        other -> Just other
 -- Copyright 2021 Matthew "strager" Glazar
 --
 -- This file is part of quick-lint-js.
