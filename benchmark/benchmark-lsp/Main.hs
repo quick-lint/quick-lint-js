@@ -60,8 +60,7 @@ data JavaScriptCorpus =
 
 benchmarkLSPServer :: JavaScriptCorpus -> BenchmarkConfigServer -> Criterion.Benchmark
 benchmarkLSPServer JavaScriptCorpus {..} serverConfig@BenchmarkConfigServer {..} =
-  bgroupIf
-    benchmarkConfigServerEnable
+  Criterion.bgroup
     benchmarkConfigServerName
     [ Criterion.bgroup
         "open-wait-close"
