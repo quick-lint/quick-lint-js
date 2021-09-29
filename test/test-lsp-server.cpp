@@ -2026,17 +2026,20 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
 }
 
 TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
-  this->server.append(
-      make_message(u8R"({
-        "jsonrpc": "2.0",
-        "method": null,
-        "id": 10,
-        "params": {}
-      })"));
+  for (
+      string8_view message : {
+          u8R"({ "jsonrpc": "2.0", "method": null, "id": 10, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": null, "params": {} })"sv,
+      }) {
+    SCOPED_TRACE(out_string8(message));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::value response = this->client.messages[0];
-  expect_error(response, -32600, "Invalid Request");
+    this->client.messages.clear();
+    this->server.append(make_message(message));
+
+    ASSERT_EQ(this->client.messages.size(), 1);
+    ::boost::json::value response = this->client.messages[0];
+    expect_error(response, -32600, "Invalid Request");
+  }
 }
 
 // TODO(strager): Per the LSP specification, lsp_server should not send messages

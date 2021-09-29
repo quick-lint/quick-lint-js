@@ -166,7 +166,8 @@ class lsp_endpoint
     case ::simdjson::error_code::NO_SUCH_FIELD: {
       std::string_view method;
       if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
+        this->write_invalid_request_error_response(response_json);
+        break;
       }
       this->handler_.handle_notification(request, method);
       break;
@@ -190,6 +191,19 @@ class lsp_endpoint
       u8R"("error":{)"
         u8R"("code":-32700,)"
         u8R"("message":"Parse error")"
+      u8R"(})"
+    u8R"(})");
+    // clang-format on
+  }
+
+  static void write_invalid_request_error_response(byte_buffer& response_json) {
+    // clang-format off
+    response_json.append_copy(u8R"({)"
+      u8R"("jsonrpc":"2.0",)"
+      u8R"("id":null,)"
+      u8R"("error":{)"
+        u8R"("code":-32600,)"
+        u8R"("message":"Invalid Request")"
       u8R"(})"
     u8R"(})");
     // clang-format on
