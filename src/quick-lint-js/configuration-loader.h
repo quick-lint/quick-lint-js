@@ -69,8 +69,8 @@ struct configuration_change {
   // a configuration file from being determined at all.
   //
   // Invariant: (error == nullptr) || (config_file == nullptr)
-  std::variant<canonicalize_path_io_error, read_file_io_error,
-               watch_io_error>* error;  // Sometimes nullptr.
+  std::variant<canonicalize_path_io_error, read_file_io_error>*
+      error;  // Sometimes nullptr.
 
   // token is the pointer given to
   // configuration_loader::watch_and_load_for_file or
@@ -92,23 +92,19 @@ class configuration_loader {
   configuration_filesystem* fs() noexcept { return this->fs_; }
 
   // Returns nullptr if there is no config file.
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
 
   // Fails if the config file does not exist.
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
   watch_and_load_config_file(const std::string& file_path, const void* token);
 
   // Returns nullptr if there is no config file.
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
   load_for_file(const std::string& file_path);
 
   // Returns nullptr if there is no config file.
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
   load_for_file(const file_to_lint&);
 
   // Undo a call to watch_and_load_for_file or watch_and_load_config_file.
@@ -143,8 +139,7 @@ class configuration_loader {
   struct watched_config_path {
     std::string input_config_path;
     std::optional<canonical_path> actual_config_path;
-    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
-                               watch_io_error> >
+    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error> >
         error;
     void* token;
   };
@@ -152,23 +147,20 @@ class configuration_loader {
   struct watched_input_path {
     std::string input_path;
     std::optional<canonical_path> config_path;
-    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error,
-                               watch_io_error> >
+    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error> >
         error;
     void* token;
   };
 
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
   load_config_file(const char* config_path);
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
   find_and_load_config_file_for_input(const char* input_path);
 
-  result<loaded_config_file*, read_file_io_error, watch_io_error>
+  result<loaded_config_file*, read_file_io_error>
   find_and_load_config_file_in_directory_and_ancestors(canonical_path&&,
                                                        const char* input_path);
-  result<found_config_file, read_file_io_error, watch_io_error>
+  result<found_config_file, read_file_io_error>
   find_config_file_in_directory_and_ancestors(canonical_path&&);
 
   result<canonical_path_result, canonicalize_path_io_error>

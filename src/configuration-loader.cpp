@@ -38,8 +38,7 @@ bool operator!=(const watch_io_error& lhs, const watch_io_error& rhs) noexcept {
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::watch_and_load_for_file(const std::string& file_path,
                                               const void* token) {
   watched_input_path& watch =
@@ -50,19 +49,17 @@ configuration_loader::watch_and_load_for_file(const std::string& file_path,
           .error = std::nullopt,
           .token = const_cast<void*>(token),
       });
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
       r = this->find_and_load_config_file_for_input(file_path.c_str());
   if (!r.ok()) {
-    watch.error = r.error_to_variant<canonicalize_path_io_error,
-                                     read_file_io_error, watch_io_error>();
+    watch.error =
+        r.error_to_variant<canonicalize_path_io_error, read_file_io_error>();
     return r.propagate();
   }
   return *r;
 }
 
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::watch_and_load_config_file(const std::string& file_path,
                                                  const void* token) {
   watched_config_path& watch =
@@ -72,26 +69,23 @@ configuration_loader::watch_and_load_config_file(const std::string& file_path,
           .error = std::nullopt,
           .token = const_cast<void*>(token),
       });
-  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-         watch_io_error>
+  result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
       r = this->load_config_file(file_path.c_str());
   if (!r.ok()) {
-    watch.error = r.error_to_variant<canonicalize_path_io_error,
-                                     read_file_io_error, watch_io_error>();
+    watch.error =
+        r.error_to_variant<canonicalize_path_io_error, read_file_io_error>();
     return r.propagate();
   }
   watch.actual_config_path = *(*r)->config_path;
   return *r;
 }
 
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::load_for_file(const std::string& file_path) {
   return this->find_and_load_config_file_for_input(file_path.c_str());
 }
 
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::load_for_file(const file_to_lint& file) {
   if (file.config_file) {
     return this->load_config_file(file.config_file);
@@ -107,8 +101,7 @@ configuration_loader::load_for_file(const file_to_lint& file) {
   return this->find_and_load_config_file_for_input(file.path);
 }
 
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::load_config_file(const char* config_path) {
   result<canonical_path_result, canonicalize_path_io_error>
       canonical_config_path = this->fs_->canonicalize_path(config_path);
@@ -137,14 +130,13 @@ configuration_loader::load_config_file(const char* config_path) {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error,
-       watch_io_error>
+result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::find_and_load_config_file_for_input(
     const char* input_path) {
   result<canonical_path_result, canonicalize_path_io_error> parent_directory =
       this->get_parent_directory(input_path);
   if (!parent_directory.ok()) return parent_directory.propagate();
-  result<loaded_config_file*, read_file_io_error, watch_io_error> r =
+  result<loaded_config_file*, read_file_io_error> r =
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*parent_directory).canonical(),
           /*input_path=*/input_path);
@@ -152,10 +144,10 @@ configuration_loader::find_and_load_config_file_for_input(
   return *r;
 }
 
-result<loaded_config_file*, read_file_io_error, watch_io_error>
+result<loaded_config_file*, read_file_io_error>
 configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory, const char* input_path) {
-  result<found_config_file, read_file_io_error, watch_io_error> found =
+  result<found_config_file, read_file_io_error> found =
       this->find_config_file_in_directory_and_ancestors(
           std::move(parent_directory));
   if (!found.ok()) return found.propagate();
@@ -189,8 +181,7 @@ configuration_loader::find_and_load_config_file_in_directory_and_ancestors(
 
 // This algorithm is documented in docs/config.adoc:
 // https://quick-lint-js.com/config/#_files
-result<configuration_loader::found_config_file, read_file_io_error,
-       watch_io_error>
+result<configuration_loader::found_config_file, read_file_io_error>
 configuration_loader::find_config_file_in_directory_and_ancestors(
     canonical_path&& parent_directory) {
   // TODO(strager): Cache directory->config to reduce lookups in cases like the
@@ -306,8 +297,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
         canonical_config_path =
             this->fs_->canonicalize_path(watch.input_config_path);
     if (!canonical_config_path.ok()) {
-      auto new_error = canonical_config_path.error_to_variant<
-          canonicalize_path_io_error, read_file_io_error, watch_io_error>();
+      auto new_error =
+          canonical_config_path.error_to_variant<canonicalize_path_io_error,
+                                                 read_file_io_error>();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
@@ -323,9 +315,8 @@ std::vector<configuration_change> configuration_loader::refresh() {
     result<padded_string, read_file_io_error> latest_json =
         this->fs_->read_file(canonical_config_path->canonical());
     if (!latest_json.ok()) {
-      auto new_error =
-          latest_json.error_to_variant<canonicalize_path_io_error,
-                                       read_file_io_error, watch_io_error>();
+      auto new_error = latest_json.error_to_variant<canonicalize_path_io_error,
+                                                    read_file_io_error>();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
@@ -376,8 +367,9 @@ std::vector<configuration_change> configuration_loader::refresh() {
     result<canonical_path_result, canonicalize_path_io_error> parent_directory =
         this->get_parent_directory(input_path.c_str());
     if (!parent_directory.ok()) {
-      auto new_error = parent_directory.error_to_variant<
-          canonicalize_path_io_error, read_file_io_error, watch_io_error>();
+      auto new_error =
+          parent_directory.error_to_variant<canonicalize_path_io_error,
+                                            read_file_io_error>();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
@@ -390,13 +382,12 @@ std::vector<configuration_change> configuration_loader::refresh() {
       continue;
     }
 
-    result<found_config_file, read_file_io_error, watch_io_error> latest =
+    result<found_config_file, read_file_io_error> latest =
         this->find_config_file_in_directory_and_ancestors(
             std::move(*parent_directory).canonical());
     if (!latest.ok()) {
-      auto new_error =
-          latest.error_to_variant<canonicalize_path_io_error,
-                                  read_file_io_error, watch_io_error>();
+      auto new_error = latest.error_to_variant<canonicalize_path_io_error,
+                                               read_file_io_error>();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(configuration_change{
