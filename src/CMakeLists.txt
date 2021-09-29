@@ -42,6 +42,7 @@ quick_lint_js_add_library(
   change-detecting-filesystem-inotify.cpp
   change-detecting-filesystem-kqueue.cpp
   change-detecting-filesystem-win32.cpp
+  change-detecting-filesystem.cpp
   char8.cpp
   cli-location.cpp
   configuration-loader.cpp

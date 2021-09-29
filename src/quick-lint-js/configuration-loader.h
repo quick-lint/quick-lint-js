@@ -23,16 +23,6 @@
 namespace quick_lint_js {
 struct file_to_lint;
 
-struct watch_io_error {
-  std::string path;
-  platform_file_io_error io_error;
-
-  std::string to_string() const;
-
-  friend bool operator==(const watch_io_error&, const watch_io_error&) noexcept;
-  friend bool operator!=(const watch_io_error&, const watch_io_error&) noexcept;
-};
-
 class configuration_filesystem {
  public:
   virtual ~configuration_filesystem() = default;

@@ -10,6 +10,7 @@
 #include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
+#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
