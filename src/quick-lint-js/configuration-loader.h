@@ -39,7 +39,7 @@ class configuration_filesystem {
 
   virtual result<canonical_path_result, canonicalize_path_io_error>
   canonicalize_path(const std::string&) = 0;
-  virtual result<padded_string, read_file_io_error, watch_io_error> read_file(
+  virtual result<padded_string, read_file_io_error> read_file(
       const canonical_path&) = 0;
 };
 

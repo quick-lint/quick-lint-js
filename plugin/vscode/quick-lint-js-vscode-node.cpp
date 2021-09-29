@@ -142,7 +142,7 @@ class thread_safe_configuration_filesystem : public configuration_filesystem {
     return this->underlying_fs_.canonicalize_path(path);
   }
 
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path& path) override {
     std::lock_guard lock(this->lock_);
     return this->underlying_fs_.read_file(path);
@@ -195,7 +195,7 @@ class vscode_configuration_filesystem : public configuration_filesystem {
     return this->underlying_fs_->canonicalize_path(path);
   }
 
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path& path) override {
     qljs_document* doc = this->find_document(path.path());
     if (!doc) {

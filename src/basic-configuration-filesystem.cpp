@@ -22,7 +22,7 @@ basic_configuration_filesystem::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path);
 }
 
-result<padded_string, read_file_io_error, watch_io_error>
+result<padded_string, read_file_io_error>
 basic_configuration_filesystem::read_file(const canonical_path& path) {
   return quick_lint_js::read_file(path.c_str());
 }

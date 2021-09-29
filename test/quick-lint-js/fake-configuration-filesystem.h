@@ -22,8 +22,7 @@
 namespace quick_lint_js {
 class fake_configuration_filesystem : public configuration_filesystem {
  public:
-  using read_file_result =
-      result<padded_string, read_file_io_error, watch_io_error>;
+  using read_file_result = result<padded_string, read_file_io_error>;
 
   // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content) {
@@ -70,7 +69,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
     return canonical_path_result(std::string(path), path.size());
   }
 
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path& path) override {
     auto file_it = this->files_.find(path);
     if (file_it == this->files_.end()) {

@@ -55,7 +55,7 @@ change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path, this);
 }
 
-result<padded_string, read_file_io_error, watch_io_error>
+result<padded_string, read_file_io_error>
 change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
@@ -74,7 +74,7 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   // TODO(strager): Use openat. watch_directory opened a directory fd.
   posix_fd_file file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    return result<padded_string, read_file_io_error, watch_io_error>::failure<
+    return result<padded_string, read_file_io_error>::failure<
         read_file_io_error>(read_file_io_error{
         .path = path.c_str(),
         .io_error = posix_file_io_error{errno},

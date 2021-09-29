@@ -118,7 +118,7 @@ configuration_loader::load_config_file(const char* config_path) {
           this->get_loaded_config(canonical_config_path->canonical())) {
     return config_file;
   }
-  result<padded_string, read_file_io_error, watch_io_error> config_json =
+  result<padded_string, read_file_io_error> config_json =
       this->fs_->read_file(canonical_config_path->canonical());
   if (!config_json.ok()) return config_json.propagate();
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
@@ -217,22 +217,12 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
         };
       }
 
-      result<padded_string, read_file_io_error, watch_io_error> config_json =
+      result<padded_string, read_file_io_error> config_json =
           this->fs_->read_file(config_path);
       if (!config_json.ok()) {
-        if (config_json.has_error<read_file_io_error>()) {
-          if (config_json.error<read_file_io_error>()
-                  .io_error.is_file_not_found_error()) {
-            // Loop, looking for a different file.
-            continue;
-          }
-        } else {
-          QLJS_ASSERT(config_json.has_error<watch_io_error>());
-          if (config_json.error<watch_io_error>()
-                  .io_error.is_file_not_found_error()) {
-            // Loop, looking for a different file.
-            continue;
-          }
+        if (config_json.error().io_error.is_file_not_found_error()) {
+          // Loop, looking for a different file.
+          continue;
         }
         return config_json.propagate();
       }
@@ -330,7 +320,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
       continue;
     }
 
-    result<padded_string, read_file_io_error, watch_io_error> latest_json =
+    result<padded_string, read_file_io_error> latest_json =
         this->fs_->read_file(canonical_config_path->canonical());
     if (!latest_json.ok()) {
       auto new_error =
@@ -459,7 +449,7 @@ std::vector<configuration_change> configuration_loader::refresh() {
     // TODO(strager): Avoid reading config files again.
     // (find_config_file_in_directory_and_ancestors in the loop above already
     // read the config file.)
-    result<padded_string, read_file_io_error, watch_io_error> config_json =
+    result<padded_string, read_file_io_error> config_json =
         this->fs_->read_file(config_path);
     if (!config_json.ok()) {
       continue;

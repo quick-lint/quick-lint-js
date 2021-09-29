@@ -50,7 +50,7 @@ class change_detecting_filesystem_inotify : public configuration_filesystem,
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   void on_canonicalize_child_of_directory(const char*) override;
@@ -88,7 +88,7 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   void on_canonicalize_child_of_directory(const char*) override;
@@ -146,7 +146,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   windows_handle_file_ref io_completion_port() const noexcept {
