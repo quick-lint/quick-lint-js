@@ -2025,6 +2025,20 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
   expect_error(response, -32601, "Method not found");
 }
 
+TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": null,
+        "id": 10,
+        "params": {}
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::boost::json::value response = this->client.messages[0];
+  expect_error(response, -32600, "Invalid Request");
+}
+
 // TODO(strager): Per the LSP specification, lsp_server should not send messages
 // for a watch_io_error before LSP initialization completes.
 

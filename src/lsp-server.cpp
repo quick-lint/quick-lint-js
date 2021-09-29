@@ -90,7 +90,8 @@ void linting_lsp_server_handler<Linter>::handle_request(
     ::simdjson::ondemand::object& request, byte_buffer& response_json) {
   std::string_view method;
   if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    this->write_invalid_request_error_response(response_json);
+    return;
   }
   if (method == "initialize") {
     this->handle_initialize_request(request, response_json);
@@ -530,6 +531,21 @@ void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
     u8R"("error":{)"
       u8R"("code":-32601,)"
       u8R"("message":"Method not found")"
+    u8R"(})"
+  u8R"(})");
+  // clang-format on
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::write_invalid_request_error_response(
+    byte_buffer& response_json) {
+  // clang-format off
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32600,)"
+      u8R"("message":"Invalid Request")"
     u8R"(})"
   u8R"(})");
   // clang-format on

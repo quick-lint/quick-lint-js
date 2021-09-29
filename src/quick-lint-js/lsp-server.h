@@ -143,6 +143,7 @@ class linting_lsp_server_handler {
                                      ::simdjson::ondemand::array& changes);
 
   static void write_method_not_found_error_response(byte_buffer&);
+  static void write_invalid_request_error_response(byte_buffer&);
 
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;
