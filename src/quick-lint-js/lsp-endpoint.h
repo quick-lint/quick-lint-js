@@ -90,7 +90,6 @@ class lsp_endpoint
         });
   }
 
- private:
   void message_parsed(string8_view message) {
     // TODO(strager): Avoid copying the message.
     ::simdjson::padded_string padded_message(
@@ -147,6 +146,7 @@ class lsp_endpoint
     this->flush_pending_notifications();
   }
 
+ private:
   void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json,
                       bool add_comma_before_response) {

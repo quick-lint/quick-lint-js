@@ -1,56 +1,27 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/configuration-loader.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/lsp-message-parser.h>
 
-namespace quick_lint_js {
+using namespace quick_lint_js;
+
 namespace {
-class null_lsp_endpoint_remote {
+class fuzz_lsp_message_parser
+    : public lsp_message_parser<fuzz_lsp_message_parser> {
  public:
-  void send_message(const byte_buffer&) {}
-};
-
-class null_configuration_filesystem : public configuration_filesystem {
- public:
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
-      const std::string& path) override {
-    return canonical_path_result(std::string(path), /*existing_path_length=*/0);
-  }
-
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
-      const canonical_path& path) override {
-#if QLJS_HAVE_WINDOWS_H
-    windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
-#endif
-#if QLJS_HAVE_UNISTD_H
-    posix_file_io_error io_error = {ENOENT};
-#endif
-    return result<padded_string, read_file_io_error, watch_io_error>::failure<
-        read_file_io_error>(read_file_io_error{
-        .path = path.c_str(),
-        .io_error = io_error,
-    });
+  void message_parsed([[maybe_unused]] string8_view message_content) {
+    // TODO(strager): Ensure message_content is valid.
   }
 };
-}
 }
 
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
-  using namespace quick_lint_js;
-
-  null_configuration_filesystem fs;
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               null_lsp_endpoint_remote>
-      server(std::forward_as_tuple(&fs), std::forward_as_tuple());
-
+  fuzz_lsp_message_parser parser;
   std::size_t i = 0;
   auto size_remaining = [&]() -> std::size_t { return size - i; };
   for (;;) {
@@ -62,8 +33,8 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
     i += sizeof(chunk_size);
     chunk_size = std::min(chunk_size, size_remaining());
 
-    string8_view message(reinterpret_cast<const char8*>(&data[i]), chunk_size);
-    server.message_parsed(message);
+    parser.append(
+        string8_view(reinterpret_cast<const char8*>(&data[i]), chunk_size));
     i += chunk_size;
   }
 
