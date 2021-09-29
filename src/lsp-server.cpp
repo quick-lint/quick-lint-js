@@ -87,12 +87,8 @@ void lsp_overlay_configuration_filesystem::close_document(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_request(
-    ::simdjson::ondemand::object& request, byte_buffer& response_json) {
-  std::string_view method;
-  if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-    this->write_invalid_request_error_response(response_json);
-    return;
-  }
+    ::simdjson::ondemand::object& request, std::string_view method,
+    byte_buffer& response_json) {
   if (method == "initialize") {
     this->handle_initialize_request(request, response_json);
   } else if (method == "shutdown") {

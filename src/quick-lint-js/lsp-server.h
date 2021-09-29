@@ -81,7 +81,7 @@ class linting_lsp_server_handler {
         linter_(std::forward<LinterArgs>(linter_args)...) {}
 
   void handle_request(::simdjson::ondemand::object& request,
-                      byte_buffer& response_json);
+                      std::string_view method, byte_buffer& response_json);
   void handle_notification(::simdjson::ondemand::object& request,
                            std::string_view method);
 

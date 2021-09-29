@@ -39,7 +39,7 @@ template <class Handler>
 concept lsp_endpoint_handler = requires(
     Handler h, ::simdjson::ondemand::object request, std::string_view method,
     byte_buffer reply, void (*write_notification_json)(byte_buffer&&)) {
-  {h.handle_request(request, reply)};
+  {h.handle_request(request, method, reply)};
   {h.handle_notification(request, method)};
   {h.take_pending_notification_jsons(write_notification_json)};
 };
@@ -156,12 +156,18 @@ class lsp_endpoint
                       byte_buffer& response_json,
                       bool add_comma_before_response) {
     switch (request["id"].error()) {
-    case ::simdjson::error_code::SUCCESS:
+    case ::simdjson::error_code::SUCCESS: {
       if (add_comma_before_response) {
         response_json.append_copy(u8",");
       }
-      this->handler_.handle_request(request, response_json);
+      std::string_view method;
+      if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
+        this->write_invalid_request_error_response(response_json);
+        break;
+      }
+      this->handler_.handle_request(request, method, response_json);
       break;
+    }
 
     case ::simdjson::error_code::NO_SUCH_FIELD: {
       std::string_view method;

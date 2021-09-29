@@ -44,8 +44,9 @@ std::string json_get_string(
 TEST(test_lsp_endpoint, single_unbatched_request) {
   struct mock_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
-                        byte_buffer& response_json) {
+                        std::string_view method, byte_buffer& response_json) {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
 
       ::boost::json::value response = {
           {"jsonrpc", "2.0"},
@@ -81,9 +82,10 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
 TEST(test_lsp_endpoint, batched_request) {
   struct mock_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
-                        byte_buffer& response_json) {
+                        std::string_view method, byte_buffer& response_json) {
       EXPECT_THAT(json_get_string(request["method"]),
                   ::testing::AnyOf("testmethod A", "testmethod B"));
+      EXPECT_THAT(method, ::testing::AnyOf("testmethod A", "testmethod B"));
 
       ::boost::json::value response = {
           {"jsonrpc", "2.0"},
@@ -130,7 +132,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
@@ -160,7 +163,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
@@ -209,7 +213,8 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
@@ -241,7 +246,8 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, batched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
@@ -290,7 +296,8 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
 // https://www.jsonrpc.org/specification#error_object
 TEST(test_lsp_endpoint, malformed_json) {
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
