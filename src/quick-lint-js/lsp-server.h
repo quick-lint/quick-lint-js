@@ -82,7 +82,8 @@ class linting_lsp_server_handler {
 
   void handle_request(::simdjson::ondemand::object& request,
                       byte_buffer& response_json);
-  void handle_notification(::simdjson::ondemand::object& request);
+  void handle_notification(::simdjson::ondemand::object& request,
+                           std::string_view method);
 
   void filesystem_changed();
 

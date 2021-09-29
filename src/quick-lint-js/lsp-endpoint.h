@@ -36,11 +36,11 @@ concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
 };
 
 template <class Handler>
-concept lsp_endpoint_handler =
-    requires(Handler h, ::simdjson::ondemand::object request, byte_buffer reply,
-             void (*write_notification_json)(byte_buffer&&)) {
+concept lsp_endpoint_handler = requires(
+    Handler h, ::simdjson::ondemand::object request, std::string_view method,
+    byte_buffer reply, void (*write_notification_json)(byte_buffer&&)) {
   {h.handle_request(request, reply)};
-  {h.handle_notification(request)};
+  {h.handle_notification(request, method)};
   {h.take_pending_notification_jsons(write_notification_json)};
 };
 #endif
@@ -163,9 +163,14 @@ class lsp_endpoint
       this->handler_.handle_request(request, response_json);
       break;
 
-    case ::simdjson::error_code::NO_SUCH_FIELD:
-      this->handler_.handle_notification(request);
+    case ::simdjson::error_code::NO_SUCH_FIELD: {
+      std::string_view method;
+      if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
+        QLJS_UNIMPLEMENTED();
+      }
+      this->handler_.handle_notification(request, method);
       break;
+    }
 
     case ::simdjson::error_code::TAPE_ERROR:
       this->write_json_parse_error_response(response_json);

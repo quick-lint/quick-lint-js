@@ -104,11 +104,7 @@ void linting_lsp_server_handler<Linter>::handle_request(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_notification(
-    ::simdjson::ondemand::object& request) {
-  std::string_view method;
-  if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
+    ::simdjson::ondemand::object& request, std::string_view method) {
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(request);
   } else if (method == "textDocument/didOpen") {

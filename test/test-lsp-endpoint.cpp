@@ -55,7 +55,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&) {
+    void handle_notification(::simdjson::ondemand::object&, std::string_view) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
 
@@ -93,7 +93,7 @@ TEST(test_lsp_endpoint, batched_request) {
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&) {
+    void handle_notification(::simdjson::ondemand::object&, std::string_view) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
 
@@ -134,8 +134,10 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification) {
+    void handle_notification(::simdjson::ondemand::object& notification,
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
       handle_notification_count += 1;
     }
 
@@ -162,8 +164,10 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification) {
+    void handle_notification(::simdjson::ondemand::object& notification,
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
 
       ::boost::json::value reply = {
           {"jsonrpc", "2.0"},
@@ -209,8 +213,10 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification) {
+    void handle_notification(::simdjson::ondemand::object& notification,
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
       handle_notification_count += 1;
     }
 
@@ -239,8 +245,10 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object& notification) {
+    void handle_notification(::simdjson::ondemand::object& notification,
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
 
       ::boost::json::value reply = {
           {"jsonrpc", "2.0"},
@@ -286,7 +294,7 @@ TEST(test_lsp_endpoint, malformed_json) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object&) {
+    void handle_notification(::simdjson::ondemand::object&, std::string_view) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
 
