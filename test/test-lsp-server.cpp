@@ -1960,6 +1960,41 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
 
+TEST_F(test_linting_lsp_server, invalid_json_in_request) {
+  auto expect_parse_error = [](::boost::json::value& response) -> void {
+    EXPECT_FALSE(response.as_object().contains("method"));
+    EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
+    EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
+    EXPECT_EQ(look_up(response, "error", "code"), -32700);
+    EXPECT_EQ(look_up(response, "error", "message"), "Parse error");
+  };
+
+  this->server.remote().allow_batch_messages = true;
+
+  for (
+      string8_view message : {
+          u8"{\"i\"0d,:\"result\":{\"capabilities\":{\"textDocumen|Sync\":{\"change\":2,\"openClose#:true}},\"serverInfo\":{\"name\":\"quick-lint"sv,
+          u8"[falsex]"sv,
+      }) {
+    SCOPED_TRACE(out_string8(message));
+
+    this->client.messages.clear();
+    this->server.append(make_message(message));
+
+    ASSERT_EQ(this->client.messages.size(), 1);
+    ::boost::json::value response = this->client.messages[0];
+    if (::boost::json::array* sub_responses = response.if_array()) {
+      for (::boost::json::value& sub_response : *sub_responses) {
+        // TODO(strager): Batched JSON parse errors don't make any sense. We
+        // should return a non-batched response instead.
+        expect_parse_error(sub_response);
+      }
+    } else {
+      expect_parse_error(response);
+    }
+  }
+}
+
 // TODO(strager): Per the LSP specification, lsp_server should not send messages
 // for a watch_io_error before LSP initialization completes.
 

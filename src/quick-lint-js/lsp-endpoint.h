@@ -100,7 +100,7 @@ class lsp_endpoint
         .tie(request_document, parse_error);
     if (parse_error != ::simdjson::error_code::SUCCESS) {
       byte_buffer error_json;
-      this->append_message_parse_error(error_json);
+      this->write_json_parse_error_response(error_json);
       this->remote_.send_message(std::move(error_json));
       return;
     }
@@ -116,23 +116,28 @@ class lsp_endpoint
       for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
                sub_request_or_error : batched_requests) {
         ::simdjson::ondemand::object sub_request;
-        if (sub_request_or_error.get(sub_request) !=
+        if (sub_request_or_error.get(sub_request) ==
             ::simdjson::error_code::SUCCESS) {
-          QLJS_UNIMPLEMENTED();
+          this->handle_message(
+              sub_request, response_json,
+              /*add_comma_before_response=*/response_json.size() !=
+                  empty_response_json_size);
+        } else {
+          if (response_json.size() != empty_response_json_size) {
+            response_json.append_copy(u8",");
+          }
+          this->write_json_parse_error_response(response_json);
         }
-        this->handle_message(
-            sub_request, response_json,
-            /*add_comma_before_response=*/response_json.size() !=
-                empty_response_json_size);
       }
       response_json.append_copy(u8"]");
     } else {
       ::simdjson::ondemand::object request;
-      if (request_document.get(request) != ::simdjson::error_code::SUCCESS) {
-        QLJS_UNIMPLEMENTED();
+      if (request_document.get(request) == ::simdjson::error_code::SUCCESS) {
+        this->handle_message(request, response_json,
+                             /*add_comma_before_response=*/false);
+      } else {
+        this->write_json_parse_error_response(response_json);
       }
-      this->handle_message(request, response_json,
-                           /*add_comma_before_response=*/false);
     }
 
     if (is_batch_request) {
@@ -163,7 +168,7 @@ class lsp_endpoint
       break;
 
     case ::simdjson::error_code::TAPE_ERROR:
-      this->append_message_parse_error(response_json);
+      this->write_json_parse_error_response(response_json);
       break;
 
     default:
@@ -172,9 +177,17 @@ class lsp_endpoint
     }
   }
 
-  static void append_message_parse_error(byte_buffer& out) {
-    out.append_copy(
-        u8R"({"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}})");
+  void write_json_parse_error_response(byte_buffer& response_json) {
+    // clang-format off
+    response_json.append_copy(u8R"({)"
+      u8R"("jsonrpc":"2.0",)"
+      u8R"("id":null,)"
+      u8R"("error":{)"
+        u8R"("code":-32700,)"
+        u8R"("message":"Parse error")"
+      u8R"(})"
+    u8R"(})");
+    // clang-format on
   }
 
   Remote remote_;
