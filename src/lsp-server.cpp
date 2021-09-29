@@ -97,7 +97,7 @@ void linting_lsp_server_handler<Linter>::handle_request(
   } else if (method == "shutdown") {
     this->handle_shutdown_request(request, response_json);
   } else {
-    QLJS_UNIMPLEMENTED();
+    this->write_method_not_found_error_response(response_json);
   }
 }
 
@@ -127,7 +127,7 @@ void linting_lsp_server_handler<Linter>::handle_notification(
   } else if (method == "textDocument/willSave") {
     // Do nothing.
   } else {
-    QLJS_UNIMPLEMENTED();
+    // Ignore unknown notification methods.
   }
 }
 
@@ -518,6 +518,21 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
       doc.set_text(change_text);
     }
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
+    byte_buffer& response_json) {
+  // clang-format off
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32601,)"
+      u8R"("message":"Method not found")"
+    u8R"(})"
+  u8R"(})");
+  // clang-format on
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(

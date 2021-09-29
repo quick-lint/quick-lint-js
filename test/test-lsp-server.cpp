@@ -1960,13 +1960,18 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
 
+void expect_error(::boost::json::value& response, int error_code,
+                  std::string_view error_message) {
+  EXPECT_FALSE(response.as_object().contains("method"));
+  EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
+  EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
+  EXPECT_EQ(look_up(response, "error", "code"), error_code);
+  EXPECT_EQ(look_up(response, "error", "message"), error_message);
+}
+
 TEST_F(test_linting_lsp_server, invalid_json_in_request) {
   auto expect_parse_error = [](::boost::json::value& response) -> void {
-    EXPECT_FALSE(response.as_object().contains("method"));
-    EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
-    EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
-    EXPECT_EQ(look_up(response, "error", "code"), -32700);
-    EXPECT_EQ(look_up(response, "error", "message"), "Parse error");
+    expect_error(response, -32700, "Parse error");
   };
 
   this->server.remote().allow_batch_messages = true;
@@ -1993,6 +1998,31 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
       expect_parse_error(response);
     }
   }
+}
+
+TEST_F(test_linting_lsp_server,
+       unimplemented_method_in_notification_is_ignored) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/shinyNewMethod",
+        "params": {}
+      })"));
+  EXPECT_THAT(this->client.messages, IsEmpty());
+}
+
+TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
+  this->server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/shinyNewMethod",
+        "id": 10,
+        "params": {}
+      })"));
+
+  ASSERT_EQ(this->client.messages.size(), 1);
+  ::boost::json::value response = this->client.messages[0];
+  expect_error(response, -32601, "Method not found");
 }
 
 // TODO(strager): Per the LSP specification, lsp_server should not send messages
