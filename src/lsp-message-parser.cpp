@@ -34,7 +34,7 @@ const char8* lsp_message_parser_base::find_content_begin(
 lsp_message_parser_base::parsed_message_headers
 lsp_message_parser_base::parse_message_headers(string8_view headers) {
   std::optional<std::size_t> content_length;
-  for (;;) {
+  while (!headers.empty()) {
     parsed_header header = parse_header(headers);
     headers = header.remaining;
 
@@ -44,22 +44,22 @@ lsp_message_parser_base::parse_message_headers(string8_view headers) {
       from_chars_result result = from_chars(
           reinterpret_cast<const char*>(header.value.data()),
           reinterpret_cast<const char*>(header_value_end), *content_length);
-      if (reinterpret_cast<const char8*>(result.ptr) != header_value_end ||
-          result.ec != std::errc{}) {
-        QLJS_UNIMPLEMENTED();
+      bool ok =
+          reinterpret_cast<const char8*>(result.ptr) == header_value_end &&
+          result.ec == std::errc{};
+      if (ok) {
+        // We found the content-type header. No need to look at other headers;
+        // we'd ignore them anyway.
+        break;
+      } else {
+        // Invalid header value. Ignore this header.
       }
-      // We found the content-type header. No need to look at other headers;
-      // we'd ignore them anyway.
-      break;
     } else {
       // Ignore unknown headers (including Content-Type).
     }
   }
 
-  if (!content_length.has_value()) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return parsed_message_headers{.content_length = *content_length};
+  return parsed_message_headers{.content_length = content_length};
 }
 
 lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
@@ -78,17 +78,34 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
   // OWS: https://tools.ietf.org/html/rfc7230#section-3.2.3
   static constexpr const char8 ows[] = u8" \t";
 
+  auto find_line_terminator = [](string8_view haystack) -> const char8* {
+    auto terminator_begin = std::search(haystack.begin(), haystack.end(), crlf,
+                                        crlf + strlen(crlf));
+    QLJS_ASSERT(terminator_begin != haystack.end());
+    return &*terminator_begin;
+  };
+
+  auto error_skip_line = [&]() -> parsed_header {
+    const char8* line_terminator = find_line_terminator(data);
+    return parsed_header{
+        .name = {},
+        .value = {},
+        .remaining = data.substr(narrow_cast<std::size_t>(
+            (line_terminator + strlen(crlf)) - data.data())),
+    };
+  };
+
   std::size_t header_name_end_index = data.find_first_not_of(tchar);
   QLJS_ASSERT(header_name_end_index != data.npos);  // We expect at least \r\n.
   string8_view header_name = data.substr(0, header_name_end_index);
   data = data.substr(header_name_end_index);
   if (header_name.empty()) {
-    QLJS_UNIMPLEMENTED();
+    return error_skip_line();
   }
 
   QLJS_ASSERT(!data.empty());
   if (data[0] != u8':') {
-    QLJS_UNIMPLEMENTED();
+    return error_skip_line();
   }
   data = data.substr(1);
 
