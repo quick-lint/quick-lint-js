@@ -167,8 +167,25 @@ class lsp_endpoint
       std::string_view method;
       if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
         this->write_invalid_request_error_response(response_json);
-        break;
+        return;
       }
+
+      ::simdjson::ondemand::json_type id_type;
+      if (id.type().get(id_type) != ::simdjson::error_code::SUCCESS) {
+        this->write_json_parse_error_response(response_json);
+        return;
+      }
+      switch (id_type) {
+      case ::simdjson::ondemand::json_type::null:
+      case ::simdjson::ondemand::json_type::number:
+      case ::simdjson::ondemand::json_type::string:
+        break;
+
+      default:
+        this->write_invalid_request_error_response(response_json);
+        return;
+      }
+
       this->handler_.handle_request(request, method, get_raw_json(id),
                                     response_json);
       break;

@@ -1978,6 +1978,7 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
       string8_view message : {
           u8"{\"i\"0d,:\"result\":{\"capabilities\":{\"textDocumen|Sync\":{\"change\":2,\"openClose#:true}},\"serverInfo\":{\"name\":\"quick-lint"sv,
           u8"[falsex]"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": xxx, "params": {} })"sv,
       }) {
     SCOPED_TRACE(out_string8(message));
 
@@ -2032,6 +2033,9 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
       string8_view message : {
           u8R"({ "jsonrpc": "2.0", "method": null, "id": 10, "params": {} })"sv,
           u8R"({ "jsonrpc": "2.0", "method": null, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": true, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": [], "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"sv,
       }) {
     SCOPED_TRACE(out_string8(message));
 
