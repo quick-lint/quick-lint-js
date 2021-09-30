@@ -59,7 +59,9 @@ std::optional<string_json_token> maybe_get_string_token(
 std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
-int get_int(::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
+// Returns std::nullopt on failure (e.g. missing key or not an integer).
+std::optional<int> maybe_get_int(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
 }
 
 lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
@@ -530,16 +532,27 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
     bool is_incremental =
         change["range"].get(raw_range) == ::simdjson::error_code::SUCCESS;
     if (is_incremental) {
+      std::optional<int> start_line = maybe_get_int(raw_range["start"]["line"]);
+      std::optional<int> start_character =
+          maybe_get_int(raw_range["start"]["character"]);
+      std::optional<int> end_line = maybe_get_int(raw_range["end"]["line"]);
+      std::optional<int> end_character =
+          maybe_get_int(raw_range["end"]["character"]);
+      if (!(start_line.has_value() && start_character.has_value() &&
+            end_line.has_value() && end_character.has_value())) {
+        // Ignore invalid change.
+        continue;
+      }
       lsp_range range = {
           .start =
               {
-                  .line = get_int(raw_range["start"]["line"]),
-                  .character = get_int(raw_range["start"]["character"]),
+                  .line = *start_line,
+                  .character = *start_character,
               },
           .end =
               {
-                  .line = get_int(raw_range["end"]["line"]),
-                  .character = get_int(raw_range["end"]["character"]),
+                  .line = *end_line,
+                  .character = *end_character,
               },
       };
       doc.replace_text(range, *change_text);
@@ -694,7 +707,7 @@ std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::ondemand::value& string) {
   std::string_view s;
   if (string.get(s) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    return std::nullopt;
   }
   string8_view data(reinterpret_cast<const char8*>(s.data()), s.size());
   return string_json_token{
@@ -713,11 +726,11 @@ std::optional<string_json_token> maybe_get_string_token(
   return maybe_get_string_token(s);
 }
 
-int get_int(
+std::optional<int> maybe_get_int(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& element) {
   std::int64_t int64;
   if (element.get(int64) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    return std::nullopt;
   }
   if (!in_range<int>(int64)) {
     QLJS_UNIMPLEMENTED();
