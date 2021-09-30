@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <%- await include("../common-head.ejs.html", {where: "with Homebrew"}) %>
+  <body class="side-bar-nav">
+    <%- await include("../common-header.ejs.html", {breadcrumbName: "Homebrew"})
+    %>
+
+    <main>
+      <h2>
+        <img
+          class="install-logo"
+          src="../../../neovim.svg"
+          alt=""
+          title="Neovim"
+        /><img
+          class="os-logo"
+          src="../../../homebrew.svg"
+          alt=""
+          title="Homebrew"
+        />
+        Install for Neovim on macOS with Homebrew
+      </h2>
+      <p>
+        Supported operating systems:
+        <img
+          class="os-logo"
+          src="../../../macos.svg"
+          alt="macOS"
+          title="macOS"
+        />
+      </p>
+      <p>
+        quick-lint-js has a Homebrew formula, making it easy to install the
+        Neovim plugin on macOS.
+      </p>
+
+      <h3>Install prerequisites</h3>
+      <%- await include("../../common-homebrew.ejs.html", {prerequisitesOnly:
+      true}) %> <%- await include("../common-prerequisites.ejs.html") %>
+
+      <h3>Install quick-lint-js</h3>
+      <%- await include("../../common-homebrew.ejs.html", {excludePrerequisites:
+      true}) %> <%- await include("../common-configure.ejs.html") %>
+    </main>
+
+    <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!--
+Other files may have different copyright and may be licensed under different
+licenses. See license/ for details.
+-->
