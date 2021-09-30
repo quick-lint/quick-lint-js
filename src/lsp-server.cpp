@@ -42,12 +42,21 @@ void append_raw_json(
     byte_buffer& out);
 string8_view get_raw_json(::simdjson::ondemand::value& value);
 
-string8_view make_string_view(::simdjson::ondemand::value& string);
-
 // Returns std::nullopt on failure (e.g. missing key or not a string).
 std::optional<string8_view> maybe_make_string_view(
     ::simdjson::ondemand::value& string);
 std::optional<string8_view> maybe_make_string_view(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
+
+struct string_json_token {
+  string8_view data;
+  string8_view json;
+};
+
+// Returns std::nullopt on failure (e.g. missing key or not a string).
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::ondemand::value& string);
+std::optional<string_json_token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
 int get_int(::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
@@ -194,12 +203,12 @@ void linting_lsp_server_handler<Linter>::
     // Ignore invalid notification.
     return;
   }
-  ::simdjson::ondemand::value uri;
-  if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
+  std::optional<string_json_token> uri =
+      maybe_get_string_token(text_document["uri"]);
+  if (!uri.has_value()) {
     // Ignore invalid notification.
     return;
   }
-  string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
@@ -207,14 +216,14 @@ void linting_lsp_server_handler<Linter>::
     return;
   }
 
-  auto document_it = this->documents_.find(string8(make_string_view(uri)));
+  auto document_it = this->documents_.find(string8(uri->data));
   bool url_is_tracked = document_it != this->documents_.end();
   if (!url_is_tracked) {
     return;
   }
   document& doc = document_it->second;
 
-  std::string document_path = parse_file_from_lsp_uri(uri_string);
+  std::string document_path = parse_file_from_lsp_uri(uri->data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
@@ -234,7 +243,7 @@ void linting_lsp_server_handler<Linter>::
     byte_buffer& notification_json =
         this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), uri->json, doc.version_json,
         notification_json);
     break;
   }
@@ -294,12 +303,12 @@ void linting_lsp_server_handler<Linter>::
     // Ignore invalid notification.
     return;
   }
-  ::simdjson::ondemand::value uri;
-  if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
+  std::optional<string_json_token> uri =
+      maybe_get_string_token(text_document["uri"]);
+  if (!uri.has_value()) {
     // Ignore invalid notification.
     return;
   }
-  string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
@@ -307,9 +316,9 @@ void linting_lsp_server_handler<Linter>::
     return;
   }
 
-  document& doc = this->documents_[string8(uri_string)];
+  document& doc = this->documents_[string8(uri->data)];
 
-  std::string document_path = parse_file_from_lsp_uri(uri_string);
+  std::string document_path = parse_file_from_lsp_uri(uri->data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
@@ -352,7 +361,7 @@ void linting_lsp_server_handler<Linter>::
     byte_buffer& notification_json =
         this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), uri->json, doc.version_json,
         notification_json);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
     doc.type = document_type::config;
@@ -364,8 +373,7 @@ void linting_lsp_server_handler<Linter>::
     byte_buffer& config_diagnostics_json =
         this->pending_notification_jsons_.emplace_back();
     this->get_config_file_diagnostics_notification(
-        *config_file, get_raw_json(uri), doc.version_json,
-        config_diagnostics_json);
+        *config_file, uri->json, doc.version_json, config_diagnostics_json);
 
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
@@ -661,17 +669,6 @@ string8_view get_raw_json(::simdjson::ondemand::value& value) {
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-string8_view make_string_view(::simdjson::ondemand::value& string) {
-  std::string_view s;
-  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return string8_view(reinterpret_cast<const char8*>(s.data()), s.size());
-}
-QLJS_WARNING_POP
-
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 std::optional<string8_view> maybe_make_string_view(
     ::simdjson::ondemand::value& string) {
   std::string_view s;
@@ -689,6 +686,31 @@ std::optional<string8_view> maybe_make_string_view(
     return std::nullopt;
   }
   return maybe_make_string_view(s);
+}
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::ondemand::value& string) {
+  std::string_view s;
+  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+    QLJS_UNIMPLEMENTED();
+  }
+  string8_view data(reinterpret_cast<const char8*>(s.data()), s.size());
+  return string_json_token{
+      .data = data,
+      .json = to_string8_view(string.raw_json_token()),
+  };
+}
+QLJS_WARNING_POP
+
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
+  ::simdjson::ondemand::value s;
+  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+    return std::nullopt;
+  }
+  return maybe_get_string_token(s);
 }
 
 int get_int(
