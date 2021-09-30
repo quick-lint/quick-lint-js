@@ -36,10 +36,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out);
-void append_raw_json(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-    byte_buffer& out);
 string8_view get_raw_json(::simdjson::ondemand::value& value);
 
 // Returns std::nullopt on failure (e.g. missing key or not a string).
@@ -103,11 +99,11 @@ void lsp_overlay_configuration_filesystem::close_document(
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_request(
     ::simdjson::ondemand::object& request, std::string_view method,
-    byte_buffer& response_json) {
+    string8_view id_json, byte_buffer& response_json) {
   if (method == "initialize") {
-    this->handle_initialize_request(request, response_json);
+    this->handle_initialize_request(request, id_json, response_json);
   } else if (method == "shutdown") {
-    this->handle_shutdown_request(request, response_json);
+    this->handle_shutdown_request(request, id_json, response_json);
   } else {
     this->write_method_not_found_error_response(response_json);
   }
@@ -167,9 +163,10 @@ void linting_lsp_server_handler<Linter>::add_watch_io_errors(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_initialize_request(
-    ::simdjson::ondemand::object& request, byte_buffer& response_json) {
+    ::simdjson::ondemand::object&, string8_view id_json,
+    byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");
-  append_raw_json(request["id"], response_json);
+  response_json.append_copy(id_json);
   // clang-format off
   response_json.append_copy(
     u8R"--(,)--"
@@ -188,10 +185,11 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_shutdown_request(
-    ::simdjson::ondemand::object& request, byte_buffer& response_json) {
+    ::simdjson::ondemand::object&, string8_view id_json,
+    byte_buffer& response_json) {
   this->shutdown_requested_ = true;
   response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--");
-  append_raw_json(request["id"], response_json);
+  response_json.append_copy(id_json);
   response_json.append_copy(u8R"--(,"result":null})--");
 }
 
@@ -647,20 +645,6 @@ template class linting_lsp_server_handler<lsp_javascript_linter>;
 template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
-void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out) {
-  out.append_copy(get_raw_json(value));
-}
-
-void append_raw_json(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-    byte_buffer& out) {
-  ::simdjson::ondemand::value real_value;
-  if (value.get(real_value) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  append_raw_json(real_value, out);
-}
-
 string8_view get_raw_json(::simdjson::ondemand::value& value) {
   ::simdjson::ondemand::json_type type;
   if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {

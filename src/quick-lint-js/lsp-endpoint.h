@@ -15,6 +15,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-message-parser.h>
+#include <quick-lint-js/unreachable.h>
 #include <simdjson.h>
 #include <tuple>
 #include <utility>
@@ -36,10 +37,11 @@ concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
 };
 
 template <class Handler>
-concept lsp_endpoint_handler = requires(
-    Handler h, ::simdjson::ondemand::object request, std::string_view method,
-    byte_buffer reply, void (*write_notification_json)(byte_buffer&&)) {
-  {h.handle_request(request, method, reply)};
+concept lsp_endpoint_handler =
+    requires(Handler h, ::simdjson::ondemand::object request,
+             std::string_view method, string8_view id_json, byte_buffer reply,
+             void (*write_notification_json)(byte_buffer&&)) {
+  {h.handle_request(request, method, id_json, reply)};
   {h.handle_notification(request, method)};
   {h.take_pending_notification_jsons(write_notification_json)};
 };
@@ -155,7 +157,8 @@ class lsp_endpoint
   void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json,
                       bool add_comma_before_response) {
-    switch (request["id"].error()) {
+    ::simdjson::ondemand::value id;
+    switch (request["id"].get(id)) {
     case ::simdjson::error_code::SUCCESS: {
       if (add_comma_before_response) {
         response_json.append_copy(u8",");
@@ -165,7 +168,8 @@ class lsp_endpoint
         this->write_invalid_request_error_response(response_json);
         break;
       }
-      this->handler_.handle_request(request, method, response_json);
+      this->handler_.handle_request(request, method, get_raw_json(id),
+                                    response_json);
       break;
     }
 
@@ -213,6 +217,25 @@ class lsp_endpoint
       u8R"(})"
     u8R"(})");
     // clang-format on
+  }
+
+  static string8_view get_raw_json(::simdjson::ondemand::value& value) {
+    ::simdjson::ondemand::json_type type;
+    if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {
+      QLJS_UNIMPLEMENTED();
+    }
+    switch (type) {
+    case ::simdjson::ondemand::json_type::boolean:
+    case ::simdjson::ondemand::json_type::null:
+    case ::simdjson::ondemand::json_type::number:
+    case ::simdjson::ondemand::json_type::string:
+      return to_string8_view(value.raw_json_token());
+
+    case ::simdjson::ondemand::json_type::array:
+    case ::simdjson::ondemand::json_type::object:
+      QLJS_UNIMPLEMENTED();
+    }
+    QLJS_UNREACHABLE();
   }
 
   Remote remote_;
