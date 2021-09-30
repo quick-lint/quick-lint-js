@@ -145,6 +145,7 @@ quick_lint_js_add_library(
   quick-lint-js/pipe.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
+  quick-lint-js/simdjson.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-data.h
@@ -159,6 +160,7 @@ quick_lint_js_add_library(
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
+  simdjson.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
   translation-data.cpp

@@ -22,6 +22,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/uri.h>
@@ -36,8 +37,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-string8_view get_raw_json(::simdjson::ondemand::value& value);
-
 // Returns std::nullopt on failure (e.g. missing key or not a string).
 std::optional<string8_view> maybe_make_string_view(
     ::simdjson::ondemand::value& string);
@@ -645,25 +644,6 @@ template class linting_lsp_server_handler<lsp_javascript_linter>;
 template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
-string8_view get_raw_json(::simdjson::ondemand::value& value) {
-  ::simdjson::ondemand::json_type type;
-  if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  switch (type) {
-  case ::simdjson::ondemand::json_type::boolean:
-  case ::simdjson::ondemand::json_type::null:
-  case ::simdjson::ondemand::json_type::number:
-  case ::simdjson::ondemand::json_type::string:
-    return to_string8_view(value.raw_json_token());
-
-  case ::simdjson::ondemand::json_type::array:
-  case ::simdjson::ondemand::json_type::object:
-    QLJS_UNIMPLEMENTED();
-  }
-  QLJS_UNREACHABLE();
-}
-
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 std::optional<string8_view> maybe_make_string_view(

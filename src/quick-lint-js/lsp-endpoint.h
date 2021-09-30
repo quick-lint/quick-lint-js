@@ -15,6 +15,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-message-parser.h>
+#include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/unreachable.h>
 #include <simdjson.h>
 #include <tuple>
@@ -217,25 +218,6 @@ class lsp_endpoint
       u8R"(})"
     u8R"(})");
     // clang-format on
-  }
-
-  static string8_view get_raw_json(::simdjson::ondemand::value& value) {
-    ::simdjson::ondemand::json_type type;
-    if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {
-      QLJS_UNIMPLEMENTED();
-    }
-    switch (type) {
-    case ::simdjson::ondemand::json_type::boolean:
-    case ::simdjson::ondemand::json_type::null:
-    case ::simdjson::ondemand::json_type::number:
-    case ::simdjson::ondemand::json_type::string:
-      return to_string8_view(value.raw_json_token());
-
-    case ::simdjson::ondemand::json_type::array:
-    case ::simdjson::ondemand::json_type::object:
-      QLJS_UNIMPLEMENTED();
-    }
-    QLJS_UNREACHABLE();
   }
 
   Remote remote_;
