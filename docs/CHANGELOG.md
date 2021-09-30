@@ -12,9 +12,30 @@ Beta release.
 
 ### Added
 
+* Various new errors (implemented by [Himanshu][]).
 * `quick-lint-js.config` now supports the [**literally-anything** global
   group][config-global-groups]. Use this option to disable all
   use-of-undeclared-variable warnings.
+* VS Code: The plugin now works on Windows on ARM (64-bit).
+* VS Code: The plugin now works on Linux on ARM (32-bit and 64-bit).
+* The CLI and LSP server now compile on FreeBSD (amd64). However, we don't
+  provide FreeBSD pre-built executables.
+
+### Fixed
+
+* LSP, VS Code: Filesystem change watching failures no longer crash. These
+  failures can happen on Windows for directories on network shares, for example.
+* LSP: Unknown messages no longer crash the LSP server. This makes the LSP
+  server compatible with more clients, such as Neovim's built-in client.
+* `break await` and `break yield` no longer incorrectly reports errors (fixed by
+  [Himanshu][]).
+* `for (var x = ++y in []) {}` now parses correctly as valid JavaScript.
+* Vim: The plugin no longer crashes if a filename contains a newline character
+  (or certain other control characters).
+* LSP, VS Code: Config file changes are now recognized properly if any path
+  component contains a symbolic link (Linux and macOS).
+* quick-lint-js no longer warns about variables named `__dirname`,
+  `__filename`, `exports`, `module`, or `require` by default.
 
 ## 0.4.0 (2021-09-09)
 
