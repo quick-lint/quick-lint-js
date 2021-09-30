@@ -52,21 +52,10 @@
       include("../common-prerequisites.ejs.html") %>
 
       <h3>Install quick-lint-js</h3>
-      <p>
-        Install quick-lint-js globally (on your machine) for use anywhere,
-        including the Vim plugin:
-      </p>
-      <blockquote>
-        <pre><code class="shell-session"><kbd>npm install --global quick-lint-js</kbd></code></pre>
-      </blockquote>
-      <p>
-        Note: The Vim plugin does not use quick-lint-js if it is installed
-        locally within your project. The Vim plugin only uses quick-lint-js if
-        it is globally installed.
-      </p>
 
-      <%- await include("../common-manual.ejs.html", {os: "windows"}) %> <%-
-      await include("../common-configure.ejs.html") %>
+      <%- await include("../common-npm.ejs.html", {os: "windows"}) %> <%- await
+      include("../common-manual.ejs.html", {os: "windows"}) %> <%- await
+      include("../common-configure.ejs.html") %>
     </main>
 
     <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
