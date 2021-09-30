@@ -60,15 +60,8 @@
         making it easy to install the CLI in your JavaScript project.
       </p>
 
-      <p>
-        In order to install quick-lint-js' npm package, you must first install
-        either the
-        <a
-          href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm"
-          >npm client</a
-        >
-        or <a href="https://yarnpkg.com/getting-started/install">yarn</a>.
-      </p>
+      <%- await include("../../common-npm-prerequisites.ejs.html",
+      {suggestLocalInstall: true}) %>
 
       <p>
         There are two ways to install quick-lint-js: within a project, or
