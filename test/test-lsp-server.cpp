@@ -1974,8 +1974,6 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
     expect_error(response, -32700, "Parse error");
   };
 
-  this->server.remote().allow_batch_messages = true;
-
   for (
       string8_view message : {
           u8"{\"i\"0d,:\"result\":{\"capabilities\":{\"textDocumen|Sync\":{\"change\":2,\"openClose#:true}},\"serverInfo\":{\"name\":\"quick-lint"sv,
@@ -1983,11 +1981,15 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
       }) {
     SCOPED_TRACE(out_string8(message));
 
-    this->client.messages.clear();
-    this->server.append(make_message(message));
+    fake_configuration_filesystem fs;
+    endpoint server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server.remote();
+    client.allow_batch_messages = true;
 
-    ASSERT_EQ(this->client.messages.size(), 1);
-    ::boost::json::value response = this->client.messages[0];
+    server.append(make_message(message));
+
+    ASSERT_EQ(client.messages.size(), 1);
+    ::boost::json::value response = client.messages[0];
     if (::boost::json::array* sub_responses = response.if_array()) {
       for (::boost::json::value& sub_response : *sub_responses) {
         // TODO(strager): Batched JSON parse errors don't make any sense. We
@@ -2033,11 +2035,14 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
       }) {
     SCOPED_TRACE(out_string8(message));
 
-    this->client.messages.clear();
-    this->server.append(make_message(message));
+    fake_configuration_filesystem fs;
+    endpoint server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server.remote();
 
-    ASSERT_EQ(this->client.messages.size(), 1);
-    ::boost::json::value response = this->client.messages[0];
+    server.append(make_message(message));
+
+    ASSERT_EQ(client.messages.size(), 1);
+    ::boost::json::value response = client.messages[0];
     expect_error(response, -32600, "Invalid Request");
   }
 }
