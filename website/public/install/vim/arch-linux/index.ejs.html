@@ -2,28 +2,10 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
-  <head>
-    <%- await include("../../../common-head.ejs.html") %>
-    <title>quick-lint-js: install for Vim on Arch Linux</title>
-    <meta
-      name="description"
-      content="Install quick-lint-js's Vim plugin on Arch Linux"
-    />
-    <link href="../../../main.css" rel="stylesheet" />
-  </head>
+  <%- await include("../common-head.ejs.html", {where: "on Arch Linux"}) %>
   <body class="side-bar-nav">
-    <header>
-      <h1><a href="../..">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("../../../common-nav.ejs.html") %>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="../../">Install</a></li>
-          <li><a href="../">Vim</a></li>
-          <li>Arch Linux</li>
-        </ol>
-      </nav>
-    </header>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: `Arch
+    Linux`}) %>
 
     <main>
       <h2>
