@@ -2047,6 +2047,51 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
   }
 }
 
+TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
+  for (
+      string8_view message : {
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen" })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": null } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": {} } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript" } } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": "file:///new.js" } } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didOpen", "params": { "textDocument": { "languageId": "javascript", "uri": "file:///new.js", "version": 1 } } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didClose" })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange" })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": {} } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js" } } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 } } })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ {} ] } })"sv,
+      }) {
+    SCOPED_TRACE(out_string8(message));
+
+    fake_configuration_filesystem fs;
+    endpoint server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server.remote();
+
+    // Open a file so we can test textDocument/didChange (which behaves
+    // differently if the file wasn't previously opened).
+    server.append(
+        make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///test.js",
+            "languageId": "javascript",
+            "version": 1,
+            "text": ""
+          }
+        }
+      })"));
+
+    server.append(make_message(message));
+
+    // TODO(strager): Have the LSP server respond with a notification instead?
+    EXPECT_THAT(client.messages, IsEmpty());
+  }
+}
+
 // TODO(strager): Per the LSP specification, lsp_server should not send messages
 // for a watch_io_error before LSP initialization completes.
 

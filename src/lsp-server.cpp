@@ -43,7 +43,11 @@ void append_raw_json(
 string8_view get_raw_json(::simdjson::ondemand::value& value);
 
 string8_view make_string_view(::simdjson::ondemand::value& string);
-string8_view make_string_view(
+
+// Returns std::nullopt on failure (e.g. missing key or not a string).
+std::optional<string8_view> maybe_make_string_view(
+    ::simdjson::ondemand::value& string);
+std::optional<string8_view> maybe_make_string_view(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
 int get_int(::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
@@ -187,17 +191,20 @@ void linting_lsp_server_handler<Linter>::
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   ::simdjson::ondemand::value uri;
   if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
 
   auto document_it = this->documents_.find(string8(make_string_view(uri)));
@@ -216,7 +223,8 @@ void linting_lsp_server_handler<Linter>::
   ::simdjson::ondemand::array changes;
   if (request["params"]["contentChanges"].get(changes) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   this->apply_document_changes(doc.doc, changes);
   doc.version_json = get_raw_json(version);
@@ -248,8 +256,13 @@ template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
         ::simdjson::ondemand::object& request) {
-  string8_view uri = make_string_view(request["params"]["textDocument"]["uri"]);
-  std::string path = parse_file_from_lsp_uri(uri);
+  std::optional<string8_view> uri =
+      maybe_make_string_view(request["params"]["textDocument"]["uri"]);
+  if (!uri.has_value()) {
+    // Ignore invalid notification.
+    return;
+  }
+  std::string path = parse_file_from_lsp_uri(*uri);
   if (path.empty()) {
     // TODO(strager): Report a warning.
     QLJS_UNIMPLEMENTED();
@@ -257,7 +270,7 @@ void linting_lsp_server_handler<Linter>::
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.erase(string8(uri));
+  this->documents_.erase(string8(*uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
@@ -272,22 +285,26 @@ void linting_lsp_server_handler<Linter>::
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   std::string_view language_id;
   if (text_document["languageId"].get(language_id) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   ::simdjson::ondemand::value uri;
   if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
 
   document& doc = this->documents_[string8(uri_string)];
@@ -299,7 +316,13 @@ void linting_lsp_server_handler<Linter>::
   }
   this->config_fs_.open_document(document_path, &doc.doc);
 
-  doc.doc.set_text(make_string_view(text_document["text"]));
+  std::optional<string8_view> text =
+      maybe_make_string_view(text_document["text"]);
+  if (!text.has_value()) {
+    // Ignore invalid notification.
+    return;
+  }
+  doc.doc.set_text(*text);
   doc.version_json = get_raw_json(version);
 
   if (language_id == "javascript" || language_id == "js") {
@@ -489,7 +512,12 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
     ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
-    string8_view change_text = make_string_view(change["text"]);
+    std::optional<string8_view> change_text =
+        maybe_make_string_view(change["text"]);
+    if (!change_text.has_value()) {
+      // Ignore invalid change.
+      continue;
+    }
     ::simdjson::ondemand::object raw_range;
     bool is_incremental =
         change["range"].get(raw_range) == ::simdjson::error_code::SUCCESS;
@@ -506,9 +534,9 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
                   .character = get_int(raw_range["end"]["character"]),
               },
       };
-      doc.replace_text(range, change_text);
+      doc.replace_text(range, *change_text);
     } else {
-      doc.set_text(change_text);
+      doc.set_text(*change_text);
     }
   }
 }
@@ -642,13 +670,25 @@ string8_view make_string_view(::simdjson::ondemand::value& string) {
 }
 QLJS_WARNING_POP
 
-string8_view make_string_view(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
-  ::simdjson::ondemand::value s;
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+std::optional<string8_view> maybe_make_string_view(
+    ::simdjson::ondemand::value& string) {
+  std::string_view s;
   if (string.get(s) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  return make_string_view(s);
+  return string8_view(reinterpret_cast<const char8*>(s.data()), s.size());
+}
+QLJS_WARNING_POP
+
+std::optional<string8_view> maybe_make_string_view(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
+  ::simdjson::ondemand::value s;
+  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+    return std::nullopt;
+  }
+  return maybe_make_string_view(s);
 }
 
 int get_int(
