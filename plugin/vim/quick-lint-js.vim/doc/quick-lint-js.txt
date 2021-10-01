@@ -51,7 +51,7 @@ this plugin to work:
   https://github.com/dense-analysis/ale
 
 ==============================================================================
-4. Configuring for ALE			*quick-lint-js-configure-ale*
+3.1. Configuring for ALE			*quick-lint-js-configure-ale*
 
 The quick-lint-js Vim plugin comes with a plugin for ALE (Asynchronous Lint
 Engine). https://github.com/dense-analysis/ale
