@@ -11,7 +11,7 @@ jobs:
   build:
     name: Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v4
     steps:
       - name: checkout
         uses: actions/checkout@v2
