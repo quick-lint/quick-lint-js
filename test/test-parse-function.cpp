@@ -829,6 +829,52 @@ TEST(test_parse, arrow_function_without_parameter_list) {
   }
 }
 
+TEST(test_parse, arrow_function_with_invalid_parameters) {
+  for (string8_view parameter_list : {
+           u8"(new C())"_sv,
+           u8"(class{})"_sv,
+           u8"(typeof x)"_sv,
+           u8"(() => {})"_sv,
+           u8"(() => null)"_sv,
+           u8"(x ?\x3f= y)"_sv,
+           u8"(function f() {})"_sv,
+           u8"(function() {})"_sv,
+           u8"(x[y])"_sv,
+           u8"(x++)"_sv,
+           u8"(++x)"_sv,
+           u8"(html`<strong>hello</strong>`)"_sv,
+           u8"(~x)"_sv,
+           u8"(x?y:z)"_sv,
+           u8"(new.target)"_sv,
+           u8"(yield x)"_sv,
+           u8"(yield* x)"_sv,
+       }) {
+    padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::async_generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
+                ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"((yield) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<
+                            error_cannot_declare_yield_in_generator_function>(
+                    ::testing::_)));
+  }
+}
+
 TEST(test_parse, generator_function_with_misplaced_star) {
   {
     padded_string code(u8"function f*(x) { yield x; }"_sv);

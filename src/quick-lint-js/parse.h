@@ -3483,7 +3483,24 @@ class parser {
       break;
     }
 
+    case expression_kind::_class:
     case expression_kind::_invalid:
+    case expression_kind::_new:
+    case expression_kind::_typeof:
+    case expression_kind::arrow_function_with_expression:
+    case expression_kind::arrow_function_with_statements:
+    case expression_kind::conditional:
+    case expression_kind::conditional_assignment:
+    case expression_kind::function:
+    case expression_kind::index:
+    case expression_kind::named_function:
+    case expression_kind::new_target:
+    case expression_kind::rw_unary_prefix:
+    case expression_kind::rw_unary_suffix:
+    case expression_kind::tagged_template_literal:
+    case expression_kind::unary_operator:
+    case expression_kind::yield_many:
+    case expression_kind::yield_one:
       this->error_reporter_->report(error_invalid_binding_in_let_statement{
           .where = ast->span(),
       });
@@ -3496,30 +3513,13 @@ class parser {
       });
       break;
 
-    case expression_kind::_class:
-    case expression_kind::_new:
     case expression_kind::_template:
-    case expression_kind::_typeof:
-    case expression_kind::arrow_function_with_expression:
-    case expression_kind::arrow_function_with_statements:
     case expression_kind::binary_operator:
-    case expression_kind::conditional:
-    case expression_kind::conditional_assignment:
-    case expression_kind::dot:
-    case expression_kind::function:
     case expression_kind::import:
-    case expression_kind::index:
-    case expression_kind::named_function:
-    case expression_kind::new_target:
+    case expression_kind::dot:
     case expression_kind::private_variable:
-    case expression_kind::rw_unary_prefix:
-    case expression_kind::rw_unary_suffix:
     case expression_kind::super:
-    case expression_kind::tagged_template_literal:
     case expression_kind::trailing_comma:
-    case expression_kind::unary_operator:
-    case expression_kind::yield_many:
-    case expression_kind::yield_one:
       QLJS_UNIMPLEMENTED();
       break;
     }

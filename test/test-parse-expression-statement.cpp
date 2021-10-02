@@ -1490,6 +1490,21 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
                 offsets_matcher(&code, strlen(u8"(async (await, await, "),
                                 u8"await"))));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"(async (await p) => {})"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_await_in_async_function, name,
+                    offsets_matcher(&code, strlen(u8"(async ("), u8"await"))));
+    // TODO(strager): We're ignoring 'p'. Should we treat it as a parameter?
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_parameter}));
+  }
 }
 }
 }
