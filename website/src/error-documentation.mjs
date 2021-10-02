@@ -44,7 +44,7 @@ markdownParser.renderer.rules = {
     let token = tokens[tokenIndex];
     if (token.info === "config-for-examples") {
       // Don't show config snippets which configure other code blocks.
-      return;
+      return "";
     }
     let content = token.content;
 
