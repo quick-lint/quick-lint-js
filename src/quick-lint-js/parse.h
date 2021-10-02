@@ -1340,7 +1340,8 @@ class parser {
       case token_type::identifier:
       case token_type::kw_yield:
       case token_type::left_curly:
-      case token_type::left_square: {
+      case token_type::left_square:
+      case token_type::reserved_keyword_with_escape_sequence: {
         expression *parameter = this->parse_expression(
             precedence{.commas = false, .in_operator = true});
         this->visit_binding_element(parameter, v, variable_kind::_parameter);
@@ -3264,6 +3265,12 @@ class parser {
         }
         break;
       }
+
+      // \u{69}\u{66} // 'if', but escaped.
+      case token_type::reserved_keyword_with_escape_sequence:
+        this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
+            this->error_reporter_);
+        goto variable_name;
 
       case token_type::left_curly:
       case token_type::left_square:

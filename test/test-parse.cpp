@@ -473,6 +473,95 @@ TEST(test_parse,
   }
 }
 
+TEST(
+    test_parse,
+    reserved_keywords_with_escape_sequences_are_treated_as_identifiers_in_variable_declarations) {
+  {
+    padded_string code(u8"const \\u{69}f = 42;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_const}));
+  }
+
+  {
+    padded_string code(u8"let \\u{69}f;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_let}));
+  }
+
+  {
+    padded_string code(u8"var \\u{69}f;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_var}));
+  }
+
+  {
+    padded_string code(u8"function g(\\u{69}f) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // g
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // if
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"g", variable_kind::_function},
+                    spy_visitor::visited_variable_declaration{
+                        u8"if", variable_kind::_parameter}));
+  }
+
+  {
+    padded_string code(u8"((\\u{69}f) => {})()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // if
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_parameter}));
+  }
+}
+
 TEST(test_parse,
      contextual_keywords_and_await_and_yield_can_contain_escape_sequences) {
   for (string8 keyword : contextual_keywords) {
