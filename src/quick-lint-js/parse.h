@@ -412,6 +412,7 @@ class parser {
     case token_type::kw_set:
     case token_type::kw_static:
     case token_type::identifier: {
+      token_type ident_token_type = this->peek().type;
       identifier ident = this->peek().identifier_name();
       this->skip();
       switch (this->peek().type) {
@@ -423,7 +424,7 @@ class parser {
       // Expression statement.
       default:
         expression *ast = this->make_expression<expression::variable>(
-            ident, token_type::identifier);
+            ident, ident_token_type);
         ast = this->parse_expression_remainder(ast, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
         parse_expression_end();
@@ -816,7 +817,12 @@ class parser {
       case variable_context::lhs:
         break;
       case variable_context::rhs:
-        v.visit_variable_use(ast->variable_identifier());
+        if (ast->variable_identifier_token_type() ==
+            token_type::reserved_keyword_with_escape_sequence) {
+          v.visit_keyword_variable_use(ast->variable_identifier());
+        } else {
+          v.visit_variable_use(ast->variable_identifier());
+        }
         break;
       }
       break;

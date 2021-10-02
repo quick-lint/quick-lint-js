@@ -279,6 +279,11 @@ class debug_visitor {
     std::fprintf(stderr, "exited function scope\n");
   }
 
+  void visit_keyword_variable_use(identifier name) {
+    std::cerr << "keyword variable use: " << out_string8(name.normalized_name())
+              << '\n';
+  }
+
   void visit_property_declaration(std::optional<identifier> name) {
     std::cerr << "property declaration";
     if (name.has_value()) {
@@ -383,6 +388,11 @@ class multi_visitor {
   void visit_exit_function_scope() {
     this->visitor_1_->visit_exit_function_scope();
     this->visitor_2_->visit_exit_function_scope();
+  }
+
+  void visit_keyword_variable_use(identifier name) {
+    this->visitor_1_->visit_keyword_variable_use(name);
+    this->visitor_2_->visit_keyword_variable_use(name);
   }
 
   void visit_property_declaration(std::optional<identifier> name) {

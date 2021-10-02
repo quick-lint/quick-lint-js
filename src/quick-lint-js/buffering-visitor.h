@@ -71,6 +71,9 @@ class buffering_visitor {
       case visit_kind::exit_function_scope:
         target.visit_exit_function_scope();
         break;
+      case visit_kind::keyword_variable_use:
+        target.visit_keyword_variable_use(v.name);
+        break;
       case visit_kind::property_declaration_with_name:
         target.visit_property_declaration(v.name);
         break;
@@ -148,6 +151,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::exit_function_scope);
   }
 
+  void visit_keyword_variable_use(identifier name) {
+    this->visits_.emplace_back(visit_kind::keyword_variable_use, name);
+  }
+
   void visit_property_declaration(std::optional<identifier> name) {
     if (name.has_value()) {
       this->visits_.emplace_back(visit_kind::property_declaration_with_name,
@@ -192,6 +199,7 @@ class buffering_visitor {
     exit_class_scope,
     exit_for_scope,
     exit_function_scope,
+    keyword_variable_use,
     property_declaration_with_name,
     property_declaration_without_name,
     variable_assignment,
@@ -214,8 +222,8 @@ class buffering_visitor {
     visit_kind kind;
 
     union {
-      // enter_named_function_scope, property_declaration, variable_assignment,
-      // variable_declaration, variable_use
+      // enter_named_function_scope, keyword_variable_use, property_declaration,
+      // variable_assignment, variable_declaration, variable_use
       identifier name;
       static_assert(std::is_trivially_destructible_v<identifier>);
     };

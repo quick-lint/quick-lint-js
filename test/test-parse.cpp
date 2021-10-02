@@ -444,7 +444,7 @@ TEST(test_parse,
       spy_visitor v;
       parser p(&code, &v);
       p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+      EXPECT_THAT(v.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_uses,
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));
@@ -460,7 +460,7 @@ TEST(test_parse,
       spy_visitor v;
       parser p(&code, &v);
       p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+      EXPECT_THAT(v.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_uses,
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));

@@ -45,6 +45,7 @@ concept parse_visitor = requires(Visitor v, identifier name,
   {v.visit_exit_class_scope()};
   {v.visit_exit_for_scope()};
   {v.visit_exit_function_scope()};
+  {v.visit_keyword_variable_use(name)};
   {v.visit_property_declaration(std::nullopt)};
   {v.visit_property_declaration(std::optional<identifier>(name))};
   {v.visit_variable_assignment(name)};
