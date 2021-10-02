@@ -1018,9 +1018,9 @@
   QLJS_ERROR_TYPE(                                                             \
       error_regexp_literal_flags_cannot_contain_unicode_escapes, "E035",       \
       { source_code_span escape_sequence; },                                   \
-      ERROR(                                                                   \
-          QLJS_TRANSLATABLE("RegExp literal cannot contain Unicode escapes"),  \
-          escape_sequence))                                                    \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "RegExp literal flags cannot contain Unicode escapes"),        \
+            escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_stray_comma_in_let_statement, "E036", { source_code_span where; }, \
