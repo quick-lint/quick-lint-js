@@ -62,6 +62,13 @@ struct qljs_web_demo_document final
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
+
+  void set_config_text(quick_lint_js::string8_view text) {
+    quick_lint_js::padded_string padded_text(text);
+    this->config_.reset();
+    this->config_.load_from_json(&padded_text,
+                                 &quick_lint_js::null_error_reporter::instance);
+  }
 };
 
 qljs_web_demo_document* qljs_web_demo_create_document(void) {
@@ -74,6 +81,14 @@ void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
 void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                             size_t text_byte_count) {
   p->set_text(quick_lint_js::string8_view(
+      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
+      text_byte_count));
+}
+
+void qljs_web_demo_set_config_text(qljs_web_demo_document* p,
+                                   const void* text_utf_8,
+                                   size_t text_byte_count) {
+  p->set_config_text(quick_lint_js::string8_view(
       reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
       text_byte_count));
 }

@@ -28,6 +28,9 @@ qljs_web_demo_document* qljs_web_demo_create_document(void);
 void qljs_web_demo_destroy_document(qljs_web_demo_document*);
 void qljs_web_demo_set_text(qljs_web_demo_document*, const void* text_utf_8,
                             size_t text_byte_count);
+void qljs_web_demo_set_config_text(qljs_web_demo_document*,
+                                   const void* text_utf_8,
+                                   size_t text_byte_count);
 const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document*);
 const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
     qljs_web_demo_document*);

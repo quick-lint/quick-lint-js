@@ -156,6 +156,7 @@ class Process {
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoLintAsConfigFile = wrap("qljs_web_demo_lint_as_config_file");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
+    this._webDemoSetConfigText = wrap("qljs_web_demo_set_config_text");
   }
 
   isTainted() {
@@ -213,6 +214,19 @@ class DocumentForWebDemo {
   lint() {
     let diagnosticsPointer = this._process._webDemoLint(this._wasmDoc);
     return this._parseDiagnostics(diagnosticsPointer);
+  }
+
+  setConfigText(text) {
+    let utf8Text = encodeUTF8String(text, this._process);
+    try {
+      this._process._webDemoSetConfigText(
+        this._wasmDoc,
+        utf8Text.pointer,
+        utf8Text.byteSize
+      );
+    } finally {
+      utf8Text.dispose();
+    }
   }
 
   lintAsConfigFile() {

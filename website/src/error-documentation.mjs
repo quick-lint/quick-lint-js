@@ -42,6 +42,10 @@ markdownParser.renderer.rules = {
 
   code_block(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
+    if (token.info === "config-for-examples") {
+      // Don't show config snippets which configure other code blocks.
+      return;
+    }
     let content = token.content;
 
     if (typeof env.dom === "undefined") {
@@ -89,6 +93,7 @@ export function codeHasBOM(codeHTML) {
 export class ErrorDocumentation {
   constructor({
     codeBlocks,
+    configForExamples,
     filePath,
     markdownEnv,
     markdownTokens,
@@ -98,6 +103,7 @@ export class ErrorDocumentation {
     this._markdownEnv = markdownEnv;
     this._markdownTokens = markdownTokens;
     this.codeBlocks = codeBlocks;
+    this.configForExamples = configForExamples;
     this.filePath = filePath;
     this.titleErrorCode = titleErrorCode;
     this.titleErrorDescription = titleErrorDescription;
@@ -120,6 +126,9 @@ export class ErrorDocumentation {
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
       let { text, language } = this.codeBlocks[i];
+      if (this.configForExamples !== null) {
+        doc.setConfigText(this.configForExamples);
+      }
       doc.setText(text);
       let diagnostics =
         language === "quick-lint-js.config"
@@ -140,6 +149,7 @@ export class ErrorDocumentation {
     let tokens = markdownParser.parse(markdown, markdownEnv);
 
     let codeBlocks = [];
+    let configForExamples = null;
     let titleErrorCode = "";
     let titleErrorDescription = "";
 
@@ -171,10 +181,14 @@ export class ErrorDocumentation {
           break;
 
         case "fence":
-          codeBlocks.push({
-            text: token.content,
-            language: token.info || "javascript",
-          });
+          if (token.info === "config-for-examples") {
+            configForExamples = token.content;
+          } else {
+            codeBlocks.push({
+              text: token.content,
+              language: token.info || "javascript",
+            });
+          }
           break;
 
         case "inline":
@@ -187,6 +201,7 @@ export class ErrorDocumentation {
 
     return new ErrorDocumentation({
       codeBlocks: codeBlocks,
+      configForExamples: configForExamples,
       filePath: filePath,
       markdownEnv: markdownEnv,
       markdownTokens: tokens,

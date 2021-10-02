@@ -234,6 +234,43 @@ wasn't that neat?
       ],
     ]);
   });
+
+  it("config file for examples is null by default", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "```\nconsole.log();\n```"
+    );
+    expect(doc.configForExamples).toBeNull();
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([[]]);
+  });
+
+  it("config file for examples", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      '```config-for-examples\n{"global-groups": false}\n```\n\n    console.log();'
+    );
+    expect(doc.configForExamples).toEqual('{"global-groups": false}\n');
+    expect(doc.codeBlocks).toEqual([
+      {
+        language: "javascript",
+        text: "console.log();\n",
+      },
+    ]);
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([
+      [
+        {
+          code: "E057",
+          message: "use of undeclared variable: console",
+          severity: 2,
+          begin: 0,
+          end: 7,
+        },
+      ],
+    ]);
+    expect(doc.toHTML()).not.toContain("global-groups");
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.
