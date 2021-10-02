@@ -134,6 +134,18 @@ describe("markEditorText", () => {
     ]);
     assert.strictEqual(editor.innerHTML, "<mark>hello</mark>world");
   });
+
+  it("overlapping marks with same begin are merged", () => {
+    let editor = preElementWithHTML("two errors please thanks");
+    markEditorText(editor, dom.window, [
+      { begin: 4, end: 10 }, // "errors"
+      { begin: 4, end: 17 }, // "errors please"
+    ]);
+    assert.strictEqual(
+      editor.innerHTML,
+      "two <mark>errors please</mark> thanks"
+    );
+  });
 });
 
 describe("sanitizeMarks", () => {
