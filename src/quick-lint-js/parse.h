@@ -3198,7 +3198,8 @@ class parser {
         this->skip();
         switch (this->peek().type) {
         // let x = 3;
-        initialize_variable:
+        // let x += 42;  // Invalid.
+        QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
         case token_type::equal: {
           token equal_token = this->peek();
           expression *ast = this->parse_expression_remainder(
@@ -3219,21 +3220,6 @@ class parser {
           }
           break;
         }
-
-        // let x += 42;  // Invalid.
-        case token_type::ampersand_equal:
-        case token_type::circumflex_equal:
-        case token_type::greater_greater_equal:
-        case token_type::greater_greater_greater_equal:
-        case token_type::less_less_equal:
-        case token_type::minus_equal:
-        case token_type::percent_equal:
-        case token_type::pipe_equal:
-        case token_type::plus_equal:
-        case token_type::slash_equal:
-        case token_type::star_equal:
-        case token_type::star_star_equal:
-          goto initialize_variable;
 
         case token_type::kw_await:
         case token_type::kw_class:
