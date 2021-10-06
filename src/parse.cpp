@@ -1252,6 +1252,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::index:
   case expression_kind::named_function:
   case expression_kind::new_target:
+  case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
   case expression_kind::tagged_template_literal:
@@ -1321,7 +1322,6 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::_template:
   case expression_kind::compound_assignment:
   case expression_kind::import:
-  case expression_kind::private_variable:
   case expression_kind::super:
     QLJS_UNIMPLEMENTED();
     break;

@@ -892,6 +892,19 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
                             error_cannot_declare_yield_in_generator_function>(
                     ::testing::_)));
   }
+
+  {
+    padded_string code(u8"((#priv) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    // TODO(strager): Show a more specific error which mentions parameters.
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(::testing::VariantWith<
+                    error_cannot_refer_to_private_variable_without_object>(
+            ::testing::_)));
+  }
 }
 
 TEST(test_parse, generator_function_with_misplaced_star) {

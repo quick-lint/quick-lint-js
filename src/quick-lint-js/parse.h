@@ -3508,6 +3508,13 @@ class parser {
       });
       break;
 
+    // function f(#bananas) {}  // Invalid.
+    case expression_kind::private_variable:
+      // parse_expression already reported
+      // error_cannot_refer_to_private_variable_without_object. Don't report
+      // another error here.
+      break;
+
     case expression_kind::call:
     case expression_kind::literal:
       this->error_reporter_->report(error_invalid_parameter{
@@ -3517,7 +3524,6 @@ class parser {
 
     case expression_kind::_template:
     case expression_kind::import:
-    case expression_kind::private_variable:
     case expression_kind::super:
     case expression_kind::trailing_comma:
       QLJS_UNIMPLEMENTED();
