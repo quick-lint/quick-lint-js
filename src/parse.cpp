@@ -439,6 +439,7 @@ expression* parser::parse_primary_expression(precedence prec) {
   }
 
   QLJS_CASE_BINARY_ONLY_OPERATOR:
+  QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
   case token_type::comma:
   case token_type::dot:
   case token_type::equal:

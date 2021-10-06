@@ -298,6 +298,20 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
                                 offsets_matcher(p.code(), 0, u8"^"))));
   }
 
+  // NOTE(strager): "/=" is not tested here because "/=/" is a regular
+  // expression literal.
+  for (string8 op : {u8"*=", u8"%=", u8"+=", u8"-=", u8"<<=", u8">>=", u8">>>=",
+                     u8"&=", u8"^=", u8"|=", u8"**="}) {
+    string8 code = op + u8" 2";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "upassign(?, literal)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_operand_for_operator, where,
+                                offsets_matcher(p.code(), 0, op))));
+  }
+
   {
     test_parser p(u8"2 * * 2"_sv);
     expression* ast = p.parse_expression();
