@@ -704,7 +704,8 @@ class parser {
     auto visit_parameters = [&](int parameter_count) {
       for (int i = 0; i < parameter_count; ++i) {
         expression *parameter = ast->child(i);
-        this->visit_binding_element(parameter, v, variable_kind::_parameter);
+        this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                    /*declaring_token=*/std::nullopt);
       }
     };
     switch (ast->kind()) {
@@ -1350,7 +1351,8 @@ class parser {
       case token_type::reserved_keyword_with_escape_sequence: {
         expression *parameter = this->parse_expression(
             precedence{.commas = false, .in_operator = true});
-        this->visit_binding_element(parameter, v, variable_kind::_parameter);
+        this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                    /*declaring_token=*/std::nullopt);
         if (parameter->kind() == expression_kind::spread) {
           last_parameter_spread_span = parameter->span();
         } else {
@@ -1974,8 +1976,10 @@ class parser {
 
         case token_type::left_curly:
         case token_type::left_square:
-          this->parse_and_visit_binding_element(v, variable_kind::_catch,
-                                                /*allow_in_operator=*/false);
+          this->parse_and_visit_binding_element(
+              v, variable_kind::_catch,
+              /*declaring_token=*/std::nullopt,
+              /*allow_in_operator=*/false);
           break;
 
         case token_type::right_paren:
@@ -3200,7 +3204,9 @@ class parser {
           expression *ast = this->parse_expression_remainder(
               variable,
               precedence{.commas = false, .in_operator = allow_in_operator});
-          this->visit_binding_element(ast, v, declaration_kind);
+          this->visit_binding_element(
+              ast, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           bool is_assignment_not_allowed =
               is_in_for_initializer &&
               (this->peek().type == token_type::kw_of ||
@@ -3227,11 +3233,6 @@ class parser {
         case token_type::slash_equal:
         case token_type::star_equal:
         case token_type::star_star_equal:
-          this->error_reporter_->report(
-              error_cannot_update_variable_during_declaration{
-                  .declaring_token = declaring_token.span(),
-                  .updating_operator = this->peek().span(),
-              });
           goto initialize_variable;
 
         case token_type::kw_await:
@@ -3242,7 +3243,9 @@ class parser {
         case token_type::kw_this:
         case token_type::kw_typeof: {
           if (this->peek().has_leading_newline) {
-            this->visit_binding_element(variable, v, declaration_kind);
+            this->visit_binding_element(
+                variable, v, declaration_kind,
+                /*declaring_token=*/declaring_token.span());
             this->lexer_.insert_semicolon();
             return;
           }
@@ -3252,7 +3255,9 @@ class parser {
           });
           this->parse_and_visit_expression(
               v, precedence{.commas = false, .in_operator = allow_in_operator});
-          this->visit_binding_element(variable, v, declaration_kind);
+          this->visit_binding_element(
+              variable, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           break;
         }
 
@@ -3266,7 +3271,9 @@ class parser {
                       .variable_name = variable->span()});
             }
           }
-          this->visit_binding_element(variable, v, declaration_kind);
+          this->visit_binding_element(
+              variable, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           break;
         }
         break;
@@ -3281,7 +3288,9 @@ class parser {
       case token_type::left_curly:
       case token_type::left_square:
         this->parse_and_visit_binding_element(
-            v, declaration_kind, /*allow_in_operator=*/allow_in_operator);
+            v, declaration_kind,
+            /*declaring_token=*/declaring_token.span(),
+            /*allow_in_operator=*/allow_in_operator);
         break;
 
       // let switch = 3;  // Invalid.
@@ -3414,28 +3423,44 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_binding_element(Visitor &v,
-                                       variable_kind declaration_kind,
-                                       bool allow_in_operator) {
+  void parse_and_visit_binding_element(
+      Visitor &v, variable_kind declaration_kind,
+      std::optional<source_code_span> declaring_token, bool allow_in_operator) {
     expression *ast = this->parse_expression(
         precedence{.commas = false, .in_operator = allow_in_operator});
-    this->visit_binding_element(ast, v, declaration_kind);
+    this->visit_binding_element(ast, v, declaration_kind, declaring_token);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_binding_element(expression *ast, Visitor &v,
-                             variable_kind declaration_kind) {
+                             variable_kind declaration_kind,
+                             std::optional<source_code_span> declaring_token) {
     switch (ast->kind()) {
     case expression_kind::array:
       for (int i = 0; i < ast->child_count(); ++i) {
-        this->visit_binding_element(ast->child(i), v, declaration_kind);
+        this->visit_binding_element(ast->child(i), v, declaration_kind,
+                                    /*declaring_token=*/declaring_token);
       }
       break;
-    case expression_kind::assignment:
+
     case expression_kind::compound_assignment:
+      if (declaring_token.has_value()) {
+        this->error_reporter_->report(
+            error_cannot_update_variable_during_declaration{
+                .declaring_token = *declaring_token,
+                .updating_operator =
+                    static_cast<expression::assignment *>(ast)->operator_span(),
+            });
+      } else {
+        // TODO(strager): Report an error.
+      }
+      [[fallthrough]];
+    case expression_kind::assignment:
       this->visit_expression(ast->child_1(), v, variable_context::rhs);
-      this->visit_binding_element(ast->child_0(), v, declaration_kind);
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
+
     case expression_kind::variable: {
       identifier ident = ast->variable_identifier();
       if ((declaration_kind == variable_kind::_const ||
@@ -3455,11 +3480,13 @@ class parser {
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
         expression *value = ast->object_entry(i).value;
-        this->visit_binding_element(value, v, declaration_kind);
+        this->visit_binding_element(value, v, declaration_kind,
+                                    /*declaring_token=*/declaring_token);
       }
       break;
     case expression_kind::spread:
-      this->visit_binding_element(ast->child_0(), v, declaration_kind);
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
 
     case expression_kind::await: {
