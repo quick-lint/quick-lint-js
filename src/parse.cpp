@@ -1247,6 +1247,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::arrow_function_with_expression:
   case expression_kind::arrow_function_with_statements:
   case expression_kind::await:
+  case expression_kind::compound_assignment:
   case expression_kind::conditional:
   case expression_kind::conditional_assignment:
   case expression_kind::function:
@@ -1321,7 +1322,6 @@ void parser::parse_arrow_function_expression_remainder(
 
   case expression_kind::_invalid:
   case expression_kind::_template:
-  case expression_kind::compound_assignment:
   case expression_kind::import:
   case expression_kind::super:
     QLJS_UNIMPLEMENTED();

@@ -3438,7 +3438,9 @@ class parser {
                     static_cast<expression::assignment *>(ast)->operator_span(),
             });
       } else {
-        // TODO(strager): Report an error.
+        this->error_reporter_->report(error_invalid_binding_in_let_statement{
+            .where = ast->span(),
+        });
       }
       [[fallthrough]];
     case expression_kind::assignment:

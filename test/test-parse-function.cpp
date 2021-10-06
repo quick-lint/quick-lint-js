@@ -867,6 +867,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
            u8"(new.target)"_sv,
            u8"(yield x)"_sv,
            u8"(yield* x)"_sv,
+           u8"(x -= y)"_sv,
        }) {
     padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
     SCOPED_TRACE(code);
