@@ -906,6 +906,16 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
                     error_cannot_refer_to_private_variable_without_object>(
             ::testing::_)));
   }
+
+  {
+    padded_string code(u8"((:) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<error_unexpected_token>(
+                    ::testing::_)));
+  }
 }
 
 TEST(test_parse, generator_function_with_misplaced_star) {
