@@ -3489,8 +3489,10 @@ class parser {
     case expression_kind::_typeof:
     case expression_kind::arrow_function_with_expression:
     case expression_kind::arrow_function_with_statements:
+    case expression_kind::binary_operator:
     case expression_kind::conditional:
     case expression_kind::conditional_assignment:
+    case expression_kind::dot:
     case expression_kind::function:
     case expression_kind::index:
     case expression_kind::named_function:
@@ -3514,9 +3516,7 @@ class parser {
       break;
 
     case expression_kind::_template:
-    case expression_kind::binary_operator:
     case expression_kind::import:
-    case expression_kind::dot:
     case expression_kind::private_variable:
     case expression_kind::super:
     case expression_kind::trailing_comma:

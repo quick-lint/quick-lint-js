@@ -829,6 +829,25 @@ TEST(test_parse, arrow_function_without_parameter_list) {
   }
 }
 
+TEST(test_parse, function_with_invalid_parameters) {
+  for (string8_view parameter_list : {
+           u8"x << y"_sv,
+           u8"x.prop"_sv,
+           u8"html`<strong>hello</strong>`"_sv,
+       }) {
+    padded_string code(u8"function f(" + string8(parameter_list) + u8") {}");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
+                ::testing::_)));
+  }
+}
+
 TEST(test_parse, arrow_function_with_invalid_parameters) {
   for (string8_view parameter_list : {
            u8"(new C())"_sv,
