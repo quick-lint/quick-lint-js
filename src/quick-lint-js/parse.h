@@ -3499,7 +3499,6 @@ class parser {
     }
 
     case expression_kind::_class:
-    case expression_kind::_invalid:
     case expression_kind::_new:
     case expression_kind::_typeof:
     case expression_kind::arrow_function_with_expression:
@@ -3524,10 +3523,11 @@ class parser {
       break;
 
     // function f(#bananas) {}  // Invalid.
+    // function f(:) {}  // Invalid.
+    case expression_kind::_invalid:
     case expression_kind::private_variable:
-      // parse_expression already reported
-      // error_cannot_refer_to_private_variable_without_object. Don't report
-      // another error here.
+      // parse_expression already reported an error. Don't report another error
+      // here.
       break;
 
     case expression_kind::call:
