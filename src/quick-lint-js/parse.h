@@ -3531,9 +3531,14 @@ class parser {
       break;
 
     case expression_kind::call:
-    case expression_kind::literal:
       this->error_reporter_->report(error_invalid_parameter{
           .parameter = ast->span(),
+      });
+      break;
+
+    case expression_kind::literal:
+      this->error_reporter_->report(error_unexpected_literal_in_parameter_list{
+          .literal = ast->span(),
       });
       break;
 

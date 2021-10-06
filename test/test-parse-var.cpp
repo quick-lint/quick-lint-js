@@ -575,7 +575,7 @@ TEST(test_parse, parse_invalid_let) {
     // not 'parameter'.
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_invalid_parameter, parameter,
+                    error_unexpected_literal_in_parameter_list, literal,
                     offsets_matcher(&code, strlen(u8"let ["), u8"42"))));
   }
 }

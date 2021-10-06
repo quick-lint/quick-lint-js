@@ -908,6 +908,18 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
   }
 
   {
+    padded_string code(u8"((42,) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_unexpected_literal_in_parameter_list>(
+                ::testing::_)));
+  }
+
+  {
     padded_string code(u8"((:) => {});"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -1454,7 +1466,8 @@ TEST(test_parse, invalid_function_parameter) {
             ::testing::VariantWith<
                 error_missing_operator_between_expression_and_arrow_function>(
                 ::testing::_),
-            ERROR_TYPE_FIELD(error_invalid_parameter, parameter,
+            ERROR_TYPE_FIELD(error_unexpected_literal_in_parameter_list,
+                             literal,
                              offsets_matcher(&code, strlen(u8"g("), u8"42"))));
   }
 }

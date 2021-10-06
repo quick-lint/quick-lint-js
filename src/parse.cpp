@@ -1225,19 +1225,7 @@ void parser::parse_arrow_function_expression_remainder(
     // example.
     for (int i = 0; i < lhs->child_count(); ++i) {
       expression* parameter = lhs->child(i);
-      switch (parameter->kind()) {
-      case expression_kind::literal:
-        this->error_reporter_->report(
-            error_unexpected_literal_in_parameter_list{
-                .literal = parameter->span(),
-            });
-        break;
-
-      // TODO(strager): Error on other kinds of invalid parameters.
-      default:
-        parameters.emplace_back(parameter);
-        break;
-      }
+      parameters.emplace_back(parameter);
     }
     break;
 
