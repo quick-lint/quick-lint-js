@@ -605,9 +605,9 @@ static_assert(expression_arena::is_allocatable<
 
 class expression::assignment final : public expression {
  public:
-  explicit assignment(expression_kind kind, expression *lhs,
-                      expression *rhs) noexcept
-      : expression(kind), children_{lhs, rhs} {
+  explicit assignment(expression_kind kind, expression *lhs, expression *rhs,
+                      source_code_span operator_span) noexcept
+      : expression(kind), children_{lhs, rhs}, operator_span_(operator_span) {
     QLJS_ASSERT(kind == expression_kind::assignment ||
                 kind == expression_kind::compound_assignment ||
                 kind == expression_kind::conditional_assignment);
@@ -628,8 +628,13 @@ class expression::assignment final : public expression {
                             this->children_.back()->span().end());
   }
 
+  source_code_span operator_span() const noexcept {
+    return this->operator_span_;
+  }
+
  private:
   std::array<expression *, 2> children_;
+  source_code_span operator_span_;
 };
 static_assert(expression_arena::is_allocatable<expression::assignment>);
 

@@ -924,8 +924,8 @@ next:
       });
     }
     children.clear();
-    children.emplace_back(
-        this->make_expression<expression::assignment>(kind, lhs, rhs));
+    children.emplace_back(this->make_expression<expression::assignment>(
+        kind, lhs, rhs, operator_span));
     goto next;
   }
 
@@ -1521,10 +1521,14 @@ expression* parser::parse_object_literal() {
       missing_key = false;
       break;
     }
+
+    QLJS_ASSERT(this->peek().type == token_type::equal);
+    source_code_span operator_span = this->peek().span();
     this->skip();
+
     expression* rhs = this->parse_expression(precedence{.commas = false});
     expression* value = this->make_expression<expression::assignment>(
-        expression_kind::assignment, lhs, rhs);
+        expression_kind::assignment, lhs, rhs, operator_span);
     if (missing_key) {
       this->error_reporter_->report(error_missing_key_for_object_entry{
           .expression = value->span(),
