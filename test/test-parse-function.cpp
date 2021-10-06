@@ -846,6 +846,18 @@ TEST(test_parse, function_with_invalid_parameters) {
             ::testing::VariantWith<error_invalid_binding_in_let_statement>(
                 ::testing::_)));
   }
+
+  {
+    padded_string code(u8"function f(42) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_unexpected_literal_in_parameter_list>(
+                ::testing::_)));
+  }
 }
 
 TEST(test_parse, arrow_function_with_invalid_parameters) {

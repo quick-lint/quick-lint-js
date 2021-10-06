@@ -1348,6 +1348,7 @@ class parser {
       case token_type::kw_yield:
       case token_type::left_curly:
       case token_type::left_square:
+      case token_type::number:
       case token_type::reserved_keyword_with_escape_sequence: {
         expression *parameter = this->parse_expression(
             precedence{.commas = false, .in_operator = true});
