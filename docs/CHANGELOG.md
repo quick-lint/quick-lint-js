@@ -20,6 +20,8 @@ Beta release.
 * VS Code: The plugin now works on Linux on ARM (32-bit and 64-bit).
 * The CLI and LSP server now compile on FreeBSD (amd64). However, we don't
   provide FreeBSD pre-built executables.
+* Neovim: nvim-lspconfig is now supported by quick-lint-js' plugin (implemented
+  by [tiagovla][]).
 
 ### Fixed
 
@@ -36,6 +38,7 @@ Beta release.
   component contains a symbolic link (Linux and macOS).
 * quick-lint-js no longer warns about variables named `__dirname`,
   `__filename`, `exports`, `module`, or `require` by default.
+* Various crashes on invalid code have been fixed.
 
 ## 0.4.0 (2021-09-09)
 
@@ -147,4 +150,5 @@ Beta release.
 [Matheus Sousa]: https://github.com/keyehzy
 [Shivam Mehta]: https://github.com/maniac-en
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
