@@ -3523,6 +3523,13 @@ class parser {
       });
       break;
 
+    // function f([(p,)]) {}  // Invalid.
+    case expression_kind::trailing_comma:
+      this->error_reporter_->report(error_stray_comma_in_let_statement{
+          .where = static_cast<expression::trailing_comma *>(ast)->comma_span(),
+      });
+      break;
+
     // function f(#bananas) {}  // Invalid.
     // function f(:) {}  // Invalid.
     case expression_kind::_invalid:
@@ -3546,7 +3553,6 @@ class parser {
     case expression_kind::_template:
     case expression_kind::import:
     case expression_kind::super:
-    case expression_kind::trailing_comma:
       QLJS_UNIMPLEMENTED();
       break;
     }

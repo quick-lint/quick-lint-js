@@ -895,6 +895,18 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
   }
 
   {
+    padded_string code(u8"([(x,)] => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_stray_comma_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"([(x"), u8","))));
+  }
+
+  {
     padded_string code(u8"((yield) => {});"_sv);
     spy_visitor v;
     parser p(&code, &v);
