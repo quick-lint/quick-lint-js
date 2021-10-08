@@ -3514,6 +3514,7 @@ class parser {
     case expression_kind::new_target:
     case expression_kind::rw_unary_prefix:
     case expression_kind::rw_unary_suffix:
+    case expression_kind::super:
     case expression_kind::tagged_template_literal:
     case expression_kind::unary_operator:
     case expression_kind::yield_many:
@@ -3552,7 +3553,6 @@ class parser {
 
     case expression_kind::_template:
     case expression_kind::import:
-    case expression_kind::super:
       QLJS_UNIMPLEMENTED();
       break;
     }
