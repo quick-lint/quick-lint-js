@@ -593,8 +593,9 @@ void print_help_message() {
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
-  print_option("",
-               "gnu-like (default if omitted), vim-qflist-json, emacs-lisp");
+  print_option("", "gnu-like (default if omitted)");
+  print_option("", "vim-qflist-json");
+  print_option("", "emacs-lisp");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
