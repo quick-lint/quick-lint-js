@@ -4,8 +4,10 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
+#include <boost/container/pmr/memory_resource.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/identifier.h>
 #include <quick-lint-js/location.h>
@@ -236,10 +238,29 @@ class lexer {
 };
 
 struct lexer_transaction {
-  // Private to lexer. Do not read or modify.
+  // Private to lexer. Do not construct, read, or modify.
+
+  explicit lexer_transaction(token old_last_token,
+                             const char8* old_last_last_token_end,
+                             const char8* old_input,
+                             error_reporter** error_reporter_pointer,
+                             boost::container::pmr::memory_resource* memory)
+      : old_last_token(old_last_token),
+        old_last_last_token_end(old_last_last_token_end),
+        old_input(old_input),
+        reporter(memory),
+        old_error_reporter(
+            std::exchange(*error_reporter_pointer, &this->reporter)) {}
+
+  // Don't allow copying a transaction. lexer::error_reporter_ might point to
+  // lexer_transaction::error_reporter.
+  lexer_transaction(const lexer_transaction&) = delete;
+  lexer_transaction& operator=(const lexer_transaction&) = delete;
+
   token old_last_token;
   const char8* old_last_last_token_end;
   const char8* old_input;
+  buffering_error_reporter reporter;
   error_reporter* old_error_reporter;
 };
 }

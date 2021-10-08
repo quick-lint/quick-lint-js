@@ -959,31 +959,24 @@ next:
 }
 
 lexer_transaction lexer::begin_transaction() {
-  error_reporter* new_error_reporter =
-      new buffering_error_reporter(this->allocator_.memory_resource());
-  return lexer_transaction{
-      .old_last_token = this->last_token_,
-      .old_last_last_token_end = this->last_last_token_end_,
-      .old_input = this->input_,
-      .old_error_reporter =
-          std::exchange(this->error_reporter_, new_error_reporter),
-  };
+  return lexer_transaction(
+      /*old_last_token=*/this->last_token_,
+      /*old_last_last_token_end=*/this->last_last_token_end_,
+      /*old_input=*/this->input_,
+      /*error_reporter_pointer=*/
+      &this->error_reporter_,
+      /*memory=*/this->allocator_.memory_resource());
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
   buffering_error_reporter* buffered_errors =
       static_cast<buffering_error_reporter*>(this->error_reporter_);
   buffered_errors->move_into(transaction.old_error_reporter);
-  delete buffered_errors;
 
   this->error_reporter_ = transaction.old_error_reporter;
 }
 
 void lexer::roll_back_transaction(lexer_transaction&& transaction) {
-  buffering_error_reporter* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  delete buffered_errors;
-
   this->last_token_ = transaction.old_last_token;
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
