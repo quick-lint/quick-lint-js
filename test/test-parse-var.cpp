@@ -405,6 +405,34 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
+    padded_string code(u8"let x, `hello`;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let x, "), u8"`hello`"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x, `hello${world}`;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // world
+                                      "visit_end_of_module"));
+    // TODO(strager): Improve the span.
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let x, "), u8"`hello${"))));
+  }
+
+  {
+    spy_visitor v;
     padded_string code(u8"let {debugger}"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));

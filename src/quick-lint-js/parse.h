@@ -3318,7 +3318,18 @@ class parser {
       }
 
       // let 42;  // Invalid.
+      case token_type::complete_template:
       case token_type::number:
+        this->error_reporter_->report(
+            error_unexpected_token_in_variable_declaration{
+                .unexpected_token = this->peek().span(),
+            });
+        this->lexer_.insert_semicolon();
+        break;
+
+      // let v, `hello${world}`;  // Invalid.
+      case token_type::incomplete_template:
+        // TODO(strager): Improve the span.
         this->error_reporter_->report(
             error_unexpected_token_in_variable_declaration{
                 .unexpected_token = this->peek().span(),
@@ -3328,10 +3339,8 @@ class parser {
 
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::comma:
-      case token_type::complete_template:
       case token_type::dot:
       case token_type::equal_greater:
-      case token_type::incomplete_template:
       case token_type::left_paren:
       case token_type::minus:
       case token_type::plus:
