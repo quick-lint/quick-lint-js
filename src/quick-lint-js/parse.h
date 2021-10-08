@@ -3510,6 +3510,7 @@ class parser {
 
     case expression_kind::_class:
     case expression_kind::_new:
+    case expression_kind::_template:
     case expression_kind::_typeof:
     case expression_kind::arrow_function_with_expression:
     case expression_kind::arrow_function_with_statements:
@@ -3560,7 +3561,6 @@ class parser {
       });
       break;
 
-    case expression_kind::_template:
     case expression_kind::import:
       QLJS_UNIMPLEMENTED();
       break;

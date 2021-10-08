@@ -873,7 +873,6 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
            u8"(x[y])"_sv,
            u8"(x++)"_sv,
            u8"(++x)"_sv,
-           u8"(html`<strong>hello</strong>`)"_sv,
            u8"(~x)"_sv,
            u8"(x?y:z)"_sv,
            u8"(new.target)"_sv,
@@ -882,6 +881,12 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
            u8"(x -= y)"_sv,
            u8"(super)"_sv,
            u8"([super])"_sv,
+
+           // TODO(strager): We should report
+           // error_unexpected_arrow_after_literal for these:
+           u8"(`<strong>${hello}</strong>`)"_sv,
+           u8"(html`<strong>hello</strong>`)"_sv,
+           u8"(html`<strong>${hello}</strong>`)"_sv,
        }) {
     padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
     SCOPED_TRACE(code);
@@ -894,6 +899,19 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
         ElementsAre(
             ::testing::VariantWith<error_invalid_binding_in_let_statement>(
                 ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"((`<strong>hello</strong>`) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_arrow_after_literal, arrow,
+            offsets_matcher(&code, strlen(u8"((`<strong>hello</strong>`) "),
+                            u8"=>"))));
   }
 
   {

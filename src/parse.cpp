@@ -1232,6 +1232,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::_class:
   case expression_kind::_invalid:
   case expression_kind::_new:
+  case expression_kind::_template:
   case expression_kind::_typeof:
   case expression_kind::arrow_function_with_expression:
   case expression_kind::arrow_function_with_statements:
@@ -1310,7 +1311,6 @@ void parser::parse_arrow_function_expression_remainder(
     break;
   }
 
-  case expression_kind::_template:
   case expression_kind::import:
     QLJS_UNIMPLEMENTED();
     break;
