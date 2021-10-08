@@ -580,7 +580,8 @@ void print_help_message() {
   };
 
   std::printf(
-      "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
+      "Usage: quick-lint-js [OPTIONS]... FILE [FILE...]\n"
+      "       quick-lint-js --lsp-server\n\n"
       "OPTIONS\n");
   print_option("--config-file=[FILE]",
                "Read configuration from a JSON file for later input files");
