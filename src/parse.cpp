@@ -711,7 +711,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       // await / rhs;
       case token_type::slash:
       case token_type::slash_equal: {
-        buffering_error_reporter temp_error_reporter;
+        buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
         error_reporter* old_error_reporter =
             std::exchange(this->error_reporter_, &temp_error_reporter);
         lexer_transaction transaction = this->lexer_.begin_transaction();

@@ -34,6 +34,8 @@ class configuration_filesystem {
 };
 
 struct loaded_config_file {
+  explicit loaded_config_file();
+
   configuration config;
 
   // The content of the quick-lint-js.config file.

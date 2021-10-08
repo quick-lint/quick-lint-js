@@ -82,6 +82,7 @@ quick_lint_js_add_library(
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
+  quick-lint-js/allocator.h
   quick-lint-js/assert.h
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/bit.h

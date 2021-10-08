@@ -959,7 +959,8 @@ next:
 }
 
 lexer_transaction lexer::begin_transaction() {
-  error_reporter* new_error_reporter = new buffering_error_reporter();
+  error_reporter* new_error_reporter =
+      new buffering_error_reporter(this->allocator_.memory_resource());
   return lexer_transaction{
       .old_last_token = this->last_token_,
       .old_last_last_token_end = this->last_last_token_end_,
