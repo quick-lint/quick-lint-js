@@ -2138,10 +2138,16 @@ function_attributes parser::parse_generator_star(
     case function_attributes::async:
       return function_attributes::async_generator;
     case function_attributes::async_generator:
-      QLJS_ASSERT(false);
+      // This can happen if the user puts the generator * before and after the
+      // function keyword:
+      //
+      //   (*async function* f() {})
       return function_attributes::async_generator;
     case function_attributes::generator:
-      QLJS_ASSERT(false);
+      // This can happen if the user puts the generator * before and after the
+      // function keyword:
+      //
+      //   (*function* f() {})
       return function_attributes::generator;
     case function_attributes::normal:
       return function_attributes::generator;

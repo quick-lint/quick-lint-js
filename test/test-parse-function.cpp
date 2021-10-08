@@ -1129,6 +1129,30 @@ TEST(test_parse, generator_function_with_misplaced_star) {
             offsets_matcher(&code, strlen(u8"let x = *async function "), u8"f"),
             star, offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
   }
+
+  {
+    padded_string code(u8"let x = *function* f(y) { yield y; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_generator_function_star_belongs_after_keyword_function, star,
+            offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
+  }
+
+  {
+    padded_string code(u8"let x = *async function* f(y) { yield y; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_generator_function_star_belongs_after_keyword_function, star,
+            offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
+  }
 }
 
 TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
