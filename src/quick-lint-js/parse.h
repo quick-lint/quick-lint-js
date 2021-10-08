@@ -974,7 +974,9 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor(this->buffering_visitor_memory());
-      std::vector<token> exported_bad_tokens;
+      vector<token> exported_bad_tokens(
+          "parse_and_visit_export exported_bad_tokens",
+          &this->temporary_memory_);
       this->parse_and_visit_named_exports_for_export(
           exports_visitor, /*out_exported_bad_tokens=*/exported_bad_tokens);
       if (this->peek().type == token_type::kw_from) {
@@ -2922,7 +2924,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_export(
-      Visitor &v, std::vector<token> &out_exported_bad_tokens) {
+      Visitor &v, vector<token> &out_exported_bad_tokens) {
     this->parse_and_visit_named_exports(
         v, /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
   }
@@ -2933,8 +2935,8 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports(
-      Visitor &v, std::vector<token> *out_exported_bad_tokens) {
+  void parse_and_visit_named_exports(Visitor &v,
+                                     vector<token> *out_exported_bad_tokens) {
     bool is_export = out_exported_bad_tokens != nullptr;
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
