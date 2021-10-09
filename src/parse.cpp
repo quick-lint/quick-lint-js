@@ -684,7 +684,10 @@ expression* parser::parse_async_expression_only(token async_token,
 
 expression* parser::parse_await_expression(token await_token, precedence prec) {
   bool is_identifier = [&]() -> bool {
-    if (this->in_async_function_) {
+    if (this->in_async_function_ ||
+        (this->in_top_level_ &&
+         this->options_.top_level_await_mode ==
+             parser_top_level_await_mode::await_operator)) {
       return false;
     } else {
       // await is a unary operator (in modules) or an identifier (in scripts).

@@ -92,6 +92,17 @@
   } while (false)
 
 namespace quick_lint_js {
+enum class parser_top_level_await_mode {
+  auto_detect = 0,
+  await_operator,
+};
+
+// TODO(#465): Accept parser options from quick-lint-js.config or CLI options.
+struct parser_options {
+  parser_top_level_await_mode top_level_await_mode =
+      parser_top_level_await_mode::auto_detect;
+};
+
 // A parser reads JavaScript source code and calls the member functions of a
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
@@ -105,7 +116,13 @@ class parser {
 
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
-      : lexer_(input, error_reporter), error_reporter_(error_reporter) {}
+      : parser(input, error_reporter, parser_options()) {}
+
+  explicit parser(padded_string_view input, error_reporter *error_reporter,
+                  parser_options options)
+      : lexer_(input, error_reporter),
+        error_reporter_(error_reporter),
+        options_(options) {}
 
   quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
 
@@ -3732,6 +3749,7 @@ class parser {
 
   quick_lint_js::lexer lexer_;
   error_reporter *error_reporter_;
+  parser_options options_;
   quick_lint_js::expression_arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
