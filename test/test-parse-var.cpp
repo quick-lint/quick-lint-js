@@ -1518,6 +1518,17 @@ TEST(test_parse, use_await_at_top_level_as_variable) {
                                       "visit_variable_assignment",  // await
                                       "visit_end_of_module"));
   }
+
+  // TODO(#464): Interpret / as divide, not a regular expression.
+  if ((false)) {
+    spy_visitor v =
+        parse_and_visit_module(u8"await / await / await / await"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // await
+                                      "visit_variable_use",  // await
+                                      "visit_variable_use",  // await
+                                      "visit_variable_use",  // await
+                                      "visit_end_of_module"));
+  }
 }
 
 TEST(
