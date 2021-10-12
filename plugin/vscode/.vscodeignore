@@ -1,7 +1,9 @@
 **/*
 
 !LICENSE
+!PERFORMANCE-TRACING.md
 !README.md
 !dist/*
 !extension.js
 !package.json
+!performance-writer.js
