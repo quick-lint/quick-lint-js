@@ -119,7 +119,13 @@
       uri: "https://github.com/quick-lint/quick-lint-js",
       title: "Code on GitHub",
     },
-    { uri: "/contact/", title: "Contact" },
+    {
+      uri: "/contact/",
+      title: "Contact",
+      subpages: [
+        { uri: "/crash-report/", title: "Crash report", hidden: true },
+      ],
+    },
   ];
 
   function pageLinkHTML(page) {
