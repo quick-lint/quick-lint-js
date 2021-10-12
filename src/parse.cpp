@@ -711,6 +711,21 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       // await / rhs;
       case token_type::slash:
       case token_type::slash_equal: {
+        parse_expression_cache_key cache_key = {
+            .begin = this->peek().begin,
+            .in_top_level = this->in_top_level_,
+            .in_async_function = this->in_async_function_,
+            .in_generator_function = this->in_generator_function_,
+            .in_loop_statement = this->in_loop_statement_,
+            .in_switch_statement = this->in_switch_statement_,
+            .in_class = this->in_class_,
+        };
+        auto cache_it =
+            this->await_slash_is_identifier_divide_cache_.find(cache_key);
+        if (cache_it != this->await_slash_is_identifier_divide_cache_.end()) {
+          return cache_it->second;
+        }
+
         buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
         error_reporter* old_error_reporter =
             std::exchange(this->error_reporter_, &temp_error_reporter);
@@ -732,13 +747,19 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->error_reporter_ = old_error_reporter;
 
+        bool is_identifier_result;
         if (this->in_top_level_) {
           bool parsed_slash_as_regexp = parsed_ok;
-          return !parsed_slash_as_regexp;
+          is_identifier_result = !parsed_slash_as_regexp;
         } else {
           bool parsed_slash_as_divide = parsed_ok;
-          return parsed_slash_as_divide;
+          is_identifier_result = parsed_slash_as_divide;
         }
+        auto [_cache_it, inserted] =
+            this->await_slash_is_identifier_divide_cache_.try_emplace(
+                cache_key, is_identifier_result);
+        QLJS_ASSERT(inserted);
+        return is_identifier_result;
       }
 
       case token_type::kw_of:
@@ -2274,6 +2295,26 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
+}
+
+bool parser::parse_expression_cache_key::operator==(
+    const parser::parse_expression_cache_key& rhs) const noexcept {
+  return this->begin == rhs.begin && this->in_top_level == rhs.in_top_level &&
+         this->in_async_function == rhs.in_async_function &&
+         this->in_generator_function == rhs.in_generator_function &&
+         this->in_loop_statement == rhs.in_loop_statement &&
+         this->in_switch_statement == rhs.in_switch_statement &&
+         this->in_class == rhs.in_class;
+}
+
+bool parser::parse_expression_cache_key::operator!=(
+    const parser::parse_expression_cache_key& rhs) const noexcept {
+  return !(*this == rhs);
+}
+
+std::size_t parser::parse_expression_cache_key::hash::operator()(
+    const parse_expression_cache_key& x) const noexcept {
+  return std::hash<const char8*>()(x.begin);
 }
 }
 

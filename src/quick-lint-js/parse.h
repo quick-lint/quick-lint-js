@@ -21,6 +21,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
+#include <unordered_map>
 #include <utility>
 
 #if QLJS_HAVE_SETJMP
@@ -3712,6 +3713,23 @@ class parser {
     int old_depth_;
   };
 
+  struct parse_expression_cache_key {
+    const char8 *begin;
+    bool in_top_level;
+    bool in_async_function;
+    bool in_generator_function;
+    bool in_loop_statement;
+    bool in_switch_statement;
+    bool in_class;
+
+    bool operator==(const parse_expression_cache_key &rhs) const noexcept;
+    bool operator!=(const parse_expression_cache_key &rhs) const noexcept;
+
+    struct hash {
+      std::size_t operator()(const parse_expression_cache_key &) const noexcept;
+    };
+  };
+
   quick_lint_js::lexer lexer_;
   error_reporter *error_reporter_;
   quick_lint_js::expression_arena expressions_;
@@ -3729,6 +3747,23 @@ class parser {
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
   bool in_class_ = false;
+
+  // Cache of whether 'await' is an identifier or an operator. This cache is
+  // used to avoid quadratic run-time in code like the following:
+  //
+  //   await / await / await / await / await
+  //
+  // (In `await/await`, `await` is an identifier. But in `await/await/`, the
+  // first `await` is an operator.)
+  //
+  // The value of each entry indicates the conclusion:
+  // * true means 'await' looks like an identifier, thus '/' is the division
+  //   operator.
+  // * false means 'await' looks like an operator, thus '/' begins a regular
+  //   expression literal.
+  std::unordered_map<parse_expression_cache_key, bool,
+                     parse_expression_cache_key::hash>
+      await_slash_is_identifier_divide_cache_;
 
 #if QLJS_HAVE_SETJMP
   bool have_fatal_parse_error_jmp_buf_ = false;
