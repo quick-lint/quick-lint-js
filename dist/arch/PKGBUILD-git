@@ -28,6 +28,7 @@ build() {
   cd quick-lint-js
   cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_WITH_INSTALL_RPATH=YES \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DQUICK_LINT_JS_INSTALL_LICENSES_DIR="share/licenses/${pkgname}" \
     -S . -B build
