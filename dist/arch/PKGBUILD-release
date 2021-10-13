@@ -12,7 +12,7 @@ arch=(aarch64 arm armv6h armv7h i686 pentium4 x86_64)
 url="https://quick-lint-js.com/"
 license=(Apache Boost GPL3)
 depends=(gcc-libs)
-makedepends=(cmake gcc ninja)
+makedepends=(cmake gcc ninja python)
 checkdepends=(icu)
 provides=()
 conflicts=(quick-lint-js)
@@ -21,6 +21,8 @@ sha512sums=(SKIP)
 
 build() {
   cd "${pkgname}-${pkgver}"
+  QLJS_COLLECT_COPYRIGHT_NO_WARNINGS=1
+  export QLJS_COLLECT_COPYRIGHT_NO_WARNINGS
   cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=YES \
