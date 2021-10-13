@@ -47,6 +47,8 @@ Beta release.
   memory and time.
 * Various crashes on invalid code have been fixed.
 * LSP, VS Code: Some memory leaks have been fixed.
+* Arch Linux: building should no longer fail with "The install of the
+  quick-lint-js target requires changing an RPATH from the build tree".
 
 ## 0.4.0 (2021-09-09)
 
