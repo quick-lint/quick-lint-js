@@ -55,8 +55,7 @@ Follow the following steps to release a new version of quick-lint-js:
 12. Update Arch Linux user repositories (AUR):
     1. Clone ssh://aur@aur.archlinux.org/quick-lint-js with Git.
     2. Update README to point to the tag's commit.
-    3. On an Arch Linux machine, run `dist/arch/update-aur.sh
-       /path/to/quick-lint-js-aur-clone`.
+    3. Run `dist/arch/update-aur.sh --docker /path/to/quick-lint-js-aur-clone`.
     4. Commit all files with message "Update quick-lint-js to version
        VERSION_NUMBER".
     5. On an Arch Linux machine, cd into the quick-lint-js AUR clone and run
