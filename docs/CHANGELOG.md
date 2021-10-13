@@ -16,12 +16,17 @@ Beta release.
 * `quick-lint-js.config` now supports the [**literally-anything** global
   group][config-global-groups]. Use this option to disable all
   use-of-undeclared-variable warnings.
+* If quick-lint-js crashes, it will link to a page to [report
+  crashes](https://quick-lint-js.com/crash-report/).
 * VS Code: The plugin now works on Windows on ARM (64-bit).
 * VS Code: The plugin now works on Linux on ARM (32-bit and 64-bit).
 * The CLI and LSP server now compile on FreeBSD (amd64). However, we don't
   provide FreeBSD pre-built executables.
 * Neovim: nvim-lspconfig is now supported by quick-lint-js' plugin (implemented
   by [tiagovla][]).
+* VS Code: Contributors can now enable [performance
+  tracing](https://github.com/quick-lint/quick-lint-js/blob/1e7947ba71711479e04fe9100e2d09d202015926/plugin/vscode/PERFORMANCE-TRACING.md)
+  (implemented by [Jimmy Qiu][]).
 
 ### Fixed
 
@@ -38,7 +43,10 @@ Beta release.
   component contains a symbolic link (Linux and macOS).
 * quick-lint-js no longer warns about variables named `__dirname`,
   `__filename`, `exports`, `module`, or `require` by default.
+* Parsing certain code patterns containing `await/` no longer takes excessive
+  memory and time.
 * Various crashes on invalid code have been fixed.
+* LSP, VS Code: Some memory leaks have been fixed.
 
 ## 0.4.0 (2021-09-09)
 
