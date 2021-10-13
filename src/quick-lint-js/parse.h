@@ -3539,6 +3539,7 @@ class parser {
     case expression_kind::conditional_assignment:
     case expression_kind::dot:
     case expression_kind::function:
+    case expression_kind::import:
     case expression_kind::index:
     case expression_kind::named_function:
     case expression_kind::new_target:
@@ -3579,10 +3580,6 @@ class parser {
       this->error_reporter_->report(error_unexpected_literal_in_parameter_list{
           .literal = ast->span(),
       });
-      break;
-
-    case expression_kind::import:
-      QLJS_UNIMPLEMENTED();
       break;
     }
   }

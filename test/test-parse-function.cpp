@@ -881,6 +881,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
            u8"(x -= y)"_sv,
            u8"(super)"_sv,
            u8"([super])"_sv,
+           u8"([import])"_sv,
 
            // TODO(strager): We should report
            // error_unexpected_arrow_after_literal for these:
