@@ -12,13 +12,14 @@ if [ "${#}" -ne 1 ]; then
 fi
 
 qljsaur="${1}"
-here="$(dirname "${0}")"
-
-cp "${here}/PKGBUILD-release" "${qljsaur}/PKGBUILD"
-updpkgsums "${qljsaur}/PKGBUILD"
-makepkg --printsrcinfo "${qljsaur}/PKGBUILD" >"${qljsaur}/.SRCINFO"
+here="$(cd "$(dirname "${0}")" && pwd)"
 
 cd "${qljsaur}"
+
+cp "${here}/PKGBUILD-release" PKGBUILD
+updpkgsums PKGBUILD
+makepkg --printsrcinfo PKGBUILD >.SRCINFO
+
 git add PKGBUILD .SRCINFO
 printf '\nChanges staged. Please commit and push.\n' >&2
 
