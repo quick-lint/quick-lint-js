@@ -3,9 +3,10 @@
 
 FROM archlinux:base
 
-RUN pacman --sync --refresh --noconfirm binutils pacman-contrib
+RUN pacman --sync --refresh --noconfirm binutils pacman-contrib sudo
 
-RUN useradd --create-home --shell /bin/sh qljs-builder
+RUN useradd --create-home --shell /bin/sh qljs-builder && \
+    printf 'qljs-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/qljs-builder
 USER qljs-builder
 
 # quick-lint-js finds bugs in JavaScript programs.

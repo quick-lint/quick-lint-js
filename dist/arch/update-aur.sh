@@ -9,17 +9,19 @@ set -u
 here="$(cd "$(dirname "${0}")" && pwd)"
 
 print_usage() {
-  printf 'usage: %s [--docker] /path/to/quick-lint-js-aur\n' "${0}"
+  printf 'usage: %s [--docker] [--test] /path/to/quick-lint-js-aur\n' "${0}"
 }
 
 docker=0
+test=0
 qljsaur=
 
-docker_image=ghcr.io/quick-lint/quick-lint-js-dist-arch:v1
+docker_image=ghcr.io/quick-lint/quick-lint-js-dist-arch:v2
 
 while [ "${#}" -ne 0 ]; do
   case "${1}" in
     --docker) docker=1 ;;
+    --test) test=1 ;;
     -*)
       printf 'error: invalid option: %s\n' "${1}"
       print_usage >&2
@@ -42,8 +44,14 @@ script="
   updpkgsums PKGBUILD
   makepkg --printsrcinfo PKGBUILD >.SRCINFO
 "
+if [ "${test}" -eq 1 ]; then
+  script="${script}
+  makepkg --install --force --syncdeps --noconfirm
+"
+fi
+
 if [ "${docker}" -eq 1 ]; then
-  docker run -t --mount type=bind,source="${qljsaur}",destination=/qljs-aur "${docker_image}" sh -c "
+  docker run --interactive --tty --mount type=bind,source="${qljsaur}",destination=/qljs-aur "${docker_image}" sh -c "
     set -e
     set -u
     cd /qljs-aur
