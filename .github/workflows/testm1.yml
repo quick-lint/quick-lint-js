@@ -16,7 +16,7 @@ jobs:
         toolchain:
           - {runs_on: stracle-debian-aarch64, name: "GCC 8", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug"}
     runs-on: ${{ matrix.toolchain.runs_on }}
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1-arm
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1
     env:
       CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
