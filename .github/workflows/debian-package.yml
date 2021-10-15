@@ -16,7 +16,7 @@ jobs:
       matrix:
         os:
           - {runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", platform: x86_64}
-          - {runs_on: stracle-debian-aarch64, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1", platform: aarch64}
+          - {runs_on: stracle-debian-aarch64, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v2", platform: aarch64}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
     steps:
