@@ -643,6 +643,34 @@ TEST(test_parse, import_without_from_keyword) {
   }
 }
 
+TEST(test_parse, import_as_invalid_token) {
+  {
+    padded_string code(u8"import {myExport as 'string'} from 'module';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_variable_name_for_import_as, unexpected_token,
+            offsets_matcher(&code, strlen(u8"import {myExport as "),
+                            u8"'string'"))));
+  }
+
+  {
+    padded_string code(u8"import {'myExport' as 'string'} from 'module';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_variable_name_for_import_as, unexpected_token,
+            offsets_matcher(&code, strlen(u8"import {'myExport' as "),
+                            u8"'string'"))));
+  }
+}
+
 TEST(test_parse, export_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);

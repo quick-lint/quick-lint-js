@@ -490,6 +490,12 @@
             unexpected_token))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_expected_variable_name_for_import_as, "E175",                      \
+      { source_code_span unexpected_token; },                                  \
+      ERROR(QLJS_TRANSLATABLE("expected variable name for 'import'-'as'"),     \
+            unexpected_token))                                                 \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_exporting_requires_default, "E067",                                \
       { source_code_span expression; },                                        \
       ERROR(QLJS_TRANSLATABLE("exporting requires 'default'"), expression))    \

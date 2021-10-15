@@ -2971,7 +2971,8 @@ class parser {
         identifier left_name = this->peek().identifier_name();
         token right_token = this->peek();
         this->skip();
-        if (this->peek().type == token_type::kw_as) {
+        bool has_as = this->peek().type == token_type::kw_as;
+        if (has_as) {
           this->skip();
           switch (this->peek().type) {
           case token_type::string:
@@ -3002,6 +3003,8 @@ class parser {
               this->error_reporter_->report(
                   error_cannot_import_let{.import_name = right_token.span()});
             }
+            v.visit_variable_declaration(right_token.identifier_name(),
+                                         variable_kind::_import);
             break;
 
           // import {var} from 'other';  // Invalid.
@@ -3010,20 +3013,34 @@ class parser {
                 error_cannot_import_variable_named_keyword{
                     .import_name = right_token.identifier_name(),
                 });
+            // FIXME(strager): Declaring a variable with a keyword name is
+            // sketchy. Delete this?
+            v.visit_variable_declaration(right_token.identifier_name(),
+                                         variable_kind::_import);
             break;
 
           // import {\u{76}ar} from 'other';  // Invalid.
           case token_type::reserved_keyword_with_escape_sequence:
             right_token.report_errors_for_escape_sequences_in_keyword(
                 this->error_reporter_);
+            // FIXME(strager): Declaring a variable with a keyword name is
+            // sketchy. Delete this?
+            v.visit_variable_declaration(right_token.identifier_name(),
+                                         variable_kind::_import);
+            break;
+
+          case token_type::string:
+            QLJS_ASSERT(has_as);
+            this->error_reporter_->report(
+                error_expected_variable_name_for_import_as{
+                    .unexpected_token = right_token.span(),
+                });
             break;
 
           default:
             QLJS_UNIMPLEMENTED();
             break;
           }
-          v.visit_variable_declaration(right_token.identifier_name(),
-                                       variable_kind::_import);
         }
         break;
       }
@@ -3076,6 +3093,14 @@ class parser {
                 this->error_reporter_);
             v.visit_variable_declaration(this->peek().identifier_name(),
                                          variable_kind::_import);
+            this->skip();
+            break;
+
+          case token_type::string:
+            this->error_reporter_->report(
+                error_expected_variable_name_for_import_as{
+                    .unexpected_token = this->peek().span(),
+                });
             this->skip();
             break;
 
