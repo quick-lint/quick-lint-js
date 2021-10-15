@@ -8,11 +8,17 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  # TODO(strager): Also build ARM and AArch64 .deb-s.
+  # TODO(strager): Also build ARM (32-bit) .deb-s.
   build-deb:
-    name: build .deb
-    runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    name: build .deb (${{ matrix.os.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", platform: x86_64}
+          - {runs_on: stracle-debian-aarch64, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1", platform: aarch64}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ matrix.os.docker_container }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -24,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           if-no-files-found: error
-          name: quick-lint-js-deb-${{ github.sha }}
+          name: quick-lint-js-deb-${{ matrix.os.platform }}-${{ github.sha }}
           path: |
             dist/debian/quick-lint-js-dbgsym_*
             dist/debian/quick-lint-js-vim_*
@@ -39,22 +45,22 @@ jobs:
             dist/debian/quick-lint-js-vim_*
             dist/debian/quick-lint-js_*
           private-key: ${{ secrets.artifacts_key }}
-          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/debian/
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/debian/${{ matrix.os.platform }}
           user: ${{ secrets.artifacts_user }}
 
   test-deb:
-    name: test on ${{ matrix.os.name }}
+    name: test on ${{ matrix.os.name }} (${{ matrix.os.platform }})
     needs: build-deb
     strategy:
       fail-fast: false
       matrix:
         os:
-          - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch"}
-          - {runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
-          - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
+          - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", platform: x86_64}
+          - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch", platform: x86_64}
+          - {runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber", platform: x86_64}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", platform: x86_64}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", platform: x86_64}
+          - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", platform: x86_64}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
 
@@ -74,7 +80,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: quick-lint-js-deb-${{ github.sha }}
+          name: quick-lint-js-deb-${{ matrix.os.platform }}-${{ github.sha }}
 
       - name: install quick-lint-js
         run: dpkg -i quick-lint-js_*.deb

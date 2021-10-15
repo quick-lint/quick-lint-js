@@ -97,6 +97,7 @@ jobs:
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: stracle-debian-aarch64, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal (AArch64)", archive_name: "linux-aarch64", exe_file: "bin/quick-lint-js"}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
 
