@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 RUN \
     apt-get update && \
@@ -8,7 +8,7 @@ RUN \
       gnupg \
       software-properties-common && \
     curl --insecure 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - && \
-    apt-add-repository 'deb http://deb.nodesource.com/node_14.x xenial main' && \
+    apt-add-repository 'deb http://deb.nodesource.com/node_14.x focal main' && \
     add-apt-repository -y ppa:neovim-ppa/unstable && \
     sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list /etc/apt/sources.list.d/*.list >/etc/apt/sources.list.d/quick-lint-js-sources.list
 
@@ -23,8 +23,8 @@ RUN \
       dpkg-dev \
       emacs-nox \
       fakeroot \
-      g++-8 \
-      gcc-8 \
+      g++-9 \
+      gcc-9 \
       git \
       libasound2 \
       libatk-bridge2.0-0 \
@@ -49,8 +49,8 @@ RUN \
       neovim \
       ninja-build \
       nodejs \
-      python3.7 \
-      python3.7-venv \
+      python3.8 \
+      python3.8-venv \
       sudo \
       tar \
       unzip \
