@@ -27,7 +27,7 @@ template <class T>
 void delete_object(boost::container::pmr::polymorphic_allocator<T>& allocator,
                    T* object) {
   allocator.destroy(object);
-  allocator.deallocate(object, sizeof(T));
+  allocator.deallocate(object, 1);
 }
 
 template <class T>

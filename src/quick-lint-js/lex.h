@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_LEX_H
 
 #include <boost/container/pmr/memory_resource.hpp>
+#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/buffering-error-reporter.h>
@@ -235,6 +236,7 @@ class lexer {
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
+  boost::container::pmr::unsynchronized_pool_resource temporary_allocator_;
 };
 
 struct lexer_transaction {

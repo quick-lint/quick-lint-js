@@ -965,7 +965,7 @@ lexer_transaction lexer::begin_transaction() {
       /*old_input=*/this->input_,
       /*error_reporter_pointer=*/
       &this->error_reporter_,
-      /*memory=*/this->allocator_.memory_resource());
+      /*memory=*/&this->temporary_allocator_);
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
