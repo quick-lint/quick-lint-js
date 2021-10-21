@@ -2,15 +2,15 @@
 // See end of file for extended copyright information.
 
 #include <boost/container/pmr/memory_resource.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <deque>
 #include <memory>
 #include <quick-lint-js/allocator.h>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/vector.h>
 #include <type_traits>
-#include <vector>
 
 namespace quick_lint_js {
 struct buffering_error_reporter::impl {
@@ -34,7 +34,8 @@ struct buffering_error_reporter::impl {
   };
 
   boost::container::pmr::memory_resource *memory_;
-  vector<any_error> errors_{"buffering_error_reporter", this->memory_};
+  std::deque<any_error, boost::container::pmr::polymorphic_allocator<any_error>>
+      errors_{this->memory_};
 };
 
 void buffering_error_reporter::impl_deleter::operator()(impl *i) noexcept {
