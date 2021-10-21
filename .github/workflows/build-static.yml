@@ -52,8 +52,9 @@ jobs:
       - name: bundle build into .tar.gz
         if: ${{ matrix.toolchain.archive_extension == '.tar.gz' }}
         run: |
-          mv usr /tmp/quick-lint-js
-          tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C /tmp/ quick-lint-js
+          mkdir temp
+          mv usr temp/quick-lint-js
+          tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C temp/ quick-lint-js
       - name: bundle build into .zip
         if: ${{ matrix.toolchain.archive_extension == '.zip' }}
         uses: quick-lint/action-zip@v1
