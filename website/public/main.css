@@ -284,6 +284,18 @@ code.shell-session kbd::before {
   content: "$ ";
 }
 
+/* Make keystrokes like "CTRL-S" and "RET" distinct from regular key presses. */
+kbd.keystroke {
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  padding: 0 0.25em;
+}
+@media (prefers-color-scheme: dark) {
+  kbd.keystroke {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 @media only screen and (min-width: 34em) and (max-width: 40em) {
   .os-column-table ul {
     margin-left: 0;

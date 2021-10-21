@@ -101,7 +101,7 @@ Usage example in your [Emacs initialization] file.
 
 ### Flymake
 
-Flymake is bultin on Emacs but it's supported only on major version 26 or
+Flymake is builtin on Emacs but it's supported only on major version 26 or
 higher.
 
 After loading flymake-quicklintjs, you can use `flymake-quicklintjs` function as
