@@ -83,6 +83,10 @@ jobs:
           path: ./plugin/vscode/dist/
       - uses: actions/download-artifact@v2
         with:
+          name: vscode-dist-linux-arm
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
           name: vscode-dist-linux-arm64
           path: ./plugin/vscode/dist/
       - uses: actions/download-artifact@v2
