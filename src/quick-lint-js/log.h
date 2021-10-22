@@ -4,24 +4,17 @@
 #ifndef QUICK_LINT_JS_LOG_H
 #define QUICK_LINT_JS_LOG_H
 
-// Define this macro to a non-empty string to log to the specified file:
-// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
+// This file is separate from logger.h to reduce #include bloat.
 
-#if defined(QLJS_DEBUG_LOGGING_FILE)
+// To enable logging, change the QLJS_DEBUG_LOGGING_FILE macro in logger.cpp.
+
 #define QLJS_DEBUG_LOG(...)                          \
   do {                                               \
     ::quick_lint_js::debug_log_to_file(__VA_ARGS__); \
   } while (false)
-#else
-#define QLJS_DEBUG_LOG(...) \
-  do {                      \
-  } while (false)
-#endif
 
 namespace quick_lint_js {
-#if defined(QLJS_DEBUG_LOGGING_FILE)
 void debug_log_to_file(const char* format, ...);
-#endif
 }
 
 #endif

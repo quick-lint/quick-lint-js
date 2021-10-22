@@ -1,18 +1,51 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#ifndef QUICK_LINT_JS_LOGGER_H
+#define QUICK_LINT_JS_LOGGER_H
+
 #include <cstdarg>
-#include <quick-lint-js/log.h>
-#include <quick-lint-js/logger.h>
+#include <cstdio>
+#include <memory>
 
 namespace quick_lint_js {
-void debug_log_to_file(const char* format, ...) {
-  std::va_list args;
-  va_start(args, format);
-  get_global_logger()->log_v(format, args);
-  va_end(args);
+class logger {
+ public:
+  virtual ~logger();
+
+  // Must be thread-safe.
+  virtual void log_v(const char* format, std::va_list) = 0;
+};
+
+class null_logger : public logger {
+ public:
+  static null_logger* instance() noexcept;
+
+  void log_v(const char* format, std::va_list) override;
+};
+
+class file_logger : public logger {
+ public:
+  explicit file_logger(const char* path);
+
+  void log_v(const char* format, std::va_list) override;
+
+ private:
+  struct file_deleter {
+    void operator()(FILE*);
+  };
+
+  std::unique_ptr<FILE, file_deleter> file_;
+};
+
+// Thread-safe.
+void set_global_logger(logger*);
+
+// Thread-safe.
+logger* get_global_logger();
 }
-}
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

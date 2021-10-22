@@ -72,6 +72,7 @@ quick_lint_js_add_library(
   locale.cpp
   location.cpp
   log.cpp
+  logger.cpp
   lsp-error-reporter.cpp
   lsp-location.cpp
   lsp-message-parser.cpp
@@ -128,6 +129,7 @@ quick_lint_js_add_library(
   quick-lint-js/locale.h
   quick-lint-js/location.h
   quick-lint-js/log.h
+  quick-lint-js/logger.h
   quick-lint-js/lsp-endpoint.h
   quick-lint-js/lsp-error-reporter.h
   quick-lint-js/lsp-location.h
