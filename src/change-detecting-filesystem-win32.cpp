@@ -15,6 +15,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -23,17 +24,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#if NDEBUG
-#define QLJS_LOG(...) \
-  do {                \
-  } while (false)
-#else
-#define QLJS_LOG(...)                    \
-  do {                                   \
-    ::std::fprintf(stderr, __VA_ARGS__); \
-  } while (false)
-#endif
 
 namespace quick_lint_js {
 namespace {
@@ -222,7 +212,7 @@ bool change_detecting_filesystem_win32::watch_directory(
       return true;
     }
 
-    QLJS_LOG(
+    QLJS_DEBUG_LOG(
         "note: Directory handle %#llx: %s: Directory identity changed\n",
         reinterpret_cast<unsigned long long>(old_dir->directory_handle.get()),
         directory.c_str());
@@ -292,8 +282,9 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
     // cancelling_watched_directories_. Treat the event as a successful
     // cancellation. This will close dir.directory_handle, releasing the held
     // oplock.
-    QLJS_LOG("note: Directory handle %#llx: Oplock broke for cancelled watch\n",
-             reinterpret_cast<unsigned long long>(dir->directory_handle.get()));
+    QLJS_DEBUG_LOG(
+        "note: Directory handle %#llx: Oplock broke for cancelled watch\n",
+        reinterpret_cast<unsigned long long>(dir->directory_handle.get()));
     this->handle_oplock_aborted_event(dir);
     return;
   }
@@ -305,9 +296,10 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
   // * A file in the directory is created, modified, or deleted.
   //
   // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_request_oplock
-  QLJS_LOG("note: Directory handle %#llx: %s: Oplock broke\n",
-           reinterpret_cast<unsigned long long>(dir->directory_handle.get()),
-           directory_it->first.c_str());
+  QLJS_DEBUG_LOG(
+      "note: Directory handle %#llx: %s: Oplock broke\n",
+      reinterpret_cast<unsigned long long>(dir->directory_handle.get()),
+      directory_it->first.c_str());
   QLJS_ASSERT(number_of_bytes_transferred == sizeof(dir->oplock_response));
   QLJS_ASSERT(dir->oplock_response.Flags &
               REQUEST_OPLOCK_OUTPUT_FLAG_ACK_REQUIRED);
