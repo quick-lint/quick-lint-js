@@ -30,6 +30,9 @@ struct vscode_module {
             module.Get("DiagnosticSeverity").As<::Napi::Object>())),
         window_namespace(
             ::Napi::Persistent(module.Get("window").As<::Napi::Object>())),
+        window_create_output_channel(
+            ::Napi::Persistent(this->window_namespace.Get("createOutputChannel")
+                                   .As<::Napi::Function>())),
         window_show_error_message(
             ::Napi::Persistent(this->window_namespace.Get("showErrorMessage")
                                    .As<::Napi::Function>())),
@@ -41,6 +44,9 @@ struct vscode_module {
                                    .As<::Napi::Function>())),
         workspace_namespace(
             ::Napi::Persistent(module.Get("workspace").As<::Napi::Object>())),
+        workspace_get_configuration(
+            ::Napi::Persistent(this->workspace_namespace.Get("getConfiguration")
+                                   .As<::Napi::Function>())),
         workspace_open_text_document(
             ::Napi::Persistent(this->workspace_namespace.Get("openTextDocument")
                                    .As<::Napi::Function>())) {}
@@ -155,6 +161,21 @@ struct vscode_module {
                  });
   }
 
+  // Calls window.createOutputChannel(name).
+  ::Napi::Object create_output_channel(::Napi::Env env, const char* name) {
+    return this->window_create_output_channel
+        .Call(this->window_namespace.Value(), {::Napi::String::New(env, name)})
+        .As<::Napi::Object>();
+  }
+
+  // Calls window.getConfiguration(section).
+  ::Napi::Object get_configuration(::Napi::Env env, const char* section) {
+    return this->workspace_get_configuration
+        .Call(this->workspace_namespace.Value(),
+              {::Napi::String::New(env, section)})
+        .As<::Napi::Object>();
+  }
+
   // vscode.Diagnostic
   ::Napi::FunctionReference diagnostic_class;
   // vscode.Position
@@ -176,6 +197,8 @@ struct vscode_module {
 
   // vscode.window
   ::Napi::ObjectReference window_namespace;
+  // vscode.window.createOutputChannel
+  ::Napi::FunctionReference window_create_output_channel;
   // vscode.window.showErrorMessage
   ::Napi::FunctionReference window_show_error_message;
   // vscode.window.showTextDocument
@@ -185,6 +208,8 @@ struct vscode_module {
 
   // vscode.workspace
   ::Napi::ObjectReference workspace_namespace;
+  // vscode.workspace.getConfiguration
+  ::Napi::FunctionReference workspace_get_configuration;
   // vscode.workspace.openTextDocument
   ::Napi::FunctionReference workspace_open_text_document;
 };

@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <memory>
+#include <mutex>
 #include <napi.h>
 #include <optional>
 #include <quick-lint-js/basic-configuration-filesystem.h>
@@ -18,6 +19,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/log.h>
+#include <quick-lint-js/logger.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/padded-string.h>
@@ -47,6 +49,7 @@ class addon_state {
   static std::unique_ptr<addon_state> create(::Napi::Env env);
 
   ::Napi::FunctionReference qljs_document_class;
+  ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
 };
 
@@ -322,6 +325,91 @@ class thread_safe_js_function {
   ::Napi::TypedThreadSafeFunction<void, void, call_func> function_;
 };
 
+class qljs_logger : public logger, public ::Napi::ObjectWrap<qljs_logger> {
+ public:
+  static ::Napi::Function init(::Napi::Env env) {
+    return DefineClass(env, "QLJSLogger", {});
+  }
+
+  explicit qljs_logger(const ::Napi::CallbackInfo& info)
+      : ::Napi::ObjectWrap<qljs_logger>(info),
+        output_channel_ref_(::Napi::Persistent(info[0].As<::Napi::Object>())),
+        flush_on_js_thread_(
+            /*env=*/info.Env(),
+            /*resourceName=*/"quick-lint-js-log",
+            /*object=*/this->Value()) {}
+
+  void log(std::string_view message) override {
+    {
+      std::lock_guard lock(this->mutex_);
+      this->pending_log_messages_.emplace_back(message);
+    }
+
+    this->begin_flush_async();
+  }
+
+  void flush(::Napi::Env env) {
+    std::vector<std::string> log_messages;
+
+    {
+      std::lock_guard lock(this->mutex_);
+      std::swap(log_messages, this->pending_log_messages_);
+    }
+
+    for (const std::string& message : log_messages) {
+      this->output_channel_ref_.Value()
+          .Get("append")
+          .As<::Napi::Function>()
+          .Call(this->output_channel_ref_.Value(),
+                {::Napi::String::New(env, message)});
+    }
+  }
+
+ private:
+  void begin_flush_async() { this->flush_on_js_thread_.BlockingCall(); }
+
+  static void flush_from_thread(::Napi::Env env, ::Napi::Object logger_object) {
+    qljs_logger* logger = qljs_logger::Unwrap(logger_object);
+    logger->flush(env);
+  }
+
+  std::mutex mutex_;
+  std::vector<std::string> pending_log_messages_;
+
+  ::Napi::Reference<::Napi::Object> output_channel_ref_;
+  thread_safe_js_function<flush_from_thread> flush_on_js_thread_;
+};
+
+class extension_configuration {
+ public:
+  enum class logging_value {
+    off,  // default
+    verbose,
+  };
+
+  explicit extension_configuration(::Napi::Env env, vscode_module& vscode)
+      : config_ref_(::Napi::Persistent(
+            vscode.get_configuration(env, "quick-lint-js"))) {}
+
+  logging_value get_logging(::Napi::Env env) {
+    ::Napi::Value value =
+        this->config_ref_.Get("get").As<::Napi::Function>().Call(
+            this->config_ref_.Value(), {::Napi::String::New(env, "logging")});
+    if (!value.IsString()) {
+      return logging_value::off;
+    }
+    std::string string_value = value.As<::Napi::String>().Utf8Value();
+    if (string_value == "verbose") {
+      return logging_value::verbose;
+    } else {
+      return logging_value::off;
+    }
+  }
+
+ private:
+  ::Napi::ObjectReference config_ref_;
+};
+
 // NOTE[workspace-cleanup]:
 //
 // If a qljs_workspace is deleted, its
@@ -359,13 +447,31 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         vscode_diagnostic_collection_ref_(
             ::Napi::Persistent(info[1].As<::Napi::Object>())) {
     QLJS_DEBUG_LOG("Workspace %p: created\n", this);
+    this->init_logging(info.Env());
     this->fs_change_detection_thread_ = std::thread(
         [this]() -> void { this->run_fs_change_detection_thread(); });
+  }
+
+  void init_logging(::Napi::Env env) {
+    // TODO(strager): Detect config changes.
+    extension_configuration config(env, this->vscode_);
+    if (config.get_logging(env) !=
+        extension_configuration::logging_value::off) {
+      addon_state* state = env.GetInstanceData<addon_state>();
+      this->logger_ = ::Napi::Persistent(state->qljs_logger_class.New(
+          {this->vscode_.create_output_channel(env, "quick-lint-js")}));
+      enable_logger(qljs_logger::Unwrap(this->logger_.Value()));
+      QLJS_DEBUG_LOG("Configured VS Code logger\n");
+    }
   }
 
   ~qljs_workspace() {
     // See NOTE[workspace-cleanup].
     this->dispose();
+
+    if (!this->logger_.IsEmpty()) {
+      disable_logger(qljs_logger::Unwrap(this->logger_.Value()));
+    }
   }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
@@ -784,6 +890,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   // Mapping from vscode.Document to qljs.QLJSDocument (qljs_document).
   js_map qljs_documents_;
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
+
+  ::Napi::ObjectReference logger_;  // An optional qljs_logger.
 };
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {
@@ -827,6 +935,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
   return std::unique_ptr<addon_state>(new addon_state{
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
+      .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
       .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
   });
 }

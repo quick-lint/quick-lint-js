@@ -31,6 +31,9 @@ class file_logger : public logger {
 
   std::unique_ptr<FILE, file_deleter> file_;
 };
+
+void enable_logger(logger*);
+void disable_logger(logger*);
 }
 
 #endif

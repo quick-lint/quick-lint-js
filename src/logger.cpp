@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <array>
 #include <cstdarg>
 #include <cstddef>
@@ -26,6 +27,9 @@
 
 QLJS_WARNING_IGNORE_CLANG("-Wformat-nonliteral")
 QLJS_WARNING_IGNORE_GCC("-Wformat-security")
+
+// TODO(strager): Add printf-like annotations.
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 
 // Define this macro to a non-empty string to log to the specified file:
 #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
@@ -77,6 +81,24 @@ void file_logger::file_deleter::operator()(FILE* file) {
     std::fclose(file);
     // TODO(strager): Report fclose failures.
   }
+}
+
+void enable_logger(logger* l) {
+  std::lock_guard lock(global_loggers_mutex);
+  initialize_global_loggers_if_needed(lock);
+
+  QLJS_ASSERT(std::find(global_loggers.begin(), global_loggers.end(), l) ==
+              global_loggers.end());
+  global_loggers.push_back(l);
+}
+
+void disable_logger(logger* l) {
+  std::lock_guard lock(global_loggers_mutex);
+  initialize_global_loggers_if_needed(lock);
+
+  auto it = std::find(global_loggers.begin(), global_loggers.end(), l);
+  QLJS_ASSERT(it != global_loggers.end());
+  global_loggers.erase(it);
 }
 
 namespace {

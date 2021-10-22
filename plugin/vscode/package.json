@@ -22,7 +22,18 @@
     "configuration": {
       "type": "object",
       "title": "quick-lint-js",
-      "properties": {}
+      "properties": {
+        "quick-lint-js.logging": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log messages useful for quick-lint-js contributors."
+        }
+      }
     },
     "languages": [
       {
