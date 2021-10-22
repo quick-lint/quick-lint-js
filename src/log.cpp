@@ -6,7 +6,7 @@
 #include <quick-lint-js/logger.h>
 
 namespace quick_lint_js {
-void debug_log_to_file(const char* format, ...) {
+void debug_log(const char* format, ...) {
   std::va_list args;
   va_start(args, format);
   get_global_logger()->log_v(format, args);

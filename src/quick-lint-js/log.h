@@ -8,13 +8,13 @@
 
 // To enable logging, change the QLJS_DEBUG_LOGGING_FILE macro in logger.cpp.
 
-#define QLJS_DEBUG_LOG(...)                          \
-  do {                                               \
-    ::quick_lint_js::debug_log_to_file(__VA_ARGS__); \
+#define QLJS_DEBUG_LOG(...)                  \
+  do {                                       \
+    ::quick_lint_js::debug_log(__VA_ARGS__); \
   } while (false)
 
 namespace quick_lint_js {
-void debug_log_to_file(const char* format, ...);
+void debug_log(const char* format, ...);
 }
 
 #endif
