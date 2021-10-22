@@ -576,7 +576,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       QLJS_DEBUG_LOG(
           "Workspace %p: check_for_config_file_changes_from_thread: workspace "
           "object has been disposed\n",
-          this);
+          workspace);
       return;
     }
     workspace->check_for_config_file_changes(env);

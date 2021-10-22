@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cstdarg>
 #include <cstdio>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/log.h>
@@ -14,10 +15,12 @@
 #include <unistd.h>
 #endif
 
+QLJS_WARNING_IGNORE_CLANG("-Wformat-nonliteral")
+QLJS_WARNING_IGNORE_GCC("-Wformat-security")
+
 namespace quick_lint_js {
 #if defined(QLJS_DEBUG_LOGGING_FILE)
-template <class... Args>
-void debug_log_to_file(const char* format, Args&&... args) {
+void debug_log_to_file(const char* format, ...) {
   static FILE* file = std::fopen(QLJS_DEBUG_LOGGING_FILE, "a");
   if (file) {
 #if QLJS_HAVE_GETPID
@@ -27,11 +30,12 @@ void debug_log_to_file(const char* format, Args&&... args) {
     std::fprintf(file, "[%d] ", ::getpid());
 #endif
 #endif
-    QLJS_WARNING_PUSH
-    QLJS_WARNING_IGNORE_CLANG("-Wformat-security")
-    QLJS_WARNING_IGNORE_GCC("-Wformat-security")
-    std::fprintf(file, format, args...);
-    QLJS_WARNING_POP
+    {
+      std::va_list args;
+      va_start(args, format);
+      std::vfprintf(file, format, args);
+      va_end(args);
+    }
     std::fflush(file);
   }
 }

@@ -20,8 +20,7 @@
 
 namespace quick_lint_js {
 #if defined(QLJS_DEBUG_LOGGING_FILE)
-template <class... Args>
-void debug_log_to_file(const char* format, Args&&...);
+void debug_log_to_file(const char* format, ...);
 #endif
 }
 
