@@ -7,28 +7,22 @@
 #include <cstdarg>
 #include <cstdio>
 #include <memory>
+#include <string_view>
 
 namespace quick_lint_js {
 class logger {
  public:
   virtual ~logger();
 
-  // Must be thread-safe.
-  virtual void log_v(const char* format, std::va_list) = 0;
-};
-
-class null_logger : public logger {
- public:
-  static null_logger* instance() noexcept;
-
-  void log_v(const char* format, std::va_list) override;
+  // Need not be thread-safe.
+  virtual void log(std::string_view) = 0;
 };
 
 class file_logger : public logger {
  public:
   explicit file_logger(const char* path);
 
-  void log_v(const char* format, std::va_list) override;
+  void log(std::string_view message) override;
 
  private:
   struct file_deleter {
@@ -37,12 +31,6 @@ class file_logger : public logger {
 
   std::unique_ptr<FILE, file_deleter> file_;
 };
-
-// Thread-safe.
-void set_global_logger(logger*);
-
-// Thread-safe.
-logger* get_global_logger();
 }
 
 #endif

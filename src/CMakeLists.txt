@@ -71,7 +71,6 @@ quick_lint_js_add_library(
   lint.cpp
   locale.cpp
   location.cpp
-  log.cpp
   logger.cpp
   lsp-error-reporter.cpp
   lsp-location.cpp

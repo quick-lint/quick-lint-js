@@ -1,14 +1,20 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <atomic>
+#include <array>
 #include <cstdarg>
+#include <cstddef>
 #include <cstdio>
 #include <memory>
+#include <mutex>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/logger.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/warning.h>
+#include <string.h>
+#include <vector>
 
 #if QLJS_HAVE_GETTID
 #include <sys/types.h>
@@ -22,38 +28,33 @@ QLJS_WARNING_IGNORE_CLANG("-Wformat-nonliteral")
 QLJS_WARNING_IGNORE_GCC("-Wformat-security")
 
 // Define this macro to a non-empty string to log to the specified file:
-// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
+#define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
 
 namespace quick_lint_js {
 namespace {
-std::atomic<logger*> global_logger;
+std::mutex global_loggers_mutex;
+std::vector<logger*> global_loggers;
+bool global_loggers_initialized = false;
 
-logger* get_default_global_logger() {
+void initialize_global_loggers_if_needed(std::lock_guard<std::mutex>&) {
+  if (global_loggers_initialized) {
+    return;
+  }
 #if defined(QLJS_DEBUG_LOGGING_FILE)
   static file_logger default_logger(QLJS_DEBUG_LOGGING_FILE);
-  return &default_logger;
-#else
-  return null_logger::instance();
+  global_loggers.push_back(&default_logger);
 #endif
+  global_loggers_initialized = true;
 }
 }
 
 logger::~logger() = default;
 
-null_logger* null_logger::instance() noexcept {
-  static null_logger logger;
-  return &logger;
-}
-
-void null_logger::log_v(const char*, std::va_list) {
-  // Do nothing.
-}
-
 file_logger::file_logger(const char* path) : file_(std::fopen(path, "a")) {
   // TODO(strager): Report fopen failures.
 }
 
-void file_logger::log_v(const char* format, std::va_list va) {
+void file_logger::log(std::string_view message) {
   FILE* file = this->file_.get();
   if (!file) {
     // File didn't open. Don't try to log anything.
@@ -67,7 +68,7 @@ void file_logger::log_v(const char* format, std::va_list va) {
   std::fprintf(file, "[%d] ", ::getpid());
 #endif
 #endif
-  std::vfprintf(file, format, va);
+  std::fprintf(file, "%.*s", narrow_cast<int>(message.size()), message.data());
   std::fflush(file);
 }
 
@@ -78,22 +79,33 @@ void file_logger::file_deleter::operator()(FILE* file) {
   }
 }
 
-void set_global_logger(logger* new_global_logger) {
-  global_logger.store(new_global_logger);
+namespace {
+void debug_log_v(const char* format, std::va_list args) {
+  std::lock_guard lock(global_loggers_mutex);
+  initialize_global_loggers_if_needed(lock);
+  if (global_loggers.empty()) {
+    return;
+  }
+
+  std::array<char, 1024> message;
+  int full_message_length =
+      std::vsnprintf(message.data(), message.size(), format, args);
+  QLJS_ALWAYS_ASSERT(full_message_length >= 0);
+  std::size_t message_length = std::min(
+      narrow_cast<std::size_t>(full_message_length), message.size() - 1);
+  std::string_view message_view(message.data(), message_length);
+
+  for (logger* l : global_loggers) {
+    l->log(message_view);
+  }
+}
 }
 
-logger* get_global_logger() {
-  logger* l = global_logger.load();
-  if (!l) {
-    logger* default_logger = get_default_global_logger();
-    if (global_logger.compare_exchange_strong(l, default_logger)) {
-      l = default_logger;
-    } else {
-      // Another thread set the global logger. Use its version.
-      QLJS_ASSERT(l);
-    }
-  }
-  return l;
+void debug_log(const char* format, ...) {
+  std::va_list args;
+  va_start(args, format);
+  debug_log_v(format, args);
+  va_end(args);
 }
 }
 
