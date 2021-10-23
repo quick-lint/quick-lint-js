@@ -248,6 +248,80 @@ class vscode_configuration_filesystem : public configuration_filesystem {
   friend class qljs_workspace;  // HACK(strager)
 };
 
+// Like ::Napi::TypedThreadSafeFunction, but with saner lifetime semantics.
+template <void (*Func)(::Napi::Env, ::Napi::Object)>
+class thread_safe_js_function {
+ public:
+  // thread_safe_js_function holds a weak reference to 'object'. If 'object'
+  // is garbage-collected, then this thread_safe_js_function will not call
+  // 'Func'.
+  explicit thread_safe_js_function(::Napi::Env env, const char* resource_name,
+                                   ::Napi::Object object)
+      : function_(::Napi::TypedThreadSafeFunction<
+                  /*ContextType=*/void, /*DataType=*/void,
+                  /*Callback=*/call_func>::
+                      New(
+                          /*env=*/env,
+                          /*callback=*/nullptr,
+                          /*resource=*/::Napi::Object(),
+                          /*resourceName=*/resource_name,
+                          /*maxQueueSize=*/0,
+                          /*initialThreadCount=*/1,
+                          /*context=*/this->create_weak_reference(env, object),
+                          /*finalizeCallback=*/
+                          [](Napi::Env env, [[maybe_unused]] void* data,
+                             void* context) -> void {
+                            // See NOTE[workspace-cleanup].
+                            ::napi_status status = ::napi_delete_reference(
+                                env, reinterpret_cast<::napi_ref>(context));
+                            QLJS_ASSERT(status == ::napi_ok);
+                          },
+                          /*data=*/static_cast<void*>(nullptr))) {}
+
+  // Like ::Napi::TypedThreadSafeFunction::BlockingCall.
+  ::napi_status BlockingCall() { return this->function_.BlockingCall(); }
+
+  // Like ::Napi::TypedThreadSafeFunction::Release.
+  void Release() { this->function_.Release(); }
+
+ private:
+  static ::napi_ref create_weak_reference(::Napi::Env env,
+                                          ::Napi::Object object) {
+    ::napi_ref result;
+    ::napi_status status = ::napi_create_reference(
+        /*env=*/env,
+        /*value=*/object,
+        /*initial_refcount=*/0,
+        /*result=*/&result);
+    QLJS_ASSERT(status == ::napi_ok);
+    return result;
+  }
+
+  static void call_func(::Napi::Env env, ::Napi::Function, void* context,
+                        [[maybe_unused]] void* data) {
+    if (!env) {
+      return;
+    }
+
+    ::napi_value raw_object;
+    ::napi_status status = ::napi_get_reference_value(
+        env, reinterpret_cast<::napi_ref>(context), &raw_object);
+    QLJS_ASSERT(status == ::napi_ok);
+    ::Napi::Object object(env, raw_object);
+
+    if (object.IsEmpty()) {
+      // See NOTE[workspace-cleanup].
+      QLJS_DEBUG_LOG(
+          "not calling Func because object has been garbage-collected\n");
+      return;
+    }
+
+    Func(env, object);
+  }
+
+  ::Napi::TypedThreadSafeFunction<void, void, call_func> function_;
+};
+
 // NOTE[workspace-cleanup]:
 //
 // If a qljs_workspace is deleted, its
@@ -278,26 +352,9 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       : ::Napi::ObjectWrap<qljs_workspace>(info),
         vscode_(info[0].As<::Napi::Object>()),
         check_for_config_file_changes_on_js_thread_(
-            ::Napi::TypedThreadSafeFunction<
-                /*ContextType=*/void, /*DataType=*/void,
-                /*Callback=*/check_for_config_file_changes_from_thread>::
-                New(
-                    /*env=*/info.Env(),
-                    /*callback=*/nullptr,
-                    /*resource=*/::Napi::Object(),
-                    /*resourceName=*/"quick-lint-js-fs-thread",
-                    /*maxQueueSize=*/0,
-                    /*initialThreadCount=*/1,
-                    /*context=*/this->create_weak_reference_to_self(info.Env()),
-                    /*finalizeCallback=*/
-                    [](Napi::Env env, [[maybe_unused]] void* data,
-                       void* context) -> void {
-                      // See NOTE[workspace-cleanup].
-                      ::napi_status status = ::napi_delete_reference(
-                          env, reinterpret_cast<::napi_ref>(context));
-                      QLJS_ASSERT(status == ::napi_ok);
-                    },
-                    /*data=*/static_cast<void*>(nullptr))),
+            /*env=*/info.Env(),
+            /*resourceName=*/"quick-lint-js-fs-thread",
+            /*object=*/this->Value()),
         qljs_documents_(info.Env()),
         vscode_diagnostic_collection_ref_(
             ::Napi::Persistent(info[1].As<::Napi::Object>())) {
@@ -552,25 +609,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   // This function is called on the main JS thread.
   static void check_for_config_file_changes_from_thread(
-      ::Napi::Env env, ::Napi::Function, void* context,
-      [[maybe_unused]] void* data) {
-    if (!env) {
-      return;
-    }
-
-    ::napi_value raw_workspace_object;
-    ::napi_status status = ::napi_get_reference_value(
-        env, reinterpret_cast<::napi_ref>(context), &raw_workspace_object);
-    QLJS_ASSERT(status == ::napi_ok);
-    ::Napi::Object workspace_object(env, raw_workspace_object);
-
-    if (workspace_object.IsEmpty()) {
-      // See NOTE[workspace-cleanup].
-      QLJS_DEBUG_LOG(
-          "check_for_config_file_changes_from_thread: workspace object has "
-          "been garbage-collected\n");
-      return;
-    }
+      ::Napi::Env env, ::Napi::Object workspace_object) {
     qljs_workspace* workspace = qljs_workspace::Unwrap(workspace_object);
     if (workspace->disposed_) {
       QLJS_DEBUG_LOG(
@@ -621,17 +660,6 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     this->check_for_config_file_changes_on_js_thread_.Release();
     QLJS_DEBUG_LOG("Workspace %p: stopping run_fs_change_detection_thread\n",
                    this);
-  }
-
-  ::napi_ref create_weak_reference_to_self(::Napi::Env env) {
-    ::napi_ref result;
-    ::napi_status status = ::napi_create_reference(
-        /*env=*/env,
-        /*value=*/this->Value(),
-        /*initial_refcount=*/0,
-        /*result=*/&result);
-    QLJS_ASSERT(status == ::napi_ok);
-    return result;
   }
 
   class fs_change_detection_event_loop
@@ -750,8 +778,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   bool did_report_watch_io_error_ = false;
 
   // See NOTE[workspace-cleanup].
-  ::Napi::TypedThreadSafeFunction<void, void,
-                                  check_for_config_file_changes_from_thread>
+  thread_safe_js_function<check_for_config_file_changes_from_thread>
       check_for_config_file_changes_on_js_thread_;
 
   // Mapping from vscode.Document to qljs.QLJSDocument (qljs_document).
