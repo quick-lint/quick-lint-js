@@ -5,6 +5,7 @@
 
 #if QLJS_HAVE_KQUEUE
 
+#include <algorithm>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -16,6 +17,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -39,6 +41,8 @@ int mockable_directory_open(const char* path, int flags) {
   }
   return ::open(path, flags);
 }
+
+std::string vnode_event_flags_to_string(std::uint32_t flags);
 }
 
 change_detecting_filesystem_kqueue::change_detecting_filesystem_kqueue(
@@ -108,6 +112,27 @@ void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
     const wchar_t*) {
   // We don't use wchar_t paths on BSDs.
   QLJS_UNREACHABLE();
+}
+
+void change_detecting_filesystem_kqueue::handle_kqueue_event(
+    const struct ::kevent& event) {
+  QLJS_ASSERT(event.filter == EVFILT_VNODE);
+
+  if (is_logging_enabled()) {
+    auto watched_file_it = std::find_if(
+        this->watched_files_.begin(), this->watched_files_.end(),
+        [&](auto& pair) -> bool {
+          return pair.second.fd.get() == narrow_cast<int>(event.ident);
+        });
+    if (watched_file_it == this->watched_files_.end()) {
+      QLJS_DEBUG_LOG("warning: got EVFILT_VNODE event for unknown fd %d\n",
+                     event.ident);
+    } else {
+      QLJS_DEBUG_LOG("note: got EVFILT_VNODE event for fd %d path %s: %s\n",
+                     event.ident, watched_file_it->first.c_str(),
+                     vnode_event_flags_to_string(event.fflags).c_str());
+    }
+  }
 }
 
 bool change_detecting_filesystem_kqueue::watch_directory(
@@ -245,6 +270,36 @@ bool change_detecting_filesystem_kqueue::file_id::operator!=(
 change_detecting_filesystem_kqueue::watched_file::watched_file(
     posix_fd_file&& fd)
     : fd(std::move(fd)), id(file_id::from_open_file(this->fd.ref())) {}
+
+namespace {
+std::string vnode_event_flags_to_string(std::uint32_t flags) {
+  struct flag_entry {
+    std::uint32_t flag;
+    const char name[13];
+  };
+  static constexpr flag_entry known_flags[] = {
+      {NOTE_ATTRIB, "NOTE_ATTRIB"}, {NOTE_DELETE, "NOTE_DELETE"},
+      {NOTE_EXTEND, "NOTE_EXTEND"}, {NOTE_FUNLOCK, "NOTE_FUNLOCK"},
+      {NOTE_LINK, "NOTE_LINK"},     {NOTE_RENAME, "NOTE_RENAME"},
+      {NOTE_REVOKE, "NOTE_REVOKE"}, {NOTE_WRITE, "NOTE_WRITE"},
+  };
+
+  if (flags == 0) {
+    return "<none>";
+  }
+
+  std::string result;
+  for (const flag_entry& flag : known_flags) {
+    if (flags & flag.flag) {
+      if (!result.empty()) {
+        result += "|";
+      }
+      result += flag.name;
+    }
+  }
+  return result;
+}
+}
 }
 
 #endif

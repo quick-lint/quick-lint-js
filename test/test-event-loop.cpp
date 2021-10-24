@@ -66,6 +66,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 #endif
 
 #if QLJS_HAVE_KQUEUE
+  void on_fs_changed_kevent(const struct ::kevent&) {}
   void on_fs_changed_kevents() {}
 #endif
 

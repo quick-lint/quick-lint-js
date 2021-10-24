@@ -14,6 +14,8 @@
   } while (false)
 
 namespace quick_lint_js {
+bool is_logging_enabled() noexcept;
+
 void debug_log(const char* format, ...);
 }
 

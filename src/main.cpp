@@ -508,6 +508,10 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_KQUEUE
+    void on_fs_changed_kevent(const struct ::kevent &event) {
+      this->fs_.handle_kqueue_event(event);
+    }
+
     void on_fs_changed_kevents() { this->filesystem_changed(); }
 #endif
 

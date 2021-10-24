@@ -157,6 +157,12 @@ class thread_safe_configuration_filesystem : public configuration_filesystem {
   }
 
   template <class Event>
+  auto handle_kqueue_event(Event&& event) {
+    std::lock_guard lock(this->lock_);
+    return this->underlying_fs_.handle_kqueue_event(std::forward<Event>(event));
+  }
+
+  template <class Event>
   auto handle_poll_event(Event&& event) {
     std::lock_guard lock(this->lock_);
     return this->underlying_fs_.handle_poll_event(std::forward<Event>(event));
@@ -826,6 +832,10 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
 
 #if QLJS_HAVE_KQUEUE
+    void on_fs_changed_kevent(const struct ::kevent& event) {
+      this->fs_.handle_kqueue_event(event);
+    }
+
     void on_fs_changed_kevents() { this->filesystem_changed(); }
 #endif
 

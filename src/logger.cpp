@@ -101,6 +101,12 @@ void disable_logger(logger* l) {
   global_loggers.erase(it);
 }
 
+bool is_logging_enabled() noexcept {
+  std::lock_guard lock(global_loggers_mutex);
+  initialize_global_loggers_if_needed(lock);
+  return !global_loggers.empty();
+}
+
 namespace {
 void debug_log_v(const char* format, std::va_list args) {
   std::lock_guard lock(global_loggers_mutex);

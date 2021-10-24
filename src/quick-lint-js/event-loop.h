@@ -42,6 +42,9 @@ namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Delegate>
 concept event_loop_delegate = requires(Delegate d, const Delegate cd,
+#if QLJS_HAVE_KQUEUE
+                                       const struct ::kevent kqueue_event,
+#endif
 #if QLJS_HAVE_POLL
                                        const ::pollfd poll_event,
 #endif
@@ -60,6 +63,7 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 #endif
 
 #if QLJS_HAVE_KQUEUE
+  {d.on_fs_changed_kevent(kqueue_event)};
   {d.on_fs_changed_kevents()};
 #endif
 };
@@ -224,6 +228,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           break;
 
         case event_udata_fs_changed:
+          this->derived().on_fs_changed_kevent(event);
           fs_changed = true;
           break;
 

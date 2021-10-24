@@ -110,6 +110,8 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
 
+  void handle_kqueue_event(const struct ::kevent&);
+
   std::vector<watch_io_error> take_watch_errors();
 
  private:
