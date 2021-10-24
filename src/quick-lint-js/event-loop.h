@@ -237,7 +237,9 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           break;
         }
       }
-      this->derived().on_fs_changed_kevents();
+      if (fs_changed) {
+        this->derived().on_fs_changed_kevents();
+      }
     }
   }
 
