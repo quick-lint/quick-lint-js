@@ -6,6 +6,25 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+Beta release.
+
+### Added
+
+* VS Code: The new `quick-lint-js.logging` setting allows you to show
+  quick-lint-js' internal log messages in an Output window.
+* VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
+* VS Code: Linux ARM (32-bit) is now supported.
+
+### Fixed
+
+* macOS: quick-lint-js no longer hangs if a file is changed in your home
+  directory or project directory.
+* Various crashes on invalid code have been fixed.
+* quick-lint-js consumes less memory for pathlogical code patterns.
+* VS Code: The extension no longer tries to load an ARM64 DLL on Windows x64.
+
 ## 0.5.0 (2021-10-12)
 
 Beta release.
