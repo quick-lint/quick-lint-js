@@ -16,6 +16,9 @@ Beta release.
   quick-lint-js' internal log messages in an Output window.
 * VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
 * VS Code: Linux ARM (32-bit) is now supported.
+* Vim: Improved performance for ALE versions v2.5.0 and newer (and v3.0.0 and
+  newer). You should configure `g:ale_lint_on_text_changed` to `'always'` for
+  the best experience.
 
 ### Fixed
 

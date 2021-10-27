@@ -62,10 +62,14 @@ Engine). https://github.com/dense-analysis/ale
 Supported ALE versions: v2.1.1 or newer, and v3.0.0 or newer
 
 quick-lint-js is fast. To feel the speed, you should configure
-|g:ale_lint_delay|. Add the following code to your |vimrc| to make JavaScript
-linting as fast as possible: >
+|g:ale_lint_delay| and |g:ale_lint_on_text_changed|. Add the following code to
+your |vimrc| to make JavaScript linting as fast as possible: >
 
     let g:ale_lint_delay = 0
+    let g:ale_lint_on_text_changed = 'always'
+    if exists('#ALEEvents')
+      call ale#events#Init()
+    endif
 
 The quick-lint-js Vim plugin registers an ALE linter called `quick-lint-js`.
 If you enable |g:ale_linters_explicit|, add the following code to
