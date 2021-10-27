@@ -28,31 +28,33 @@ Follow the following steps to release a new version of quick-lint-js:
 
 5. Wait for all GitHub Actions workflows to finish and to succeed.
 
-6. Download the following artifacts from the artifact server:
-   * `https://c.quick-lint-js.com/builds/%YOUR_COMMIT_HASH%/vscode/quick-lint-js-%YOUR_VERSION_NUMBER%.vsix`
-   * `https://c.quick-lint-js.com/builds/%YOUR_COMMIT_HASH%/npm/quick-lint-js-%YOUR_VERSION_NUMBER%.tgz`
+6. Download the build artifacts from the artifact server:
+   `rsync -av c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/$YOUR_COMMIT_HASH/ builds/`
 
-7. ssh into the artifact server (c.quick-lint-js.com). Copy
-   `/var/www/c.quick-lint-js.com/builds/%YOUR_COMMIT_HASH%` to
-   `/var/www/c.quick-lint-js.com/releases/%YOUR_VERSION_NUMBER%`.
+7. Sign the build artifacts:
+   `go run dist/sign-releases.go builds/ signed-builds/`
+   * **Warning**: This signing command only works on macOS hosts.
 
-8. Publish the packages:
+8. Upload the signed build artifacts to the artifact server:
+   `rsync -av signed-builds/ c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/`
+
+9. Publish the packages:
    * With the `vscode/quick-lint-js-*.vsix` artifact:
-     `npx vsce publish --packagePath ./quick-lint-js-*.vsix`
+     `npx vsce publish --packagePath signed-builds/quick-lint-js-*.vsix`
    * With the `vscode/quick-lint-js-*.vsix` artifact:
-     `npx ovsx publish ./quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN`
+     `npx ovsx publish signed-builds/quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN`
    * With the `npm/quick-lint-js-*.tgz` artifact:
-     `npm publish ./quick-lint-js-*.tgz`
+     `npm publish signed-builds/quick-lint-js-*.tgz`
    * Run the `dist/debian/sync-releases-to-apt` script.
 
-9. Publish the website: Run `./website/deploy.sh COMMIT_HASH_HERE`.
+10. Publish the website: Run `./website/deploy.sh COMMIT_HASH_HERE`.
 
-10. Create a Git tag named after the version number (e.g. `0.1.0`). Push it to
+11. Create a Git tag named after the version number (e.g. `0.1.0`). Push it to
     GitHub.
 
-11. Push the commit to the `master` branch on GitHub.
+12. Push the commit to the `master` branch on GitHub.
 
-12. Update Arch Linux user repositories (AUR):
+13. Update Arch Linux user repositories (AUR):
     1. Clone ssh://aur@aur.archlinux.org/quick-lint-js with Git.
     2. Update README to point to the tag's commit.
     3. Run `dist/arch/update-aur.sh --docker --test /path/to/quick-lint-js-aur-clone`.
