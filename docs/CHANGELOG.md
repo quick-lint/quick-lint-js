@@ -19,6 +19,8 @@ Beta release.
 * Vim: Improved performance for ALE versions v2.5.0 and newer (and v3.0.0 and
   newer). You should configure `g:ale_lint_on_text_changed` to `'always'` for
   the best experience.
+* Vim: Improved performance of the ALE plugin by using the LSP server by
+  default.
 
 ### Fixed
 
