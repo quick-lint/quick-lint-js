@@ -24,12 +24,19 @@ var AppleCodesignIdentity string = "quick-lint-js"
 //go:embed certificates/quick-lint-js.cer
 var AppleCodesignCertificate []byte
 
+type SigningStuff struct {
+	CertificateSHA1Hash [20]byte
+}
+
 func main() {
 	flag.Parse()
 	if flag.NArg() != 2 {
 		os.Stderr.WriteString(fmt.Sprintf("error: source and destination directories\n"))
 		os.Exit(2)
 	}
+
+	var signingStuff SigningStuff
+	signingStuff.CertificateSHA1Hash = sha1.Sum(AppleCodesignCertificate)
 
 	sourceDir := flag.Args()[0]
 	destinationDir := flag.Args()[1]
@@ -50,7 +57,7 @@ func main() {
 				return err
 			}
 		} else {
-			err = CopyFileOrTransformArchive(relativePath, sourcePath, destinationPath, sourceInfo)
+			err = CopyFileOrTransformArchive(relativePath, sourcePath, destinationPath, sourceInfo, signingStuff)
 			if err != nil {
 				return err
 			}
@@ -88,7 +95,7 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 
 // If the file is an archive and has a file which needs to be signed, sign the
 // embedded file and recreate the archive. Otherwise, copy the file verbatim.
-func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinationPath string, sourceInfo fs.FileInfo) error {
+func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinationPath string, sourceInfo fs.FileInfo, signingStuff SigningStuff) error {
 	if !sourceInfo.Mode().IsRegular() {
 		return fmt.Errorf("expected regular file: %q", sourcePath)
 	}
@@ -115,7 +122,7 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 	if strings.HasSuffix(relativePath, ".tar.gz") || strings.HasSuffix(relativePath, ".tgz") {
 		archiveMembersToTransform := filesToTransform[relativePath]
 		if archiveMembersToTransform != nil {
-			if err := TransformTarGz(sourceFile, sourcePath, destinationFile, archiveMembersToTransform); err != nil {
+			if err := TransformTarGz(sourceFile, sourcePath, destinationFile, archiveMembersToTransform, signingStuff); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -174,13 +181,14 @@ func TransformTarGz(
 	sourceFilePath string,
 	destinationFile io.Writer,
 	membersToTransform map[string]FileTransformType,
+	signingStuff SigningStuff,
 ) error {
 	return TransformTarGzGeneric(sourceFile, destinationFile,
 		func(path string, file io.Reader) (FileTransformResult, error) {
 			switch membersToTransform[path] {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
-				transform, err := AppleCodesignTransform(file)
+				transform, err := AppleCodesignTransform(file, signingStuff)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -241,7 +249,7 @@ func NoOpTransform() FileTransformResult {
 	}
 }
 
-func AppleCodesignTransform(exe io.Reader) (FileTransformResult, error) {
+func AppleCodesignTransform(exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
 	tempFile, err := CreateTemporaryFile()
 	if err != nil {
 		return FileTransformResult{}, err
@@ -255,7 +263,7 @@ func AppleCodesignTransform(exe io.Reader) (FileTransformResult, error) {
 	if err := AppleCodesignFile(tempFile.Name()); err != nil {
 		return FileTransformResult{}, err
 	}
-	if err := AppleCodesignVerifyFile(tempFile.Name(), AppleCodesignCertificate); err != nil {
+	if err := AppleCodesignVerifyFile(tempFile.Name(), signingStuff); err != nil {
 		return FileTransformResult{}, err
 	}
 
@@ -286,9 +294,8 @@ func AppleCodesignFile(filePath string) error {
 	return nil
 }
 
-func AppleCodesignVerifyFile(filePath string, certificate []byte) error {
-	certificateHash := sha1.Sum(certificate)
-	requirements := fmt.Sprintf("certificate leaf = H\"%s\"", hex.EncodeToString(certificateHash[:]))
+func AppleCodesignVerifyFile(filePath string, signingStuff SigningStuff) error {
+	requirements := fmt.Sprintf("certificate leaf = H\"%s\"", hex.EncodeToString(signingStuff.CertificateSHA1Hash[:]))
 
 	signCommand := []string{"codesign", "-vvv", fmt.Sprintf("-R=%s", requirements), "--", filePath}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
