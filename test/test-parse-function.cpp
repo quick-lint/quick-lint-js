@@ -975,6 +975,23 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
   }
 }
 
+TEST(test_parse, arrow_function_expression_without_arrow_operator) {
+  {
+    padded_string code(u8"(() {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_arrow_operator_in_arrow_function, where,
+                    offsets_matcher(&code, strlen(u8"(() "), u8"{"))));
+  }
+}
+
 TEST(test_parse, generator_function_with_misplaced_star) {
   {
     padded_string code(u8"function f*(x) { yield x; }"_sv);
