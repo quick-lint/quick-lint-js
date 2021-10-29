@@ -4,6 +4,7 @@
 package main
 
 import "archive/tar"
+import "archive/zip"
 import "compress/gzip"
 import "crypto/sha1"
 import "encoding/hex"
@@ -131,6 +132,17 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 		}
 	}
 
+	if strings.HasSuffix(relativePath, ".vsix") || strings.HasSuffix(relativePath, ".zip") {
+		archiveMembersToTransform := filesToTransform[relativePath]
+		if archiveMembersToTransform != nil {
+			if err := TransformZip(sourceFile, destinationFile, archiveMembersToTransform, signingStuff); err != nil {
+				return err
+			}
+			fileComplete = true
+			return nil
+		}
+	}
+
 	// Default behavior: copy the file verbatim.
 	_, err = io.Copy(destinationFile, sourceFile)
 	if err != nil {
@@ -165,6 +177,19 @@ func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) error {
 		}
 		header.ModTime = newFileStat.ModTime()
 		header.Size = newFileStat.Size()
+	}
+	return nil
+}
+
+func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) error {
+	if self.newFile != nil {
+		newFileStat, err := self.newFile.Stat()
+		if err != nil {
+			return err
+		}
+		header.Modified = newFileStat.ModTime()
+		header.UncompressedSize = uint32(newFileStat.Size())
+		header.UncompressedSize64 = uint64(newFileStat.Size())
 	}
 	return nil
 }
@@ -239,6 +264,85 @@ func TransformTarGzGeneric(
 		}
 		if err := WriteTarEntry(header, file, tarWriter); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func TransformZip(
+	sourceFile *os.File,
+	destinationFile io.Writer,
+	membersToTransform map[string]FileTransformType,
+	signingStuff SigningStuff,
+) error {
+	return TransformZipGeneric(sourceFile, destinationFile,
+		func(path string, file io.Reader) (FileTransformResult, error) {
+			switch membersToTransform[path] {
+			case AppleCodesign:
+				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
+				transform, err := AppleCodesignTransform(file, signingStuff)
+				if err != nil {
+					return FileTransformResult{}, err
+				}
+				return transform, nil
+
+			default: // NoTransform
+				return NoOpTransform(), nil
+			}
+		})
+}
+
+func TransformZipGeneric(
+	sourceFile *os.File,
+	destinationFile io.Writer,
+	transform func(path string, file io.Reader) (FileTransformResult, error),
+) error {
+	sourceFileStat, err := sourceFile.Stat()
+	if err != nil {
+		return err
+	}
+	sourceZipFile, err := zip.NewReader(sourceFile, sourceFileStat.Size())
+	if err != nil {
+		return err
+	}
+
+	destinationZipFile := zip.NewWriter(destinationFile)
+	defer destinationZipFile.Close()
+
+	for _, zipEntry := range sourceZipFile.File {
+		zipEntryFile, err := zipEntry.Open()
+		if err != nil {
+			return err
+		}
+		defer zipEntryFile.Close()
+
+		transformResult, err := transform(zipEntry.Name, zipEntryFile)
+		if err != nil {
+			return err
+		}
+		defer transformResult.Close()
+
+		if err := transformResult.UpdateZipHeader(&zipEntry.FileHeader); err != nil {
+			return err
+		}
+		if transformResult.newFile == nil {
+			destinationZipEntryFile, err := destinationZipFile.CreateRaw(&zipEntry.FileHeader)
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(destinationZipEntryFile, zipEntryFile)
+			if err != nil {
+				return err
+			}
+		} else {
+			destinationZipEntryFile, err := destinationZipFile.CreateHeader(&zipEntry.FileHeader)
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(destinationZipEntryFile, transformResult.newFile)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
