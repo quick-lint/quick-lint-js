@@ -19,23 +19,24 @@ import "path/filepath"
 import "strings"
 import _ "embed"
 
-var AppleCodesignIdentity string = "quick-lint-js"
-
 //go:embed certificates/quick-lint-js.cer
 var AppleCodesignCertificate []byte
 
 type SigningStuff struct {
-	CertificateSHA1Hash [20]byte
+	AppleCodesignIdentity string // Common Name from the macOS Keychain.
+	CertificateSHA1Hash   [20]byte
 }
 
 func main() {
+	var signingStuff SigningStuff
+
+	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
 		os.Stderr.WriteString(fmt.Sprintf("error: source and destination directories\n"))
 		os.Exit(2)
 	}
 
-	var signingStuff SigningStuff
 	signingStuff.CertificateSHA1Hash = sha1.Sum(AppleCodesignCertificate)
 
 	sourceDir := flag.Args()[0]
@@ -260,7 +261,7 @@ func AppleCodesignTransform(exe io.Reader, signingStuff SigningStuff) (FileTrans
 		return FileTransformResult{}, err
 	}
 
-	if err := AppleCodesignFile(tempFile.Name()); err != nil {
+	if err := AppleCodesignFile(tempFile.Name(), signingStuff); err != nil {
 		return FileTransformResult{}, err
 	}
 	if err := AppleCodesignVerifyFile(tempFile.Name(), signingStuff); err != nil {
@@ -280,8 +281,8 @@ func AppleCodesignTransform(exe io.Reader, signingStuff SigningStuff) (FileTrans
 	}, nil
 }
 
-func AppleCodesignFile(filePath string) error {
-	signCommand := []string{"codesign", "--sign", AppleCodesignIdentity, "--force", "--", filePath}
+func AppleCodesignFile(filePath string, signingStuff SigningStuff) error {
+	signCommand := []string{"codesign", "--sign", signingStuff.AppleCodesignIdentity, "--force", "--", filePath}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
