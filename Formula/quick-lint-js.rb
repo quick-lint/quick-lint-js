@@ -21,6 +21,11 @@ class QuickLintJs < Formula
   test do
     system "quick-lint-js", "--version"
   end
+
+  fails_with :clang do
+    build 1100  # Xcode 11.3.1
+    cause "Boost.JSON doesn't like Clang's std::string_view"
+  end
 end
 
 # quick-lint-js finds bugs in JavaScript programs.
