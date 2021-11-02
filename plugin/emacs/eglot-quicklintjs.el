@@ -13,7 +13,10 @@
 ;;
 ;;   ;; Remove the time to wait after last change before automatically checking
 ;;   ;; buffer.  The default is 0.5 (500ms)
-;;   (setq-local eglot-send-changes-idle-time 0))
+;;   (setq-local eglot-send-changes-idle-time 0)
+;;
+;;   ;; Optional: Make Eglot run automatically when 'js-mode` is loaded
+;;   (eglot-ensure))
 ;; (add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)
 
 ;;; Code:
