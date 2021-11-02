@@ -5,6 +5,7 @@ package main
 
 import "archive/tar"
 import "archive/zip"
+import "bytes"
 import "compress/gzip"
 import "crypto/sha1"
 import "encoding/hex"
@@ -26,7 +27,9 @@ var AppleCodesignCertificate []byte
 
 type SigningStuff struct {
 	AppleCodesignIdentity string // Common Name from the macOS Keychain.
+	Certificate           []byte
 	CertificateSHA1Hash   [20]byte
+	PrivateKeyPKCS12Path  string
 }
 
 var TempDirs []string
@@ -35,8 +38,10 @@ func main() {
 	defer RemoveTempDirs()
 
 	var signingStuff SigningStuff
+	signingStuff.Certificate = AppleCodesignCertificate
 
 	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
+	flag.StringVar(&signingStuff.PrivateKeyPKCS12Path, "PrivateKeyPKCS12", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
 		os.Stderr.WriteString(fmt.Sprintf("error: source and destination directories\n"))
@@ -87,6 +92,7 @@ type FileTransformType int
 const (
 	NoTransform FileTransformType = iota
 	AppleCodesign
+	MicrosoftOsslsigncode
 )
 
 var filesToTransform map[string]map[string]FileTransformType = map[string]map[string]FileTransformType{
@@ -96,13 +102,28 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 	"manual/macos.tar.gz": map[string]FileTransformType{
 		"quick-lint-js/bin/quick-lint-js": AppleCodesign,
 	},
+	"manual/windows-arm.zip": map[string]FileTransformType{
+		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
+	},
+	"manual/windows-arm64.zip": map[string]FileTransformType{
+		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
+	},
+	"manual/windows.zip": map[string]FileTransformType{
+		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
+	},
 	"npm/quick-lint-js-0.5.0.tgz": map[string]FileTransformType{
 		"package/darwin-aarch64/bin/quick-lint-js": AppleCodesign,
 		"package/darwin-x64/bin/quick-lint-js":     AppleCodesign,
+		"package/win32-arm64/bin/quick-lint-js":    MicrosoftOsslsigncode,
+		"package/win32-x64/bin/quick-lint-js":      MicrosoftOsslsigncode,
 	},
 	"vscode/quick-lint-js-0.5.0.vsix": map[string]FileTransformType{
 		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
 		"extension/dist/quick-lint-js-vscode-node_darwin-x64.node":   AppleCodesign,
+		"extension/dist/quick-lint-js-vscode-node_win32-arm.node":    MicrosoftOsslsigncode,
+		"extension/dist/quick-lint-js-vscode-node_win32-arm64.node":  MicrosoftOsslsigncode,
+		"extension/dist/quick-lint-js-vscode-node_win32-ia32.node":   MicrosoftOsslsigncode,
+		"extension/dist/quick-lint-js-vscode-node_win32-x64.node":    MicrosoftOsslsigncode,
 	},
 }
 
@@ -231,6 +252,14 @@ func TransformTarGz(
 				}
 				return transform, nil
 
+			case MicrosoftOsslsigncode:
+				log.Printf("signing with osslsigncode: %s:%s\n", sourceFilePath, path)
+				transform, err := MicrosoftOsslsigncodeTransform(file, signingStuff)
+				if err != nil {
+					return FileTransformResult{}, err
+				}
+				return transform, nil
+
 			default: // NoTransform
 				return NoOpTransform(), nil
 			}
@@ -292,6 +321,14 @@ func TransformZip(
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
 				transform, err := AppleCodesignTransform(path, file, signingStuff)
+				if err != nil {
+					return FileTransformResult{}, err
+				}
+				return transform, nil
+
+			case MicrosoftOsslsigncode:
+				log.Printf("signing with osslsigncode: %s:%s\n", sourceFile.Name(), path)
+				transform, err := MicrosoftOsslsigncodeTransform(file, signingStuff)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -425,6 +462,105 @@ func AppleCodesignVerifyFile(filePath string, signingStuff SigningStuff) error {
 
 	signCommand := []string{"codesign", "-vvv", fmt.Sprintf("-R=%s", requirements), "--", filePath}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func MicrosoftOsslsigncodeTransform(exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+	TempDirs = append(TempDirs, tempDir)
+
+	unsignedFile, err := os.Create(filepath.Join(tempDir, "unsigned.exe"))
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+	defer os.Remove(unsignedFile.Name())
+	_, err = io.Copy(unsignedFile, exe)
+	unsignedFile.Close()
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+
+	signedFilePath := filepath.Join(tempDir, "signed.exe")
+	if err := MicrosoftOsslsigncodeFile(unsignedFile.Name(), signedFilePath, signingStuff); err != nil {
+		return FileTransformResult{}, err
+	}
+	if err := MicrosoftOsslsigncodeVerifyFile(signedFilePath, signingStuff); err != nil {
+		return FileTransformResult{}, err
+	}
+
+	signedFile, err := os.Open(signedFilePath)
+	if err != nil {
+		os.Remove(signedFilePath)
+		return FileTransformResult{}, err
+	}
+
+	return FileTransformResult{
+		newFile: signedFile,
+	}, nil
+}
+
+func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string, signingStuff SigningStuff) error {
+	signCommand := []string{
+		"osslsigncode", "sign",
+		"-pkcs12", signingStuff.PrivateKeyPKCS12Path,
+		"-t", "http://timestamp.digicert.com",
+		"-in", inFilePath,
+		"-out", outFilePath,
+	}
+	process := exec.Command(signCommand[0], signCommand[1:]...)
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func MicrosoftOsslsigncodeVerifyFile(filePath string, signingStuff SigningStuff) error {
+	certificatePEMFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
+	if err != nil {
+		return err
+	}
+	certificatePEMFile.Close()
+	defer os.Remove(certificatePEMFile.Name())
+
+	process := exec.Command(
+		"openssl", "x509",
+		"-inform", "der",
+		"-outform", "pem",
+		"-out", certificatePEMFile.Name(),
+	)
+	certificateReader := bytes.NewReader(signingStuff.Certificate)
+	process.Stdin = certificateReader
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+
+	process = exec.Command(
+		"osslsigncode", "verify",
+		"-in", filePath,
+		"-CAfile", certificatePEMFile.Name(),
+	)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
 	if err := process.Start(); err != nil {

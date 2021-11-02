@@ -33,7 +33,7 @@ Follow the following steps to release a new version of quick-lint-js:
    `rsync -av c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/$YOUR_COMMIT_HASH/ builds/`
 
 7. Sign the build artifacts:
-   `go run dist/sign-releases.go -AppleCodesignIdentity=quick-lint-js builds/ signed-builds/`
+   `go run dist/sign-releases.go -AppleCodesignIdentity=quick-lint-js -PrivateKeyPKCS12=dist/certificates/quick-lint-js-PRIVATE.p12 builds/ signed-builds/`
    * **Warning**: This signing command only works on macOS hosts.
 
 8. Upload the signed build artifacts to the artifact server:
