@@ -13,6 +13,7 @@ import "flag"
 import "fmt"
 import "io"
 import "io/fs"
+import "io/ioutil"
 import "log"
 import "os"
 import "os/exec"
@@ -28,7 +29,11 @@ type SigningStuff struct {
 	CertificateSHA1Hash   [20]byte
 }
 
+var TempDirs []string
+
 func main() {
+	defer RemoveTempDirs()
+
 	var signingStuff SigningStuff
 
 	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
@@ -68,6 +73,12 @@ func main() {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func RemoveTempDirs() {
+	for _, tempDir := range TempDirs {
+		os.RemoveAll(tempDir)
 	}
 }
 
@@ -214,7 +225,7 @@ func TransformTarGz(
 			switch membersToTransform[path] {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
-				transform, err := AppleCodesignTransform(file, signingStuff)
+				transform, err := AppleCodesignTransform(path, file, signingStuff)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -280,7 +291,7 @@ func TransformZip(
 			switch membersToTransform[path] {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
-				transform, err := AppleCodesignTransform(file, signingStuff)
+				transform, err := AppleCodesignTransform(path, file, signingStuff)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -354,8 +365,18 @@ func NoOpTransform() FileTransformResult {
 	}
 }
 
-func AppleCodesignTransform(exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
-	tempFile, err := CreateTemporaryFile()
+// originalPath need not be a path to a real file.
+func AppleCodesignTransform(originalPath string, exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+	TempDirs = append(TempDirs, tempDir)
+
+	// Name the file the same as the original. The codesign utility
+	// sometimes uses the file name as the Identifier, and we don't want the
+	// Identifier being some random string.
+	tempFile, err := os.Create(filepath.Join(tempDir, filepath.Base(originalPath)))
 	if err != nil {
 		return FileTransformResult{}, err
 	}
@@ -428,10 +449,6 @@ func WriteTarEntry(header *tar.Header, file io.Reader, output *tar.Writer) error
 		return fmt.Errorf("failed to write entire file")
 	}
 	return nil
-}
-
-func CreateTemporaryFile() (*os.File, error) {
-	return os.CreateTemp("", "quick-lint-js-sign-release")
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
