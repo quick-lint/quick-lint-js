@@ -136,6 +136,12 @@ h2 {
   border-top: 1px solid #ccc;
   padding-top: 1rem;
 }
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
 
 main > h2:first-child {
   border-top: 0;
