@@ -21,6 +21,7 @@ Beta release.
   the best experience.
 * Vim: Improved performance of the ALE plugin by using the LSP server by
   default.
+* The macOS and Windows binaries are now code-signed.
 
 ### Fixed
 
