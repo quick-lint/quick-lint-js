@@ -14,34 +14,14 @@ quick-lint-js finds many bugs, including:
 
 ## Installing
 
-### Install within project
+quick-lint-js is designed to be used with your JavaScript editor. See the
+[install documentation](https://quick-lint-js.com/install/) for all installation
+options.
 
-Install quick-lint-js so anyone can use it when hacking on your project:
-
-    # Linux and macOS with npm:
-    $ npm install quick-lint-js --save-dev --save-exact
-    $ node_modules/.bin/quick-lint-js --version
-
-    # Linux and macOS with yarn:
-    $ yarn add quick-lint-js --dev --exact
-    $ node_modules/.bin/quick-lint-js --version
-
-    # Windows with npm:
-    $ npm install quick-lint-js --save-dev --save-exact
-    $ node_modules\.bin\quick-lint-js.cmd --version
-
-    # Windows with yarn:
-    $ yarn add quick-lint-js --dev --exact
-    $ node_modules\.bin\quick-lint-js.cmd --version
-
-### Install globally
-
-Install quick-lint-js on your machine for use anywhere:
-
-    # Linux and macOS:
-    $ sudo npm install --global --unsafe-perm quick-lint-js
-    $ quick-lint-js --version
-
-    # Windows:
-    $ npm install --global quick-lint-js
-    $ quick-lint-js.cmd --version
+* [Visual Studio
+  Code](https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js)
+* [VSCodium](https://open-vsx.org/extension/quick-lint/quick-lint-js)
+* [Vim](https://quick-lint-js.com/install/vim/)
+* [Neovim](https://quick-lint-js.com/install/neovim/)
+* [Emacs](https://quick-lint-js.com/install/emacs/)
+* [CLI & LSP server](https://quick-lint-js.com/install/cli/npm/)
