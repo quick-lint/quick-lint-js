@@ -141,7 +141,7 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 	defer sourceFile.Close()
 
 	destinationFile, err := os.OpenFile(destinationPath,
-		os.O_WRONLY|os.O_CREATE, sourceInfo.Mode().Perm())
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, sourceInfo.Mode().Perm())
 	if err != nil {
 		return err
 	}
