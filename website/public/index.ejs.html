@@ -72,6 +72,7 @@
       .feature-comparison td.has-link > a {
         align-items: center;
         display: flex;
+        flex-direction: column;
         height: 100%;
         justify-content: center;
         text-decoration: none;
@@ -252,9 +253,11 @@
           <tbody>
             <tr>
               <th colspan="2"><a href="benchmarks/">speed</a></th>
-              <td class="good quick-lint-js">
-                <span aria-labelledby="feature-speed-qljs-quick">🚀</span
-                ><br /><span id="feature-speed-qljs-quick">quick</span>
+              <td class="good quick-lint-js has-link">
+                <a href="benchmarks/"
+                  ><span aria-labelledby="feature-speed-qljs-quick">🚀</span
+                  ><br /><span id="feature-speed-qljs-quick">quick</span></a
+                >
               </td>
               <td class="meh">
                 <span aria-labelledby="feature-speed-eslint-capable">🐇</span
