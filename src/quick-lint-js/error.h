@@ -667,6 +667,12 @@
           NOTE(QLJS_TRANSLATABLE("array started here"), left_square))          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_arrow_operator_in_arrow_function, "E176",                  \
+      { source_code_span where; },                                             \
+      ERROR(QLJS_TRANSLATABLE("missing arrow operator for arrow function"),    \
+            where))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_arrow_function_parameter_list, "E105",                     \
       { source_code_span arrow; },                                             \
       ERROR(QLJS_TRANSLATABLE("missing parameters for arrow function"),        \
