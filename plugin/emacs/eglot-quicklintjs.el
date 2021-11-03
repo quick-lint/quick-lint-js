@@ -15,7 +15,7 @@
 ;;   ;; buffer.  The default is 0.5 (500ms)
 ;;   (setq-local eglot-send-changes-idle-time 0)
 ;;
-;;   ;; Optional: Make Eglot run automatically when 'js-mode` is loaded
+;;   ;; Optional: Make Eglot run automatically when `js-mode' is loaded
 ;;   (eglot-ensure))
 ;; (add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)
 
