@@ -374,11 +374,16 @@ func TransformZipGeneric(
 			return err
 		}
 		if transformResult.newFile == nil {
+			rawZIPEntryFile, err := zipEntry.OpenRaw()
+			if err != nil {
+				return err
+			}
+
 			destinationZipEntryFile, err := destinationZipFile.CreateRaw(&zipEntry.FileHeader)
 			if err != nil {
 				return err
 			}
-			_, err = io.Copy(destinationZipEntryFile, zipEntryFile)
+			_, err = io.Copy(destinationZipEntryFile, rawZIPEntryFile)
 			if err != nil {
 				return err
 			}
