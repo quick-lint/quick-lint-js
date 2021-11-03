@@ -280,20 +280,21 @@ expression* parser::parse_primary_expression(precedence prec) {
     if (this->peek().type == token_type::right_paren) {
       source_code_span right_paren_span = this->peek().span();
       this->skip();
-      if (this->peek().type == token_type::equal_greater) {
-        this->skip();
+      bool is_arrow_function = this->peek().type == token_type::equal_greater;
+      bool is_arrow_function_without_arrow =
+          this->peek().type == token_type::left_curly;
+      if (is_arrow_function || is_arrow_function_without_arrow) {
         // Arrow function: () => expression-or-block
+        // Arrow function: () { }  // Invalid.
+        if (is_arrow_function) {
+          this->skip();
+        } else {
+          this->error_reporter_->report(
+              error_missing_arrow_operator_in_arrow_function{
+                  .where = this->peek().span()});
+        }
         expression* ast = this->parse_arrow_function_body(
             function_attributes::normal, left_paren_span.begin(),
-            /*allow_in_operator=*/prec.in_operator);
-        return ast;
-      } else if ((this->peek().type == token_type::left_curly) &&
-                 (!this->peek().has_leading_newline)) {
-        this->error_reporter_->report(
-            error_missing_arrow_operator_in_arrow_function{
-                .where = this->peek().span()});
-        expression* ast = this->parse_arrow_function_body(
-            function_attributes::normal, this->peek().span().begin(),
             /*allow_in_operator=*/prec.in_operator);
         return ast;
       } else {
