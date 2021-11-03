@@ -25,10 +25,15 @@ import _ "embed"
 //go:embed certificates/quick-lint-js.cer
 var AppleCodesignCertificate []byte
 
+//go:embed certificates/quick-lint-js.gpg.key
+var QLJSGPGKey []byte
+
 type SigningStuff struct {
 	AppleCodesignIdentity string // Common Name from the macOS Keychain.
 	Certificate           []byte
 	CertificateSHA1Hash   [20]byte
+	GPGIdentity           string // Fingerprint or email or name.
+	GPGKey                []byte
 	PrivateKeyPKCS12Path  string
 }
 
@@ -39,8 +44,10 @@ func main() {
 
 	var signingStuff SigningStuff
 	signingStuff.Certificate = AppleCodesignCertificate
+	signingStuff.GPGKey = QLJSGPGKey
 
 	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
+	flag.StringVar(&signingStuff.GPGIdentity, "GPGIdentity", "", "")
 	flag.StringVar(&signingStuff.PrivateKeyPKCS12Path, "PrivateKeyPKCS12", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
@@ -92,10 +99,20 @@ type FileTransformType int
 const (
 	NoTransform FileTransformType = iota
 	AppleCodesign
+	GPGSign
 	MicrosoftOsslsigncode
 )
 
 var filesToTransform map[string]map[string]FileTransformType = map[string]map[string]FileTransformType{
+	"manual/linux-aarch64.tar.gz": map[string]FileTransformType{
+		"quick-lint-js/bin/quick-lint-js": GPGSign,
+	},
+	"manual/linux-armhf.tar.gz": map[string]FileTransformType{
+		"quick-lint-js/bin/quick-lint-js": GPGSign,
+	},
+	"manual/linux.tar.gz": map[string]FileTransformType{
+		"quick-lint-js/bin/quick-lint-js": GPGSign,
+	},
 	"manual/macos-aarch64.tar.gz": map[string]FileTransformType{
 		"quick-lint-js/bin/quick-lint-js": AppleCodesign,
 	},
@@ -114,12 +131,18 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 	"npm/quick-lint-js-0.5.0.tgz": map[string]FileTransformType{
 		"package/darwin-aarch64/bin/quick-lint-js": AppleCodesign,
 		"package/darwin-x64/bin/quick-lint-js":     AppleCodesign,
+		"package/linux-arm/bin/quick-lint-js":      GPGSign,
+		"package/linux-arm64/bin/quick-lint-js":    GPGSign,
+		"package/linux-x64/bin/quick-lint-js":      GPGSign,
 		"package/win32-arm64/bin/quick-lint-js":    MicrosoftOsslsigncode,
 		"package/win32-x64/bin/quick-lint-js":      MicrosoftOsslsigncode,
 	},
 	"vscode/quick-lint-js-0.5.0.vsix": map[string]FileTransformType{
 		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
 		"extension/dist/quick-lint-js-vscode-node_darwin-x64.node":   AppleCodesign,
+		"extension/dist/quick-lint-js-vscode-node_linux-arm.node":    GPGSign,
+		"extension/dist/quick-lint-js-vscode-node_linux-arm64.node":  GPGSign,
+		"extension/dist/quick-lint-js-vscode-node_linux-x64.node":    GPGSign,
 		"extension/dist/quick-lint-js-vscode-node_win32-arm.node":    MicrosoftOsslsigncode,
 		"extension/dist/quick-lint-js-vscode-node_win32-arm64.node":  MicrosoftOsslsigncode,
 		"extension/dist/quick-lint-js-vscode-node_win32-ia32.node":   MicrosoftOsslsigncode,
@@ -195,6 +218,14 @@ type FileTransformResult struct {
 	// If newFile is not nil, Close will delete the file as if by
 	// os.Remove(newFile.Name())
 	newFile *os.File
+
+	// If siblingFile is not nil, then a new file is created named
+	// siblingFileName.
+	//
+	// If siblingFile is not nil, Close will delete the file as if by
+	// os.Remove(siblingFile.Name()).
+	siblingFile     *os.File
+	siblingFileName string
 }
 
 func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) error {
@@ -232,6 +263,12 @@ func (self *FileTransformResult) Close() {
 		os.Remove(self.newFile.Name())
 		self.newFile = nil
 	}
+
+	if self.siblingFile != nil {
+		self.siblingFile.Close()
+		os.Remove(self.siblingFile.Name())
+		self.siblingFile = nil
+	}
 }
 
 func TransformTarGz(
@@ -247,6 +284,14 @@ func TransformTarGz(
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
 				transform, err := AppleCodesignTransform(path, file, signingStuff)
+				if err != nil {
+					return FileTransformResult{}, err
+				}
+				return transform, nil
+
+			case GPGSign:
+				log.Printf("signing with GPG: %s:%s\n", sourceFilePath, path)
+				transform, err := GPGSignTransform(path, file, signingStuff)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -289,7 +334,16 @@ func TransformTarGzGeneric(
 			return err
 		}
 
-		transformResult, err := transform(header.Name, tarReader)
+		var fileContent bytes.Buffer
+		bytesWritten, err := fileContent.ReadFrom(tarReader)
+		if err != nil {
+			return err
+		}
+		if bytesWritten != header.Size {
+			return fmt.Errorf("failed to read entire file")
+		}
+
+		transformResult, err := transform(header.Name, bytes.NewReader(fileContent.Bytes()))
 		if err != nil {
 			return err
 		}
@@ -298,12 +352,34 @@ func TransformTarGzGeneric(
 		if err := transformResult.UpdateTarHeader(header); err != nil {
 			return err
 		}
-		var file io.Reader = tarReader
+		var file io.Reader = bytes.NewReader(fileContent.Bytes())
 		if transformResult.newFile != nil {
 			file = transformResult.newFile
 		}
 		if err := WriteTarEntry(header, file, tarWriter); err != nil {
 			return err
+		}
+
+		if transformResult.siblingFile != nil {
+			siblingFileStat, err := transformResult.siblingFile.Stat()
+			if err != nil {
+				return err
+			}
+			siblingHeader := tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     filepath.Join(filepath.Dir(header.Name), transformResult.siblingFileName),
+				Size:     siblingFileStat.Size(),
+				Mode:     header.Mode &^ 0111,
+				Uid:      header.Uid,
+				Gid:      header.Gid,
+				Uname:    header.Uname,
+				Gname:    header.Gname,
+				ModTime:  siblingFileStat.ModTime(),
+				Format:   tar.FormatUSTAR,
+			}
+			if err := WriteTarEntry(&siblingHeader, transformResult.siblingFile, tarWriter); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -321,6 +397,14 @@ func TransformZip(
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
 				transform, err := AppleCodesignTransform(path, file, signingStuff)
+				if err != nil {
+					return FileTransformResult{}, err
+				}
+				return transform, nil
+
+			case GPGSign:
+				log.Printf("signing with GPG: %s:%s\n", sourceFile.Name(), path)
+				transform, err := GPGSignTransform(path, file, signingStuff)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -397,6 +481,17 @@ func TransformZipGeneric(
 				return err
 			}
 		}
+
+		if transformResult.siblingFile != nil {
+			siblingZIPEntryFile, err := destinationZipFile.Create(filepath.Join(filepath.Dir(zipEntry.Name), transformResult.siblingFileName))
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(siblingZIPEntryFile, transformResult.siblingFile)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -469,6 +564,109 @@ func AppleCodesignVerifyFile(filePath string, signingStuff SigningStuff) error {
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// originalPath need not be a path to a real file.
+func GPGSignTransform(originalPath string, exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+	TempDirs = append(TempDirs, tempDir)
+
+	tempFile, err := os.Create(filepath.Join(tempDir, "data"))
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+	defer os.Remove(tempFile.Name())
+	_, err = io.Copy(tempFile, exe)
+	tempFile.Close()
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+
+	signatureFilePath, err := GPGSignFile(tempFile.Name(), signingStuff)
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+	if err := GPGVerifySignature(tempFile.Name(), signatureFilePath, signingStuff); err != nil {
+		return FileTransformResult{}, err
+	}
+
+	signatureFile, err := os.Open(signatureFilePath)
+	if err != nil {
+		return FileTransformResult{}, err
+	}
+
+	return FileTransformResult{
+		siblingFile:     signatureFile,
+		siblingFileName: filepath.Base(originalPath) + ".asc",
+	}, nil
+}
+
+func GPGSignFile(filePath string, signingStuff SigningStuff) (string, error) {
+	process := exec.Command(
+		"gpg",
+		"--local-user", signingStuff.GPGIdentity,
+		"--armor",
+		"--detach-sign",
+		"--",
+		filePath,
+	)
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return "", err
+	}
+	if err := process.Wait(); err != nil {
+		return "", err
+	}
+	return filePath + ".asc", nil
+}
+
+func GPGVerifySignature(filePath string, signatureFilePath string, signingStuff SigningStuff) error {
+	// HACK(strager): Use /tmp instead of the default temp dir. macOS'
+	// default temp dir is so long that it breaks gpg-agent.
+	tempGPGHome, err := ioutil.TempDir("/tmp", "quick-lint-js-sign-release")
+	if err != nil {
+		return err
+	}
+	TempDirs = append(TempDirs, tempGPGHome)
+
+	var env []string
+	env = append([]string{}, os.Environ()...)
+	env = append(env, "GNUPGHOME="+tempGPGHome)
+
+	process := exec.Command("gpg", "--import")
+	keyReader := bytes.NewReader(signingStuff.GPGKey)
+	process.Stdin = keyReader
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	process.Env = env
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+
+	process = exec.Command(
+		"gpg", "--verify",
+		"--",
+		signatureFilePath,
+		filePath,
+	)
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	process.Env = env
 	if err := process.Start(); err != nil {
 		return err
 	}
