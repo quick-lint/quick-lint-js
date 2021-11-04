@@ -796,6 +796,15 @@ class parser {
       }
       break;
     }
+    case expression_kind::_delete: {
+      expression *child = ast->child_0();
+      if (child->kind() == expression_kind::variable) {
+        v.visit_variable_delete_use(child->variable_identifier());
+      } else {
+        this->visit_expression(child, v, context);
+      }
+      break;
+    }
     case expression_kind::await:
     case expression_kind::spread:
     case expression_kind::unary_operator:
@@ -3554,6 +3563,7 @@ class parser {
     }
 
     case expression_kind::_class:
+    case expression_kind::_delete:
     case expression_kind::_new:
     case expression_kind::_template:
     case expression_kind::_typeof:

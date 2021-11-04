@@ -236,10 +236,13 @@ expression* parser::parse_primary_expression(precedence prec) {
       });
     }
     expression* ast =
-        type == token_type::kw_typeof
-            ? this->make_expression<expression::_typeof>(child, operator_span)
-            : this->make_expression<expression::unary_operator>(child,
-                                                                operator_span);
+        type == token_type::kw_delete
+            ? this->make_expression<expression::_delete>(child, operator_span)
+            : type == token_type::kw_typeof
+                  ? this->make_expression<expression::_typeof>(child,
+                                                               operator_span)
+                  : this->make_expression<expression::unary_operator>(
+                        child, operator_span);
     if (type == token_type::kw_delete &&
         child->kind() == expression_kind::variable) {
       this->error_reporter_->report(
@@ -1264,6 +1267,7 @@ void parser::parse_arrow_function_expression_remainder(
     break;
 
   case expression_kind::_class:
+  case expression_kind::_delete:
   case expression_kind::_invalid:
   case expression_kind::_new:
   case expression_kind::_template:

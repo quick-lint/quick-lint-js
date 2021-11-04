@@ -36,6 +36,7 @@ class expression;
 
 enum class expression_kind {
   _class,
+  _delete,
   _invalid,
   _new,
   _template,
@@ -156,6 +157,7 @@ class expression {
   class expression_with_prefix_operator_base;
 
   class _class;
+  class _delete;
   class _invalid;
   class _new;
   class _template;
@@ -365,6 +367,17 @@ class expression::expression_with_prefix_operator_base : public expression {
   const char8 *unary_operator_begin_;
   expression *child_;
 };
+
+class expression::_delete final
+    : public expression::expression_with_prefix_operator_base {
+ public:
+  static constexpr expression_kind kind = expression_kind::_delete;
+
+  explicit _delete(expression *child, source_code_span operator_span) noexcept
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {}
+};
+static_assert(expression_arena::is_allocatable<expression::_delete>);
 
 class expression::_class : public expression {
  public:
@@ -1166,6 +1179,7 @@ inline auto expression::with_derived(Func &&func) {
 
   switch (this->kind()) {
     QLJS_EXPRESSION_CASE(_class)
+    QLJS_EXPRESSION_CASE(_delete)
     QLJS_EXPRESSION_CASE(_invalid)
     QLJS_EXPRESSION_CASE(_new)
     QLJS_EXPRESSION_CASE(_template)

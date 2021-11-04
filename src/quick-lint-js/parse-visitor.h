@@ -50,6 +50,7 @@ concept parse_visitor = requires(Visitor v, identifier name,
   {v.visit_property_declaration(std::optional<identifier>(name))};
   {v.visit_variable_assignment(name)};
   {v.visit_variable_declaration(name, var_kind)};
+  {v.visit_variable_delete_use(name)};
   {v.visit_variable_export_use(name)};
   {v.visit_variable_typeof_use(name)};
   {v.visit_variable_use(name)};

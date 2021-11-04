@@ -345,6 +345,10 @@ void linter::visit_variable_assignment(identifier name) {
   }
 }
 
+void linter::visit_variable_delete_use(identifier name) {
+  this->visit_variable_use(name, used_variable_kind::use);
+}
+
 void linter::visit_variable_export_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_export);
 }

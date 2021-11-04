@@ -780,20 +780,6 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"delete x;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_redundant_delete_statement_on_variable,
-                              delete_expression,
-                              offsets_matcher(&code, 0, u8"delete x"))));
-  }
-
-  {
     padded_string code(u8"#myArray[index] = rhs;"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -809,6 +795,30 @@ TEST(test_parse, expression_statement) {
                     error_cannot_refer_to_private_variable_without_object>(
             ::testing::_)));
   }
+}
+
+TEST(test_parse, delete_of_variable) {
+  spy_visitor v;
+  padded_string code(u8"delete x;"_sv);
+  parser p(&code, &v);
+  p.parse_and_visit_expression(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_delete_use"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_redundant_delete_statement_on_variable,
+                  delete_expression, offsets_matcher(&code, 0, u8"delete x"))));
+}
+
+TEST(test_parse, delete_of_expression) {
+  spy_visitor v;
+  padded_string code(u8"delete x.p;"_sv);
+  parser p(&code, &v);
+  p.parse_and_visit_expression(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
 }
 
 TEST(test_parse, cannot_reference_private_identifier_outside_class) {
