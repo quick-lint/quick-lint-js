@@ -289,6 +289,15 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           error_function_call_before_declaration_in_block_scope{used_var.name,
                                                                 name});
     }
+    if (used_var.kind == used_variable_kind::_delete) {
+      // TODO(strager): What if the variable was parenthesized? We should
+      // include the closing parenthesis.
+      this->error_reporter_->report(
+          error_redundant_delete_statement_on_variable{
+              .delete_expression = source_code_span(
+                  used_var.delete_keyword_begin, used_var.name.span().end()),
+          });
+    }
     if (kind == variable_kind::_class || kind == variable_kind::_const ||
         kind == variable_kind::_let) {
       switch (used_var.kind) {
@@ -301,6 +310,9 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
       case used_variable_kind::use:
         this->error_reporter_->report(
             error_variable_used_before_declaration{used_var.name, name});
+        break;
+      case used_variable_kind::_delete:
+        // Use before declaration is legal for delete.
         break;
       case used_variable_kind::_export:
         // Use before declaration is legal for variable exports.
@@ -324,6 +336,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                // TODO(strager): This shouldn't happen. export statements are
                // not allowed inside functions.
                break;
+             case used_variable_kind::_delete:
              case used_variable_kind::_typeof:
              case used_variable_kind::use:
                break;
@@ -347,14 +360,23 @@ void linter::visit_variable_assignment(identifier name) {
 
 void linter::visit_variable_delete_use(identifier name,
                                        source_code_span delete_keyword) {
-  this->visit_variable_use(name, used_variable_kind::use);
   QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
-  // TODO(strager): What if the variable was parenthesized? We should include
-  // the closing parenthesis.
-  this->error_reporter_->report(error_redundant_delete_statement_on_variable{
-      .delete_expression =
-          source_code_span(delete_keyword.begin(), name.span().end()),
-  });
+
+  QLJS_ASSERT(!this->scopes_.empty());
+  scope &current_scope = this->current_scope();
+  bool variable_is_declared =
+      current_scope.declared_variables.find(name) != nullptr;
+  if (variable_is_declared) {
+    // TODO(strager): What if the variable was parenthesized? We should include
+    // the closing parenthesis.
+    this->error_reporter_->report(error_redundant_delete_statement_on_variable{
+        .delete_expression =
+            source_code_span(delete_keyword.begin(), name.span().end()),
+    });
+  } else {
+    current_scope.variables_used.emplace_back(name, used_variable_kind::_delete,
+                                              delete_keyword.begin());
+  }
 }
 
 void linter::visit_variable_export_use(identifier name) {
@@ -431,6 +453,10 @@ void linter::visit_end_of_module() {
       case used_variable_kind::assignment:
         this->error_reporter_->report(
             error_assignment_to_undeclared_variable{used_var.name});
+        break;
+      case used_variable_kind::_delete:
+        // TODO(strager): Report a warning if the global variable is not
+        // deletable.
         break;
       case used_variable_kind::_export:
       case used_variable_kind::use:

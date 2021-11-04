@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_LINT_H
 
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -102,6 +103,7 @@ class linter {
   };
 
   enum class used_variable_kind {
+    _delete,
     _export,
     _typeof,
     assignment,
@@ -110,9 +112,19 @@ class linter {
 
   struct used_variable {
     explicit used_variable(identifier name, used_variable_kind kind) noexcept
-        : name(name), kind(kind) {}
+        : name(name), kind(kind) {
+      QLJS_ASSERT(kind != used_variable_kind::_delete);
+    }
+
+    // kind must be used_variable_kind::_delete.
+    explicit used_variable(identifier name, used_variable_kind kind,
+                           const char8 *delete_keyword_begin) noexcept
+        : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
+      QLJS_ASSERT(kind == used_variable_kind::_delete);
+    }
 
     identifier name;
+    const char8 *delete_keyword_begin;  // used_variable_kind::_delete only
     used_variable_kind kind;
   };
 
