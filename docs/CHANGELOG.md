@@ -12,6 +12,7 @@ Beta release.
 
 ### Added
 
+* Various new diagnostics (implemented by [Himanshu][]).
 * VS Code: The new `quick-lint-js.logging` setting allows you to show
   quick-lint-js' internal log messages in an Output window.
 * VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
@@ -22,6 +23,14 @@ Beta release.
 * Vim: Improved performance of the ALE plugin by using the LSP server by
   default.
 * The macOS and Windows binaries are now code-signed.
+* Emacs (Eglot): You no longer need to type `M-x eglot` in order to start
+  linting. Apply this fix by [adding `(eglot-ensure)` to your init
+  file](https://quick-lint-js.com/install/emacs/configure/#eglot).
+* quick-lint-js now understands the `AggregateError`, `FinalizationRegistry`,
+  and `WeakRef` ECMAScript global variables by default.
+* The macOS and Windows executables now include embedded code signatures. These
+  signatures are made with a self-signed certificate.
+* The Linux executables are now signed with a GPG signature (`.asc` files).
 
 ### Fixed
 
@@ -32,6 +41,9 @@ Beta release.
 * VS Code: The extension no longer tries to load an ARM64 DLL on Windows x64.
 * VS Code and LSP server: In Windows debug builds, crashes no longer occur
   supriously when the filesystem changes.
+* The npm package and the manual builds are now much smaller and faster. (They
+  were previously compiled in debug, unoptimized mode.)
+* `delete x` no longer reports a warning if `x` is a global variable.
 
 ## 0.5.0 (2021-10-12)
 
