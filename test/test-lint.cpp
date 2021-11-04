@@ -2705,6 +2705,37 @@ TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
 
 // TODO(#204): 'arguments' should not be declared in arrow functions.
 
+TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
+  const char8 declaration[] = u8"v";
+  padded_string delete_expression(u8"delete v"_sv);
+  source_code_span delete_keyword_span(delete_expression.data(),
+                                       delete_expression.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(delete_expression.data() + 7,
+                                         delete_expression.data() + 8);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
+
+  // (() => {
+  //   let v;
+  //   delete v;
+  // });
+  error_collector v;
+  linter l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_delete_use(identifier(deleted_variable_span),
+                              delete_keyword_span);
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(ERROR_TYPE_FIELD(
+          error_redundant_delete_statement_on_variable, delete_expression,
+          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+}
+
 TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
   const char8 use[] = u8"v";
 

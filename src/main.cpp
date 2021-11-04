@@ -302,7 +302,8 @@ class debug_visitor {
               << '\n';
   }
 
-  void visit_variable_delete_use(identifier name) {
+  void visit_variable_delete_use(
+      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
     std::cerr << "variable delete use: " << out_string8(name.normalized_name())
               << '\n';
   }
@@ -415,9 +416,10 @@ class multi_visitor {
     this->visitor_2_->visit_variable_declaration(name, kind);
   }
 
-  void visit_variable_delete_use(identifier name) {
-    this->visitor_1_->visit_variable_delete_use(name);
-    this->visitor_2_->visit_variable_delete_use(name);
+  void visit_variable_delete_use(identifier name,
+                                 source_code_span delete_keyword) {
+    this->visitor_1_->visit_variable_delete_use(name, delete_keyword);
+    this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
   void visit_variable_export_use(identifier name) {

@@ -363,6 +363,10 @@ class expression::expression_with_prefix_operator_base : public expression {
                             this->child_->span().end());
   }
 
+  const char8 *unary_operator_begin() const noexcept {
+    return this->unary_operator_begin_;
+  }
+
  protected:
   const char8 *unary_operator_begin_;
   expression *child_;
@@ -375,7 +379,15 @@ class expression::_delete final
 
   explicit _delete(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
-                                                         operator_span) {}
+                                                         operator_span) {
+    QLJS_ASSERT(operator_span.string_view() == u8"delete");
+  }
+
+  source_code_span unary_operator_span() {
+    const char8 *operator_begin = this->unary_operator_begin();
+    return source_code_span(operator_begin,
+                            operator_begin + strlen(u8"delete"));
+  }
 };
 static_assert(expression_arena::is_allocatable<expression::_delete>);
 

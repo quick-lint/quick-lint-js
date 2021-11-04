@@ -799,7 +799,9 @@ class parser {
     case expression_kind::_delete: {
       expression *child = ast->child_0();
       if (child->kind() == expression_kind::variable) {
-        v.visit_variable_delete_use(child->variable_identifier());
+        v.visit_variable_delete_use(
+            child->variable_identifier(),
+            static_cast<expression::_delete *>(ast)->unary_operator_span());
       } else {
         this->visit_expression(child, v, context);
       }

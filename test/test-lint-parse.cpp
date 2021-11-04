@@ -192,6 +192,24 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
                           error_keywords_cannot_contain_escape_sequences>(
                   ::testing::_)));
 }
+
+TEST(test_lint, delete_local_variable) {
+  padded_string input(
+      u8"function f(param) { let v; delete v; delete param; }"_sv);
+  error_collector v;
+  linter l(&v, &default_globals);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(
+          ::testing::VariantWith<error_redundant_delete_statement_on_variable>(
+              ::testing::_),
+          ::testing::VariantWith<error_redundant_delete_statement_on_variable>(
+              ::testing::_)));
+}
 }
 }
 

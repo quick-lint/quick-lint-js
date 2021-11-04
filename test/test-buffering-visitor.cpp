@@ -27,6 +27,7 @@ identifier identifier_of(const char8 (&name)[N]) {
 }
 
 TEST(test_buffering_visitor, buffers_all_visits) {
+  const char8 delete_keyword[] = u8"delete";
   const char8 function_name[] = u8"function";
   const char8 property_name[] = u8"property";
   const char8 variable_name[] = u8"variable";
@@ -51,7 +52,8 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(identifier_of(variable_name),
                                variable_kind::_var);
-  v.visit_variable_delete_use(identifier_of(variable_name));
+  v.visit_variable_delete_use(identifier_of(variable_name),
+                              span_of(delete_keyword));
   v.visit_variable_export_use(identifier_of(variable_name));
   v.visit_variable_typeof_use(identifier_of(variable_name));
   v.visit_variable_use(identifier_of(variable_name));

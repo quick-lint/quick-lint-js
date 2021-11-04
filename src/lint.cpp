@@ -345,8 +345,16 @@ void linter::visit_variable_assignment(identifier name) {
   }
 }
 
-void linter::visit_variable_delete_use(identifier name) {
+void linter::visit_variable_delete_use(identifier name,
+                                       source_code_span delete_keyword) {
   this->visit_variable_use(name, used_variable_kind::use);
+  QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
+  // TODO(strager): What if the variable was parenthesized? We should include
+  // the closing parenthesis.
+  this->error_reporter_->report(error_redundant_delete_statement_on_variable{
+      .delete_expression =
+          source_code_span(delete_keyword.begin(), name.span().end()),
+  });
 }
 
 void linter::visit_variable_export_use(identifier name) {

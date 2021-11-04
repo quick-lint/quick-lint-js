@@ -243,13 +243,6 @@ expression* parser::parse_primary_expression(precedence prec) {
                                                                operator_span)
                   : this->make_expression<expression::unary_operator>(
                         child, operator_span);
-    if (type == token_type::kw_delete &&
-        child->kind() == expression_kind::variable) {
-      this->error_reporter_->report(
-          error_redundant_delete_statement_on_variable{
-              .delete_expression = ast->span(),
-          });
-    }
     return ast;
   }
 

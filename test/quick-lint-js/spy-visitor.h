@@ -158,7 +158,8 @@ struct spy_visitor : public error_collector {
   };
   std::vector<visited_variable_declaration> variable_declarations;
 
-  void visit_variable_delete_use(identifier name) {
+  void visit_variable_delete_use(
+      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_delete_use");

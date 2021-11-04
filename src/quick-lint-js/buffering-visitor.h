@@ -84,7 +84,7 @@ class buffering_visitor {
         target.visit_variable_assignment(v.name);
         break;
       case visit_kind::variable_delete_use:
-        target.visit_variable_delete_use(v.name);
+        target.visit_variable_delete_use(v.name, v.extra_span);
         break;
       case visit_kind::variable_export_use:
         target.visit_variable_export_use(v.name);
@@ -175,8 +175,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::variable_declaration, name, kind);
   }
 
-  void visit_variable_delete_use(identifier name) {
-    this->visits_.emplace_back(visit_kind::variable_delete_use, name);
+  void visit_variable_delete_use(identifier name,
+                                 source_code_span delete_keyword) {
+    this->visits_.emplace_back(visit_kind::variable_delete_use, name,
+                               delete_keyword);
   }
 
   void visit_variable_export_use(identifier name) {
@@ -227,6 +229,10 @@ class buffering_visitor {
                    variable_kind var_kind) noexcept
         : kind(kind), name(name), var_kind(var_kind) {}
 
+    explicit visit(visit_kind kind, identifier name,
+                   source_code_span extra_span) noexcept
+        : kind(kind), name(name), extra_span(extra_span) {}
+
     visit_kind kind;
 
     union {
@@ -240,6 +246,10 @@ class buffering_visitor {
       // variable_declaration
       variable_kind var_kind;
       static_assert(std::is_trivially_destructible_v<variable_kind>);
+
+      // variable_delete_use
+      source_code_span extra_span;
+      static_assert(std::is_trivially_destructible_v<source_code_span>);
     };
   };
 

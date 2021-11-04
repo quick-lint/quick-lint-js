@@ -440,14 +440,8 @@ TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
 
 TEST_F(test_parse_expression, delete_unary_operator) {
   {
-    test_parser p(u8"delete variable");
-    expression* ast = p.parse_expression();
+    expression* ast = this->parse_expression(u8"delete variable"_sv);
     EXPECT_EQ(summarize(ast), "delete(var variable)");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(p.code(), 0, u8"delete variable"))));
   }
 
   {
