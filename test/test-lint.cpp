@@ -96,21 +96,27 @@ constexpr const char8 *non_writable_global_variables[] = {
 };
 
 TEST(test_lint, global_variables_are_usable) {
-  error_collector v;
-  linter l(&v, &default_globals);
   // Array = null;
   // Array;
   for (const char8 *global_variable : writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    error_collector v;
+    linter l(&v, &default_globals);
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
   }
+
   // NaN;
   for (const char8 *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    error_collector v;
+    linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
   }
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, immutable_global_variables_are_not_assignable) {
@@ -229,14 +235,14 @@ constexpr const char8 *nodejs_global_variables[] = {
 }
 
 TEST(test_lint, nodejs_global_variables_are_usable) {
-  error_collector v;
-  linter l(&v, &default_globals);
   for (const char8 *global_variable : nodejs_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    error_collector v;
+    linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
   }
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
