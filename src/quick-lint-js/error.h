@@ -89,6 +89,13 @@
             await_operator))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_await_followed_by_arrow_function, "E176",                          \
+      { source_code_span await_operator; },                                    \
+      ERROR(QLJS_TRANSLATABLE("'await' cannot be followed by an arrow "        \
+                              "function; use 'async' instead"),                \
+            await_operator))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_async_static_method, "E269", { source_code_span async_static; },   \
       ERROR(                                                                   \
           QLJS_TRANSLATABLE(                                                   \

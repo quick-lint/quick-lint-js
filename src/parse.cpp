@@ -818,10 +818,18 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       });
     }
 
+    bool is_followed_by_async = this->peek().type == token_type::kw_async;
+
     expression* child = this->parse_expression(prec);
+
     if (child->kind() == expression_kind::_invalid) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
+      });
+    } else if (this->in_async_function_ && this->is_arrow_kind(child) &&
+               !is_followed_by_async) {
+      this->error_reporter_->report(error_await_followed_by_arrow_function{
+          .await_operator = operator_span,
       });
     }
     return this->make_expression<expression::await>(child, operator_span);
@@ -2237,6 +2245,11 @@ void parser::consume_semicolon() {
     }
     break;
   }
+}
+
+bool parser::is_arrow_kind(expression* ast) noexcept {
+  return ast->kind() == expression_kind::arrow_function_with_statements ||
+         ast->kind() == expression_kind::arrow_function_with_expression;
 }
 
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
