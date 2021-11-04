@@ -43,6 +43,7 @@ constexpr const char8 *writable_global_variables[] = {
     u8"parseInt",
 
     // ECMA-262 18.3 Constructor Properties of the Global Object
+    u8"AggregateError",
     u8"Array",
     u8"ArrayBuffer",
     u8"BigInt",
@@ -53,6 +54,7 @@ constexpr const char8 *writable_global_variables[] = {
     u8"Date",
     u8"Error",
     u8"EvalError",
+    u8"FinalizationRegistry",
     u8"Float32Array",
     u8"Float64Array",
     u8"Function",
@@ -79,6 +81,7 @@ constexpr const char8 *writable_global_variables[] = {
     u8"Uint8Array",
     u8"Uint8ClampedArray",
     u8"WeakMap",
+    u8"WeakRef",
     u8"WeakSet",
 
     // ECMA-262 18.4 Other Properties of the Global Object
