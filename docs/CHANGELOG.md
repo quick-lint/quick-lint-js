@@ -44,6 +44,8 @@ Beta release.
 * The npm package and the manual builds are now much smaller and faster. (They
   were previously compiled in debug, unoptimized mode.)
 * `delete x` no longer reports a warning if `x` is a global variable.
+* JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
+  JSX syntax is not yet supported.
 
 ## 0.5.0 (2021-10-12)
 

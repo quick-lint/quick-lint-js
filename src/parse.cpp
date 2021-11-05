@@ -464,8 +464,20 @@ expression* parser::parse_primary_expression(precedence prec) {
     expression* ast =
         this->make_expression<expression::_invalid>(this->peek().span());
     if (prec.binary_operators) {
-      this->error_reporter_->report(
-          error_missing_operand_for_operator{this->peek().span()});
+      if (this->peek().type == token_type::less) {
+        // <MyComponent /> (JSX)
+        this->error_reporter_->report(
+            error_jsx_not_yet_implemented{.jsx_start = this->peek().span()});
+#if QLJS_HAVE_SETJMP
+        if (this->have_fatal_parse_error_jmp_buf_) {
+          std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
+          QLJS_UNREACHABLE();
+        }
+#endif
+      } else {
+        this->error_reporter_->report(
+            error_missing_operand_for_operator{this->peek().span()});
+      }
     }
     return ast;
   }

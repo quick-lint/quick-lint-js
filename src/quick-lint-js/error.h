@@ -597,6 +597,10 @@
       ERROR(QLJS_TRANSLATABLE("invalid UTF-8 sequence"), sequence))            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_jsx_not_yet_implemented, "E177", { source_code_span jsx_start; },  \
+      ERROR(QLJS_TRANSLATABLE("React/JSX is not yet implemented"), jsx_start)) \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_keywords_cannot_contain_escape_sequences, "E023",                  \
       { source_code_span escape_sequence; },                                   \
       ERROR(QLJS_TRANSLATABLE("keywords cannot contain escape sequences"),     \

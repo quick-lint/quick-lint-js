@@ -3291,6 +3291,21 @@ TEST_F(test_parse_expression, generator_misplaced_star) {
   EXPECT_EQ(p.range(ast).end_offset(), 16);
 }
 
+TEST_F(test_parse_expression, jsx_is_not_supported) {
+  // If parsing was not started with
+  // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt
+  // parsing at the '<'. For error recovery, treat '<' as if it was a binary
+  // operator.
+  test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
+  expression* ast = p.parse_expression();
+  EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                              error_jsx_not_yet_implemented, jsx_start,
+                              offsets_matcher(p.code(), 0, u8"<"))));
+  EXPECT_EQ(p.range(ast).begin_offset(), 0);
+  EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<MyComponent"));
+  EXPECT_EQ(summarize(ast), "binary(?, var MyComponent)");
+}
+
 std::string summarize(const expression& expression) {
   auto children = [&] {
     std::string result;

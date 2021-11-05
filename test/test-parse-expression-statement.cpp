@@ -235,11 +235,12 @@ TEST(test_parse, stray_right_parenthesis) {
 }
 
 TEST(test_parse, statement_starting_with_binary_only_operator) {
+  // '<' omitted. It is used for JSX.
   for (string8_view op : {
-           u8"!=", u8"!==", u8"%",  u8"&",          u8"&&", u8"*",
-           u8"**", u8",",   u8"<",  u8"<<",         u8"<=", u8"=",
-           u8"==", u8"===", u8">",  u8">=",         u8">>", u8">>>",
-           u8"??", u8"^",   u8"in", u8"instanceof", u8"|",
+           u8"!=",  u8"!==", u8"%",          u8"&",  u8"&&",  u8"*",
+           u8"**",  u8",",   u8"<<",         u8"<=", u8"=",   u8"==",
+           u8"===", u8">",   u8">=",         u8">>", u8">>>", u8"??",
+           u8"^",   u8"in",  u8"instanceof", u8"|",
        }) {
     padded_string code(string8(op) + u8" x");
     SCOPED_TRACE(code);
