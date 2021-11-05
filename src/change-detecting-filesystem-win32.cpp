@@ -130,7 +130,6 @@ bool change_detecting_filesystem_win32::handle_event(
       watched_directory::from_oplock_overlapped(overlapped);
   switch (error) {
   case ERROR_SUCCESS:
-  case WAIT_TIMEOUT:  // FIXME(strager): Why do we sometimes get WAIT_TIMEOUT?
     this->handle_oplock_broke_event(dir, number_of_bytes_transferred);
     return true;
 

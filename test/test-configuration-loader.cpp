@@ -2656,7 +2656,7 @@ void change_detecting_configuration_loader::run_io_thread() {
         /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,
         /*lpCompletionKey=*/&completion_key, /*lpOverlapped=*/&overlapped,
         /*dwMilliseconds=*/0);
-    DWORD error = ::GetLastError();
+    DWORD error = ok ? ERROR_SUCCESS : ::GetLastError();
 
     if (!overlapped) {
       switch (error) {

@@ -30,6 +30,8 @@ Beta release.
 * Various crashes on invalid code have been fixed.
 * quick-lint-js consumes less memory for pathlogical code patterns.
 * VS Code: The extension no longer tries to load an ARM64 DLL on Windows x64.
+* VS Code and LSP server: In Windows debug builds, crashes no longer occur
+  supriously when the filesystem changes.
 
 ## 0.5.0 (2021-10-12)
 
