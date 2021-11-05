@@ -12,7 +12,7 @@ Beta release.
 
 ### Added
 
-* Various new diagnostics (implemented by [Himanshu][]).
+* Various new diagnostics (implemented by [Himanshu][] and [Matheus Sousa][]).
 * VS Code: The new `quick-lint-js.logging` setting allows you to show
   quick-lint-js' internal log messages in an Output window.
 * VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
