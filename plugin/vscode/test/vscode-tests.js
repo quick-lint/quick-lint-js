@@ -161,7 +161,7 @@ tests = {
     let helloEditor = await vscode.window.showTextDocument(helloDocument);
 
     // HACK(strager): Wait for VS Code to register its filesystem watchers.
-    await sleepAsync(100);
+    await sleepAsync(300);
 
     fs.writeFileSync(helloFilePath, "let x = 3;\nlet x = 4;\n");
 
