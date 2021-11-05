@@ -818,8 +818,6 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       });
     }
 
-    bool is_followed_by_async = this->peek().type == token_type::kw_async;
-
     expression* child = this->parse_expression(prec);
 
     if (child->kind() == expression_kind::_invalid) {
@@ -827,7 +825,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
           .where = operator_span,
       });
     } else if (this->in_async_function_ && this->is_arrow_kind(child) &&
-               !is_followed_by_async) {
+               child->attributes() != function_attributes::async) {
       this->error_reporter_->report(error_await_followed_by_arrow_function{
           .await_operator = operator_span,
       });
