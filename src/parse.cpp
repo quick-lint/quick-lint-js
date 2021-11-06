@@ -1421,6 +1421,7 @@ expression* parser::parse_index_expression_remainder(expression* lhs) {
   this->skip();
   expression* subscript =
       this->parse_expression(precedence{.trailing_identifiers = true});
+  const char8* end;
   switch (this->peek().type) {
   case token_type::right_square:
     if (subscript->kind() == expression_kind::_invalid) {
@@ -1431,18 +1432,16 @@ expression* parser::parse_index_expression_remainder(expression* lhs) {
                                       right_square_span.end()),
       });
     }
+    end = this->peek().end;
+    this->skip();
     break;
   case token_type::end_of_file:
+  default:
     this->error_reporter_->report(
         error_unmatched_indexing_bracket{.left_square = left_square_span});
-    break;
-  default:
-    QLJS_PARSER_UNIMPLEMENTED();
+    end = this->lexer_.end_of_previous_token();
     break;
   }
-
-  const char8* end = this->peek().end;
-  this->skip();
   return this->make_expression<expression::index>(lhs, subscript, end);
 }
 

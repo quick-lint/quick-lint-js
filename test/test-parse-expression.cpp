@@ -856,6 +856,16 @@ TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
                     error_unmatched_indexing_bracket, left_square,
                     offsets_matcher(p.code(), strlen(u8"xs"), u8"["))));
   }
+
+  {
+    test_parser p(u8"(xs[i)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unmatched_indexing_bracket, left_square,
+                    offsets_matcher(p.code(), strlen(u8"(xs"), u8"["))));
+  }
 }
 
 TEST_F(test_parse_expression, empty_indexing_expression) {
