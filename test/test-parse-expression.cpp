@@ -995,6 +995,66 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
                              await_operator,
                              offsets_matcher(p.code(), 0, u8"await"))));
   }
+
+  {
+    test_parser p(u8"await () => { await g(); }"_sv);
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::await);
+    EXPECT_EQ(ast->child_0()->kind(),
+              expression_kind::arrow_function_with_statements);
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_await_followed_by_arrow_function, await_operator,
+                    offsets_matcher(p.code(), 0, u8"await"))));
+  }
+
+  {
+    test_parser p(u8"await x => { await g(); }"_sv);
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::await);
+    EXPECT_EQ(ast->child_0()->kind(),
+              expression_kind::arrow_function_with_statements);
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_await_followed_by_arrow_function, await_operator,
+                    offsets_matcher(p.code(), 0, u8"await"))));
+  }
+
+  {
+    test_parser p(u8"await () => { await g(); }"_sv);
+    auto guard = p.parser().enter_function(function_attributes::normal);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::await);
+    EXPECT_EQ(ast->child_0()->kind(),
+              expression_kind::arrow_function_with_statements);
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_await_operator_outside_async, await_operator,
+                             offsets_matcher(p.code(), 0, u8"await")),
+            ERROR_TYPE_FIELD(error_await_followed_by_arrow_function,
+                             await_operator,
+                             offsets_matcher(p.code(), 0, u8"await"))));
+  }
+
+  {
+    test_parser p(u8"await x => { await g(); }"_sv);
+    auto guard = p.parser().enter_function(function_attributes::normal);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), expression_kind::await);
+    EXPECT_EQ(ast->child_0()->kind(),
+              expression_kind::arrow_function_with_statements);
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_await_operator_outside_async, await_operator,
+                             offsets_matcher(p.code(), 0, u8"await")),
+            ERROR_TYPE_FIELD(error_await_followed_by_arrow_function,
+                             await_operator,
+                             offsets_matcher(p.code(), 0, u8"await"))));
+  }
 }
 
 TEST_F(test_parse_expression,
