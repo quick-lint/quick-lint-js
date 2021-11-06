@@ -7,15 +7,5 @@
     "parserOptions": {
         "ecmaVersion": 2017
     },
-    "extends": "eslint:recommended",
-    "rules": {
-      "no-unused-vars": ["error", {
-        "args": "all",
-        "argsIgnorePattern": "^_",
-        "caughtErrors": "all",
-        "ignoreRestSiblings": false,
-        "vars": "all",
-        "varsIgnorePattern": "^_"
-      }]
-    }
+    "extends": "eslint:recommended"
 }
