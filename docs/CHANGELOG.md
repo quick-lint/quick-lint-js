@@ -31,6 +31,7 @@ Beta release.
 * The macOS and Windows executables now include embedded code signatures. These
   signatures are made with a self-signed certificate.
 * The Linux executables are now signed with a GPG signature (`.asc` files).
+* Vim: [coc.nvim][] is now supported.
 
 ### Fixed
 
@@ -202,6 +203,7 @@ Beta release.
 [Lee Wannacott]: https://github.com/LeeWannacott
 [Matheus Sousa]: https://github.com/keyehzy
 [Shivam Mehta]: https://github.com/maniac-en
+[coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr

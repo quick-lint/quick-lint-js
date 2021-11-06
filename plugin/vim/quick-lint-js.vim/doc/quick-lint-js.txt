@@ -14,7 +14,8 @@ newer version might or might not work.
 2. Installing the plugin	|quick-lint-js-vim-install|
 3. Configuring			|quick-lint-js-configure|
    3.1. ALE			|quick-lint-js-configure-ale|
-   3.2. nvim-lspconfig		|quick-lint-js-configure-nvim-lspconfig|
+   3.2. coc.nvim		|quick-lint-js-configure-coc-nvim|
+   3.3. nvim-lspconfig		|quick-lint-js-configure-nvim-lspconfig|
 
 ==============================================================================
 1. Installing quick-lint-js		*quick-lint-js-app-install*
@@ -112,7 +113,41 @@ could run arbitrary code on your computer through `node_modules` if you open a
 JavaScript file.
 
 ==============================================================================
-3.2. Configuring for nvim-lspconfig	*quick-lint-js-configure-nvim-lspconfig*
+3.2. Configuring for coc.nvim		*quick-lint-js-configure-coc-nvim*
+
+The quick-lint-js Vim plugin comes with a plugin for coc.nvim (Conquer of
+Completion). https://github.com/neoclide/coc.nvim
+
+Supported coc.nvim versions: v0.0.80 or newer
+
+quick-lint-js is fast. To feel the speed, you should configure
+`diagnostic.messageDelay` and `diagnostic.refreshOnInsertMode`. Add the
+following code to your |coc-configuration| (run `:CocConfig`) to make
+JavaScript linting as fast as possible:
+
+  "diagnostic.messageDelay": 0,
+  "diagnostic.refreshOnInsertMode": true,
+
+Unfortunately, there is an unconfigurable 400 millisecond delay hard-coded
+into coc.nvim:
+https://github.com/neoclide/coc.nvim/blob/9f6e29b6f9661ebba10ff3df84de11d96c8a9e56/src/model/document.ts#L75,L78
+If you want linting to feel faster, try ALE or nvim-lspconfig instead of
+coc.nvim.
+
+You can customize this plugin's configuration by copy-pasting the following
+snippet into your |coc-configuration| then tweaking it according to
+|coc-config-languageserver|:
+
+    "languageserver": {
+      "quick-lint-js": {
+        "args": ["--lsp-server"],
+        "command": "quick-lint-js",
+        "filetypes": ["javascript", "json"]
+      }
+    }
+
+==============================================================================
+3.3. Configuring for nvim-lspconfig	*quick-lint-js-configure-nvim-lspconfig*
 
 The quick-lint-js Vim plugin comes with a plugin for nvim-lspconfig.
 https://github.com/neovim/nvim-lspconfig
