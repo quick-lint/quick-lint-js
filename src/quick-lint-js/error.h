@@ -1240,10 +1240,6 @@
             bom))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_identifier, "E053", { source_code_span where; },        \
-      ERROR(QLJS_TRANSLATABLE("unexpected identifier"), where))                \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_identifier_in_expression, "E147",                       \
       { identifier unexpected; },                                              \
       ERROR(                                                                   \
