@@ -76,6 +76,8 @@ markdownParser.renderer.rules = {
       );
     }
 
+    codeHTML = wrapASCIIControlCharacters(codeHTML);
+
     env.codeBlockIndex += 1;
     return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
   },
@@ -305,6 +307,18 @@ export async function loadErrorDocumentationFilesAsync(rootPath) {
 }
 
 export class ProblemsError extends Error {}
+
+function wrapASCIIControlCharacters(html) {
+  let CONTROL_CHARACTER_TO_CSS_CLASS = {
+    "\u0007": "unicode-bel",
+    "\u0008": "unicode-bs",
+    "\u007f": "unicode-del",
+  };
+  return html.replace(/[\u0007\u0008\u007f]/g, (controlCharacter) => {
+    let cssClass = CONTROL_CHARACTER_TO_CSS_CLASS[controlCharacter];
+    return `<span class='${cssClass}'>${controlCharacter}</span>`;
+  });
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

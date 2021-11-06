@@ -172,6 +172,17 @@ wasn't that neat?
     );
   });
 
+  it("html wraps weird control characters", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n```\n" + "BEL:\u0007\n" + "BS:\u0008\n" + "DEL:\u007f\n" + "```"
+    );
+    let html = doc.toHTML();
+    expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
+    expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
+    expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+  });
+
   it("many possibilities of html code has bom", () => {
     const possibilities = [
       "<mark>\u{feff}hello</mark>",
