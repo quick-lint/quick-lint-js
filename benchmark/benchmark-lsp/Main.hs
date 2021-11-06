@@ -326,9 +326,9 @@ waitForOneDiagnosticsMessageOrTimeout timeoutMicroseconds = do
       Nothing -> return Nothing
       _ -> fail "Unimplemented message"
 
--- | HACK(strager): Some LSP servers, such as Flow and TypeScript-Theia, give us
--- an empty list of diagnostics before giving us the real list of diagnostics.
--- Skip the empty list and wait for the real list.
+-- | HACK(strager): Some LSP servers, such as Flow and TypeScript, give us an
+-- empty list of diagnostics before giving us the real list of diagnostics. Skip
+-- the empty list and wait for the real list.
 waitUntilSomeDiagnosticsWithTimeout :: Int -> LSPM [LSP.Diagnostic]
 waitUntilSomeDiagnosticsWithTimeout timeoutMicroseconds =
   fix $ \loop ->

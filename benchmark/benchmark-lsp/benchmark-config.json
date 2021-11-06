@@ -60,7 +60,7 @@
       "allowIncrementalChanges": false
     },
     {
-      "name": "TypeScript-Theia",
+      "name": "TypeScript",
       "command": ["node", "./node_modules/.bin/typescript-language-server", "--stdio"],
       "cwd": "typescript/",
       "needFilesOnDisk": true

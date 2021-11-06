@@ -130,8 +130,8 @@ initializeLSP initializationOptions = do
   -- Flow's LSP server requires rootURI.
   let rootURI = LSP.filePathToUri rootPath
   let workspaceFolders = [LSP.WorkspaceFolder (LSP.getUri rootURI) "benchmarks"]
-  -- PublishDiagnosticsClientCapabilities is required by the TypeScript-Theia
-  -- LSP server since version 0.6.0:
+  -- PublishDiagnosticsClientCapabilities is required by the TypeScript LSP
+  -- server since version 0.6.0:
   -- https://github.com/typescript-language-server/typescript-language-server/pull/229
   let textDocumentClientCapabilities =
         def {LSP._publishDiagnostics = Just (LSP.PublishDiagnosticsClientCapabilities Nothing Nothing Nothing)}
