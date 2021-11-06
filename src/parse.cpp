@@ -783,6 +783,20 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         return is_identifier_result;
       }
 
+      case token_type::left_paren: {
+        buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
+        error_reporter* old_error_reporter =
+            std::exchange(this->error_reporter_, &temp_error_reporter);
+        lexer_transaction transaction = this->lexer_.begin_transaction();
+
+        expression* ast = this->parse_expression(prec);
+
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        this->error_reporter_ = old_error_reporter;
+
+        return !this->in_top_level_ && !this->is_arrow_kind(ast);
+      }
+
       case token_type::kw_of:
         // HACK(strager): This works around for-of parsing. Remove this case
         // when for-of parsing is fixed.
@@ -793,7 +807,6 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         [[fallthrough]];
       case token_type::complete_template:
       case token_type::incomplete_template:
-      case token_type::left_paren:
       case token_type::left_square:
       case token_type::minus:
       case token_type::plus:
@@ -842,7 +855,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
-    } else if (this->in_async_function_ && this->is_arrow_kind(child) &&
+    } else if (this->is_arrow_kind(child) &&
                child->attributes() != function_attributes::async) {
       this->error_reporter_->report(error_await_followed_by_arrow_function{
           .await_operator = operator_span,
