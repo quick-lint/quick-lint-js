@@ -159,6 +159,7 @@ class Series {
       RSLint: 120.0,
       Flow: 180.0,
       Deno: 240.0,
+      "Deno-nolint": 260.0,
       TypeScript: 300.0,
     };
     return hues[this.name];
