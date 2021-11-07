@@ -1,1 +1,1 @@
-let x, x;
+if (false) undeclaredVariable.hasOwnProperty();
