@@ -13,6 +13,11 @@ body.javascript .javascript-only {
 .chart {
   --transition-duration: 0.5s;
 }
+@media (prefers-reduced-motion) {
+  .chart {
+    --transition-duration: 0;
+  }
+}
 .chart .series .bar,
 .chart .series .label,
 .chart .series .error-bars,
