@@ -123,7 +123,7 @@ Supported coc.nvim versions: v0.0.80 or newer
 quick-lint-js is fast. To feel the speed, you should configure
 `diagnostic.messageDelay` and `diagnostic.refreshOnInsertMode`. Add the
 following code to your |coc-configuration| (run `:CocConfig`) to make
-JavaScript linting as fast as possible:
+JavaScript linting as fast as possible: >
 
   "diagnostic.messageDelay": 0,
   "diagnostic.refreshOnInsertMode": true,
@@ -136,7 +136,7 @@ coc.nvim.
 
 You can customize this plugin's configuration by copy-pasting the following
 snippet into your |coc-configuration| then tweaking it according to
-|coc-config-languageserver|:
+|coc-config-languageserver|: >
 
     "languageserver": {
       "quick-lint-js": {
