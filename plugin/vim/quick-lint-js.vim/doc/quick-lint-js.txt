@@ -38,7 +38,7 @@ If you see this documentation, you have already installed the Vim plugin. Go
 to the next section, |quick-lint-js-configure|.
 
 If you see error code E149 ("Sorry, no help for quick-lint-js"), then you
-need to install the Vim plugin: https://quick-lint-js.com/install/#manual-vim
+need to install the Vim plugin: https://quick-lint-js.com/install/
 
 ==============================================================================
 3. Configuring 				*quick-lint-js-configure*
