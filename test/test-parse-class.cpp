@@ -834,8 +834,8 @@ TEST(test_parse, class_method_without_parameter_list) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_function_parameter_list, function_name,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"method"))));
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"class C { method"), u8""))));
   }
 
   {
@@ -843,11 +843,12 @@ TEST(test_parse, class_method_without_parameter_list) {
     padded_string code(u8"class C { [method+name] { body; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(&code, strlen(u8"class C { "),
-                                    u8"[method+name]"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"class C { [method+name]"),
+                            u8""))));
   }
 
   {
@@ -855,11 +856,12 @@ TEST(test_parse, class_method_without_parameter_list) {
     padded_string code(u8"class C { 'method name' { body; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(&code, strlen(u8"class C { "),
-                                    u8"'method name'"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"class C { 'method name'"),
+                            u8""))));
   }
 }
 

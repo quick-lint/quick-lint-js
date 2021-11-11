@@ -1325,7 +1325,7 @@ class parser {
         QLJS_PARSER_UNIMPLEMENTED();
       }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .function_name = *name,
+          .expected_parameter_list = source_code_span(name->end(), name->end()),
       });
       break;
 
@@ -1338,7 +1338,7 @@ class parser {
         QLJS_PARSER_UNIMPLEMENTED();
       }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .function_name = *name,
+          .expected_parameter_list = source_code_span(name->end(), name->end()),
       });
       // Don't parse a function body.
       return;

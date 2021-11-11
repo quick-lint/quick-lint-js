@@ -562,10 +562,11 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                                       "visit_variable_use",          // y
                                       "visit_variable_assignment",   // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(&code, strlen(u8"{ function "), u8"f"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"{ function f"), u8""))));
   }
 
   {
@@ -578,10 +579,11 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                                       "visit_exit_function_scope",   // f
                                       "visit_variable_use",          // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(&code, strlen(u8"function "), u8"f"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"function f"), u8""))));
   }
 
   {
@@ -598,8 +600,8 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
         v.errors,
         UnorderedElementsAre(
             ERROR_TYPE_FIELD(
-                error_missing_function_parameter_list, function_name,
-                offsets_matcher(&code, strlen(u8"function "), u8"f")),
+                error_missing_function_parameter_list, expected_parameter_list,
+                offsets_matcher(&code, strlen(u8"function f"), u8"")),
             ERROR_TYPE_FIELD(
                 error_missing_operand_for_operator, where,
                 offsets_matcher(&code, strlen(u8"function f"), u8","))));
@@ -624,8 +626,8 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
         v.errors,
         UnorderedElementsAre(
             ERROR_TYPE_FIELD(
-                error_missing_function_parameter_list, function_name,
-                offsets_matcher(&code, strlen(u8"function "), u8"f")),
+                error_missing_function_parameter_list, expected_parameter_list,
+                offsets_matcher(&code, strlen(u8"function f"), u8"")),
             ERROR_TYPE_FIELD(
                 error_missing_operand_for_operator, where,
                 offsets_matcher(&code, strlen(u8"function f"), u8".")),

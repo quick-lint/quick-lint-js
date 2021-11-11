@@ -849,9 +849,9 @@
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_function_parameter_list, "E073",                           \
-      { source_code_span function_name; },                                     \
+      { source_code_span expected_parameter_list; },                           \
       ERROR(QLJS_TRANSLATABLE("missing function parameter list"),              \
-            function_name))                                                    \
+            expected_parameter_list))                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_function_body, "E172",                                     \
