@@ -95,6 +95,9 @@ markdownParser.renderer.rules = {
 };
 
 export function codeHasBOM(codeHTML) {
+  if (!/\ufeff|&#xfeff|&#65279/iu.test(codeHTML)) {
+    return false;
+  }
   const dom = new jsdom.JSDOM(codeHTML);
   return dom.window.document.firstChild.textContent.startsWith("\u{feff}");
 }
