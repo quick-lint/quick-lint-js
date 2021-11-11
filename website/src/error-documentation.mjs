@@ -23,6 +23,13 @@ export let documentationDirectoryPath = path.join(
 
 let markdownParser = new MarkdownIt("commonmark");
 
+async function makeQLJSProcessAsync() {
+  let factory = await createProcessFactoryAsync();
+  let process = await factory.createProcessAsync();
+  return process;
+}
+let qljsProcessPromise = makeQLJSProcessAsync();
+
 markdownParser.renderer.rules = {
   ...markdownParser.renderer.rules,
 
@@ -123,8 +130,7 @@ export class ErrorDocumentation {
     }
 
     this.diagnostics = [];
-    let factory = await createProcessFactoryAsync();
-    let process = await factory.createProcessAsync();
+    let process = await qljsProcessPromise;
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
       let { text, language } = this.codeBlocks[i];
