@@ -1,0 +1,49 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+name: static analysis
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  analysis:
+    name: clang-tidy
+    runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    env:
+      C: clang-9
+      CFLAGS: "-stdlib=libc++"
+      CXX: clang++-9
+      CXXFLAGS: "-std=gnu++17 -stdlib=libstdc++ -O2"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: clang-tidy install
+        run: |
+          apt-get update
+          apt-get install -y clang-tidy-9
+      - name: CMake Build with clang-tidy enabled
+        run: cmake -DCMAKE_C_COMPILER=clang-9 -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_C_FLAGS="${CFLAGS}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_CLANG_TIDY="clang-tidy-9;-checks=clang-analyzer-*;--export-fixes=clang-tidy-output.yml" -S . -B build
+      - name: build with clang-tidy static analysis
+        run: cmake --build build -j9 1>/dev/null
+      - name: clang-tidy output
+        run: cat ./build/src/clang-tidy-output.yml
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
