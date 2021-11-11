@@ -1587,7 +1587,9 @@ expression* parser::parse_object_literal() {
     }
     case token_type::right_curly:
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .function_name = key->span(),
+          .expected_parameter_list =
+              source_code_span(this->lexer_.end_of_previous_token(),
+                               this->lexer_.end_of_previous_token()),
       });
       break;
     }
