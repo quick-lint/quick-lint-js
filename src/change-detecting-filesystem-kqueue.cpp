@@ -278,10 +278,16 @@ std::string vnode_event_flags_to_string(std::uint32_t flags) {
     const char name[13];
   };
   static constexpr flag_entry known_flags[] = {
-      {NOTE_ATTRIB, "NOTE_ATTRIB"}, {NOTE_DELETE, "NOTE_DELETE"},
-      {NOTE_EXTEND, "NOTE_EXTEND"}, {NOTE_FUNLOCK, "NOTE_FUNLOCK"},
-      {NOTE_LINK, "NOTE_LINK"},     {NOTE_RENAME, "NOTE_RENAME"},
-      {NOTE_REVOKE, "NOTE_REVOKE"}, {NOTE_WRITE, "NOTE_WRITE"},
+    {NOTE_ATTRIB, "NOTE_ATTRIB"},
+    {NOTE_DELETE, "NOTE_DELETE"},
+    {NOTE_EXTEND, "NOTE_EXTEND"},
+    {NOTE_LINK, "NOTE_LINK"},
+    {NOTE_RENAME, "NOTE_RENAME"},
+    {NOTE_REVOKE, "NOTE_REVOKE"},
+    {NOTE_WRITE, "NOTE_WRITE"},
+#if defined(__APPLE__)
+    {NOTE_FUNLOCK, "NOTE_FUNLOCK"},
+#endif
   };
 
   if (flags == 0) {
