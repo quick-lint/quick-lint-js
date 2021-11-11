@@ -3105,6 +3105,31 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   }
 }
 
+TEST_F(test_parse_expression, function_without_parameter_list) {
+  {
+    test_parser p(u8"function { return 42; }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "function");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(p.code(), strlen(u8"function"), u8""))));
+  }
+
+  {
+    // e.g. if (x) { function }
+    test_parser p(u8"function }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "function");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(p.code(), strlen(u8"function"), u8""))));
+  }
+}
+
 TEST_F(test_parse_expression, invalid_parentheses) {
   {
     test_parser p(u8"()"_sv);
