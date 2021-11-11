@@ -188,6 +188,8 @@ wasn't that neat?
       "<mark>\u{feff}hello</mark>",
       '<mark data-code="E123">\u{feff}hello</mark>',
       "\u{feff}<mark>world</mark>",
+      "&#xfeff;hello",
+      "&#65279;hello",
     ];
     possibilities.forEach((possibility) => {
       expect(codeHasBOM(possibility)).toBe(true);
