@@ -47,6 +47,9 @@ Beta release.
 * `delete x` no longer reports a warning if `x` is a global variable.
 * JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
   JSX syntax is not yet supported.
+* FreeBSD: Fixed build.
+* E073 now points to to a more helpful place (where the parameter list belongs,
+  not the name of the function).
 
 ## 0.5.0 (2021-10-12)
 
