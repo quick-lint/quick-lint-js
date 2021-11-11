@@ -1321,11 +1321,10 @@ class parser {
 
     // function f {}  // Invalid.
     case token_type::left_curly:
-      if (!name.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .expected_parameter_list = source_code_span(name->end(), name->end()),
+          .expected_parameter_list =
+              source_code_span(this->lexer_.end_of_previous_token(),
+                               this->lexer_.end_of_previous_token()),
       });
       break;
 
@@ -1334,11 +1333,10 @@ class parser {
     case token_type::dot:
     case token_type::number:
     case token_type::right_curly:
-      if (!name.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .expected_parameter_list = source_code_span(name->end(), name->end()),
+          .expected_parameter_list =
+              source_code_span(this->lexer_.end_of_previous_token(),
+                               this->lexer_.end_of_previous_token()),
       });
       // Don't parse a function body.
       return;
