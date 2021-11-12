@@ -642,8 +642,7 @@ expression* parser::parse_async_expression_only(token async_token,
       call_children.emplace_back(this->make_expression<expression::variable>(
           async_token.identifier_name(), async_token.type));
       for (std::size_t i = 0; i < parameters.size(); ++i) {
-        if (parameters.data()[i]->kind() == expression_kind::_invalid) {
-        } else {
+        if (parameters.data()[i]->kind() != expression_kind::_invalid) {
           call_children.emplace_back(parameters.data()[i]);
         }
       }
